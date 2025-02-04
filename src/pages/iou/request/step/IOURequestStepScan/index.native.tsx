@@ -311,7 +311,7 @@ function IOURequestStepScan({
             if (shouldSkipConfirmation) {
                 const receipt: Receipt = file;
                 receipt.source = source;
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     playSound(SOUNDS.DONE);
                     startSplitBill({

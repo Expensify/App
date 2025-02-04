@@ -273,7 +273,7 @@ function BaseTextInput(
                     onPress={onPress}
                     tabIndex={-1}
                     // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    // or if multiline is not supplied we calculate the TextInput height, using onLayout.
                     onLayout={onLayout}
                     accessibilityLabel={label}
                     style={[

@@ -44,7 +44,7 @@ type Props = {
 };
 
 /**
- * Returns a highlight style that interpolates the colour, height and opacity giving a fading effect.
+ * Returns a highlight style that interpolates the color, height and opacity giving a fading effect.
  */
 export default function useAnimatedHighlightStyle({
     borderRadius,

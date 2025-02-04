@@ -30,7 +30,7 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
         icon: Illustrations.SubscriptionAnnual,
     },
     {
-        key: CONST.SUBSCRIPTION.TYPE.PAYPERUSE,
+        key: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE,
         title: 'subscription.details.payPerUse',
         icon: Illustrations.SubscriptionPPU,
     },
@@ -52,7 +52,7 @@ function SubscriptionDetails() {
             setIsNoDelegateAccessMenuVisible(true);
             return;
         }
-        if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAYPERUSE && !account?.canDowngrade) {
+        if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !account?.canDowngrade) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(0));
             return;
         }

@@ -46,12 +46,12 @@ function GetAssistancePage({route, account}: GetAssistancePageProps) {
         },
         {
             title: translate('getAssistancePage.exploreHelpDocs'),
-            onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
+            onPress: () => Link.openExternalLink(CONST.NEW_HELP_URL),
             icon: Expensicons.QuestionMark,
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
-            link: CONST.NEWHELP_URL,
+            link: CONST.NEW_HELP_URL,
         },
     ];
 

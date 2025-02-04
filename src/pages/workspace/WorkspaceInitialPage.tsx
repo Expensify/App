@@ -193,7 +193,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const hasGeneralSettingsError =
         !isEmptyObject(policy?.errorFields?.name ?? {}) ||
         !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
-        !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
+        !isEmptyObject(policy?.errorFields?.outputCurrency ?? {}) ||
         !isEmptyObject(policy?.errorFields?.address ?? {});
     const shouldShowProtectedItems = isPolicyAdmin(policy, login);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);

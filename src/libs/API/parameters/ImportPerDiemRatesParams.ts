@@ -12,7 +12,7 @@ type ImportPerDiemRatesParams = {
      * name: “Spain”;
      * currency: “EUR”;
      * enabled: true (since we are importing);
-     * rate: 0 (since we have subrates);
+     * rate: 0 (since we have sub-rates);
      * Attributes: [];
      * subRates: An array with each element in the following shape:
      *  id: “66d5ae9a0379d”;

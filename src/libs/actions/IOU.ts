@@ -894,7 +894,7 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
 }
 
-function clearSubrates(transactionID: string) {
+function clearSubRates(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {subRates: []}}});
 }
 
@@ -2435,7 +2435,7 @@ function getSendInvoiceInformation(
     let filename;
     if (receipt?.source) {
         receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY;
         filename = receipt.name;
     }
     const optimisticTransaction = buildOptimisticTransaction({
@@ -3089,7 +3089,7 @@ function getTrackExpenseInformation(
     let filename;
     if (receipt?.source) {
         receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY;
         filename = receipt.name;
     }
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
@@ -4961,7 +4961,7 @@ function createSplitsAndOnyxData(
         transactionParams: {
             amount,
             currency,
-            reportID: CONST.REPORT.SPLIT_REPORTID,
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
             comment,
             created,
             merchant: merchant || Localize.translateLocal('iou.expense'),
@@ -5545,7 +5545,7 @@ function startSplitBill({
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
-    const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
+    const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCAN_READY} = receipt;
     const receiptObject: Receipt = {state, source};
 
     // ReportID is -2 (aka "deleted") on the group transaction
@@ -5553,7 +5553,7 @@ function startSplitBill({
         transactionParams: {
             amount: 0,
             currency,
-            reportID: CONST.REPORT.SPLIT_REPORTID,
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
             comment,
             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
             receipt: receiptObject,
@@ -9733,7 +9733,7 @@ export {
     removeSubrate,
     addSubrate,
     updateSubrate,
-    clearSubrates,
+    clearSubRates,
     setDraftSplitTransaction,
     setIndividualShare,
     setMoneyRequestAmount,

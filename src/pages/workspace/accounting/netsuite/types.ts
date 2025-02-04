@@ -53,7 +53,7 @@ type CustomFieldSubStepWithPolicy = SubStepProps & {
     /** Policy ID of the current policy */
     policyID: string;
 
-    /** Currenct policy in the form steps */
+    /** Currency policy in the form steps */
     policy: Policy | undefined;
 
     /** Whether the page is a custom segment or custom list */
@@ -65,7 +65,7 @@ type CustomFieldSubStepWithPolicy = SubStepProps & {
     /** Callback to update the current segment type of the record  */
     setCustomSegmentType?: (segmentType: ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES>) => void;
 
-    /** NetSuiteCustFieldForm values */
+    /** NetSuiteCustomFieldForm values */
     netSuiteCustomFieldFormValues: NetSuiteCustomFieldForm;
 
     customSegments?: NetSuiteCustomSegment[];

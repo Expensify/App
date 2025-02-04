@@ -1626,10 +1626,10 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
-        const latestMentioneReportAction = Object.values(reportActionsForReport ?? {}).find(
+        const latestMentionedReportAction = Object.values(reportActionsForReport ?? {}).find(
             (action) => action.reportActionID !== reportAction.reportActionID && ReportActionsUtils.didMessageMentionCurrentUser(action),
         );
-        optimisticReport.lastMentionedTime = latestMentioneReportAction?.created ?? null;
+        optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
     }
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
     // and and remove the pendingAction so the strike-through clears
@@ -1976,7 +1976,7 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
 }
 
 /**
- * This will subscribe to an existing thread, or create a new one and then subsribe to it if necessary
+ * This will subscribe to an existing thread, or create a new one and then subscribe to it if necessary
  *
  * @param childReportID The reportID we are trying to open
  * @param parentReportAction the parent comment of a thread

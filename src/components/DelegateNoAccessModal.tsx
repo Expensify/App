@@ -20,7 +20,7 @@ export default function DelegateNoAccessModal({isNoDelegateAccessMenuVisible = f
     const delegateNoAccessPrompt = (
         <Text>
             {noDelegateAccessPromptStart}
-            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{noDelegateAccessHyperLinked}</TextLink>
+            <TextLink href={CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}>{noDelegateAccessHyperLinked}</TextLink>
             {noDelegateAccessPromptEnd}
         </Text>
     );

@@ -89,7 +89,7 @@ function getTaxRatesSection({
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
         policyRatesSections.push({
-            // "Selected" sectiong
+            // "Selected" section
             title: '',
             shouldShow: false,
             data: getTaxRatesOptions(selectedTaxRateWithDisabledState),

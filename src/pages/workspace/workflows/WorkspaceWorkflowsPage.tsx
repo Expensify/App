@@ -76,7 +76,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         [policy?.achAccount?.reimburser],
     );
 
-    const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
+    const onPressAutoReportingFrequency = useCallback(
+        () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTO_REPORTING_FREQUENCY.getRoute(route.params.policyID)),
+        [route.params.policyID],
+    );
 
     const fetchData = useCallback(() => {
         Policy.openPolicyWorkflowsPage(route.params.policyID);

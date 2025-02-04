@@ -90,7 +90,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.letsStart')}
             >
-                <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
+                <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerifyExpense')}</Text>
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}

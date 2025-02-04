@@ -123,7 +123,7 @@ function BaseGetPhysicalCard({
         // When there's no physical card or it exists but it doesn't have the required state for this flow,
         // redirect user to the espensify card page
         if (cardToBeIssued.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardToBeIssued.cardID.toString()));
+            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardToBeIssued.cardID.toString()));
             return;
         }
 
@@ -151,7 +151,7 @@ function BaseGetPhysicalCard({
         // so that no stale data is left on Onyx
         FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
         Wallet.clearPhysicalCardError(currentCardID);
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(currentCardID));
         setCurrentCardID(undefined);
     }, [currentCardID, isConfirmation, cardToBeIssued]);
 
@@ -175,7 +175,7 @@ function BaseGetPhysicalCard({
 
     const handleBackButtonPress = useCallback(() => {
         if (currentCardID) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
+            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(currentCardID));
             return;
         }
         Navigation.goBack();

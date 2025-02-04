@@ -25,7 +25,7 @@ function ReportVirtualCardFraudConfirmationPage({
     const {translate} = useLocalize();
 
     const close = useCallback(() => {
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
     }, [cardID]);
 
     return (

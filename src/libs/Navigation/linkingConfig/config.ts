@@ -189,7 +189,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
-                            path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
+                            path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
@@ -595,10 +595,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
-                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.route,
+                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTO_REPORTING_FREQUENCY.route,
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
-                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.route,
+                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET.route,
                         },
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
@@ -919,7 +919,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_REASON.route,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.BOOK_CALL]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route,
+                            path: ROUTES.SETTINGS_EXIT_SURVEY_BOOK_CALL.route,
                         },
                         [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
                             path: ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route,
@@ -1151,10 +1151,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: {
                     screens: {
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL]: {
-                            path: ROUTES.SETTINGS_DOMAINCARD_DETAIL.route,
+                            path: ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.route,
                         },
                         [SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD]: {
-                            path: ROUTES.SETTINGS_DOMAINCARD_REPORT_FRAUD.route,
+                            path: ROUTES.SETTINGS_DOMAIN_CARD_REPORT_FRAUD.route,
                         },
                     },
                 },

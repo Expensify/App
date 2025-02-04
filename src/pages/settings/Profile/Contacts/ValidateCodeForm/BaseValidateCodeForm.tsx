@@ -41,7 +41,7 @@ type BaseValidateCodeFormOnyxProps = {
 };
 
 type ValidateCodeFormProps = {
-    /** The contact method being valdiated */
+    /** The contact method being validated */
     contactMethod: string;
 
     /** If the magic code has been resent previously */

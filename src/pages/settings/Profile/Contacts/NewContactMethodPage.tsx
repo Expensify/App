@@ -50,8 +50,8 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
 
     const handleValidateMagicCode = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
         const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
-        const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
-        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+        const validateIfNumber = LoginUtils.validateNumber(phoneLogin);
+        const submitDetail = (validateIfNumber || values.phoneOrEmail).trim().toLowerCase();
         User.addPendingContactMethod(submitDetail);
         setIsValidateCodeActionModalVisible(true);
     }, []);
@@ -77,7 +77,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const validate = React.useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
             const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
-            const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
+            const validateIfNumber = LoginUtils.validateNumber(phoneLogin);
 
             const errors = {};
 
@@ -85,11 +85,11 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.contactMethodRequired'));
             }
 
-            if (!!values.phoneOrEmail && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!!values.phoneOrEmail && !(validateIfNumber || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.invalidContactMethod'));
             }
 
-            if (!!values.phoneOrEmail && loginList?.[validateIfnumber || values.phoneOrEmail.toLowerCase()]) {
+            if (!!values.phoneOrEmail && loginList?.[validateIfNumber || values.phoneOrEmail.toLowerCase()]) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmitted'));
             }
 
