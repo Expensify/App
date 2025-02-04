@@ -3,7 +3,7 @@ import type {BeneficialOwnerDataKey} from '@src/types/form/ReimbursementAccountF
 
 type SaveCorpayOnboardingBeneficialOwnerParams = {
     inputs: string;
-    beneficialOwnerIDs: string;
+    beneficialOwnerIDs?: string;
     bankAccountID: number;
     [key: BeneficialOwnerDataKey]: FileObject;
 };
