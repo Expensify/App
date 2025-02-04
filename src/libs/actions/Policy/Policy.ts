@@ -1308,6 +1308,7 @@ function updateGeneralSettings(policyID: string | undefined, name: string, curre
                 outputCurrency: currency,
                 ...(customUnitID && {
                     customUnits: {
+                        ...policy.customUnits,
                         [customUnitID]: {
                             ...distanceUnit,
                             rates: optimisticRates,
