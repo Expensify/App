@@ -62,7 +62,7 @@ import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyReques
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged} from './actions/Report';
+import {handleReportChanged, prepareOnboardingOnyxData} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -2011,9 +2011,6 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
     }
 
     const policy = getPolicy(moneyRequestReport?.policyID);
-    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
-        return false;
-    }
 
     if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && !arePaymentsEnabled(policy)) {
         return false;
@@ -2043,6 +2040,11 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
     }
 
     if (isReportInGroupPolicy(moneyRequestReport) && isProcessingReport(moneyRequestReport) && !isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))) {
+        return false;
+    }
+
+    const policy = getPolicy(moneyRequestReport?.policyID);
+    if (isInstantSubmitEnabled(policy) && isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
     }
 
@@ -4472,7 +4474,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     }
 }
 
-function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean) {
+function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP?: boolean, reportIDToRemove?: string) {
     if (!backRoute) {
         return;
     }
@@ -4482,7 +4484,14 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
         return;
     }
     if (isFromRHP) {
-        Navigation.dismissModal();
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToRemove}`];
+        if (report && isTrackExpenseReport(report)) {
+            const trackReportRoute = Navigation.getReportRouteByID(reportIDToRemove);
+            if (trackReportRoute?.key) {
+                Navigation.removeScreenFromNavigationStateByKey(trackReportRoute.key);
+            }
+        }
+        Navigation.isNavigationReady().then(() => Navigation.dismissModal());
     }
     Navigation.isNavigationReady().then(() => {
         Navigation.goBack(backRoute);
@@ -6448,6 +6457,7 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    shouldEscapeText = true,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -6462,7 +6472,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: title,
-        description: getParsedComment(description ?? ''),
+        description: getParsedComment(description ?? '', {shouldEscapeText}),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
@@ -8542,7 +8552,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
     actionName: IOUAction,
     reportActionID: string | undefined,
 ): void {
-    if (!transactionID || !reportID || !reportActionID) {
+    if (!transactionID || !reportID) {
         return;
     }
 
@@ -9251,6 +9261,7 @@ export {
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
+    prepareOnboardingOnyxData,
 };
 
 export type {
