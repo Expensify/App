@@ -6,6 +6,7 @@ import type {SvgProps} from 'react-native-svg';
 import GlobalCreateIcon from '@assets/images/customEmoji/global-create.svg';
 import CustomEmojiWithDefaultPressableAction from '@components/HTMLEngineProvider/CustomEmojiWithDefaultPressableAction';
 import ImageSVG from '@components/ImageSVG';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
@@ -15,6 +16,7 @@ const emojiMap: Record<string, FC<SvgProps>> = {
 
 function CustomEmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
+    const {fontScale} = useResponsiveLayout();
     const emojiKey = tnode.attributes.emoji;
 
     if (emojiMap[emojiKey]) {
@@ -22,8 +24,8 @@ function CustomEmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
             <View style={styles.customEmoji}>
                 <ImageSVG
                     src={emojiMap[emojiKey]}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
+                    width={variables.iconSizeNormal * fontScale}
+                    height={variables.iconSizeNormal * fontScale}
                 />
             </View>
         );

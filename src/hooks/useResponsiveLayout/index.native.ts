@@ -23,7 +23,7 @@ import type ResponsiveLayoutResult from './types';
  * For more details on the various modal types we've defined for this app and implemented using react-native-modal, see `ModalType`.
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight, fontScale} = useWindowDimensions();
 
     const isExtraSmallScreenHeight = windowHeight <= variables.extraSmallMobileResponsiveHeightBreakpoint;
     const isSmallScreenWidth = true;
@@ -74,5 +74,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         onboardingIsMediumOrLargerScreenWidth,
         isLargeScreenWidth,
         isSmallScreen,
+        fontScale,
     };
 }

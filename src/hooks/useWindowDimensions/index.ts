@@ -26,7 +26,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
 
     const isCachedViewportHeight = useCachedViewportHeight && Browser.isMobileWebKit();
     const cachedViewportHeightWithKeyboardRef = useRef(initalViewportHeight);
-    const {width: windowWidth, height: windowHeight} = useWindowDimensions();
+    const {width: windowWidth, height: windowHeight, fontScale} = useWindowDimensions();
 
     // These are the same as the ones in useResponsiveLayout, but we need to redefine them here to avoid cyclic dependency.
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
@@ -106,6 +106,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     const windowDimensions = {
         windowWidth,
         windowHeight: isCachedViewportHeight ? cachedViewportHeight : windowHeight,
+        fontScale,
         responsiveLayoutResults,
     };
 
@@ -133,8 +134,8 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
     if (lockedWindowDimensionsRef.current && !isFullScreenRef.current) {
         const lastLockedWindowDimensions = {...lockedWindowDimensionsRef.current};
         unlockWindowDimensions();
-        return {windowWidth: lastLockedWindowDimensions.windowWidth, windowHeight: lastLockedWindowDimensions.windowHeight};
+        return {windowWidth: lastLockedWindowDimensions.windowWidth, windowHeight: lastLockedWindowDimensions.windowHeight, fontScale};
     }
 
-    return {windowWidth: lockedWindowDimensionsRef.current.windowWidth, windowHeight: lockedWindowDimensionsRef.current.windowHeight};
+    return {windowWidth: lockedWindowDimensionsRef.current.windowWidth, windowHeight: lockedWindowDimensionsRef.current.windowHeight, fontScale};
 }
