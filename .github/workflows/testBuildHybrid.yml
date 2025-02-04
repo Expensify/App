@@ -83,7 +83,7 @@ jobs:
             const body = pullRequest.data.body;
             const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
             const found = body.match(regex)?.groups?.prNumber || "";
-            return found.trim();
+          return found.trim();
 
   getOldDotBranchRef:
       runs-on: ubuntu-latest
@@ -100,7 +100,7 @@ jobs:
             set -e
             OLD_DOT_PR="${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}"
             if [[ -z "$OLD_DOT_PR" || "$OLD_DOT_PR" == "null" ]]; then
-              echo "REF=null" >> "$GITHUB_OUTPUT"
+              echo "REF=main" >> "$GITHUB_OUTPUT"
             else
               REF=$(gh pr view "$OLD_DOT_PR" -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid' || echo "null")
               echo "REF=$REF" >> "$GITHUB_OUTPUT"
