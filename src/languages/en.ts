@@ -4959,8 +4959,8 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' || role === 'user' ? 'a member' : 'an admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
-                    `updated the role of ${email} to ${newRole === 'member' || newRole === 'user' ? 'member' : 'admin'} (previously ${
-                        currentRole === 'member' || currentRole === 'user' ? 'member' : 'admin'
+                    `updated the role of ${email} to ${newRole === 'member' || newRole === 'user' ? 'member' : newRole} (previously ${
+                        currentRole === 'member' || currentRole === 'user' ? 'member' : currentRole
                     })`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role === 'member' || role === 'user' ? 'member' : 'admin'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
