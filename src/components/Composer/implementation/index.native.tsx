@@ -155,8 +155,8 @@ function Composer(
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
             // /*
-            // There are cases in hybird app on android that screen goes up when there is autofocus on keyboard. (e.g. https://github.com/Expensify/App/issues/53185)
-            // Workaround for this issue is to maunally focus keyboard after it's acutally rendered which is done by useAutoFocusInput hook.
+            // There are cases in hybrid app on android that screen goes up when there is autofocus on keyboard. (e.g. https://github.com/Expensify/App/issues/53185)
+            // Workaround for this issue is to manually focus keyboard after it's actually rendered which is done by useAutoFocusInput hook.
             // */
             autoFocus={getPlatform() !== 'android' ? autoFocus : false}
             /* eslint-disable-next-line react/jsx-props-no-spreading */

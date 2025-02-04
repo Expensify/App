@@ -10,7 +10,7 @@ import SCREENS from '@src/SCREENS';
 import type {PriorityMode} from '@src/types/onyx';
 
 type ScrollOffsetContextValue = {
-    /** Save scroll offset of flashlist on given screen */
+    /** Save scroll offset of FlashList on given screen */
     saveScrollOffset: (route: PlatformStackRouteProp<ParamListBase>, scrollOffset: number) => void;
 
     /** Get scroll offset value for given screen */
@@ -78,9 +78,9 @@ function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetConte
         const bottomTabNavigator = state.routes.find((route) => route.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR);
         if (bottomTabNavigator?.state && 'routes' in bottomTabNavigator.state) {
             const bottomTabNavigatorRoutes = bottomTabNavigator.state.routes;
-            const scrollOffsetkeysOfExistingScreens = bottomTabNavigatorRoutes.map((route) => getKey(route));
+            const scrollOffsetKeysOfExistingScreens = bottomTabNavigatorRoutes.map((route) => getKey(route));
             for (const key of Object.keys(scrollOffsetsRef.current)) {
-                if (!scrollOffsetkeysOfExistingScreens.includes(key)) {
+                if (!scrollOffsetKeysOfExistingScreens.includes(key)) {
                     delete scrollOffsetsRef.current[key];
                 }
             }

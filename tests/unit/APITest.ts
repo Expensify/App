@@ -336,7 +336,7 @@ describe('APITests', () => {
     });
 
     test('several actions made while offline will get added in the order they are created', () => {
-        // Given offline state where all requests will eventualy succeed without issue
+        // Given offline state where all requests will eventually succeed without issue
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
         return Onyx.multiSet({
             [ONYXKEYS.SESSION]: {authToken: 'anyToken'},
@@ -372,7 +372,7 @@ describe('APITests', () => {
     });
 
     test('several actions made while offline will get added in the order they are created when we need to reauthenticate', () => {
-        // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
+        // Given offline state where all requests will eventually succeed without issue and assumed to be valid credentials
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}).mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
         return Onyx.multiSet({
@@ -411,7 +411,7 @@ describe('APITests', () => {
     });
 
     test('Sequential queue will succeed if triggered while reauthentication via main queue is in progress', () => {
-        // Given offline state where all requests will eventualy succeed without issue and assumed to be valid credentials
+        // Given offline state where all requests will eventually succeed without issue and assumed to be valid credentials
         const xhr = jest
             .spyOn(HttpUtils, 'xhr')
             .mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED})

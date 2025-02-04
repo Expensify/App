@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {HeaderIndice} from '@libs/EmojiUtils';
+import type {HeaderIndices} from '@libs/EmojiUtils';
 import CategoryShortcutButton from './CategoryShortcutButton';
 
 type CategoryShortcutBarProps = {
@@ -9,7 +9,7 @@ type CategoryShortcutBarProps = {
     onPress: (index: number) => void;
 
     /** The emojis consisting emoji code and indices that the icons should link to */
-    headerEmojis: HeaderIndice[];
+    headerEmojis: HeaderIndices[];
 };
 
 function CategoryShortcutBar({onPress, headerEmojis}: CategoryShortcutBarProps) {

@@ -53,7 +53,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: 'SCAN_COMPLETE',
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -92,7 +92,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: 'SCAN_COMPLETE',
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,
@@ -164,7 +164,7 @@ describe('useSearchHighlightAndScroll', () => {
                     posted: '',
                     receipt: {
                         receiptID: 7409094723954473,
-                        state: 'SCANCOMPLETE',
+                        state: 'SCAN_COMPLETE',
                         source: 'https://www.expensify.com/receipts/w_c989c343d834d48a4e004c38d03c90bff9434768.png',
                     },
                     reimbursable: true,

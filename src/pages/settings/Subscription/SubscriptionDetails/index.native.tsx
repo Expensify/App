@@ -56,7 +56,7 @@ function SubscriptionDetails() {
                 </View>
             ) : (
                 <>
-                    {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE ? (
+                    {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? (
                         <OptionItem
                             title="subscription.details.payPerUse"
                             icon={Illustrations.SubscriptionPPU}

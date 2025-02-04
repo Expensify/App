@@ -63,7 +63,7 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
                 return <EnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
                 return <DisabledStep />;
-            case CONST.TWO_FACTOR_AUTH_STEPS.GETCODE:
+            case CONST.TWO_FACTOR_AUTH_STEPS.GET_CODE:
                 return <GetCodeStep />;
             default:
                 return <CodesStep backTo={backTo} />;

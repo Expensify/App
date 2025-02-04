@@ -82,7 +82,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** TestID of the component */
         testID?: string;
 
-        /** Whether the page is loading, example any other API call in progres */
+        /** Whether the page is loading, example any other API call in progress */
         isLoading?: boolean;
     };
 

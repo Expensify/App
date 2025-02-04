@@ -38,7 +38,7 @@ type PlatformNavigationBuilderNavigation<
     ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
 > = NavigationHelpers<ParamList, EventMap> & ActionHelpers;
 
-// Represents the type of a single descripter returned by useNavigationBuilder
+// Represents the type of a single descriptor returned by useNavigationBuilder
 type PlatformNavigationBuilderDescriptor<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,

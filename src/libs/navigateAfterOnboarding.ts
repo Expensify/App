@@ -15,7 +15,7 @@ const navigateAfterOnboarding = (isSmallScreenWidth: boolean, canUseDefaultRooms
 
     const lastAccessedReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
     const lastAccessedReportID = lastAccessedReport?.reportID;
-    // we don't want to navigate to newly creaded workspace after onboarding completed.
+    // we don't want to navigate to newly created workspace after onboarding completed.
     if (!lastAccessedReportID || lastAccessedReport.policyID === onboardingPolicyID || ReportUtils.isConciergeChatReport(lastAccessedReport)) {
         return;
     }

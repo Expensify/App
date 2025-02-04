@@ -43,7 +43,7 @@ function EnabledStep() {
                                     setIsVisible(true);
                                     return;
                                 }
-                                setStep(CONST.TWO_FACTOR_AUTH_STEPS.GETCODE);
+                                setStep(CONST.TWO_FACTOR_AUTH_STEPS.GET_CODE);
                             },
                             icon: Expensicons.Close,
                             iconFill: theme.danger,

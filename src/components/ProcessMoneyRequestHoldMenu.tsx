@@ -26,10 +26,10 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
-        const unsub = navigation.addListener('beforeRemove', () => {
+        const unsubscribe = navigation.addListener('beforeRemove', () => {
             onClose();
         });
-        return unsub;
+        return unsubscribe;
     }, [navigation, onClose]);
 
     const title = useMemo(

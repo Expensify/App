@@ -512,7 +512,7 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(report)).toBe(false);
         });
 
-        it('returns false when the linked iou report has an oustanding IOU', () => {
+        it('returns false when the linked iou report has an outstanding IOU', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',

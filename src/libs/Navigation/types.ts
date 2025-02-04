@@ -80,7 +80,7 @@ type BackToParams = {
     backTo?: Routes;
 };
 
-type BackToAndForwardToParms = {
+type BackToAndForwardToParams = {
     backTo?: Routes;
     forwardTo?: Routes;
 };
@@ -1724,7 +1724,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
         [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
-        [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
+        [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
         [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
         [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
@@ -1834,7 +1834,7 @@ export type {
     CentralPaneScreensParamList,
     CentralPaneName,
     BackToParams,
-    BackToAndForwardToParms,
+    BackToAndForwardToParams,
     BottomTabName,
     BottomTabNavigatorParamList,
     DetailsNavigatorParamList,

@@ -60,7 +60,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     /** Function to check whether composer is covered up or not */
     checkComposerVisibility?: () => boolean;
 
-    /** Whether the sull composer is open */
+    /** Whether the full composer is open */
     isComposerFullSize?: boolean;
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */

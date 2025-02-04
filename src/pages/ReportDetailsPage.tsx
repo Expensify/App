@@ -708,7 +708,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     source={icons.at(0)?.source}
                     avatarID={icons.at(0)?.id}
                     isUsingDefaultAvatar={!report.avatarUrl}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={styles.avatarXLarge}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => {

@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {
-    clearSubrates,
+    clearSubRates,
     getIOURequestPolicyID,
     setCustomUnitID,
     setCustomUnitRateID,
@@ -87,7 +87,7 @@ function IOURequestStepDestination({
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '');
             setMoneyRequestCurrency(transactionID, destination.currency);
-            clearSubrates(transactionID);
+            clearSubRates(transactionID);
         }
 
         if (backTo) {

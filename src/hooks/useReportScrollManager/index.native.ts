@@ -20,7 +20,7 @@ function useReportScrollManager(): ReportScrollManagerData {
     );
 
     /**
-     * Scroll to the bottom of the flatlist.
+     * Scroll to the bottom of the FlatList.
      */
     const scrollToBottom = useCallback(() => {
         if (!flatListRef?.current) {

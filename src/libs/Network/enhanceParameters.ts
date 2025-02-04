@@ -48,7 +48,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
 
-    // In addition to the referer (ecash), we pass the platform to help differentiate what device type
+    // In addition to the referer (e-cash), we pass the platform to help differentiate what device type
     // is sending the request.
     finalParameters.platform = getPlatform();
 

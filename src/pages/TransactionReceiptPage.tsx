@@ -62,7 +62,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates ? !transaction : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
+        isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || isFromReviewDuplicates ? !transaction : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
 
     return (
         <AttachmentModal

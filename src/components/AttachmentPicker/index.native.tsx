@@ -179,8 +179,8 @@ function AttachmentPicker({
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
                                     manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
-                                        .then((manipResult) => {
-                                            const uri = manipResult.uri;
+                                        .then((manipulateResult) => {
+                                            const uri = manipulateResult.uri;
                                             const convertedAsset = {
                                                 uri,
                                                 name: uri
@@ -188,8 +188,8 @@ function AttachmentPicker({
                                                     .split('?')
                                                     .at(0),
                                                 type: 'image/jpeg',
-                                                width: manipResult.width,
-                                                height: manipResult.height,
+                                                width: manipulateResult.width,
+                                                height: manipulateResult.height,
                                             };
 
                                             return resolve([convertedAsset]);

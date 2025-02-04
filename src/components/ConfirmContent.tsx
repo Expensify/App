@@ -96,7 +96,7 @@ type ConfirmContentProps = {
     /** Image to display with content */
     image?: IconAsset;
 
-    /** Whether the modal is visibile */
+    /** Whether the modal is visible */
     isVisible: boolean;
 };
 

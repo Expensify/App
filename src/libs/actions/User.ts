@@ -87,7 +87,7 @@ Onyx.connect({
 });
 
 /**
- * Attempt to close the user's accountt
+ * Attempt to close the user's account
  */
 function closeAccount(reason: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
@@ -117,7 +117,7 @@ function closeAccount(reason: string) {
 }
 
 /**
- * Resends a validation link to a given login
+ * Re-sends a validation link to a given login
  */
 function resendValidateCode(login: string) {
     sessionResendValidateCode(login);
@@ -279,7 +279,7 @@ function clearContactMethod(contactMethod: string) {
 }
 
 /**
- * Clears error for a sepcific field on validate action code.
+ * Clears error for a specific field on validate action code.
  */
 function clearValidateCodeActionError(fieldName: string) {
     Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
@@ -834,7 +834,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
             for (const data of flatten) {
                 // Someone completes a task
-                if (data.actionName === 'TASKCOMPLETED') {
+                if (data.actionName === 'TASK_COMPLETED') {
                     return playSound(SOUNDS.SUCCESS);
                 }
             }
@@ -959,7 +959,7 @@ function pingPusher() {
     Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
 
-function checkforMissingPongEvents() {
+function checkForMissingPongEvents() {
     Log.info(`[Pusher PINGPONG] Checking for missing PONG events`);
     // Get the oldest PING timestamp that is left in the event map
     const oldestPingTimestamp = Math.min(...Object.values(pingIDsAndTimestamps));
@@ -1005,7 +1005,7 @@ function initializePusherPingPong() {
     // events to be sent and received
     setTimeout(() => {
         // Check for any missing pong events on a regular interval
-        setInterval(checkforMissingPongEvents, CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
+        setInterval(checkForMissingPongEvents, CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
     }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 

@@ -78,11 +78,11 @@ function IOURequestStepSubrate({
     const {inputCallbackRef} = useAutoFocusInput();
     const parsedIndex = parseInt(pageIndex, 10);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
-    const allSubrates = transaction?.comment?.customUnit?.subRates ?? [];
-    const allPossibleSubrates = selectedDestination ? customUnit?.rates?.[selectedDestination]?.subRates ?? [] : [];
-    const currentSubrate: CommentSubrate | undefined = allSubrates.at(parsedIndex) ?? undefined;
-    const totalSubrateCount = allPossibleSubrates.length;
-    const filledSubrateCount = allSubrates.length;
+    const allSubRates = transaction?.comment?.customUnit?.subRates ?? [];
+    const allPossibleSubRates = selectedDestination ? customUnit?.rates?.[selectedDestination]?.subRates ?? [] : [];
+    const currentSubrate: CommentSubrate | undefined = allSubRates.at(parsedIndex) ?? undefined;
+    const totalSubrateCount = allPossibleSubRates.length;
+    const filledSubrateCount = allSubRates.length;
     const [subrateValue, setSubrateValue] = useState(currentSubrate?.id);
     const [quantityValue, setQuantityValue] = useState(() => (currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined));
 
@@ -102,7 +102,7 @@ function IOURequestStepSubrate({
     const shouldShowThreeDotsButton = filledSubrateCount > 1 && !isEmptyObject(currentSubrate);
     const shouldDisableEditor = isFocused && (Number.isNaN(parsedIndex) || parsedIndex < 0 || parsedIndex >= totalSubrateCount || parsedIndex > filledSubrateCount);
 
-    const validOptions = getSubrateOptions(allPossibleSubrates, allSubrates, currentSubrate?.id);
+    const validOptions = getSubrateOptions(allPossibleSubRates, allSubRates, currentSubrate?.id);
 
     const goBack = () => {
         if (backTo) {
@@ -135,7 +135,7 @@ function IOURequestStepSubrate({
         const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
         const subrateVal = String(values[`subrate${pageIndex}`] ?? '');
         const quantityInt = parseInt(quantityVal, 10);
-        const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateVal);
+        const selectedSubrate = allPossibleSubRates.find(({id}) => id === subrateVal);
         const name = selectedSubrate?.name ?? '';
         const rate = selectedSubrate?.rate ?? 0;
 

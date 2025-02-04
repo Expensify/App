@@ -136,7 +136,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     // on iOS, navigation animation sometimes cause the scrollbar to appear
-                    // on middle/left side of scrollview. scrollIndicatorInsets with right
+                    // on middle/left side of ScrollView. scrollIndicatorInsets with right
                     // to closest value to 0 fixes this issue, 0 (default) doesn't work
                     // See: https://github.com/Expensify/App/issues/31441
                     scrollIndicatorInsets={{right: Number.MIN_VALUE}}

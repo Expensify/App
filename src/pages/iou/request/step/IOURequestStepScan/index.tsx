@@ -199,7 +199,7 @@ function IOURequestStepScan({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
 
-    const hideRecieptModal = () => {
+    const hideReceiptModal = () => {
         setIsAttachmentInvalid(false);
     };
 
@@ -337,7 +337,7 @@ function IOURequestStepScan({
             if (shouldSkipConfirmation) {
                 const receipt: Receipt = file;
                 receipt.source = source;
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     playSound(SOUNDS.DONE);
                     startSplitBill({
@@ -807,8 +807,8 @@ function IOURequestStepScan({
                         />
                         <ConfirmModal
                             title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                            onConfirm={hideRecieptModal}
-                            onCancel={hideRecieptModal}
+                            onConfirm={hideReceiptModal}
+                            onCancel={hideReceiptModal}
                             isVisible={isAttachmentInvalid}
                             prompt={getConfirmModalPrompt()}
                             confirmText={translate('common.close')}

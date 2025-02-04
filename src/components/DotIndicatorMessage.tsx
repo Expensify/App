@@ -16,7 +16,7 @@ import TextLink from './TextLink';
 
 type DotIndicatorMessageProps = {
     /**
-     * In most cases this should just be errors from onxyData
+     * In most cases this should just be errors from onyxData
      * if you are not passing that data then this needs to be in a similar shape like
      *  {
      *      timestamp: 'message',

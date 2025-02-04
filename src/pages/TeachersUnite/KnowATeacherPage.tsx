@@ -39,8 +39,8 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
         const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
-        const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
-        const contactMethod = (validateIfnumber || values.partnerUserID).trim().toLowerCase();
+        const validateIfNumber = LoginUtils.validateNumber(phoneLogin);
+        const contactMethod = (validateIfNumber || values.partnerUserID).trim().toLowerCase();
         const firstName = values.firstName.trim();
         const lastName = values.lastName.trim();
 

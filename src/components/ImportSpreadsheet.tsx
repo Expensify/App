@@ -25,7 +25,7 @@ import ImageSVG from './ImageSVG';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
-type ImportSpreedsheetProps = {
+type ImportSpreadsheetProps = {
     // The route to navigate to when the back button is pressed.
     backTo?: Routes;
 
@@ -33,7 +33,7 @@ type ImportSpreedsheetProps = {
     goTo: Routes;
 };
 
-function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
+function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFIle] = useState(false);

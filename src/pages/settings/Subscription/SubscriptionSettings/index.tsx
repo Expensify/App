@@ -57,7 +57,7 @@ function SubscriptionSettings() {
         Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
-    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE) {
+    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE) {
         return null;
     }
 

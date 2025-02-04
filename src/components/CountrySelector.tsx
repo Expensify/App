@@ -37,12 +37,12 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
     const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
 
-    const didOpenContrySelector = useRef(false);
+    const didOpenCountrySelector = useRef(false);
     const isFocused = useIsFocused();
     useEffect(() => {
         // Check if the country selector was opened and no value was selected, triggering onBlur to display an error
-        if (isFocused && didOpenContrySelector.current) {
-            didOpenContrySelector.current = false;
+        if (isFocused && didOpenCountrySelector.current) {
+            didOpenCountrySelector.current = false;
             if (!countryFromUrl) {
                 onBlur?.();
             }
@@ -76,7 +76,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
             errorText={errorText}
             onPress={() => {
                 const activeRoute = Navigation.getActiveRoute();
-                didOpenContrySelector.current = true;
+                didOpenCountrySelector.current = true;
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
             }}
         />

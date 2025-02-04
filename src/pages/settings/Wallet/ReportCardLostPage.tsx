@@ -91,7 +91,7 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
     }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
 
     useEffect(() => {
