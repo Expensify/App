@@ -92,7 +92,7 @@ jobs:
         working-directory: android/app
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: op read "op://Mobile Deployers/New Expensify Android Upload keystore/my-upload-key.keystore" --force --out-file ./my-upload-key.keystore
+        run: op read ""op://Mobile-Deploy-CI/New Expensify Android Upload keystore/my-upload-key.keystore"" --force --out-file ./my-upload-key.keystore
 
       - name: Get package version
         id: getPackageVersion
