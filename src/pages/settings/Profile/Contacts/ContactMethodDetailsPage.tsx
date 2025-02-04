@@ -270,7 +270,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             onEntryTransitionEnd={() => validateCodeFormRef.current?.focus?.()}
             testID={ContactMethodDetailsPage.displayName}
             focusTrapSettings={{
-                focusTrapOptions: !isMobileSafari()
+                focusTrapOptions: isMobileSafari()
                     ? undefined
                     : {
                           // It is added because input form's focusing bothers transition animation:
