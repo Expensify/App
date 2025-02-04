@@ -21,10 +21,10 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const nsqsConfig = policy?.connections?.nsqs?.config;
+    const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
     const isAutoSyncEnabled = nsqsConfig?.autoSync.enabled ?? false;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
-    const nsqsData = policy?.connections?.nsqs?.data;
+    const nsqsData = policy?.connections?.netsuiteQuickStart?.data;
     const payableList: NSQSAccount[] = useMemo(() => nsqsData?.payableList ?? [], [nsqsData?.payableList]);
 
     const defaultApprovalAccount: NSQSAccount = useMemo(
@@ -60,7 +60,7 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}
                     switchAccessibilityLabel={translate('workspace.accounting.autoSync')}
-                    subtitle={translate('workspace.accounting.autoSyncDescription')}
+                    subtitle={translate('workspace.nsqs.advanced.autoSyncDescription')}
                     shouldPlaceSubtitleBelowSwitch
                     isActive={isAutoSyncEnabled}
                     onToggle={toggleAutoSync}

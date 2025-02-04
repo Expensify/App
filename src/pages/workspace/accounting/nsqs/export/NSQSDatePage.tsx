@@ -23,7 +23,7 @@ function NSQSDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const nsqsConfig = policy?.connections?.nsqs?.config;
+    const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
     const exportDate = nsqsConfig?.exportDate ?? CONST.NSQS_EXPORT_DATE.LAST_EXPENSE;
 
     const sectionData: Array<SelectorType<Option>> = Options.map((option) => ({

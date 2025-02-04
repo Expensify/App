@@ -22,7 +22,7 @@ function NSQSCustomersDisplayedAsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const nsqsConfig = policy?.connections?.nsqs?.config;
+    const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
     const importType = nsqsConfig?.syncOptions.mapping.customers ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
     const sectionData: Array<SelectorType<Option>> = Options.map((option) => ({

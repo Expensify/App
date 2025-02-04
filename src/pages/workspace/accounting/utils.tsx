@@ -229,8 +229,8 @@ function getAccountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [CONST.NSQS_CONFIG.AUTO_SYNC, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.NSQS)),
-                pendingFields: policy?.connections?.nsqs?.config?.pendingFields,
-                errorFields: policy?.connections?.nsqs?.config?.errorFields,
+                pendingFields: policy?.connections?.netsuiteQuickStart?.config?.pendingFields,
+                errorFields: policy?.connections?.netsuiteQuickStart?.config?.errorFields,
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {

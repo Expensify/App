@@ -3420,6 +3420,7 @@ const translations = {
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as',
             },
             advanced: {
+                autoSyncDescription: 'Sync NSQS and Expensify automatically, every day. Export finalized report in realtime',
                 defaultApprovalAccount: 'NSQS default',
                 approvalAccount: 'A/P approval account',
                 approvalAccountDescription:

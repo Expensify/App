@@ -30,11 +30,11 @@ function connectPolicyToNSQS(policyID: string, nsqsAccountID: string) {
     API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NSQS, params, {optimisticData});
 }
 
-function buildOnyxDataForNSQSConfiguration<TSettingName extends keyof Connections['nsqs']['config']>(
+function buildOnyxDataForNSQSConfiguration<TSettingName extends keyof Connections['netsuiteQuickStart']['config']>(
     policyID: string,
     settingName: TSettingName,
-    settingValue: PartialDeep<Connections['nsqs']['config'][TSettingName]>,
-    oldSettingValue: PartialDeep<Connections['nsqs']['config'][TSettingName]>,
+    settingValue: PartialDeep<Connections['netsuiteQuickStart']['config'][TSettingName]>,
+    oldSettingValue: PartialDeep<Connections['netsuiteQuickStart']['config'][TSettingName]>,
     fieldName: string,
 ) {
     const optimisticData: OnyxUpdate[] = [

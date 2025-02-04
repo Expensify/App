@@ -20,9 +20,9 @@ function NSQSApprovalAccountPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const nsqsConfig = policy?.connections?.nsqs?.config;
+    const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
-    const nsqsData = policy?.connections?.nsqs?.data;
+    const nsqsData = policy?.connections?.netsuiteQuickStart?.data;
     const payableList: NSQSAccount[] = useMemo(() => nsqsData?.payableList ?? [], [nsqsData?.payableList]);
 
     const defaultApprovalAccount: NSQSAccount = useMemo(

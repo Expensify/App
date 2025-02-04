@@ -18,7 +18,7 @@ function NSQSImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const nsqsConfig = policy?.connections?.nsqs?.config;
+    const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
     const customersImportType = nsqsConfig?.syncOptions.mapping.customers ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     const projectsImportType = nsqsConfig?.syncOptions.mapping.projects ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
