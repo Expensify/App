@@ -4971,7 +4971,7 @@ const translations = {
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 updateAutoReportingFrequency: ({oldFrequency, newFrequency}: UpdateAutoReportingFrequencyParams) =>
-                    `updated auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
+                    `updated the submission frequency to "${newFrequency}" (previously "${oldFrequency}")`,
             },
         },
     },
