@@ -85,9 +85,14 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Decrypt keystore to sign the APK/AAB
-        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output my-upload-key.keystore my-upload-key.keystore.gpg
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
         working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: op read op://Mobile Deployers/New Expensify Android Upload keystore/my-upload-key.keystore --force --out-file ./my-upload-key.keystore
 
       - name: Get package version
         id: getPackageVersion
