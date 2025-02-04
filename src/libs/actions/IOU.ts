@@ -8074,7 +8074,7 @@ function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>) {
     return getAccountIDsByLogins([nextApproverEmail]).at(0);
 }
 
-function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean, hash?: number) {
     if (!expenseReport) {
         return;
     }
@@ -8227,6 +8227,42 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+    }
+
+    if (hash) {
+        const transactions = getReportTransactions(expenseReport.reportID);
+        const transactionIDs = transactions.map((t) => t.transactionID);
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: {isActionLoading: true}
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: null,
+                    ...(Object.fromEntries((transactionIDs ?? []).map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null])) as Partial<SearchTransaction>),
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'), 
+                        isActionLoading: false,
+                    }
+                },
+            },
+        });
     }
 
     const parameters: ApproveMoneyRequestParams = {

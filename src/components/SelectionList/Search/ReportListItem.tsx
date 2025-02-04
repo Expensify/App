@@ -133,6 +133,7 @@ function ReportListItem<TItem extends ListItem>({
                 onLongPressRow={onLongPressRow}
                 shouldSyncFocus={shouldSyncFocus}
                 isLoading={reportItem.isActionLoading}
+                shouldAnimationOnRemove={shouldAnimationOnRemove}
             />
         );
     }

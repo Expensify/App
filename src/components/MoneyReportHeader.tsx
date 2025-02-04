@@ -80,6 +80,7 @@ import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
 import SettlementButton from './SettlementButton';
+import { useSearchContext } from './Search/SearchContext';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -156,6 +157,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
+    const {currentSearchHash} = useSearchContext();
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
@@ -241,7 +243,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
-            approveMoneyRequest(moneyRequestReport, true);
+            approveMoneyRequest(moneyRequestReport, true, currentSearchHash);
         }
     };
 
