@@ -258,6 +258,19 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
     const startDate = new Date(customUnitRateDate.start);
     const endDate = new Date(customUnitRateDate.end);
+    // Check if start and end dates are on the same day
+    const isSameDay = startOfDay(startDate).getTime() === startOfDay(endDate).getTime();
+
+    if (isSameDay) {
+        // If same day, just calculate the direct hour difference
+        const hourDiff = differenceInMinutes(endDate, startDate) / 60;
+        return {
+            firstDay: hourDiff,
+            tripDays: 0,
+            lastDay: undefined,
+        };
+    }
+
     const firstDayDiff = differenceInMinutes(startOfDay(addDays(startDate, 1)), startDate);
     const tripDaysDiff = differenceInDays(startOfDay(endDate), startOfDay(addDays(startDate, 1)));
     const lastDayDiff = differenceInMinutes(endDate, startOfDay(endDate));
