@@ -6567,7 +6567,7 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
         },
     },
-    SETUP_SPECIALIST_LOGIN: 'Setup Specialist'
+    SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
