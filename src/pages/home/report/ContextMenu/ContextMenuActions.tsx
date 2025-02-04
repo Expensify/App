@@ -102,6 +102,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction, User} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
@@ -261,12 +262,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    InteractionManager.runAfterInteractions(() => {
-                        // Normally the focus callback of the main composer doesn't focus when willBlurTextInputOnTapOutside
-                        // is false, so we need to pass true here to override this condition.
-                        ReportActionComposeFocusManager.focus(true);
+                    KeyboardUtils.dismiss().then(() => {
+                        navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
                     });
-                    navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
                 });
                 return;
             }
