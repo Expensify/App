@@ -3411,9 +3411,6 @@ const translations = {
                 expenseCategories: 'Categorías de gastos',
                 expenseCategoriesDescription: 'NSQS expense categories import into Expensify as categories.', // s77rt translate
                 importTypes: {
-                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
-                        label: 'Predeterminado del empleado NSQS',
-                    },
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Etiquetas',
                         description: 'Nivel de línea de pedido',

@@ -3372,9 +3372,6 @@ const translations = {
                 expenseCategories: 'Expense categories',
                 expenseCategoriesDescription: 'NSQS expense categories import into Expensify as categories.',
                 importTypes: {
-                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
-                        label: 'NSQS employee default',
-                    },
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tags',
                         description: 'Line-item level',
