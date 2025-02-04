@@ -2174,10 +2174,6 @@ const CONST = {
         '_vietNam',
     ] as string[],
 
-    NSQS_ACCOUNT_TYPE: {
-        ACCOUNTS_PAYABLE: '_accountsPayable',
-    },
-
     NSQS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         EXPORTED: 'EXPORTED',

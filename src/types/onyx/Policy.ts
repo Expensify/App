@@ -1073,21 +1073,23 @@ type NetSuiteConnection = {
 };
 
 /**
- *  NSQS Financial account (bank account, debit card, etc)
+ *  NSQS Payable account
  */
-type NSQSAccount = {
-    /** GL code assigned to the financial account */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    'GL Code'?: string;
+type NSQSPayableAccount = {
+    /** ID assigned to the account in NSQS */
+    id: string;
 
     /** Name of the account */
     name: string;
 
-    /** ID assigned to the financial account in NSQS */
-    id: string;
+    /** Display name of the account */
+    displayName: string;
 
-    /** Type of the financial account */
-    type: ValueOf<typeof CONST.NSQS_ACCOUNT_TYPE>;
+    /** Number of the account */
+    number: string;
+
+    /** Type of the account */
+    type: string;
 };
 
 /**
@@ -1095,7 +1097,7 @@ type NSQSAccount = {
  */
 type NSQSConnectionData = {
     /** Collection of the payable accounts */
-    payableList: NSQSAccount[];
+    payableAccounts: NSQSPayableAccount[];
 };
 
 /**
@@ -2022,7 +2024,7 @@ export type {
     NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
-    NSQSAccount,
+    NSQSPayableAccount,
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,

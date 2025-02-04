@@ -14,7 +14,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearNSQSErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {NSQSAccount} from '@src/types/onyx/Policy';
+import type {NSQSPayableAccount} from '@src/types/onyx/Policy';
 
 function NSQSApprovalAccountPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -23,21 +23,22 @@ function NSQSApprovalAccountPage({policy}: WithPolicyProps) {
     const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
     const nsqsData = policy?.connections?.netsuiteQuickStart?.data;
-    const payableList: NSQSAccount[] = useMemo(() => nsqsData?.payableList ?? [], [nsqsData?.payableList]);
+    const payableAccounts: NSQSPayableAccount[] = useMemo(() => nsqsData?.payableAccounts ?? [], [nsqsData?.payableAccounts]);
 
-    const defaultApprovalAccount: NSQSAccount = useMemo(
+    const defaultApprovalAccount: NSQSPayableAccount = useMemo(
         () => ({
             id: '',
             name: translate(`workspace.nsqs.advanced.defaultApprovalAccount`),
-            type: CONST.NSQS_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
+            displayName: translate(`workspace.nsqs.advanced.defaultApprovalAccount`),
+            number: '',
+            type: '',
         }),
         [translate],
     );
-    const otherApprovalAccounts: NSQSAccount[] = useMemo(() => payableList.filter((account) => account.type === CONST.NSQS_ACCOUNT_TYPE.ACCOUNTS_PAYABLE), [payableList]);
 
-    const sectionData: SelectorType[] = [defaultApprovalAccount, ...otherApprovalAccounts].map((option) => ({
+    const sectionData: SelectorType[] = [defaultApprovalAccount, ...payableAccounts].map((option) => ({
         keyForList: option.id,
-        text: option.name,
+        text: option.displayName,
         isSelected: option.id === approvalAccount,
         value: option.id,
     }));

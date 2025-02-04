@@ -15,7 +15,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearNSQSErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {NSQSAccount} from '@src/types/onyx/Policy';
+import type {NSQSPayableAccount} from '@src/types/onyx/Policy';
 
 function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -25,18 +25,19 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const isAutoSyncEnabled = nsqsConfig?.autoSync.enabled ?? false;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
     const nsqsData = policy?.connections?.netsuiteQuickStart?.data;
-    const payableList: NSQSAccount[] = useMemo(() => nsqsData?.payableList ?? [], [nsqsData?.payableList]);
+    const payableAccounts: NSQSPayableAccount[] = useMemo(() => nsqsData?.payableAccounts ?? [], [nsqsData?.payableAccounts]);
 
-    const defaultApprovalAccount: NSQSAccount = useMemo(
+    const defaultApprovalAccount: NSQSPayableAccount = useMemo(
         () => ({
             id: '',
             name: translate(`workspace.nsqs.advanced.defaultApprovalAccount`),
-            type: CONST.NSQS_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
+            displayName: translate(`workspace.nsqs.advanced.defaultApprovalAccount`),
+            number: '',
+            type: '',
         }),
         [translate],
     );
-    const otherApprovalAccounts: NSQSAccount[] = useMemo(() => payableList.filter((account) => account.type === CONST.NSQS_ACCOUNT_TYPE.ACCOUNTS_PAYABLE), [payableList]);
-    const selectedApprovalAccount = [defaultApprovalAccount, ...otherApprovalAccounts].find((account) => account.id === approvalAccount);
+    const selectedApprovalAccount = [defaultApprovalAccount, ...payableAccounts].find((account) => account.id === approvalAccount);
 
     const toggleAutoSync = useCallback(() => {
         if (!policyID) {
@@ -70,7 +71,7 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
                 />
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.APPROVAL_ACCOUNT], nsqsConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
-                        title={selectedApprovalAccount?.name}
+                        title={selectedApprovalAccount?.displayName}
                         description={translate(`workspace.nsqs.advanced.approvalAccount`)}
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                         shouldShowRightIcon
