@@ -145,6 +145,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
@@ -196,7 +197,6 @@ import type {
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkspaceLockedPlanTypeParams,
@@ -1365,6 +1365,8 @@ const translations = {
         pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
         twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsDescription: 'Two-factor authentication is required for Xero workspace admins. Please enable two-factor authentication to continue.',
+        twoFactorAuthCannotDisable: 'Cannot disable 2FA',
+        twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
     },
     recoveryCodeForm: {
         error: {
@@ -2539,6 +2541,12 @@ const translations = {
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
             confirmation: 'Confirmation number',
+            cancellationPolicies: {
+                unknown: 'Unknown',
+                nonRefundable: 'Non-refundable',
+                freeCancellationUntil: 'Free cancellation until',
+                partiallyRefundable: 'Partially refundable',
+            },
         },
         car: 'Car',
         carDetails: {
@@ -2648,8 +2656,8 @@ const translations = {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You've been invited to ${workspaceName || 'a workspace'}! Get the most out of Expensify by downloading the app at use.expensify.com/download.`,
+            defaultDescription: 'One place for all your receipts and expenses.',
+            welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -3507,6 +3515,8 @@ const translations = {
             limit: 'Limit',
             currentBalance: 'Current balance',
             currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
+            balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `Balance will be settled on ${settlementDate}`,
+            settleBalance: 'Settle balance',
             cardLimit: 'Card limit',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
@@ -5397,14 +5407,14 @@ const translations = {
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
             earlyDiscount: {
-                claimOffer: 'Claim Offer',
+                claimOffer: 'Claim offer',
                 noThanks: 'No thanks',
                 subscriptionPageTitle: {
                     phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                    phrase2: `Just add a payment card and start an annual subscription!`,
+                    phrase2: `Just add a payment card and start an annual subscription.`,
                 },
                 onboardingChatTitle: {
-                    phrase1: 'Limited time offer:',
+                    phrase1: 'Limited-time offer:',
                     phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
                 },
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim within ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
