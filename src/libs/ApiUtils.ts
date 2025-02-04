@@ -5,13 +5,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import proxyConfig from '../../config/proxyConfig';
-import * as Environment from './Environment/Environment';
+import {getEnvironment} from './Environment/Environment';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
 let ENV_NAME: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
 let shouldUseStagingServer = false;
-Environment.getEnvironment().then((envName) => {
+getEnvironment().then((envName) => {
     ENV_NAME = envName;
 
     // We connect here, so we have the updated ENV_NAME when Onyx callback runs
