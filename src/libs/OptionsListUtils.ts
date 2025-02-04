@@ -1484,6 +1484,7 @@ function getValidOptions(
                 !detail.accountID ||
                 !!detail?.isOptimisticPersonalDetail ||
                 (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
+                // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
                 detail?.login === CONST.SETUP_SPECIALIST_LOGIN
             ) {
                 continue;
