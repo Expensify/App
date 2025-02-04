@@ -170,7 +170,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     pendingAction: value.pendingAction,
                     rightElement: (
                         <>
-                            <View style={styles.flex2}>
+                            <View style={styles.flex1}>
                                 <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}>{value.subRateName}</Text>
                             </View>
                             <View style={styles.flex1}>
@@ -205,10 +205,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, !canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]]}>
-            <View style={styles.flex3}>
+            <View style={styles.flex1}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('common.destination')}</Text>
             </View>
-            <View style={styles.flex2}>
+            <View style={styles.flex1}>
                 <Text style={[styles.searchInputStyle, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
             </View>
             <View style={styles.flex1}>
@@ -419,7 +419,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
-                        listItemTitleContainerStyles={styles.flex3}
+                        listItemTitleContainerStyles={styles.flex1}
                         showScrollIndicator={false}
                     />
                 )}
