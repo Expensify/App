@@ -192,10 +192,9 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./upload-key.keystore upload-key.keystore 
-          op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
-          # Copy the keystore to the Android directory for Fullstory
-          cp ./upload-key.keystore Mobile-Expensify/Android 
+          op read op://Mobile Deployers/NewApp_AdHoc/NewApp_AdHoc.mobileprovision --force --out-file ./NewApp_AdHoc.mobileprovision
+          op read op://Mobile Deployers/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
+          op read op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12 --force --out-file ./Certificates.p12
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials

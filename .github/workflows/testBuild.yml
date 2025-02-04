@@ -111,9 +111,6 @@ jobs:
           pattern: android-*-artifact
           merge-multiple: true
 
-      - name: Log downloaded artifact paths
-        run: ls -R /tmp/artifacts
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
