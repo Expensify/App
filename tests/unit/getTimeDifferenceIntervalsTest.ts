@@ -1,4 +1,4 @@
-import {addDays, differenceInDays, differenceInMinutes, isSameDay, startOfDay} from 'date-fns';
+import {addDays, differenceInDays, differenceInMinutes, startOfDay} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getTimeDifferenceIntervals} from '@libs/PerDiemRequestUtils';
 import type Transaction from '@src/types/onyx/Transaction';
