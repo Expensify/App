@@ -840,7 +840,7 @@ const translations = {
     },
     quickAction: {
         scanReceipt: 'Scan receipt',
-        recordDistance: 'Record distance',
+        recordDistance: 'Track distance',
         requestMoney: 'Create expense',
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
