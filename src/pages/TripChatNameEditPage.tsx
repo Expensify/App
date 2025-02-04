@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import {getReportName} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {isValidReportName} from '@libs/ValidationUtils';
 import {updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -39,6 +40,10 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
             const errors: Errors = {};
             if (!isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
                 errors.newChatName = translate('common.error.characterLimit', {limit: CONST.REPORT_NAME_LIMIT});
+            }
+
+            if (StringUtils.isEmptyString(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
+                errors.newChatName = translate('common.error.fieldRequired');
             }
 
             return errors;
