@@ -1715,9 +1715,6 @@ const translations = {
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
     },
-    groupConfirmPage: {
-        groupName: 'Group name',
-    },
     groupChat: {
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all members. Are you sure you want to leave?",
@@ -1930,7 +1927,7 @@ const translations = {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'Oops, this page cannot be found',
-        noAccess: "You don't have access to this chat",
+        noAccess: "That chat doesn't exist or you don't have access to it. Try using search to find a chat.",
         goBackHome: 'Go back to home page',
     },
     setPasswordPage: {
@@ -2695,7 +2692,7 @@ const translations = {
                 }
             },
             planType: 'Plan type',
-            submitExpense: 'Submit expenses using your workspace chat below:',
+            submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
         },
@@ -4644,6 +4641,7 @@ const translations = {
     },
     newRoomPage: {
         newRoom: 'New room',
+        groupName: 'Group name',
         roomName: 'Room name',
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
