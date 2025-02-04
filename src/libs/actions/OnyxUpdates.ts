@@ -156,8 +156,14 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
 function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
+    let modifiedUpdateParams = updateParams;
+    // We don't want to store the data in the updateParams if it's a HTTPS update since it is useless anyways
+    // and it causes serialization issues when storing in Onyx
+    if (updateParams.type === CONST.ONYX_UPDATE_TYPES.HTTPS && updateParams.request) {
+        modifiedUpdateParams = {...modifiedUpdateParams, request: {...updateParams.request, data: undefined}};
+    }
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
-    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
+    Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, modifiedUpdateParams);
 }
 
 type DoesClientNeedToBeUpdatedParams = {

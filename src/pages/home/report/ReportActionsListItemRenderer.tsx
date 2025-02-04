@@ -1,7 +1,7 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
-import {getTripTransactions, isChatThread, isInvoiceRoom, isPolicyExpenseChat, isTripRoom} from '@libs/ReportUtils';
+import {isChatThread, isInvoiceRoom, isPolicyExpenseChat, isTripRoom} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
@@ -144,9 +144,7 @@ function ReportActionsListItemRenderer({
 
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
-
-    const tripTransactions = getTripTransactions(report?.reportID);
-    const shouldDisplayTripSummary = shouldDisplayParentAction && isTripRoom(report) && tripTransactions.length > 0;
+    const shouldDisplayTripSummary = shouldDisplayParentAction && isTripRoom(report);
 
     if (shouldDisplayTripSummary) {
         return <TripSummary report={report} />;
