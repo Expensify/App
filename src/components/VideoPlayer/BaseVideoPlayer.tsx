@@ -91,7 +91,7 @@ function BaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
-    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
@@ -163,6 +163,7 @@ function BaseVideoPlayer({
             }
             setIsPopoverVisible(true);
         });
+        setPopoverMenuSource(url);
         if (!event || !('nativeEvent' in event)) {
             return;
         }
