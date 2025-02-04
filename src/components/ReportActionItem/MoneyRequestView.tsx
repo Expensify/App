@@ -49,6 +49,7 @@ import {
     getDistanceInMeters,
     getTagForDisplay,
     getTaxName,
+    getTransactionViolations,
     hasMissingSmartscanFields,
     hasReceipt as hasReceiptTransactionUtils,
     hasReservationList,
@@ -65,7 +66,7 @@ import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateB
 import {cleanUpMoneyRequest, updateMoneyRequestBillable} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
-import {clearError} from '@userActions/Transaction';
+import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -133,7 +134,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const transactionViolations = getTransactionViolations(linkedTransactionID);
 
     const {
         created: transactionDate,
@@ -510,6 +511,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                                 return;
                             }
+                            revert(transaction?.transactionID ?? linkedTransactionID, getLastModifiedExpense(report?.reportID));
                             clearError(transaction.transactionID);
                             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                         }}
@@ -697,7 +699,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
-                            title={taxRateTitle ?? ''}
+                            title={taxRateTitle}
                             description={taxRatesDescription}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}

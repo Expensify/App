@@ -12,16 +12,19 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
+import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
+import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
 import ImportedStateIndicator from './ImportedStateIndicator';
+import {useInputBlurContext} from './InputBlurContext';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import ModalContext from './Modal/ModalContext';
 import OfflineIndicator from './OfflineIndicator';
@@ -150,6 +153,7 @@ function ScreenWrapper(
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -159,15 +163,17 @@ function ScreenWrapper(
     const {isDevelopment} = useEnvironment();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-    const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
+    const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
 
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
         return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
     }, [route?.params]);
+    const {isBlurred, setIsBlurred} = useInputBlurContext();
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
         NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+        setRootStatusBarEnabled(false);
     });
 
     const panResponder = useRef(
@@ -181,13 +187,34 @@ function ScreenWrapper(
         PanResponder.create({
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && Browser.isMobile();
+                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
 
                 return isHorizontalSwipe && shouldDismissKeyboard;
             },
             onPanResponderGrant: Keyboard.dismiss,
         }),
     ).current;
+
+    useEffect(() => {
+        /**
+         * Handler to manage viewport resize events specific to Safari.
+         * Disables the blur state when Safari is detected.
+         */
+        const handleViewportResize = () => {
+            if (!isSafari()) {
+                return; // Exit early if not Safari
+            }
+            setIsBlurred(false); // Disable blur state for Safari
+        };
+
+        // Add the viewport resize listener
+        const removeResizeListener = addViewportResizeListener(handleViewportResize);
+
+        // Cleanup function to remove the listener
+        return () => {
+            removeResizeListener();
+        };
+    }, [setIsBlurred]);
 
     useEffect(() => {
         // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
@@ -249,7 +276,7 @@ function ScreenWrapper(
         paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
-    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
+    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
         () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
         [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
@@ -271,7 +298,7 @@ function ScreenWrapper(
                     {...keyboardDismissPanResponder.panHandlers}
                 >
                     <KeyboardAvoidingView
-                        style={[styles.w100, styles.h100, {maxHeight}, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
+                        style={[styles.w100, styles.h100, !isBlurred ? {maxHeight} : undefined, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                         behavior={keyboardAvoidingViewBehavior}
                         enabled={shouldEnableKeyboardAvoidingView}
                     >
