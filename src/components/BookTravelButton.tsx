@@ -52,7 +52,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             return;
         }
 
-        // Spotnana requires an address anytme an entity is created for a policy
+        // Spotnana requires an address anytime an entity is created for a policy
         if (isEmptyObject(policy?.address)) {
             Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id, Navigation.getActiveRoute()));
             return;
