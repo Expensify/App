@@ -143,10 +143,13 @@ const getIouType = (action: QuickActionName) => {
 const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
             return 'quickAction.requestMoney';
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return 'quickAction.scanReceipt';
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.recordDistance';
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             return 'quickAction.splitBill';
@@ -154,12 +157,6 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.splitScan';
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return 'quickAction.splitDistance';
-        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return 'quickAction.trackManual';
-        case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return 'quickAction.trackScan';
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return 'quickAction.trackDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
