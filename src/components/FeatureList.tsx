@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import type DotLottieAnimation from './LottieAnimations/types';

@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';

@@ -1,5 +1,5 @@
 import type {FileObject} from '@components/AttachmentModal';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type AttachmentSource = string | IconAsset | number;
 

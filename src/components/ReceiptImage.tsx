@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';

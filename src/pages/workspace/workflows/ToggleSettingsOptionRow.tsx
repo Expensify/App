@@ -12,7 +12,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */

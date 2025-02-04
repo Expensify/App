@@ -1,4 +1,4 @@
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type Emoji = {
     code: string;

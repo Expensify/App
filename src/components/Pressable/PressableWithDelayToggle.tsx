@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import type {PressableRef} from './GenericPressable/types';
 import type PressableProps from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';

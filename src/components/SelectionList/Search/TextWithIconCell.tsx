@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type TextWithIconCellProps = {
     icon: IconAsset;

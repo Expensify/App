@@ -1,6 +1,6 @@
 import type {ImageContentFit, ImageStyle} from 'expo-image';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type ImageSVGProps = {
     /** The asset to render. */

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import Icon from './Icon';
 import Text from './Text';
 

@@ -3,7 +3,7 @@ import React from 'react';
 import {Animated, StyleSheet, View} from 'react-native';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type TabIconProps = {
     /** Icon to display on tab */

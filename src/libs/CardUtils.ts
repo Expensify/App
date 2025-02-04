@@ -13,7 +13,7 @@ import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, Person
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';

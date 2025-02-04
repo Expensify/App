@@ -6,7 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {AccountData} from '@src/types/onyx/Fund';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type BillingStatusResult = {
     title: string;

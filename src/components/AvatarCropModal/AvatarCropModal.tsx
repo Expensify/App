@@ -23,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
 

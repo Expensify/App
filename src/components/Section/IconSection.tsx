@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type IconSectionProps = {
     icon?: IconAsset;

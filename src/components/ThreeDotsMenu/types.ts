@@ -3,7 +3,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type ThreeDotsMenuProps = {
     /** Tooltip for the popup icon */

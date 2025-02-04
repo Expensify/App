@@ -8,7 +8,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */

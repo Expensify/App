@@ -22,6 +22,7 @@ function useAttachmentModalLogic(route: AttachmentModalScreenProps['route']) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const fileName = route.params?.fileName;
     const defaultOpen = route.params.defaultOpen;
+    const headerTitle = route.params.headerTitle;
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
     const source = Number(route.params.source) || route.params.source;
@@ -103,6 +104,7 @@ function useAttachmentModalLogic(route: AttachmentModalScreenProps['route']) {
         attachmentLink: attachmentLink ?? '',
         originalFileName: fileName ?? '',
         isAttachmentInvalid,
+        headerTitle,
     } as unknown as AttachmentModalContentProps;
 
     return {

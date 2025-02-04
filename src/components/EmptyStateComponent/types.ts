@@ -5,7 +5,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import type TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import type CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;

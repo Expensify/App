@@ -14,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {dismissTrackTrainingModal} from '@userActions/User';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
 import ImageSVG from './ImageSVG';

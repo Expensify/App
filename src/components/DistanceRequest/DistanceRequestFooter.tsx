@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 
 const MAX_WAYPOINTS = 25;
 
