@@ -2692,6 +2692,15 @@ const translations = {
                         return 'Member';
                 }
             },
+            frequency: {
+                manual: 'Manually',
+                instant: 'Instant',
+                immediate: 'Daily',
+                trip: 'By trip',
+                weekly: 'Weekly',
+                semimonthly: 'Twice a month',
+                monthly: 'Monthly',
+            },
             planType: 'Plan type',
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',

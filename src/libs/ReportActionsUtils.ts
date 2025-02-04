@@ -1794,11 +1794,10 @@ function getPolicyChangeLogUpdateAutoReportingFrequencyMessage(reportAction: Ony
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const oldFrequency = originalMessage?.oldFrequency ?? '';
-    const newFrequency = originalMessage?.newFrequency ?? '';
+    const oldFrequency = translateLocal(`workspace.common.frequency.${originalMessage?.oldFrequency}` as TranslationPaths);
+    const newFrequency = translateLocal(`workspace.common.frequency.${originalMessage?.newFrequency}` as TranslationPaths);
     return translateLocal('report.actions.type.updateAutoReportingFrequency', {oldFrequency, newFrequency});
 }
-
 
 function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
