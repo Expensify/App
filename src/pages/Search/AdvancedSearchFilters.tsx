@@ -426,11 +426,11 @@ function AdvancedSearchFilters() {
 
     const applyFiltersAndNavigate = () => {
         clearAllFilters();
-        Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: queryString,
             }),
+            {forceReplace: true},
         );
     };
 

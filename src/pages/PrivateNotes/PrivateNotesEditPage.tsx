@@ -93,8 +93,10 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
-            ReportUtils.navigateToDetailsPage(report, backTo);
+
+        const hasNewNoteBeenAdded = !originalNote && editedNote;
+        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
+            ReportUtils.goBackToDetailsPage(report, backTo);
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }
