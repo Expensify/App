@@ -103,7 +103,7 @@ const FS = {
     onReady: () =>
         new Promise((resolve) => {
             if (!isInitialized()) {
-                init({orgId: ''}, resolve);
+                init({orgId: 'o-1WN56P-na1'}, resolve);
 
                 // FS init function might have a race condition with the head snippet. If the head snipped is loaded first,
                 // then the init function will not call the resolve function, and we'll never identify the user logging in,
@@ -148,7 +148,11 @@ const FS = {
                     }
                     return;
                 }
-                FullStory(CONST.FULL_STORY.RESTART);
+                // If Fullstory was already initialized, we might have shutdown the session. So let's 
+                // restart it before identifying the user.
+                if (isInitialized()) {
+                    FullStory(CONST.FULL_STORY.RESTART);
+                }
                 FS.onReady().then(() => {
                     FS.consent(true);
                     const localMetadata = value;
