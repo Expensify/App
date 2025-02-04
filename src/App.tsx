@@ -43,10 +43,9 @@ import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
-/**
- * URL and settings passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds.
- */
+/** Values passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
 type AppProps = {
+    /** URL containing all necessary data to run React Native app (e.g. login data) */
     url?: Route;
     hybridAppSettings?: string;
 };
