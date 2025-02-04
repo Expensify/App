@@ -2,11 +2,12 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
@@ -58,7 +59,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
     const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
-
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const fetchCompanyCards = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
@@ -171,14 +172,15 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
-            <ConfirmModal
+
+            <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineModal}
-                onConfirm={() => setShouldShowOfflineModal(false)}
-                confirmText={translate('common.buttonConfirm')}
                 prompt={translate('common.offlinePrompt')}
-                shouldShowCancelButton={false}
-                success={false}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={shouldShowOfflineModal}
+                onClose={() => setShouldShowOfflineModal(false)}
             />
         </AccessOrNotFoundWrapper>
     );
