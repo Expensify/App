@@ -98,7 +98,7 @@ freeTextFilter
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", value);
+      return buildFilter("eq", "keyword", word);
     }
 
 standardFilter
