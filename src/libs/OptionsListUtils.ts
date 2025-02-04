@@ -1484,7 +1484,7 @@ function getValidOptions(
                 !detail.accountID ||
                 !!detail?.isOptimisticPersonalDetail ||
                 (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
-                detail?.login === 'Setup Specialist'
+                detail?.login === CONST.SETUP_SPECIALIST_LOGIN
             ) {
                 continue;
             }

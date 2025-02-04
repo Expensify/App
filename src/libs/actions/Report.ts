@@ -3661,7 +3661,7 @@ function prepareOnboardingOnyxData(
         assignedGuideAccountID = generateAccountID(assignedGuideEmail);
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [assignedGuideAccountID]: {
-                isOptimisticPersonalDetail: assignedGuideEmail === 'Setup Specialist',
+                isOptimisticPersonalDetail: assignedGuideEmail === CONST.SETUP_SPECIALIST_LOGIN,
                 login: assignedGuideEmail,
                 displayName: assignedGuideEmail,
             },
