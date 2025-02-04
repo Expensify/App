@@ -172,7 +172,7 @@ Yes, you can [split an expense](https://help.expensify.com/articles/new-expensif
 
 Yes, you can edit an expense until it is paid. When an expense is submitted, the details can be edited except for the amount and date.
 
-**Can I add multiple receipts to a newly created expense?
+**Can I add multiple receipts to a newly created expense?**
 
 Yes, you can add multiple receipt images to a new expense. One possible way to do this is to combine both receipts into a single PDF file. From there, simply upload the combined PDF to the expense to capture both.
 
