@@ -83,7 +83,6 @@ jobs:
             const body = pullRequest.data.body;
             const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
             const found = body.match(regex)?.groups?.prNumber || "";
-
             return found.trim();
 
   getOldDotBranchRef:
@@ -99,10 +98,12 @@ jobs:
           id: getHeadRef
           run: |
             set -e
-            if [[ ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} == '' ]]; then
-              echo "REF=" >> "$GITHUB_OUTPUT"
+            OLD_DOT_PR="${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}"
+            if [[ -z "$OLD_DOT_PR" || "$OLD_DOT_PR" == "null" ]]; then
+              echo "REF=null" >> "$GITHUB_OUTPUT"
             else
-              echo "REF=$(gh pr view ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+              REF=$(gh pr view "$OLD_DOT_PR" -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid' || echo "null")
+              echo "REF=$REF" >> "$GITHUB_OUTPUT"
             fi
           env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -259,7 +260,7 @@ jobs:
           git submodule update --init --remote
 
       - name: Checkout Old Dot to author specified branch or commit
-        if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != null }}
+        if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
         run: |
           cd Mobile-Expensify
           git fetch origin ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
