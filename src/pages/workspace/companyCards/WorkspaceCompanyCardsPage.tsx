@@ -59,7 +59,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
     const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fetchCompanyCards = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
@@ -176,7 +176,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             <DecisionModal
                 title={translate('common.youAppearToBeOffline')}
                 prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
+                isSmallScreenWidth={shouldUseNarrowLayout}
                 onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={shouldShowOfflineModal}
