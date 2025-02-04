@@ -1,6 +1,7 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
+import {replaceAllDigits} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -20,8 +21,15 @@ function AmountWithoutCurrencyInput(
     {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const {preferredLocale} = useLocalize();
-    const separator = preferredLocale === CONST.LOCALES.DEFAULT ? '.' : ',';
+    const {toLocaleDigit} = useLocalize();
+    const separator = useMemo(
+        () =>
+            replaceAllDigits('1.1', toLocaleDigit)
+                .split('')
+                .filter((char) => char !== '1')
+                .join(''),
+        [toLocaleDigit],
+    );
 
     return (
         <TextInput
