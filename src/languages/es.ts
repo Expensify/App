@@ -2716,7 +2716,7 @@ const translations = {
                 }
             },
             planType: 'Tipo de plan',
-            submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
+            submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
         },
