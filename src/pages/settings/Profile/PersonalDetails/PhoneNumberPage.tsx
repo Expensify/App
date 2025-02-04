@@ -35,9 +35,7 @@ function PhoneNumberPage() {
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
-    const removeLetters = (str: string) => {
-        return str.replace(CONST.REMOVE_LOWERCASE_REGEX, '').trim();
-    };
+    const sanitizePhoneNumber = (num?: string): string => num?.replace(CONST.SANITIZE_PHONE_REGEX, '') ?? '';
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
         // Clear the error when the user tries to submit the form
@@ -47,10 +45,8 @@ function PhoneNumberPage() {
 
         // Only call the API if the user has changed their phone number
         if (phoneNumber !== values?.phoneNumber && values?.phoneNumber) {
-            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(removeLetters(values?.phoneNumber.toLocaleLowerCase()) ?? '');
+            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(sanitizePhoneNumber(values?.phoneNumber));
             const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
-            console.log('****** phoneNumberWithCountryCode ******', phoneNumberWithCountryCode);
-            console.log('****** parsedPhoneNumber ******', parsedPhoneNumber);
 
             PersonalDetails.updatePhoneNumber(parsedPhoneNumber.number?.e164 ?? '', currenPhoneNumber);
         }
@@ -69,7 +65,7 @@ function PhoneNumberPage() {
             }
 
             // Sanitize input: Remove all non-numeric characters except the leading '+'
-            const sanitizedPhoneNumber = values[INPUT_IDS.PHONE_NUMBER].replace(/[^+\d]/g, '');
+            const sanitizedPhoneNumber = sanitizePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
 
             // Append country code if missing
             const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(sanitizedPhoneNumber);
@@ -77,11 +73,8 @@ function PhoneNumberPage() {
             // Parse and validate the phone number
             const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
 
-            // Validate if the phone number was parsed successfully
-            if (!parsedPhoneNumber || !parsedPhoneNumber.possible) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
-            } else if (!Str.isValidE164Phone(phoneNumberWithCountryCode)) {
-                // Additional check for E.164 format validity
+            // Check if the phone number is possible and valid in E.164 format
+            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
             }
 

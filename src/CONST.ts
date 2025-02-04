@@ -477,6 +477,8 @@ const CONST = {
     // Regex to match and remove all lowercase letters (a-z)
     REMOVE_LOWERCASE_REGEX: /[a-z]/g,
 
+    SANITIZE_PHONE_REGEX: /[^\d+]/g,
+
     MERCHANT_NAME_MAX_LENGTH: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
