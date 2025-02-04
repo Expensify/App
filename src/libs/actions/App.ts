@@ -10,6 +10,7 @@ import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
+import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -229,8 +230,8 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
-function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
-    const defaultData = {
+function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = false): OnyxData {
+    const result: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -238,6 +239,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
                 value: true,
             },
         ],
+        successData: [],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -246,27 +248,30 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
             },
         ],
     };
-    if (!isOpenApp) {
-        return defaultData;
+
+    if (isOpenApp) {
+        result.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_APP,
+            value: true,
+        });
+
+        result.finallyData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_APP,
+            value: false,
+        });
     }
-    return {
-        optimisticData: [
-            ...defaultData.optimisticData,
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_APP,
-                value: true,
-            },
-        ],
-        finallyData: [
-            ...defaultData.finallyData,
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_APP,
-                value: false,
-            },
-        ],
-    };
+
+    if (isOpenApp || isFullReconnect) {
+        result.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
+            value: DateUtils.getDBTime(),
+        });
+    }
+
+    return result;
 }
 
 /**
@@ -305,7 +310,8 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             params.updateIDFrom = updateIDFrom;
         }
 
-        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
+        const isFullReconnect = !updateIDFrom;
+        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect), {
             checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
         });
     });
@@ -335,7 +341,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
         // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
         // as soon as we have everyone migrated to the reliableUpdate beta.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect());
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
     });
 }
 
@@ -384,10 +390,22 @@ function endSignOnTransition() {
  * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
+ * @param [policyID] Optional, Policy id.
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file], avatar file for workspace
  */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
-    const policyID = generatePolicyID();
-    createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
+function createWorkspaceWithPolicyDraftAndNavigateToIt(
+    policyOwnerEmail = '',
+    policyName = '',
+    transitionFromOldDot = false,
+    makeMeAdmin = false,
+    backTo = '',
+    policyID = '',
+    currency?: string,
+    file?: File,
+) {
+    const policyIDWithDefault = policyID || generatePolicyID();
+    createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
 
     Navigation.isNavigationReady()
         .then(() => {
@@ -395,8 +413,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
-            savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin);
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
+            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo));
         })
         .then(endSignOnTransition);
 }
@@ -408,9 +426,11 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', po
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [currency] Optional, selected currency for the workspace
+ * @param [file] Optional, avatar file for workspace
  */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false) {
-    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
+function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
+    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
 }
 
 /**
