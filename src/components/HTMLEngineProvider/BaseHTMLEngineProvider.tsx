@@ -85,7 +85,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.textual,
                 mixedUAStyles: {...styles.taskTitleMenuItem},
             }),
-            'custom-emoji': HTMLElementModel.fromCustomModel({tagName: 'custom-emoji', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
