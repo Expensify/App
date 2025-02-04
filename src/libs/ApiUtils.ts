@@ -34,7 +34,7 @@ getEnvironment().then((envName) => {
  * Get the currently used API endpoint, unless forceProduction is set to true
  * (Non-production environments allow for dynamically switching the API)
  */
-function getApiRoot(request?: Request, forceProduction?: boolean): string {
+function getApiRoot(request?: Request, forceProduction: boolean = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
 
     if (shouldUseStagingServer && forceProduction !== true) {
