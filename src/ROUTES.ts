@@ -270,7 +270,7 @@ const ROUTES = {
     SETTINGS_2FA_SUCCESS: {
         route: 'settings/security/two-factor-auth/success',
         getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
+            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth/success?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/success', backTo),
     },
     SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
     SETTINGS_2FA_GET_CODE: 'settings/security/two-factor-auth/get-code',
