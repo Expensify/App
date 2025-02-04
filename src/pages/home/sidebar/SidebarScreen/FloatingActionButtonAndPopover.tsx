@@ -533,7 +533,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isE
                           },
                       ]
                     : []),
-                ...(true
+                ...(!isLoading && shouldShowNewWorkspaceButton
                     ? [
                           {
                               displayInDefaultIconColor: true,
