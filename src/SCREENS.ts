@@ -80,7 +80,7 @@ const SCREENS = {
             VERIFY: 'Settings_TwoFactorAuth_Verify',
             SUCCESS: 'Settings_TwoFactorAuth_Success',
             DISABLED: 'Settings_TwoFactorAuth_Disabled',
-            GET_CODE: 'Settings_TwoFactorAuth_GetCode',
+            DISABLE: 'Settings_TwoFactorAuth_Disable',
         },
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
