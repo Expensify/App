@@ -22,6 +22,7 @@ import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import isReportOpenInRHP from './isReportOpenInRHP';
+import isSideModalNavigator from './isSideModalNavigator';
 import {linkingConfig} from './linkingConfig';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import linkTo from './linkTo';
@@ -462,6 +463,11 @@ function removeScreenFromNavigationStateByKey(key: string) {
     });
 }
 
+function isTopmostRouteModalScreen() {
+    const topmostRouteName = navigationRef.getRootState().routes.at(-1)?.name;
+    return isSideModalNavigator(topmostRouteName);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -489,6 +495,7 @@ export default {
     removeScreenFromNavigationState,
     getReportRouteByID,
     removeScreenFromNavigationStateByKey,
+    isTopmostRouteModalScreen,
 };
 
 export {navigationRef};

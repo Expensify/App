@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -85,7 +86,7 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            if (areAllModalsHidden()) {
+            if (areAllModalsHidden() && !Navigation.isTopmostRouteModalScreen()) {
                 willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility) {
                     setModalVisibility(false);
