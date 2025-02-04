@@ -334,7 +334,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
                 onTooltipPress={onFiltersButtonPress}
             >
                 <Button
-                    innerStyles={[styles.searchRouterInputResults, styles.borderNone, styles.bgTransparent]}
+                    innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
                     icon={Expensicons.Filters}
                     onPress={onFiltersButtonPress}
                 />
@@ -349,7 +349,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
         styles.bgTransparent,
         styles.borderNone,
         styles.productTrainingTooltipWrapper,
-        styles.searchRouterInputResults,
+        styles.searchAutocompleteInputResults,
         translate,
     ]);
 
