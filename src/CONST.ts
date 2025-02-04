@@ -2798,13 +2798,9 @@ const CONST = {
             // Map each connection to its designated display connection
             get MULTI_CONNECTIONS_MAPPING() {
                 return {
-                    [this.NAME.QBO]: null,
-                    [this.NAME.QBD]: null,
-                    [this.NAME.XERO]: null,
                     [this.NAME.NETSUITE]: this.NAME.NETSUITE,
                     [this.NAME.NSQS]: this.NAME.NETSUITE,
-                    [this.NAME.SAGE_INTACCT]: null,
-                };
+                } as Record<ValueOf<typeof this.NAME>, ValueOf<typeof this.NAME> | undefined>;
             },
 
             // Get linked connections by the designated display connection

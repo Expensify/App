@@ -12,6 +12,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {connectPolicyToNSQS} from '@libs/actions/connections/NSQS';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,7 +35,13 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
             return;
         }
 
-        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS]));
+        const multiConnectionName = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NSQS];
+        if (!multiConnectionName) {
+            Navigation.goBack();
+            return;
+        }
+
+        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionName)));
     }, [policyID]);
 
     const validate = useCallback(
