@@ -3402,14 +3402,14 @@ const translations = {
         nsqs: {
             setup: {
                 title: 'NSQS configuración',
-                description: 'Enter your NSQS account ID', // s77rt translate
+                description: 'Introduce tu ID de cuenta de NSQS',
                 formInputs: {
                     netSuiteAccountID: 'ID de Cuenta NSQS',
                 },
             },
             import: {
                 expenseCategories: 'Categorías de gastos',
-                expenseCategoriesDescription: 'NSQS expense categories import into Expensify as categories.', // s77rt translate
+                expenseCategoriesDescription: 'Las categorías de gastos de NSQS se importan a Expensify como categorías.',
                 importTypes: {
                     [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Etiquetas',
@@ -3422,12 +3422,12 @@ const translations = {
                 },
                 importFields: {
                     customers: {
-                        title: 'Customers', // s77rt translate
-                        subtitle: 'Choose how to handle NSQS *customers* in Expensify.', // s77rt translate
+                        title: 'Clientes',
+                        subtitle: 'Elige cómo gestionar los *clientes* de NSQS en Expensify.',
                     },
                     projects: {
-                        title: 'Projects', // s77rt translate
-                        subtitle: 'Choose how to handle NSQS *projects* in Expensify.', // s77rt translate
+                        title: 'Proyectos',
+                        subtitle: 'Elige cómo gestionar los *proyectos* de NSQS en Expensify.',
                     },
                 },
             },
@@ -3451,9 +3451,9 @@ const translations = {
                         },
                     },
                 },
-                expense: 'Expense', // s77rt translate
-                reimbursableExpenses: 'Export reimbursable expenses as', // s77rt translate
-                nonReimbursableExpenses: 'Export non-reimbursable expenses as', // s77rt translate
+                expense: 'Gasto',
+                reimbursableExpenses: 'Exportar gastos reembolsables como',
+                nonReimbursableExpenses: 'Exportar gastos no reembolsables como',
             },
             advanced: {
                 autoSyncDescription: 'Sincroniza NSQS y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
@@ -3512,7 +3512,7 @@ const translations = {
         },
         multiConnectionSelector: {
             title: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} configuración`,
-            description: ({connectionName}: ConnectionNameParams) => `Select your ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} version to continue.`, // s77rt translate
+            description: ({connectionName}: ConnectionNameParams) => `Selecciona tu versión de ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} para continuar.`,
         },
         type: {
             free: 'Gratis',
@@ -4255,9 +4255,9 @@ const translations = {
                         case 'nsqsSyncCustomers':
                             return 'Sincronizando clientes';
                         case 'nsqsSyncProjects':
-                            return 'Syncing projects'; // s77rt translate
+                            return 'Sincronizando proyectos';
                         case 'nsqsSyncCurrency':
-                            return 'Syncing currency'; // s77rt translate
+                            return 'Sincronizando moneda';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
                         case 'netSuiteImportVendorsTitle':
