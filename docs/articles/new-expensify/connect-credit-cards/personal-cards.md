@@ -1,5 +1,5 @@
 ---
-title: personal-cards.md
+title: Personal Cards
 description: Learn how to track and manage your personal credit card expenses in Expensify through automatic imports or manual uploads. 
 ---
 
