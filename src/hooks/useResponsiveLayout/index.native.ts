@@ -5,6 +5,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import getFontScaleAdjustedSize from './getFontScaleAdjustedSize';
 import type ResponsiveLayoutResult from './types';
 
 /**
@@ -75,5 +76,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         isLargeScreenWidth,
         isSmallScreen,
         fontScale,
+        getFontScaleAdjustedSize,
     };
 }

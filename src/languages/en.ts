@@ -216,6 +216,13 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
+const language = {
+    language: 'English',
+    translations: {
+        ...
+    },
+};
+
 /* eslint-disable max-len */
 const translations = {
     common: {

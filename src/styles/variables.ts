@@ -1,21 +1,5 @@
-import {PixelRatio} from 'react-native';
-
-/**
- * Calculate the fontSize, lineHeight and padding when the device font size is changed, In most cases users do not change their device font size so PixelRatio.getFontScale() = 1 and this
- * method always returns the defaultValue (first param). When the device font size increases/decreases, the PixelRatio.getFontScale() value increases/decreases as well.
- * This means that if you have text and its 'fontSize' is 19, the device font size changed to the 5th level on the iOS slider and the actual fontSize is 19 * PixelRatio.getFontScale()
- * = 19 * 1.11 = 21.09. Since we are disallowing font scaling we need to calculate it manually. We calculate it with: PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue :
- * defaultValue * PixelRatio.getFontScale() This means that the fontSize is increased/decreased when the device font size changes up to maxValue (second param)
- */
-function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number {
-    return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
-}
-
 export default {
     bottomTabHeight: 72,
-    contentHeaderHeight: getValueUsingPixelRatio(72, 100),
-    contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
-    componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
     componentSizeMedium: 48,
     inputComponentSizeNormal: 40,
@@ -47,21 +31,13 @@ export default {
     avatarSizeSmallSubscript: 12,
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
-    breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
-    fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
-    fontSizeLabel: getValueUsingPixelRatio(13, 19),
-    fontSizeNormal: getValueUsingPixelRatio(15, 21),
-    fontSizeMedium: getValueUsingPixelRatio(16, 22),
-    fontSizeLarge: getValueUsingPixelRatio(17, 19),
     fontSizeHero: 36,
     fontSizeHeroXL: 72,
     fontSizeh1: 19,
     fontSizeh2: 19,
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
-    fontSizeXXXLarge: getValueUsingPixelRatio(32, 37),
-    fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,
     fontSizeSignInHeroMedium: 38,
@@ -101,24 +77,8 @@ export default {
     popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
-    optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
-    lineHeightXSmall: getValueUsingPixelRatio(11, 17),
-    lineHeightSmall: getValueUsingPixelRatio(14, 16),
-    lineHeightNormal: getValueUsingPixelRatio(16, 21),
-    lineHeightLarge: getValueUsingPixelRatio(18, 24),
-    lineHeightXLarge: getValueUsingPixelRatio(20, 24),
-    lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
-    lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
-    lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
-    lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
-    lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
-    inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
-    formErrorLineHeight: getValueUsingPixelRatio(18, 23),
-    communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
-    alternateTextHeight: getValueUsingPixelRatio(20, 24),
-    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
@@ -212,7 +172,6 @@ export default {
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
     holdEducationModalWidth: 400,
-    fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
     // Emoji related variables
     fontSizeOnlyEmojis: 30,
@@ -220,7 +179,6 @@ export default {
     emojiSize: 20,
     emojiLineHeight: 28,
     fontSizeUsernameEmoji: 19,
-    fontSizeEmojisWithinText: getValueUsingPixelRatio(17, 19),
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility

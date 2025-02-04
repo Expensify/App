@@ -9,5 +9,6 @@ type ResponsiveLayoutResult = {
     isSmallScreen: boolean;
     onboardingIsMediumOrLargerScreenWidth: boolean;
     fontScale: number;
+    getFontScaleAdjustedSize: (defaultValue: number, maxValue: number) => number;
 };
 export default ResponsiveLayoutResult;
