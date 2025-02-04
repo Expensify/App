@@ -2778,7 +2778,7 @@ const CONST = {
         NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
-        MILEAGE_IRS_RATE: 0.70,
+        MILEAGE_IRS_RATE: 0.7,
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
