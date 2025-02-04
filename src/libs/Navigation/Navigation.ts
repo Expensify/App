@@ -464,7 +464,7 @@ function removeScreenFromNavigationStateByKey(key: string) {
 }
 
 function isTopmostRouteModalScreen() {
-    const topmostRouteName = navigationRef.getRootState().routes.at(-1)?.name;
+    const topmostRouteName = navigationRef.getRootState()?.routes?.at(-1)?.name;
     return isSideModalNavigator(topmostRouteName);
 }
 
