@@ -87,6 +87,9 @@ type EducationalTooltipProps = ChildrenProps &
 
         /** Whether the tooltip should hide when navigating */
         shouldHideOnNavigate?: boolean;
+
+        /** Whether the tooltip should hide when it reaches the top or bottom edges of the viewport (such as the header or footer) during scrolling.*/
+        shouldHideOnEdge?: boolean;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
