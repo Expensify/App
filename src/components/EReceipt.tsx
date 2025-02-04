@@ -53,7 +53,7 @@ function EReceipt({transactionID}: EReceiptProps) {
 
     const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
 
-    const receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
+    const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
     const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
 
     const {
@@ -84,14 +84,14 @@ function EReceipt({transactionID}: EReceiptProps) {
                         <ImageSVG
                             src={Expensicons.ReceiptBody}
                             fill={theme.white}
-                            height={515}
+                            height={500}
                         />
                     </View>
                     <View style={styles.eReceiptContentWrapper}>
-                        <View style={[StyleUtils.getBackgroundColorStyle(theme.white), styles.alignItemsCenter, styles.justifyContentCenter, styles.pt3]}>
+                        <View style={[StyleUtils.getBackgroundColorStyle(theme.white), styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <View
                                 style={[
-                                    StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconWidth),
+                                    StyleUtils.getWidthAndHeightStyle(64, 64),
                                     styles.alignItemsCenter,
                                     styles.justifyContentCenter,
                                     styles.borderRadiusComponentLarge,
@@ -120,7 +120,7 @@ function EReceipt({transactionID}: EReceiptProps) {
                             </View>
                             <Text style={[styles.eReceiptGuaranteed, primaryTextColorStyle]}>{translate('eReceipt.guaranteed')}</Text>
                             <View style={[styles.alignItemsCenter]}>
-                                <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight)]} />
+                                <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.h48)]} />
                             </View>
                             <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
                                 <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb8]}>
@@ -137,7 +137,7 @@ function EReceipt({transactionID}: EReceiptProps) {
                                     </View>
                                     <Text style={[styles.eReceiptMerchant, styles.breakWord, styles.textAlignCenter, primaryTextColorStyle]}>{transactionMerchant}</Text>
                                 </View>
-                                <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb8, styles.gap4]}>
+                                <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb12, styles.gap4]}>
                                     <View style={[styles.flexColumn, styles.gap1]}>
                                         <Text style={[styles.eReceiptWaypointTitle, secondaryTextColorStyle]}>{translate('eReceipt.transactionDate')}</Text>
                                         <Text style={[styles.eReceiptWaypointAddress, primaryTextColorStyle]}>{transactionDate}</Text>
@@ -148,7 +148,7 @@ function EReceipt({transactionID}: EReceiptProps) {
                                     </View>
                                 </View>
                                 <View>
-                                    <View style={[styles.alignItemsCenter, styles.alignSelfStretch, styles.flexRow, styles.w100]}>
+                                    <View style={[styles.alignItemsCenter, styles.alignSelfStretch, styles.flexRow, styles.w100, styles.mb8]}>
                                         <Icon
                                             width={variables.eReceiptWordmarkWidth}
                                             height={variables.eReceiptWordmarkHeight}

@@ -4176,10 +4176,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContentContainer: {
-            width: 303,
+            width: 295,
             position: 'relative',
-            marginTop: 16,
-            minHeight: 540,
+            marginTop: 20,
+            minHeight: 500,
         },
 
         eReceiptBody: {
@@ -4190,7 +4190,7 @@ const styles = (theme: ThemeColors) =>
 
         eReceiptContentWrapper: {
             position: 'absolute',
-            top: 16,
+            top: 40,
             width: '100%',
         },
 
