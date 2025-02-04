@@ -53,6 +53,7 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
 
+    /** Whether the bank account has non USD currency */
     hasForeignCurrency: boolean;
 
     /** Should ValidateCodeActionModal be displayed or not */
@@ -61,9 +62,10 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Toggle ValidateCodeActionModal */
     toggleValidateCodeActionModal?: (isVisible: boolean) => void;
 
-    /** Set should show continue setup button */
+    /** Set step for non USD flow */
     setNonUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
 
+    /** Set step for USD flow */
     setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
 };
 

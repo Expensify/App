@@ -17,9 +17,10 @@ type USDVerifiedBankAccountFlowProps = {
     onBackButtonPress: () => void;
     requestorStepRef: React.RefObject<View>;
     onfidoToken: string;
+    setUSDBankAccountStep: (step: string | null) => void;
 };
 
-function USDVerifiedBankAccountFlow({USDBankAccountStep, policyID = '', onBackButtonPress, requestorStepRef, onfidoToken}: USDVerifiedBankAccountFlowProps) {
+function USDVerifiedBankAccountFlow({USDBankAccountStep, policyID = '', onBackButtonPress, requestorStepRef, onfidoToken, setUSDBankAccountStep}: USDVerifiedBankAccountFlowProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     switch (USDBankAccountStep) {
@@ -28,6 +29,7 @@ function USDVerifiedBankAccountFlow({USDBankAccountStep, policyID = '', onBackBu
                 <BankInfo
                     onBackButtonPress={onBackButtonPress}
                     policyID={policyID}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
                 />
             );
         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:

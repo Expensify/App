@@ -1,5 +1,4 @@
 import React from 'react';
-import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import Agreements from './Agreements';
 import BankInfo from './BankInfo/BankInfo';
@@ -11,7 +10,7 @@ import SignerInfo from './SignerInfo';
 
 type NonUSDVerifiedBankAccountFlowProps = {
     nonUSDBankAccountStep: string;
-    setNonUSDBankAccountStep: (step: string) => void;
+    setNonUSDBankAccountStep: (step: string | null) => void;
 };
 
 function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAccountStep}: NonUSDVerifiedBankAccountFlowProps) {
@@ -43,7 +42,7 @@ function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAcco
     const nonUSDBankAccountsGoBack = () => {
         switch (nonUSDBankAccountStep) {
             case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
-                Navigation.goBack();
+                setNonUSDBankAccountStep(null);
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);

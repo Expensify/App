@@ -11,6 +11,7 @@ import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccou
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -69,8 +70,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = policyCurrency !== CONST.CURRENCY.USD && !SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency);
-    const hasForeignCurrency = SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency);
+    const {isDevelopment} = useEnvironment();
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+
+    // TODO once nonUSD flow is complete update the flags below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
+    // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
+    const hasUnsupportedCurrency =
+        isDevelopment || isDebugModeEnabled ? policyCurrency !== CONST.CURRENCY.USD && !SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) : policyCurrency !== CONST.CURRENCY.USD;
+    const hasForeignCurrency = isDevelopment || isDebugModeEnabled ? SUPPORTED_FOREIGN_CURRENCIES.includes(policyCurrency) : false;
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -81,6 +88,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      */
     const achData = reimbursementAccount?.achData;
     const isPreviousPolicy = policyIDParam === achData?.policyID;
+
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
@@ -162,6 +170,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         fetchData();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
+
+    useEffect(() => {
+        if (!isPreviousPolicy) {
+            return;
+        }
+        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
+    }, [getShouldShowContinueSetupButtonValue, isPreviousPolicy]);
 
     useEffect(
         () => {
@@ -256,6 +271,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                     setShouldShowContinueSetupButton(true);
                 }
                 if (subStep) {
+                    setUSDBankAccountStep(null);
                     setBankAccountSubStep(null);
                     setPlaidEvent(null);
                 } else {
@@ -362,7 +378,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 <HeaderWithBackButton
                     title={translate('workspace.common.connectBankAccount')}
                     subtitle={policyName}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.m5, styles.mv3, styles.flex1]}>
                     <Text>{errorText}</Text>
@@ -388,6 +404,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 onBackButtonPress={goBack}
                 requestorStepRef={requestorStepRef}
                 onfidoToken={onfidoToken}
+                setUSDBankAccountStep={setUSDBankAccountStep}
             />
         );
     }

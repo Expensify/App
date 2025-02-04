@@ -6,8 +6,8 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccountUtils from '@userActions/ReimbursementAccount';
+import {connectBankAccountManually, connectBankAccountWithPlaid, setBankAccountSubStep} from '@userActions/BankAccounts';
+import {hideBankAccountErrors, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -21,14 +21,21 @@ type BankInfoProps = {
 
     /** Current Policy ID */
     policyID: string;
+
+    /** Set the step of the USD verified bank account flow */
+    setUSDBankAccountStep: (step: string | null) => void;
+};
+
+type BankInfoSubStepProps = SubStepProps & {
+    setUSDBankAccountStep: (step: string | null) => void;
 };
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
-const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual];
-const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid];
+const manualSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Manual];
+const plaidSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Plaid];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
-function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
+function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfoProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
@@ -49,7 +56,7 @@ function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
         (submitData: unknown) => {
             const data = submitData as ReimbursementAccountForm;
             if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
-                BankAccounts.connectBankAccountManually(
+                connectBankAccountManually(
                     bankAccountID,
                     {
                         [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
@@ -63,7 +70,7 @@ function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
                     policyID,
                 );
             } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-                BankAccounts.connectBankAccountWithPlaid(
+                connectBankAccountWithPlaid(
                     bankAccountID,
                     {
                         [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
@@ -81,8 +88,8 @@ function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
         [setupType, bankAccountID, policyID],
     );
 
-    const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubsteps : manualSubsteps;
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const bodyContent = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidSubSteps : manualSubSteps;
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     // Some services user connects to via Plaid return dummy account numbers and routing numbers e.g. Chase
     // In this case we need to redirect user to manual flow to enter real account number and routing number
@@ -110,9 +117,10 @@ function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
                     [BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]: '',
                     [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: '',
                 };
-                ReimbursementAccountUtils.updateReimbursementAccountDraft(bankAccountData);
-                ReimbursementAccountUtils.hideBankAccountErrors();
-                BankAccounts.setBankAccountSubStep(null);
+                updateReimbursementAccountDraft(bankAccountData);
+                hideBankAccountErrors();
+                setBankAccountSubStep(null);
+                setUSDBankAccountStep(null);
             }
         } else {
             prevScreen();
@@ -132,6 +140,7 @@ function BankInfo({onBackButtonPress, policyID}: BankInfoProps) {
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                setUSDBankAccountStep={setUSDBankAccountStep}
             />
         </InteractiveStepWrapper>
     );

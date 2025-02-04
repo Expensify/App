@@ -7,16 +7,18 @@ import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as ReimbursementAccountActions from '@userActions/ReimbursementAccount';
+import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
+import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type PlaidProps = SubStepProps;
+type PlaidProps = SubStepProps & {
+    setUSDBankAccountStep: (step: string | null) => void;
+};
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function Plaid({onNext}: PlaidProps) {
+function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
@@ -41,7 +43,7 @@ function Plaid({onNext}: PlaidProps) {
             [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: plaidData?.[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
         };
 
-        ReimbursementAccountActions.updateReimbursementAccountDraft(bankAccountData);
+        updateReimbursementAccountDraft(bankAccountData);
         onNext(bankAccountData);
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
@@ -52,13 +54,19 @@ function Plaid({onNext}: PlaidProps) {
         if (isFocused || plaidBankAccounts.length) {
             return;
         }
-        BankAccounts.setBankAccountSubStep(null);
-    }, [isFocused, plaidData]);
+        setBankAccountSubStep(null);
+        setUSDBankAccountStep(null);
+    }, [isFocused, plaidData, setUSDBankAccountStep]);
+
+    const handlePlaidExit = () => {
+        setBankAccountSubStep(null);
+        setUSDBankAccountStep(null);
+    };
 
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            validate={BankAccounts.validatePlaidSelection}
+            validate={validatePlaidSelection}
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
@@ -69,12 +77,10 @@ function Plaid({onNext}: PlaidProps) {
                 InputComponent={AddPlaidBankAccount}
                 text={translate('bankAccount.plaidBodyCopy')}
                 onSelect={(plaidAccountID: string) => {
-                    ReimbursementAccountActions.updateReimbursementAccountDraft({plaidAccountID});
+                    updateReimbursementAccountDraft({plaidAccountID});
                 }}
                 plaidData={plaidData}
-                onExitPlaid={() => {
-                    BankAccounts.setBankAccountSubStep(null);
-                }}
+                onExitPlaid={handlePlaidExit}
                 allowDebit
                 bankAccountID={bankAccountID}
                 selectedPlaidAccountID={selectedPlaidAccountID}

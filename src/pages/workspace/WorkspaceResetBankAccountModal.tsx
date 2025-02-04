@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {cancelResetFreePlanBankAccount, resetFreePlanBankAccount} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -45,9 +45,8 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
                 )
             }
             danger
-            onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            // TODO check if it will also reset non USD account
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '-1')}
+            onCancel={cancelResetFreePlanBankAccount}
+            onConfirm={() => resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '-1')}
             shouldShowCancelButton
             isVisible
         />

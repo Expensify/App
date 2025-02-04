@@ -13,7 +13,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
-import * as FormActions from '@userActions/FormActions';
+import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -49,24 +49,24 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     });
 
     const handleSelectIDFile = (files: FileObject[]) => {
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_COPY_OF_ID]: [...uploadedIDs, ...files]});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_COPY_OF_ID]: [...uploadedIDs, ...files]});
         setUploadedID((prev) => [...prev, ...files]);
     };
 
     const handleRemoveIDFile = (fileUri: string) => {
         const newUploadedIDs = uploadedIDs.filter((file) => file.uri !== fileUri);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_COPY_OF_ID]: newUploadedIDs});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_COPY_OF_ID]: newUploadedIDs});
         setUploadedID(newUploadedIDs);
     };
 
     const handleSelectProofOfAddressFile = (files: FileObject[]) => {
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_ADDRESS_PROOF]: [...uploadedProofsOfAddress, ...files]});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_ADDRESS_PROOF]: [...uploadedProofsOfAddress, ...files]});
         setUploadedProofOfAddress((prev) => [...prev, ...files]);
     };
 
     const handleRemoveProofOfAddressFile = (fileUri: string) => {
         const newUploadedProofsOfAddress = uploadedProofsOfAddress.filter((file) => file.uri !== fileUri);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_ADDRESS_PROOF]: newUploadedProofsOfAddress});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[SIGNER_ADDRESS_PROOF]: newUploadedProofsOfAddress});
         setUploadedProofOfAddress(newUploadedProofsOfAddress);
     };
 
