@@ -59,7 +59,7 @@ jobs:
           echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+
   getOldDotPR:
     runs-on: ubuntu-latest
     needs: validateActor
@@ -106,7 +106,7 @@ jobs:
             fi
           env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-  
+
 
   postGitHubCommentBuildStarted:
     runs-on: ubuntu-latest
@@ -153,16 +153,16 @@ jobs:
           cd Mobile-Expensify
           git fetch origin ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
           git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
-      
+
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
-        with: 
+        with:
           IS_HYBRID_BUILD: 'true'
-      
+
       - name: Run grunt build
         run: |
             cd Mobile-Expensify
@@ -215,28 +215,28 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
         run: bundle exec fastlane android build_adhoc_hybrid
-      
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      
+
       - name: Upload Android AdHoc build to S3
         run: bundle exec fastlane android upload_s3
         env:
           S3_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           S3_BUCKET: ad-hoc-expensify-cash
-          S3_REGION: us-east-1 
+          S3_REGION: us-east-1
 
       - name: Export S3 path
         id: exportAndroidS3Path
         run: |
           # $s3APKPath is set from within the Fastfile, android upload_s3 lane
           echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
-        
+
   iosHybrid:
     name: Build and deploy iOS for testing
     needs: [validateActor, getBranchRef, getOldDotBranchRef]
@@ -271,9 +271,9 @@ jobs:
       - name: Setup Node
         id: setup-node
         uses: ./.github/actions/composite/setupNode
-        with: 
+        with:
           IS_HYBRID_BUILD: 'true'
-      
+
       - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
         run: |
           cp .env.staging .env.adhoc
@@ -284,7 +284,7 @@ jobs:
         uses: ruby/setup-ruby@v1.204.0
         with:
           bundler-cache: true
-    
+
       - name: Install New Expensify Gems
         run: bundle install
 
@@ -317,11 +317,7 @@ jobs:
           op read op://Mobile-Deploy-CI/OldApp_AdHoc/OldApp_AdHoc.mobileprovision --force --out-file ./OldApp_AdHoc.mobileprovision
           op read op://Mobile-Deploy-CI/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
           op read op://Mobile-Deploy-CI/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
-
-      - name: Decrypt certificate
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          op read op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12 --force --out-file ./Certificates.p12
 
       - name: Build AdHoc app
         run: bundle exec fastlane ios build_adhoc_hybrid
