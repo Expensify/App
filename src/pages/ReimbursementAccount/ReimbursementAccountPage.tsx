@@ -83,7 +83,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const isPreviousPolicy = policyIDParam === achData?.policyID;
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
+    const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
         return {
@@ -125,7 +126,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
-    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean | null>(null);
+    const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(() => getShouldShowContinueSetupButtonValue());
 
     /**
      * Retrieve verified business bank account currently being set up.
@@ -218,22 +219,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         [isOffline, reimbursementAccount, route, hasACHDataBeenLoaded, shouldShowContinueSetupButton],
     );
 
-    useEffect(() => {
-        if (!hasACHDataBeenLoaded) {
-            return;
-        }
-
-        setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
-
-        return () => {
-            setShouldShowContinueSetupButton(null);
-        };
-    }, [getShouldShowContinueSetupButtonValue, hasACHDataBeenLoaded]);
-
     const continueUSDVBBASetup = () => {
-        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
-            setShouldShowContinueSetupButton(false);
-        });
+        setShouldShowContinueSetupButton(false);
+        setUSDBankAccountStep(currentStep);
     };
 
     const continueNonUSDVBBASetup = () => {
@@ -383,26 +371,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    const subStep = achData?.subStep ?? '';
-    const shouldShowEntryPoint =
-        shouldShowContinueSetupButton === true ||
-        (hasForeignCurrency && nonUSDBankAccountStep === CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY) ||
-        (currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && subStep === '');
-
-    if (shouldShowEntryPoint) {
-        return (
-            <VerifiedBankAccountFlowEntryPoint
-                reimbursementAccount={reimbursementAccount}
-                onContinuePress={hasForeignCurrency ? continueNonUSDVBBASetup : continueUSDVBBASetup}
-                policyName={policyName}
-                onBackButtonPress={Navigation.goBack}
-                shouldShowContinueSetupButton={shouldShowContinueSetupButton}
-                hasForeignCurrency={hasForeignCurrency}
-            />
-        );
-    }
-
-    if (hasForeignCurrency) {
+    if (hasForeignCurrency && nonUSDBankAccountStep !== null) {
         return (
             <NonUSDVerifiedBankAccountFlow
                 nonUSDBankAccountStep={nonUSDBankAccountStep}
@@ -411,13 +380,28 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
+    if (USDBankAccountStep !== null) {
+        return (
+            <USDVerifiedBankAccountFlow
+                USDBankAccountStep={currentStep}
+                policyID={policyIDParam}
+                onBackButtonPress={goBack}
+                requestorStepRef={requestorStepRef}
+                onfidoToken={onfidoToken}
+            />
+        );
+    }
+
     return (
-        <USDVerifiedBankAccountFlow
-            USDBankAccountStep={currentStep}
-            policyID={policyIDParam}
-            onBackButtonPress={goBack}
-            requestorStepRef={requestorStepRef}
-            onfidoToken={onfidoToken}
+        <VerifiedBankAccountFlowEntryPoint
+            reimbursementAccount={reimbursementAccount}
+            onContinuePress={hasForeignCurrency ? continueNonUSDVBBASetup : continueUSDVBBASetup}
+            policyName={policyName}
+            onBackButtonPress={Navigation.goBack}
+            shouldShowContinueSetupButton={shouldShowContinueSetupButton}
+            hasForeignCurrency={hasForeignCurrency}
+            setNonUSDBankAccountStep={setNonUSDBankAccountStep}
+            setUSDBankAccountStep={setUSDBankAccountStep}
         />
     );
 }

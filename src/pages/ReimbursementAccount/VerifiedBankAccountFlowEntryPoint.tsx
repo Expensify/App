@@ -60,6 +60,11 @@ type VerifiedBankAccountFlowEntryPointProps = {
 
     /** Toggle ValidateCodeActionModal */
     toggleValidateCodeActionModal?: (isVisible: boolean) => void;
+
+    /** Set should show continue setup button */
+    setNonUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
+
+    setUSDBankAccountStep: (shouldShowContinueSetupButton: string | null) => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -67,7 +72,6 @@ const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
 function VerifiedBankAccountFlowEntryPoint({
     policyName = '',
     policyID = '',
-
     onBackButtonPress,
     reimbursementAccount,
     onContinuePress,
@@ -75,6 +79,8 @@ function VerifiedBankAccountFlowEntryPoint({
     hasForeignCurrency,
     isValidateCodeActionModalVisible,
     toggleValidateCodeActionModal,
+    setNonUSDBankAccountStep,
+    setUSDBankAccountStep,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -117,17 +123,24 @@ function VerifiedBankAccountFlowEntryPoint({
             return;
         }
 
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
         removeExistingBankAccountDetails();
         openPlaidView();
     };
 
     const handleConnectManually = () => {
+        if (hasForeignCurrency) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+            return;
+        }
+
         if (!account?.validated) {
             toggleValidateCodeActionModal?.(true);
             return;
         }
         removeExistingBankAccountDetails();
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     };
 
     return (
