@@ -474,6 +474,9 @@ const CONST = {
     // Regex to read violation value from string given by backend
     VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
 
+    // Regex to match and remove all lowercase letters (a-z)
+    REMOVE_LOWERCASE_REGEX: /[a-z]/g,
+
     MERCHANT_NAME_MAX_LENGTH: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',

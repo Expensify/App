@@ -35,6 +35,10 @@ function PhoneNumberPage() {
     const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
+    const removeLetters = (str: string) => {
+        return str.replace(CONST.REMOVE_LOWERCASE_REGEX, '').trim();
+    };
+
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
         // Clear the error when the user tries to submit the form
         if (validateLoginError) {
@@ -42,9 +46,12 @@ function PhoneNumberPage() {
         }
 
         // Only call the API if the user has changed their phone number
-        if (phoneNumber !== values?.phoneNumber) {
-            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(values?.phoneNumber ?? '');
+        if (phoneNumber !== values?.phoneNumber && values?.phoneNumber) {
+            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(removeLetters(values?.phoneNumber.toLocaleLowerCase()) ?? '');
             const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+            console.log('****** phoneNumberWithCountryCode ******', phoneNumberWithCountryCode);
+            console.log('****** parsedPhoneNumber ******', parsedPhoneNumber);
+
             PersonalDetails.updatePhoneNumber(parsedPhoneNumber.number?.e164 ?? '', currenPhoneNumber);
         }
 
