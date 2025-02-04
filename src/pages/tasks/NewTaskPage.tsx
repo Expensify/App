@@ -94,15 +94,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         }
 
         playSound(SOUNDS.DONE);
-        createTaskAndNavigate(
-            parentReport?.reportID,
-            task.title,
-            task?.description ?? '',
-            task?.assignee ?? '',
-            task.assigneeAccountID,
-            task.assigneeChatReport,
-            parentReport?.policyID,
-        );
+        createTaskAndNavigate(parentReport?.reportID, task.title, task?.description ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport, parentReport?.policyID);
     };
 
     return (
