@@ -13,12 +13,12 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LoginUtils from '@libs/LoginUtils';
+import {getEarliestErrorField} from '@libs/ErrorUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PhoneNumberUtils from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
@@ -32,23 +32,28 @@ function PhoneNumberPage() {
     const {inputCallbackRef} = useAutoFocusInput();
     const phoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
-    const validateLoginError = ErrorUtils.getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
+    const validateLoginError = getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
     const sanitizePhoneNumber = (num?: string): string => num?.replace(CONST.SANITIZE_PHONE_REGEX, '') ?? '';
+    const formatPhoneNumber = useCallback((num: string) => {
+        const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(num));
+        const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+
+        return parsedPhoneNumber;
+    }, []);
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
         // Clear the error when the user tries to submit the form
         if (validateLoginError) {
-            PersonalDetails.clearPhoneNumberError();
+            clearPhoneNumberError();
         }
 
         // Only call the API if the user has changed their phone number
         if (phoneNumber !== values?.phoneNumber && values?.phoneNumber) {
-            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(sanitizePhoneNumber(values?.phoneNumber));
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
+            const formattedPhone = formatPhoneNumber(values.phoneNumber);
 
-            PersonalDetails.updatePhoneNumber(parsedPhoneNumber.number?.e164 ?? '', currenPhoneNumber);
+            updatePhone(formattedPhone.number?.e164 ?? '', currenPhoneNumber);
         }
 
         Navigation.goBack();
@@ -58,34 +63,25 @@ function PhoneNumberPage() {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
 
-            // Validate that the phone number field is not empty
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
+            if (!isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
-                return errors; // Early return if field is empty
+                return errors;
             }
 
-            // Sanitize input: Remove all non-numeric characters except the leading '+'
-            const sanitizedPhoneNumber = sanitizePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
+            const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]));
+            const parsedPhoneNumber = formatPhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
 
-            // Append country code if missing
-            const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(sanitizedPhoneNumber);
-
-            // Parse and validate the phone number
-            const parsedPhoneNumber = PhoneNumberUtils.parsePhoneNumber(phoneNumberWithCountryCode);
-
-            // Check if the phone number is possible and valid in E.164 format
             if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
             }
 
-            // Clear the error if the user tries to validate the form and there are errors
             if (validateLoginError && Object.keys(errors).length > 0) {
-                PersonalDetails.clearPhoneNumberError();
+                clearPhoneNumberError();
             }
 
             return errors;
         },
-        [translate, validateLoginError],
+        [formatPhoneNumber, translate, validateLoginError],
     );
 
     return (
@@ -113,7 +109,7 @@ function PhoneNumberPage() {
                         <OfflineWithFeedback
                             errors={validateLoginError}
                             errorRowStyles={styles.mt2}
-                            onClose={() => PersonalDetails.clearPhoneNumberError()}
+                            onClose={() => clearPhoneNumberError()}
                         >
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -129,7 +125,7 @@ function PhoneNumberPage() {
                                     if (!validateLoginError) {
                                         return;
                                     }
-                                    PersonalDetails.clearPhoneNumberError();
+                                    clearPhoneNumberError();
                                 }}
                             />
                         </OfflineWithFeedback>
