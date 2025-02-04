@@ -2,8 +2,8 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -102,7 +102,7 @@ function AddressForm({
             // Add "Field required" errors if any required field is empty
             requiredFields.forEach((fieldKey) => {
                 const fieldValue = values[fieldKey] ?? '';
-                if (ValidationUtils.isRequiredFulfilled(fieldValue)) {
+                if (isRequiredFulfilled(fieldValue)) {
                     return;
                 }
 
@@ -116,11 +116,11 @@ function AddressForm({
             const countrySpecificZipRegex = countryRegexDetails?.regex;
             const countryZipFormat = countryRegexDetails?.samples ?? '';
 
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
+            addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
 
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
-                    if (ValidationUtils.isRequiredFulfilled(values.zipPostCode?.trim())) {
+                    if (isRequiredFulfilled(values.zipPostCode?.trim())) {
                         errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
                     } else {
                         errors.zipPostCode = translate('common.error.fieldRequired');
