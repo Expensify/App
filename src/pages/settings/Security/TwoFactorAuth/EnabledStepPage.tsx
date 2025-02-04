@@ -33,6 +33,7 @@ function EnabledStepPage() {
             stepName={EnabledStepPage.displayName}
             title={translate('twoFactorAuth.headerTitle')}
             shouldEnableKeyboardAvoidingView={false}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
         >
             <ScrollView>
                 <Section

@@ -78,7 +78,7 @@ function CodesStepPage({route}: TwoFactorAuthPageProps) {
             stepName={CodesStepPage.displayName}
             // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
             // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
-            onBackButtonPress={() => quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? '' : route?.params?.backTo)}
+            onBackButtonPress={() => quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? undefined : route?.params?.backTo)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (
@@ -162,7 +162,7 @@ function CodesStepPage({route}: TwoFactorAuthPageProps) {
                         text={translate('common.next')}
                         onPress={() => {
                             if (!account?.codesAreCopied) {
-                                setError(translate('twoFactorAuth.errorStepCodes'));
+                                return setError(translate('twoFactorAuth.errorStepCodes'));
                             }
                             Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY);
                         }}
@@ -183,7 +183,7 @@ function CodesStepPage({route}: TwoFactorAuthPageProps) {
                 onModalHide={() => {}}
                 onClose={() => {
                     setIsValidateModalVisible(false);
-                    quitAndNavigateBack(route?.params?.backTo);
+                    quitAndNavigateBack();
                 }}
             />
         </PageWrapper>

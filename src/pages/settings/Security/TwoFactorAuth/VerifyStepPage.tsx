@@ -48,7 +48,7 @@ function VerifyStepPage({route}: VerifyStepPageProps) {
         if (!account?.requiresTwoFactorAuth) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY);
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute());
     }, [account?.requiresTwoFactorAuth]);
 
     /**
@@ -80,7 +80,7 @@ function VerifyStepPage({route}: VerifyStepPageProps) {
                 text: translate('twoFactorAuth.stepVerify'),
                 total: 3,
             }}
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(route?.params?.backTo))}
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())}
         >
             <ScrollView
                 keyboardShouldPersistTaps="handled"

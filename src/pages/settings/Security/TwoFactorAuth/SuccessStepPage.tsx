@@ -27,7 +27,7 @@ function SuccessStepPage() {
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
                     clearTwoFactorAuthData();
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED);
+                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
 
                     // if (backTo) {
                     //     Navigation.navigate(backTo);

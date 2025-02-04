@@ -33,7 +33,7 @@ function GetCodePage() {
         <PageWrapper
             stepName={GetCodePage.displayName}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED)}
+            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <View style={[styles.ph5, styles.mt3]}>
