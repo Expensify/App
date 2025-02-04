@@ -45,6 +45,7 @@ function IOURequestStepDescription({
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [draftTransaciton] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -134,6 +135,16 @@ function IOURequestStepDescription({
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
 
+    const getDescriptionHint = () => {
+        if (!policyCategories) {
+            return '';
+        }
+        const categoryName = Object.keys(policyCategories)
+            .filter((value) => value === draftTransaciton?.category)
+            .at(0);
+        return categoryName ? policyCategories[categoryName].commentHint : '';
+    };
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.description')}
@@ -167,6 +178,7 @@ function IOURequestStepDescription({
                         type="markdown"
                         excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                         ref={inputCallbackRef}
+                        hint={getDescriptionHint()}
                     />
                 </View>
             </FormProvider>
