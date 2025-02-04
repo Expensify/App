@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
+import {parseFSAttributes} from '@libs/Fullstory';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {FeatureListItem} from './FeatureList';
@@ -36,6 +37,9 @@ function OnboardingWelcomeVideo() {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
+
     return (
         <FeatureTrainingModal
             // We would like to show the Lottie animation instead of a video
@@ -56,7 +60,7 @@ function OnboardingWelcomeVideo() {
         >
             <View
                 style={[styles.gap3, styles.pt1, styles.pl1]}
-                fsClass="fs-unmask"
+                fsClass={CONST.FULL_STORY.UNMASK}
             >
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View

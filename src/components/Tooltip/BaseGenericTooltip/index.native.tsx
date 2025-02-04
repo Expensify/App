@@ -1,5 +1,5 @@
 import {Portal} from '@gorhom/portal';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
@@ -8,6 +8,7 @@ import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWitho
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
+import {parseFSAttributes} from '@libs/Fullstory';
 import CONST from '@src/CONST';
 import type {BaseGenericTooltipProps} from './types';
 
@@ -100,16 +101,19 @@ function BaseGenericTooltip({
             currentSize: animation,
         });
     });
+    
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
 
     let content;
     if (renderTooltipContent) {
-        content = <View fsClass="fs-unmask">{renderTooltipContent()}</View>;
+        content = <View fsClass={CONST.FULL_STORY.UNMASK}>{renderTooltipContent()}</View>;
     } else {
         content = (
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
-                fsClass="fs-unmask"
+                fsClass={CONST.FULL_STORY.UNMASK}
             >
                 <Text style={textStyle}>{text}</Text>
             </Text>
