@@ -148,7 +148,7 @@ const FS = {
                     }
                     return;
                 }
-                // If Fullstory was already initialized, we might have shutdown the session. So let's 
+                // If Fullstory was already initialized, we might have shutdown the session. So let's
                 // restart it before identifying the user.
                 if (isInitialized()) {
                     FullStory(CONST.FULL_STORY.RESTART);
