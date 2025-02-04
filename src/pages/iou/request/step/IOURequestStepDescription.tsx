@@ -134,13 +134,12 @@ function IOURequestStepDescription({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
-
     const getDescriptionHint = () => {
         if (!policyCategories) {
             return '';
         }
         const categoryName = Object.keys(policyCategories)
-            .filter((value) => value === draftTransaciton?.category)
+            .filter((value) => value === draftTransaciton?.category || value === transaction?.category)
             .at(0);
         return categoryName ? policyCategories[categoryName].commentHint : '';
     };
