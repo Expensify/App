@@ -1,15 +1,15 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { InteractionManager, View } from 'react-native';
+import { useOnyx } from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type { DropdownOption } from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import { usePersonalDetails } from '@components/OnyxProvider';
+import { useProductTrainingContext } from '@components/ProductTrainingContext';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -17,28 +17,22 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    approveMoneyRequestOnSearch,
-    deleteMoneyRequestOnSearch,
-    exportSearchItemsToCSV,
-    payMoneyRequestOnSearch,
-    unholdMoneyRequestOnSearch,
-    updateAdvancedFilters,
-} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import { approveMoneyRequestOnSearch, deleteMoneyRequestOnSearch, exportSearchItemsToCSV, getLastPolicyPaymentMethod, payMoneyRequestOnSearch, unholdMoneyRequestOnSearch, updateAdvancedFilters } from '@libs/actions/Search';
+import { mergeCardListWithWorkspaceFeeds } from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates, hasVBBA} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import { getAllTaxRates, hasVBBA } from '@libs/PolicyUtils';
+import { buildFilterFormValuesFromQuery, isCannedSearchQuery } from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LastPaymentMethodType} from '@src/types/onyx';
+import type { LastPaymentMethodType } from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {useSearchContext} from './SearchContext';
+import { useSearchContext } from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
-import type {PaymentData, SearchQueryJSON} from './types';
+import type { PaymentData, SearchQueryJSON } from './types';
+
 
 type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
 
@@ -148,13 +142,15 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                       (report) =>
                           report.action === CONST.SEARCH.ACTION_TYPES.PAY &&
                           report.policyID &&
-                          ((!!lastPaymentMethods[report.policyID] && typeof lastPaymentMethods[report.policyID] === 'string') || !!(lastPaymentMethods[report.policyID] as LastPaymentMethodType)?.DEFAULT),
+                          ((!!lastPaymentMethods[report.policyID] && typeof lastPaymentMethods[report.policyID] === 'string') ||
+                              !!(lastPaymentMethods[report.policyID] as LastPaymentMethodType)?.DEFAULT),
                   )
                 : selectedTransactionsKeys.every(
                       (id) =>
                           selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
                           selectedTransactions[id].policyID &&
-                          ((!!lastPaymentMethods[selectedTransactions[id].policyID] && typeof lastPaymentMethods[selectedTransactions[id].policyID] === 'string') || !!(lastPaymentMethods[selectedTransactions[id].policyID] as LastPaymentMethodType).DEFAULT),
+                          ((!!lastPaymentMethods[selectedTransactions[id].policyID] && typeof lastPaymentMethods[selectedTransactions[id].policyID] === 'string') ||
+                              !!(lastPaymentMethods[selectedTransactions[id].policyID] as LastPaymentMethodType).DEFAULT),
                   ));
 
         if (shouldShowPayOption) {
@@ -175,7 +171,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
                     for (const item of items) {
                         const policyID = item.policyID;
-                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+                        const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, lastPaymentMethods);
 
                         if (!lastPolicyPaymentMethod) {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
@@ -192,11 +188,15 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
                     const paymentData = (
                         selectedReports.length
-                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
+                            ? selectedReports.map((report) => ({
+                                  reportID: report.reportID,
+                                  amount: report.total,
+                                  paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                              }))
                             : Object.values(selectedTransactions).map((transaction) => ({
                                   reportID: transaction.reportID,
                                   amount: transaction.amount,
-                                  paymentType: lastPaymentMethods[transaction.policyID],
+                                  paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
                               }))
                     ) as PaymentData[];
 

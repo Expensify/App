@@ -77,6 +77,20 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     }
 }
 
+function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
+    if (!policyID) {
+        return null;
+    }
+    let lastPolicyPaymentMethod = null;
+    if (typeof lastPaymentMethods?.[policyID] === 'string') {
+        lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    } else {
+        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.DEFAULT as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    }
+
+    return lastPolicyPaymentMethod
+}
+
 function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
     let lastPolicyPaymentMethod = null;
     if (item.policyID) {
@@ -428,4 +442,5 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
+    getLastPolicyPaymentMethod,
 };
