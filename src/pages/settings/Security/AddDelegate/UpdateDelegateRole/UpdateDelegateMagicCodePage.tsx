@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
-import {updateDelegateRole} from '@libs/actions/Delegate';
+import {clearDelegateErrorsByField, updateDelegateRole} from '@libs/actions/Delegate';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -38,9 +38,16 @@ function UpdateDelegateMagicCodePage({route}: UpdateDelegateMagicCodePageProps) 
         Navigation.goBack(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(login, role));
     };
 
+    const clearError = () => {
+        if (!updateDelegateErrors) {
+            return;
+        }
+        clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole');
+    };
+
     return (
         <ValidateCodeActionModal
-            clearError={() => {}}
+            clearError={clearError}
             onClose={onBackButtonPress}
             validateError={updateDelegateErrors}
             isVisible
