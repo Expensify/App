@@ -101,7 +101,7 @@ function BaseGenericTooltip({
             currentSize: animation,
         });
     });
-    
+
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 

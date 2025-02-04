@@ -123,7 +123,7 @@ function BaseGenericTooltip({
 
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
-    
+
     let content;
     if (renderTooltipContent) {
         content = (
