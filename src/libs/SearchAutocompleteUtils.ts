@@ -161,13 +161,14 @@ function parseForLiveMarkdown(
     return ranges
         .filter(
             (range) =>
-                !(
-                    range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
-                    range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
-                    range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
-                    range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE ||
-                    range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID
-                ) || subMap[`${range.key}:${range.value}`] !== undefined,
+                !(range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN || range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE || range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) ||
+                subMap[`${range.key}:${range.value}`] !== undefined,
+        )
+        .filter(
+            (range) =>
+                !(range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) ||
+                subMap[`${range.key}:${range.value}`] !== undefined ||
+                userLogins.get().includes(range.value),
         )
         .filter((range) => range.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY || currencyList.get().includes(range.value))
         .filter((range) => range.key !== CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE || typeList.includes(range.value))

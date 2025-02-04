@@ -99,7 +99,6 @@ function SearchAutocompleteInput(
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const lastMap = useRef<SubstitutionMap>({});
     const [map, setMap] = useState({});
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
@@ -123,11 +122,11 @@ function SearchAutocompleteInput(
     const emailListSharedValue = useSharedValue(emailList);
 
     useEffect(() => {
-        if (lastMap.current && !isEqual(lastMap.current, substitutionMap)) {
-            lastMap.current = substitutionMap;
+        if (isEqual(map, substitutionMap)) {
+            return;
         }
-        setMap(lastMap.current ?? {});
-    }, [substitutionMap, lastMap]);
+        setMap(substitutionMap);
+    }, [substitutionMap, map]);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
