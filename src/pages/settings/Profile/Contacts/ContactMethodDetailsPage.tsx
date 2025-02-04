@@ -262,7 +262,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     />
                 </OfflineWithFeedback>
             )}
-            {getDeleteConfirmationModal()}
         </>
     );
 
@@ -333,6 +332,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 />
 
                 {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
+                {getDeleteConfirmationModal()}
             </ScrollView>
         </ScreenWrapper>
     );
