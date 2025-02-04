@@ -190,3 +190,4 @@ To add more features,
 </ol>
 
 Easily monitor when your Free Trial starts and how many days are left on your Subscription page. We’ll also notify you when your trial starts and ends, at which point you’ll add a billing card to continue using all your favorite features!
+</div>
