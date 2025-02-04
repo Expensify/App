@@ -197,22 +197,6 @@ const ROUTES = {
         route: 'settings/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
     },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
-        route: 'settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/name` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
-        route: 'settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/phone` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
-        route: 'settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/address` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
-        route: 'settings/wallet/card/:domain/get-physical/confirm',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/confirm` as const,
-    },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',

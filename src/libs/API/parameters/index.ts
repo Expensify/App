@@ -51,7 +51,6 @@ export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachers
 export type {default as ReportVirtualExpensifyCardFraudParams} from './ReportVirtualExpensifyCardFraudParams';
 export type {default as RequestContactMethodValidateCodeParams} from './RequestContactMethodValidateCodeParams';
 export type {default as RequestNewValidateCodeParams} from './RequestNewValidateCodeParams';
-export type {default as RequestPhysicalExpensifyCardParams} from './RequestPhysicalExpensifyCardParams';
 export type {default as RequestReplacementExpensifyCardParams} from './RequestReplacementExpensifyCardParams';
 export type {default as RequestUnlinkValidationLinkParams} from './RequestUnlinkValidationLinkParams';
 export type {default as RequestAccountValidationLinkParams} from './RequestAccountValidationLinkParams';

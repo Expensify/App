@@ -46,7 +46,7 @@ type AddressFormProps = {
     onAddressChanged?: (value: unknown, key: unknown) => void;
 
     /** Callback which is executed when the user submits his address changes */
-    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
+    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
 
     /** Whether or not should the form data should be saved as draft */
     shouldSaveDraft?: boolean;
@@ -55,7 +55,7 @@ type AddressFormProps = {
     submitButtonText?: string;
 
     /** A unique Onyx key identifying the form */
-    formID: typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
+    formID: typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
 };
 
 function AddressForm({
@@ -88,7 +88,7 @@ function AddressForm({
      */
 
     const validator = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
             const errors: Errors & {
                 zipPostCode?: string | string[];
             } = {};
