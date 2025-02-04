@@ -95,7 +95,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
 
         playSound(SOUNDS.DONE);
         createTaskAndNavigate(
-            parentReport?.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
+            parentReport?.reportID,
             task.title,
             task?.description ?? '',
             task?.assignee ?? '',
