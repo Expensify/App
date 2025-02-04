@@ -8685,7 +8685,7 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
  */
 function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData, onboardingPurposeSelected?: OnboardingPurpose): boolean {
     // onboarding can be an empty object for old accounts and accounts created from olddot
-    if (onboarding && !isEmptyObject(onboarding) && onboarding.chatReportID) {
+    if (onboarding && !isEmptyObject(onboarding) && onboarding.chatReportID !== undefined) {
         return onboarding.chatReportID === optionOrReport?.reportID;
     }
     if (isEmptyObject(onboarding)) {

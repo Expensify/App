@@ -84,6 +84,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     IntroSelected,
     InvitedEmailsToAccountIDs,
+    Onboarding,
     PersonalDetailsList,
     Policy,
     PolicyCategory,
@@ -168,6 +169,12 @@ Onyx.connect({
 
         allPolicies[key] = val;
     },
+});
+
+let onboarding: OnyxEntry<Onboarding>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => (onboarding = value),
 });
 
 let lastAccessedWorkspacePolicyID: OnyxEntry<string>;
@@ -362,6 +369,14 @@ function deleteWorkspace(policyID: string, policyName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
             value: null,
         });
+
+        if (report?.reportID === onboarding?.chatReportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_ONBOARDING,
+                value: {chatReportID: ''},
+            });
+        }
 
         // Add closed actions to all chat reports linked to this policy
         // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
