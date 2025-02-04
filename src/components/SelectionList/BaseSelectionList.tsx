@@ -324,6 +324,9 @@ function BaseSelectionList<TItem extends ListItem>(
         if (hasKeyBeenPressed.current) {
             return;
         }
+
+        // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
+        // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
         hasKeyBeenPressed.current = true;
     }, []);
 
