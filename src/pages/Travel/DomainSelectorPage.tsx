@@ -22,11 +22,6 @@ type DomainItem = ListItem & {
     isRecommended: boolean;
 };
 
-const provisionTravelForDomain = (domain: string | undefined) => {
-    cleanupTravelProvisioningSession();
-    Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain ?? CONST.TRAVEL.DEFAULT_DOMAIN));
-};
-
 function DomainSelectorPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -50,6 +45,11 @@ function DomainSelectorPage() {
         });
     }, [domains, recommendedDomain, selectedDomain]);
 
+    const provisionTravelForDomain = () => {
+        cleanupTravelProvisioningSession();
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN));
+    };
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -69,7 +69,7 @@ function DomainSelectorPage() {
                         success
                         large
                         style={[styles.w100]}
-                        onPress={() => provisionTravelForDomain(selectedDomain)}
+                        onPress={provisionTravelForDomain}
                         text={translate('common.continue')}
                     />
                 }
