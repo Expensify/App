@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import type {MutableRefObject} from 'react';
 import React from 'react';
-import {InteractionManager} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
