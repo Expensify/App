@@ -145,6 +145,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
@@ -195,7 +196,6 @@ import type {
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkspaceLockedPlanTypeParams,
@@ -996,6 +996,7 @@ const translations = {
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `moved expense from self DM to ${workspaceName ?? `chat with ${reportName}`}`,
+        movedToSelfDM: 'moved expense to self DM',
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
@@ -2539,6 +2540,12 @@ const translations = {
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
             confirmation: 'Confirmation number',
+            cancellationPolicies: {
+                unknown: 'Unknown',
+                nonRefundable: 'Non-refundable',
+                freeCancellationUntil: 'Free cancellation until',
+                partiallyRefundable: 'Partially refundable',
+            },
         },
         car: 'Car',
         carDetails: {
@@ -2648,8 +2655,8 @@ const translations = {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You've been invited to ${workspaceName || 'a workspace'}! Get the most out of Expensify by downloading the app at use.expensify.com/download.`,
+            defaultDescription: 'One place for all your receipts and expenses.',
+            welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -2688,7 +2695,7 @@ const translations = {
                 }
             },
             planType: 'Plan type',
-            submitExpense: 'Submit expenses using your workspace chat below:',
+            submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
         },
@@ -3507,6 +3514,8 @@ const translations = {
             limit: 'Limit',
             currentBalance: 'Current balance',
             currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
+            balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `Balance will be settled on ${settlementDate}`,
+            settleBalance: 'Settle balance',
             cardLimit: 'Card limit',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
@@ -5397,14 +5406,14 @@ const translations = {
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
             earlyDiscount: {
-                claimOffer: 'Claim Offer',
+                claimOffer: 'Claim offer',
                 noThanks: 'No thanks',
                 subscriptionPageTitle: {
                     phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                    phrase2: `Just add a payment card and start an annual subscription!`,
+                    phrase2: `Just add a payment card and start an annual subscription.`,
                 },
                 onboardingChatTitle: {
-                    phrase1: 'Limited time offer:',
+                    phrase1: 'Limited-time offer:',
                     phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
                 },
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim within ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
