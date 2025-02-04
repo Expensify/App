@@ -815,7 +815,7 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
-        getRoute: (policyID: string | undefined, backTo: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE route');
             }
