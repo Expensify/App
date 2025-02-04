@@ -326,8 +326,7 @@ function FormProvider(
                 value: inputValues[inputID],
                 // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
-                // If it's uncontrolled, then we set the `defaultValue` prop to actual value
-                defaultValue: inputProps.uncontrolled ? inputProps.defaultValue : undefined,
+                defaultValue: undefined,
                 onTouched: (event) => {
                     if (!inputProps.shouldSetTouchedOnBlurOnly) {
                         setTimeout(() => {

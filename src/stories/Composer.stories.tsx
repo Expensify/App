@@ -5,7 +5,7 @@ import React, {useState} from 'react';
 import {Image, View} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import Composer from '@components/Composer';
-import type {ComposerProps, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import type {ComposerProps} from '@components/Composer/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -28,17 +28,11 @@ const story: Meta<typeof ComposerWithNavigation> = {
 
 const parser = new ExpensiMark();
 
-const DEFAULT_VALUE = `Composer can do the following:
-
-     * It can contain MD e.g. *bold* _italic_
-     * Supports Pasted Images via Ctrl+V`;
-
 function Default(props: ComposerProps) {
     const StyleUtils = useStyleUtils();
     const [pastedFile, setPastedFile] = useState<FileObject | null>(null);
-    const [comment, setComment] = useState(DEFAULT_VALUE);
+    const [comment, setComment] = useState(props.defaultValue);
     const renderedHTML = parser.replace(comment ?? '');
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: DEFAULT_VALUE.length, end: DEFAULT_VALUE.length, positionX: 0, positionY: 0}));
 
     return (
         <View>
@@ -47,13 +41,8 @@ function Default(props: ComposerProps) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     multiline
-                    value={comment}
                     onChangeText={setComment}
                     onPasteFile={setPastedFile}
-                    selection={selection}
-                    onSelectionChange={(e: CustomSelectionChangeEvent) => {
-                        setSelection(e.nativeEvent.selection);
-                    }}
                     style={[defaultStyles.textInputCompose, defaultStyles.w100, defaultStyles.verticalAlignTop]}
                 />
             </View>
@@ -84,6 +73,10 @@ Default.args = {
     autoFocus: true,
     placeholder: 'Compose Text Here',
     placeholderTextColor: defaultTheme.placeholderText,
+    defaultValue: `Composer can do the following:
+
+     * It can contain MD e.g. *bold* _italic_
+     * Supports Pasted Images via Ctrl+V`,
     isDisabled: false,
     maxLines: 16,
 };

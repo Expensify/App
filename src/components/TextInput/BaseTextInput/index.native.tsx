@@ -10,6 +10,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
@@ -25,7 +26,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import InputComponentMap from './implementations';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
@@ -62,7 +62,7 @@ function BaseTextInput(
         prefixCharacter = '',
         suffixCharacter = '',
         inputID,
-        type = 'default',
+        isMarkdownEnabled = false,
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         prefixContainerStyle = [],
@@ -71,13 +71,11 @@ function BaseTextInput(
         suffixStyle = [],
         contentWidth,
         loadingSpinnerStyle,
-        uncontrolled,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
-    const isMarkdownEnabled = type === 'markdown';
+    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
 
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
@@ -381,7 +379,7 @@ function BaseTextInput(
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}
                                 inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
-                                value={uncontrolled ? undefined : value}
+                                value={value}
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}

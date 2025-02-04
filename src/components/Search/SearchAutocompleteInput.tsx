@@ -138,7 +138,7 @@ function SearchAutocompleteInput(
                         isLoading={!!isSearchingForReports}
                         ref={ref}
                         onKeyPress={handleKeyPress(onSubmit)}
-                        type="markdown"
+                        isMarkdownEnabled
                         multiline={false}
                         parser={(input: string) => {
                             'worklet';

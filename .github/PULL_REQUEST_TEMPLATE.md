@@ -23,9 +23,9 @@ PROPOSAL:
 
 
 <!--- 
-If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify PR please link it like this:
+If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify PR please specify it like follows:
 
-MOBILE-EXPENSIFY: https://github.com/Expensify/Mobile-Expensify/pull/<PR-number>
+MOBILE-EXPENSIFY: PR number
 
 --->
 

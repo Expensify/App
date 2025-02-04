@@ -11,14 +11,14 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addErrorMessage} from '@libs/ErrorUtils';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {setDraftSplitTransaction, setMoneyRequestDescription, updateMoneyRequestDescription} from '@userActions/IOU';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -76,7 +76,7 @@ function IOURequestStepDescription({
             const errors = {};
 
             if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(
+                ErrorUtils.addErrorMessage(
                     errors,
                     'moneyRequestComment',
                     translate('common.error.characterLimitExceedCounter', {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT}),
@@ -112,16 +112,16 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
+            IOU.setDraftSplitTransaction(transaction?.transactionID, {comment: newComment});
             navigateBack();
             return;
         }
-        const isTransactionDraft = shouldUseTransactionDraft(action);
+        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
-        setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
+        IOU.setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestDescription(transaction?.transactionID, reportID, newComment, policy, policyTags, policyCategories);
         }
 
         navigateBack();
@@ -129,9 +129,9 @@ function IOURequestStepDescription({
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
-    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
+    const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction));
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
 
     return (
@@ -164,7 +164,7 @@ function IOURequestStepDescription({
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        type="markdown"
+                        isMarkdownEnabled
                         excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                         ref={inputCallbackRef}
                     />

@@ -24,14 +24,14 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePolicies} from '@libs/PolicyUtils';
-import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
-import {isExistingRoomName, isReservedRoomName, isValidRoomName} from '@libs/ValidationUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import variables from '@styles/variables';
-import {addPolicyReport, clearNewRoomFormError} from '@userActions/Report';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,7 +64,7 @@ function WorkspaceNewRoomPage() {
 
     const workspaceOptions = useMemo(
         () =>
-            getActivePolicies(policies, session?.email)
+            PolicyUtils.getActivePolicies(policies, session?.email)
                 ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
                 .map((policy) => ({
                     label: policy.name,
@@ -79,12 +79,12 @@ function WorkspaceNewRoomPage() {
         }
         return '';
     });
-    const isAdminPolicy = useMemo(() => {
+    const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
             return false;
         }
 
-        return isPolicyAdmin(policyID, policies);
+        return ReportUtils.isPolicyAdmin(policyID, policies);
     }, [policyID, policies]);
     const [newRoomReportID, setNewRoomReportID] = useState<string>();
 
@@ -92,9 +92,9 @@ function WorkspaceNewRoomPage() {
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
-        const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-        const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
-        const policyReport = buildOptimisticChatReport(
+        const participants = [session?.accountID ?? -1];
+        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '', {policyID});
+        const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
             values.roomName,
             CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
@@ -110,11 +110,11 @@ function WorkspaceNewRoomPage() {
             parsedDescription,
         );
         setNewRoomReportID(policyReport.reportID);
-        addPolicyReport(policyReport);
+        Report.addPolicyReport(policyReport);
     };
 
     useEffect(() => {
-        clearNewRoomFormError();
+        Report.clearNewRoomFormError();
     }, []);
 
     useEffect(() => {
@@ -140,12 +140,12 @@ function WorkspaceNewRoomPage() {
     }, [isLoading, errorFields]);
 
     useEffect(() => {
-        if (isAdminPolicy) {
+        if (isPolicyAdmin) {
             return;
         }
 
         setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    }, [isAdminPolicy]);
+    }, [isPolicyAdmin]);
 
     /**
      * @param values - form input values passed by the Form component
@@ -157,23 +157,27 @@ function WorkspaceNewRoomPage() {
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
-            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !isValidRoomName(values.roomName)) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
+            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
                 // We error if the room name has invalid characters
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
-            } else if (isReservedRoomName(values.roomName)) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
+            } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
-            } else if (isExistingRoomName(values.roomName, reports, values.policyID)) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, values.policyID ?? '-1')) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
-            const descriptionLength = getCommentLength(values.reportDescription, {policyID});
+            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription, {policyID});
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                addErrorMessage(errors, 'reportDescription', translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}));
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'reportDescription',
+                    translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}),
+                );
             }
 
             if (!values.policyID) {
@@ -285,7 +289,7 @@ function WorkspaceNewRoomPage() {
                                 maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                 autoCapitalize="none"
                                 shouldInterceptSwipe
-                                type="markdown"
+                                isMarkdownEnabled
                             />
                         </View>
                         <View style={[styles.mhn5]}>
@@ -298,7 +302,7 @@ function WorkspaceNewRoomPage() {
                                 onValueChange={(value) => setPolicyID(value as typeof policyID)}
                             />
                         </View>
-                        {isAdminPolicy && (
+                        {isPolicyAdmin && (
                             <View style={styles.mhn5}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}

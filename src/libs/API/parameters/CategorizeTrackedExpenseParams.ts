@@ -11,7 +11,7 @@ type CategorizeTrackedExpenseParams = {
     moneyRequestPreviewReportActionID: string | undefined;
     moneyRequestReportID: string | undefined;
     moneyRequestCreatedReportActionID: string | undefined;
-    actionableWhisperReportActionID: string | undefined;
+    actionableWhisperReportActionID: string;
     modifiedExpenseReportActionID: string;
     reportPreviewReportActionID: string | undefined;
     category?: string;

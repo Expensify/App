@@ -120,7 +120,8 @@ platform :android do
       gradle(
         project_dir: 'Mobile-Expensify/Android',
         task: 'assemble',
-        build_type: 'Debug',
+        flavor: 'Production',
+        build_type: 'Release',
       )
       setGradleOutputsInEnv()
     end
@@ -457,10 +458,7 @@ platform :ios do
     ENV["ENVFILE"]=".env.production"
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "New Expensify",
-        configuration: "Debug",
-        sdk: "iphonesimulator",
-        skip_codesigning: true
+        scheme: "New Expensify"
     )
     setIOSBuildOutputsInEnv()
   end
@@ -470,11 +468,7 @@ platform :ios do
       ENV["ENVFILE"]="./Mobile-Expensify/.env.production.hybridapp.ios"
       build_app(
           workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
-          scheme: "Expensify",
-          configuration: "Debug",
-          sdk: "iphonesimulator",
-          skip_codesigning: true,
-          export_method: "development"
+          scheme: "Expensify"
       )
       setIOSBuildOutputsInEnv()
     end

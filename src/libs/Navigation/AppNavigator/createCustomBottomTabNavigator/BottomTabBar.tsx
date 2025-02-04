@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import {useReportIDs} from '@hooks/useReportIDs';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -101,7 +100,6 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
         if (selectedTab === SCREENS.SEARCH.BOTTOM_TAB) {
             return;
         }
-        clearSelectedText();
         interceptAnonymousUser(() => {
             const rootState = navigationRef.getRootState() as State<RootStackParamList>;
             const lastSearchRoute = rootState.routes.filter((route) => route.name === SCREENS.SEARCH.CENTRAL_PANE).at(-1);

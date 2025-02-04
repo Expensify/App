@@ -38,9 +38,6 @@ NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
     SCHEME="Expensify Dev"
     APP_ID="org.me.mobiexpensifyg.dev"
 
-    # Build Yapl JS
-    cd Mobile-Expensify && npm run grunt:build:shared && cd ..
-
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
     PROJECT_ROOT_PATH="Mobile-Expensify/"
     export CUSTOM_APK_NAME="Expensify-debug.apk"

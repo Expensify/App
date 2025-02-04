@@ -81,7 +81,7 @@ jobs:
             });
             
             const body = pullRequest.data.body;
-            const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
+            const regex = /MOBILE-EXPENSIFY:(?<prNumber>\d+)/;
             const found = body.match(regex)?.groups?.prNumber || "";
 
             return found.trim();

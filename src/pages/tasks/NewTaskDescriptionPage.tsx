@@ -11,15 +11,15 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getCommentLength} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
-import {setDescriptionValue} from '@userActions/Task';
+import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,15 +41,15 @@ function NewTaskDescriptionPage({task, route}: NewTaskDescriptionPageProps) {
 
     const goBack = () => Navigation.goBack(ROUTES.NEW_TASK.getRoute(route.params?.backTo));
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
-        setDescriptionValue(values.taskDescription);
+        TaskActions.setDescriptionValue(values.taskDescription);
         goBack();
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
-        const taskDescriptionLength = getCommentLength(values.taskDescription);
+        const taskDescriptionLength = ReportUtils.getCommentLength(values.taskDescription);
         if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-            addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
         }
 
         return errors;
@@ -91,7 +91,7 @@ function NewTaskDescriptionPage({task, route}: NewTaskDescriptionPageProps) {
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm
-                            type="markdown"
+                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>
