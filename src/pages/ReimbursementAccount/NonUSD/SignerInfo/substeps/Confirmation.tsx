@@ -6,6 +6,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import getAddressValuesForSignerInfo from "@pages/ReimbursementAccount/NonUSD/utils/getAddressValuesForSignerInfo";
 
 type ConfirmationProps = SubStepProps & {isSecondSigner: boolean};
 
@@ -17,6 +18,8 @@ const {
     SECOND_SIGNER_JOB_TITLE,
     SIGNER_DATE_OF_BIRTH,
     SECOND_SIGNER_DATE_OF_BIRTH,
+    SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
+    SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
     SIGNER_COPY_OF_ID,
     SECOND_SIGNER_COPY_OF_ID,
     SIGNER_ADDRESS_PROOF,
@@ -30,7 +33,9 @@ function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationP
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
+    const addressPrefix = isSecondSigner ? SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS : SIGNER_COMPLETE_RESIDENTIAL_ADDRESS;
     const values = useMemo(() => getSubstepValues(SINGER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const addressValues = useMemo(() => getAddressValuesForSignerInfo(addressPrefix, reimbursementAccountDraft), [addressPrefix, reimbursementAccountDraft]);
 
     const IDs = values[isSecondSigner ? SECOND_SIGNER_COPY_OF_ID : SIGNER_COPY_OF_ID];
     const proofs = values[isSecondSigner ? SECOND_SIGNER_ADDRESS_PROOF : SIGNER_ADDRESS_PROOF];
@@ -49,7 +54,7 @@ function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationP
             description: translate('signerInfoStep.id'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(3);
+                onMove(4);
             },
         },
         {
@@ -57,7 +62,7 @@ function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationP
             description: translate('signerInfoStep.proofOf'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(3);
+                onMove(4);
             },
         },
     ];
@@ -78,6 +83,15 @@ function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationP
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(2);
+            },
+        });
+
+        summaryItems.splice(3, 0, {
+            title: `${addressValues.street}, ${addressValues.city}, ${addressValues.state}, ${addressValues.zipCode}`,
+            description: translate('ownershipInfoStep.address'),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(3);
             },
         });
     }

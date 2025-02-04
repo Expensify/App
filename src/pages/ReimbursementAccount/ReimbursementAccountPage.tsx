@@ -475,6 +475,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 //             onSubmit={handleNextNonUSDBankAccountStep}
                 //         />
                 //     );
+                // eslint-disable-next-line no-fallthrough
                 case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
                     return (
                         <SignerInfo
