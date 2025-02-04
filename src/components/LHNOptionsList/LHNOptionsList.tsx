@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
+import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -48,6 +49,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const estimatedListSize = useLHNEstimatedListSize();
     const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
@@ -284,6 +286,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
+                    estimatedListSize={estimatedListSize}
                 />
             )}
         </View>
