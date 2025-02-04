@@ -8,7 +8,7 @@ import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import * as FormActions from './FormActions';
+import {clearErrors} from './FormActions';
 
 type WalletQuestionAnswer = {
     question: string;
@@ -263,7 +263,7 @@ function clearPhysicalCardError(cardID?: string) {
         return;
     }
 
-    FormActions.clearErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    clearErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
     Onyx.merge(ONYXKEYS.CARD_LIST, {
         [cardID]: {
             errors: null,
