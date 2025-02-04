@@ -9,7 +9,6 @@ const navigateAfterOnboarding = (
     onboardingPolicyID?: string,
     activeWorkspaceID?: string,
     onboardingAdminsChatReportID?: string,
-    shouldOpenAdminRoom?: boolean,
 ) => {
     Navigation.dismissModal();
 
@@ -17,7 +16,7 @@ const navigateAfterOnboarding = (
     // On small screens, this removal redirects navigation to HOME. Dismissing the modal doesn't work properly,
     // so we need to specifically navigate to the last accessed report.
     if (!isSmallScreenWidth) {
-        if (shouldOpenAdminRoom && onboardingAdminsChatReportID) {
+        if (onboardingAdminsChatReportID) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(onboardingAdminsChatReportID));
         }
         return;

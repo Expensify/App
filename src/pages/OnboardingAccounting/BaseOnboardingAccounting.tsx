@@ -183,7 +183,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         setOnboardingAdminsChatReportID();
                         setOnboardingPolicyID();
                     });
-                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, onboardingAdminsChatReportID, true);
+                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, onboardingAdminsChatReportID);
                 }}
                 pressOnEnter
             />

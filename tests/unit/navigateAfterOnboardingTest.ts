@@ -41,15 +41,15 @@ describe('navigateAfterOnboarding', () => {
         jest.clearAllMocks();
     });
 
-    it('should navigate to the admin room report if shouldOpenAdminRoom and has onboardingAdminsChatReportID', () => {
+    it('should navigate to the admin room report if onboardingAdminsChatReportID is provided', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
 
-        navigateAfterOnboarding(false, true, undefined, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, true);
+        navigateAfterOnboarding(false, true, undefined, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
-    it('should not navigate if shouldOpenAdminRoom is false', () => {
-        navigateAfterOnboarding(false, true, undefined, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, false);
+    it('should not navigate if onboardingAdminsChatReportID is not provided', () => {
+        navigateAfterOnboarding(false, true, undefined, undefined);
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -67,7 +67,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, undefined, false);
+        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).not.toHaveBeenCalled();
     });
 
@@ -76,7 +76,17 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, undefined, false);
+        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should navigate to last accessed report if shouldOpenOnAdminRoom is true on small screens', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        const lastAccessedReport = {reportID: REPORT_ID};
+        mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
+        mockShouldOpenOnAdminRoom.mockReturnValue(true);
+
+        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 });
