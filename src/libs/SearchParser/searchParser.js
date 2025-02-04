@@ -324,7 +324,7 @@ function peg$parse(input, options) {
       } else {
         word = value;
       }
-      return buildFilter("eq", "keyword", value);
+      return buildFilter("eq", "keyword", word);
     };
   var peg$f4 = function(field, op, values) {
       return buildFilter(op, field, values);
