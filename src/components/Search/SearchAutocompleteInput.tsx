@@ -106,8 +106,8 @@ function SearchAutocompleteInput(
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
                 <View
                     style={styles.flex1}
-                    fsClass="fs-unmask"
-                    testID="fs-unmask"
+                    fsClass={CONST.FULL_STORY.UNMASK}
+                    testID={CONST.FULL_STORY.UNMASK}
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"
