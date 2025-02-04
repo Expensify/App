@@ -175,10 +175,10 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                 title={translate('common.youAppearToBeOffline')}
                 isVisible={shouldShowOfflineModal}
                 onConfirm={() => setShouldShowOfflineModal(false)}
-                onCancel={() => setShouldShowOfflineModal(false)}
                 confirmText={translate('common.buttonConfirm')}
                 prompt={translate('common.offlinePrompt')}
                 shouldShowCancelButton={false}
+                success={false}
             />
         </AccessOrNotFoundWrapper>
     );
