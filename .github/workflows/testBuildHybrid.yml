@@ -192,9 +192,9 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read op://Mobile Deployers/NewApp_AdHoc/NewApp_AdHoc.mobileprovision --force --out-file ./NewApp_AdHoc.mobileprovision
-          op read op://Mobile Deployers/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
-          op read op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12 --force --out-file ./Certificates.p12
+          op read "op://Mobile Deployers/NewApp_AdHoc/NewApp_AdHoc.mobileprovision" --force --out-file ./NewApp_AdHoc.mobileprovision
+          op read "op://Mobile Deployers/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
+          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
@@ -313,10 +313,10 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read op://Mobile-Deploy-CI/OldApp_AdHoc/OldApp_AdHoc.mobileprovision --force --out-file ./OldApp_AdHoc.mobileprovision
-          op read op://Mobile-Deploy-CI/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
-          op read op://Mobile-Deploy-CI/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
-          op read op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12 --force --out-file ./Certificates.p12
+          op read "op://Mobile-Deploy-CI/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
+          op read "op://Mobile-Deploy-CI/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
+          op read "op://Mobile-Deploy-CI/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
+          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Build AdHoc app
         run: bundle exec fastlane ios build_adhoc_hybrid
@@ -341,8 +341,6 @@ jobs:
         with:
           name: ios
           path: ./ios_paths.json
-
-
 
   postGithubComment:
     runs-on: ubuntu-latest

@@ -193,9 +193,9 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read op://Mobile Deployers/NewApp_AdHoc/NewApp_AdHoc.mobileprovision --force --out-file ./NewApp_AdHoc.mobileprovision
-          op read op://Mobile Deployers/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
-          op read op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12 --force --out-file ./Certificates.p12
+          op read "op://Mobile Deployers/NewApp_AdHoc/NewApp_AdHoc.mobileprovision" --force --out-file ./NewApp_AdHoc.mobileprovision
+          op read "op://Mobile Deployers/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
+          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
