@@ -36,7 +36,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? Number(CONST.REPORT.DEFAULT_REPORT_ID), personalDetails), [task?.assigneeAccountID, personalDetails]);
+    const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails), false);
     const shareDestination = useMemo(
         () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails) : undefined),
@@ -95,7 +95,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
 
         playSound(SOUNDS.DONE);
         createTaskAndNavigate(
-            parentReport?.reportID ?? CONST.REPORT.DEFAULT_REPORT_ID,
+            parentReport?.reportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
             task.title,
             task?.description ?? '',
             task?.assignee ?? '',

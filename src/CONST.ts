@@ -1313,7 +1313,6 @@ const CONST = {
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
-        DEFAULT_REPORT_ID: '-1',
         PERMISSIONS: {
             READ: 'read',
             WRITE: 'write',

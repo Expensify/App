@@ -71,7 +71,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
             setShareDestinationValue(task?.parentReportID);
             playSound(SOUNDS.DONE);
             createTaskAndNavigate(
-                task?.parentReportID ?? CONST.REPORT.DEFAULT_REPORT_ID,
+                task?.parentReportID ?? CONST.DEFAULT_NUMBER_ID.toString(),
                 values.taskTitle,
                 values.taskDescription ?? '',
                 task?.assignee ?? '',
