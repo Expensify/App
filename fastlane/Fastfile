@@ -501,6 +501,7 @@ platform :ios do
         provisioningProfiles: {
           "com.expensify.chat.adhoc" => "(NewApp) AdHoc",
           "com.expensify.chat.adhoc.NotificationServiceExtension" => "(NewApp) AdHoc: Notification Service",
+          "com.expensify.chat.adhoc.ShareViewController" => "(NewApp) AdHoc: Share Extension"
         },
         manageAppVersionAndBuildNumber: false
       }
