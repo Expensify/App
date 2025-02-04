@@ -1,9 +1,11 @@
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchAutocompleteResult} from '@components/Search/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
 import {getTagNamesFromTagsLists} from './PolicyUtils';
-import * as autocompleteParser from './SearchParser/autocompleteParser';
+import {parse} from './SearchParser/autocompleteParser';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -11,10 +13,10 @@ import * as autocompleteParser from './SearchParser/autocompleteParser';
  */
 function parseForAutocomplete(text: string) {
     try {
-        const parsedAutocomplete = autocompleteParser.parse(text) as SearchAutocompleteResult;
+        const parsedAutocomplete = parse(text) as SearchAutocompleteResult;
         return parsedAutocomplete;
     } catch (e) {
-        console.error(`Error when parsing autocopmlete query"`, e);
+        console.error(`Error when parsing autocomplete query"`, e);
     }
 }
 
@@ -131,6 +133,28 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
     return newQuery;
 }
 
+/**
+ * Parses input string using the autocomplete parser and returns array of
+ * markdown ranges that can be used by RNMarkdownTextInput.
+ * It is simpler version of search parser that can be run on UI.
+ */
+function parseForLiveMarkdown(input: string, userLogins: string[], userDisplayName: string) {
+    'worklet';
+
+    const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
+    const ranges = parsedAutocomplete.ranges;
+
+    return ranges.map((range) => {
+        let type = 'mention-user';
+
+        if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.includes(range.value) || range.value === userDisplayName)) {
+            type = 'mention-here';
+        }
+
+        return {...range, type};
+    }) as MarkdownRange[];
+}
+
 export {
     parseForAutocomplete,
     getAutocompleteTags,
@@ -140,4 +164,5 @@ export {
     getAutocompleteTaxList,
     getQueryWithoutAutocompletedPart,
     getAutocompleteQueryWithComma,
+    parseForLiveMarkdown,
 };
