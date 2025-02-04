@@ -324,7 +324,7 @@ function IOURequestStepScan({
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
             // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
+            if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
                 if (isPaidGroupPolicy(activePolicy)) {
                     const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
                     setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
