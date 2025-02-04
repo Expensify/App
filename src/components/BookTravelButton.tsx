@@ -92,7 +92,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, isSingleNewDotEntry, travelSettings, translate, primaryLogin]);
+    }, [policy, isSingleNewDotEntry, travelSettings, translate, primaryLogin, setRootStatusBarEnabled]);
 
     return (
         <>
