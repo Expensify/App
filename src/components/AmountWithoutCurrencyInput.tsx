@@ -1,7 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ForwardedRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {replaceAllDigits} from '@libs/MoneyRequestUtils';
+import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -18,7 +18,7 @@ type AmountFormProps = {
 } & Partial<BaseTextInputProps>;
 
 function AmountWithoutCurrencyInput(
-    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
+    {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, onInputChange, ...rest}: AmountFormProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const {toLocaleDigit} = useLocalize();
@@ -30,12 +30,27 @@ function AmountWithoutCurrencyInput(
                 .join(''),
         [toLocaleDigit],
     );
+    /**
+     * Sets the selection and the amount accordingly to the value passed to the input
+     * @param newAmount - Changed amount from user input
+     */
+    const setNewAmount = useCallback(
+        (newAmount: string) => {
+            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+            // More info: https://github.com/Expensify/App/issues/16974
+            const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
+            const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+            onInputChange?.(replacedCommasAmount);
+        },
+        [onInputChange],
+    );
 
     return (
         <TextInput
             inputID={inputID}
             name={name}
             label={label}
+            onChangeText={setNewAmount}
             defaultValue={defaultValue}
             accessibilityLabel={accessibilityLabel}
             role={role}
