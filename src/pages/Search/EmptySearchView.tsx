@@ -60,7 +60,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
-    const contentChildren = useMemo(() => {
+    const tripViewChildren = useMemo(() => {
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
@@ -120,7 +120,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
-                    children: contentChildren,
+                    children: tripViewChildren,
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -220,7 +220,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
-        contentChildren,
+        tripViewChildren,
         hasSeenTour,
         navatticURL,
         shouldRedirectToExpensifyClassic,

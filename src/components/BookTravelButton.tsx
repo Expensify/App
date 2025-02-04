@@ -52,7 +52,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             return;
         }
 
-        // An address is required when the Spotnana entity is created for the policy
+        // Spotnana requires an address anytme an entity is created for a policy
         if (isEmptyObject(policy?.address)) {
             Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id, Navigation.getActiveRoute()));
             return;
@@ -63,8 +63,8 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             openTravelDotLink(policy?.id)
                 ?.then(() => {
                     // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
-                    // The isSingleNewDotEntry flag indicates if NewDot was launched solely for this purpose.
-                    if (!NativeModules.HybridAppModule || !isSingleNewDotEntry) {
+                    // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
+                    if (!NativeModules.HybridAppModule || !wasNewDotLaunchedJustForTravel) {
                         return;
                     }
 
@@ -92,7 +92,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, isSingleNewDotEntry, travelSettings, translate, primaryLogin, setRootStatusBarEnabled]);
+    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryLogin, setRootStatusBarEnabled]);
 
     return (
         <>
