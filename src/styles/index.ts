@@ -4164,7 +4164,7 @@ const styles = (theme: ThemeColors) =>
         eReceiptBackgroundThumbnail: {
             ...sizing.w100,
             position: 'absolute',
-            // aspectRatio: 335 / 540,
+            aspectRatio: 335 / 540,
             top: 0,
         },
 
