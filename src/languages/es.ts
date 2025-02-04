@@ -4735,7 +4735,8 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
-        demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) => `bajó su rol en ${policyName} de ${oldRole} a miembro. Se le ha eliminado de todos los chats del espacio de trabajo del remitente, excepto el suyo.`,
+        demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
+            `bajó su rol en ${policyName} de ${oldRole} a miembro. Se le ha eliminado de todos los chats del espacio de trabajo del remitente, excepto el suyo.`,
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
     },
