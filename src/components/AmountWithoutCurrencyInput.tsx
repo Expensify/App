@@ -1,5 +1,6 @@
 import React from 'react';
 import type {ForwardedRef} from 'react';
+import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -19,6 +20,9 @@ function AmountWithoutCurrencyInput(
     {value: amount, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
+    const {preferredLocale} = useLocalize();
+    const separator = preferredLocale === CONST.LOCALES.DEFAULT ? '.' : ',';
+
     return (
         <TextInput
             inputID={inputID}
@@ -30,7 +34,7 @@ function AmountWithoutCurrencyInput(
             ref={ref}
             keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
             type="mask"
-            mask="[09999999].[09]"
+            mask={`[09999999]${separator}[09]`}
             allowedKeys="0123456789.,"
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
