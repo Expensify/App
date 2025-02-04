@@ -1481,7 +1481,14 @@ function getValidOptions(
         for (let i = 0; i < options.personalDetails.length; i++) {
             // eslint-disable-next-line rulesdir/prefer-at
             const detail = options.personalDetails[i];
-            if (!detail?.login || !detail.accountID || !!detail?.isOptimisticPersonalDetail || (!includeDomainEmail && Str.isDomainEmail(detail.login))) {
+            if (
+                !detail?.login ||
+                !detail.accountID ||
+                !!detail?.isOptimisticPersonalDetail ||
+                (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
+                // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
+                detail?.login === CONST.SETUP_SPECIALIST_LOGIN
+            ) {
                 continue;
             }
 
