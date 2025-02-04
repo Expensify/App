@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDelegateRolePendingAction, requestValidationCode, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
+import {clearDelegateRolePendingAction, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
