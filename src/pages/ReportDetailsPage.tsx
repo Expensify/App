@@ -124,7 +124,7 @@ import {
     setDeleteTransactionNavigateBackUrl,
     updateGroupChatAvatar,
 } from '@userActions/Report';
-import {checkIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask as canActionTaskAction, canModifyTask as canModifyTaskAction, deleteTask, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -387,9 +387,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        cancelPaymentAction(moneyRequestReport, chatReport);
+        cancelPaymentAction(moneyRequestReport, chatReport, backTo);
         setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport]);
+    }, [moneyRequestReport, chatReport, backTo]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
@@ -512,7 +512,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     icon: Expensicons.Checkmark,
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
-                    action: checkIfActionIsAllowed(() => {
+                    action: callFunctionIfActionIsAllowed(() => {
                         Navigation.dismissModal();
                         reopenTask(report);
                     }),
@@ -969,9 +969,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             Navigation.dismissModal();
         } else {
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-            navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
+            navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true, report.reportID);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID, report.reportID]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
