@@ -104,6 +104,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromSelfDMParams,
+    NeedCategoryForExportToIntegrationParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -3587,7 +3588,8 @@ const translations = {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
-            needCategoryForExportToIntegration: 'Require a category on every expense in order to export to',
+            needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) =>
+                `Categories are imported from ${connectionName}, and a category is required for expenses to successfully export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
