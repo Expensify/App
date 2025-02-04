@@ -253,20 +253,17 @@ function ExpensifyCardPage({
                             </>
                         ))}
                         {physicalCards.map((card) => {
-                            if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN && card.state !== CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED) {
+                            if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
                                 return null;
                             }
-
                             return (
                                 <>
-                                    {card.state === CONST.EXPENSIFY_CARD.STATE.OPEN && (
-                                        <MenuItemWithTopDescription
-                                            description={translate('cardPage.physicalCardNumber')}
-                                            title={maskCard(card?.lastFourPAN)}
-                                            interactive={false}
-                                            titleStyle={styles.walletCardNumber}
-                                        />
-                                    )}
+                                    <MenuItemWithTopDescription
+                                        description={translate('cardPage.physicalCardNumber')}
+                                        title={maskCard(card?.lastFourPAN)}
+                                        interactive={false}
+                                        titleStyle={styles.walletCardNumber}
+                                    />
                                     <MenuItem
                                         title={translate('reportCardLostOrDamaged.report')}
                                         icon={Expensicons.Flag}
