@@ -374,7 +374,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
-                const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $6.70 (previously $0.67)`;
+                const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $7.00 (previously $0.70)`;
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
                 expect(result).toEqual(expectedResult);
             });
@@ -395,7 +395,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
-                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $37.76)`;
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
                 expect(result).toEqual(expectedResult);
             });
