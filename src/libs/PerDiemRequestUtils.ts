@@ -1,4 +1,4 @@
-import {addDays, differenceInDays, differenceInMinutes, format, startOfDay} from 'date-fns';
+import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -258,11 +258,8 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
     const startDate = new Date(customUnitRateDate.start);
     const endDate = new Date(customUnitRateDate.end);
-    // Check if start and end dates are on the same day
-    const isSameDay = startOfDay(startDate).getTime() === startOfDay(endDate).getTime();
 
-    if (isSameDay) {
-        // If same day, just calculate the direct hour difference
+    if (isSameDay(startDate, endDate)) {
         const hourDiff = differenceInMinutes(endDate, startDate) / 60;
         return {
             firstDay: hourDiff,
