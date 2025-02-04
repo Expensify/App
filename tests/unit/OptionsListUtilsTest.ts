@@ -645,11 +645,11 @@ describe('OptionsListUtils', () => {
         return waitForBatchedUpdates()
             .then(() => Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: new Date() as unknown as string}))
             .then(() => {
-                const options1 = OptionsListUtils.getValidOptions(
+                const optionsWhenUserAlreadySubmittedExpense = OptionsListUtils.getValidOptions(
                     {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
                     {includeP2P: true, action: 'create'},
                 );
-                expect(options1.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+                expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
             });
     });
 
