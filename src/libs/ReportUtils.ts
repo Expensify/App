@@ -4496,8 +4496,8 @@ function getReportNameInternal({
 
     if (isInvoiceReport(report)) {
         const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
-        const ODInvoiceName = report?.reportName ?? moneyRequestReportName;
-        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : ODInvoiceName;
+        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
     }
 
     if (isInvoiceRoom(report)) {
