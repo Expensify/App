@@ -194,6 +194,7 @@ type GetValidReportsConfig = {
     includeMoneyRequests?: boolean;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
+    includeReadOnly?: boolean;
     loginsToExclude?: Record<string, boolean>;
 } & GetValidOptionsSharedConfig;
 
@@ -1257,6 +1258,7 @@ function getValidReports(
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
+        includeReadOnly = true,
         transactionViolations = {},
         includeSelfDM = false,
         includeInvoiceRooms = false,
@@ -1326,6 +1328,10 @@ function getValidReports(
         }
 
         if (isMoneyRequestReport && !includeMoneyRequests) {
+            continue;
+        }
+
+        if (!canUserPerformWriteAction(report) && !includeReadOnly) {
             continue;
         }
 
@@ -1577,6 +1583,7 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
         includeOwnedWorkspaceChats: true,
         includeSelfDM: true,
         includeThreads: true,
+        includeReadOnly: false,
     });
 }
 
