@@ -1,53 +1,10 @@
 import {useMemo} from 'react';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxValue, UseOnyxOptions} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import useSearchState from './useSearchState';
-
-type BaseUseOnyxOptions = {
-    /**
-     * Determines if this key in this subscription is safe to be evicted.
-     */
-    canEvict?: boolean;
-
-    /**
-     * If set to `false`, then no data will be prefilled into the component.
-     */
-    initWithStoredValues?: boolean;
-
-    /**
-     * If set to `true`, data will be retrieved from cache during the first render even if there is a pending merge for the key.
-     */
-    allowStaleData?: boolean;
-
-    /**
-     * If set to `false`, the connection won't be reused between other subscribers that are listening to the same Onyx key
-     * with the same connect configurations.
-     */
-    reuseConnection?: boolean;
-};
-
-type UseOnyxInitialValueOption<TInitialValue> = {
-    /**
-     * This value will be returned by the hook on the first render while the data is being read from Onyx.
-     */
-    initialValue?: TInitialValue;
-};
-
-type UseOnyxSelector<TKey extends OnyxKey, TReturnValue = OnyxValue<TKey>> = (data: OnyxValue<TKey> | undefined) => TReturnValue;
-
-type UseOnyxSelectorOption<TKey extends OnyxKey, TReturnValue> = {
-    /**
-     * This will be used to subscribe to a subset of an Onyx key's data.
-     * Using this setting can have very positive performance benefits because the component will only re-render
-     * when the subset of data changes.
-     */
-    selector?: UseOnyxSelector<TKey, TReturnValue>;
-};
-
-type UseOnyxOptions<TKey extends OnyxKey, TReturnValue> = BaseUseOnyxOptions & UseOnyxInitialValueOption<TReturnValue> & UseOnyxSelectorOption<TKey, TReturnValue>;
 
 type OriginalUseOnyx = typeof originalUseOnyx;
 type OriginalUseOnyxReturnType = ReturnType<OriginalUseOnyx>;
