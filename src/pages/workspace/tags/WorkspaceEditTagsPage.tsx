@@ -55,9 +55,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
                 Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
-            Navigation.goBack(
-                isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
-            );
+            Navigation.goBack(isQuickSettingsFlow ? backTo : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID));
         },
         [policyTags, route.params.orderWeight, route.params.policyID, taglistName, isQuickSettingsFlow, backTo],
     );
@@ -75,11 +73,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate(`workspace.tags.customTagName`)}
-                    onBackButtonPress={() =>
-                        Navigation.goBack(
-                            isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
-                        )
-                    }
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backTo : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}

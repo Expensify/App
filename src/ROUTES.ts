@@ -1234,7 +1234,7 @@ const ROUTES = {
     },
     WORKSPACE_EDIT_TAGS: {
         route: 'settings/workspaces/:policyID/tags/:orderWeight/edit',
-        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const,
+        getRoute: (policyID: string, orderWeight: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const, backTo),
     },
     WORKSPACE_TAG_EDIT: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/edit',
