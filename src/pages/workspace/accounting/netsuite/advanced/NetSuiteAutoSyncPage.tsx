@@ -65,7 +65,6 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
 
                 <Accordion
                     isExpanded={isAccordionExpanded}
-                    style={styles.overflowHidden}
                     isToggleTriggered={shouldAnimateAccordionSection}
                 >
                     <OfflineWithFeedback pendingAction={pendingAction}>

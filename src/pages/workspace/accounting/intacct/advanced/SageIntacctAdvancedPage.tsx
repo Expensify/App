@@ -117,7 +117,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
 
             <Accordion
                 isExpanded={isAccordionExpanded}
-                style={styles.overflowHidden}
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback

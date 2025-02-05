@@ -179,7 +179,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             ))}
             <Accordion
                 isExpanded={isAccordionExpanded}
-                style={styles.overflowHidden}
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 {syncReimbursedSubMenuItems()}

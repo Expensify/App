@@ -103,7 +103,6 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
 
                     <Accordion
                         isExpanded={isAccordionExpanded}
-                        style={styles.overflowHidden}
                         isToggleTriggered={shouldAnimateAccordionSection}
                     >
                         <OfflineWithFeedback

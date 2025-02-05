@@ -56,7 +56,6 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
             />
             <Accordion
                 isExpanded={isAccordionExpanded}
-                style={styles.overflowHidden}
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS], qbdConfig?.pendingFields)}>

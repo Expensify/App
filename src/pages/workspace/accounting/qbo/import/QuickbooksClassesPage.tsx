@@ -52,7 +52,6 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
             />
             <Accordion
                 isExpanded={isAccordionExpanded}
-                style={styles.overflowHidden}
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CLASSES], qboConfig?.pendingFields)}>

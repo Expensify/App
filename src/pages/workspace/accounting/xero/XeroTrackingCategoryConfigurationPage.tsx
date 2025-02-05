@@ -67,7 +67,6 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             />
             <Accordion
                 isExpanded={isAccordionExpanded}
-                style={styles.overflowHidden}
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <View>

@@ -127,7 +127,6 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                             return (
                                 <Accordion
                                     isExpanded={item.shouldExpand}
-                                    style={styles.overflowHidden}
                                     isToggleTriggered={shouldAnimateAccordionSection}
                                 >
                                     {item.children.map((child) => renderDefault(child))}

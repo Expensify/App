@@ -99,7 +99,6 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                     />
                     <Accordion
                         isExpanded={isAccordionExpanded}
-                        style={styles.overflowHidden}
                         isToggleTriggered={shouldAnimateAccordionSection}
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qboConfig?.pendingFields)}>

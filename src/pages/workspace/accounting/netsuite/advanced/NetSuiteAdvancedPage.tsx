@@ -301,7 +301,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             return (
                                 <Accordion
                                     isExpanded={item.shouldExpand}
-                                    style={styles.overflowHidden}
                                     isToggleTriggered={item.shouldAnimateSection}
                                 >
                                     {item.children.map((child) => {

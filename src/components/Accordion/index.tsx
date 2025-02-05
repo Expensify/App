@@ -24,6 +24,7 @@ type AccordionProps = {
 
 function Accordion({isExpanded, children, duration = 300, isToggleTriggered, style}: AccordionProps) {
     const height = useSharedValue(0);
+    const isAnimating = useSharedValue(false);
 
     const derivedHeight = useDerivedValue(() => {
         if (!isToggleTriggered.get()) {
@@ -41,10 +42,19 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             return isExpanded.get() ? 1 : 0;
         }
 
-        return withTiming(isExpanded.get() ? 1 : 0, {
-            duration,
-            easing: Easing.inOut(Easing.quad),
-        });
+        isAnimating.set(true);
+        return withTiming(
+            isExpanded.get() ? 1 : 0,
+            {
+                duration,
+                easing: Easing.inOut(Easing.quad),
+            },
+            (finished) => {
+                if (finished) {
+                    isAnimating.set(false);
+                }
+            },
+        );
     });
 
     const animatedStyle = useAnimatedStyle(() => {
@@ -57,7 +67,9 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
 
         return {
             height: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
+            maxHeight: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             opacity: derivedOpacity.get(),
+            overflow: isAnimating.get() ? 'hidden' : 'visible',
         };
     });
 

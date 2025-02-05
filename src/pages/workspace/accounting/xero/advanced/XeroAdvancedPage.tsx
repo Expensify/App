@@ -90,7 +90,6 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             />
             <Accordion
                 isExpanded={isAccordionExpanded}
-                style={styles.overflowHidden}
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <>

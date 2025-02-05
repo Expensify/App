@@ -105,7 +105,6 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             />
             <Accordion
                 isExpanded={isAccordionExpanded}
-                style={styles.overflowHidden}
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
