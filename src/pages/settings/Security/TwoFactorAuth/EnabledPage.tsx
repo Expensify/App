@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPolicyWithXeroConnection} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +34,7 @@ function EnabledPage() {
             stepName={EnabledPage.displayName}
             title={translate('twoFactorAuth.headerTitle')}
             shouldEnableKeyboardAvoidingView={false}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
+            onBackButtonPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY, true)}
         >
             <ScrollView>
                 <Section
@@ -47,7 +48,7 @@ function EnabledPage() {
                                     setIsVisible(true);
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_GET_CODE);
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
                             },
                             icon: Expensicons.Close,
                             iconFill: theme.danger,

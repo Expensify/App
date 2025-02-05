@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+import ROUTES from '@src/ROUTES';
 import PageWrapper from './PageWrapper';
 
 function DisabledPage() {
@@ -17,6 +18,7 @@ function DisabledPage() {
         <PageWrapper
             stepName={DisabledPage.displayName}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
+            onBackButtonPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY, true)}
         >
             <BlockingView
                 icon={Illustrations.LockOpen}
@@ -30,7 +32,7 @@ function DisabledPage() {
                     success
                     large
                     text={translate('common.buttonConfirm')}
-                    onPress={() => quitAndNavigateBack()}
+                    onPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY, true)}
                 />
             </FixedFooter>
         </PageWrapper>

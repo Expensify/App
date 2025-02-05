@@ -329,7 +329,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH.DISABLE]: {
-                            path: ROUTES.SETTINGS_2FA_GET_CODE,
+                            path: ROUTES.SETTINGS_2FA_DISABLE,
                             exact: true,
                         },
 

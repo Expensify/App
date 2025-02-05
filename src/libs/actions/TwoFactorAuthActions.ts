@@ -14,9 +14,9 @@ function setCodesAreCopied() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {codesAreCopied: true});
 }
 
-function quitAndNavigateBack(backTo?: Route) {
+function quitAndNavigateBack(backTo?: Route, shouldEnforceFallback = false) {
     clearTwoFactorAuthData();
-    Navigation.goBack(backTo);
+    Navigation.goBack(backTo, shouldEnforceFallback);
 }
 
 export {clearTwoFactorAuthData, quitAndNavigateBack, setCodesAreCopied};
