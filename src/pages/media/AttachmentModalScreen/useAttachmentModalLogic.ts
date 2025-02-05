@@ -5,20 +5,30 @@ import type {Attachment} from '@components/Attachments/types';
 // import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AttachmentModalProps} from '@pages/home/report/ReportAttachmentsContext';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {AttachmentModalContentProps} from './AttachmentModalContent';
-import type {AttachmentModalScreenProps} from './types';
+import type {AttachmentModalScreenParams, AttachmentModalType as AttachmentModalScreenType} from './types';
+import useAttachment from './useAttachment';
 
-function useAttachmentModalLogic(route: AttachmentModalScreenProps['route'], isModal = false) {
+function useAttachmentModalLogic(route: PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>['route'], isModal = false) {
     const attachmentId = route.params.attachmentId;
     const attachmentsContext = useContext(ReportAttachmentsContext);
+    const params: AttachmentModalScreenParams = useMemo(() => {
+        if (attachmentId) {
+            return {...route.params, ...attachmentsContext.getAttachmentById(attachmentId)};
+        }
+        return route.params;
+    }, [attachmentId, attachmentsContext, route.params]);
+
+    const attachmentType = (route.name ?? '') as AttachmentModalScreenType;
     const {
-        reportID,
         source: sourceProp,
         fallbackSource,
         headerTitle,
@@ -26,43 +36,13 @@ function useAttachmentModalLogic(route: AttachmentModalScreenProps['route'], isM
         type,
         accountID,
         isAuthTokenRequired,
-        fileName,
+        originalFileName,
         attachmentLink,
-    }: AttachmentModalProps = useMemo(() => {
-        const props = {
-            reportID: route.params.reportID,
-            source: route.params.source,
-            fileName: route.params.fileName,
-            fallbackSource: route.params.fallbackSource,
-            headerTitle: route.params.headerTitle,
-            maybeIcon: route.params.maybeIcon,
-            type: route.params.type,
-            accountID: route.params.accountID,
-            isAuthTokenRequired: route.params.isAuthTokenRequired,
-            attachmentLink: route.params.attachmentLink,
-        };
-
-        if (attachmentId) {
-            return {...props, ...attachmentsContext.getAttachmentById(attachmentId)};
-        }
-        return props;
-    }, [
-        attachmentId,
-        attachmentsContext,
-        route.params.accountID,
-        route.params.attachmentLink,
-        route.params.fallbackSource,
-        route.params.fileName,
-        route.params.headerTitle,
-        route.params.isAuthTokenRequired,
-        route.params.maybeIcon,
-        route.params.reportID,
-        route.params.source,
-        route.params.type,
-    ]);
+    } = useAttachment({...params, attachmentModalType: attachmentType});
 
     const isReceiptAttachment = route.params.isReceiptAttachment ?? false;
 
+    const reportID = params.reportID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? -1}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isReportMissing = !!reportID && !report?.reportID;
@@ -129,7 +109,7 @@ function useAttachmentModalLogic(route: AttachmentModalScreenProps['route'], isM
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const contentProps = {
+    const contentProps: AttachmentModalContentProps = {
         source,
         accountID: Number(accountID),
         type,
@@ -149,10 +129,10 @@ function useAttachmentModalLogic(route: AttachmentModalScreenProps['route'], isM
         attachmentLink: attachmentLink ?? '',
         fallbackSource,
         maybeIcon,
-        originalFileName: fileName ?? '',
+        originalFileName: originalFileName ?? '',
         isAttachmentInvalid,
         headerTitle,
-    } satisfies AttachmentModalContentProps;
+    };
 
     return {
         contentProps,

@@ -362,7 +362,7 @@ const ROUTES = {
             attachmentLink,
             ...restParams
         }: {
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+            type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
             reportID?: string;
             accountID?: number;
             isAuthTokenRequired?: boolean;

@@ -15,7 +15,7 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AttachmentModalScreenParams, AttachmentModalType} from '@pages/media/AttachmentModalScreen/types';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -1697,15 +1697,9 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.CONCIERGE]: undefined;
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
-        [SCREENS.ATTACHMENTS]: {
+        [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams & {
+            attachmentModalType?: AttachmentModalType;
             attachmentId?: string;
-            source?: string;
-            type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-            reportID?: string;
-            accountID?: string;
-            isAuthTokenRequired?: boolean;
-            fileName?: string;
-            attachmentLink?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;

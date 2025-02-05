@@ -114,6 +114,7 @@ function AttachmentModalScreen({route, onModalShow, onModalHide}: AttachmentModa
                 shouldLoadAttachment={shouldLoadAttachment}
                 isOpen={isModalOpen}
                 setIsModalOpen={setIsModalOpen}
+                setIsAttachmentInvalid={setIsAttachmentInvalid}
                 attachmentInvalidReasonTitle={attachmentInvalidReasonTitle}
                 attachmentInvalidReason={attachmentInvalidReason}
                 submitRef={submitRef}

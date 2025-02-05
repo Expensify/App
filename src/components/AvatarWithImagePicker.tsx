@@ -361,11 +361,11 @@ function AvatarWithImagePicker({
                                 icon: Expensicons.Eye,
                                 text: translate('avatarWithImagePicker.viewPhoto'),
                                 onSelected: () => {
-                                    // if (typeof onViewPhotoPress !== 'function') {
-                                    showAttachmentModalScreen();
-
-                                    // }
-                                    // onViewPhotoPress();
+                                    if (typeof onViewPhotoPress !== 'function') {
+                                        showAttachmentModalScreen();
+                                        return;
+                                    }
+                                    onViewPhotoPress();
                                 },
                                 shouldCallAfterModalHide: true,
                             });

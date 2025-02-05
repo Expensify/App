@@ -222,7 +222,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 styles.sectionMenuItemTopDescription,
                             ]}
                             editIconStyle={styles.smallEditIconWorkspace}
-                            isUsingDefaultAvatar={!policy?.avatarURL ?? false}
+                            isUsingDefaultAvatar={!policy?.avatarURL}
                             onImageSelected={(file) => {
                                 if (!policy?.id) {
                                     return;

@@ -17,10 +17,12 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         closeConfirmModal,
     } = useAttachmentModalLogic(route, false);
 
+    const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
+
     return (
         <ScreenWrapper
             navigation={navigation}
-            testID={`attachment-modal-${route.params.source}`}
+            testID={`attachment-modal-${testID}`}
         >
             <AttachmentModalContent
                 // eslint-disable-next-line react/jsx-props-no-spreading

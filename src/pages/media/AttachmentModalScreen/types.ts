@@ -1,5 +1,8 @@
+import type {ValueOf} from 'type-fest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {AvatarSource} from '@libs/UserUtils';
+import type CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
 /**
@@ -23,7 +26,21 @@ type AttachmentModalChildrenProps = {
     show: () => void;
 };
 
-type AttachmentModalScreenProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS> & {
+type AttachmentModalType = ValueOf<typeof CONST.ATTACHMENT_MODAL_TYPE>;
+
+type AttachmentModalScreenParams = {
+    source?: AvatarSource;
+    fallbackSource?: AvatarSource;
+    headerTitle?: string;
+    maybeIcon?: boolean;
+    reportID?: string | undefined;
+    type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+    accountID?: number | string;
+    isAuthTokenRequired?: boolean;
+    isReceiptAttachment?: boolean;
+    fileName?: string;
+    attachmentLink?: string;
+} & {
     onModalShow?: () => void;
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide?: () => void;
@@ -31,5 +48,7 @@ type AttachmentModalScreenProps = PlatformStackScreenProps<AuthScreensParamList,
     onModalClose?: () => void;
 };
 
+type AttachmentModalScreenProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
+
 // eslint-disable-next-line import/prefer-default-export
-export type {AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject};
+export type {AttachmentModalScreenParams, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, AttachmentModalType};

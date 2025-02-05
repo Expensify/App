@@ -1,29 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {ValueOf} from 'type-fest';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import type {AvatarSource} from '@libs/UserUtils';
-import type CONST from '@src/CONST';
+import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScreen/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-
-type AttachmentModalProps = {
-    source: AvatarSource;
-    fallbackSource?: AvatarSource;
-    headerTitle?: string;
-    maybeIcon?: boolean;
-    reportID?: string | undefined;
-    type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-    accountID?: number | string;
-    isAuthTokenRequired?: boolean;
-    fileName?: string;
-    attachmentLink?: string;
-};
 
 type ReportAttachmentsContextValue = {
     isAttachmentHidden: (reportActionID: string) => boolean;
     updateHiddenAttachments: (reportActionID: string, isHidden: boolean) => void;
-    addAttachment(attachmentProps: AttachmentModalProps): string;
+    addAttachment(attachmentProps: Partial<AttachmentModalScreenParams>): string;
     removeAttachment(attachmentId: string): void;
-    getAttachmentById(attachmentId: string): AttachmentModalProps | undefined;
+    getAttachmentById(attachmentId: string): Partial<AttachmentModalScreenParams> | undefined;
 };
 
 const ReportAttachmentsContext = React.createContext<ReportAttachmentsContextValue>({
@@ -44,25 +29,26 @@ function ReportAttachmentsProvider({children}: ChildrenProps) {
         hiddenAttachments.current = {};
     }, [currentReportID]);
 
-    const attachments = useRef<Record<string, AttachmentModalProps>>({});
-    const addAttachment = useCallback(
-        (attachmentProps: AttachmentModalProps) => {
-            const attachmentId = `attachment_${attachmentProps.fileName ?? (attachmentProps.source as string)}`;
+    const attachments = useRef<Record<string, Partial<AttachmentModalScreenParams>>>({});
+    const addAttachment = useCallback<ReportAttachmentsContextValue['addAttachment']>(
+        (attachmentProps) => {
+            const attachmentCount = Object.keys(attachments.current).length;
+            const attachmentId = `attachment_${attachmentCount + 1}`;
             attachments.current = {...attachments.current, [attachmentId]: attachmentProps};
             return attachmentId;
         },
         [attachments],
     );
 
-    const removeAttachment = useCallback(
-        (attachmentId: string) => {
+    const removeAttachment = useCallback<ReportAttachmentsContextValue['removeAttachment']>(
+        (attachmentId) => {
             delete attachments.current[attachmentId];
         },
         [attachments],
     );
 
-    const getAttachmentById = useCallback(
-        (attachmentId: string) => {
+    const getAttachmentById = useCallback<ReportAttachmentsContextValue['getAttachmentById']>(
+        (attachmentId) => {
             return attachments.current[attachmentId];
         },
         [attachments],
@@ -91,4 +77,3 @@ ReportAttachmentsProvider.displayName = 'ReportAttachmentsProvider';
 
 export default ReportAttachmentsContext;
 export {ReportAttachmentsProvider};
-export type {AttachmentModalProps};
