@@ -1,5 +1,5 @@
 import type {ImageContentFit} from 'expo-image';
-import type {ReactElement, ReactNode} from 'react';
+import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
@@ -15,7 +15,7 @@ import getButtonState from '@libs/getButtonState';
 import Parser from '@libs/Parser';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import {checkIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
@@ -60,6 +60,10 @@ type NoIcon = {
 };
 
 type MenuItemBaseProps = {
+    /* View ref  */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    ref?: Ref<View>;
+
     /** Function to fire when component is pressed */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
@@ -611,7 +615,7 @@ function MenuItem(
                     <Hoverable>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={onSecondaryInteraction}

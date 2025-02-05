@@ -149,6 +149,22 @@ describe('OptionsListUtils', () => {
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
+
+        // Thread report with notification preference = hidden
+        '11': {
+            lastReadTime: '2021-01-14 11:25:39.200',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            reportID: '11',
+            isPinned: false,
+            participants: {
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+            reportName: '',
+            oldPolicyName: "SHIELD's workspace",
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+        },
     };
 
     const activePolicyID = 'DEF456';
@@ -372,6 +388,32 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_SELFDM: OnyxCollection<Report> = {
+        16: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '16',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Expense Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        },
+        17: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '17',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: '',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        },
+    };
+
     const REPORTS_WITH_MANAGER_MCTEST: OnyxCollection<Report> = {
         ...REPORTS,
         '16': {
@@ -387,7 +429,6 @@ describe('OptionsListUtils', () => {
             type: CONST.REPORT.TYPE.CHAT,
         },
     };
-
 
     const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
@@ -486,7 +527,6 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
     let OPTIONS_WITH_MANAGER_MCTEST: OptionsListUtils.OptionList;
 
-
     beforeEach(() => {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
@@ -505,8 +545,8 @@ describe('OptionsListUtils', () => {
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(9);
 
-        // Then all of the reports should be shown including the archived rooms.
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
+        // Then all of the reports should be shown including the archived rooms, except for the report with notificationPreferences hidden.
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
     });
 
     it('orderOptions()', () => {
@@ -594,7 +634,6 @@ describe('OptionsListUtils', () => {
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'manager_mctest@expensify.com'})]));
-
 
         // Test by excluding Manager McTest from the results
         results = OptionsListUtils.getValidOptions(
@@ -1116,6 +1155,19 @@ describe('OptionsListUtils', () => {
             // There should be 2 unique login entries
             expect(filteredOptions.personalDetails.length).toBe(2);
             expect(matchingEntries.length).toBe(1);
+        });
+
+        it('should order self dm always on top if the search matches with the self dm login', () => {
+            const searchTerm = 'tonystark@expensify.com';
+
+            const OPTIONS_WITH_SELFDM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELFDM);
+
+            // When search term matches with self dm login
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_SELFDM, [CONST.BETAS.ALL]);
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchTerm);
+
+            // Then the self dm should be on top.
+            expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
         });
     });
 
