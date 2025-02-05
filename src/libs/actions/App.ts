@@ -430,7 +430,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
  * @param [file] Optional, avatar file for workspace
  */
 function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false, currency = '', file?: File) {
-    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, '', currency, file);
+    createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID, CONST.ONBOARDING_CHOICES.MANAGE_TEAM, currency, file);
 }
 
 /**

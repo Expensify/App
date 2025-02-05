@@ -16,6 +16,7 @@ import {useReportIDs} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -105,6 +106,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         if (selectedTab === BOTTOM_TABS.SEARCH) {
             return;
         }
+        clearSelectedText();
         interceptAnonymousUser(() => {
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchRoute = rootState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);

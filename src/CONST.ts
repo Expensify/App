@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
+// eslint-disable-next-line lodash/import-scope
+import type {Dictionary} from 'lodash';
+import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
@@ -16,6 +19,8 @@ import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 // Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
+
+const DEFAULT_NUMBER_ID = 0;
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -76,6 +81,7 @@ const selectableOnboardingChoices = {
 const backendOnboardingChoices = {
     ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
+    TRACK_WORKSPACE: 'newDotTrackWorkspace',
 } as const;
 
 const onboardingChoices = {
@@ -100,6 +106,50 @@ const selfGuidedTourTask: OnboardingTask = {
     autoCompleted: false,
     title: 'Take a 2-minute tour',
     description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+};
+
+const createWorkspaceTask: OnboardingTask = {
+    type: 'createWorkspace',
+    autoCompleted: true,
+    title: 'Create a workspace',
+    description: ({workspaceSettingsLink}) =>
+        '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
+        '\n' +
+        'Here’s how to create a workspace:\n' +
+        '\n' +
+        '1. Click *Settings*.\n' +
+        '2. Click *Workspaces* > *New workspace*.\n' +
+        '\n' +
+        `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
+};
+
+const meetGuideTask: OnboardingTask = {
+    type: 'meetGuide',
+    autoCompleted: false,
+    title: 'Meet your setup specialist',
+    description: ({adminsRoomLink}) =>
+        `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
+        '\n' +
+        `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
+};
+
+const setupCategoriesTask: OnboardingTask = {
+    type: 'setupCategories',
+    autoCompleted: false,
+    title: 'Set up categories',
+    description: ({workspaceCategoriesLink}) =>
+        '*Set up categories* so your team can code expenses for easy reporting.\n' +
+        '\n' +
+        'Here’s how to set up categories:\n' +
+        '\n' +
+        '1. Click *Settings*.\n' +
+        '2. Go to *Workspaces*.\n' +
+        '3. Select your workspace.\n' +
+        '4. Click *Categories*.\n' +
+        "5. Disable any categories you don't need.\n" +
+        '6. Add your own categories in the top right.\n' +
+        '\n' +
+        `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
 };
 
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
@@ -899,7 +949,7 @@ const CONST = {
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
-    DEFAULT_NUMBER_ID: 0,
+    DEFAULT_NUMBER_ID,
     USE_EXPENSIFY_URL,
     EXPENSIFY_URL,
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
@@ -2127,6 +2177,31 @@ const CONST = {
         '_vietNam',
     ] as string[],
 
+    NSQS_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
+    },
+
+    NSQS_INTEGRATION_ENTITY_MAP_TYPES: {
+        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
+        REPORT_FIELD: 'REPORT_FIELD',
+        TAG: 'TAG',
+    },
+
+    NSQS_CONFIG: {
+        AUTO_SYNC: 'autoSync',
+        SYNC_OPTIONS: {
+            MAPPING: {
+                CUSTOMERS: 'syncOptions.mapping.customers',
+                PROJECTS: 'syncOptions.mapping.projects',
+            },
+        },
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        APPROVAL_ACCOUNT: 'approvalAccount',
+    },
+
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         REPORT_EXPORTED: 'REPORT_EXPORTED',
@@ -2613,17 +2688,20 @@ const CONST = {
                 QBD: 'quickbooksDesktop',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
+                NSQS: 'netsuiteQuickStart',
                 SAGE_INTACCT: 'intacct',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
+                NSQS: 'nsqs',
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
+                netsuiteQuickStart: 'NSQS',
                 quickbooksOnline: 'QuickBooks Online',
                 quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
@@ -2701,6 +2779,12 @@ const CONST = {
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
                 NETSUITE_SYNC_IMPORT_VENDORS_TITLE: 'netSuiteImportVendorsTitle',
                 NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
+                NSQS_SYNC_CONNECTION: 'nsqsSyncConnection',
+                NSQS_SYNC_ACCOUNTS: 'nsqsSyncAccounts',
+                NSQS_SYNC_EMPLOYEES: 'nsqsSyncEmployees',
+                NSQS_SYNC_CUSTOMERS: 'nsqsSyncCustomers',
+                NSQS_SYNC_PROJECTS: 'nsqsSyncProjects',
+                NSQS_SYNC_CURRENCY: 'nsqsSyncCurrency',
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
@@ -2709,6 +2793,19 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+
+            // Map each connection to its designated display connection
+            get MULTI_CONNECTIONS_MAPPING() {
+                return {
+                    [this.NAME.NETSUITE]: this.NAME.NETSUITE,
+                    [this.NAME.NSQS]: this.NAME.NETSUITE,
+                } as Record<ValueOf<typeof this.NAME>, ValueOf<typeof this.NAME> | undefined>;
+            },
+
+            // Get linked connections by the designated display connection
+            get MULTI_CONNECTIONS_MAPPING_INVERTED() {
+                return invertBy(this.MULTI_CONNECTIONS_MAPPING) as Dictionary<Array<ValueOf<typeof this.NAME>> | undefined>;
+            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -5001,6 +5098,7 @@ const CONST = {
         quickbooksOnline: 'QuickBooks Online',
         xero: 'Xero',
         netsuite: 'NetSuite',
+        netsuiteQuickStart: 'NSQS',
         intacct: 'Sage Intacct',
         quickbooksDesktop: 'QuickBooks Desktop',
     },
@@ -5010,30 +5108,9 @@ const CONST = {
         [onboardingChoices.MANAGE_TEAM]: {
             message: 'Here are some important tasks to help get your team’s expenses under control.',
             tasks: [
-                {
-                    type: 'createWorkspace',
-                    autoCompleted: true,
-                    title: 'Create a workspace',
-                    description: ({workspaceSettingsLink}) =>
-                        '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
-                        '\n' +
-                        'Here’s how to create a workspace:\n' +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Click *Workspaces* > *New workspace*.\n' +
-                        '\n' +
-                        `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
-                },
+                createWorkspaceTask,
                 selfGuidedTourTask,
-                {
-                    type: 'meetGuide',
-                    autoCompleted: false,
-                    title: 'Meet your setup specialist',
-                    description: ({adminsRoomLink}) =>
-                        `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
-                        '\n' +
-                        `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
-                },
+                meetGuideTask,
                 {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
@@ -5043,24 +5120,7 @@ const CONST = {
                         '\n' +
                         `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceSettingsLink}).`,
                 },
-                {
-                    type: 'setupCategories',
-                    autoCompleted: false,
-                    title: 'Set up categories',
-                    description: ({workspaceCategoriesLink}) =>
-                        '*Set up categories* so your team can code expenses for easy reporting.\n' +
-                        '\n' +
-                        'Here’s how to set up categories:\n' +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Categories*.\n' +
-                        "5. Disable any categories you don't need.\n" +
-                        '6. Add your own categories in the top right.\n' +
-                        '\n' +
-                        `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
-                },
+                setupCategoriesTask,
                 {
                     type: 'setupTags',
                     autoCompleted: false,
@@ -5138,6 +5198,42 @@ const CONST = {
                 },
             ],
         },
+        [onboardingChoices.TRACK_WORKSPACE]: {
+            message: 'Here are some important tasks to help get your workspace set up.',
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                createWorkspaceTask,
+                meetGuideTask,
+                setupCategoriesTask,
+                {
+                    type: 'inviteAccountant',
+                    autoCompleted: false,
+                    title: 'Invite your accountant',
+                    description: ({workspaceMembersLink}) =>
+                        '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
+                        '\n' +
+                        'Here’s how to invite your accountant:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to *Workspaces*.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *Members* > Invite member.\n' +
+                        '5. Enter their email or phone number.\n' +
+                        '6. Add an invite message if you’d like.\n' +
+                        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
+                        '\n' +
+                        'That’s it, happy expensing! 😄\n' +
+                        '\n' +
+                        `[View your workspace members](${workspaceMembersLink}).`,
+                },
+            ],
+        },
         [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
@@ -5182,15 +5278,7 @@ const CONST = {
         [onboardingChoices.ADMIN]: {
             message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
             tasks: [
-                {
-                    type: 'meetSetupSpecialist',
-                    autoCompleted: false,
-                    title: 'Meet your setup specialist',
-                    description:
-                        '*Meet your setup specialist* who can answer any questions as you get started with Expensify. Yes, a real human!' +
-                        '\n' +
-                        'Chat with them in your #admins room or schedule a call today.',
-                },
+                meetGuideTask,
                 {
                     type: 'reviewWorkspaceSettings',
                     autoCompleted: false,
@@ -5979,6 +6067,13 @@ const CONST = {
         TRAIN: 'train',
     },
 
+    CANCELLATION_POLICY: {
+        UNKNOWN: 'UNKNOWN',
+        NON_REFUNDABLE: 'NON_REFUNDABLE',
+        FREE_CANCELLATION_UNTIL: 'FREE_CANCELLATION_UNTIL',
+        PARTIALLY_REFUNDABLE: 'PARTIALLY_REFUNDABLE',
+    },
+
     DOT_SEPARATOR: '•',
 
     DEFAULT_TAX: {
@@ -6544,6 +6639,8 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
         },
     },
+    SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
+    SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

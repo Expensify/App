@@ -8,6 +8,7 @@ import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SearchStatusBar from '@components/Search/SearchStatusBar';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
@@ -22,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SearchSelectionModeHeader from './SearchSelectionModeHeader';
 import SearchTypeMenu from './SearchTypeMenu';
+import useHandleBackButton from './useHandleBackButton';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -41,6 +43,17 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {clearSelectedTransactions} = useSearchContext();
+
+    const handleBackButtonPress = useCallback(() => {
+        if (!selectionMode?.isEnabled) {
+            return false;
+        }
+        clearSelectedTransactions(undefined, true);
+        return true;
+    }, [selectionMode, clearSelectedTransactions]);
+
+    useHandleBackButton(handleBackButtonPress);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
