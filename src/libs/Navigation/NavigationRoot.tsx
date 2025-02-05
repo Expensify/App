@@ -57,12 +57,6 @@ function parseAndLogRoute(state: NavigationState) {
         return;
     }
 
-    if (getPlatform() === CONST.PLATFORM.WEB) {
-        console.log({state});
-    } else {
-        console.log(JSON.stringify(state, null, 2));
-    }
-
     const currentPath = customGetPathFromState(state, linkingConfig.config);
 
     const focusedRoute = findFocusedRoute(state);

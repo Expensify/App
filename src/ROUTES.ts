@@ -362,8 +362,8 @@ const ROUTES = {
             attachmentLink,
             ...restParams
         }: {
-            reportID: string | undefined;
             type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+            reportID?: string;
             accountID?: number;
             isAuthTokenRequired?: boolean;
             fileName?: string;
@@ -377,18 +377,18 @@ const ROUTES = {
               }
         )) => {
             if ('attachmentId' in restParams) {
-                return `attachment?attachmentId=${restParams.attachmentId}`;
+                return `attachment?attachmentId=${encodeURIComponent(restParams.attachmentId)}`;
             }
 
             const sourceParam = `?source=${encodeURIComponent(restParams.source)}`;
             const typeParam = type ? `$type=${type as string}` : '';
-            const reportParam = reportID ? `&reportID=${reportID}` : '';
-            const accountParam = accountID ? `&accountID=${accountID}` : '';
+            const reportIDParam = reportID ? `&reportID=${reportID}` : '';
+            const accountIDParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
 
-            return `attachment${sourceParam}${typeParam}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            return `attachment${sourceParam}${typeParam}${reportIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {

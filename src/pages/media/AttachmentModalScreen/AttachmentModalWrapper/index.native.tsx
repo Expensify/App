@@ -15,7 +15,7 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         submitRef,
 
         closeConfirmModal,
-    } = useAttachmentModalLogic(route);
+    } = useAttachmentModalLogic(route, false);
 
     return (
         <ScreenWrapper

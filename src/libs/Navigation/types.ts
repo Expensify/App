@@ -1698,20 +1698,14 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.ATTACHMENTS]: {
-            attachmentId: string;
-            source: string;
-            reportID: string;
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-            accountID: string | number;
+            attachmentId?: string;
+            source?: string;
+            type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+            reportID?: string;
+            accountID?: string;
             isAuthTokenRequired?: boolean;
             fileName?: string;
             attachmentLink?: string;
-            isReceiptAttachment?: boolean;
-            defaultOpen?: boolean;
-
-            fallbackSource?: AvatarSource;
-            maybeIcon?: boolean;
-            headerTitle?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;

@@ -27,7 +27,7 @@ function AttachmentModalScreen({route, onModalShow, onModalHide}: AttachmentModa
 
         closeConfirmModal,
         closeModal,
-    } = useAttachmentModalLogic(route);
+    } = useAttachmentModalLogic(route, true);
 
     const onSubmitAndClose = useCallback(() => {
         setIsModalOpen(false);
