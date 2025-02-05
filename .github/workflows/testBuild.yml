@@ -248,6 +248,7 @@ jobs:
         with:
           export-env: false
         env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           DESKTOP_CERTIFICATE_BASE64: "op://Mobile-Deploy-CI/Desktop Certificates.p12/CSC_LINK"
           DESKTOP_CERTIFICATE_PASSWORD: "op://Mobile-Deploy-CI/Desktop Certificates.p12/CSC_KEY_PASSWORD"
 
