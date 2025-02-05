@@ -590,7 +590,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = translateLocal('workspace.invite.leftWorkspace');
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage(lastAction);
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(`${lastActorDisplayName}: ${lastMessageText}`));
         } else if (lastAction && isOldDotReportAction(lastAction)) {
@@ -671,7 +671,9 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
             welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
             welcomeMessage.phrase3 = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
             welcomeMessage.messageText = ensureSingleSpacing(
-                `${welcomeMessage.phrase1} ${getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${getPolicyName(report)} ${welcomeMessage.phrase3}`,
+                `${welcomeMessage.phrase1} ${getDisplayNameForParticipant({accountID: report?.ownerAccountID})} ${welcomeMessage.phrase2} ${getPolicyName({report})} ${
+                    welcomeMessage.phrase3
+                }`,
             );
         }
         return welcomeMessage;
@@ -720,7 +722,7 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
  */
 function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
-    const workspaceName = getPolicyName(report);
+    const workspaceName = getPolicyName({report});
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
@@ -749,9 +751,9 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoomPartTwo');
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
                 : getPolicy(report?.invoiceReceiver?.policyID)?.name;
-        const receiver = getPolicyName(report);
+        const receiver = getPolicyName({report});
         welcomeMessage.messageText = `${welcomeMessage.phrase1}${payer} ${translateLocal('common.and')} ${receiver}${welcomeMessage.phrase2}`;
         return welcomeMessage;
     } else {
