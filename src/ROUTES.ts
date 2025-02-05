@@ -5,6 +5,7 @@ import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import type {AvatarSource, StaticAvatarSource} from './libs/UserUtils';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
@@ -353,22 +354,41 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (
-            reportID: string | undefined,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
-            url: string,
-            accountID?: number,
-            isAuthTokenRequired?: boolean,
-            fileName?: string,
-            attachmentLink?: string,
-        ) => {
+        getRoute: ({
+            source,
+            fallbackSource,
+            headerTitle,
+            fileName,
+            maybeIcon,
+            reportID,
+            type,
+            accountID,
+            isAuthTokenRequired,
+            attachmentLink,
+        }: {
+            source: string;
+            fallbackSource?: string;
+            headerTitle?: string;
+            maybeIcon?: boolean;
+            reportID?: string | undefined;
+            type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+            accountID?: number;
+            isAuthTokenRequired?: boolean;
+            fileName?: string;
+            attachmentLink?: string;
+        }) => {
+            const sourceParam = `?source=${encodeURIComponent(source)}`;
+            const fallbackSourceParam = fallbackSource ? `&fallbackSource=${encodeURIComponent(fallbackSource)}` : '';
+            const typeParam = type ? `$type=${type as string}` : '';
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+            const headerTitleParam = headerTitle ? `&headerTitle=${headerTitle}` : '';
+            const maybeIconParam = maybeIcon ? `&maybeIcon=${maybeIcon}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${type as string}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            return `attachment${sourceParam}${fallbackSourceParam}${headerTitleParam}${fileNameParam}${maybeIconParam}${typeParam}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {

@@ -8,12 +8,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {IconAsset, SvgIconComponent} from '@src/types/utils/ImageTypes';
 import hashCode from './hashCode';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
 type AvatarSource = IconAsset | string;
+type StaticAvatarSource = Exclude<AvatarSource, SvgIconComponent>;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 
@@ -278,4 +279,4 @@ export {
     getContactMethod,
     isCurrentUserValidated,
 };
-export type {AvatarSource, LoginListIndicator};
+export type {AvatarSource, StaticAvatarSource, LoginListIndicator};

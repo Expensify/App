@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -10,13 +10,14 @@ import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
-import type {AvatarSource} from '@libs/UserUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {AvatarSource, StaticAvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type IconAsset from '@src/types/utils/IconAsset';
-import AttachmentModal from './AttachmentModal';
+import type {IconAsset} from '@src/types/utils/ImageTypes';
 import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Avatar from './Avatar';
@@ -28,6 +29,7 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
+import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
@@ -330,115 +332,124 @@ function AvatarWithImagePicker({
         [disabled, enablePreview, isUsingDefaultAvatar, onViewPhotoPress, showAvatarCropModal],
     );
 
+    const reportAttachmentsContext = useContext(ReportAttachmentsContext)
+    const showAttachmentModalScreen = useCallback(() => {
+        console.log({avatarSource: previewSource});
+
+        console.log({fallbackIcon})
+
+        const attachmentId = reportAttachmentsContext.addAttachment({
+            source: previewSource,
+            showFallbackAvatar,
+            fallbackSource: fallbackIcon,
+            headerTitle,
+            fileName: originalFileName,
+            maybeIcon: isUsingDefaultAvatar,
+        })
+        Navigation.navigate(ROUTES.ATTACHMENTS.getRoute({attachmentId}))
+
+        );
+    }, [fallbackIcon, headerTitle, isUsingDefaultAvatar, originalFileName, previewSource]);
+
     return (
         <View style={[styles.w100, style]}>
             <View style={styles.w100}>
-                <AttachmentModal
-                    headerTitle={headerTitle}
-                    source={previewSource}
-                    originalFileName={originalFileName}
-                    fallbackSource={fallbackIcon}
-                    maybeIcon={isUsingDefaultAvatar}
+                <AttachmentPicker
+                    type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                    // We need to skip the validation in AttachmentPicker because it is handled in this component itself
+                    shouldValidateImage={false}
                 >
-                    {({show}) => (
-                        <AttachmentPicker
-                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                            // We need to skip the validation in AttachmentPicker because it is handled in this component itself
-                            shouldValidateImage={false}
-                        >
-                            {({openPicker}) => {
-                                const menuItems = createMenuItems(openPicker);
+                    {({openPicker}) => {
+                        const menuItems = createMenuItems(openPicker);
 
-                                // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
-                                if (!shouldDisableViewPhoto && !isUsingDefaultAvatar) {
-                                    menuItems.push({
-                                        icon: Expensicons.Eye,
-                                        text: translate('avatarWithImagePicker.viewPhoto'),
-                                        onSelected: () => {
-                                            if (typeof onViewPhotoPress !== 'function') {
-                                                show();
-                                                return;
-                                            }
-                                            onViewPhotoPress();
-                                        },
-                                        shouldCallAfterModalHide: true,
-                                    });
-                                }
+                        // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
+                        if (!shouldDisableViewPhoto && !isUsingDefaultAvatar) {
+                            menuItems.push({
+                                icon: Expensicons.Eye,
+                                text: translate('avatarWithImagePicker.viewPhoto'),
+                                onSelected: () => {
+                                    // if (typeof onViewPhotoPress !== 'function') {
+                                    showAttachmentModalScreen();
 
-                                return (
-                                    <>
-                                        <OfflineWithFeedback
-                                            errors={errors}
-                                            errorRowStyles={errorRowStyles}
-                                            onClose={onErrorClose}
+                                    // }
+                                    // onViewPhotoPress();
+                                },
+                                shouldCallAfterModalHide: true,
+                            });
+                        }
+
+                        return (
+                            <>
+                                <OfflineWithFeedback
+                                    errors={errors}
+                                    errorRowStyles={errorRowStyles}
+                                    onClose={onErrorClose}
+                                >
+                                    <Tooltip
+                                        shouldRender={!disabled}
+                                        text={translate('avatarWithImagePicker.editImage')}
+                                    >
+                                        <PressableWithoutFeedback
+                                            onPress={() => onPressAvatar(openPicker)}
+                                            accessibilityRole={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={translate('avatarWithImagePicker.editImage')}
+                                            disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
+                                            disabledStyle={disabledStyle}
+                                            style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
+                                            ref={anchorRef}
                                         >
-                                            <Tooltip
-                                                shouldRender={!disabled}
-                                                text={translate('avatarWithImagePicker.editImage')}
-                                            >
-                                                <PressableWithoutFeedback
-                                                    onPress={() => onPressAvatar(openPicker)}
-                                                    accessibilityRole={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('avatarWithImagePicker.editImage')}
-                                                    disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
-                                                    disabledStyle={disabledStyle}
-                                                    style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
-                                                    ref={anchorRef}
-                                                >
-                                                    <OfflineWithFeedback pendingAction={pendingAction}>
-                                                        {source ? (
-                                                            <Avatar
-                                                                containerStyles={avatarStyle}
-                                                                imageStyles={[styles.alignSelfCenter, avatarStyle]}
-                                                                source={source}
-                                                                avatarID={avatarID}
-                                                                fallbackIcon={fallbackIcon}
-                                                                size={size}
-                                                                type={type}
-                                                            />
-                                                        ) : (
-                                                            <DefaultAvatar />
-                                                        )}
-                                                    </OfflineWithFeedback>
-                                                    {!disabled && (
-                                                        <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
-                                                            <Icon
-                                                                src={editIcon}
-                                                                width={variables.iconSizeSmall}
-                                                                height={variables.iconSizeSmall}
-                                                                fill={theme.icon}
-                                                            />
-                                                        </View>
-                                                    )}
-                                                </PressableWithoutFeedback>
-                                            </Tooltip>
-                                        </OfflineWithFeedback>
-                                        <PopoverMenu
-                                            isVisible={isMenuVisible}
-                                            onClose={() => setIsMenuVisible(false)}
-                                            onItemSelected={(item, index) => {
-                                                setIsMenuVisible(false);
-                                                // In order for the file picker to open dynamically, the click
-                                                // function must be called from within an event handler that was initiated
-                                                // by the user on Safari.
-                                                if (index === 0 && isSafari()) {
-                                                    openPicker({
-                                                        onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                                                    });
-                                                }
-                                            }}
-                                            menuItems={menuItems}
-                                            anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverMenuOffset(windowWidth) : popoverPosition}
-                                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                            withoutOverlay
-                                            anchorRef={anchorRef}
-                                        />
-                                    </>
-                                );
-                            }}
-                        </AttachmentPicker>
-                    )}
-                </AttachmentModal>
+                                            <OfflineWithFeedback pendingAction={pendingAction}>
+                                                {source ? (
+                                                    <Avatar
+                                                        containerStyles={avatarStyle}
+                                                        imageStyles={[styles.alignSelfCenter, avatarStyle]}
+                                                        source={source}
+                                                        avatarID={avatarID}
+                                                        fallbackIcon={fallbackIcon}
+                                                        size={size}
+                                                        type={type}
+                                                    />
+                                                ) : (
+                                                    <DefaultAvatar />
+                                                )}
+                                            </OfflineWithFeedback>
+                                            {!disabled && (
+                                                <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
+                                                    <Icon
+                                                        src={editIcon}
+                                                        width={variables.iconSizeSmall}
+                                                        height={variables.iconSizeSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                </View>
+                                            )}
+                                        </PressableWithoutFeedback>
+                                    </Tooltip>
+                                </OfflineWithFeedback>
+                                <PopoverMenu
+                                    isVisible={isMenuVisible}
+                                    onClose={() => setIsMenuVisible(false)}
+                                    onItemSelected={(item, index) => {
+                                        setIsMenuVisible(false);
+                                        // In order for the file picker to open dynamically, the click
+                                        // function must be called from within an event handler that was initiated
+                                        // by the user on Safari.
+                                        if (index === 0 && isSafari()) {
+                                            openPicker({
+                                                onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                                            });
+                                        }
+                                    }}
+                                    menuItems={menuItems}
+                                    anchorPosition={shouldUseStyleUtilityForAnchorPosition ? styles.popoverMenuOffset(windowWidth) : popoverPosition}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                    withoutOverlay
+                                    anchorRef={anchorRef}
+                                />
+                            </>
+                        );
+                    }}
+                </AttachmentPicker>
             </View>
             {!!errorData.validationError && (
                 <DotIndicatorMessage

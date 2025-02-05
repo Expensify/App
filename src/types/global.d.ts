@@ -13,10 +13,9 @@ declare module '*.jpg' {
 }
 
 declare module '*.svg' {
-    import type React from 'react';
-    import type {SvgProps} from 'react-native-svg';
+    import type {IconAsset} from './utils/IconAsset';
 
-    const content: React.FC<SvgProps>;
+    const content: IconAsset;
     export default content;
 }
 

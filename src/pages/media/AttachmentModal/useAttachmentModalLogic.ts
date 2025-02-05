@@ -5,12 +5,12 @@ import type {Attachment} from '@components/Attachments/types';
 // import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AttachmentModalContentProps} from './AttachmentModalContent';
+import type {AttachmentModalScreenProps} from './types';
 
 function useAttachmentModalLogic(route: AttachmentModalScreenProps['route']) {
     const reportID = route.params.reportID;
@@ -42,15 +42,15 @@ function useAttachmentModalLogic(route: AttachmentModalScreenProps['route']) {
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(
+            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute({
                 reportID,
                 type,
-                String(attachment.source),
-                Number(accountID),
-                attachment?.isAuthTokenRequired,
-                attachment?.file?.name,
-                attachment?.attachmentLink,
-            );
+                source: String(attachment.source),
+                accountID: Number(accountID),
+                isAuthTokenRequired: attachment?.isAuthTokenRequired,
+                fileName: attachment?.file?.name,
+                attachmentLink: attachment?.attachmentLink,
+            });
             Navigation.navigate(routeToNavigate);
         },
         [reportID, type, accountID],

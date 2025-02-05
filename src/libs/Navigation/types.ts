@@ -15,6 +15,7 @@ import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -1704,11 +1705,12 @@ type AuthScreensParamList = CentralPaneScreensParamList &
             isAuthTokenRequired?: string;
             fileName?: string;
             attachmentLink?: string;
-
-            /** Whether it is a receipt attachment or not */
             isReceiptAttachment?: boolean;
-            /** Whether the modal should be open by default */
             defaultOpen?: boolean;
+
+            fallbackSource?: AvatarSource;
+            maybeIcon?: boolean;
+            headerTitle?: string;
         };
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;

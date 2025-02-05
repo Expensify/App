@@ -1,5 +1,5 @@
 import React from 'react';
-import AttachmentModalScreenImpl from './AttachmentModal';
+import AttachmentModalScreenImpl from './AttachmentModalWrapper';
 import type {AttachmentModalScreenProps} from './types';
 
 function AttachmentModalScreen(props: AttachmentModalScreenProps) {

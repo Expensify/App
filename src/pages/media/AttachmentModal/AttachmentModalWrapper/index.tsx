@@ -3,11 +3,11 @@ import React, {useCallback, useState} from 'react';
 import type {FileObject} from '@components/AttachmentModal';
 import Modal from '@components/Modal';
 import {translateLocal} from '@libs/Localize';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import AttachmentModalContent from '@pages/media/AttachmentModal/AttachmentModalContent';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModal/types';
+import useAttachmentModalLogic from '@pages/media/AttachmentModal/useAttachmentModalLogic';
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
-import AttachmentModalContent from './AttachmentModalContent';
-import useAttachmentModalLogic from './useAttachmentModalLogic';
 
 function AttachmentModalScreen({route, onModalShow, onModalHide}: AttachmentModalScreenProps) {
     const {
