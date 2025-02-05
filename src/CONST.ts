@@ -6620,15 +6620,12 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
         },
     },
-<<<<<<< HEAD
     LAST_PAYMENT_METHOD: {
         DEFAULT: 'DEFAULT',
         IOU: 'IOU',
         EXPENSE: 'EXPENSE',
         INVOICE: 'INVOICE',
     },
-=======
->>>>>>> origin/main
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
 } as const;
