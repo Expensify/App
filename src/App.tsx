@@ -47,6 +47,8 @@ import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 type AppProps = {
     /** URL containing all necessary data to run React Native app (e.g. login data) */
     url?: Route;
+    hybridAppSettings?: string;
+    timestamp?: string;
 };
 
 LogBox.ignoreLogs([
@@ -62,14 +64,18 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url}: AppProps) {
+function App({url, hybridAppSettings, timestamp}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
-                <InitialURLContextProvider url={url}>
+                <InitialURLContextProvider
+                    url={url}
+                    hybridAppSettings={hybridAppSettings}
+                    timestamp={timestamp}
+                >
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
