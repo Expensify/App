@@ -183,7 +183,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
                     const paymentData = (
                         selectedReports.length
-                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[report.policyID]}))
+                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[`${report.policyID}`]}))
                             : Object.values(selectedTransactions).map((transaction) => ({
                                   reportID: transaction.reportID,
                                   amount: transaction.amount,
@@ -392,9 +392,10 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                         shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
                         wrapperStyle={styles.productTrainingTooltipWrapper}
                         renderTooltipContent={renderProductTrainingTooltip}
+                        onTooltipPress={onFiltersButtonPress}
                     >
                         <Button
-                            innerStyles={!isCannedQuery && [styles.searchRouterInputResults, styles.borderNone]}
+                            innerStyles={!isCannedQuery && [styles.searchAutocompleteInputResults, styles.borderNone]}
                             text={translate('search.filtersHeader')}
                             icon={Expensicons.Filters}
                             onPress={onFiltersButtonPress}

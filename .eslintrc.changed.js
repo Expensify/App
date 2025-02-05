@@ -21,19 +21,6 @@ module.exports = {
     },
     overrides: [
         {
-            files: [
-                'src/libs/actions/IOU.ts',
-                'src/libs/actions/Report.ts',
-                'src/libs/OptionsListUtils.ts',
-                'src/pages/home/ReportScreen.tsx',
-                'src/pages/workspace/WorkspaceInitialPage.tsx',
-                'src/pages/home/report/PureReportActionItem.tsx',
-            ],
-            rules: {
-                'rulesdir/no-default-id-values': 'off',
-            },
-        },
-        {
             files: ['**/libs/**/*.{ts,tsx}'],
             rules: {
                 'no-restricted-syntax': [
