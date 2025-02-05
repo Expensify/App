@@ -10,13 +10,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -34,7 +35,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         headerText: string;
 
         /** Main content of the page */
-        children: ((hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode) | ReactNode;
+        children: ((hasVBA: boolean, policyID: string | undefined, isUsingECard: boolean) => ReactNode) | ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
@@ -86,7 +87,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         isLoading?: boolean;
     };
 
-function fetchData(policyID: string, skipVBBACal?: boolean) {
+function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
     if (skipVBBACal) {
         return;
     }
@@ -122,7 +123,8 @@ function WorkspacePageWithSections({
     threeDotsAnchorPosition,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = route.params?.policyID;
+    const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     const [user] = useOnyx(ONYXKEYS.USER);
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -149,18 +151,19 @@ function WorkspacePageWithSections({
         }, [policyID, shouldSkipVBBACall]),
     );
 
-    const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => shouldShowPolicyUtil(prevPolicy, false, currentUserLogin), [prevPolicy, currentUserLogin]);
+    const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
+    const isPendingDelete = isPendingDeletePolicy(policy);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     const shouldShow = useMemo(() => {
         // If the policy object doesn't exist or contains only error data, we shouldn't display it.
         if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
             return true;
         }
 
-        // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !prevShouldShowPolicy);
+        // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
+        return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete));
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policy, shouldShowNonAdmin, shouldShowPolicy, prevShouldShowPolicy]);
+    }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     return (
         <ScreenWrapper

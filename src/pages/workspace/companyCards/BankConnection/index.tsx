@@ -1,12 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
@@ -49,9 +51,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.selectedBank;
+    const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
+    const {isOffline} = useNetwork();
+
     const url = getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
-    const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
 
@@ -95,7 +99,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
 
     useEffect(() => {
-        if (!url) {
+        if (!url || isOffline) {
             return;
         }
 
@@ -126,7 +130,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         if (!shouldBlockWindowOpen) {
             customWindow = openBankConnection(url);
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired]);
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
@@ -134,16 +138,18 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <BlockingView
-                icon={Illustrations.PendingBank}
-                iconWidth={styles.pendingBankCardIllustration.width}
-                iconHeight={styles.pendingBankCardIllustration.height}
-                title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
-                linkKey="workspace.moreFeatures.companyCards.pendingBankLink"
-                CustomSubtitle={CustomSubtitle}
-                shouldShowLink
-                onLinkPress={onOpenBankConnectionFlow}
-            />
+            <FullPageOfflineBlockingView>
+                <BlockingView
+                    icon={Illustrations.PendingBank}
+                    iconWidth={styles.pendingBankCardIllustration.width}
+                    iconHeight={styles.pendingBankCardIllustration.height}
+                    title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
+                    linkKey="workspace.moreFeatures.companyCards.pendingBankLink"
+                    CustomSubtitle={CustomSubtitle}
+                    shouldShowLink
+                    onLinkPress={onOpenBankConnectionFlow}
+                />
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
