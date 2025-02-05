@@ -109,7 +109,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                       text: 'an admin',
                   }
                 : {
-                      text: getDisplayNameForParticipant(reimburserAccountID),
+                      text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
                       type: 'strong',
                   },
             {
