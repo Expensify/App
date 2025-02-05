@@ -18,7 +18,11 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     const {translate} = useLocalize();
 
     const hasPoliciesConnectedToNetSuite = !!getAdminPoliciesConnectedToNetSuite()?.length;
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const {popoverAnchorRefs} = useAccountingContext();
@@ -57,7 +61,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
     }, []);
 
     if (threeDotsMenuContainerRef) {
-        if (!shouldUseNarrowLayout) {
+        if (!isSmallScreenWidth) {
             threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
                 const horizontal = x + width;
                 const vertical = y + height;
