@@ -70,7 +70,7 @@ describe('ReportActionItemSingle', () => {
                 const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
 
                 await setup();
-                await waitForBatchedUpdates(() => {
+                waitForBatchedUpdates().then(() => {
                     expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeOnTheScreen();
                 });
             });
