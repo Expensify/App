@@ -124,7 +124,7 @@ import {
     setDeleteTransactionNavigateBackUrl,
     updateGroupChatAvatar,
 } from '@userActions/Report';
-import {checkIfActionIsAllowed} from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask as canActionTaskAction, canModifyTask as canModifyTaskAction, deleteTask, reopenTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -304,7 +304,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
-    const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil(report) && !isSubmitAndClose(policy);
+    const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil({report}) && !isSubmitAndClose(policy);
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -361,11 +361,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
-    let roomDescription;
+    let roomDescription: string | undefined;
     if (caseID === CASES.MONEY_REQUEST) {
         roomDescription = translate('common.name');
     } else if (isGroupChat) {
-        roomDescription = translate('groupConfirmPage.groupName');
+        roomDescription = translate('newRoomPage.groupName');
     } else {
         roomDescription = translate('newRoomPage.roomName');
     }
@@ -387,9 +387,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        cancelPaymentAction(moneyRequestReport, chatReport);
+        cancelPaymentAction(moneyRequestReport, chatReport, backTo);
         setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport]);
+    }, [moneyRequestReport, chatReport, backTo]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
@@ -512,7 +512,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     icon: Expensicons.Checkmark,
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
-                    action: checkIfActionIsAllowed(() => {
+                    action: callFunctionIfActionIsAllowed(() => {
                         Navigation.dismissModal();
                         reopenTask(report);
                     }),
@@ -741,7 +741,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowHoldAction =
         caseID !== CASES.DEFAULT &&
         (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) &&
-        !isArchivedNonExpenseReport(transactionThreadReportID ? report : parentReport, parentReportNameValuePairs);
+        !isArchivedNonExpenseReport(transactionThreadReportID ? report : parentReport, transactionThreadReportID ? reportNameValuePairs : parentReportNameValuePairs);
     const canJoin = canJoinChat(report, parentReportAction, policy);
 
     const promotedActions = useMemo(() => {

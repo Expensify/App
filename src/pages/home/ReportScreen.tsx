@@ -138,6 +138,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
+    const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
     const {canUseDefaultRooms} = usePermissions();
@@ -153,6 +154,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`);
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false});
     const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
+    const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {initialValue: defaultReportMetadata});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {initialValue: false});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
@@ -252,14 +254,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 visibility: reportOnyx.visibility,
                 oldPolicyName: reportOnyx.oldPolicyName,
                 policyName: reportOnyx.policyName,
-                private_isArchived: reportOnyx.private_isArchived,
+                private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
                 lastMentionedTime: reportOnyx.lastMentionedTime,
                 avatarUrl: reportOnyx.avatarUrl,
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
             },
-        [reportOnyx, permissions],
+        [reportOnyx, reportNameValuePairsOnyx, permissions],
     );
     const reportID = report?.reportID;
 
@@ -430,43 +432,48 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const currentReportIDFormRoute = route.params?.reportID;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo((): boolean => {
-        if (shouldShowNotFoundLinkedAction) {
-            return true;
-        }
+    const shouldShowNotFoundPage = useMemo(
+        (): boolean => {
+            if (shouldShowNotFoundLinkedAction) {
+                return true;
+            }
 
-        // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
-        if (isLoadingApp !== false) {
-            return false;
-        }
+            // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
+            if (isLoadingApp !== false) {
+                return false;
+            }
 
-        // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
-        // showing the Not Found page
-        if (finishedLoadingApp) {
-            return false;
-        }
+            // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
+            // showing the Not Found page
+            if (finishedLoadingApp) {
+                return false;
+            }
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
             // eslint-disable-next-line react-compiler/react-compiler
-            return true;
-        }
+            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+                // eslint-disable-next-line react-compiler/react-compiler
+                return true;
+            }
 
-        if (shouldHideReport) {
-            return true;
-        }
-        return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-    }, [
-        shouldShowNotFoundLinkedAction,
-        isLoadingApp,
-        finishedLoadingApp,
-        reportID,
-        isOptimisticDelete,
-        reportMetadata?.isLoadingInitialReportActions,
-        userLeavingStatus,
-        shouldHideReport,
-        currentReportIDFormRoute,
-    ]);
+            if (shouldHideReport) {
+                return true;
+            }
+            return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [
+            firstRender,
+            shouldShowNotFoundLinkedAction,
+            isLoadingApp,
+            finishedLoadingApp,
+            reportID,
+            isOptimisticDelete,
+            reportMetadata?.isLoadingInitialReportActions,
+            userLeavingStatus,
+            shouldHideReport,
+            currentReportIDFormRoute,
+        ],
+    );
 
     const fetchReport = useCallback(() => {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -599,6 +606,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // We don't want this effect to run on the first render.
         if (firstRenderRef.current) {
             firstRenderRef.current = false;
+            setFirstRender(false);
             return;
         }
 
@@ -760,6 +768,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isSingleInvoiceReport = isInvoiceReport(report) && isMostRecentReportIOU && isSingleIOUReportAction;
     const shouldShowMostRecentReportAction =
         !!mostRecentReportAction &&
+        shouldReportActionBeVisible(mostRecentReportAction, mostRecentReportAction.reportActionID, canUserPerformWriteAction(report)) &&
         !isSingleExpenseReport &&
         !isSingleInvoiceReport &&
         !isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
@@ -791,6 +800,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
+                        subtitleStyle={[styles.textSupporting]}
+                        shouldDisplaySearchRouter
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
                         shouldShowLink={shouldShowNotFoundLinkedAction}
