@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
