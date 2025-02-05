@@ -41,6 +41,8 @@ jobs:
     steps:
       - name: Validate actor
         uses: ./.github/actions/composite/validateActor
+        with:
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Run turnstyle
         uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03

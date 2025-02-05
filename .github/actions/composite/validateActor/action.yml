@@ -7,9 +7,12 @@ inputs:
     description: Should this action require the actor to be an app deployer?
     required: false
     default: true
+  OS_BOTIFY_TOKEN:
+    description: OSBotify token. Needed to access certain API endpoints the regular github.token can't
+    required: true
 
 env:
-  GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+  GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
 
 runs:
   using: composite
