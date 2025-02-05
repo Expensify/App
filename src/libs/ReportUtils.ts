@@ -9065,6 +9065,10 @@ function shouldUnmaskChat(participantsContext: OnyxEntry<PersonalDetailsList>, r
         return true;
     }
 
+    if (isAdminRoom(report)) {
+        return true;
+    }
+
     const participantAccountIDs = Object.keys(report.participants);
 
     if (participantAccountIDs.length > 2) {
