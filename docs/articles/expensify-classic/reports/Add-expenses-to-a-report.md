@@ -33,6 +33,20 @@ There may be restrictions on your ability to create reports depending on your wo
 
 {% include end-selector.html %}
 
+# Move expenses to another report  
+To move open expenses from one report to another, follow these steps [Desktop only]:
+
+1. Select Expenses:
+On the Expenses page, select the open expenses you want to move by checking the box next to each expense.
+
+2. Add to Report:
+Click the Add to Report button in the top right corner.
+
+3. Choose Report:
+Select the report you want to consolidate the expenses into from the drop-down list.
+
+Note: Only open expenses can be moved between reports. Submitted expenses in the Processing, Approved, Reimbursed, or Closed state cannot be moved.
+
 # Create a new report
 
 {% include selector.html values="desktop, mobile" %}
