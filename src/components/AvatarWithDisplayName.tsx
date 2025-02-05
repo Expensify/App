@@ -57,7 +57,7 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
     );
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`, {canEvict: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const title = ReportUtils.getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
+    const title = ReportUtils.getReportName(report, invoiceReceiverPolicy);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport =

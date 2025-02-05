@@ -24,6 +24,7 @@ const searchResults: OnyxTypes.SearchResults = {
             },
         },
         [`policy_${policyID}`]: {
+            id: 'test',
             approvalMode: 'OPTIONAL',
             autoReimbursement: {
                 limit: 0,
