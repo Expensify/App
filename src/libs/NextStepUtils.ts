@@ -248,16 +248,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            if (
-                isInvoiceReport(report) ||
-                isPayer(
-                    {
-                        accountID: currentUserAccountID,
-                        email: currentUserEmail,
-                    },
-                    report,
-                )
-            ) {
+            if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
                 optimisticNextStep = nextStepPayExpense;
                 break;
             }
