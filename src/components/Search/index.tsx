@@ -29,9 +29,9 @@ import {
     getSortedSections,
     isReportActionListItemType,
     isReportListItemType,
-    isSearchResultsEmpty as isSearchResultsEmptyUtils,
+    isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTransactionListItemType,
-    shouldShowYear as shouldShowYearUtils,
+    shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {isOnHold} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -136,8 +136,16 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
     const isFocused = useIsFocused();
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
-    const {setCurrentSearchHash, setSelectedTransactions, selectedTransactions, clearSelectedTransactions, setShouldShowStatusBarLoading, lastSearchType, setLastSearchType} =
-        useSearchContext();
+    const {
+        setCurrentSearchHash,
+        setSelectedTransactions,
+        selectedTransactions,
+        clearSelectedTransactions,
+        shouldTurnOffSelectionMode,
+        setShouldShowStatusBarLoading,
+        lastSearchType,
+        setLastSearchType,
+    } = useSearchContext();
     const {selectionMode} = useMobileSelectionMode(false);
     const [offset, setOffset] = useState(0);
 
@@ -166,6 +174,13 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         clearSelectedTransactions(hash);
         setCurrentSearchHash(hash);
     }, [hash, clearSelectedTransactions, setCurrentSearchHash]);
+
+    useEffect(() => {
+        const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
+        if (selectedKeys.length === 0 && selectionMode?.isEnabled && shouldTurnOffSelectionMode) {
+            turnOffMobileSelectionMode();
+        }
+    }, [selectedTransactions, selectionMode?.isEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
@@ -238,8 +253,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtils(searchResults);
-    const isPrevSearchResultsEmpty = usePrevious(isSearchResultsEmpty);
+    const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
+    const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const data = useMemo(() => {
         if (searchResults === undefined) {
@@ -306,11 +321,11 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     }, [data, setSelectedTransactions]);
 
     useEffect(() => {
-        if (!isSearchResultsEmpty || isPrevSearchResultsEmpty) {
+        if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
             return;
         }
         turnOffMobileSelectionMode();
-    }, [isSearchResultsEmpty, isPrevSearchResultsEmpty]);
+    }, [isSearchResultsEmpty, prevIsSearchResultEmpty]);
 
     useEffect(
         () => () => {
@@ -359,7 +374,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    const shouldShowEmptyState = isSearchResultsEmpty || !isDataLoaded;
+    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
 
     if (shouldShowEmptyState) {
         return (
@@ -461,9 +476,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         navigation.setParams({q: newQuery});
     };
 
+    const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && sortableSearchStatuses.includes(status);
-
-    const shouldShowYear = shouldShowYearUtils(searchResults?.data);
 
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
