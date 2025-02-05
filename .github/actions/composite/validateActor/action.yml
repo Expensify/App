@@ -10,8 +10,6 @@ inputs:
 
 runs:
   using: composite
-  env:
-    GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
   steps:
     - name: Get user permissions
       if: ${{ !fromJSON(inputs.REQUIRE_APP_DEPLOYER) }}
@@ -24,6 +22,8 @@ runs:
           echo "::error::❌ Actor ${{ github.actor }} does not have write permission"
           exit 1
         fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
     - name: Check if user is deployer
       id: isUserDeployer
@@ -36,3 +36,5 @@ runs:
           echo "::error::❌ Actor ${{ github.actor }} is not an app deployer"
           exit 1
         fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
