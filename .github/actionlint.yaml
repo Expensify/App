@@ -8,6 +8,6 @@ self-hosted-runner:
     - macos-12
 
 paths:
-  .github/workflows/**/*.{yml,yaml}:
+  '**/*':
     ignore:
-      - '"env" is not allowed in "runs" section because "Validate actor" is a Composite action'
+      - '"env" is not allowed in "runs" section because .* is a Composite action.*'
