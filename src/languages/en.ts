@@ -4974,12 +4974,12 @@ const translations = {
         viewAttachment: 'View attachment',
     },
     parentReportAction: {
-        deletedReport: '[Deleted report]',
-        deletedMessage: '[Deleted message]',
-        deletedExpense: '[Deleted expense]',
-        reversedTransaction: '[Reversed transaction]',
-        deletedTask: '[Deleted task]',
-        hiddenMessage: '[Hidden message]',
+        deletedReport: 'Deleted report',
+        deletedMessage: 'Deleted message',
+        deletedExpense: 'Deleted expense',
+        reversedTransaction: 'Reversed transaction',
+        deletedTask: 'Deleted task',
+        hiddenMessage: 'Hidden message',
     },
     threads: {
         thread: 'Thread',

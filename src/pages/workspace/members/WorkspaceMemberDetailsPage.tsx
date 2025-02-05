@@ -177,6 +177,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 assigneeEmail: memberLogin,
             },
             isEditing: false,
+            policyID,
         });
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
     }, [accountID, hasMultipleFeeds, memberLogin, policyID]);
