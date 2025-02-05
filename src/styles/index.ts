@@ -1087,7 +1087,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 1,
+            zIndex: variables.searchTopBarZIndex + 2,
             backgroundColor: theme.appBG,
         },
 
@@ -3723,11 +3723,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         narrowSearchRouterInactiveStyle: {
-            position: 'relative',
-            flex: 1,
-        },
-
-        narrowSearchRouterActiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',

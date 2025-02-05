@@ -53,8 +53,8 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const {unmodifiedPaddings} = useStyledSafeAreaInsets();
 
@@ -185,7 +185,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     return (
         <>
             <Button
-                innerStyles={[styles.searchRouterInputResults, styles.borderNone]}
+                innerStyles={[styles.borderNone]}
                 icon={Expensicons.Bookmark}
                 onPress={openMenu}
             />

@@ -98,7 +98,7 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined> | undefined, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
     const feedCards: CardList = {};
     Object.keys(cardList).forEach((cardKey) => {
         const card = cardList[cardKey];
