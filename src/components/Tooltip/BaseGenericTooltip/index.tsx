@@ -1,9 +1,11 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
+import {PopoverContext} from '@components/PopoverProvider';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import CONST from '@src/CONST';
@@ -39,6 +41,7 @@ function BaseGenericTooltip({
     shouldUseOverlay = false,
     onHideTooltip = () => {},
     isEducationTooltip = false,
+    onTooltipPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -50,6 +53,14 @@ function BaseGenericTooltip({
     const rootWrapper = useRef<HTMLDivElement>(null);
 
     const StyleUtils = useStyleUtils();
+    const {setActivePopoverExtraAnchorRef} = useContext(PopoverContext);
+
+    useEffect(() => {
+        if (!isEducationTooltip) {
+            return;
+        }
+        setActivePopoverExtraAnchorRef(rootWrapper);
+    }, [isEducationTooltip, setActivePopoverExtraAnchorRef]);
 
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
@@ -128,6 +139,8 @@ function BaseGenericTooltip({
         );
     }
 
+    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
+
     const body = document.querySelector('body');
 
     if (!body) {
@@ -137,15 +150,18 @@ function BaseGenericTooltip({
     return ReactDOM.createPortal(
         <>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Animated.View
+            <AnimatedWrapper
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}
+                onPress={isEducationTooltip ? onTooltipPress : undefined}
+                role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
             >
                 {content}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Animated.View>
+            </AnimatedWrapper>
         </>,
         body,
     );

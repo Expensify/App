@@ -18,6 +18,7 @@ const migrations = {
     private_pushNotificationID: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     tryFocusMode: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     introSelected: ONYXKEYS.NVP_INTRO_SELECTED,
+    preferredTheme: ONYXKEYS.PREFERRED_THEME,
 };
 
 // This migration changes the keys of all the NVP related keys so that they are standardized

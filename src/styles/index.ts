@@ -2,14 +2,18 @@
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import type {LineLayer} from 'react-map-gl';
+// eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
+// eslint-disable-next-line no-restricted-imports -- will be removed in the future PR
 import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
+import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
@@ -204,7 +208,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
-                ...FontUtils.fontFamily.platform.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
@@ -658,6 +662,11 @@ const styles = (theme: ThemeColors) =>
 
         buttonDefaultHovered: {
             backgroundColor: theme.buttonHoveredBG,
+            borderWidth: 0,
+        },
+
+        buttonDefaultSelected: {
+            backgroundColor: theme.buttonPressedBG,
             borderWidth: 0,
         },
 
@@ -1223,7 +1232,8 @@ const styles = (theme: ThemeColors) =>
             'worklet';
 
             return {
-                transform: [{translateY: translateY.get()}, {scale: scale.get()}],
+                transform: [{translateY: translateY.get()}],
+                fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
             } satisfies TextStyle;
         },
 
@@ -1243,14 +1253,19 @@ const styles = (theme: ThemeColors) =>
         },
 
         textInputMultilineContainer: {
+            height: '100%',
             paddingTop: 23,
         },
 
-        textInputAndIconContainer: {
-            flex: 1,
-            height: '100%',
-            zIndex: -1,
-            flexDirection: 'row',
+        textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
+            if (isMarkdownEnabled) {
+                return {zIndex: -1, flexDirection: 'row'};
+            }
+            return {
+                flex: 1,
+                zIndex: -1,
+                flexDirection: 'row',
+            };
         },
 
         textInputDesktop: addOutlineWidth(theme, {}, 0),
@@ -2009,19 +2024,6 @@ const styles = (theme: ThemeColors) =>
                 }),
             } satisfies ViewStyle),
 
-        nativeOverlayStyles: (current: OverlayStylesParams) =>
-            ({
-                position: 'absolute',
-                backgroundColor: theme.overlay,
-                width: '100%',
-                height: '100%',
-                opacity: current.progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, variables.overlayOpacity],
-                    extrapolate: 'clamp',
-                }),
-            } satisfies ViewStyle),
-
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',
@@ -2084,7 +2086,7 @@ const styles = (theme: ThemeColors) =>
         chatItemRight: {
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: 0,
+            flexBasis: 'auto',
             position: 'relative',
         },
 
@@ -2108,6 +2110,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: variables.fontSizeSmall,
             paddingTop: 2,
+        },
+
+        chatItemMessageHeaderPolicy: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
         },
 
         chatItemMessage: {
@@ -3052,8 +3059,6 @@ const styles = (theme: ThemeColors) =>
         sectionDividerLine: {
             height: 1,
             backgroundColor: theme.border,
-            ...spacing.mh5,
-            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -3683,13 +3688,13 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
         },
 
-        searchRouterInputResults: {
+        searchAutocompleteInputResults: {
             backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
 
-        searchRouterInputResultsFocused: {
+        searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
             backgroundColor: theme.appBG,
@@ -4361,7 +4366,11 @@ const styles = (theme: ThemeColors) =>
                 fontSize: variables.fontSizeLabel,
             } satisfies TextStyle),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+        animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        }),
+
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
@@ -4492,7 +4501,6 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             borderRadius: 12,
             overflow: 'hidden',
-            height: variables.reportActionImagesSingleImageHeight,
         },
 
         reportActionItemImage: {
@@ -4916,6 +4924,19 @@ const styles = (theme: ThemeColors) =>
         workspaceSectionMobile: {
             width: '100%',
             alignSelf: 'center',
+        },
+
+        workspaceSectionMoreFeaturesItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            minWidth: 350,
+            flexGrow: 1,
+            flexShrink: 1,
+            // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
+            flexBasis: '35%',
+            marginTop: 12,
         },
 
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
@@ -5342,6 +5363,20 @@ const styles = (theme: ThemeColors) =>
 
         accountSwitcherPopover: {
             width: variables.sideBarWidth - 19,
+        },
+
+        progressBarWrapper: {
+            height: 2,
+            width: '100%',
+            backgroundColor: theme.transparent,
+            overflow: 'hidden',
+            marginBottom: -1,
+        },
+
+        progressBar: {
+            height: '100%',
+            backgroundColor: theme.success,
+            width: '100%',
         },
 
         accountSwitcherAnchorPosition: {
