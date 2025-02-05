@@ -263,8 +263,6 @@ function IOURequestStepScan({
                         amount: 0,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created,
-                        merchant: '',
-                        comment: '',
                         receipt,
                     },
                 });
@@ -358,8 +356,6 @@ function IOURequestStepScan({
                                         amount: 0,
                                         currency: transaction?.currency ?? 'USD',
                                         created: transaction?.created,
-                                        merchant: '',
-                                        comment: '',
                                         receipt,
                                         billable: false,
                                         gpsPoints: {

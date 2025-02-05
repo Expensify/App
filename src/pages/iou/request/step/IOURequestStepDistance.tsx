@@ -336,7 +336,6 @@ function IOURequestStepDistance({
                             currency: transaction?.currency ?? 'USD',
                             created: transaction?.created ?? '',
                             merchant: translate('iou.fieldPending'),
-                            comment: '',
                             receipt: {},
                             billable: false,
                             validWaypoints: getValidWaypoints(waypoints, true),

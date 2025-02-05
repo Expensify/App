@@ -452,8 +452,8 @@ type TrackExpenseTransactionParams = {
     amount: number;
     currency: string;
     created: string | undefined;
-    merchant: string;
-    comment: string;
+    merchant?: string;
+    comment?: string;
     receipt?: Receipt;
     category?: string;
     tag?: string;
@@ -4688,8 +4688,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         amount,
         currency,
         created = '',
-        merchant,
-        comment,
+        merchant = '',
+        comment = '',
         receipt,
         category,
         tag,

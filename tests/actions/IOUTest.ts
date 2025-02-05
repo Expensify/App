@@ -204,7 +204,6 @@ describe('actions/IOU', () => {
                     currency: fakeTransaction.currency,
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
                     merchant: fakeTransaction.merchant,
-                    comment: '',
                     billable: false,
                     validWaypoints: fakeWayPoints,
                     actionableWhisperReportActionID: fakeTransaction?.actionableWhisperReportActionID,
@@ -296,7 +295,6 @@ describe('actions/IOU', () => {
                     currency: transactionDraft?.currency ?? fakeTransaction.currency,
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
                     merchant: transactionDraft?.merchant ?? fakeTransaction.merchant,
-                    comment: '',
                     category: Object.keys(fakeCategories).at(0) ?? '',
                     validWaypoints: Object.keys(transactionDraft?.comment?.waypoints ?? {}).length ? getValidWaypoints(transactionDraft?.comment?.waypoints, true) : undefined,
                     actionableWhisperReportActionID: transactionDraft?.actionableWhisperReportActionID,
@@ -4449,7 +4447,6 @@ describe('actions/IOU', () => {
                     currency: CONST.CURRENCY.USD,
                     created: '2024-10-30',
                     merchant: 'KFC',
-                    comment: '',
                     receipt: {},
                     actionableWhisperReportActionID: '1',
                     linkedTrackedExpenseReportAction: {

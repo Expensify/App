@@ -232,7 +232,6 @@ function IOURequestStepAmount({
                             currency: currency ?? 'USD',
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                            comment: '',
                         },
                     });
                     return;
