@@ -389,7 +389,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
 
-    const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
+    const lastReportActionIDFromRoute = usePrevious(!firstRenderRef.current ? reportActionIDFromRoute : undefined);
 
     const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
 
