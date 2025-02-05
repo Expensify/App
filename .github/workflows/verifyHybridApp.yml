@@ -59,7 +59,7 @@ jobs:
     name: Verify Android HybridApp builds on main
     runs-on: ubuntu-latest-xl
     # Only run on pull requests that are *not* on a fork
-    if: ${{ !github.event.pull_request.head.repo.fork && github.event == 'pull_request' }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,7 +100,7 @@ jobs:
     name: Verify iOS HybridApp builds on main
     runs-on: macos-15-xlarge
     # Only run on pull requests that are *not* on a fork
-    if: ${{ !github.event.pull_request.head.repo.fork && github.event == 'pull_request' }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
