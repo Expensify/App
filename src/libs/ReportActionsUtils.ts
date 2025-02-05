@@ -1773,11 +1773,11 @@ function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useNa
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const personalDetails = getPersonalDetailsByIDs(reportAction.actorAccountID ? [reportAction.actorAccountID] : [], 0)?.at(0);
+    const personalDetails = getPersonalDetailsByIDs({accountIDs: reportAction.actorAccountID ? [reportAction.actorAccountID] : [], currentUserAccountID: 0})?.at(0);
     if (!!originalMessage && !originalMessage.email) {
         originalMessage.email = personalDetails?.login;
     }
-    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}: ` : originalMessage?.email ?? '';
+    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : originalMessage?.email ?? '';
     const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
     return translateLocal('report.actions.type.employeeLeft', {nameOrEmail: formattedNameOrEmail});
 }

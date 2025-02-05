@@ -5041,7 +5041,6 @@ const translations = {
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' || role === 'user' ? 'a member' : 'an admin'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
                     `updated the role of ${email} to ${newRole === 'member' || newRole === 'user' ? 'member' : newRole} (previously ${
