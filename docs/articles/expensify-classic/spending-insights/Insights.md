@@ -13,20 +13,18 @@ The Insights dashboard allows you to monitor all aspects of company spending acr
 1. Navigate to your [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}), located in the left-hand menu
 2. Select a specific date range (the default view has the current month pre-selected) 
 3. Use the filter options to select the categories, tags, employees, or any other parameter
-4. Make sure that View in the top right corner is set to the pie chart icon
-5. You can view any dataset in more detail by clicking in the **View Raw Data** column 
+4. You can view any dataset in more detail by clicking in the **View Raw Data** column 
 
 ## Export your Insights data  
 
-1. Switch the View in the top right corner of the [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}) to the lists icon
-2. Select the expenses you want to export, either by selecting individual expenses, or checking the select all box (next to Date at the top)
+1. Select the dataset you would like to view by clicking **View Raw Data** next to the dataset of your choice.
+2. Select the expenses you want to export, either by selecting individual expenses, or checking the select all box (next to Date at the top of the data table)
 3. Select **Export To** in the top right-hand corner to download the report as a .csv file 
 
 ## Create a Custom Export Report for your Expenses
 
 1. Navigate to **Settings > Account > Preferences > scroll down to CSV Export Formats** 
 2. Build up a report using these [expense-level formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates#expense-level)
-3. Click the **Custom Export** button on the Insights page and your Account Manager will help get you started on building up your report  
 
 ## Create a Custom Export Report for your Workspace
 
