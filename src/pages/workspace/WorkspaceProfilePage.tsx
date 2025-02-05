@@ -27,7 +27,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
@@ -181,6 +181,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             if (topmostBottomTabRoute?.name === SCREENS.SETTINGS.ROOT) {
                 Navigation.setParams({policyID: undefined}, topmostBottomTabRoute?.key);
             }
+            goBackFromInvalidPolicy();
         },
         [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID],
     );
