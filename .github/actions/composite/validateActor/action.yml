@@ -11,7 +11,7 @@ inputs:
 runs:
   using: composite
   env:
-    GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+    GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
   steps:
     - name: Get user permissions
       if: ${{ !fromJSON(inputs.REQUIRE_APP_DEPLOYER) }}
