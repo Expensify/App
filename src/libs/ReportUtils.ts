@@ -1090,6 +1090,14 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boole
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
+function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
+    if (!invoiceRoomID) {
+        return false;
+    }
+
+    return isInvoiceRoom(getReport(invoiceRoomID, allReports));
+}
+
 /**
  * Checks if a report is an Expense report.
  */
@@ -4487,7 +4495,9 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = report?.reportName ?? getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+        const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
     }
 
     if (isInvoiceRoom(report)) {
@@ -9380,6 +9390,7 @@ export {
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
+    isNewDotInvoice,
     isOpenInvoiceReport,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,
