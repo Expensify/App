@@ -1432,11 +1432,6 @@ function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
     };
 }
 
-function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
-    const messageElements = getMemberChangeMessageElements(reportAction);
-    return messageElements.map((element) => element.content).join('');
-}
-
 function getReportActionMessageFragments(action: ReportAction): Message[] {
     if (isOldDotReportAction(action)) {
         const oldDotMessage = getMessageOfOldDotReportAction(action);
@@ -1936,7 +1931,6 @@ export {
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
-    getMemberChangeMessagePlainText,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
