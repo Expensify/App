@@ -42,6 +42,8 @@ jobs:
             echo "READY_TO_BUILD=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Check if pull request number is correct
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -50,7 +52,7 @@ jobs:
           set -e
           echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   postGitHubCommentBuildStarted:
     runs-on: ubuntu-latest
