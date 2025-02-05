@@ -4427,7 +4427,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
-            if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
                 return;
             }
             const workspaceParams =
