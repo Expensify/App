@@ -42,14 +42,6 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
         Navigation.goBack();
     }, [missingDetails, privateDetailsErrors]);
 
-    const sendValidateCode = () => {
-        if (validateCodeAction?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
-    };
-
     const onBackButtonPress = () => {
         onClose?.();
     };
@@ -69,7 +61,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
             isVisible={isValidateCodeActionModalVisible}
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
-            sendValidateCode={sendValidateCode}
+            sendValidateCode={() => requestValidateCodeAction()}
             hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}
         />
