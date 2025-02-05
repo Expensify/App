@@ -147,7 +147,7 @@ function ReportPreview({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, iouReportID),
     });
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
@@ -229,16 +229,16 @@ function ReportPreview({
     const hasErrors =
         (hasMissingSmartscanFields && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolations(iouReportID, transactionViolations, true) ||
-        hasNoticeTypeViolations(iouReportID, transactionViolations, true) ||
-        hasWarningTypeViolations(iouReportID, transactionViolations, true) ||
+        hasViolations(iouReportID, allTransactionViolations, true) ||
+        hasNoticeTypeViolations(iouReportID, allTransactionViolations, true) ||
+        hasWarningTypeViolations(iouReportID, allTransactionViolations, true) ||
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
         hasActionsWithErrors(iouReportID);
     const lastThreeTransactions = transactions?.slice(-3) ?? [];
     const lastTransaction = transactions?.at(0);
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
-    const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, getTransactionViolations(lastTransaction?.transactionID));
+    const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, getTransactionViolations(lastTransaction?.transactionID, allTransactionViolations));
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
     const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
@@ -250,7 +250,7 @@ function ReportPreview({
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, allTransactionViolations);
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 

@@ -1,5 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -62,7 +63,8 @@ function DebugTransactionViolationCreatePage({
 }: DebugTransactionViolationCreatePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const transactionViolations = getTransactionViolations(transactionID);
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`);
+    const transactionViolations = getTransactionViolations(transactionID, allTransactionViolations);
     const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(() => getInitialTransactionViolation());
     const [error, setError] = useState<string>();
 

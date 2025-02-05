@@ -1,4 +1,5 @@
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,6 +8,7 @@ import {isCurrentUserSubmitter, isProcessingReport, isReportApproved, isReportMa
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import TextLink from './TextLink';
@@ -24,7 +26,8 @@ type BrokenConnectionDescriptionProps = {
 function BrokenConnectionDescription({transactionID, policy, report}: BrokenConnectionDescriptionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const transactionViolations = getTransactionViolations(transactionID);
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`);
+    const transactionViolations = getTransactionViolations(transactionID, allTransactionViolations);
 
     const brokenConnection530Error = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
     const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);

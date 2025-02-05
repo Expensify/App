@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -29,7 +30,8 @@ function DebugTransactionViolationPage({
     },
 }: DebugTransactionViolationPageProps) {
     const {translate} = useLocalize();
-    const transactionViolations = getTransactionViolations(transactionID);
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`);
+    const transactionViolations = getTransactionViolations(transactionID, allTransactionViolations);
     const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
     const styles = useThemeStyles();
 

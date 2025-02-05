@@ -766,11 +766,11 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
 /**
  * Get all transaction violations of the transaction with given tranactionID.
  */
-function getTransactionViolations(transactionID: string | undefined): TransactionViolations | null {
-    if (!transactionID) {
+function getTransactionViolations(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): TransactionViolations | null {
+    if (!transactionID || !transactionViolations) {
         return null;
     }
-    return allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((violation) => !isViolationDismissed(transactionID, violation)) ?? null;
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((violation) => !isViolationDismissed(transactionID, violation)) ?? null;
 }
 
 /**
@@ -789,8 +789,8 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transactionID?: string): boolean {
-    const violations = getTransactionViolations(transactionID);
+function hasBrokenConnectionViolation(transactionID?: string, allViolations?: OnyxCollection<TransactionViolations>): boolean {
+    const violations = getTransactionViolations(transactionID, allViolations ?? allTransactionViolations);
     return !!violations?.find(
         (violation) =>
             violation.name === CONST.VIOLATIONS.RTER &&
@@ -801,8 +801,13 @@ function hasBrokenConnectionViolation(transactionID?: string): boolean {
 /**
  * Check if user should see broken connection violation warning.
  */
-function shouldShowBrokenConnectionViolation(transactionIDList: string[] | undefined, report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy): boolean {
-    const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID)) ?? [];
+function shouldShowBrokenConnectionViolation(
+    transactionIDList: string[] | undefined,
+    report: OnyxEntry<Report> | SearchReport,
+    policy: OnyxEntry<Policy> | SearchPolicy,
+    allViolations?: OnyxCollection<TransactionViolations>,
+): boolean {
+    const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID, allViolations)) ?? [];
     return (
         transactionsWithBrokenConnectionViolation.length > 0 &&
         transactionsWithBrokenConnectionViolation?.some((value) => value === true) &&
@@ -813,9 +818,9 @@ function shouldShowBrokenConnectionViolation(transactionIDList: string[] | undef
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactionIds: string[]): boolean {
+function allHavePendingRTERViolation(transactionIds: string[], allViolations?: OnyxCollection<TransactionViolations>): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
-        const transactionViolations = getTransactionViolations(transactionId);
+        const transactionViolations = getTransactionViolations(transactionId, allViolations ?? allTransactionViolations);
         return hasPendingRTERViolation(transactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);

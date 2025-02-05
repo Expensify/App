@@ -43,7 +43,8 @@ function IOURequestStepAttendees({
     const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
-    const violations = getTransactionViolations(transactionID);
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`);
+    const violations = getTransactionViolations(transactionID, allTransactionViolations);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {

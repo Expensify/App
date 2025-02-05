@@ -134,7 +134,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const transactionViolations = getTransactionViolations(linkedTransactionID);
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`);
+    const transactionViolations = getTransactionViolations(linkedTransactionID, allTransactionViolations);
 
     const {
         created: transactionDate,
