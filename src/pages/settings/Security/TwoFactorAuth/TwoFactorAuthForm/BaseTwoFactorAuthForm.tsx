@@ -88,6 +88,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             onFulfill={validateAndSubmitForm}
             errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
             ref={inputRef}
+            shouldDelayFocus
         />
     );
 }
