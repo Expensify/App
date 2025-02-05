@@ -11,9 +11,6 @@ inputs:
     description: OSBotify token. Needed to access certain API endpoints the regular github.token can't
     required: true
 
-env:
-  GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
-
 runs:
   using: composite
   steps:
@@ -29,6 +26,8 @@ runs:
           echo "::error::❌ Actor ${{ github.actor }} does not have write permission"
           exit 1
         fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
 
     - name: Check if user is deployer
       id: isUserDeployer
@@ -42,3 +41,5 @@ runs:
           echo "::error::❌ Actor ${{ github.actor }} is not an app deployer"
           exit 1
         fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
