@@ -2,10 +2,10 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
-import * as FormActions from '@libs/actions/FormActions';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -22,7 +22,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const privateDetailsErrors = privatePersonalDetails?.errors ?? undefined;
-    const validateLoginError = ErrorUtils.getLatestError(privateDetailsErrors);
+    const validateLoginError = getLatestError(privateDetailsErrors);
     const primaryLogin = account?.primaryLogin ?? '';
 
     const missingDetails =
@@ -34,13 +34,13 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
         privatePersonalDetails.addresses.length === 0;
 
     useEffect(() => {
-        if (missingDetails || !!privateDetailsErrors || privatePersonalDetails?.isValidating) {
+        if (missingDetails || !!privateDetailsErrors) {
             return;
         }
 
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.goBack();
-    }, [missingDetails, privateDetailsErrors, privatePersonalDetails?.isValidating]);
+    }, [missingDetails, privateDetailsErrors]);
 
     const sendValidateCode = () => {
         if (validateCodeAction?.validateCodeSent) {

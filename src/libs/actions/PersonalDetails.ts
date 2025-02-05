@@ -489,40 +489,7 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
         validateCode,
     };
 
-    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    addresses: [
-                        ...(privatePersonalDetails?.addresses ?? []),
-                        {
-                            street: PersonalDetailsUtils.getFormattedStreet(parameters.addressStreet, parameters.addressStreet2),
-                            city: parameters.addressCity,
-                            state: parameters.addressState,
-                            zip: parameters.addressZip,
-                            country: parameters.addressCountry as Country | '',
-                            current: true,
-                        },
-                    ],
-                    legalFirstName: parameters.legalFirstName,
-                    legalLastName: parameters.legalLastName,
-                    dob: parameters.dob,
-                    phoneNumber: parameters.phoneNumber,
-                },
-            },
-        ],
-        finallyData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-                value: {
-                    isValidating: false,
-                },
-            },
-        ],
-    });
+    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters);
 }
 
 export {

@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {updatePersonalDetailsAndShipExpensifyCards} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -68,7 +68,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
 
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME) {
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.goBack();
             return;
         }
