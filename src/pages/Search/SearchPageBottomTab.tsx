@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
+import useHandleBackButton from './useHandleBackButton';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -40,6 +41,16 @@ function SearchPageBottomTab() {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {clearSelectedTransactions} = useSearchContext();
+
+    const handleBackButtonPress = useCallback(() => {
+        if (!selectionMode?.isEnabled) {
+            return false;
+        }
+        clearSelectedTransactions(undefined, true);
+        return true;
+    }, [selectionMode, clearSelectedTransactions]);
+
+    useHandleBackButton(handleBackButtonPress);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);

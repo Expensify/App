@@ -16,7 +16,16 @@ import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {
+    ListItemDataType,
+    ListItemType,
+    SearchDataTypes,
+    SearchPersonalDetails,
+    SearchPolicy,
+    SearchReport,
+    SearchTransaction,
+    SearchTransactionAction,
+} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {clearAllFilters} from './actions/Search';
@@ -27,6 +36,7 @@ import Navigation from './Navigation/Navigation';
 import {canSendInvoice} from './PolicyUtils';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {
+    getSearchReportName,
     hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasViolations,
@@ -67,6 +77,7 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
+type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
 type SavedSearchMenuItem = MenuItemWithLink & {
@@ -128,6 +139,10 @@ function isTransactionEntry(key: string): key is TransactionKey {
 /**
  * @private
  */
+function isPolicyEntry(key: string): key is PolicyKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
+}
+
 function isViolationEntry(key: string): key is ViolationKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 }
@@ -378,11 +393,28 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  */
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
+
+    const transactions = Object.keys(data)
+        .filter(isTransactionEntry)
+        .map((key) => data[key]);
+
+    const reports = Object.keys(data)
+        .filter(isReportEntry)
+        .map((key) => data[key]);
+
+    const policies = Object.keys(data)
+        .filter(isPolicyEntry)
+        .map((key) => data[key]);
+
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
+                const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
+                const invoiceReceiverPolicy: SearchPolicy | undefined =
+                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (isDeletedAction(reportAction)) {
                     // eslint-disable-next-line no-continue
                     continue;
@@ -394,6 +426,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 reportActionItems.push({
                     ...reportAction,
                     from,
+                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,

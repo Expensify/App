@@ -185,7 +185,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     return (
         <>
             <Button
-                innerStyles={[styles.borderNone]}
+                innerStyles={[styles.typePopoverButtonStyle, styles.borderNone]}
                 icon={Expensicons.Bookmark}
                 onPress={openMenu}
             />

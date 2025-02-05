@@ -15,7 +15,6 @@ import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
-import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -209,7 +208,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
-                ...FontUtils.fontFamily.platform.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
@@ -1674,13 +1673,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
-        customEmoji: {
-            alignItems: 'center',
-            justifyContent: 'center',
-            verticalAlign: 'bottom',
-            ...(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -variables.iconSizeNormal / 4} : {}),
-        },
-
         sidebarFooterUsername: {
             color: theme.heading,
             fontSize: variables.fontSizeLabel,
@@ -2094,7 +2086,7 @@ const styles = (theme: ThemeColors) =>
         chatItemRight: {
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: 0,
+            flexBasis: 'auto',
             position: 'relative',
         },
 
@@ -2118,6 +2110,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: variables.fontSizeSmall,
             paddingTop: 2,
+        },
+
+        chatItemMessageHeaderPolicy: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
         },
 
         chatItemMessage: {
@@ -3062,8 +3059,6 @@ const styles = (theme: ThemeColors) =>
         sectionDividerLine: {
             height: 1,
             backgroundColor: theme.border,
-            ...spacing.mh5,
-            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -3720,6 +3715,10 @@ const styles = (theme: ThemeColors) =>
         narrowSearchHeaderStyle: {
             paddingTop: 1,
             flex: 1,
+        },
+
+        typePopoverButtonStyle: {
+            backgroundColor: theme.sidebarHover,
         },
 
         narrowSearchRouterInactiveStyle: {
