@@ -6,3 +6,8 @@ self-hosted-runner:
     - macos-15-xlarge
     - ubuntu-latest-reassure-tests
     - macos-12
+
+paths:
+  .github/workflows/**/*.{yml,yaml}:
+    ignore:
+      - '"env" is not allowed in "runs" section because "Validate actor" is a Composite action'
