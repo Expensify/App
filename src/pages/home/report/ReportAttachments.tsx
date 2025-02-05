@@ -16,6 +16,7 @@ type ReportAttachmentsProps = PlatformStackScreenProps<AuthScreensParamList, typ
 function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;
     const type = route.params.type;
+    const hashKey = route.params.hashKey;
     const accountID = route.params.accountID;
     const isAuthTokenRequired = route.params.isAuthTokenRequired;
     const attachmentLink = route.params.attachmentLink;
@@ -36,6 +37,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
                 attachment?.isAuthTokenRequired,
                 attachment?.file?.name,
                 attachment?.attachmentLink,
+                hashKey,
             );
             Navigation.navigate(routeToNavigate);
         },

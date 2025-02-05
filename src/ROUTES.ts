@@ -361,14 +361,18 @@ const ROUTES = {
             isAuthTokenRequired?: boolean,
             fileName?: string,
             attachmentLink?: string,
+            hashKey?: number,
         ) => {
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+            const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${type as string}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}&type=${
+                type as string
+            }${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {

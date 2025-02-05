@@ -397,7 +397,7 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
-    const {isOnSearch} = useSearchState();
+    const {isOnSearch, hashKey} = useSearchState();
     const onClose = () => {
         let transactionID;
         if (isMoneyRequestAction(action)) {
@@ -570,10 +570,10 @@ function PureReportActionItem({
 
     const attachmentContextValue = useMemo(() => {
         if (isOnSearch) {
-            return {type: CONST.ATTACHMENT_TYPE.SEARCH};
+            return {type: CONST.ATTACHMENT_TYPE.SEARCH, hashKey};
         }
         return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
-    }, [reportID, isOnSearch]);
+    }, [reportID, isOnSearch, hashKey]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID}), [reportID]);
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
