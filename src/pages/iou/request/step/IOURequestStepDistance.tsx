@@ -535,6 +535,7 @@ function IOURequestStepDistance({
                                 waypoints={waypoints}
                                 navigateToWaypointEditPage={navigateToWaypointEditPage}
                                 transaction={transaction}
+                                policy={policy}
                             />
                         }
                     />
