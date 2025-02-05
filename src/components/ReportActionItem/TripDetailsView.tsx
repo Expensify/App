@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -15,10 +16,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import * as ReportUtils from '@src/libs/ReportUtils';
-import * as TripReservationUtils from '@src/libs/TripReservationUtils';
+import type {ReservationData} from '@src/libs/TripReservationUtils';
+import {getReservationsFromTripTransactions, getTripReservationIcon} from '@src/libs/TripReservationUtils';
 import ROUTES from '@src/ROUTES';
 import type {Reservation, ReservationTimeDetails} from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
 
 type ReservationViewProps = {
     reservation: Reservation;
@@ -33,7 +35,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
+    const reservationIcon = getTripReservationIcon(reservation.type);
 
     const formatAirportInfo = (reservationTimeDetails: ReservationTimeDetails) => {
         const longName = reservationTimeDetails?.longName ? `${reservationTimeDetails?.longName} ` : '';
@@ -103,7 +105,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
                     numberOfLines={1}
                     style={[styles.textStrong, styles.lh20]}
                 >
-                    {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : reservation.start.longName}
+                    {reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '')}
                 </Text>
                 {!!bottomDescription && <Text style={[styles.textSmall, styles.colorMuted, styles.lh14]}>{bottomDescription}</Text>}
             </View>
@@ -140,14 +142,16 @@ type TripDetailsViewProps = {
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: boolean;
+
+    /** Trip transactions associated with the report */
+    tripTransactions: Transaction[];
 };
 
-function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule}: TripDetailsViewProps) {
+function TripDetailsView({tripRoomReportID, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const tripTransactions = ReportUtils.getTripTransactions(tripRoomReportID);
-    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(tripTransactions);
+    const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
 
     return (
         <View>

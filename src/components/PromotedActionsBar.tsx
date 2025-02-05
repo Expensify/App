@@ -3,14 +3,14 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
-import {checkIfActionIsAllowed} from '@libs/actions/Session';
 import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
 import {translateLocal} from '@libs/Localize';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
+import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -54,7 +54,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: Expensicons.ChatBubbles,
         text: translateLocal('common.join'),
-        onSelected: checkIfActionIsAllowed(() => {
+        onSelected: callFunctionIfActionIsAllowed(() => {
             Navigation.dismissModal();
             joinRoom(report);
         }),
