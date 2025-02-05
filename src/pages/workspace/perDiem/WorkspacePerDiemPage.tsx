@@ -174,7 +174,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                                 <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}>{value.subRateName}</Text>
                             </View>
                             <View style={styles.flex2}>
-                                <Text style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}>{convertAmountToDisplayString(value.rate, value.currency)}</Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}
+                                >
+                                    {convertAmountToDisplayString(value.rate, value.currency)}
+                                </Text>
                             </View>
                         </>
                     ),
