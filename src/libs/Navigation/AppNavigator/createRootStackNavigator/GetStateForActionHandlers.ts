@@ -25,6 +25,7 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
 ];
 
 const workspaceSplitsWithoutEnteringAnimation = new Set();
+const reportsSplitsWithEnteringAnimation = new Set();
 
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
@@ -152,7 +153,22 @@ function handlePushReportAction(
         },
     };
 
-    return stackRouter.getStateForAction(state, modifiedAction, configOptions);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, modifiedAction, configOptions);
+
+    if (!stateWithReportsSplitNavigator) {
+        Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
+        return null;
+    }
+
+    const lastFullScreenRoute = stateWithReportsSplitNavigator.routes.at(-1);
+    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
+
+    // ReportScreen should always be opened with an animation
+    if (actionPayloadScreen === SCREENS.REPORT && lastFullScreenRoute?.key) {
+        reportsSplitsWithEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+
+    return stateWithReportsSplitNavigator;
 }
 
 /**
@@ -240,4 +256,5 @@ export {
     handleSwitchPolicyID,
     handleNavigatingToModalFromModal,
     workspaceSplitsWithoutEnteringAnimation,
+    reportsSplitsWithEnteringAnimation,
 };
