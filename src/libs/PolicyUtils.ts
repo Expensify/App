@@ -417,7 +417,10 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
+    if (isPerDiemRequest) {
+        return false;
+    }
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
@@ -669,6 +672,14 @@ function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
+}
+
+/**
+ *
+ * Checks whether the current user has a policy with Xero accounting software integration
+ */
+function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
+    return getActiveAdminWorkspaces(allPolicies, currentUserLogin)?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]);
 }
 
 /** Whether the user can send invoice from the workspace */
@@ -1063,9 +1074,9 @@ function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
     return cleanedCustomUnit;
 }
 
-function navigateWhenEnableFeature(policyID: string) {
+function goBackWhenEnableFeature(policyID: string) {
     setTimeout(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
@@ -1114,7 +1125,7 @@ function getWorkspaceAccountID(policyID?: string) {
     return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
-function hasVBBA(policyID: string) {
+function hasVBBA(policyID: string | undefined) {
     const policy = getPolicy(policyID);
     return !!policy?.achAccount?.bankAccountID;
 }
@@ -1364,6 +1375,7 @@ export {
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,
+    hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
@@ -1386,7 +1398,7 @@ export {
     getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
-    navigateWhenEnableFeature,
+    goBackWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
