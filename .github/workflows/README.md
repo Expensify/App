@@ -80,14 +80,6 @@ git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fet
 
 ## Secrets
 The GitHub workflows require a large list of secrets to deploy, notify and test the code:
-1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
-   1. `android/app/my-upload-key.keystore.gpg`
-   1. `android/app/android-fastlane-json-key.json.gpg`
-   1. `ios/NewApp_AdHoc.mobileprovision`
-   1. `ios/NewApp_AdHoc_Notification_Service.mobileprovision`
-   1. `ios/NewApp_AppStore.mobileprovision.gpg`
-   1. `ios/NewApp_AppStore_Notification_Service.mobileprovision.gpg`
-   1. `ios/Certificates.p12.gpg`
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
 1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
 1. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
