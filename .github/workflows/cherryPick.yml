@@ -108,7 +108,7 @@ jobs:
         id: createPullRequest
         run: |
           # Download the author checklist
-          AUTHOR_CHECKLIST=$(curl -sL https://raw.githubusercontent.com/Expensify/App/refs/heads/main/.github/PULL_REQUEST_TEMPLATE.md | sed -n '/### PR Author Checklist/,$p')
+          AUTHOR_CHECKLIST=$(sed -n '/### PR Author Checklist/,$p' .github/PULL_REQUEST_TEMPLATE.md)
 
           PR_DESCRIPTION=$(cat <<EOF
           🍒 Cherry pick https://github.com/Expensify/App/pull/56382 to staging 🍒
