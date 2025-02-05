@@ -11,7 +11,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
-import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
+import {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import originalCloseRHPFlow from './closeRHPFlow';
@@ -428,13 +428,6 @@ function getTopMostCentralPaneRouteFromRootState() {
     return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
-function getReportRouteByID(reportID?: string) {
-    if (!reportID) {
-        return null;
-    }
-    return navigationRef.getRootState().routes.find((r) => r.name === SCREENS.REPORT && !!r.params && 'reportID' in r.params && r.params.reportID === reportID);
-}
-
 function removeScreenFromNavigationState(screen: Screen) {
     isNavigationReady().then(() => {
         navigationRef.dispatch((state) => {
@@ -445,19 +438,6 @@ function removeScreenFromNavigationState(screen: Screen) {
                 routes,
                 index: routes.length < state.routes.length ? state.index - 1 : state.index,
             });
-        });
-    });
-}
-
-function removeScreenFromNavigationStateByKey(key: string) {
-    const state = navigationRef.getRootState();
-    const routes = state.routes.filter((item) => item.key !== key);
-
-    navigationRef.current?.dispatch(() => {
-        return CommonActions.reset({
-            ...state,
-            routes,
-            index: routes.length < state.routes.length ? state.index - 1 : state.index,
         });
     });
 }
@@ -487,8 +467,6 @@ export default {
     setNavigationActionToMicrotaskQueue,
     getTopMostCentralPaneRouteFromRootState,
     removeScreenFromNavigationState,
-    getReportRouteByID,
-    removeScreenFromNavigationStateByKey,
 };
 
 export {navigationRef};
