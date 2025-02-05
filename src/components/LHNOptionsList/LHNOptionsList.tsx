@@ -242,9 +242,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const onLayout = useCallback(() => {
+        // eslint-disable-next-line no-console
+        console.group('[dev] LHNOptionsList onLayout');
         const offset = getScrollOffset(route);
+        console.debug('[dev] offset', offset);
 
         if (!(offset && flashListRef.current)) {
+            console.debug('[dev] return');
+            // eslint-disable-next-line no-console
+            console.groupEnd();
             return;
         }
 
@@ -253,7 +259,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (!(offset && flashListRef.current)) {
                 return;
             }
-            flashListRef.current.scrollToOffset({offset});
+            console.debug('[dev] scrollToOffset');
+            // eslint-disable-next-line no-console
+            console.groupEnd();
+            flashListRef.current.scrollToOffset({offset, animated: false});
         });
     }, [route, flashListRef, getScrollOffset]);
 
