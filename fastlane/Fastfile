@@ -365,7 +365,7 @@ platform :ios do
         provisioningProfiles: {
           "com.chat.expensify.chat" => "(NewApp) AppStore",
           "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
-          "com.expensify.chat.adhoc.ShareViewController" => "(NewApp) AdHoc: Share Extension"
+          "com.expensify.chat.adhoc.ShareViewController" => "(NewApp) AppStore: Share Extension"
         },
         manageAppVersionAndBuildNumber: false
       }
