@@ -24,7 +24,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */

@@ -70,7 +70,7 @@ import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -460,7 +460,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
                             Navigation.resetToHome();
-                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
+                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo));
                         } else {
                             Navigation.dismissModal();
                         }

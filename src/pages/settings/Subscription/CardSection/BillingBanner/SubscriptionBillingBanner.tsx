@@ -2,7 +2,7 @@ import React from 'react';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import BillingBanner from './BillingBanner';
 import type {BillingBannerProps} from './BillingBanner';
 
