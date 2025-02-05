@@ -134,12 +134,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         if (!approverAccountID) {
             return translate('workspace.people.removeMembersPrompt', {
                 count: selectedEmployees.length,
-                memberName: formatPhone(getPersonalDetailsByIDs(selectedEmployees, currentUserAccountID).at(0)?.displayName ?? ''),
+                memberName: formatPhone(getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? ''),
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant(approverAccountID),
-            ownerName: getDisplayNameForParticipant(policy?.ownerAccountID),
+            memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
+            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
         });
     }, [selectedEmployees, translate, policy, currentUserAccountID]);
     /**
