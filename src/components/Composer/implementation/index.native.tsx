@@ -8,16 +8,13 @@ import type {FileObject} from '@components/AttachmentModal';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
-import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -30,7 +27,6 @@ function Composer(
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
-        autoFocus = false,
         style,
         // On native layers we like to have the Text Input not focused so the
         // user can read new chats without the keyboard in the way of the view.
@@ -44,7 +40,6 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const {isFocused, shouldResetFocusRef} = useResetComposerFocus(textInput);
     const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -53,16 +48,8 @@ function Composer(
 
     const [contextMenuHidden, setContextMenuHidden] = useState(true);
 
-    const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
     const keyboardState = useKeyboardState();
     const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
-
-    useEffect(() => {
-        if (autoFocus === !!autoFocusInputRef.current) {
-            return;
-        }
-        inputCallbackRef(autoFocus ? textInput.current : null);
-    }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
 
     useEffect(() => {
         if (!showSoftInputOnFocus || !isKeyboardShown) {
@@ -99,10 +86,6 @@ function Composer(
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
-        }
-
-        if (autoFocus) {
-            inputCallbackRef(el);
         }
 
         // This callback prop is used by the parent component using the constructor to
@@ -154,22 +137,10 @@ function Composer(
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
-            // /*
-            // There are cases in hybird app on android that screen goes up when there is autofocus on keyboard. (e.g. https://github.com/Expensify/App/issues/53185)
-            // Workaround for this issue is to maunally focus keyboard after it's acutally rendered which is done by useAutoFocusInput hook.
-            // */
-            autoFocus={getPlatform() !== 'android' ? autoFocus : false}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
             onPaste={pasteFile}
-            onBlur={(e) => {
-                if (!isFocused) {
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    shouldResetFocusRef.current = true; // detect the input is blurred when the page is hidden
-                }
-                props?.onBlur?.(e);
-            }}
             onClear={onClear}
             showSoftInputOnFocus={showSoftInputOnFocus}
             contextMenuHidden={contextMenuHidden}

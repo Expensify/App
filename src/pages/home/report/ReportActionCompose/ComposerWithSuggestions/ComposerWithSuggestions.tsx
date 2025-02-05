@@ -185,6 +185,10 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+// prevent auto focus on existing chat for mobile device
+const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -266,7 +270,7 @@ function ComposerWithSuggestions(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const shouldAutoFocus = !modal?.isVisible && shouldShowComposeInput && Modal.areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = shouldFocusInputOnScreenFocus && !modal?.isVisible && shouldShowComposeInput && Modal.areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
