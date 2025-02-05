@@ -4157,7 +4157,7 @@ type AddTrackedExpenseToPolicyParam = {
     merchant: string;
     transactionID: string;
     reimbursable: boolean;
-    actionableWhisperReportActionID: string;
+    actionableWhisperReportActionID: string | undefined;
     moneyRequestReportID: string;
     reportPreviewReportActionID: string;
     modifiedExpenseReportActionID: string;
@@ -4174,7 +4174,7 @@ function convertTrackedExpenseToRequest(
     payerEmail: string,
     chatReportID: string,
     transactionID: string,
-    actionableWhisperReportActionID: string,
+    actionableWhisperReportActionID: string | undefined,
     createdChatReportActionID: string | undefined,
     moneyRequestReportID: string,
     moneyRequestCreatedReportActionID: string | undefined,
@@ -4427,7 +4427,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
-            if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
                 return;
             }
             const workspaceParams =
