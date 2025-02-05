@@ -125,8 +125,9 @@ function VerifiedBankAccountFlowEntryPoint({
             return;
         }
 
-        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
         removeExistingBankAccountDetails();
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+        setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
         openPlaidView();
     };
 
@@ -144,6 +145,8 @@ function VerifiedBankAccountFlowEntryPoint({
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
         setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     };
+
+    console.log(account);
 
     return (
         <ScreenWrapper

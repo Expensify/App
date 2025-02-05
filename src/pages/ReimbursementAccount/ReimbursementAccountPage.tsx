@@ -113,19 +113,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         return !!achData?.bankAccountID && !!achData?.created;
     }, [achData?.bankAccountID, achData?.created]);
 
-    /**
-     * Calculates the state used to show the "Continue with setup" view.
-     * for non USD workspace we check if first big step was passed
-     * for USD workspace, if a bank account setup is already in progress and no specific further step was passed in the url
-     * we'll show the workspace bank account reset modal if the user wishes to start over
-     */
+    /** Calculates the state used to show the "Continue with setup" view. */
     const getShouldShowContinueSetupButtonValue = useCallback(() => {
         if (hasForeignCurrency) {
-            return hasInProgressNonUSDVBBA() && nonUSDBankAccountStep === CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY;
+            return hasInProgressNonUSDVBBA();
         }
 
         return hasInProgressVBBA();
-    }, [hasForeignCurrency, hasInProgressNonUSDVBBA, hasInProgressVBBA, nonUSDBankAccountStep]);
+    }, [hasForeignCurrency, hasInProgressNonUSDVBBA, hasInProgressVBBA]);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
@@ -136,6 +131,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
      */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(reimbursementAccount !== CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA && isPreviousPolicy);
     const [shouldShowContinueSetupButton, setShouldShowContinueSetupButton] = useState<boolean>(() => getShouldShowContinueSetupButtonValue());
+    const [shouldShowConnectedVerifiedBankAccount, setShouldShowConnectedVerifiedBankAccount] = useState<boolean>(false);
 
     /**
      * Retrieve verified business bank account currently being set up.
@@ -177,8 +173,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
+        // TODO double check condition for non USD accounts - will be done in https://github.com/Expensify/App/issues/50912
+        setShouldShowConnectedVerifiedBankAccount(hasForeignCurrency ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
-    }, [achData?.currentStep, getShouldShowContinueSetupButtonValue, isPreviousPolicy]);
+    }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, getShouldShowContinueSetupButtonValue, hasForeignCurrency, isPreviousPolicy]);
 
     useEffect(
         () => {
@@ -389,6 +387,17 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
+    if (shouldShowConnectedVerifiedBankAccount) {
+        return (
+            <ConnectedVerifiedBankAccount
+                reimbursementAccount={reimbursementAccount}
+                setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
+                setUSDBankAccountStep={setUSDBankAccountStep}
+                onBackButtonPress={goBack}
+            />
+        );
+    }
+
     if (hasForeignCurrency && nonUSDBankAccountStep !== null) {
         return (
             <NonUSDVerifiedBankAccountFlow
@@ -411,20 +420,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     }
 
-    if (achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
-        return (
-            <ConnectedVerifiedBankAccount
-                reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={goBack}
-            />
-        );
-    }
-
     return (
         <VerifiedBankAccountFlowEntryPoint
             reimbursementAccount={reimbursementAccount}
             onContinuePress={hasForeignCurrency ? continueNonUSDVBBASetup : continueUSDVBBASetup}
             policyName={policyName}
+            isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+            toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
             onBackButtonPress={Navigation.goBack}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
             hasForeignCurrency={hasForeignCurrency}

@@ -24,9 +24,15 @@ type ConnectedVerifiedBankAccountProps = {
 
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress: () => void;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setUSDBankAccountStep: (step: string | null) => void;
 };
 
-function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress}: ConnectedVerifiedBankAccountProps) {
+function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -86,7 +92,13 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress}:
                     </OfflineWithFeedback>
                 </Section>
             </ScrollView>
-            {shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
+            {shouldShowResetModal && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={reimbursementAccount}
+                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
+                />
+            )}
         </ScreenWrapper>
     );
 }

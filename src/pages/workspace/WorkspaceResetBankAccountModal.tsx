@@ -13,9 +13,15 @@ import type * as OnyxTypes from '@src/types/onyx';
 type WorkspaceResetBankAccountModalProps = {
     /** Reimbursement account data */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setUSDBankAccountStep?: (step: string | null) => void;
 };
 
-function WorkspaceResetBankAccountModal({reimbursementAccount}: WorkspaceResetBankAccountModalProps) {
+function WorkspaceResetBankAccountModal({reimbursementAccount, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -23,6 +29,18 @@ function WorkspaceResetBankAccountModal({reimbursementAccount}: WorkspaceResetBa
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
+
+    const handleConfirm = () => {
+        resetFreePlanBankAccount(bankAccountID, session, achData?.policyID);
+
+        if (setShouldShowConnectedVerifiedBankAccount) {
+            setShouldShowConnectedVerifiedBankAccount(false);
+        }
+
+        if (setUSDBankAccountStep) {
+            setUSDBankAccountStep(null);
+        }
+    };
 
     return (
         <ConfirmModal
@@ -42,7 +60,7 @@ function WorkspaceResetBankAccountModal({reimbursementAccount}: WorkspaceResetBa
             }
             danger
             onCancel={cancelResetFreePlanBankAccount}
-            onConfirm={() => resetFreePlanBankAccount(bankAccountID, session, achData?.policyID)}
+            onConfirm={handleConfirm}
             shouldShowCancelButton
             isVisible
         />
