@@ -11,7 +11,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
-import {getCorrectedAutoReportingFrequency, getReimburserAccountID, hasVBBA} from './PolicyUtils';
+import {getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
 
 let currentUserAccountID = -1;
