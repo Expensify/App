@@ -53,11 +53,13 @@ jobs:
         uses: 1password/install-cli-action@v1
 
       - name: Load files from 1Password
+        working-directory: android/app
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./upload-key.keystore upload-key.keystore 
-          op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
+          op read "op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+          op read "op://Mobile-Deploy-CI/New Expensify my-upload-key.keystore/my-upload-key.keystore" --force --out-file ./my-upload-key.keystore
+          
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android 
 
@@ -104,9 +106,14 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'false'
 
-      - name: Decrypt keystore to sign the APK/AAB
-        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output my-upload-key.keystore my-upload-key.keystore.gpg
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
         working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: op read "op://Mobile-Deploy-CI/New Expensify my-upload-key.keystore/my-upload-key.keystore" --force --out-file ./my-upload-key.keystore
 
       - name: Build Android Release
         working-directory: android

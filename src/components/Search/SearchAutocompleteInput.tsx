@@ -1,5 +1,5 @@
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useState} from 'react';
+import React, {forwardRef, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,6 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parseFSAttributes} from '@libs/Fullstory';
 import {parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import handleKeyPress from '@libs/SearchInputOnKeyPress';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
@@ -97,12 +98,16 @@ function SearchAutocompleteInput(
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
+
     return (
         <View style={[outerWrapperStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
                 <View
                     style={styles.flex1}
-                    fsClass="fs-unmask"
+                    fsClass={CONST.FULL_STORY.UNMASK}
+                    testID={CONST.FULL_STORY.UNMASK}
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"
