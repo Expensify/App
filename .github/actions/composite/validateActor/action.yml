@@ -8,12 +8,16 @@ inputs:
     required: false
     default: true
 
+env:
+  GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
 runs:
   using: composite
   steps:
     - name: Get user permissions
       if: ${{ !fromJSON(inputs.REQUIRE_APP_DEPLOYER) }}
       id: getUserPermissions
+      shell: bash
       run: |
         PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')
         if [[ "$PERMISSION" == 'write' || "$PERMISSION" == 'admin' ]]; then
@@ -22,12 +26,11 @@ runs:
           echo "::error::❌ Actor ${{ github.actor }} does not have write permission"
           exit 1
         fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
     - name: Check if user is deployer
       id: isUserDeployer
       if: fromJSON(inputs.REQUIRE_APP_DEPLOYER)
+      shell: bash
       run: |
         if [[ "${{ github.actor }}" == "OSBotify" || "${{ github.actor }}" == "os-botify[bot]" ]] || \
             gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
@@ -36,5 +39,3 @@ runs:
           echo "::error::❌ Actor ${{ github.actor }} is not an app deployer"
           exit 1
         fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
