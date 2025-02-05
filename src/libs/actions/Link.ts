@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import {isAnonymousUser, canAnonymousUserAccessRoute, signOutAndRedirectToSignIn} from './Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
 
 let isNetworkOffline = false;
 Onyx.connect({
