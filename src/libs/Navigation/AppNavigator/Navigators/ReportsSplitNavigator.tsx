@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useState} from 'react';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import usePermissions from '@hooks/usePermissions';
@@ -7,9 +6,11 @@ import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
-import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {AuthScreensParamList, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
@@ -18,10 +19,9 @@ const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sideb
 
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
-function ReportsSplitNavigator() {
+function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const route = useRoute();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
     const [initialReportID] = useState(() => {
