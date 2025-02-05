@@ -4626,7 +4626,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
 /**
  * Go back to the details page of a given report
  */
-function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
+function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldGoBackToDetailsPage = false) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
@@ -4636,7 +4636,11 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     }
 
     if (report?.reportID) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
+        if (shouldGoBackToDetailsPage) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+        } else {
+            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
+        }
     } else {
         Log.warn('Missing reportID during navigation back to the details page');
     }
