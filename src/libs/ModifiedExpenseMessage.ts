@@ -138,7 +138,7 @@ function getForDistanceRequest(newMerchant: string, oldMerchant: string, newAmou
 
 function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
-    const rootParentReport = getRootParentReport(destinationReport);
+    const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
         return translateLocal('iou.movedToSelfDM');
@@ -146,8 +146,8 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
     // - A 1:1 DM
-    const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName(rootParentReport) : buildReportNameFromParticipantNames({report: rootParentReport});
-    const policyName = getPolicyName(rootParentReport, true);
+    const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName({report: rootParentReport}) : buildReportNameFromParticipantNames({report: rootParentReport});
+    const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {
         return translateLocal('iou.changedTheExpense');
@@ -164,12 +164,25 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportOrID: string | SearchReport | undefined, reportAction: OnyxEntry<ReportAction>): string {
+function getForReportAction({
+    reportOrID,
+    reportAction,
+    searchReports,
+}: {
+    reportOrID: string | SearchReport | undefined;
+    reportAction: OnyxEntry<ReportAction>;
+    searchReports?: SearchReport[];
+}): string {
     if (!isModifiedExpenseAction(reportAction)) {
         return '';
     }
     const reportActionOriginalMessage = getOriginalMessage(reportAction);
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+    let report: SearchReport | undefined | OnyxEntry<Report>;
+    if (typeof reportOrID === 'string') {
+        report = searchReports ? searchReports.find((r) => r.reportID === reportOrID) : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    } else {
+        report = reportOrID;
+    }
 
     if (reportActionOriginalMessage?.movedToReportID) {
         return getForExpenseMovedFromSelfDM(reportActionOriginalMessage.movedToReportID);
