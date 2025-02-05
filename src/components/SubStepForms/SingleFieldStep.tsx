@@ -73,6 +73,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            enabledWhenOffline
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>
