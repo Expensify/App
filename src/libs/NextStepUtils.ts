@@ -94,7 +94,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber;
-    const hasBankAccount = hasVBBA(policyID);
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -117,10 +116,10 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 text: ' to ',
             },
             {
-                text: !hasBankAccount ? 'pay' : 'finish setting up',
+                text: 'pay',
             },
             {
-                text: !hasBankAccount ? ' %expenses.' : ' a business bank account.',
+                text: ' %expenses.',
             },
         ],
     };
@@ -249,7 +248,16 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+            if (
+                isInvoiceReport(report) ||
+                isPayer(
+                    {
+                        accountID: currentUserAccountID,
+                        email: currentUserEmail,
+                    },
+                    report,
+                )
+            ) {
                 optimisticNextStep = nextStepPayExpense;
                 break;
             }
