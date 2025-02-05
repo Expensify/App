@@ -32,6 +32,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
 
     const parentReportAction = ReportActionUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const canDeletedReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
     const isEReceipt = transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction);
     const isTrackExpenseAction = ReportActionUtils.isTrackExpenseAction(parentReportAction);
 
@@ -71,6 +72,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             report={report}
             isReceiptAttachment
             canEditReceipt={canEditReceipt && !readonly}
+            canDeleteReceipt={canDeletedReceipt && !readonly}
             allowDownload={!isEReceipt}
             isTrackExpenseAction={isTrackExpenseAction}
             originalFileName={receiptURIs?.filename}

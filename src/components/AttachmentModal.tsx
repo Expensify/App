@@ -133,6 +133,8 @@ type AttachmentModalProps = {
 
     canEditReceipt?: boolean;
 
+    canDeleteReceipt?: boolean;
+
     shouldDisableSendButton?: boolean;
 
     attachmentLink?: string;
@@ -157,6 +159,7 @@ function AttachmentModal({
     children,
     fallbackSource,
     canEditReceipt = false,
+    canDeleteReceipt = false,
     onModalClose = () => {},
     isLoading = false,
     shouldShowNotFoundPage = false,
@@ -447,7 +450,7 @@ function AttachmentModal({
         }
 
         const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canEditReceipt && !hasMissingSmartscanFields(transaction)) {
+        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDeleteReceipt && !hasMissingSmartscanFields(transaction)) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
