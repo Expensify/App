@@ -1788,7 +1788,7 @@ function buildOnyxDataForInvoice(
         policyTagList ?? {},
         policyCategories ?? {},
         hasDependentTags(policy, policyTagList ?? {}),
-        false,
+        true,
     );
 
     if (violationsOnyxData) {
