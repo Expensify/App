@@ -1,4 +1,4 @@
-import {addDays, differenceInDays, differenceInMinutes, format, startOfDay} from 'date-fns';
+import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -258,6 +258,16 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
     const startDate = new Date(customUnitRateDate.start);
     const endDate = new Date(customUnitRateDate.end);
+
+    if (isSameDay(startDate, endDate)) {
+        const hourDiff = differenceInMinutes(endDate, startDate) / 60;
+        return {
+            firstDay: hourDiff,
+            tripDays: 0,
+            lastDay: undefined,
+        };
+    }
+
     const firstDayDiff = differenceInMinutes(startOfDay(addDays(startDate, 1)), startDate);
     const tripDaysDiff = differenceInDays(startOfDay(endDate), startOfDay(addDays(startDate, 1)));
     const lastDayDiff = differenceInMinutes(endDate, startOfDay(endDate));
