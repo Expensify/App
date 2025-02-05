@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
-import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
@@ -419,14 +418,14 @@ describe('getViolations', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
         };
 
-        const transactionViolationsCollection: TransactionViolationsCollectionDataSet = {
+        const transactionViolationsCollection = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
         };
 
-        await Onyx.multiSet({...transactionCollectionDataSet, ...transactionViolationsCollection});
+        await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction.transactionID);
+        const filteredViolations = getTransactionViolations(transaction.transactionID, transactionViolationsCollection);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
