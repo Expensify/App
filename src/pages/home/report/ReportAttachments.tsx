@@ -41,7 +41,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             );
             Navigation.navigate(routeToNavigate);
         },
-        [reportID, type, accountID],
+        [reportID, type, accountID, hashKey],
     );
 
     return (
