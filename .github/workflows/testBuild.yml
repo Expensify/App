@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       REF: ${{ github.event.pull_request.head.sha || steps.getHeadRef.outputs.REF }}
+      READY_TO_BUILD: ${{ steps.readyToBuild.outputs.READY_TO_BUILD }}
     steps:
       - name: Checkout
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -29,12 +30,15 @@ jobs:
           REQUIRE_APP_DEPLOYER: false
 
       - name: Check if PR has Ready to Build label
+        id: readyToBuild
         run: |
           LABELS=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --repo Expensify/App --json labels --jq '.labels[].name')
           if echo "$LABELS" | grep -q 'Ready To Build'; then
             echo "::notice::✅ PR ${{ env.PULL_REQUEST_NUMBER }} has 'Ready to Build' label"
+            echo "READY_TO_BUILD=true" >> "$GITHUB_OUTPUT"
           else
             echo "::error::❌ PR ${{ env.PULL_REQUEST_NUMBER }} does not have 'Ready to Build' label"
+            echo "READY_TO_BUILD=false" >> "$GITHUB_OUTPUT"
             exit 1
           fi
 
@@ -285,7 +289,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
     needs: [prep, uploadAndroid, iOS, desktop, web]
-    if: ${{ always() }}
+    if: ${{ always() && needs.prep.outputs.READY_TO_BUILD == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
