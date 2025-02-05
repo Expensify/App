@@ -186,7 +186,7 @@ const debouncedBroadcastUserIsTyping = lodashDebounce(
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
+// prevent auto focus for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 /**
