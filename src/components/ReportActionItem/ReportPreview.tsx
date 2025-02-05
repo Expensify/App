@@ -21,6 +21,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -71,7 +72,6 @@ import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
-    getTransactionViolations,
     hasPendingUI,
     isCardTransaction,
     isPartialMerchant,
@@ -147,6 +147,7 @@ function ReportPreview({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, iouReportID),
     });
+    const lastTransaction = transactions?.at(0);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [invoiceReceiverPolicy] = useOnyx(
@@ -235,11 +236,11 @@ function ReportPreview({
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
         hasActionsWithErrors(iouReportID);
     const lastThreeTransactions = transactions?.slice(-3) ?? [];
-    const lastTransaction = transactions?.at(0);
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
-    const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, getTransactionViolations(lastTransaction?.transactionID, allTransactionViolations));
-    const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy);
+    const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
+    const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
+    const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy, allTransactionViolations);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
     const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
 

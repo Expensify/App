@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import Debug from '@libs/actions/Debug';
 import DebugUtils from '@libs/DebugUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -13,7 +13,6 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getTransactionViolations} from '@libs/TransactionUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -30,9 +29,9 @@ function DebugTransactionViolationPage({
     },
 }: DebugTransactionViolationPageProps) {
     const {translate} = useLocalize();
-    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`);
-    const transactionViolations = getTransactionViolations(transactionID, allTransactionViolations);
+    const transactionViolations = useTransactionViolations(transactionID);
     const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
+
     const styles = useThemeStyles();
 
     const saveChanges = useCallback(

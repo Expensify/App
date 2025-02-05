@@ -402,8 +402,8 @@ describe('getViolations', () => {
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction.transactionID, smartScanFailedViolation);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction.transactionID, duplicatedTransactionViolation);
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();

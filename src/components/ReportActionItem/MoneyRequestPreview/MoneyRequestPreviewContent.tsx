@@ -23,6 +23,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -48,7 +49,6 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     compareDuplicateTransactionFields,
-    getTransactionViolations,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation as hasNoticeTypeViolationTransactionUtils,
     hasPendingUI,
@@ -113,7 +113,8 @@ function MoneyRequestPreviewContent({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const transactionViolations = getTransactionViolations(transaction?.transactionID, allViolations);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
@@ -281,7 +282,7 @@ function MoneyRequestPreviewContent({
         if (isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
-        if (shouldShowBrokenConnectionViolation(transaction ? [transaction.transactionID] : [], iouReport, policy)) {
+        if (shouldShowBrokenConnectionViolation(transaction ? [transaction.transactionID] : [], iouReport, policy, allTransactionViolations)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         if (hasPendingUI(transaction, transactionViolations)) {

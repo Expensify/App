@@ -766,11 +766,12 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): 
 /**
  * Get all transaction violations of the transaction with given tranactionID.
  */
-function getTransactionViolations(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): TransactionViolations | null {
+function getTransactionViolations(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): TransactionViolations | undefined {
+    const transaction = getTransaction(transactionID);
     if (!transactionID || !transactionViolations) {
-        return null;
+        return undefined;
     }
-    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((violation) => !isViolationDismissed(transactionID, violation)) ?? null;
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.filter((violation) => !isViolationDismissed(transaction, violation));
 }
 
 /**
@@ -789,8 +790,8 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
 /**
  * Check if there is broken connection violation.
  */
-function hasBrokenConnectionViolation(transactionID?: string, allViolations?: OnyxCollection<TransactionViolations>): boolean {
-    const violations = getTransactionViolations(transactionID, allViolations ?? allTransactionViolations);
+function hasBrokenConnectionViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+    const violations = getTransactionViolations(transactionID, transactionViolations);
     return !!violations?.find(
         (violation) =>
             violation.name === CONST.VIOLATIONS.RTER &&
@@ -805,9 +806,9 @@ function shouldShowBrokenConnectionViolation(
     transactionIDList: string[] | undefined,
     report: OnyxEntry<Report> | SearchReport,
     policy: OnyxEntry<Policy> | SearchPolicy,
-    allViolations?: OnyxCollection<TransactionViolations>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
 ): boolean {
-    const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID, allViolations)) ?? [];
+    const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID, transactionViolations)) ?? [];
     return (
         transactionsWithBrokenConnectionViolation.length > 0 &&
         transactionsWithBrokenConnectionViolation?.some((value) => value === true) &&
@@ -818,10 +819,10 @@ function shouldShowBrokenConnectionViolation(
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
-function allHavePendingRTERViolation(transactionIds: string[], allViolations?: OnyxCollection<TransactionViolations>): boolean {
+function allHavePendingRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
-        const transactionViolations = getTransactionViolations(transactionId, allViolations ?? allTransactionViolations);
-        return hasPendingRTERViolation(transactionViolations);
+        const filteredTransactionViolations = getTransactionViolations(transactionId, transactionViolations);
+        return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
@@ -911,7 +912,8 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
 function isDuplicate(transactionID: string | undefined, checkDismissed = false): boolean {
-    if (!transactionID) {
+    const transaction = getTransaction(transactionID);
+    if (!transaction) {
         return false;
     }
     const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.find(
@@ -923,7 +925,7 @@ function isDuplicate(transactionID: string | undefined, checkDismissed = false):
         return !!duplicateViolation;
     }
 
-    const didDismissedViolation = isViolationDismissed(transactionID, duplicateViolation);
+    const didDismissedViolation = isViolationDismissed(transaction, duplicateViolation);
 
     return hasDuplicatedViolation && !didDismissedViolation;
 }
@@ -953,21 +955,21 @@ function isOnHoldByTransactionID(transactionID: string | undefined | null): bool
 /**
  * Checks if a violation is dismissed for the given transaction
  */
-function isViolationDismissed(transactionID: string | undefined, violation: TransactionViolation | undefined): boolean {
-    if (!transactionID || !violation) {
+function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: TransactionViolation | undefined): boolean {
+    if (!transaction || !violation) {
         return false;
     }
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail] === `${currentUserAccountID}`;
+    return transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail] === `${currentUserAccountID}`;
 }
 
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
-    if (!transactionID) {
+    const transaction = getTransaction(transactionID);
+    if (!transaction) {
         return false;
     }
-    const transaction = getTransaction(transactionID);
     if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
         return false;
     }
@@ -975,7 +977,7 @@ function hasViolation(transactionID: string | undefined, transactionViolations: 
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transactionID, violation),
+            !isViolationDismissed(transaction, violation),
     );
 }
 
@@ -983,10 +985,10 @@ function hasViolation(transactionID: string | undefined, transactionViolations: 
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
-    if (!transactionID) {
+    const transaction = getTransaction(transactionID);
+    if (!transaction) {
         return false;
     }
-    const transaction = getTransaction(transactionID);
     if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
         return false;
     }
@@ -994,7 +996,7 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transactionID, violation),
+            !isViolationDismissed(transaction, violation),
     );
 }
 
@@ -1015,7 +1017,7 @@ function hasWarningTypeViolation(transactionID: string | undefined, transactionV
             (violation: TransactionViolation) =>
                 violation.type === CONST.VIOLATION_TYPES.WARNING &&
                 (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-                !isViolationDismissed(transactionID, violation),
+                !isViolationDismissed(transaction, violation),
         ) ?? [];
 
     const hasOnlyDupeDetectionViolation = warningTypeViolations?.every((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);

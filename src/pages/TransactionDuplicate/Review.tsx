@@ -10,13 +10,14 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
-import {getTransaction, getTransactionViolations} from '@libs/TransactionUtils';
+import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -28,10 +29,9 @@ function TransactionDuplicateReview() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`);
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = getLinkedTransactionID(reportAction, report?.reportID) ?? undefined;
-    const transactionViolations = getTransactionViolations(transactionID, allTransactionViolations);
+    const transactionViolations = useTransactionViolations(transactionID);
 
     const duplicateTransactionIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],

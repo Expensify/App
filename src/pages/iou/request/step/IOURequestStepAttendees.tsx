@@ -4,9 +4,10 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAttendees, getTransactionViolations} from '@libs/TransactionUtils';
+import {getAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,8 +44,7 @@ function IOURequestStepAttendees({
     const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
-    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`);
-    const violations = getTransactionViolations(transactionID, allTransactionViolations);
+    const transactionViolations = useTransactionViolations(transactionID);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -53,12 +53,12 @@ function IOURequestStepAttendees({
         if (!lodashIsEqual(previousAttendees, attendees)) {
             setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
-                updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, violations ?? undefined);
+                updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined);
             }
         }
 
         Navigation.goBack(backTo);
-    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, violations]);
+    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
