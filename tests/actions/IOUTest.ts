@@ -77,18 +77,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
-    removeScreenByKey: jest.fn(),
-    isNavigationReady: jest.fn(() => Promise.resolve()),
-    getPreviousTrackReport: jest.fn(),
 }));
-
-jest.mock('@src/libs/Navigation/navigationRef', () => ({
-    getRootState: () => ({
-        routes: [],
-    }),
-}));
-
-jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -99,7 +88,6 @@ jest.mock('@src/libs/actions/Report', () => {
         notifyNewAction: jest.fn(),
     };
 });
-
 jest.mock('@src/libs/Navigation/isSearchTopmostCentralPane', () => jest.fn());
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
@@ -1743,6 +1731,49 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+
+        it('should update split chat report lastVisibleActionCreated to the report preview action', async () => {
+            // Given a workspace chat with no expenses
+            const workspaceReportID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
+
+            // When the user split bill on the workspace
+            splitBill({
+                participants: [{reportID: workspaceReportID}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: workspaceReportID,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the workspace chat lastVisibleActionCreated should be updated to the report preview action created
+            const reportPreviewAction = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(Object.values(reportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
+                    },
+                });
+            });
+
+            await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
+                        resolve(report);
+                    },
+                });
+            });
         });
     });
 
