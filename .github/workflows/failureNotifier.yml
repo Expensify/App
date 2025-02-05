@@ -25,7 +25,8 @@ jobs:
               repo: context.repo.repo,
               run_id: runId,
             });
-            return jobsData.data;
+            const jobNamesToIgnore = ['confirmPassingBuild'];
+            return jobsData.data.filter(job => !jobNamesToIgnore.includes(job.name));
 
       - name: Fetch Previous Workflow Run
         id: previous-workflow-run

@@ -1,8 +1,10 @@
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+type InputType = 'markdown' | 'mask' | 'default';
 type CustomBaseTextInputProps = {
     /** Input label */
     label?: string;
@@ -116,11 +118,11 @@ type CustomBaseTextInputProps = {
     /** Type of autocomplete */
     autoCompleteType?: string;
 
-    /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
-    isMarkdownEnabled?: boolean;
-
     /** List of markdowns that won't be styled as a markdown */
     excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
+
+    /** A set of styles for markdown elements (such as link, h1, emoji etc.) */
+    markdownStyle?: MarkdownStyle;
 
     /** Custom parser function for RNMarkdownTextInput */
     parser?: (input: string) => MarkdownRange[];
@@ -148,10 +150,22 @@ type CustomBaseTextInputProps = {
 
     /** The width of inner content */
     contentWidth?: number;
+
+    /** The type (internal implementation) of input. Can be one of: `default`, `mask`, `markdown` */
+    type?: InputType;
+
+    /** The mask of the masked input */
+    mask?: MaskedTextInputOwnProps['mask'];
+
+    /** A set of permitted characters for the input */
+    allowedKeys?: MaskedTextInputOwnProps['allowedKeys'];
+
+    /** Whether the input should be enforced to be uncontrolled. Default is `false` */
+    uncontrolled?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
-export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps};
+export type {BaseTextInputProps, BaseTextInputRef, CustomBaseTextInputProps, InputType};

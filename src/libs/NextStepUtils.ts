@@ -69,7 +69,7 @@ function parseMessage(messages: Message[] | undefined) {
 function getNextApproverDisplayName(report: OnyxEntry<Report>) {
     const approverAccountID = getNextApproverAccountID(report);
 
-    return getDisplayNameForParticipant(approverAccountID) ?? getPersonalDetailsForAccountID(approverAccountID).login;
+    return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
 /**
@@ -89,7 +89,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
-    const ownerDisplayName = getDisplayNameForParticipant(ownerAccountID);
+    const ownerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID});
     const nextApproverDisplayName = getNextApproverDisplayName(report);
 
     const reimburserAccountID = getReimburserAccountID(policy);
@@ -289,7 +289,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                               text: 'an admin',
                           }
                         : {
-                              text: getDisplayNameForParticipant(reimburserAccountID),
+                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
                               type: 'strong',
                           },
                     {

@@ -113,6 +113,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import NSQSSquare from '@assets/images/integrationicons/netsuite-quickstart-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
@@ -406,6 +407,7 @@ export {
     CheckCircle,
     CheckmarkCircle,
     NetSuiteSquare,
+    NSQSSquare,
     XeroCircle,
     QBOCircle,
     Filters,

@@ -85,6 +85,7 @@ describe('GooglePlacesUtilsTest', () => {
                 state: 'Bangladesh Border Road',
                 city: '',
                 street: '',
+                streetNumber: '',
             });
         });
     });

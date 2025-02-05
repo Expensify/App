@@ -122,9 +122,9 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                     ) : (
                         <Text>
                             <Text>{welcomeMessage.phrase1}</Text>
-                            <Text style={[styles.textStrong]}>{getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
+                            <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.ownerAccountID})}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
-                            <Text style={[styles.textStrong]}>{getPolicyName(report)}</Text>
+                            <Text style={[styles.textStrong]}>{getPolicyName({report})}</Text>
                             <Text>{welcomeMessage.phrase3}</Text>
                         </Text>
                     ))}
@@ -139,13 +139,13 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             <Text>{welcomeMessage.phrase1}</Text>
                             <Text>
                                 {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
-                                    <Text style={[styles.textStrong]}>{getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}</Text>
+                                    <Text style={[styles.textStrong]}>{getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})}</Text>
                                 ) : (
                                     <Text style={[styles.textStrong]}>{getPolicy(report?.invoiceReceiver?.policyID)?.name}</Text>
                                 )}
                             </Text>
                             <Text>{` ${translate('common.and')} `}</Text>
-                            <Text style={[styles.textStrong]}>{getPolicyName(report)}</Text>
+                            <Text style={[styles.textStrong]}>{getPolicyName({report})}</Text>
                             <Text>{welcomeMessage.phrase2}</Text>
                         </Text>
                     ))}

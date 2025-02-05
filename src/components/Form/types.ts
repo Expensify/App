@@ -118,6 +118,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     autoGrowHeight?: boolean;
     blurOnSubmit?: boolean;
     shouldSubmitForm?: boolean;
+    uncontrolled?: boolean;
 };
 
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
