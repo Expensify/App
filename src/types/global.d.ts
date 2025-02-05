@@ -13,10 +13,11 @@ declare module '*.jpg' {
 }
 
 declare module '*.svg' {
-    // eslint-disable-next-line @dword-design/import-alias/prefer-alias
-    import type IconAsset from '@src/types/types/utils/IconAsset';
+    import type React from 'react';
+    import type {ImageSourcePropType} from 'react-native';
+    import type {SvgProps} from 'react-native-svg';
 
-    const content: IconAsset;
+    const content: React.FC<SvgProps> | ImageSourcePropType;
     export default content;
 }
 
