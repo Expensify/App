@@ -12,26 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validateActor:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
-    steps:
-      - name: Check if user is deployer
-        id: isUserDeployer
-        run: |
-          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
-            echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
   prep:
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
@@ -40,6 +21,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Validate actor
+        id: validateActor
+        uses: ./.github/actions/composite/validateActor
 
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
