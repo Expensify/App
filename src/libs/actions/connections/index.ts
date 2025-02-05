@@ -4,7 +4,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
-    RemovePolicyConnectionParams,
+    RemovePolicyConnectionParams, SyncPolicyToNSQSParams,
     SyncPolicyToQuickbooksDesktopParams,
     UpdateManyPolicyConnectionConfigurationsParams,
     UpdatePolicyConnectionConfigParams,
@@ -18,6 +18,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getNSQSCompanyID} from "@libs/PolicyUtils";
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
@@ -222,14 +223,15 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
 /**
  * This method helps in syncing policy to the connected accounting integration.
  *
- * @param policyID - ID of the policy for which the sync is needed
+ * @param policy - Policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero
  * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
-function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
-    if (!connectionName) {
+function syncConnection(policy: Policy | undefined, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
+    if (!connectionName || !policy) {
         return;
     }
+    const policyID = policy.id;
     const syncConnectionData = getSyncConnectionParameters(connectionName);
 
     if (!syncConnectionData) {
@@ -255,13 +257,19 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
         },
     ];
 
-    const parameters: SyncPolicyToQuickbooksDesktopParams = {
+    let parameters: SyncPolicyToQuickbooksDesktopParams | SyncPolicyToNSQSParams = {
         policyID,
         idempotencyKey: policyID,
     };
 
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
         parameters.forceDataRefresh = forceDataRefresh;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NSQS) {
+        parameters = {
+            ...parameters,
+            netSuiteAccountID: getNSQSCompanyID(policy),
+        } as SyncPolicyToNSQSParams;
     }
 
     API.read(syncConnectionData.readCommand, parameters, {

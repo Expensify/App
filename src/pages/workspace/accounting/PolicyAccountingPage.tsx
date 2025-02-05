@@ -38,7 +38,7 @@ import {
     getConnectedIntegration,
     getCurrentSageIntacctEntityName,
     getCurrentXeroOrganizationName,
-    getIntegrationLastSuccessfulDate,
+    getIntegrationLastSuccessfulDate, getNSQSCompanyID,
     getXeroTenants,
     hasUnsupportedIntegration,
     isControlPolicy,
@@ -147,7 +147,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                       {
                           icon: Expensicons.Sync,
                           text: translate('workspace.accounting.syncNow'),
-                          onSelected: () => syncConnection(policyID, connectedIntegration),
+                          onSelected: () => syncConnection(policy, connectedIntegration),
                           disabled: isOffline,
                       },
                   ]),
