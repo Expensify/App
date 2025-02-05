@@ -5,9 +5,6 @@ name: "Setup Git for OSBotify"
 description: "Setup Git for OSBotify"
 
 inputs:
-  GPG_PASSPHRASE:
-    description: "Passphrase used to decrypt GPG key"
-    required: true
   OS_BOTIFY_APP_ID:
     description: "Application ID for OS Botify"
     required: true

@@ -1,11 +1,6 @@
 name: 'Setup Git for OSBotify'
 description: 'Setup Git for OSBotify'
 
-inputs:
-  GPG_PASSPHRASE:
-    description: 'Passphrase used to decrypt GPG key'
-    required: true
-
 runs:
   using: composite
   steps:
