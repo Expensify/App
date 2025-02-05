@@ -1,17 +1,18 @@
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import { type OnyxEntry, useOnyx } from "react-native-onyx";
+import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
+import getSignerAddressSubstepValue from '@pages/ReimbursementAccount/NonUSD/utils/getSignerAddressSubstepValue';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS, { type ReimbursementAccountForm } from "@src/types/form/ReimbursementAccountForm";
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
 import Address from './substeps/Address';
@@ -20,7 +21,6 @@ import DateOfBirth from './substeps/DateOfBirth';
 import JobTitle from './substeps/JobTitle';
 import Name from './substeps/Name';
 import UploadDocuments from './substeps/UploadDocuments';
-import type { ReimbursementAccount } from "@src/types/onyx";
 
 type SignerInfoProps = {
     /** Handles back button press */
@@ -57,10 +57,6 @@ const INPUT_KEYS = {
     SIGNER_PDS_AND_FSG: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PDS_AND_FSG,
 };
 
-type SubstepValues<TProps extends keyof ReimbursementAccountForm> = {
-    [TKey in TProps]: ReimbursementAccountForm[TKey];
-};
-
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
 
@@ -70,36 +66,19 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
-
-    const hasDraftSignerAddress = (
-        isSecondSigner: boolean,
-        reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>,
-    ) => {
-        const prefix = isSecondSigner ? INPUT_KEYS.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS : INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS;
-
-        return reimbursementAccountDraft?.[`${prefix}_street`] !== '' && reimbursementAccountDraft?.[`${prefix}_state`] !== '' && reimbursementAccountDraft?.[`${prefix}_city`] !== '' && reimbursementAccountDraft?.[`${prefix}_zipCode`] !== '';
-    }
-    const getSignerAddressSubstepValues = <TProps extends keyof ReimbursementAccountForm>(
-        onyxValues: Record<string, TProps>,
-        reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>,
-        reimbursementAccount: OnyxEntry<ReimbursementAccount>,
-        isSecondSigner: boolean
-    ): SubstepValues<TProps> => {
-        const prefix = isSecondSigner ? INPUT_KEYS.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS : INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS;
-
-        return {
-            ...onyxValues,
-            [prefix]: hasDraftSignerAddress(isSecondSigner, reimbursementAccountDraft) ? `${reimbursementAccountDraft?.[`${prefix}_street`]}` : '';
-        }
-    };
-
     // TODO set this based on param from redirect or BE response
     const isSecondSigner = false;
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
-
+    const addressKey = isSecondSigner ? INPUT_KEYS.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS : INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS;
+    const onyxValues = useMemo(
+        () => ({
+            ...getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount),
+            [addressKey]: getSignerAddressSubstepValue(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount, isSecondSigner),
+        }),
+        [addressKey, isSecondSigner, reimbursementAccount, reimbursementAccountDraft],
+    );
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
 
