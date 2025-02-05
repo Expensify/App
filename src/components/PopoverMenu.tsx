@@ -1,9 +1,11 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
-import React, {useLayoutEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as ScrollViewType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -12,8 +14,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
-import * as Modal from '@userActions/Modal';
+import {isSafari} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
+import {close as closeModal} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -135,9 +138,21 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     testID?: string;
 };
 
-const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
+const renderWithConditionalWrapper = (
+    shouldUseScrollView: boolean,
+    contentContainerStyle: StyleProp<ViewStyle>,
+    children: ReactNode,
+    scrollViewRef: RefObject<ScrollViewType>,
+): React.JSX.Element => {
     if (shouldUseScrollView) {
-        return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
+        return (
+            <ScrollView
+                contentContainerStyle={contentContainerStyle}
+                ref={scrollViewRef}
+            >
+                {children}
+            </ScrollView>
+        );
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{children}</>;
@@ -189,8 +204,10 @@ function PopoverMenu({
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const {windowHeight} = useWindowDimensions();
-
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const scrollViewRef = useRef<HTMLDivElement | ScrollViewType>(null);
 
     const selectItem = (index: number) => {
         const selectedItem = currentMenuItems.at(index);
@@ -202,9 +219,9 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
-        } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+        } else if (selectedItem.shouldCallAfterModalHide && !isSafari()) {
             onItemSelected?.(selectedItem, index);
-            Modal.close(
+            closeModal(
                 () => {
                     selectedItem.onSelected?.();
                 },
@@ -311,6 +328,23 @@ function PopoverMenu({
         },
         {isActive: isVisible},
     );
+    const keyboardShortcutSpaceCallback = useCallback(() => {
+        if (!scrollViewRef.current) {
+            return;
+        }
+        const scrollableElement = scrollViewRef.current as HTMLDivElement;
+        // If the popover menu is scrollable, allow scrolling with the space bar instead of preventing it.
+        const clientHeight = scrollableElement.clientHeight;
+        const scrollTop = scrollableElement.scrollTop;
+        const scrollHeight = scrollableElement.scrollHeight;
+        const remainingScrollSpace = scrollHeight - clientHeight - scrollTop;
+
+        scrollableElement.scrollBy(0, Math.min(clientHeight, remainingScrollSpace));
+    }, [isVisible]);
+
+    // On web and desktop, pressing the space bar after interacting with the parent view
+    // can cause the parent view to scroll when the space bar is pressed.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWebOrDesktop && isVisible});
 
     const onModalHide = () => {
         setFocusedIndex(currentMenuItemsFocusedIndex);
@@ -368,7 +402,7 @@ function PopoverMenu({
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
+                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems, scrollViewRef as RefObject<ScrollViewType>)}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>

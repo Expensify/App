@@ -3,8 +3,11 @@ import type {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView as RNScrollView} from 'react-native';
 import type {ScrollViewProps} from 'react-native';
+import useScrollEnabled from '@hooks/useScrollEnabled';
 
 function ScrollView({children, scrollIndicatorInsets, ...props}: ScrollViewProps, ref: ForwardedRef<RNScrollView>) {
+    const scrollEnabled = useScrollEnabled();
+
     return (
         <RNScrollView
             ref={ref}
@@ -13,6 +16,7 @@ function ScrollView({children, scrollIndicatorInsets, ...props}: ScrollViewProps
             // to closest value to 0 fixes this issue, 0 (default) doesn't work
             // See: https://github.com/Expensify/App/issues/31441
             scrollIndicatorInsets={scrollIndicatorInsets ?? {right: Number.MIN_VALUE}}
+            scrollEnabled={scrollEnabled}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
