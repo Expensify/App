@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
@@ -31,8 +31,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {AttachmentModalProps} from '@pages/home/report/ReportAttachmentsContext';
-import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -45,8 +43,6 @@ import viewRef from '@src/types/utils/viewRef';
 import type {AttachmentModalChildrenProps, FileObject} from './types';
 
 type AttachmentModalContentProps = {
-    attachmentId?: string;
-
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
 
@@ -129,28 +125,26 @@ type AttachmentModalContentProps = {
 };
 
 function AttachmentModalContent({
-    attachmentId,
-    source: sourceProp = '',
+    source = '',
+    originalFileName = '',
+    isAuthTokenRequired = false,
+    maybeIcon = false,
+    headerTitle,
+    fallbackSource,
+    type = undefined,
+    accountID = undefined,
+    attachmentLink = '',
     isOpen = false,
-    // defaultOpen = false,
-    originalFileName: originalFileNameProp = '',
-    isAuthTokenRequired: isAuthTokenRequiredProp = false,
     allowDownload = false,
     isTrackExpenseAction = false,
     report,
     isReceiptAttachment = false,
     isWorkspaceAvatar = false,
-    maybeIcon: maybeIconProp = false,
-    headerTitle: headerTitleProp,
     children,
-    fallbackSource: fallbackSourceProp,
     canEditReceipt = false,
     isLoading = false,
     shouldShowNotFoundPage = false,
-    type: typeProp = undefined,
-    accountID: accountIDProp = undefined,
     shouldDisableSendButton = false,
-    attachmentLink: attachmentLinkProp = '',
     onConfirm,
     onCarouselAttachmentChange = () => {},
 
@@ -173,51 +167,6 @@ function AttachmentModalContent({
     onInvalidReasonModalHide,
     onUploadFileValidated,
 }: AttachmentModalContentProps) {
-    const attachmentsContext = useContext(ReportAttachmentsContext);
-    const {
-        // reportID,
-        source,
-        fallbackSource,
-        headerTitle,
-        maybeIcon,
-        type,
-        accountID,
-        isAuthTokenRequired,
-        fileName: originalFileName,
-        attachmentLink,
-    }: AttachmentModalProps = useMemo(() => {
-        const props = {
-            // reportID,
-            source: sourceProp,
-            fileName: originalFileNameProp,
-            fallbackSource: fallbackSourceProp,
-            headerTitle: headerTitleProp,
-            maybeIcon: maybeIconProp,
-            type: typeProp,
-            accountID: accountIDProp,
-            isAuthTokenRequired: isAuthTokenRequiredProp,
-            attachmentLink: attachmentLinkProp,
-        };
-
-        if (attachmentId) {
-            return attachmentsContext.getAttachmentById(attachmentId) ?? props;
-        }
-
-        return props;
-    }, [
-        accountIDProp,
-        attachmentId,
-        attachmentLinkProp,
-        attachmentsContext,
-        fallbackSourceProp,
-        headerTitleProp,
-        isAuthTokenRequiredProp,
-        maybeIconProp,
-        originalFileNameProp,
-        sourceProp,
-        typeProp,
-    ]);
-
     const styles = useThemeStyles();
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);

@@ -3,9 +3,9 @@ import React, {useCallback, useState} from 'react';
 import type {FileObject} from '@components/AttachmentModal';
 import Modal from '@components/Modal';
 import {translateLocal} from '@libs/Localize';
-import AttachmentModalContent from '@pages/media/AttachmentModal/AttachmentModalContent';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModal/types';
-import useAttachmentModalLogic from '@pages/media/AttachmentModal/useAttachmentModalLogic';
+import AttachmentModalContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import useAttachmentModalLogic from '@pages/media/AttachmentModalScreen/useAttachmentModalLogic';
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 

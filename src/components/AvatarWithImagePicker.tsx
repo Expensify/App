@@ -11,7 +11,8 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AvatarSource, StaticAvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserUtils';
+import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -29,7 +30,6 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
-import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
@@ -332,24 +332,17 @@ function AvatarWithImagePicker({
         [disabled, enablePreview, isUsingDefaultAvatar, onViewPhotoPress, showAvatarCropModal],
     );
 
-    const reportAttachmentsContext = useContext(ReportAttachmentsContext)
+    const reportAttachmentsContext = useContext(ReportAttachmentsContext);
     const showAttachmentModalScreen = useCallback(() => {
-        console.log({avatarSource: previewSource});
-
-        console.log({fallbackIcon})
-
         const attachmentId = reportAttachmentsContext.addAttachment({
             source: previewSource,
-            showFallbackAvatar,
             fallbackSource: fallbackIcon,
             headerTitle,
             fileName: originalFileName,
             maybeIcon: isUsingDefaultAvatar,
-        })
-        Navigation.navigate(ROUTES.ATTACHMENTS.getRoute({attachmentId}))
-
-        );
-    }, [fallbackIcon, headerTitle, isUsingDefaultAvatar, originalFileName, previewSource]);
+        });
+        Navigation.navigate(ROUTES.ATTACHMENTS.getRoute({attachmentId}));
+    }, [fallbackIcon, headerTitle, isUsingDefaultAvatar, originalFileName, previewSource, reportAttachmentsContext]);
 
     return (
         <View style={[styles.w100, style]}>

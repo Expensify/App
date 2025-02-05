@@ -12,7 +12,7 @@ type AttachmentModalProps = {
     maybeIcon?: boolean;
     reportID?: string | undefined;
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-    accountID?: number;
+    accountID?: number | string;
     isAuthTokenRequired?: boolean;
     fileName?: string;
     attachmentLink?: string;
@@ -22,13 +22,15 @@ type ReportAttachmentsContextValue = {
     isAttachmentHidden: (reportActionID: string) => boolean;
     updateHiddenAttachments: (reportActionID: string, isHidden: boolean) => void;
     addAttachment(attachmentProps: AttachmentModalProps): string;
-    getAttachmentById(id: string): AttachmentModalProps | undefined;
+    removeAttachment(attachmentId: string): void;
+    getAttachmentById(attachmentId: string): AttachmentModalProps | undefined;
 };
 
 const ReportAttachmentsContext = React.createContext<ReportAttachmentsContextValue>({
     isAttachmentHidden: () => false,
     updateHiddenAttachments: () => {},
     addAttachment: () => '',
+    removeAttachment: () => undefined,
     getAttachmentById: () => undefined,
 });
 
@@ -45,18 +47,23 @@ function ReportAttachmentsProvider({children}: ChildrenProps) {
     const attachments = useRef<Record<string, AttachmentModalProps>>({});
     const addAttachment = useCallback(
         (attachmentProps: AttachmentModalProps) => {
-            const attachmentId = `attachment_props_${attachmentProps.fileName ?? attachmentProps.source}`;
+            const attachmentId = `attachment_${attachmentProps.fileName ?? (attachmentProps.source as string)}`;
             attachments.current = {...attachments.current, [attachmentId]: attachmentProps};
             return attachmentId;
         },
         [attachments],
     );
 
+    const removeAttachment = useCallback(
+        (attachmentId: string) => {
+            delete attachments.current[attachmentId];
+        },
+        [attachments],
+    );
+
     const getAttachmentById = useCallback(
         (attachmentId: string) => {
-            const attachmentProps = attachments.current[attachmentId];
-            delete attachments.current[attachmentId];
-            return attachmentProps;
+            return attachments.current[attachmentId];
         },
         [attachments],
     );
@@ -71,9 +78,10 @@ function ReportAttachmentsProvider({children}: ChildrenProps) {
                 };
             },
             addAttachment,
+            removeAttachment,
             getAttachmentById,
         }),
-        [addAttachment, getAttachmentById],
+        [addAttachment, getAttachmentById, removeAttachment],
     );
 
     return <ReportAttachmentsContext.Provider value={contextValue}>{children}</ReportAttachmentsContext.Provider>;

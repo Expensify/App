@@ -1,10 +1,10 @@
 import React from 'react';
-import AttachmentModalScreenImpl from './AttachmentModalWrapper';
+import AttachmentModalWrapper from './AttachmentModalWrapper';
 import type {AttachmentModalScreenProps} from './types';
 
 function AttachmentModalScreen(props: AttachmentModalScreenProps) {
     return (
-        <AttachmentModalScreenImpl
+        <AttachmentModalWrapper
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />

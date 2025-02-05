@@ -1,10 +1,12 @@
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
 // import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AttachmentModalProps} from '@pages/home/report/ReportAttachmentsContext';
+import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,24 +14,65 @@ import ROUTES from '@src/ROUTES';
 import type {AttachmentModalContentProps} from './AttachmentModalContent';
 import type {AttachmentModalScreenProps} from './types';
 
-function useAttachmentModalLogic(route: AttachmentModalScreenProps['route']) {
-    const reportID = route.params.reportID;
-    const type = route.params.type;
-    const accountID = route.params.accountID;
-    const isAuthTokenRequired = route.params.isAuthTokenRequired;
-    const attachmentLink = route.params.attachmentLink;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const fileName = route.params?.fileName;
-    const defaultOpen = route.params.defaultOpen;
-    const headerTitle = route.params.headerTitle;
+function useAttachmentModalLogic(route: AttachmentModalScreenProps['route'], isModal = false) {
+    const attachmentId = route.params.attachmentId;
+    const attachmentsContext = useContext(ReportAttachmentsContext);
+    const {
+        reportID,
+        source: sourceProp,
+        fallbackSource,
+        headerTitle,
+        maybeIcon,
+        type,
+        accountID,
+        isAuthTokenRequired,
+        fileName,
+        attachmentLink,
+    }: AttachmentModalProps = useMemo(() => {
+        const props = {
+            reportID: route.params.reportID,
+            source: route.params.source,
+            fileName: route.params.fileName,
+            fallbackSource: route.params.fallbackSource,
+            headerTitle: route.params.headerTitle,
+            maybeIcon: route.params.maybeIcon,
+            type: route.params.type,
+            accountID: route.params.accountID,
+            isAuthTokenRequired: route.params.isAuthTokenRequired,
+            attachmentLink: route.params.attachmentLink,
+        };
 
-    // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-    const source = Number(route.params.source) || route.params.source;
+        if (attachmentId) {
+            return {...props, ...attachmentsContext.getAttachmentById(attachmentId)};
+        }
+        return props;
+    }, [
+        attachmentId,
+        attachmentsContext,
+        route.params.accountID,
+        route.params.attachmentLink,
+        route.params.fallbackSource,
+        route.params.fileName,
+        route.params.headerTitle,
+        route.params.isAuthTokenRequired,
+        route.params.maybeIcon,
+        route.params.reportID,
+        route.params.source,
+        route.params.type,
+    ]);
 
     const isReceiptAttachment = route.params.isReceiptAttachment ?? false;
 
-    const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? -1}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const isReportMissing = !!reportID && !report?.reportID;
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = !isLoadingApp && type !== CONST.ATTACHMENT_TYPE.SEARCH && isReportMissing;
+
+    // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+    const source = Number(sourceProp) || sourceProp;
+
+    const [shouldLoadAttachment, setShouldLoadAttachment] = useState(!isModal);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
@@ -37,7 +80,7 @@ function useAttachmentModalLogic(route: AttachmentModalScreenProps['route']) {
     const isPDFLoadError = useRef(false);
     const submitRef = useRef<View | HTMLElement>(null);
 
-    const [isModalOpen, setIsModalOpen] = useState(defaultOpen ?? true);
+    const [isModalOpen, setIsModalOpen] = useState(true);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
 
     const onCarouselAttachmentChange = useCallback(
@@ -87,25 +130,29 @@ function useAttachmentModalLogic(route: AttachmentModalScreenProps['route']) {
     }, []);
 
     const contentProps = {
+        source,
         accountID: Number(accountID),
         type,
         allowDownload: true,
-        defaultOpen: true,
         report,
-        source,
         onModalClose: () => {
+            if (attachmentId) {
+                attachmentsContext.removeAttachment(attachmentId);
+            }
             Navigation.dismissModal();
             // This enables Composer refocus when the attachments modal is closed by the browser navigation
             ComposerFocusManager.setReadyToFocus();
         },
         onCarouselAttachmentChange,
-        shouldShowNotFoundPage: !isLoadingApp && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
+        shouldShowNotFoundPage,
         isAuthTokenRequired: !!isAuthTokenRequired,
         attachmentLink: attachmentLink ?? '',
+        fallbackSource,
+        maybeIcon,
         originalFileName: fileName ?? '',
         isAttachmentInvalid,
         headerTitle,
-    } as unknown as AttachmentModalContentProps;
+    } satisfies AttachmentModalContentProps;
 
     return {
         contentProps,

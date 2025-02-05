@@ -1,8 +1,8 @@
 import React, {memo} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
-import AttachmentModalContent from '@pages/media/AttachmentModal/AttachmentModalContent';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModal/types';
-import useAttachmentModalLogic from '@pages/media/AttachmentModal/useAttachmentModalLogic';
+import AttachmentModalContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent';
+import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import useAttachmentModalLogic from '@pages/media/AttachmentModalScreen/useAttachmentModalLogic';
 
 function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) {
     const {

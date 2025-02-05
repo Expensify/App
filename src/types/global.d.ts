@@ -13,7 +13,8 @@ declare module '*.jpg' {
 }
 
 declare module '*.svg' {
-    import type IconAsset from './utils/IconAsset';
+    // eslint-disable-next-line @dword-design/import-alias/prefer-alias
+    import type IconAsset from '@src/types/types/utils/IconAsset';
 
     const content: IconAsset;
     export default content;
