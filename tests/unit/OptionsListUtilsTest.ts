@@ -497,7 +497,6 @@ describe('OptionsListUtils', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
                 [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
                 [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
-                [ONYXKEYS.BETAS]: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
             },
         });
         Onyx.registerLogger(() => {});
@@ -636,18 +635,27 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
 
         // Test for check if Manager McTest is correctly included or excluded from the results
-        const options = OptionsListUtils.getValidOptions(
+        let options = OptionsListUtils.getValidOptions(
             {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-            {includeP2P: true, action: 'create'},
+            {includeP2P: true, action: 'create', betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
         );
         expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+
+        // Manager McTest shouldn't be included to recipients when its not an IOU action
+        options = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+            {includeP2P: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+        );
+
+        expect(options.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
 
         return waitForBatchedUpdates()
             .then(() => Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: new Date() as unknown as string}))
             .then(() => {
+                // Manager McTest shouldn't be included to recipients when the user has already submitted an expense
                 const optionsWhenUserAlreadySubmittedExpense = OptionsListUtils.getValidOptions(
                     {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                    {includeP2P: true, action: 'create'},
+                    {includeP2P: true, action: 'create', betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
                 );
                 expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
             });
