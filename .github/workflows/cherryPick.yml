@@ -140,7 +140,7 @@ jobs:
           # Create PR
           gh pr create \
             --title "🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒" \
-            --body "$COMMENT_BODY" \
+            --body "$PR_DESCRIPTION" \
             --label "Engineering,Hourly" \
             --base "staging"
           sleep 5
