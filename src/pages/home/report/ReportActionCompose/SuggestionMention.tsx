@@ -58,7 +58,7 @@ type SuggestionPersonalDetailsList = Record<
 >;
 
 function getDisplayName(details: PersonalDetails) {
-    const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant(details.accountID);
+    const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant({accountID: details.accountID});
     if (!displayNameFromAccountID) {
         return details.login?.length ? details.login : '';
     }
