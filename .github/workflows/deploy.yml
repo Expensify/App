@@ -511,6 +511,7 @@ jobs:
           op read "op://Mobile-Deploy-CI/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./OldApp_AppStore_Share_Extension.mobileprovision
           op read "op://Mobile-Deploy-CI/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./OldApp_AppStore_Notification_Service.mobileprovision
           op read "op://Mobile-Deploy-CI/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
+          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
