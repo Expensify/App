@@ -170,10 +170,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     pendingAction: value.pendingAction,
                     rightElement: (
                         <>
-                            <View style={styles.flex1}>
+                            <View style={styles.flex2}>
                                 <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}>{value.subRateName}</Text>
                             </View>
-                            <View style={styles.flex1}>
+                            <View style={styles.flex2}>
                                 <Text style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}>{convertAmountToDisplayString(value.rate, value.currency)}</Text>
                             </View>
                         </>
@@ -205,13 +205,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, !canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]]}>
-            <View style={styles.flex1}>
+            <View style={styles.flex3}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('common.destination')}</Text>
             </View>
-            <View style={styles.flex1}>
+            <View style={styles.flex2}>
                 <Text style={[styles.searchInputStyle, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
             </View>
-            <View style={styles.flex1}>
+            <View style={styles.flex2}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
             </View>
         </View>
@@ -419,7 +419,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
-                        listItemTitleContainerStyles={styles.flex1}
+                        listItemTitleContainerStyles={styles.flex3}
                         showScrollIndicator={false}
                     />
                 )}
