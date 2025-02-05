@@ -9,10 +9,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getPersonalPolicy, getPolicy} from '@libs/PolicyUtils';
+import {getPersonalPolicy} from '@libs/PolicyUtils';
 import {getDistanceInMeters, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,7 +43,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const activePolicy = getPolicy(activePolicyID);
+    const activePolicy = usePolicy(activePolicyID);
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
