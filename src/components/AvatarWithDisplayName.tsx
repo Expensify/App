@@ -73,11 +73,11 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
     );
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const title = getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
+    const title = getReportName(report, invoiceReceiverPolicy);
     const subtitle = getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
-    const icons = getIcons(report, personalDetails, null, '', CONST.DEFAULT_NUMBER_ID, policy, invoiceReceiverPolicy);
+    const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = shouldReportShowSubscript(report);
