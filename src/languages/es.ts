@@ -144,6 +144,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
@@ -993,6 +994,7 @@ const translations = {
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `movió el gasto desde su propio mensaje directo a ${workspaceName ?? `un chat con ${reportName}`}`,
+        movedToSelfDM: 'movió el gasto a su propio mensaje directo',
         tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
@@ -1716,9 +1718,6 @@ const translations = {
         roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
         explainerText: 'Establece una descripción personalizada para la sala de chat.',
     },
-    groupConfirmPage: {
-        groupName: 'Nombre del grupo',
-    },
     groupChat: {
         lastMemberTitle: '¡Atención!',
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los miembros. ¿Estás seguro de que quieres salir del chat?',
@@ -1933,7 +1932,7 @@ const translations = {
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'Ups, no deberías estar aquí',
-        noAccess: 'No tienes acceso a este chat',
+        noAccess: 'Ese chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrar un chat.',
         goBackHome: 'Volver a la página principal',
     },
     setPasswordPage: {
@@ -2562,6 +2561,12 @@ const translations = {
             cancellation: 'Política de cancelación',
             cancellationUntil: 'Cancelación gratuita hasta el',
             confirmation: 'Número de confirmación',
+            cancellationPolicies: {
+                unknown: 'Desconocido',
+                nonRefundable: 'No reembolsable',
+                freeCancellationUntil: 'Cancelación gratuita hasta',
+                partiallyRefundable: 'Parcialmente reembolsable',
+            },
         },
         car: 'Auto',
         carDetails: {
@@ -2711,7 +2716,7 @@ const translations = {
                 }
             },
             planType: 'Tipo de plan',
-            submitExpense: 'Envíe los gastos utilizando el chat de su espacio de trabajo:',
+            submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
         },
@@ -3391,6 +3396,70 @@ const translations = {
                 },
             },
         },
+        nsqs: {
+            setup: {
+                title: 'NSQS configuración',
+                description: 'Introduce tu ID de cuenta de NSQS',
+                formInputs: {
+                    netSuiteAccountID: 'ID de Cuenta NSQS',
+                },
+            },
+            import: {
+                expenseCategories: 'Categorías de gastos',
+                expenseCategoriesDescription: 'Las categorías de gastos de NSQS se importan a Expensify como categorías.',
+                importTypes: {
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Etiquetas',
+                        description: 'Nivel de línea de pedido',
+                    },
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Campos de informe',
+                        description: 'Nivel de informe',
+                    },
+                },
+                importFields: {
+                    customers: {
+                        title: 'Clientes',
+                        subtitle: 'Elige cómo gestionar los *clientes* de NSQS en Expensify.',
+                    },
+                    projects: {
+                        title: 'Proyectos',
+                        subtitle: 'Elige cómo gestionar los *proyectos* de NSQS en Expensify.',
+                    },
+                },
+            },
+            export: {
+                description: 'Configura cómo se exportan los datos de Expensify a NSQS.',
+                exportDate: {
+                    label: 'Fecha de exportación',
+                    description: 'Usa esta fecha al exportar informe a NSQS.',
+                    values: {
+                        [CONST.NSQS_EXPORT_DATE.LAST_EXPENSE]: {
+                            label: 'Fecha del último gasto',
+                            description: 'Fecha del gasto mas reciente en el informe.',
+                        },
+                        [CONST.NSQS_EXPORT_DATE.EXPORTED]: {
+                            label: 'Fecha de exportación',
+                            description: 'Fecha de exportación del informe a NSQS.',
+                        },
+                        [CONST.NSQS_EXPORT_DATE.SUBMITTED]: {
+                            label: 'Fecha de envío',
+                            description: 'Fecha en la que el informe se envió para su aprobación.',
+                        },
+                    },
+                },
+                expense: 'Gasto',
+                reimbursableExpenses: 'Exportar gastos reembolsables como',
+                nonReimbursableExpenses: 'Exportar gastos no reembolsables como',
+            },
+            advanced: {
+                autoSyncDescription: 'Sincroniza NSQS y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
+                defaultApprovalAccount: 'Preferencia predeterminada de NSQS',
+                approvalAccount: 'Cuenta de aprobación de cuentas por pagar',
+                approvalAccountDescription:
+                    'Elija la cuenta con la que se aprobarán las transacciones en NSQS. Si está sincronizando informes reembolsados, esta es también la cuenta con la que se crearán los pagos de facturas.',
+            },
+        },
         intacct: {
             sageIntacctSetup: 'Sage Intacct configuración',
             prerequisitesTitle: 'Antes de conectar...',
@@ -3437,6 +3506,10 @@ const translations = {
                         return 'asignaciones';
                 }
             },
+        },
+        multiConnectionSelector: {
+            title: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} configuración`,
+            description: ({connectionName}: ConnectionNameParams) => `Selecciona tu versión de ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} para continuar.`,
         },
         type: {
             free: 'Gratis',
@@ -3547,6 +3620,8 @@ const translations = {
             currentBalance: 'Saldo actual',
             currentBalanceDescription:
                 'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `El saldo se liquidará el ${settlementDate}.`,
+            settleBalance: 'Liquidar saldo',
             cardLimit: 'Límite de la tarjeta',
             remainingLimit: 'Límite restante',
             requestLimitIncrease: 'Solicitar aumento de límite',
@@ -3971,6 +4046,7 @@ const translations = {
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
+            nsqs: 'NSQS',
             intacct: 'Sage Intacct',
             talkYourOnboardingSpecialist: 'Chatea con tu especialista asignado.',
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
@@ -3984,6 +4060,8 @@ const translations = {
                         return 'Xero';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return 'NetSuite';
+                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
+                        return 'NSQS';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
                     default: {
@@ -4017,6 +4095,8 @@ const translations = {
                         return 'No se puede conectar a Xero.';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return 'No se puede conectar a NetSuite.';
+                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
+                        return 'No se puede conectar a NSQS.';
                     case CONST.POLICY.CONNECTIONS.NAME.QBD:
                         return 'No se puede conectar a QuickBooks Desktop.';
                     default: {
@@ -4144,6 +4224,7 @@ const translations = {
                         case 'netSuiteSyncData':
                             return 'Importando datos a Expensify';
                         case 'netSuiteSyncAccounts':
+                        case 'nsqsSyncAccounts':
                             return 'Sincronizando cuentas';
                         case 'netSuiteSyncCurrencies':
                             return 'Sincronizando divisas';
@@ -4164,6 +4245,16 @@ const translations = {
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importando proveedores';
+                        case 'nsqsSyncConnection':
+                            return 'Iniciando conexión a NSQS';
+                        case 'nsqsSyncEmployees':
+                            return 'Sincronizando empleados';
+                        case 'nsqsSyncCustomers':
+                            return 'Sincronizando clientes';
+                        case 'nsqsSyncProjects':
+                            return 'Sincronizando proyectos';
+                        case 'nsqsSyncCurrency':
+                            return 'Sincronizando moneda';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marcando facturas y recibos de NetSuite como pagados';
                         case 'netSuiteImportVendorsTitle':
@@ -4522,8 +4613,8 @@ const translations = {
                     benefit2: 'Reglas inteligentes de gastos',
                     benefit3: 'Flujos de aprobación de varios niveles',
                     benefit4: 'Controles de seguridad mejorados',
-                    toUpgrade: 'Para mejorar, haz clic',
-                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a Controlar.',
+                    toUpgrade: 'Para mejorar, haz clic en',
+                    selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a',
                 },
             },
         },
@@ -4542,8 +4633,8 @@ const translations = {
                     benefit4: 'Controles de seguridad mejorados',
                     headsUp: '¡Atención!',
                     multiWorkspaceNote:
-                        'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic',
-                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a Recopilar.',
+                        'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic en',
+                    selectStep: '> selecciona cada espacio de trabajo > cambia el tipo de plan a',
                 },
             },
             completed: {
@@ -4682,6 +4773,7 @@ const translations = {
     },
     newRoomPage: {
         newRoom: 'Nueva sala de chat',
+        groupName: 'Nombre del grupo',
         roomName: 'Nombre de la sala',
         visibility: 'Visibilidad',
         restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala',
@@ -5000,9 +5092,9 @@ const translations = {
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
-                    `actualicé el rol ${email} de ${currentRole === 'miembro' || currentRole === 'user' ? 'miembro' : 'administrador'} a ${
-                        newRole === 'miembro' || newRole === 'user' ? 'miembro' : 'administrador'
-                    }`,
+                    `actualizó el rol ${email} a ${newRole === 'miembro' || newRole === 'user' ? 'miembro' : 'administrador'} (previamente ${
+                        currentRole === 'miembro' || currentRole === 'user' ? 'miembro' : 'administrador'
+                    })`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },

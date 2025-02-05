@@ -68,7 +68,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             return;
         }
 
-        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false);
         setOnboardingAdminsChatReportID(adminsChatReportID);
         setOnboardingPolicyID(policyID);
     }, [isVsb, paidGroupPolicy, allPolicies, allPoliciesResult]);
@@ -183,7 +183,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         setOnboardingAdminsChatReportID();
                         setOnboardingPolicyID();
                     });
-                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID);
+                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, onboardingAdminsChatReportID);
                 }}
                 pressOnEnter
             />
