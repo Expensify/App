@@ -204,6 +204,7 @@ type GetOptionsConfig = {
     recentAttendees?: Attendee[];
     shouldSeparateWorkspaceChat?: boolean;
     shouldSeparateSelfDMChat?: boolean;
+    excludeHiddenReports?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -618,7 +619,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageTextFromReport = translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                     displayName: formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails)),
-                    policyName: getPolicyName(report, false, policy),
+                    policyName: getPolicyName({report, policy}),
                 });
                 break;
             }
@@ -654,7 +655,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         );
         lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
     } else if (isReimbursementQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementQueuedActionMessage(lastReportAction, report);
+        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
     } else if (isReimbursementDeQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
@@ -664,7 +665,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
     } else if (isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(report?.reportID, lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
@@ -823,10 +824,10 @@ function createOption(
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails ? getDisplayNameForParticipant(accountIDs.at(0)) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = getDisplayNameForParticipant(accountIDs.at(0)) || formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -873,7 +874,7 @@ function getReportOption(participant: Participant): OptionData {
         option.text = getReportName(report);
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
-        option.text = getPolicyName(report);
+        option.text = getPolicyName({report});
         option.alternateText = translateLocal('workspace.common.workspace');
 
         if (report?.policyID) {
@@ -915,7 +916,7 @@ function getPolicyExpenseReportOption(participant: Participant | OptionData): Op
     );
 
     // Update text & alternateText because createOption returns workspace name only if report is owned by the user
-    option.text = getPolicyName(expenseReport);
+    option.text = getPolicyName({report: expenseReport});
     option.alternateText = translateLocal('workspace.common.workspace');
     option.selected = participant.selected;
     option.isSelected = participant.selected;
@@ -1090,7 +1091,7 @@ function orderReportOptionsWithSearch(
                 }
 
                 if (option.isSelfDM) {
-                    return 0;
+                    return -1;
                 }
                 if (preferRecentExpenseReports && !!option?.lastIOUCreationDate) {
                     return 1;
@@ -1431,6 +1432,7 @@ function getValidOptions(
         selectedOptions = [],
         shouldSeparateSelfDMChat = false,
         shouldSeparateWorkspaceChat = false,
+        excludeHiddenReports = false,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1490,7 +1492,14 @@ function getValidOptions(
         for (let i = 0; i < options.personalDetails.length; i++) {
             // eslint-disable-next-line rulesdir/prefer-at
             const detail = options.personalDetails[i];
-            if (!detail?.login || !detail.accountID || !!detail?.isOptimisticPersonalDetail || (!includeDomainEmail && Str.isDomainEmail(detail.login))) {
+            if (
+                !detail?.login ||
+                !detail.accountID ||
+                !!detail?.isOptimisticPersonalDetail ||
+                (!includeDomainEmail && Str.isDomainEmail(detail.login)) ||
+                // Exclude the setup specialist from the list of personal details as it's a fallback if guide is not assigned
+                detail?.login === CONST.SETUP_SPECIALIST_LOGIN
+            ) {
                 continue;
             }
 
@@ -1524,6 +1533,10 @@ function getValidOptions(
         recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
     }
 
+    if (excludeHiddenReports) {
+        recentReportOptions = recentReportOptions.filter((option) => option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -1554,6 +1567,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeTasks: true,
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
+        excludeHiddenReports: true,
     });
     const orderedOptions = orderOptions(optionList);
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
