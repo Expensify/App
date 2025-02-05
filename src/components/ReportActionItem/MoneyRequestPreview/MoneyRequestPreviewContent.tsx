@@ -235,7 +235,7 @@ function MoneyRequestPreviewContent({
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
 
-        if (hasPendingRTERViolation(getTransactionViolations(transactionID, transactionViolations))) {
+        if (hasPendingRTERViolation(getTransactionViolations(transactionID))) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
         }
 
