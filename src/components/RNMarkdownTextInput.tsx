@@ -1,7 +1,7 @@
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
 import {MarkdownTextInput, parseExpensiMark} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect} from 'react';
+import React, {forwardRef, useCallback} from 'react';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
@@ -33,11 +33,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
     const theme = useTheme();
 
     const {mentionsList, currentUserMention} = useShortMentionsList();
-    const mentionsSharedVal = useSharedValue<string[]>([]);
-
-    useEffect(() => {
-        mentionsSharedVal.set(mentionsList);
-    }, [mentionsList, mentionsSharedVal]);
+    const mentionsSharedVal = useSharedValue<string[]>(mentionsList);
 
     // We accept parser passed down as a prop or use ExpensiMark if parser is not defined
     const parserWorklet = useCallback(
