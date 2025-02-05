@@ -1,0 +1,38 @@
+name: Validate actor
+description: Validate the the current actor has the permissions they need. By default, it validates that the user has write permissions.
+
+inputs:
+  # If `REQUIRE_APP_DEPLOYER` is true, we check that they're an app deployer. If not, we just check that they have write access.
+  REQUIRE_APP_DEPLOYER:
+    description: Should this action require the actor to be an app deployer?
+    required: false
+    default: true
+
+runs:
+  using: composite
+  env:
+    GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+  steps:
+    - name: Get user permissions
+      if: ${{ !fromJSON(inputs.REQUIRE_APP_DEPLOYER) }}
+      id: getUserPermissions
+      run: |
+        PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')
+        if [[ "$PERMISSION" == 'write' || "$PERMISSION" == 'admin' ]]; then
+          echo "::notice::✅ Actor ${{ github.actor }} has write permission"
+        else
+          echo "::error::❌ Actor ${{ github.actor }} does not have write permission"
+          exit 1
+        fi
+
+    - name: Check if user is deployer
+      id: isUserDeployer
+      if: fromJSON(inputs.REQUIRE_APP_DEPLOYER)
+      run: |
+        if [[ "${{ github.actor }}" == "OSBotify" || "${{ github.actor }}" == "os-botify[bot]" ]] || \
+            gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
+          echo "::notice::✅ Actor ${{ github.actor }} is an app deployer"
+        else
+          echo "::error::❌ Actor ${{ github.actor }} is not an app deployer"
+          exit 1
+        fi
