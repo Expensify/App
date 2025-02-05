@@ -416,7 +416,7 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_MANAGER_MCTEST: OnyxCollection<Report> = {
         ...REPORTS,
-        '16': {
+        '18': {
             lastReadTime: '2021-01-14 11:25:39.302',
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,

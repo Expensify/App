@@ -1428,6 +1428,7 @@ function getValidOptions(
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
+        [CONST.EMAIL.MANAGER_MCTEST]: true,
         ...excludeLogins,
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
