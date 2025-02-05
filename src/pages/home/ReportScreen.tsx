@@ -745,7 +745,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // we want to do this destinguish between a normal navigation and a delete behavior 
+        // we want to do this destinguish between normal navigation and delete behavior
         if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
             setIsNavigatingToDeletedAction(true);
             return;
