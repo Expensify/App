@@ -3,7 +3,7 @@ import type {TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import ImageSVG from './ImageSVG';

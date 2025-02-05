@@ -13,7 +13,7 @@ declare module '*.jpg' {
 }
 
 declare module '*.svg' {
-    import type {IconAsset} from './utils/IconAsset';
+    import type IconAsset from './utils/IconAsset';
 
     const content: IconAsset;
     export default content;

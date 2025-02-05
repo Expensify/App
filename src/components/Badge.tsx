@@ -5,7 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';

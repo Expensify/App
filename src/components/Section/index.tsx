@@ -15,7 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import IconSection from './IconSection';
 
 const CARD_LAYOUT = {

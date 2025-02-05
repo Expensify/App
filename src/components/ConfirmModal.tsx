@@ -4,7 +4,7 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import ConfirmContent from './ConfirmContent';
 import Modal from './Modal';
 import type BaseModalProps from './Modal/types';

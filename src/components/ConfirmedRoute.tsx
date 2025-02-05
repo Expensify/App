@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken, Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';

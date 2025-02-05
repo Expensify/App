@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type Social = {
     iconURL: IconAsset;

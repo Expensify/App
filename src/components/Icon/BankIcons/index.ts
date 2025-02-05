@@ -5,7 +5,7 @@ import {getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils'
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BankIcon} from '@src/types/onyx/Bank';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 /**
  * It's a wrapper type for a bank icon asset. Bank icons are imported using require(), on the web platform after importing in this way it's necessary to use the property "default"

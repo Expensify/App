@@ -9,7 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
 import type CONST from '@src/CONST';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;

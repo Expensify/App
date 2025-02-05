@@ -28,7 +28,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import SearchAutocompleteList from './SearchAutocompleteList';
 import SearchInputSelectionWrapper from './SearchInputSelectionWrapper';
 import {buildSubstitutionsMap} from './SearchRouter/buildSubstitutionsMap';

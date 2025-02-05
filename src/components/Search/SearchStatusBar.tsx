@@ -15,7 +15,7 @@ import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {useSearchContext} from './SearchContext';
 import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TripSearchStatus} from './types';
 

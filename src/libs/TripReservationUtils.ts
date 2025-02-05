@@ -2,7 +2,7 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     switch (reservationType) {

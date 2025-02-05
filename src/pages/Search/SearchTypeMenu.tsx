@@ -34,7 +34,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 

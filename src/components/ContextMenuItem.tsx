@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';

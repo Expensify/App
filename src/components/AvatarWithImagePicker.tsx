@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Avatar from './Avatar';

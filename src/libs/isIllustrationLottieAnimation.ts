@@ -1,5 +1,5 @@
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 function isIllustrationLottieAnimation(illustration: DotLottieAnimation | IconAsset | undefined): illustration is DotLottieAnimation {
     if (typeof illustration === 'number' || !illustration) {

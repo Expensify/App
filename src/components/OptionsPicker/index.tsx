@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TranslationPaths} from '@src/languages/types';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import OptionItem from './OptionItem';
 
 type OptionsPickerItem<TKey extends string> = {

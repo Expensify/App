@@ -1,7 +1,7 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type MoneyRequestPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */

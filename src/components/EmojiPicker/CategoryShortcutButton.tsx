@@ -10,7 +10,7 @@ import getButtonState from '@libs/getButtonState';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type CategoryShortcutButtonProps = {
     /** The emoji code of the category header */

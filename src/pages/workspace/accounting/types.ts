@@ -4,7 +4,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
 

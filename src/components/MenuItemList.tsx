@@ -4,7 +4,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';

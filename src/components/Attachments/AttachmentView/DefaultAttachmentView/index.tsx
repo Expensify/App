@@ -8,7 +8,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {IconAsset} from '@src/types/utils/ImageTypes';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type DefaultAttachmentViewProps = {
     /** The name of the file */
