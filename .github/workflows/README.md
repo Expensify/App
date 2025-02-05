@@ -97,6 +97,11 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
 1. `BROWSERSTACK` - Used to access Browserstack's API
 
+We use 1Password for many secrets and in general use two different actions from 1Password to fetch secrets:
+
+1. `1password/install-cli-action` - This action is used to install 1Password cli `op` and is used to grab **files** using the `op read` command.
+1. `1password/load-secrets-action` - This action is used to fetch **strings** from 1Password.
+
 ### Important note about Secrets
 Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).
 
