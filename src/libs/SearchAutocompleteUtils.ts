@@ -179,8 +179,8 @@ function parseForLiveMarkdown(
         .map((range) => {
             let type = 'mention-user';
 
-            if (range.key === 'syntax') {
-                type = 'syntax';
+            if (range.key === CONST.SEARCH.SYNTAX_RANGE_NAME) {
+                type = CONST.SEARCH.SYNTAX_RANGE_NAME;
             }
 
             if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.get().includes(range.value) || range.value === userDisplayName)) {

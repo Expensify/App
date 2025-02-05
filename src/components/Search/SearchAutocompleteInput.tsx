@@ -1,4 +1,3 @@
-import isEqual from 'lodash/isEqual';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -100,7 +99,6 @@ function SearchAutocompleteInput(
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [map, setMap] = useState({});
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const currencyAutocompleteList = Object.keys(currencyList ?? {});
@@ -121,13 +119,6 @@ function SearchAutocompleteInput(
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
-
-    useEffect(() => {
-        if (isEqual(map, substitutionMap)) {
-            return;
-        }
-        setMap(substitutionMap);
-    }, [substitutionMap, map]);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -167,9 +158,9 @@ function SearchAutocompleteInput(
         (input: string) => {
             'worklet';
 
-            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', map, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
+            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
         },
-        [currentUserPersonalDetails.displayName, map, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
+        [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};

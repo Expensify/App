@@ -1,11 +1,11 @@
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteQueryRangeKey} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 
 type SubstitutionMap = Record<string, string>;
 
-const getSubstitutionMapKey = (filterKey: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_KEY, value: string) => `${filterKey}:${value}`;
+const getSubstitutionMapKey = (filterKey: SearchAutocompleteQueryRangeKey, value: string) => `${filterKey}:${value}`;
 
 /**
  * Given a plaintext query and a SubstitutionMap object, this function will return a transformed query where:
@@ -22,7 +22,7 @@ const getSubstitutionMapKey = (filterKey: SearchFilterKey | typeof CONST.SEARCH.
 function getQueryWithSubstitutions(changedQuery: string, substitutions: SubstitutionMap) {
     const parsed = parse(changedQuery) as {ranges: SearchAutocompleteQueryRange[]};
 
-    const searchAutocompleteQueryRanges = parsed.ranges.filter((range) => range.key !== 'syntax');
+    const searchAutocompleteQueryRanges = parsed.ranges.filter((range) => range.key !== CONST.SEARCH.SYNTAX_RANGE_NAME);
 
     if (searchAutocompleteQueryRanges.length === 0) {
         return changedQuery;

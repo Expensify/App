@@ -6189,7 +6189,7 @@ const CONST = {
             LOWER_THAN: 'lt',
             LOWER_THAN_OR_EQUAL_TO: 'lte',
         },
-        SYNTAX_KEY: 'syntax',
+        SYNTAX_RANGE_NAME: 'syntax',
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
