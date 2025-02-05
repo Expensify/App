@@ -42,6 +42,7 @@ import type SCREENS from '@src/SCREENS';
 import type {InputID} from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ConnectedVerifiedBankAccount from './ConnectedVerifiedBankAccount';
 import NonUSDVerifiedBankAccountFlow from './NonUSD/NonUSDVerifiedBankAccountFlow';
 import USDVerifiedBankAccountFlow from './USD/USDVerifiedBankAccountFlow';
 import getFieldsForStep from './USD/utils/getFieldsForStep';
@@ -175,8 +176,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         if (!isPreviousPolicy) {
             return;
         }
+
         setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
-    }, [getShouldShowContinueSetupButtonValue, isPreviousPolicy]);
+    }, [achData?.currentStep, getShouldShowContinueSetupButtonValue, isPreviousPolicy]);
 
     useEffect(
         () => {
@@ -405,6 +407,15 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 requestorStepRef={requestorStepRef}
                 onfidoToken={onfidoToken}
                 setUSDBankAccountStep={setUSDBankAccountStep}
+            />
+        );
+    }
+
+    if (achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
+        return (
+            <ConnectedVerifiedBankAccount
+                reimbursementAccount={reimbursementAccount}
+                onBackButtonPress={goBack}
             />
         );
     }

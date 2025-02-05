@@ -8,7 +8,6 @@ import BeneficialOwnersStep from './BeneficialOwnerInfo/BeneficialOwnersStep';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
-import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
 import RequestorStep from './Requestor/RequestorStep';
 
 type USDVerifiedBankAccountFlowProps = {
@@ -48,13 +47,6 @@ function USDVerifiedBankAccountFlow({USDBankAccountStep, policyID = '', onBackBu
             return <CompleteVerification onBackButtonPress={onBackButtonPress} />;
         case CONST.BANK_ACCOUNT.STEP.VALIDATION:
             return <ConnectBankAccount onBackButtonPress={onBackButtonPress} />;
-        case CONST.BANK_ACCOUNT.STEP.ENABLE:
-            return (
-                <EnableBankAccount
-                    reimbursementAccount={reimbursementAccount}
-                    onBackButtonPress={onBackButtonPress}
-                />
-            );
         default:
             return null;
     }

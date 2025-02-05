@@ -8,7 +8,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
-import EnableBankAccount from '@pages/ReimbursementAccount/USD/EnableBankAccount/EnableBankAccount';
+import ConnectedVerifiedBankAccount from '@pages/ReimbursementAccount/ConnectedVerifiedBankAccount';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
@@ -33,7 +33,7 @@ function ConnectBankAccount({onBackButtonPress}: ConnectBankAccountProps) {
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
     if (bankAccountState === BankAccount.STATE.OPEN) {
         return (
-            <EnableBankAccount
+            <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={onBackButtonPress}
             />
