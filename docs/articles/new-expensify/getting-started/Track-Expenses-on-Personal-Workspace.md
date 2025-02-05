@@ -137,9 +137,9 @@ You can connect your bank account(s) and corporate credit card(s) to import and 
 To add your bank account: 
 
    <li>Click <b>Settings</b>.</li>
-   <li>Click  <b>Workspaces</b> and select your workspace 
-   <li>Enable <b> Make or track payments</b>.</li>
-   <li>Click  <b>Connect bank account</b> 
+   <li>Click <b>Workspaces</b> and select your workspace</li>
+   <li>Enable <b>Make or track payments</b>.</li>
+   <li>Click <b>Connect bank account</b></li>
 
 Note: You can only add corporate cards on a Control plan. 
 
