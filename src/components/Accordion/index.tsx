@@ -50,9 +50,10 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
                 easing: Easing.inOut(Easing.quad),
             },
             (finished) => {
-                if (finished) {
-                    isAnimating.set(false);
+                if (!finished) {
+                    return;
                 }
+                isAnimating.set(false);
             },
         );
     });
