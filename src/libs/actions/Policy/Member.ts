@@ -824,6 +824,32 @@ function joinAccessiblePolicy(policyID: string) {
 }
 
 /**
+ * Ask the policy admin to add member to the selected private domain workspace based on policyID
+ */
+
+function askToJoinPolicy(policyID: string) {
+    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.ASK_TO_JOIN_POLICY, {policyID}, {optimisticData, failureData});
+}
+
+/**
  * Removes an error after trying to delete a member
  */
 function clearDeleteMemberError(policyID: string, accountID: number) {
@@ -1022,6 +1048,7 @@ export {
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
     joinAccessiblePolicy,
+    askToJoinPolicy,
     acceptJoinRequest,
     declineJoinRequest,
     isApprover,
