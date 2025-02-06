@@ -2,24 +2,23 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {buildCardFeedsData, buildIndividualCardsData} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
-import type {CardList, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 
-jest.mock('@libs/PolicyUtils', () => {
-    return {
-        getPolicy(policyID: string) {
-            switch (policyID) {
-                case '1':
-                    return {name: ''};
-                case '2':
-                    return {name: 'test1'};
-                case '3':
-                    return {name: 'test2'};
-                default:
-                    return {name: ''};
-            }
-        },
-    };
+// Use jest.spyOn to mock the implementation
+jest.spyOn(PolicyUtils, 'getPolicy').mockImplementation((policyID?: string): Policy => {
+    switch (policyID) {
+        case '1':
+            return {name: ''} as Policy;
+        case '2':
+            return {name: 'test1'} as Policy;
+        case '3':
+            return {name: 'test2'} as Policy;
+        default:
+            return {name: ''} as Policy;
+    }
 });
 
 const workspaceCardFeeds = {
@@ -157,14 +156,62 @@ const cardList = {
     },
 };
 
+const workspaceCardFeedsHiddenOnSearch = {
+    'cards_11111_Expensify Card': {
+        '21534278': {
+            accountID: 1,
+            bank: 'Expensify Card',
+            cardID: 21534278,
+            domainName: 'expensify-policy1.exfy',
+            nameValuePairs: {cardTitle: 'Not Issued card'},
+            isVirtual: false,
+            lastFourPAN: '',
+            state: 2, // STATE_NOT_ISSUED
+        },
+        '21539025': {
+            accountID: 1,
+            bank: 'Expensify Card',
+            cardID: 21539025,
+            domainName: 'expensify-policy1.exfy',
+            nameValuePairs: {cardTitle: 'Not activated card'},
+            isVirtual: false,
+            lastFourPAN: '',
+            state: 4, // NOT_ACTIVATED
+        },
+    },
+};
+
+const cardListHiddenOnSearch = {
+    '21534538': {
+        accountID: 1,
+        bank: 'Expensify Card',
+        cardID: 21534538,
+        domainName: 'expensify-policy1.exfy',
+        nameValuePairs: {cardTitle: 'Not Issued card'},
+        isVirtual: false,
+        lastFourPAN: '',
+        state: 2, // STATE_NOT_ISSUED
+    },
+    '21534525': {
+        accountID: 1,
+        bank: 'Expensify Card',
+        cardID: 21534525,
+        domainName: 'expensify-policy1.exfy',
+        nameValuePairs: {cardTitle: 'Not activated card'},
+        isVirtual: false,
+        lastFourPAN: '',
+        state: 4, // NOT_ACTIVATED
+    },
+};
+
 const domainFeedDataMock = {testDomain: {domainName: 'testDomain', bank: 'Expensify Card', correspondingCardIDs: ['11111111']}};
 
 const translateMock = jest.fn();
 
 describe('buildIndividualCardsData', () => {
-    const result = buildIndividualCardsData(workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>, cardList as unknown as CardList, {}, ['21588678']);
-
     it("Builds all individual cards and doesn't generate duplicates", () => {
+        const result = buildIndividualCardsData(workspaceCardFeeds as unknown as Record<string, WorkspaceCardsList | undefined>, cardList as unknown as CardList, {}, ['21588678']);
+
         expect(result.unselected.length + result.selected.length).toEqual(11);
 
         // Check if Expensify card was built correctly
@@ -180,6 +227,15 @@ describe('buildIndividualCardsData', () => {
             lastFourPAN: '1601',
             isSelected: false,
         });
+    });
+    it("Doesn't include physical cards that haven't been issued or haven't been activated", () => {
+        const result = buildIndividualCardsData(
+            workspaceCardFeedsHiddenOnSearch as unknown as Record<string, WorkspaceCardsList | undefined>,
+            cardListHiddenOnSearch as unknown as CardList,
+            {},
+            [],
+        );
+        expect(result.unselected.length + result.selected.length).toEqual(0);
     });
 });
 

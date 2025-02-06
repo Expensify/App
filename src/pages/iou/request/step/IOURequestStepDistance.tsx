@@ -177,7 +177,7 @@ function IOURequestStepDistance({
 
         return (
             iouType !== CONST.IOU.TYPE.SPLIT &&
-            !isArchivedReport(report, reportNameValuePairs) &&
+            !isArchivedReport(reportNameValuePairs) &&
             !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
     }, [report, skipConfirmation, policy, reportNameValuePairs, iouType]);
@@ -185,10 +185,8 @@ function IOURequestStepDistance({
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             buttonText = translate('iou.split');
-        } else if (iouType === CONST.IOU.TYPE.TRACK) {
-            buttonText = translate('iou.trackExpense');
         } else {
-            buttonText = translate('iou.submitExpense');
+            buttonText = translate('iou.createExpense');
         }
     }
 
@@ -309,7 +307,7 @@ function IOURequestStepDistance({
         // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-        if (report?.reportID && !isArchivedReport(report, reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+        if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
             const selectedParticipants = setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -322,34 +320,28 @@ function IOURequestStepDistance({
                 const participant = participants.at(0);
                 if (iouType === CONST.IOU.TYPE.TRACK && participant) {
                     playSound(SOUNDS.DONE);
-                    trackExpense(
+                    trackExpense({
                         report,
-                        0,
-                        transaction?.currency ?? 'USD',
-                        transaction?.created ?? '',
-                        translate('iou.fieldPending'),
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participant,
-                        '',
-                        false,
-                        {},
-                        '',
-                        '',
-                        '',
-                        0,
-                        false,
-                        policy,
-                        undefined,
-                        undefined,
-                        undefined,
-                        getValidWaypoints(waypoints, true),
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        customUnitRateID,
-                    );
+                        isDraftPolicy: false,
+                        participantParams: {
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            participant,
+                        },
+                        policyParams: {
+                            policy,
+                        },
+                        transactionParams: {
+                            amount: 0,
+                            currency: transaction?.currency ?? 'USD',
+                            created: transaction?.created ?? '',
+                            merchant: translate('iou.fieldPending'),
+                            receipt: {},
+                            billable: false,
+                            validWaypoints: getValidWaypoints(waypoints, true),
+                            customUnitRateID,
+                        },
+                    });
                     return;
                 }
 
@@ -537,6 +529,7 @@ function IOURequestStepDistance({
                                 waypoints={waypoints}
                                 navigateToWaypointEditPage={navigateToWaypointEditPage}
                                 transaction={transaction}
+                                policy={policy}
                             />
                         }
                     />

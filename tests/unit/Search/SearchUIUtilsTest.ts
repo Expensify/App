@@ -22,6 +22,7 @@ const searchResults: OnyxTypes.SearchResults = {
             },
         },
         [`policy_${policyID}`]: {
+            id: 'test',
             approvalMode: 'OPTIONAL',
             autoReimbursement: {
                 limit: 0,
@@ -126,7 +127,7 @@ const searchResults: OnyxTypes.SearchResults = {
             isFromOneTransactionReport: true,
             managerID: accountID,
             description: '',
-            hasViolation: false,
+            hasViolation: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
