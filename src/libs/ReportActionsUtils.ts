@@ -1779,7 +1779,7 @@ function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useNa
     }
     const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : originalMessage?.email ?? '';
     const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
-    return translateLocal('report.actions.type.employeeLeft', {nameOrEmail: formattedNameOrEmail});
+    return translateLocal('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
 }
 
 function isPolicyChangeLogDeleteMemberMessage(
