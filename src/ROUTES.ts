@@ -381,7 +381,7 @@ const ROUTES = {
             }
 
             const sourceParam = `?source=${encodeURIComponent(restParams.source)}`;
-            const typeParam = type ? `$type=${type as string}` : '';
+            const typeParam = type ? `&type=${type as string}` : '';
             const reportIDParam = reportID ? `&reportID=${reportID}` : '';
             const accountIDParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
