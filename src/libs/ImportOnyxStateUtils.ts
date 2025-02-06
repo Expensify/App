@@ -1,11 +1,10 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {UnknownRecord} from 'type-fest';
-import {KEYS_TO_PRESERVE} from '@libs/actions/App';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+import {clearOnyxStateBeforeImport, importOnyxCollectionState, importOnyxRegularState} from './actions/ImportOnyxState';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
 const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.PREFERRED_THEME];
@@ -81,19 +80,9 @@ function importState(transformedState: OnyxValues): Promise<void> {
         }
     });
 
-    return Onyx.clear(KEYS_TO_PRESERVE)
-        .then(() => {
-            const collectionPromises = Array.from(collectionsMap.entries()).map(([baseKey, items]) => {
-                return items ? Onyx.setCollection(baseKey, items) : Promise.resolve();
-            });
-            return Promise.all(collectionPromises);
-        })
-        .then(() => {
-            if (Object.keys(regularState).length > 0) {
-                return Onyx.multiSet(regularState as Partial<OnyxValues>);
-            }
-            return Promise.resolve();
-        });
+    return clearOnyxStateBeforeImport()
+        .then(() => importOnyxCollectionState(collectionsMap))
+        .then(() => importOnyxRegularState(regularState));
 }
 
 export {cleanAndTransformState, importState, transformNumericKeysToArray};
