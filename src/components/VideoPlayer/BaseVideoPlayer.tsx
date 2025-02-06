@@ -466,14 +466,16 @@ function BaseVideoPlayer({
                                             resizeMode={resizeMode as ResizeMode}
                                             isLooping={isLooping}
                                             onReadyForDisplay={(e) => {
-                                                if (isCurrentlyURLSet && !isUploading) {
-                                                    playVideo();
-                                                }
                                                 onVideoLoaded?.(e);
                                                 if (shouldUseNewRate) {
                                                     return;
                                                 }
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
+                                            }}
+                                            onLoad={() => {
+                                                if (isCurrentlyURLSet && !isUploading) {
+                                                    playVideo();
+                                                }
                                             }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
