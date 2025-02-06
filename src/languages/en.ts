@@ -156,6 +156,7 @@ import type {
     StatementTitleParams,
     StepCounterParams,
     StripePaidParams,
+    SubmitsToParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -1109,6 +1110,7 @@ const translations = {
         }),
         dates: 'Dates',
         rates: 'Rates',
+        submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',

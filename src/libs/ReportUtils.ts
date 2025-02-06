@@ -692,6 +692,10 @@ type Thread = {
     parentReportActionID: string;
 } & Report;
 
+type GetChatRoomSubtitleConfig = {
+    isCreateExpenseFlow?: boolean;
+};
+
 type GetPolicyNameParams = {
     report: OnyxInputOrEntry<Report>;
     returnEmptyIfNotFound?: boolean;
@@ -4551,7 +4555,7 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
+function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubtitleConfig = {isCreateExpenseFlow: false}): string | undefined {
     if (isChatThread(report)) {
         return '';
     }
@@ -4572,7 +4576,15 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        return translateLocal('workspace.common.workspace');
+        const submitToAccountID = getSubmitToAccountID(getPolicy(report?.policyID), report);
+        const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+        const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
+
+        if (!subtitle || !config.isCreateExpenseFlow) {
+            return translateLocal('workspace.common.workspace');
+        }
+
+        return translateLocal('iou.submitsTo', {name: subtitle ?? ''});
     }
     if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';
