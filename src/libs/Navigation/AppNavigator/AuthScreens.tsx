@@ -1,18 +1,23 @@
 import {findFocusedRoute, useNavigation} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {NativeModules, Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -42,6 +47,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
+import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -74,6 +80,7 @@ import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
+import Overlay from './Navigators/Overlay';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import useRootNavigatorOptions from './useRootNavigatorOptions';
@@ -243,12 +250,13 @@ const modalScreenListenersWithCancelSearch = {
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const rootNavigatorOptions = useRootNavigatorOptions();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
+    const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
@@ -463,9 +471,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         },
     };
 
+    const shouldShowHelpPanel = isExtraLargeScreenWidth && !!sidePanel;
+
     return (
         <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
-            <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
+            <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout, shouldShowHelpPanel)}>
                 <RootStack.Navigator screenOptions={rootNavigatorOptions.centralPaneNavigator}>
                     <RootStack.Screen
                         name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
@@ -646,6 +656,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 <SearchRouterModal />
             </View>
             <ActiveGuidesEventListener />
+            <HelpPanel />
         </ComposeProviders>
     );
 }
@@ -669,3 +680,80 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     },
 })(AuthScreensMemoized);
+
+function HelpPanel() {
+    const theme = useTheme();
+    const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
+    const styles = useThemeStyles();
+    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate} = useLocalize();
+
+    if (!sidePanel) {
+        return null;
+    }
+
+    const onClose = () => {
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, false);
+    };
+
+    return (
+        <>
+            {!isExtraLargeScreenWidth && (
+                <View
+                    style={{
+                        position: 'fixed',
+                        // We need to stretch the overlay to cover the sidebar and the translate animation distance.
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        right: 0,
+                        backgroundColor: theme.overlay,
+                        opacity: 0.72,
+                    }}
+                >
+                    <PressableWithoutFeedback
+                        style={[styles.draggableTopBar, styles.boxShadowNone]}
+                        onPress={onClose}
+                        accessibilityLabel={translate('common.close')}
+                        role={CONST.ROLE.BUTTON}
+                        id={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
+                        tabIndex={-1}
+                    />
+                    <PressableWithoutFeedback
+                        style={[styles.flex1, styles.boxShadowNone]}
+                        onPress={onClose}
+                        accessibilityLabel={translate('common.close')}
+                        role={CONST.ROLE.BUTTON}
+                        noDragArea
+                        id={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
+                        tabIndex={-1}
+                    />
+                </View>
+            )}
+            <View
+                style={[
+                    {
+                        width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+                        height: '100%',
+                        backgroundColor: theme.modalBackground,
+                        right: 0,
+                        position: 'fixed',
+                    },
+                    isExtraLargeScreenWidth && {borderLeftWidth: 1, borderLeftColor: theme.border},
+                ]}
+            >
+                <PressableWithFeedback
+                    onPress={onClose}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.close')}
+                >
+                    <HeaderWithBackButton
+                        title="Help"
+                        onBackButtonPress={onClose}
+                    />
+                </PressableWithFeedback>
+            </View>
+        </>
+    );
+}
