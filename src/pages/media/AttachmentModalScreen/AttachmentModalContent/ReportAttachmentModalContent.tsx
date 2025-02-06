@@ -126,6 +126,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                       // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
                       source: Number(params.source) || params.source,
                       type: params.type,
+                      report,
                       accountID,
                       shouldShowNotFoundPage: !params.file && !isLoadingApp && params.type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
                       allowDownload: true,
@@ -134,7 +135,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                       originalFileName: params.fileName ?? '',
                       fallbackRoute: ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID),
                   },
-        [accountID, isLoadingApp, params, report?.reportID],
+        [accountID, isLoadingApp, params, report],
     );
 
     const contentProps = useMemo(
@@ -153,7 +154,6 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                 submitRef,
                 onCarouselAttachmentChange,
                 onPdfLoadError,
-                onModalHide,
                 onInvalidReasonModalHide,
                 onUploadFileValidated,
             } satisfies Partial<AttachmentModalBaseContentProps>),
@@ -180,8 +180,9 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                 isOverlayModalVisible,
                 closeConfirmModal,
                 onModalClose,
+                onModalHide,
             } satisfies AttachmentModalWrapperWrapperProps),
-        [closeConfirmModal, isOverlayModalVisible, modalType, onModalClose],
+        [closeConfirmModal, isOverlayModalVisible, modalType, onModalClose, onModalHide],
     );
 
     // eslint-disable-next-line react-compiler/react-compiler
