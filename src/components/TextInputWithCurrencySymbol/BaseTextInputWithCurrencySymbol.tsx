@@ -4,6 +4,7 @@ import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Text from '@src/components/Text';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
@@ -22,6 +23,7 @@ function BaseTextInputWithCurrencySymbol(
         isCurrencyPressable = true,
         hideCurrencySymbol = false,
         extraSymbol,
+        isNegative = false,
         style,
         ...rest
     }: BaseTextInputWithCurrencySymbolProps,
@@ -67,9 +69,12 @@ function BaseTextInputWithCurrencySymbol(
         />
     );
 
+    const negativeSymbol = <Text style={[styles.iouAmountText]}>-</Text>;
+
     if (isCurrencySymbolLTR) {
         return (
             <>
+                {isNegative && negativeSymbol}
                 {currencySymbolButton}
                 {amountTextInput}
                 {extraSymbol}
@@ -79,6 +84,7 @@ function BaseTextInputWithCurrencySymbol(
 
     return (
         <>
+            {isNegative && negativeSymbol}
             {amountTextInput}
             {currencySymbolButton}
             {extraSymbol}
