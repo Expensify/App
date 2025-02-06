@@ -13,7 +13,7 @@ const {
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
-    WORKSPACE_EXPENSE,
+    WORKSPACE_EXPENSE_SUBMIT,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -141,13 +141,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         shouldShow: () => false,
         isModalTooltip: false,
     },
-    [WORKSPACE_EXPENSE]: {
+    [WORKSPACE_EXPENSE_SUBMIT]: {
         content: [
             {text: 'productTrainingTooltip.workspaceExpenseTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.workspaceExpenseTooltip.part2', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(WORKSPACE_EXPENSE),
-        name: WORKSPACE_EXPENSE,
+        onHideTooltip: () => dismissProductTraining(WORKSPACE_EXPENSE_SUBMIT),
+        name: WORKSPACE_EXPENSE_SUBMIT,
         priority: 200,
         shouldShow: () => true,
         isModalTooltip: true,

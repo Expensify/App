@@ -54,7 +54,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACE_EXPENSE,
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACE_EXPENSE_SUBMIT,
         shouldShowEducationalTooltip,
     );
 

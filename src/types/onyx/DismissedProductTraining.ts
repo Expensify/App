@@ -10,7 +10,7 @@ const {
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
-    WORKSPACE_EXPENSE,
+    WORKSPACE_EXPENSE_SUBMIT,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -69,7 +69,7 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the workspaceExpenseTooltip product training tooltip, we store the timestamp here.
      */
-    [WORKSPACE_EXPENSE]: string;
+    [WORKSPACE_EXPENSE_SUBMIT]: string;
 };
 
 export default DismissedProductTraining;

@@ -98,7 +98,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
-            // We need to make an exception for the QAB tooltip because it is shown in a modal, otherwise it would be hidden if a modal is visible
+            // We need to make an exception if tooltip is shown in a modal, otherwise it would be hidden if a modal is visible
             if (!tooltipConfig.isModalTooltip && isModalVisible) {
                 return false;
             }
