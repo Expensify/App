@@ -959,6 +959,7 @@ function MoneyRequestConfirmationList({
                 }}
                 enterKeyEventListenerPriority={1}
                 useKeyboardShortcuts
+                isLoading={isConfirmed}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -967,6 +968,7 @@ function MoneyRequestConfirmationList({
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
+                isLoading={isConfirmed}
                 useKeyboardShortcuts
             />
         );
@@ -984,7 +986,7 @@ function MoneyRequestConfirmationList({
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, styles.ph1, styles.mb2, errorMessage]);
+    }, [isReadOnly, iouType, confirm, isConfirmed, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, styles.ph1, styles.mb2, errorMessage]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter
