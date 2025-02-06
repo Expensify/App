@@ -17,6 +17,7 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
+import getPlatform from '@libs/getPlatform';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
 import {getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
@@ -50,6 +51,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const estimatedListSize = useLHNEstimatedListSize();
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -238,37 +241,26 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            saveScrollIndex(route, Math.ceil(e.nativeEvent.contentOffset.y / estimatedItemSize));
+            saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
         },
         [estimatedItemSize, route, saveScrollIndex, saveScrollOffset],
     );
 
     const onLayout = useCallback(() => {
-        // eslint-disable-next-line no-console
-        console.group('[dev] LHNOptionsList onLayout');
         const offset = getScrollOffset(route);
-        console.debug('[dev] offset', offset);
 
-        if (!(offset && flashListRef.current)) {
-            console.debug('[dev] return');
-            // eslint-disable-next-line no-console
-            console.groupEnd();
+        if (!(offset && flashListRef.current) || isWebOrDesktop) {
             return;
         }
-
-        return;
 
         // We need to use requestAnimationFrame to make sure it will scroll properly on iOS.
         requestAnimationFrame(() => {
             if (!(offset && flashListRef.current)) {
                 return;
             }
-            console.debug('[dev] scrollToOffset');
-            // eslint-disable-next-line no-console
-            console.groupEnd();
-            flashListRef.current.scrollToOffset({offset, animated: false});
+            flashListRef.current.scrollToOffset({offset, animated: true});
         });
-    }, [route, flashListRef, getScrollOffset]);
+    }, [getScrollOffset, route, isWebOrDesktop]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
