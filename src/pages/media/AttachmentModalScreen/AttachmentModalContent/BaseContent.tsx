@@ -403,7 +403,7 @@ function AttachmentModalBaseContent({
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
     const {headerTitle, shouldShowDownloadButton, shouldShowThreeDotsButton} = useMemo(() => {
-        let headerTitleNew;
+        let headerTitleNew = headerTitleProp;
         let shouldShowDownloadButtonNew = false;
         let shouldShowThreeDotsButtonNew = false;
 
@@ -414,7 +414,20 @@ function AttachmentModalBaseContent({
         }
 
         return {headerTitle: headerTitleNew, shouldShowDownloadButton: shouldShowDownloadButtonNew, shouldShowThreeDotsButton: shouldShowThreeDotsButtonNew};
-    }, [allowDownload, isDownloadButtonReadyToBeShown, isLocalSource, isOffline, isOpen, isReceiptAttachment, report, shouldShowNotFoundPage, threeDotsMenuItems.length, translate, type]);
+    }, [
+        allowDownload,
+        headerTitleProp,
+        isDownloadButtonReadyToBeShown,
+        isLocalSource,
+        isOffline,
+        isOpen,
+        isReceiptAttachment,
+        report,
+        shouldShowNotFoundPage,
+        threeDotsMenuItems.length,
+        translate,
+        type,
+    ]);
 
     const context = useMemo(
         () => ({
