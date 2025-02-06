@@ -545,7 +545,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = ReportUtils.getParsedComment(title ?? report?.reportName ?? '')?.trim();
+    const reportName = title ? ReportUtils.getParsedComment(title)?.trim() : report?.reportName ?? '';
 
     // Description can be unset, so we default to an empty string if so
     const newDescription = typeof description === 'string' ? ReportUtils.getParsedComment(description) : report.description;
