@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import React, {useEffect} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
 import CONST from '@src/CONST';
