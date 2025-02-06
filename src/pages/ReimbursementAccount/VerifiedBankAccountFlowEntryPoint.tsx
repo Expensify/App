@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -94,6 +94,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const errors = reimbursementAccount?.errors ?? {};
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const optionPressed = useRef('');
 
     const contactMethod = account?.primaryLogin ?? '';
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
@@ -116,11 +117,36 @@ function VerifiedBankAccountFlowEntryPoint({
         updateReimbursementAccountDraft(bankAccountData);
     };
 
+    /**
+     * optionPressed ref indicates what user selected before modal to validate account was displayed
+     * In this hook we check if account was validated and then proceed with the option user selected
+     * note: non USD accounts only have manual option available
+     */
+    useEffect(() => {
+        if (!account?.validated) {
+            return;
+        }
+
+        if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL) {
+            if (hasForeignCurrency) {
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+                return;
+            }
+
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+        } else if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.PLAID) {
+            setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+            openPlaidView();
+        }
+    }, [account?.validated, hasForeignCurrency, setNonUSDBankAccountStep, setUSDBankAccountStep]);
+
     const handleConnectPlaid = () => {
         if (isPlaidDisabled) {
             return;
         }
         if (!account?.validated) {
+            optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
             toggleValidateCodeActionModal?.(true);
             return;
         }
@@ -132,21 +158,21 @@ function VerifiedBankAccountFlowEntryPoint({
     };
 
     const handleConnectManually = () => {
+        if (!account?.validated) {
+            optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+            toggleValidateCodeActionModal?.(true);
+            return;
+        }
+
         if (hasForeignCurrency) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             return;
         }
 
-        if (!account?.validated) {
-            toggleValidateCodeActionModal?.(true);
-            return;
-        }
         removeExistingBankAccountDetails();
         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
         setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     };
-
-    console.log(account);
 
     return (
         <ScreenWrapper
