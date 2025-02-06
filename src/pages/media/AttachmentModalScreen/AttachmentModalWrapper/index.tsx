@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useState} from 'react';
 import Modal from '@components/Modal';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent/BaseContent';
@@ -9,20 +10,14 @@ import type {AttachmentModalWrapperProps} from './types';
 
 function AttachmentModalWrapper({
     contentProps,
-    wrapperProps: {modalType, closeConfirmModal, setShouldLoadAttachment, isOverlayModalVisible, onModalClose: onModalCloseProp},
+    wrapperProps: {modalType, closeConfirmModal, setShouldLoadAttachment, isOverlayModalVisible, onModalClose},
     attachmentId,
 }: AttachmentModalWrapperProps) {
+    const attachmentsContext = useContext(AttachmentModalContext);
     const [isModalOpen, setIsModalOpen] = useState(true);
 
     const onSubmitAndClose = useCallback(() => {
         setIsModalOpen(false);
-    }, [setIsModalOpen]);
-
-    /**
-     *  open the modal
-     */
-    const openModal = useCallback(() => {
-        setIsModalOpen(true);
     }, [setIsModalOpen]);
 
     /**
@@ -35,37 +30,30 @@ function AttachmentModalWrapper({
     const closeModal = useCallback((shouldCallDirectly?: boolean) => {
         setIsModalOpen(false);
 
-        // TODO: figure this out
-        // if (typeof onModalClose === 'function') {
-        //     if (shouldCallDirectly) {
-        //         onModalClose();
-        //         return;
-        //     }
-        //     attachmentModalHandler.handleModalClose(onModalClose);
-        // }
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
-
-    const attachmentsContext = useContext(AttachmentModalContext);
-    const onModalClose = useCallback(() => {
         if (attachmentId) {
             attachmentsContext.removeAttachment(attachmentId);
         }
         Navigation.dismissModal();
         // This enables Composer refocus when the attachments modal is closed by the browser navigation
         ComposerFocusManager.setReadyToFocus();
-    }, [attachmentId, attachmentsContext]);
+
+        if (typeof onModalClose === 'function') {
+            if (shouldCallDirectly) {
+                onModalClose();
+                return;
+            }
+            attachmentModalHandler.handleModalClose(onModalClose);
+        }
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <Modal
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={isOverlayModalVisible ? () => closeConfirmModal?.() : () => closeModal?.()}
             isVisible={isModalOpen}
-            onModalHide={() => {
-                onModalClose();
-                onModalCloseProp?.();
-            }}
+            onModalHide={closeModal}
             onModalShow={() => {
                 // onModalShow?.();
                 setShouldLoadAttachment?.(true);
@@ -85,7 +73,6 @@ function AttachmentModalWrapper({
                 closeConfirmModal={closeConfirmModal}
                 isOpen={isModalOpen}
                 setIsModalOpen={setIsModalOpen}
-                openModal={openModal}
                 onSubmitAndClose={onSubmitAndClose}
             />
         </Modal>
