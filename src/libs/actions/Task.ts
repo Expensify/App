@@ -352,7 +352,7 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
             reportAction.childType === CONST.REPORT.TYPE.TASK &&
             reportAction?.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
             reportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-            ReportActionsUtils.getReportActionMessage(reportAction)?.isDeletedParentAction
+            !ReportActionsUtils.getReportActionMessage(reportAction)?.isDeletedParentAction
         ) {
             return true;
         }
@@ -1251,7 +1251,11 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
 }
 
-function clearTaskErrors(reportID: string) {
+function clearTaskErrors(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // Delete the task preview in the parent report

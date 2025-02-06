@@ -1,0 +1,129 @@
+name: Build and profile Android apps
+
+on:
+  workflow_dispatch:
+
+jobs:
+  buildHybridAppAndroid:
+    name: Build HybridApp Android
+    runs-on: ubuntu-latest-xl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Update submodule to match main
+        run: |
+          git submodule update --init --remote
+          cd Mobile-Expensify
+          git fetch
+          git checkout main
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'true'
+
+      - name: Run grunt build
+        run: |
+          cd Mobile-Expensify
+          npm run grunt:build:shared
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
+        working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+          op read "op://Mobile-Deploy-CI/New Expensify my-upload-key.keystore/my-upload-key.keystore" --force --out-file ./my-upload-key.keystore
+          
+          # Copy the keystore to the Android directory for Fullstory
+          cp ./upload-key.keystore Mobile-Expensify/Android 
+
+      - name: Load Android upload keystore credentials from 1Password
+        id: load-credentials
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+
+      - name: Build Android Release
+        working-directory: Mobile-Expensify/Android
+        run: |
+          ./gradlew --profile assembleRelease \
+            -Pandroid.injected.signing.store.file="./upload-key.keystore" \
+            -Pandroid.injected.signing.store.password=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          
+          echo "Printing Gradle profile report:"
+          # Print the latest generated profile report
+          PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+          cat "$PROFILE_REPORT"
+
+  buildStandaloneAndroid:
+    name: Build Standalone Android
+    runs-on: ubuntu-latest-xl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Configure MapBox SDK
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: 'false'
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
+        working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: op read "op://Mobile-Deploy-CI/New Expensify my-upload-key.keystore/my-upload-key.keystore" --force --out-file ./my-upload-key.keystore
+
+      - name: Build Android Release
+        working-directory: android
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
+        run: |
+          ./gradlew --profile assembleProductionRelease
+
+          echo "Printing Gradle profile report:"
+          # Print the latest generated profile report
+          PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+          cat "$PROFILE_REPORT"

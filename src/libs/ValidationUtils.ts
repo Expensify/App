@@ -169,6 +169,10 @@ function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
 }
 
+function isValidPaymentZipCode(zipCode: string): boolean {
+    return CONST.REGEX.ALPHANUMERIC_WITH_SPACE_AND_HYPHEN.test(zipCode);
+}
+
 function isValidSSNLastFour(ssnLast4: string): boolean {
     return CONST.REGEX.SSN_LAST_FOUR.test(ssnLast4);
 }
@@ -652,6 +656,7 @@ export {
     isValidDebitCard,
     isValidIndustryCode,
     isValidZipCode,
+    isValidPaymentZipCode,
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
