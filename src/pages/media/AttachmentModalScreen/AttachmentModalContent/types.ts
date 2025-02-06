@@ -21,5 +21,4 @@ type AttachmentModalContent = React.FC<{
     children: (props: AttachmentModalContentChildrenProps) => React.ReactElement;
 }>;
 
-// eslint-disable-next-line import/prefer-default-export
 export type {AttachmentModalContent, AttachmentModalContentChildrenProps, AttachmentModalWrapperWrapperProps};

@@ -45,82 +45,84 @@ import viewRef from '@src/types/utils/viewRef';
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
-
     /** Optional file object to be used for the attachment. If not passed in via props must be specified when modal is opened. */
     file?: FileObject;
-
     /** Optional original filename when uploading */
     originalFileName?: string;
-
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
-
     /** Determines if download Button should be shown or not */
     allowDownload?: boolean;
-
     /** Determines if the receipt comes from track expense action */
     isTrackExpenseAction?: boolean;
-
     /** Title shown in the header of the modal */
     headerTitle?: string;
-
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
-    //
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
     accountID?: number;
-
     /** The data is loading or not */
     isLoading?: boolean;
-
     /** Should display not found page or not */
     shouldShowNotFoundPage?: boolean;
-
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar?: boolean;
-
     /** Denotes whether it can be an icon (ex: SVG) */
     maybeIcon?: boolean;
-
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment?: boolean;
-
+    /** Fallback source (URL, SVG function) for the image shown. */
     fallbackSource?: AvatarSource;
-
+    /** Determines if the user can edit the receipt or not */
     canEditReceipt?: boolean;
-
+    /** Determines if the user can delete the receipt or not */
     canDeleteReceipt?: boolean;
-
+    /** Determines if the send button should be disabled or not */
     shouldDisableSendButton?: boolean;
-
+    /** The link of the attachment */
     attachmentLink?: string;
-
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: ((file: FileObject) => void) | null;
-
+    /** Fallback route when the modal is closed */
     fallbackRoute?: string;
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
+    /** Determines if the attachment is invalid or not */
     isAttachmentInvalid?: boolean;
+    /** Determines if the attachment is invalid or not */
     shouldLoadAttachment?: boolean;
     setIsAttachmentInvalid?: (value: boolean) => void;
+    /** Whether the attachment modal is currently open */
     isOpen?: boolean;
+    /** Function to set the modal open or close */
     setIsModalOpen?: (value: boolean) => void;
+    /** Determines if the attachment is invalid or not */
     attachmentInvalidReason?: TranslationPaths | null;
+    /** Function to set the attachment invalid reason */
     setAttachmentInvalidReason?: (value: TranslationPaths | null) => void;
+    /** Determines the title of the invalid reason modal */
     attachmentInvalidReasonTitle?: TranslationPaths | null;
+    /** Function to set the attachment invalid reason title */
     setAttachmentInvalidReasonTitle?: (value: TranslationPaths | null) => void;
+    /** Ref to the submit button */
     submitRef?: RefObject<View | HTMLElement>;
+    /** Determines if the delete receipt confirm modal is visible or not */
     isDeleteReceiptConfirmModalVisible?: boolean;
+    /** Function to set the delete receipt confirm modal visibility */
     setIsDeleteReceiptConfirmModalVisible?: (value: boolean) => void;
+    /** Function to close the confirm modal */
     closeModal?: (shouldCallDirectly?: boolean) => void;
+    /** Function to close the confirm modal */
     closeConfirmModal?: () => void;
+    /** Function to submit and close the modal */
     onSubmitAndClose?: () => void;
+    /** Function to handle pdf load error */
     onPdfLoadError?: (setIsModalOpen?: (isModalOpen: boolean) => void) => void;
+    /** Function to hide the invalid reason modal */
     onInvalidReasonModalHide?: () => void;
+    /** Function to handle upload file validation */
     onUploadFileValidated?: (type: 'file' | 'uri', sourceURL: string, fileObject: FileObject) => void;
 };
 

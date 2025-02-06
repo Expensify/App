@@ -42,5 +42,4 @@ type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
 
 type AttachmentModalScreenProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
 
-// eslint-disable-next-line import/prefer-default-export
 export type {AttachmentModalScreenParams, AttachmentModalScreenModalCallbacks, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse};
