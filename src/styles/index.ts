@@ -4184,21 +4184,21 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContentContainer: {
+            ...positioning.pRelative,
             width: variables.eReceiptBodyWidth,
-            position: 'relative',
             minHeight: variables.eReceiptBodyHeight,
         },
 
         eReceiptBody: {
-            position: 'absolute',
+            ...positioning.pAbsolute,
+            ...sizing.w100,
             top: 0,
-            width: '100%',
         },
 
         eReceiptContentWrapper: {
-            position: 'absolute',
+            ...positioning.pAbsolute,
+            ...sizing.w100,
             top: 40,
-            width: '100%',
         },
 
         loginHeroBody: {
