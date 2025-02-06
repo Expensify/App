@@ -54,7 +54,6 @@ describe('ReportActionItemSingle', () => {
             };
 
             function setup() {
-                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
 
                 return waitForBatchedUpdates().then(() =>
@@ -70,6 +69,7 @@ describe('ReportActionItemSingle', () => {
                 const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
 
                 await setup();
+                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
                 await waitFor(() => {
                     expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeOnTheScreen();
                 });
