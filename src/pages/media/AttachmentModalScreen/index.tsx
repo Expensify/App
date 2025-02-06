@@ -21,12 +21,12 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === CONST.ATTACHMENT_MODAL_TYPE.REPORT_ATTACHMENT) {
         return (
             <ReportAttachmentModalContent params={params}>
-                {({contentProps, wrapperProps: modalProps}) => (
+                {({contentProps, wrapperProps}) => (
                     <AttachmentModalWrapper
                         navigation={navigation}
                         attachmentId={attachmentId}
                         contentProps={contentProps}
-                        wrapperProps={modalProps}
+                        wrapperProps={wrapperProps}
                     />
                 )}
             </ReportAttachmentModalContent>
@@ -36,12 +36,12 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === CONST.ATTACHMENT_MODAL_TYPE.PROFILE_AVATAR) {
         return (
             <ProfileAvatarModalContent params={params}>
-                {({contentProps, wrapperProps: modalProps}) => (
+                {({contentProps, wrapperProps}) => (
                     <AttachmentModalWrapper
                         navigation={navigation}
                         attachmentId={attachmentId}
                         contentProps={contentProps}
-                        wrapperProps={modalProps}
+                        wrapperProps={wrapperProps}
                     />
                 )}
             </ProfileAvatarModalContent>
@@ -51,12 +51,12 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === CONST.ATTACHMENT_MODAL_TYPE.WORKSPACE_AVATAR) {
         return (
             <WorkspaceAvatarModalContent params={params}>
-                {({contentProps, wrapperProps: modalProps}) => (
+                {({contentProps, wrapperProps}) => (
                     <AttachmentModalWrapper
                         navigation={navigation}
                         attachmentId={attachmentId}
                         contentProps={contentProps}
-                        wrapperProps={modalProps}
+                        wrapperProps={wrapperProps}
                     />
                 )}
             </WorkspaceAvatarModalContent>
@@ -66,12 +66,12 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === CONST.ATTACHMENT_MODAL_TYPE.REPORT_AVATAR) {
         return (
             <ReportAvatarModalContent params={params}>
-                {({contentProps, wrapperProps: modalProps}) => (
+                {({contentProps, wrapperProps}) => (
                     <AttachmentModalWrapper
                         navigation={navigation}
                         attachmentId={attachmentId}
                         contentProps={contentProps}
-                        wrapperProps={modalProps}
+                        wrapperProps={wrapperProps}
                     />
                 )}
             </ReportAvatarModalContent>

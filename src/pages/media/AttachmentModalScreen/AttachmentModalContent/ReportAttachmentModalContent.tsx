@@ -19,6 +19,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
     const reportID = params.reportID ?? '-1';
     const isReceiptAttachment = params.isReceiptAttachment ?? false;
 
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(true);
@@ -116,7 +117,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                 // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
                 source: Number(params.source) || params.source,
                 accountID: Number(params.accountID),
-                shouldShowNotFoundPage: !isLoadingApp && params.type !== CONST.ATTACHMENT_TYPE.SEARCH,
+                shouldShowNotFoundPage: !isLoadingApp && params.type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
                 allowDownload: true,
                 isAuthTokenRequired: !!params.isAuthTokenRequired,
                 attachmentLink: params.attachmentLink ?? '',
@@ -152,6 +153,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
             params.isAuthTokenRequired,
             params.source,
             params.type,
+            report?.reportID,
             shouldLoadAttachment,
         ],
     );
