@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       PULL_REQUEST_NUMBER:
-        description: Pull Request number for correct placement of app
+        description: Pull request number to build the app from
         required: false
         default: ''
       OLD_DOT_PULL_REQUEST_NUMBER:
-        description: Old Dot Pull Request number for correct placement of app
+        description: Old Dot Pull request number to build the app from
         required: false
         default: ''
 
@@ -22,7 +22,7 @@ jobs:
         id: getHeadRef
         run: |
           set -e
-          if [[ ${{ github.event.inputs.PULL_REQUEST_NUMBER }} == '' ]]; then
+          if [[ -z "${{ github.event.inputs.PULL_REQUEST_NUMBER }}" ]]; then
             echo "REF=" >> "$GITHUB_OUTPUT"
           else
             echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
@@ -39,7 +39,7 @@ jobs:
         id: getHeadRef
         run: |
           set -e
-          if [[ ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }} == '' ]]; then
+          if [[ -z "${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }}" ]]; then
             echo "REF=" >> "$GITHUB_OUTPUT"
           else
             echo "REF=$(gh pr view ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
