@@ -7,7 +7,6 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
-import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -128,6 +127,7 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {getNavatticURL} from '@libs/TourUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';

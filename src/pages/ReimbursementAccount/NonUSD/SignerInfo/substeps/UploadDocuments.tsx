@@ -1,7 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -12,6 +11,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';

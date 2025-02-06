@@ -4,7 +4,6 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
@@ -18,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getPlatform from '@libs/getPlatform';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];

@@ -3,9 +3,9 @@ import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerResponse} from 'react-native-document-picker';
-import type {FileObject} from '@components/AttachmentModal';
 import useLocalize from '@hooks/useLocalize';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type FilePickerProps from './types';
 
 /**

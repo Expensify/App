@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import Onyx, {useOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import {KEYS_TO_PRESERVE, setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
