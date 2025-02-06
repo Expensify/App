@@ -107,7 +107,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         );
                     }
 
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                    NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                     setRootStatusBarEnabled(false);
                 }}
                 pressOnEnter

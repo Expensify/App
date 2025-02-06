@@ -171,7 +171,7 @@ function ScreenWrapper(
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
     UNSTABLE_usePreventRemove(isSingleNewDotEntry ?? false, () => {
-        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+        NativeModules.HybridAppModule?.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
         setRootStatusBarEnabled(false);
     });
 
