@@ -349,13 +349,13 @@ function deleteWorkspace(policyID: string, policyName: string) {
             },
         });
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
-            value: {
-                private_isArchived: currentTime,
-            },
-        });
+        // optimisticData.push({
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        //     value: {
+        //         private_isArchived: currentTime,
+        //     },
+        // });
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -369,24 +369,24 @@ function deleteWorkspace(policyID: string, policyName: string) {
         if (!!ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
             emailClosingReport = allPersonalDetails?.[ownerAccountID]?.login ?? '';
         }
-        const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticClosedReportAction.reportActionID]: optimisticClosedReportAction as ReportAction,
-            },
-        });
+        // const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        // optimisticData.push({
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        //     value: {
+        //         [optimisticClosedReportAction.reportActionID]: optimisticClosedReportAction as ReportAction,
+        //     },
+        // });
 
         // We are temporarily adding this workaround because 'DeleteWorkspace' doesn't
         // support receiving the optimistic reportActions' ids for the moment.
-        finallyData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticClosedReportAction.reportActionID]: null,
-            },
-        });
+        // finallyData.push({
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        //     value: {
+        //         [optimisticClosedReportAction.reportActionID]: null,
+        //     },
+        // });
     });
 
     const policy = getPolicy(policyID);
