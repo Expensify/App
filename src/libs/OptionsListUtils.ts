@@ -2084,7 +2084,15 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
 
     // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
-    orderedOptions.personalDetails = orderedOptions.personalDetails.filter((detail, index, array) => array.findIndex((i) => i.login === detail.login) === index);
+    const uniqueLogins = new Set<string>();
+    orderedOptions.personalDetails = orderedOptions.personalDetails.filter((detail) => {
+        const login = detail.login ?? '';
+        if (uniqueLogins.has(login)) {
+            return false;
+        }
+        uniqueLogins.add(login);
+        return true;
+    });
 
     return {
         ...filterResult,
