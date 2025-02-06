@@ -276,6 +276,9 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
 ) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
