@@ -12,11 +12,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
-import Confirmation from './substeps/Confirmation';
-import DateOfBirth from './substeps/DateOfBirth';
-import JobTitle from './substeps/JobTitle';
-import Name from './substeps/Name';
-import UploadDocuments from './substeps/UploadDocuments';
+import Confirmation from './subSteps/Confirmation';
+import DateOfBirth from './subSteps/DateOfBirth';
+import JobTitle from './subSteps/JobTitle';
+import Name from './subSteps/Name';
+import UploadDocuments from './subSteps/UploadDocuments';
 
 type SignerInfoProps = {
     /** Handles back button press */

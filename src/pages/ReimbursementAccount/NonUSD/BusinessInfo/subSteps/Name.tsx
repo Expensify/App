@@ -5,26 +5,34 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidCompanyName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type TaxIDEINNumberProps = SubStepProps;
+type NameProps = SubStepProps;
 
-const {TAX_ID_EIN_NUMBER} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const STEP_FIELDS = [TAX_ID_EIN_NUMBER];
+const {COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const STEP_FIELDS = [COMPANY_NAME];
 
-function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
+function Name({onNext, onMove, isEditing}: NameProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const defaultValue = reimbursementAccount?.achData?.corpay?.[TAX_ID_EIN_NUMBER] ?? reimbursementAccountDraft?.[TAX_ID_EIN_NUMBER] ?? '';
+    const defaultValue = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? '';
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return getFieldRequiredErrors(values, STEP_FIELDS);
-    }, []);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values.companyName && !isValidCompanyName(values.companyName)) {
+                errors.companyName = translate('bankAccount.error.companyName');
+            }
+
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -38,18 +46,18 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.whatsTheBusinessTaxIDEIN')}
+            formTitle={translate('businessInfoStep.whatsTheBusinessName')}
             validate={validate}
             onSubmit={handleSubmit}
-            inputId={TAX_ID_EIN_NUMBER}
-            inputLabel={translate('businessInfoStep.taxIDEIN')}
-            inputMode={CONST.INPUT_MODE.NUMERIC}
+            inputId={COMPANY_NAME}
+            inputLabel={translate('businessInfoStep.legalBusinessName')}
+            inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
         />
     );
 }
 
-TaxIDEINNumber.displayName = 'TaxIDEINNumber';
+Name.displayName = 'Name';
 
-export default TaxIDEINNumber;
+export default Name;

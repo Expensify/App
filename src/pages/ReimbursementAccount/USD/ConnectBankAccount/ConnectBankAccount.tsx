@@ -17,9 +17,15 @@ import FinishChatCard from './components/FinishChatCard';
 type ConnectBankAccountProps = {
     /** Handles back button press */
     onBackButtonPress: () => void;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setUSDBankAccountStep: (step: string | null) => void;
 };
 
-function ConnectBankAccount({onBackButtonPress}: ConnectBankAccountProps) {
+function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -36,6 +42,8 @@ function ConnectBankAccount({onBackButtonPress}: ConnectBankAccountProps) {
             <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={onBackButtonPress}
+                setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
+                setUSDBankAccountStep={setUSDBankAccountStep}
             />
         );
     }

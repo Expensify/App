@@ -6,21 +6,22 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import Address from './substeps/Address';
-import AverageReimbursement from './substeps/AverageReimbursement';
-import BusinessType from './substeps/BusinessType';
-import Confirmation from './substeps/Confirmation';
-import ContactInformation from './substeps/ContactInformation';
-import IncorporationLocation from './substeps/IncorporationLocation';
-import Name from './substeps/Name';
-import PaymentVolume from './substeps/PaymentVolume';
-import RegistrationNumber from './substeps/RegistrationNumber';
-import TaxIDEINNumber from './substeps/TaxIDEINNumber';
+import Address from './subSteps/Address';
+import AverageReimbursement from './subSteps/AverageReimbursement';
+import BusinessType from './subSteps/BusinessType';
+import Confirmation from './subSteps/Confirmation';
+import ContactInformation from './subSteps/ContactInformation';
+import IncorporationLocation from './subSteps/IncorporationLocation';
+import Name from './subSteps/Name';
+import PaymentVolume from './subSteps/PaymentVolume';
+import RegistrationNumber from './subSteps/RegistrationNumber';
+import TaxIDEINNumber from './subSteps/TaxIDEINNumber';
 
 type BusinessInfoProps = {
     /** Handles back button press */
@@ -72,8 +73,10 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    const businessInfoStepValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const businessInfoStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    const startFrom = useMemo(() => getInitialSubStepForBusinessInfoStep(businessInfoStepValues), [businessInfoStepValues]);
 
     const country = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
@@ -115,7 +118,7 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
         };
     }, [reimbursementAccount, onSubmit]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (isEditing) {

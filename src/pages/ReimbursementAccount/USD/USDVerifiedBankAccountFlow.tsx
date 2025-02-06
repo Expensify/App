@@ -17,9 +17,18 @@ type USDVerifiedBankAccountFlowProps = {
     requestorStepRef: React.RefObject<View>;
     onfidoToken: string;
     setUSDBankAccountStep: (step: string | null) => void;
+    setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 };
 
-function USDVerifiedBankAccountFlow({USDBankAccountStep, policyID = '', onBackButtonPress, requestorStepRef, onfidoToken, setUSDBankAccountStep}: USDVerifiedBankAccountFlowProps) {
+function USDVerifiedBankAccountFlow({
+    USDBankAccountStep,
+    policyID = '',
+    onBackButtonPress,
+    requestorStepRef,
+    onfidoToken,
+    setUSDBankAccountStep,
+    setShouldShowConnectedVerifiedBankAccount,
+}: USDVerifiedBankAccountFlowProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     switch (USDBankAccountStep) {
@@ -46,7 +55,13 @@ function USDVerifiedBankAccountFlow({USDBankAccountStep, policyID = '', onBackBu
         case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
             return <CompleteVerification onBackButtonPress={onBackButtonPress} />;
         case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-            return <ConnectBankAccount onBackButtonPress={onBackButtonPress} />;
+            return (
+                <ConnectBankAccount
+                    onBackButtonPress={onBackButtonPress}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
+                    setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
+                />
+            );
         default:
             return null;
     }

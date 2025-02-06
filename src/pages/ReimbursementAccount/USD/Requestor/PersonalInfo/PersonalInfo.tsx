@@ -5,17 +5,17 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import getInitialSubstepForPersonalInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubstepForPersonalInfo';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
+import getInitialSubStepForPersonalInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForPersonalInfo';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+import {updatePersonalInformationForBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import Address from './substeps/Address';
-import Confirmation from './substeps/Confirmation';
-import DateOfBirth from './substeps/DateOfBirth';
-import FullName from './substeps/FullName';
-import SocialSecurityNumber from './substeps/SocialSecurityNumber';
+import Address from './subSteps/Address';
+import Confirmation from './subSteps/Confirmation';
+import DateOfBirth from './subSteps/DateOfBirth';
+import FullName from './subSteps/FullName';
+import SocialSecurityNumber from './subSteps/SocialSecurityNumber';
 
 type PersonalInfoProps = {
     /** Goes to the previous step */
@@ -32,15 +32,15 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
-    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
     const submit = useCallback(
         (isConfirmPage: boolean) => {
-            BankAccounts.updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);
+            updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);
         },
         [values, bankAccountID, policyID],
     );
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
+    const startFrom = useMemo(() => getInitialSubStepForPersonalInfo(values), [values]);
 
     const {
         componentToRender: SubStep,

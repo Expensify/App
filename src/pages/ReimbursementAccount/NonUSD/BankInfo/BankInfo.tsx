@@ -1,5 +1,5 @@
-import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';
+import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -8,12 +8,12 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
-import AccountHolderDetails from './substeps/AccountHolderDetails';
-import BankAccountDetails from './substeps/BankAccountDetails';
-import Confirmation from './substeps/Confirmation';
-import UploadStatement from './substeps/UploadStatement';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import AccountHolderDetails from './subSteps/AccountHolderDetails';
+import BankAccountDetails from './subSteps/BankAccountDetails';
+import Confirmation from './subSteps/Confirmation';
+import UploadStatement from './subSteps/UploadStatement';
 import type {BankInfoSubStepProps} from './types';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
@@ -35,7 +35,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
+    const country = reimbursementAccount?.achData?.[COUNTRY] ?? '';
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};

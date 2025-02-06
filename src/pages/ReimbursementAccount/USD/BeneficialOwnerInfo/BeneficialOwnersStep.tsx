@@ -11,12 +11,12 @@ import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import AddressUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
-import ConfirmationUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
-import DateOfBirthUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/DateOfBirthUBO';
-import LegalNameUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/LegalNameUBO';
-import SocialSecurityNumberUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/SocialSecurityNumberUBO';
-import CompanyOwnersListUBO from './substeps/CompanyOwnersListUBO';
+import AddressUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/AddressUBO';
+import ConfirmationUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO';
+import DateOfBirthUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/DateOfBirthUBO';
+import LegalNameUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/LegalNameUBO';
+import SocialSecurityNumberUBO from './subSteps/BeneficialOwnerDetailsFormSubSteps/SocialSecurityNumberUBO';
+import CompanyOwnersListUBO from './subSteps/CompanyOwnersListUBO';
 
 type BeneficialOwnersStepProps = {
     /** Goes to the previous step */
@@ -52,7 +52,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const [isEditingCreatedBeneficialOwner, setIsEditingCreatedBeneficialOwner] = useState(false);
     const [isUserUBO, setIsUserUBO] = useState(defaultValues.ownsMoreThan25Percent);
     const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(defaultValues.hasOtherBeneficialOwners);
-    const [currentUBOSubstep, setCurrentUBOSubstep] = useState(1);
+    const [currentUBOSubStep, setCurrentUBOSubStep] = useState(1);
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
 
     const submit = () => {
@@ -92,7 +92,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
         // Because beneficialOwnerKeys array is not yet updated at this point we need to check against lower MAX_NUMBER_OF_UBOS (account for the one that is being added)
         const isLastUBOThatCanBeAdded = beneficialOwnerKeys.length === (isUserUBO ? MAX_NUMBER_OF_UBOS - 2 : MAX_NUMBER_OF_UBOS - 1);
-        setCurrentUBOSubstep(isEditingCreatedBeneficialOwner || isLastUBOThatCanBeAdded ? SUBSTEP.UBOS_LIST : SUBSTEP.ARE_THERE_MORE_UBOS);
+        setCurrentUBOSubStep(isEditingCreatedBeneficialOwner || isLastUBOThatCanBeAdded ? SUBSTEP.UBOS_LIST : SUBSTEP.ARE_THERE_MORE_UBOS);
         setIsEditingCreatedBeneficialOwner(false);
     };
 
@@ -114,13 +114,13 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const prepareBeneficialOwnerDetailsForm = () => {
         const beneficialOwnerID = Str.guid();
         setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
-        // Reset Beneficial Owner Details Form to first substep
+        // Reset Beneficial Owner Details Form to first subStep
         resetScreenIndex();
-        setCurrentUBOSubstep(SUBSTEP.UBO_DETAILS_FORM);
+        setCurrentUBOSubStep(SUBSTEP.UBO_DETAILS_FORM);
     };
 
     const handleNextUBOSubstep = (value: boolean) => {
-        if (currentUBOSubstep === SUBSTEP.IS_USER_UBO) {
+        if (currentUBOSubStep === SUBSTEP.IS_USER_UBO) {
             setIsUserUBO(value);
 
             // User is an owner but there are 4 other owners already added, so we remove last one
@@ -128,15 +128,15 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
                 setBeneficialOwnerKeys((previousBeneficialOwners) => previousBeneficialOwners.slice(0, 3));
             }
 
-            setCurrentUBOSubstep(SUBSTEP.IS_ANYONE_ELSE_UBO);
+            setCurrentUBOSubStep(SUBSTEP.IS_ANYONE_ELSE_UBO);
             return;
         }
 
-        if (currentUBOSubstep === SUBSTEP.IS_ANYONE_ELSE_UBO) {
+        if (currentUBOSubStep === SUBSTEP.IS_ANYONE_ELSE_UBO) {
             setIsAnyoneElseUBO(value);
 
             if (!canAddMoreUBOS && value) {
-                setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
+                setCurrentUBOSubStep(SUBSTEP.UBOS_LIST);
                 return;
             }
 
@@ -153,24 +153,24 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
 
             // User is an owner and no one else is an owner
             if (isUserUBO && !value) {
-                setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
+                setCurrentUBOSubStep(SUBSTEP.UBOS_LIST);
                 return;
             }
         }
 
         // Are there more UBOs
-        if (currentUBOSubstep === SUBSTEP.ARE_THERE_MORE_UBOS) {
+        if (currentUBOSubStep === SUBSTEP.ARE_THERE_MORE_UBOS) {
             if (value) {
                 prepareBeneficialOwnerDetailsForm();
                 return;
             }
-            setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
+            setCurrentUBOSubStep(SUBSTEP.UBOS_LIST);
             return;
         }
 
         // User reached the limit of UBOs
-        if (currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && !canAddMoreUBOS) {
-            setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
+        if (currentUBOSubStep === SUBSTEP.UBO_DETAILS_FORM && !canAddMoreUBOS) {
+            setCurrentUBOSubStep(SUBSTEP.UBOS_LIST);
         }
     };
 
@@ -181,28 +181,28 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         }
 
         // User goes back to previous step
-        if (currentUBOSubstep === SUBSTEP.IS_USER_UBO) {
+        if (currentUBOSubStep === SUBSTEP.IS_USER_UBO) {
             onBackButtonPress();
             // User reached limit of UBOs and goes back to initial question about additional UBOs
-        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && !canAddMoreUBOS) {
-            setCurrentUBOSubstep(SUBSTEP.IS_ANYONE_ELSE_UBO);
+        } else if (currentUBOSubStep === SUBSTEP.UBOS_LIST && !canAddMoreUBOS) {
+            setCurrentUBOSubStep(SUBSTEP.IS_ANYONE_ELSE_UBO);
             // User goes back to last radio button
-        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && isAnyoneElseUBO) {
-            setCurrentUBOSubstep(SUBSTEP.ARE_THERE_MORE_UBOS);
-        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && isUserUBO && !isAnyoneElseUBO) {
-            setCurrentUBOSubstep(SUBSTEP.IS_ANYONE_ELSE_UBO);
-            // User moves between substeps of beneficial owner details form
-        } else if (currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && screenIndex > 0) {
+        } else if (currentUBOSubStep === SUBSTEP.UBOS_LIST && isAnyoneElseUBO) {
+            setCurrentUBOSubStep(SUBSTEP.ARE_THERE_MORE_UBOS);
+        } else if (currentUBOSubStep === SUBSTEP.UBOS_LIST && isUserUBO && !isAnyoneElseUBO) {
+            setCurrentUBOSubStep(SUBSTEP.IS_ANYONE_ELSE_UBO);
+            // User moves between subSteps of beneficial owner details form
+        } else if (currentUBOSubStep === SUBSTEP.UBO_DETAILS_FORM && screenIndex > 0) {
             prevScreen();
         } else {
-            setCurrentUBOSubstep((currentSubstep) => currentSubstep - 1);
+            setCurrentUBOSubStep((currentSubstep) => currentSubstep - 1);
         }
     };
 
     const handleUBOEdit = (beneficialOwnerID: string) => {
         setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
         setIsEditingCreatedBeneficialOwner(true);
-        setCurrentUBOSubstep(SUBSTEP.UBO_DETAILS_FORM);
+        setCurrentUBOSubStep(SUBSTEP.UBO_DETAILS_FORM);
     };
 
     return (
@@ -215,7 +215,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             startStepIndex={4}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
-            {currentUBOSubstep === SUBSTEP.IS_USER_UBO && (
+            {currentUBOSubStep === SUBSTEP.IS_USER_UBO && (
                 <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
@@ -225,7 +225,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
                 />
             )}
 
-            {currentUBOSubstep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
+            {currentUBOSubStep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
                 <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent')} ${companyName}?`}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
@@ -235,7 +235,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
                 />
             )}
 
-            {currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && (
+            {currentUBOSubStep === SUBSTEP.UBO_DETAILS_FORM && (
                 <BeneficialOwnerDetailsForm
                     isEditing={isEditing}
                     beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
@@ -245,7 +245,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
                 />
             )}
 
-            {currentUBOSubstep === SUBSTEP.ARE_THERE_MORE_UBOS && (
+            {currentUBOSubStep === SUBSTEP.ARE_THERE_MORE_UBOS && (
                 <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
                     description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
@@ -255,7 +255,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
                 />
             )}
 
-            {currentUBOSubstep === SUBSTEP.UBOS_LIST && (
+            {currentUBOSubStep === SUBSTEP.UBOS_LIST && (
                 <CompanyOwnersListUBO
                     beneficialOwnerKeys={beneficialOwnerKeys}
                     handleUBOsConfirmation={submit}

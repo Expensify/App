@@ -4,9 +4,9 @@ import type {RequestorStepProps} from '@src/types/form/ReimbursementAccountForm'
 const personalInfoKeys = INPUT_IDS.PERSONAL_INFO_STEP;
 
 /**
- * Returns the initial substep for the Personal Info step based on already existing data
+ * Returns the initial subStep for the Personal Info step based on already existing data
  */
-function getInitialSubstepForPersonalInfo(data: RequestorStepProps): number {
+function getInitialSubStepForPersonalInfo(data: RequestorStepProps): number {
     if (data[personalInfoKeys.FIRST_NAME] === '' || data[personalInfoKeys.LAST_NAME] === '') {
         return 0;
     }
@@ -26,4 +26,4 @@ function getInitialSubstepForPersonalInfo(data: RequestorStepProps): number {
     return 4;
 }
 
-export default getInitialSubstepForPersonalInfo;
+export default getInitialSubStepForPersonalInfo;

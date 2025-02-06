@@ -5,15 +5,15 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {connectBankAccountManually, connectBankAccountWithPlaid, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {hideBankAccountErrors, updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import Manual from './substeps/Manual';
-import Plaid from './substeps/Plaid';
+import Manual from './subSteps/Manual';
+import Plaid from './subSteps/Plaid';
 
 type BankInfoProps = {
     /** Goes to the previous step */
@@ -42,7 +42,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     const {translate} = useLocalize();
 
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
-    const values = useMemo(() => getSubstepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
 
     let setupType = reimbursementAccount?.achData?.subStep ?? '';
 

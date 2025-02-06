@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidWebsite} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CompanyStepProps} from '@src/types/form/ReimbursementAccountForm';
@@ -7,9 +7,9 @@ import type {CompanyStepProps} from '@src/types/form/ReimbursementAccountForm';
 const businessInfoStepKeys = INPUT_IDS.BUSINESS_INFO_STEP;
 
 /**
- * Returns the initial substep for the Business Info step based on already existing data
+ * Returns the initial subStep for the Business Info step based on already existing data
  */
-function getInitialSubstepForBusinessInfo(data: CompanyStepProps): number {
+function getInitialSubStepForBusinessInfo(data: CompanyStepProps): number {
     if (data[businessInfoStepKeys.COMPANY_NAME] === '') {
         return 0;
     }
@@ -18,7 +18,7 @@ function getInitialSubstepForBusinessInfo(data: CompanyStepProps): number {
         return 1;
     }
 
-    if (!ValidationUtils.isValidWebsite(Str.sanitizeURL(data[businessInfoStepKeys.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
+    if (!isValidWebsite(Str.sanitizeURL(data[businessInfoStepKeys.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
         return 2;
     }
 
@@ -45,4 +45,4 @@ function getInitialSubstepForBusinessInfo(data: CompanyStepProps): number {
     return 8;
 }
 
-export default getInitialSubstepForBusinessInfo;
+export default getInitialSubStepForBusinessInfo;

@@ -416,6 +416,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 requestorStepRef={requestorStepRef}
                 onfidoToken={onfidoToken}
                 setUSDBankAccountStep={setUSDBankAccountStep}
+                setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
             />
         );
     }

@@ -13,33 +13,32 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type AverageReimbursementProps = SubStepProps;
+type PaymentVolumeProps = SubStepProps;
 
-const {TRADE_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const STEP_FIELDS = [TRADE_VOLUME];
+const {ANNUAL_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const STEP_FIELDS = [ANNUAL_VOLUME];
 
-function AverageReimbursement({onNext, isEditing}: AverageReimbursementProps) {
+function PaymentVolume({onNext, isEditing}: PaymentVolumeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
 
-    const tradeVolumeRangeListOptions = useMemo(() => {
-        if (!corpayOnboardingFields?.picklists.TradeVolumeRange) {
+    const annualVolumeRangeListOptions = useMemo(() => {
+        if (!corpayOnboardingFields?.picklists.AnnualVolumeRange) {
             return {};
         }
 
-        return corpayOnboardingFields.picklists.TradeVolumeRange.reduce((accumulator, currentValue) => {
+        return corpayOnboardingFields.picklists.AnnualVolumeRange.reduce((accumulator, currentValue) => {
             accumulator[currentValue.name] = currentValue.stringValue;
             return accumulator;
         }, {} as Record<string, string>);
     }, [corpayOnboardingFields]);
 
-    const tradeVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? reimbursementAccountDraft?.[TRADE_VOLUME] ?? '';
+    const annualVolumeDefaultValue = reimbursementAccount?.achData?.corpay?.[ANNUAL_VOLUME] ?? '';
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         return getFieldRequiredErrors(values, STEP_FIELDS);
@@ -60,21 +59,21 @@ function AverageReimbursement({onNext, isEditing}: AverageReimbursementProps) {
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whatsYourExpectedAverageReimbursements')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whatsTheBusinessAnnualPayment')}</Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={tradeVolumeRangeListOptions}
-                description={translate('businessInfoStep.averageReimbursementAmountInCurrency', {currencyCode: currency})}
-                modalHeaderTitle={translate('businessInfoStep.selectAverageReimbursement')}
-                searchInputTitle={translate('businessInfoStep.findAverageReimbursement')}
-                inputID={TRADE_VOLUME}
+                optionsList={annualVolumeRangeListOptions}
+                description={translate('businessInfoStep.annualPaymentVolumeInCurrency', {currencyCode: currency})}
+                modalHeaderTitle={translate('businessInfoStep.selectAnnualPaymentVolume')}
+                searchInputTitle={translate('businessInfoStep.findAnnualPaymentVolume')}
+                inputID={ANNUAL_VOLUME}
                 shouldSaveDraft={!isEditing}
-                defaultValue={tradeVolumeDefaultValue}
+                defaultValue={annualVolumeDefaultValue}
             />
         </FormProvider>
     );
 }
 
-AverageReimbursement.displayName = 'AverageReimbursement';
+PaymentVolume.displayName = 'PaymentVolume';
 
-export default AverageReimbursement;
+export default PaymentVolume;

@@ -1,5 +1,5 @@
-import type {ForwardedRef} from 'react';
 import React, {forwardRef} from 'react';
+import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
 import VerifyIdentity from './VerifyIdentity/VerifyIdentity';

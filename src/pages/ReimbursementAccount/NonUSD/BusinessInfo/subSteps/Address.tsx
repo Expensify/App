@@ -4,7 +4,7 @@ import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -29,10 +29,10 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const onyxValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
-    const businessStepCountryDraftValue = onyxValues[COMPANY_COUNTRY_CODE];
-    const countryStepCountryDraftValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const businessStepCountryDraftValue = onyxValues[COMPANY_COUNTRY_CODE] ?? '';
+    const countryStepCountryDraftValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const countryInitialValue =
         businessStepCountryDraftValue !== '' && businessStepCountryDraftValue !== countryStepCountryDraftValue ? businessStepCountryDraftValue : countryStepCountryDraftValue;
 
@@ -41,7 +41,7 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
         city: onyxValues[COMPANY_CITY] ?? '',
         state: onyxValues[COMPANY_STATE] ?? '',
         zipCode: onyxValues[COMPANY_POSTAL_CODE] ?? '',
-        country: businessStepCountryDraftValue ?? countryInitialValue,
+        country: onyxValues[COMPANY_COUNTRY_CODE] ?? countryInitialValue,
     };
 
     // Has to be stored in state and updated on country change due to the fact that we can't relay on onyxValues when user is editing the form (draft values are not being saved in that case)

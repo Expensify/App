@@ -8,21 +8,21 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubstepForBusinessInfo';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import * as BankAccounts from '@userActions/BankAccounts';
+import getInitialSubStepForBusinessInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForBusinessInfo';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+import {updateCompanyInformationForBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import AddressBusiness from './substeps/AddressBusiness';
-import ConfirmationBusiness from './substeps/ConfirmationBusiness';
-import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
-import IncorporationStateBusiness from './substeps/IncorporationStateBusiness';
-import NameBusiness from './substeps/NameBusiness';
-import PhoneNumberBusiness from './substeps/PhoneNumberBusiness';
-import TaxIdBusiness from './substeps/TaxIdBusiness';
-import TypeBusiness from './substeps/TypeBusiness/TypeBusiness';
-import WebsiteBusiness from './substeps/WebsiteBusiness';
+import AddressBusiness from './subSteps/AddressBusiness';
+import ConfirmationBusiness from './subSteps/ConfirmationBusiness';
+import IncorporationDateBusiness from './subSteps/IncorporationDateBusiness';
+import IncorporationStateBusiness from './subSteps/IncorporationStateBusiness';
+import NameBusiness from './subSteps/NameBusiness';
+import PhoneNumberBusiness from './subSteps/PhoneNumberBusiness';
+import TaxIdBusiness from './subSteps/TaxIdBusiness';
+import TypeBusiness from './subSteps/TypeBusiness/TypeBusiness';
+import WebsiteBusiness from './subSteps/WebsiteBusiness';
 
 type BusinessInfoProps = {
     /** Goes to the previous step */
@@ -57,12 +57,12 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
     );
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
-    const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             const companyWebsite = Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-            BankAccounts.updateCompanyInformationForBankAccount(
+            updateCompanyInformationForBankAccount(
                 Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
                 {
                     ...values,
@@ -78,7 +78,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
         [reimbursementAccount, values, getBankAccountFields, policyID],
     );
 
-    const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(values), [values]);
+    const startFrom = useMemo(() => getInitialSubStepForBusinessInfo(values), [values]);
 
     const {
         componentToRender: SubStep,
