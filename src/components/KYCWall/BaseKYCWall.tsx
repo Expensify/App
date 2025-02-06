@@ -4,16 +4,16 @@ import {Dimensions} from 'react-native';
 import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
-import * as BankAccounts from '@libs/actions/BankAccounts';
+import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PaymentUtils from '@libs/PaymentUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Wallet from '@userActions/Wallet';
+import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import {isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
+import {kycWallRef} from '@userActions/PaymentMethods';
+import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
+import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -104,19 +104,19 @@ function KYCWall({
             onSelectPaymentMethod(paymentMethod);
 
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                BankAccounts.openPersonalBankAccountSetupView();
+                openPersonalBankAccountSetupView();
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 Navigation.navigate(addDebitCardRoute);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-                if (iouReport && ReportUtils.isIOUReport(iouReport)) {
-                    const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = Policy.createWorkspaceFromIOUPayment(iouReport) ?? {};
+                if (iouReport && isIOUReport(iouReport)) {
+                    const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
                     completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
                     }
 
                     // Navigate to the bank account set up flow for this specific policy
-                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
+                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
 
                     return;
                 }
@@ -140,7 +140,7 @@ function KYCWall({
              * Set the source, so we can tailor the process according to how we got here.
              * We do not want to set this on mount, as the source can change upon completing the flow, e.g. when upgrading the wallet to Gold.
              */
-            Wallet.setKYCWallSource(source, chatReportID);
+            setKYCWallSource(source, chatReportID);
 
             if (shouldShowAddPaymentMenu) {
                 setShouldShowAddPaymentMenu(false);
@@ -152,13 +152,13 @@ function KYCWall({
 
             transferBalanceButtonRef.current = targetElement;
 
-            const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+            const isExpenseReport = isExpenseReportReportUtils(iouReport);
             const paymentCardList = fundList ?? {};
 
             // Check to see if user has a valid payment method on file and display the add payment popover if they don't
             if (
                 (isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
-                (!isExpenseReport && bankAccountList !== null && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
+                (!isExpenseReport && bankAccountList !== null && !hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
             ) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
 
@@ -213,7 +213,7 @@ function KYCWall({
     useEffect(() => {
         let dimensionsSubscription: EmitterSubscription | null = null;
 
-        PaymentMethods.kycWallRef.current = {continueAction};
+        kycWallRef.current = {continueAction};
 
         if (shouldListenForResize) {
             dimensionsSubscription = Dimensions.addEventListener('change', setMenuPosition);
@@ -224,7 +224,7 @@ function KYCWall({
                 dimensionsSubscription.remove();
             }
 
-            PaymentMethods.kycWallRef.current = null;
+            kycWallRef.current = null;
         };
     }, [chatReportID, setMenuPosition, shouldListenForResize, continueAction]);
 

@@ -19,6 +19,7 @@ import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
+import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
@@ -152,6 +153,7 @@ function ScreenWrapper(
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -171,6 +173,7 @@ function ScreenWrapper(
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
         NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+        setRootStatusBarEnabled(false);
     });
 
     const panResponder = useRef(

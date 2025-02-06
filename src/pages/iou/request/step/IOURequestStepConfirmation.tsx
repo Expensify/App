@@ -277,10 +277,24 @@ function IOURequestStepConfirmation({
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+                    customUnitRateID,
                 },
             });
         },
-        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
+        [
+            report,
+            transaction,
+            transactionTaxCode,
+            transactionTaxAmount,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyTags,
+            policyCategories,
+            action,
+            customUnitRateID,
+        ],
     );
 
     const submitPerDiemExpense = useCallback(
@@ -312,6 +326,7 @@ function IOURequestStepConfirmation({
                     category: transaction.category,
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
+                    billable: transaction.billable,
                 },
             });
         },
@@ -327,34 +342,40 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            trackExpenseIOUActions(
+            trackExpenseIOUActions({
                 report,
-                transaction.amount,
-                transaction.currency,
-                transaction.created,
-                transaction.merchant,
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                participant,
-                trimmedComment,
                 isDraftPolicy,
-                receiptObj,
-                transaction.category,
-                transaction.tag,
-                transactionTaxCode,
-                transactionTaxAmount,
-                transaction.billable,
-                policy,
-                policyTags,
-                policyCategories,
-                gpsPoints,
-                Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                 action,
-                transaction.actionableWhisperReportActionID,
-                transaction.linkedTrackedExpenseReportAction,
-                transaction.linkedTrackedExpenseReportID,
-                customUnitRateID,
-            );
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant,
+                },
+                policyParams: {
+                    policy,
+                    policyCategories,
+                    policyTagList: policyTags,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: transaction.created,
+                    merchant: transaction.merchant,
+                    comment: trimmedComment,
+                    receipt: receiptObj,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    billable: transaction.billable,
+                    gpsPoints,
+                    validWaypoints: Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    customUnitRateID,
+                },
+            });
         },
         [
             report,
