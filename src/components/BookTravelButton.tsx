@@ -70,7 +70,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+                    NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                     setRootStatusBarEnabled(false);
                 })
                 ?.catch(() => {
