@@ -7,7 +7,11 @@ import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/Attac
 import CONST from '@src/CONST';
 import type {AttachmentModalWrapperProps} from './types';
 
-function AttachmentModalWrapper({contentProps, wrapperProps: {modalType, closeConfirmModal, setShouldLoadAttachment, isOverlayModalVisible}, attachmentId}: AttachmentModalWrapperProps) {
+function AttachmentModalWrapper({
+    contentProps,
+    wrapperProps: {modalType, closeConfirmModal, setShouldLoadAttachment, isOverlayModalVisible, onModalClose: onModalCloseProp},
+    attachmentId,
+}: AttachmentModalWrapperProps) {
     const [isModalOpen, setIsModalOpen] = useState(true);
 
     const onSubmitAndClose = useCallback(() => {
@@ -58,6 +62,10 @@ function AttachmentModalWrapper({contentProps, wrapperProps: {modalType, closeCo
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={isOverlayModalVisible ? () => closeConfirmModal?.() : () => closeModal?.()}
             isVisible={isModalOpen}
+            onModalHide={() => {
+                onModalClose();
+                onModalCloseProp?.();
+            }}
             onModalShow={() => {
                 // onModalShow?.();
                 setShouldLoadAttachment?.(true);

@@ -41,6 +41,9 @@ type AttachmentModalScreenParams = {
     isReceiptAttachment?: boolean;
     fileName?: string;
     attachmentLink?: string;
+    transactionID?: string;
+    readonly?: boolean;
+    isFromReviewDuplicates?: boolean;
 } & {
     onModalShow?: () => void;
     /** Optional callback to fire when we want to do something after modal hide. */

@@ -102,7 +102,6 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
 function getCentralPaneScreenInitialParams(screenName: CentralPaneName, initialReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
@@ -598,11 +597,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.TRANSACTION_RECEIPT}
-                        options={{
-                            headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
-                        }}
-                        getComponent={loadReceiptView}
+                        options={attachmentModalScreenOptions}
+                        getComponent={loadAttachmentModalScreen}
                         listeners={modalScreenListeners}
                     />
                     <RootStack.Screen
