@@ -1,5 +1,5 @@
 type UpdateManyPolicyConnectionConfigurationsParams = {
-    policyID: string;
+    policyID: string | undefined;
     connectionName: string;
     configUpdate: string;
     idempotencyKey: string;

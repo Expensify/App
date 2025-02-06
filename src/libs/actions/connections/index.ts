@@ -271,7 +271,7 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
-    policyID: string,
+    policyID: string | undefined,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
