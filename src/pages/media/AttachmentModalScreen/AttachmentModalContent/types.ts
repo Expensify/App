@@ -9,6 +9,7 @@ type AttachmentModalWrapperWrapperProps = {
     setShouldLoadAttachment?: (shouldLoadAttachment: boolean) => void;
     closeConfirmModal?: () => void;
     onModalClose?: () => void;
+    onModalHide?: () => void;
     isOverlayModalVisible?: boolean;
 };
 

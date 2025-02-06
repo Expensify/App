@@ -3,6 +3,7 @@ import {useCallback, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -85,6 +86,12 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
         onModalHide?.();
     }, [isPDFLoadError, onModalHide]);
 
+    const onModalClose = useCallback(() => {
+        Navigation.dismissModal();
+        // This enables Composer refocus when the attachments modal is closed by the browser navigation
+        ComposerFocusManager.setReadyToFocus();
+    }, []);
+
     /**
      * If our attachment is a PDF, return the unswipeablge Modal type.
      */
@@ -146,6 +153,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                 submitRef,
                 onCarouselAttachmentChange,
                 onPdfLoadError,
+                onModalHide,
                 onInvalidReasonModalHide,
                 onUploadFileValidated,
             } satisfies Partial<AttachmentModalBaseContentProps>),
@@ -171,8 +179,9 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                 setShouldLoadAttachment,
                 isOverlayModalVisible,
                 closeConfirmModal,
+                onModalClose,
             } satisfies AttachmentModalWrapperWrapperProps),
-        [closeConfirmModal, isOverlayModalVisible, modalType],
+        [closeConfirmModal, isOverlayModalVisible, modalType, onModalClose],
     );
 
     // eslint-disable-next-line react-compiler/react-compiler
