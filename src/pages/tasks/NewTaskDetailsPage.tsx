@@ -108,6 +108,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         value={Parser.htmlToMarkdown(Parser.replace(taskTitle))}
                         onValueChange={setTaskTitle}
                         autoCorrect={false}
+                        autoGrowHeight
                         type="markdown"
                     />
                 </View>
