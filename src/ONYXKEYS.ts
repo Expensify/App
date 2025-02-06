@@ -1077,7 +1077,10 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
-    [ONYXKEYS.NVP_SIDE_PANEL]: boolean;
+    [ONYXKEYS.NVP_SIDE_PANEL]: {
+        open: boolean;
+        openMobile: boolean;
+    };
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 

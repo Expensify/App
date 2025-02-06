@@ -1,14 +1,12 @@
 import {findFocusedRoute, useNavigation} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
-import {NativeModules, Text, View} from 'react-native';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ComposeProviders from '@components/ComposeProviders';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
 import {SearchContextProvider} from '@components/Search/SearchContext';
@@ -80,7 +78,6 @@ import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
-import Overlay from './Navigators/Overlay';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import useRootNavigatorOptions from './useRootNavigatorOptions';
@@ -471,7 +468,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         },
     };
 
-    const shouldShowHelpPanel = isExtraLargeScreenWidth && !!sidePanel;
+    const shouldShowHelpPanel = isExtraLargeScreenWidth && !!sidePanel?.open;
 
     return (
         <ComposeProviders components={[OptionsListContextProvider, SearchContextProvider]}>
@@ -688,14 +685,34 @@ function HelpPanel() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
 
-    if (!sidePanel) {
+    const resetTriggered = useRef(false);
+
+    const onClose = useCallback(
+        (updateNarrow = false) => {
+            // eslint-disable-next-line rulesdir/prefer-actions-set-data
+            Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, isExtraLargeScreenWidth && !updateNarrow ? {open: false} : {openMobile: false});
+        },
+        [isExtraLargeScreenWidth],
+    );
+
+    useEffect(() => {
+        if (!isExtraLargeScreenWidth && !resetTriggered.current) {
+            onClose(true);
+            resetTriggered.current = true;
+        }
+
+        if (isExtraLargeScreenWidth) {
+            resetTriggered.current = false;
+        }
+    }, [isExtraLargeScreenWidth, onClose]);
+
+    if (!isExtraLargeScreenWidth && !sidePanel?.openMobile) {
         return null;
     }
 
-    const onClose = () => {
-        // eslint-disable-next-line rulesdir/prefer-actions-set-data
-        Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, false);
-    };
+    if (isExtraLargeScreenWidth && !sidePanel?.open) {
+        return null;
+    }
 
     return (
         <>
@@ -744,13 +761,16 @@ function HelpPanel() {
                 ]}
             >
                 <PressableWithFeedback
-                    onPress={onClose}
+                    onPress={() => onClose(false)}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
                 >
                     <HeaderWithBackButton
                         title="Help"
-                        onBackButtonPress={onClose}
+                        onBackButtonPress={() => onClose(false)}
+                        onCloseButtonPress={() => onClose(false)}
+                        shouldShowBackButton={!isExtraLargeScreenWidth}
+                        shouldShowCloseButton={isExtraLargeScreenWidth}
                     />
                 </PressableWithFeedback>
             </View>

@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Performance from '@libs/Performance';
@@ -64,6 +65,7 @@ function HelpButton({style}: SearchButtonProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
+    const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
     return (
         <Tooltip text={translate('initialSettingsPage.help')}>
@@ -73,7 +75,7 @@ function HelpButton({style}: SearchButtonProps) {
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={() => {
                     // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                    Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, !sidePanel);
+                    Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, isExtraLargeScreenWidth ? {open: !sidePanel?.open} : {open: !sidePanel?.openMobile, openMobile: !sidePanel?.openMobile});
                 }}
             >
                 <Icon
