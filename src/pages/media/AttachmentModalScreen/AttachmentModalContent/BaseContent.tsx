@@ -31,7 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {AttachmentModalChildrenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -45,6 +45,8 @@ import viewRef from '@src/types/utils/viewRef';
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
+
+    file?: FileObject;
 
     /** Optional original filename when uploading */
     originalFileName?: string;
@@ -85,9 +87,6 @@ type AttachmentModalBaseContentProps = {
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment?: boolean;
 
-    /** A function as a child to pass modal launching methods to */
-    children?: React.FC<AttachmentModalChildrenProps>;
-
     fallbackSource?: AvatarSource;
 
     canEditReceipt?: boolean;
@@ -116,7 +115,6 @@ type AttachmentModalBaseContentProps = {
     setIsDeleteReceiptConfirmModalVisible?: (value: boolean) => void;
     closeModal?: (shouldCallDirectly?: boolean) => void;
     closeConfirmModal?: () => void;
-    openModal?: () => void;
     onSubmitAndClose?: () => void;
     onPdfLoadError?: (setIsModalOpen?: (isModalOpen: boolean) => void) => void;
     onInvalidReasonModalHide?: () => void;
@@ -128,25 +126,22 @@ function AttachmentModalBaseContent({
     originalFileName = '',
     isAuthTokenRequired = false,
     maybeIcon = false,
-    headerTitle,
+    headerTitle: headerTitleProp,
     fallbackSource,
+    file: fileProp,
     type = undefined,
     accountID = undefined,
     attachmentLink = '',
-    isOpen = false,
+    isOpen = true,
     allowDownload = false,
     isTrackExpenseAction = false,
     report,
     isReceiptAttachment = false,
     isWorkspaceAvatar = false,
-    children,
     canEditReceipt = false,
     isLoading = false,
     shouldShowNotFoundPage = false,
     shouldDisableSendButton = false,
-    onConfirm,
-    onCarouselAttachmentChange = () => {},
-
     fallbackRoute,
     isDeleteReceiptConfirmModalVisible,
     setIsDeleteReceiptConfirmModalVisible,
@@ -159,12 +154,11 @@ function AttachmentModalBaseContent({
     attachmentInvalidReasonTitle,
     setAttachmentInvalidReasonTitle,
     submitRef,
-
-    closeModal,
+    onConfirm,
+    onCarouselAttachmentChange = () => {},
     closeConfirmModal,
-    openModal,
-
-    onSubmitAndClose,
+    closeModal = () => Navigation.goBack(fallbackRoute),
+    onSubmitAndClose = () => Navigation.goBack(fallbackRoute),
     onPdfLoadError,
     onInvalidReasonModalHide,
     onUploadFileValidated,
@@ -269,8 +263,8 @@ function AttachmentModalBaseContent({
     const deleteAndCloseModal = useCallback(() => {
         detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible?.(false);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
-    }, [transaction?.transactionID, setIsDeleteReceiptConfirmModalVisible, report?.reportID]);
+        Navigation.goBack(fallbackRoute);
+    }, [transaction?.transactionID, setIsDeleteReceiptConfirmModalVisible, fallbackRoute]);
 
     const isValidFile = useCallback(
         (fileObject: FileObject) =>
@@ -314,73 +308,46 @@ function AttachmentModalBaseContent({
         [setAttachmentInvalidReason, setAttachmentInvalidReasonTitle, setIsAttachmentInvalid],
     );
 
-    const validateAndDisplayFileToUpload = useCallback(
-        (data: FileObject) => {
-            if (!data || !isDirectoryCheck(data)) {
+    useEffect(() => {
+        if (!fileProp || !isDirectoryCheck(fileProp)) {
+            return;
+        }
+        let fileObject = fileProp;
+        if ('getAsFile' in fileProp && typeof fileProp.getAsFile === 'function') {
+            fileObject = fileProp.getAsFile() as FileObject;
+        }
+        if (!fileObject) {
+            return;
+        }
+
+        isValidFile(fileObject).then((isValid) => {
+            if (!isValid) {
                 return;
             }
-            let fileObject = data;
-            if ('getAsFile' in data && typeof data.getAsFile === 'function') {
-                fileObject = data.getAsFile() as FileObject;
-            }
-            if (!fileObject) {
-                return;
-            }
-
-            isValidFile(fileObject).then((isValid) => {
-                if (!isValid) {
-                    return;
+            if (fileObject instanceof File) {
+                /**
+                 * Cleaning file name, done here so that it covers all cases:
+                 * upload, drag and drop, copy-paste
+                 */
+                let updatedFile = fileObject;
+                const cleanName = cleanFileName(updatedFile.name);
+                if (updatedFile.name !== cleanName) {
+                    updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
                 }
-                if (fileObject instanceof File) {
-                    /**
-                     * Cleaning file name, done here so that it covers all cases:
-                     * upload, drag and drop, copy-paste
-                     */
-                    let updatedFile = fileObject;
-                    const cleanName = cleanFileName(updatedFile.name);
-                    if (updatedFile.name !== cleanName) {
-                        updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
-                    }
-                    const inputSource = URL.createObjectURL(updatedFile);
-                    updatedFile.uri = inputSource;
-                    setIsModalOpen?.(true);
-                    setSourceState(inputSource);
-                    setFile(updatedFile);
-                    onUploadFileValidated?.('file', inputSource, updatedFile);
-                } else if (fileObject.uri) {
-                    setIsModalOpen?.(true);
-                    setSourceState(fileObject.uri);
-                    setFile(fileObject);
-                    onUploadFileValidated?.('uri', fileObject.uri, fileObject);
-                }
-            });
-        },
-        [isDirectoryCheck, isValidFile, setIsModalOpen, onUploadFileValidated],
-    );
-
-    // /**
-    //  * Closes the modal.
-    //  * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
-    //  * This is useful when you plan to continue navigating to another page after closing the modal, to avoid freezing the app due to navigating to another page first and dismissing the modal later.
-    //  * If `shouldCallDirectly` is false or undefined, it calls `attachmentModalHandler.handleModalClose` to close the modal.
-    //  * This ensures smooth modal closing behavior without causing delays in closing.
-    //  */
-    // const closeModal = useCallback(
-    //     (shouldCallDirectly?: boolean) => {
-    //         setIsModalOpen(false);
-
-    //         if (typeof onModalClose === 'function') {
-    //             if (shouldCallDirectly) {
-    //                 onModalClose();
-    //                 return;
-    //             }
-    //             attachmentModalHandler.handleModalClose(onModalClose);
-    //         }
-
-    //         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    //     },
-    //     [onModalClose],
-    // );
+                const inputSource = URL.createObjectURL(updatedFile);
+                updatedFile.uri = inputSource;
+                setIsModalOpen?.(true);
+                setSourceState(inputSource);
+                setFile(updatedFile);
+                onUploadFileValidated?.('file', inputSource, updatedFile);
+            } else if (fileObject.uri) {
+                setIsModalOpen?.(true);
+                setSourceState(fileObject.uri);
+                setFile(fileObject);
+                onUploadFileValidated?.('uri', fileObject.uri, fileObject);
+            }
+        });
+    }, [isDirectoryCheck, isValidFile, setIsModalOpen, onUploadFileValidated, fileProp]);
 
     useEffect(() => {
         setSourceState(() => source);
@@ -435,14 +402,20 @@ function AttachmentModalBaseContent({
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
-    let headerTitleNew = headerTitle;
-    let shouldShowDownloadButton = false;
-    let shouldShowThreeDotsButton = false;
-    if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
-        headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
-        shouldShowThreeDotsButton = isReceiptAttachment && isOpen && threeDotsMenuItems.length !== 0;
-    }
+    const {headerTitle, shouldShowDownloadButton, shouldShowThreeDotsButton} = useMemo(() => {
+        let headerTitleNew;
+        let shouldShowDownloadButtonNew = false;
+        let shouldShowThreeDotsButtonNew = false;
+
+        if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
+            headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
+            shouldShowDownloadButtonNew = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
+            shouldShowThreeDotsButtonNew = isReceiptAttachment && isOpen && threeDotsMenuItems.length !== 0;
+        }
+
+        return {headerTitle: headerTitleNew, shouldShowDownloadButton: shouldShowDownloadButtonNew, shouldShowThreeDotsButton: shouldShowThreeDotsButtonNew};
+    }, [allowDownload, isDownloadButtonReadyToBeShown, isLocalSource, isOffline, isOpen, isReceiptAttachment, report, shouldShowNotFoundPage, threeDotsMenuItems.length, translate, type]);
+
     const context = useMemo(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
@@ -462,7 +435,7 @@ function AttachmentModalBaseContent({
             <GestureHandlerRootView style={styles.flex1}>
                 {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={headerTitleNew}
+                    title={headerTitle}
                     shouldShowBorderBottom
                     shouldShowDownloadButton={shouldShowDownloadButton}
                     onDownloadButtonPress={() => downloadAttachment()}
@@ -573,11 +546,6 @@ function AttachmentModalBaseContent({
                     onModalHide={onInvalidReasonModalHide}
                 />
             )}
-
-            {children?.({
-                displayFileInModal: validateAndDisplayFileToUpload,
-                show: () => openModal?.(),
-            })}
         </>
     );
 }

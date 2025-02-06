@@ -111,17 +111,29 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
         [getModalType],
     );
 
+    const screenProps = useMemo(
+        () =>
+            params.file
+                ? {...params, accountID}
+                : {
+                      // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+                      source: Number(params.source) || params.source,
+                      type: params.type,
+                      accountID,
+                      shouldShowNotFoundPage: !params.file && !isLoadingApp && params.type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
+                      allowDownload: true,
+                      isAuthTokenRequired: !!params.isAuthTokenRequired,
+                      attachmentLink: params.attachmentLink ?? '',
+                      originalFileName: params.fileName ?? '',
+                      fallbackRoute: ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID),
+                  },
+        [accountID, isLoadingApp, params, report?.reportID],
+    );
+
     const contentProps = useMemo(
         () =>
             ({
-                // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-                source: Number(params.source) || params.source,
-                accountID,
-                shouldShowNotFoundPage: !isLoadingApp && params.type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
-                allowDownload: true,
-                isAuthTokenRequired: !!params.isAuthTokenRequired,
-                attachmentLink: params.attachmentLink ?? '',
-                originalFileName: params.fileName ?? '',
+                ...screenProps,
                 shouldLoadAttachment,
                 isAttachmentInvalid,
                 setIsAttachmentInvalid,
@@ -138,22 +150,15 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                 onUploadFileValidated,
             } satisfies Partial<AttachmentModalBaseContentProps>),
         [
-            accountID,
             attachmentInvalidReason,
             attachmentInvalidReasonTitle,
             isAttachmentInvalid,
             isDeleteReceiptConfirmModalVisible,
-            isLoadingApp,
             onCarouselAttachmentChange,
             onInvalidReasonModalHide,
             onPdfLoadError,
             onUploadFileValidated,
-            params.attachmentLink,
-            params.fileName,
-            params.isAuthTokenRequired,
-            params.source,
-            params.type,
-            report?.reportID,
+            screenProps,
             shouldLoadAttachment,
         ],
     );
