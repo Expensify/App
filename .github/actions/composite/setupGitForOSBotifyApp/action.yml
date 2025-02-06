@@ -5,6 +5,9 @@ name: "Setup Git for OSBotify"
 description: "Setup Git for OSBotify"
 
 inputs:
+  OP_SERVICE_ACCOUNT_TOKEN:
+    description: "1Password service account token"
+    required: true
   OS_BOTIFY_APP_ID:
     description: "Application ID for OS Botify"
     required: true
@@ -42,12 +45,12 @@ runs:
     - name: Load files from 1Password
       shell: bash
       env:
-        OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
       run: op read "op://Mobile-Deploy-CI/OSBotify-private-key.asc/OSBotify-private-key.asc" --force --out-file ./OSBotify-private-key.asc
 
     - name: Import OSBotify GPG Key
       shell: bash
-      run: cd .github/workflows && gpg --import OSBotify-private-key.asc
+      run: gpg --import OSBotify-private-key.asc
 
     - name: Set up git for OSBotify
       shell: bash
@@ -56,11 +59,6 @@ runs:
         git config commit.gpgsign true
         git config user.name OSBotify
         git config user.email infra+osbotify@expensify.com
-
-    - name: Enable debug logs for git
-      shell: bash
-      if: runner.debug == '1'
-      run: echo "GIT_TRACE=true" >> "$GITHUB_ENV"
 
     - name: Sync clock
       shell: bash
