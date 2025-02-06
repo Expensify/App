@@ -172,7 +172,7 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
-        if (transaction?.transactionID) {
+        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants))) {
             return;
         }
         startMoneyRequest(
