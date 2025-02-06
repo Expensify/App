@@ -1044,6 +1044,20 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boole
 }
 
 /**
+ * Checks if the report with supplied ID has been approved or not
+ */
+function isReportIDApproved(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    const report = getReport(reportID);
+    if (!report) {
+        return;
+    }
+    return isReportApproved(report);
+}
+
+/**
  * Checks if a report is an Expense report.
  */
 function isExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
@@ -9159,6 +9173,7 @@ export {
     isPolicyExpenseChat,
     isPolicyExpenseChatAdmin,
     isProcessingReport,
+    isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicAnnounceRoom,
     isPublicRoom,
