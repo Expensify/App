@@ -158,6 +158,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             </View>
                         }
                         shouldShowTextInputAfterHeader
+                        shouldShowHeaderMessageAfterHeader
                         includeSafeAreaPaddingBottom={false}
                         shouldShowListEmptyContent={false}
                         shouldUpdateFocusedIndex
