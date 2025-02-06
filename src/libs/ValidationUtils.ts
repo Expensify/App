@@ -161,10 +161,6 @@ function isValidDebitCard(string: string): boolean {
     return validateCardNumber(string);
 }
 
-function isValidIndustryCode(code: string): boolean {
-    return CONST.REGEX.INDUSTRY_CODE.test(code);
-}
-
 function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
 }
@@ -654,7 +650,6 @@ export {
     isValidSecurityCode,
     isValidExpirationDate,
     isValidDebitCard,
-    isValidIndustryCode,
     isValidZipCode,
     isValidPaymentZipCode,
     isRequiredFulfilled,
