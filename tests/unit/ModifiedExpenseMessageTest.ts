@@ -403,7 +403,7 @@ describe('ModifiedExpenseMessage', () => {
 
         describe('when moving an expense', () => {
             beforeEach(() => Onyx.clear());
-            it('return the message "moved expense to self DM" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
+            it('return the message "moved expense from expense report to your personal space" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
                 // Given the selfDM report and report action
                 const selfDMReport = {
                     ...report,
@@ -453,7 +453,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('return the message "moved expense from self DM to policyName" when both reportName and policyName are present', async () => {
+            it('return the message "moved expense from your personal space to policyName" when both reportName and policyName are present', async () => {
                 // Given the policyExpenseChat with both reportName and policyName are present and report action
                 const policyExpenseChat = {
                     ...report,
@@ -479,7 +479,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('return the message "moved expense from self DM to chat with reportName" when only reportName is present', async () => {
+            it('return the message "moved expense from your personal space to chat with reportName" when only reportName is present', async () => {
                 // Given the policyExpenseChat with only reportName is present and report action
                 const policyExpenseChat = {
                     ...report,
