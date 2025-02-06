@@ -2,6 +2,7 @@ import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
+import {AppProps} from '@src/App';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
@@ -17,13 +18,7 @@ const InitialURLContext = createContext<InitialUrlContextType>({
     setInitialURL: () => {},
 });
 
-type InitialURLContextProviderProps = {
-    /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
-    url?: Route;
-
-    hybridAppSettings?: string;
-    timestamp?: string;
-
+type InitialURLContextProviderProps = AppProps & {
     /** Children passed to the context provider */
     children: ReactNode;
 };
