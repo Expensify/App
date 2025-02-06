@@ -532,6 +532,8 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                             ? {
                                   ...delegate,
                                   isLoading: true,
+                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                               }
                             : delegate,
                     ),
@@ -540,7 +542,34 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
         },
     ];
 
-    const finallyData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    errorFields: {
+                        updateDelegateRole: {
+                            [email]: null,
+                        },
+                    },
+                    delegates: delegatedAccess.delegates.map((delegate) =>
+                        delegate.email === email
+                            ? {
+                                  ...delegate,
+                                  role,
+                                  isLoading: false,
+                                  pendingAction: null,
+                                  pendingFields: {role: null},
+                              }
+                            : delegate,
+                    ),
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -551,6 +580,8 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                             ? {
                                   ...delegate,
                                   isLoading: false,
+                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                               }
                             : delegate,
                     ),
@@ -561,7 +592,7 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
 
     const parameters: UpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
 
-    API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
 function updateDelegateRoleOptimistically(email: string, role: DelegateRole) {
