@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import ProfileAvatarModalContent from './AttachmentModalContent/ProfileAvatarModalContent';
 import ReportAttachmentModalContent from './AttachmentModalContent/ReportAttachmentModalContent';
 import ReportAvatarModalContent from './AttachmentModalContent/ReportAvatarModalContent';
+import TransactionReceiptModalContent from './AttachmentModalContent/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './AttachmentModalContent/WorkspaceAvatarModalContent';
 import AttachmentModalWrapper from './AttachmentModalWrapper';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from './types';
@@ -30,6 +31,21 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
                     />
                 )}
             </ReportAttachmentModalContent>
+        );
+    }
+
+    if (route.name === CONST.ATTACHMENT_MODAL_TYPE.TRANSACTION_RECEIPT) {
+        return (
+            <TransactionReceiptModalContent params={params}>
+                {({contentProps, wrapperProps}) => (
+                    <AttachmentModalWrapper
+                        navigation={navigation}
+                        attachmentId={attachmentId}
+                        contentProps={contentProps}
+                        wrapperProps={wrapperProps}
+                    />
+                )}
+            </TransactionReceiptModalContent>
         );
     }
 
