@@ -9,11 +9,10 @@ function AttachmentModalWrapper({contentProps, navigation, attachmentId}: Attach
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
 
-    const onModalClose = useCallback(() => {
-        if (!attachmentId) {
-            return;
+    const closeModal = useCallback(() => {
+        if (attachmentId) {
+            attachmentsContext.removeAttachment(attachmentId);
         }
-        attachmentsContext.removeAttachment(attachmentId);
 
         Navigation.goBack(contentProps.fallbackRoute);
     }, [attachmentId, attachmentsContext, contentProps.fallbackRoute]);
@@ -26,7 +25,7 @@ function AttachmentModalWrapper({contentProps, navigation, attachmentId}: Attach
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
-                closeModal={onModalClose}
+                closeModal={closeModal}
             />
         </ScreenWrapper>
     );
