@@ -27,7 +27,7 @@ type MenuListItem = ListItem & {
 function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const config = policy?.connections?.netsuite?.options.config;
 
     const {items} = policy?.connections?.netsuite?.options.data ?? {};
@@ -44,11 +44,11 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
 
     const selectInvoicePreference = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.invoiceItemPreference) {
+            if (row.value !== config?.invoiceItemPreference && policyID) {
                 updateNetSuiteInvoiceItemPreference(policyID, row.value, config?.invoiceItemPreference);
             }
             if (row.value === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
-                Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+                Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
             }
         },
         [config?.invoiceItemPreference, policyID],
@@ -59,7 +59,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
             headerTitle="workspace.netsuite.invoiceItem.label"
             title={`workspace.netsuite.invoiceItem.values.${config?.invoiceItemPreference ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE}.description`}
             titleStyle={[styles.ph5, styles.pb5]}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteInvoiceItemPreferenceSelectPage.displayName}
@@ -97,7 +97,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                             title={selectedItem ? selectedItem.name : undefined}
                             interactive
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}
                             brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>

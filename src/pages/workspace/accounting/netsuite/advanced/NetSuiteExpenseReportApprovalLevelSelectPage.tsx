@@ -24,7 +24,7 @@ type MenuListItem = ListItem & {
 
 function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite?.options.config;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_REPORTS_APPROVAL_LEVEL).map((approvalType) => ({
@@ -45,10 +45,10 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
 
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.syncOptions.exportReportsTo) {
+            if (row.value !== config?.syncOptions.exportReportsTo && policyID) {
                 updateNetSuiteExportReportsTo(policyID, row.value, config?.syncOptions.exportReportsTo ?? CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
         [config?.syncOptions.exportReportsTo, policyID],
     );
@@ -65,7 +65,7 @@ function NetSuiteExpenseReportApprovalLevelSelectPage({policy}: WithPolicyConnec
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_REPORTS_TO], config?.pendingFields)}

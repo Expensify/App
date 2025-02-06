@@ -30,7 +30,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {
             return [
@@ -65,10 +65,10 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== config?.exporter) {
+            if (row.value !== config?.exporter && policyID) {
                 updateNetSuiteExporter(policyID, row.value, config?.exporter ?? '');
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
         [config?.exporter, policyID],
     );
@@ -94,7 +94,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
             headerContent={headerContent}
             onSelectRow={selectExporter}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORTER], config?.pendingFields)}

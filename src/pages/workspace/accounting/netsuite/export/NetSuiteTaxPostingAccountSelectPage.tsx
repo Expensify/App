@@ -23,7 +23,7 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
     const {translate} = useLocalize();
     const {canUseNetSuiteUSATax} = usePermissions();
 
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite?.options.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
@@ -38,10 +38,10 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
 
     const updateTaxAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.taxPostingAccount !== value) {
+            if (config?.taxPostingAccount !== value && policyID) {
                 updateNetSuiteTaxPostingAccount(policyID, value, config?.taxPostingAccount);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
         [policyID, config?.taxPostingAccount],
     );
@@ -70,7 +70,7 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
             listItem={RadioListItem}
             onSelectRow={updateTaxAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             title="workspace.netsuite.journalEntriesTaxPostingAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

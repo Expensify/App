@@ -21,7 +21,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteInvoiceItemOptions = useMemo<SelectorType[]>(() => getNetSuiteInvoiceItemOptions(policy ?? undefined, config?.invoiceItem), [config?.invoiceItem, policy]);
@@ -30,10 +30,10 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
 
     const updateInvoiceItem = useCallback(
         ({value}: SelectorType) => {
-            if (config?.invoiceItem !== value) {
+            if (config?.invoiceItem !== value && policyID) {
                 updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID));
         },
         [policyID, config?.invoiceItem],
     );
@@ -62,7 +62,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
             listItem={RadioListItem}
             onSelectRow={updateInvoiceItem}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID))}
             title="workspace.netsuite.invoiceItem.label"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

@@ -21,7 +21,7 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteReceivableAccountOptions = useMemo<SelectorType[]>(
@@ -33,10 +33,10 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
 
     const updateReceivableAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.receivableAccount !== value) {
+            if (config?.receivableAccount !== value && policyID) {
                 updateNetSuiteReceivableAccount(policyID, value, config?.receivableAccount);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
         [policyID, config?.receivableAccount],
     );
@@ -65,7 +65,7 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
             listItem={RadioListItem}
             onSelectRow={updateReceivableAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             title="workspace.netsuite.exportInvoices"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

@@ -26,7 +26,7 @@ type MenuListItem = ListItem & {
 function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const config = policy?.connections?.netsuite?.options.config;
 
     const route = useRoute();
@@ -45,14 +45,14 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
 
     const selectDestination = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== currentDestination) {
+            if (row.value !== currentDestination && policyID) {
                 if (isReimbursable) {
                     updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
                 } else {
                     updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
                 }
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
         [currentDestination, isReimbursable, params.expenseType, policyID],
     );
@@ -68,7 +68,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
+            onBackButtonPress={() => policyID && Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={settingsPendingAction([currentSettingName], config?.pendingFields)}
             errors={getLatestErrorField(config, currentSettingName)}

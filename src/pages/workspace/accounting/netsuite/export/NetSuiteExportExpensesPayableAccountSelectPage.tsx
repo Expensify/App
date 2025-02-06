@@ -23,7 +23,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
 
     const route = useRoute();
     const params = route.params as ExpenseRouteParams;
@@ -38,14 +38,14 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
 
     const updatePayableAccount = useCallback(
         ({value}: SelectorType) => {
-            if (currentPayableAccountID !== value) {
+            if (currentPayableAccountID !== value && policyID) {
                 if (isReimbursable) {
                     updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID ?? `${CONST.DEFAULT_NUMBER_ID}`);
                 } else {
                     updateNetSuitePayableAcct(policyID, value, currentPayableAccountID ?? `${CONST.DEFAULT_NUMBER_ID}`);
                 }
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
         [currentPayableAccountID, policyID, params.expenseType, isReimbursable],
     );
@@ -74,7 +74,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
             listItem={RadioListItem}
             onSelectRow={updatePayableAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
             title={isReimbursable ? 'workspace.netsuite.reimbursableJournalPostingAccount' : 'workspace.netsuite.nonReimbursableJournalPostingAccount'}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

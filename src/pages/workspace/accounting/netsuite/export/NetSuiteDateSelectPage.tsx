@@ -24,7 +24,7 @@ type MenuListItem = ListItem & {
 
 function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite?.options.config;
     const selectedValue = Object.values(CONST.NETSUITE_EXPORT_DATE).find((value) => value === config?.exportDate) ?? CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE;
@@ -47,10 +47,10 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
 
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.exportDate) {
+            if (row.value !== config?.exportDate && policyID) {
                 updateNetSuiteExportDate(policyID, row.value, config?.exportDate);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
         [config?.exportDate, policyID],
     );
@@ -67,7 +67,7 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_DATE], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_DATE)}

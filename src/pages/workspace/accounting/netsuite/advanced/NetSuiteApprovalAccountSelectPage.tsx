@@ -23,7 +23,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteApprovalAccountOptions = useMemo<SelectorType[]>(
@@ -37,10 +37,10 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
 
     const updateCollectionAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.approvalAccount !== value) {
+            if (config?.approvalAccount !== value && policyID) {
                 updateNetSuiteApprovalAccount(policyID, value, config?.approvalAccount ?? CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
         [policyID, config?.approvalAccount],
     );
@@ -79,7 +79,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             listItem={RadioListItem}
             onSelectRow={updateCollectionAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             title="workspace.netsuite.advancedConfig.approvalAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

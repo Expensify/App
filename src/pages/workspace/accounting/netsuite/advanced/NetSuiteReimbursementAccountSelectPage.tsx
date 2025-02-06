@@ -23,7 +23,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteReimbursableAccountOptions = useMemo<SelectorType[]>(
@@ -35,10 +35,10 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
 
     const updateReimbursementAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.reimbursementAccountID !== value) {
+            if (config?.reimbursementAccountID !== value && policyID) {
                 updateNetSuiteReimbursementAccountID(policyID, value, config?.reimbursementAccountID);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
         [policyID, config?.reimbursementAccountID],
     );
@@ -77,7 +77,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
             listItem={RadioListItem}
             onSelectRow={updateReimbursementAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
+            onBackButtonPress={() => policyID && Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             title="workspace.netsuite.advancedConfig.reimbursementsAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

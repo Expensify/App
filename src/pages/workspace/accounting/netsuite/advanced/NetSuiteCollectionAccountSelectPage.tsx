@@ -23,7 +23,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteCollectionAccountOptions = useMemo<SelectorType[]>(
@@ -35,10 +35,10 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
 
     const updateCollectionAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.collectionAccount !== value) {
+            if (config?.collectionAccount !== value && policyID) {
                 updateNetSuiteCollectionAccount(policyID, value, config?.collectionAccount);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
         [policyID, config?.collectionAccount],
     );
@@ -77,7 +77,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
             listItem={RadioListItem}
             onSelectRow={updateCollectionAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             title="workspace.netsuite.advancedConfig.collectionsAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

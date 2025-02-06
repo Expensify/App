@@ -24,7 +24,7 @@ type MenuListItem = ListItem & {
 
 function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`;
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const config = policy?.connections?.netsuite?.options.config;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL).map((approvalType) => ({
@@ -45,10 +45,10 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
 
     const selectVendorBillApprovalLevel = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.syncOptions.exportVendorBillsTo) {
+            if (row.value !== config?.syncOptions.exportVendorBillsTo && policyID) {
                 updateNetSuiteExportVendorBillsTo(policyID, row.value, config?.syncOptions.exportVendorBillsTo ?? CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
         [config?.syncOptions.exportVendorBillsTo, policyID],
     );
@@ -65,7 +65,7 @@ function NetSuiteVendorBillApprovalLevelSelectPage({policy}: WithPolicyConnectio
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
+            onBackButtonPress={() => policyID && Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={
                 config?.reimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL &&
