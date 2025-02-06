@@ -98,11 +98,20 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards) {
-    const feedCards: CardList = {...cardList};
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
+    const feedCards: CardList = {};
+    Object.keys(cardList).forEach((cardKey) => {
+        const card = cardList[cardKey];
+        if (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card)) {
+            return;
+        }
+
+        feedCards[cardKey] = card;
+    });
+
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
         Object.values(currentCardFeed ?? {}).forEach((card) => {
-            if (!isCard(card)) {
+            if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
                 return;
             }
             feedCards[card.cardID] = card;
@@ -436,9 +445,9 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
+function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
     const cards = {};
-    for (const [key, values] of Object.entries(allWorkspaceCards ?? {})) {
+    for (const [key, values] of Object.entries(allCardList ?? {})) {
         if (key.includes(workspaceAccountID.toString()) && values) {
             const {cardList, ...rest} = values;
             Object.assign(cards, rest);
