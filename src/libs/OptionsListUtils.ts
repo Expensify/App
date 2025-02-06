@@ -195,15 +195,21 @@ type GetValidReportsConfig = {
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
     loginsToExclude?: Record<string, boolean>;
+    shouldSeparateWorkspaceChat?: boolean;
+    shouldSeparateSelfDMChat?: boolean;
 } & GetValidOptionsSharedConfig;
+
+type GetValidReportsReturnTypeCombined = {
+    selfDMOption: OptionData | undefined;
+    workspaceOptions: OptionData[];
+    recentReports: OptionData[];
+};
 
 type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
-    shouldSeparateWorkspaceChat?: boolean;
-    shouldSeparateSelfDMChat?: boolean;
     excludeHiddenReports?: boolean;
 } & GetValidReportsConfig;
 
@@ -1246,9 +1252,8 @@ function getUserToInviteOption({
     return userToInvite;
 }
 
-function getValidReports(
-    reports: OptionList['reports'],
-    {
+function getValidReports(reports: OptionList['reports'], config: GetValidReportsConfig): GetValidReportsReturnTypeCombined {
+    const {
         betas = [],
         includeMultipleParticipantReports = false,
         showChatPreviewLine = false,
@@ -1266,11 +1271,14 @@ function getValidReports(
         includeDomainEmail = false,
         shouldBoldTitleByDefault = true,
         loginsToExclude = {},
-    }: GetValidReportsConfig,
-) {
+        shouldSeparateSelfDMChat,
+        shouldSeparateWorkspaceChat,
+    } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
     const validReportOptions: OptionData[] = [];
+    const workspaceChats: OptionData[] = [];
+    let selfDMChat: OptionData | undefined;
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
     for (let i = 0; i < reports.length; i++) {
@@ -1402,10 +1410,20 @@ function getValidReports(
             lastIOUCreationDate,
         };
 
-        validReportOptions.push(newReportOption);
+        if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
+            workspaceChats.push(newReportOption);
+        } else if (shouldSeparateSelfDMChat && newReportOption.isSelfDM) {
+            selfDMChat = newReportOption;
+        } else {
+            validReportOptions.push(newReportOption);
+        }
     }
 
-    return validReportOptions;
+    return {
+        recentReports: validReportOptions,
+        workspaceOptions: workspaceChats,
+        selfDMOption: selfDMChat,
+    };
 }
 
 /**
@@ -1445,15 +1463,22 @@ function getValidOptions(
 
     // Get valid recent reports:
     let recentReportOptions: OptionData[] = [];
+    let workspaceChats: OptionData[] = [];
+    let selfDMChat: OptionData | undefined;
     if (includeRecentReports) {
-        recentReportOptions = getValidReports(options.reports, {
+        const {recentReports, workspaceOptions, selfDMOption} = getValidReports(options.reports, {
             ...getValidReportsConfig,
             includeP2P,
             includeDomainEmail,
             selectedOptions,
             loginsToExclude,
             shouldBoldTitleByDefault,
+            shouldSeparateSelfDMChat,
+            shouldSeparateWorkspaceChat,
         });
+        recentReportOptions = recentReports;
+        workspaceChats = workspaceOptions;
+        selfDMChat = selfDMOption;
     } else if (recentAttendees && recentAttendees?.length > 0) {
         recentAttendees.filter((attendee) => {
             const login = attendee.login ?? attendee.displayName;
@@ -1504,22 +1529,6 @@ function getValidOptions(
 
             personalDetailsOptions.push(detail);
         }
-    }
-
-    let workspaceChats: OptionData[] = [];
-
-    if (shouldSeparateWorkspaceChat) {
-        workspaceChats = recentReportOptions.filter((option) => option.isOwnPolicyExpenseChat && !option.private_isArchived);
-    }
-
-    let selfDMChat: OptionData | undefined;
-
-    if (shouldSeparateWorkspaceChat) {
-        recentReportOptions = recentReportOptions.filter((option) => !option.isPolicyExpenseChat);
-    }
-    if (shouldSeparateSelfDMChat) {
-        selfDMChat = recentReportOptions.find((option) => option.isSelfDM);
-        recentReportOptions = recentReportOptions.filter((option) => !option.isSelfDM);
     }
 
     if (excludeHiddenReports) {
