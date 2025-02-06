@@ -16,6 +16,12 @@ type ScrollOffsetContextValue = {
     /** Get scroll offset value for given screen */
     getScrollOffset: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
 
+    /** Save scroll index of flashlist on given screen */
+    saveScrollIndex: (route: PlatformStackRouteProp<ParamListBase>, scrollIndex: number) => void;
+
+    /** Get scroll index value for given screen */
+    getScrollIndex: (route: PlatformStackRouteProp<ParamListBase>) => number | undefined;
+
     /** Clean scroll offsets of screen that aren't anymore in the state */
     cleanStaleScrollOffsets: (state: State) => void;
 };
@@ -87,13 +93,26 @@ function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetConte
         }
     }, []);
 
+    const saveScrollIndex: ScrollOffsetContextValue['saveScrollIndex'] = useCallback((route, scrollIndex) => {
+        scrollOffsetsRef.current[getKey(route)] = scrollIndex;
+    }, []);
+
+    const getScrollIndex: ScrollOffsetContextValue['getScrollIndex'] = useCallback((route) => {
+        if (!scrollOffsetsRef.current) {
+            return;
+        }
+        return scrollOffsetsRef.current[getKey(route)];
+    }, []);
+
     const contextValue = useMemo(
         (): ScrollOffsetContextValue => ({
             saveScrollOffset,
             getScrollOffset,
             cleanStaleScrollOffsets,
+            saveScrollIndex,
+            getScrollIndex,
         }),
-        [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets],
+        [saveScrollOffset, getScrollOffset, cleanStaleScrollOffsets, saveScrollIndex, getScrollIndex],
     );
 
     return <ScrollOffsetContext.Provider value={contextValue}>{children}</ScrollOffsetContext.Provider>;
