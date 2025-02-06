@@ -1,6 +1,5 @@
 package com.expensify.chat.customairshipextender
 
-import android.os.Build
 import android.util.Base64
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -11,15 +10,14 @@ class PayloadHandler {
     private val GZIP_MAGIC = byteArrayOf(0x1f.toByte(), 0x8b.toByte())
 
     fun processPayload(payloadString: String): String =
-            runCatching {
-                        val decoded = Base64.decode(payloadString, Base64.DEFAULT)
-                        if (!isGzipped(decoded)) error("Input not gzipped")
-                        return decompressGzip(decoded)
-                    }
-                    .getOrDefault(payloadString)
+        runCatching {
+            val decoded = Base64.decode(payloadString, Base64.DEFAULT)
+            if (!isGzipped(decoded)) error("Input not gzipped")
+            return decompressGzip(decoded)
+        }.getOrDefault(payloadString)
 
     private fun isGzipped(decoded: ByteArray) =
-            decoded.size >= 2 && decoded[0] == GZIP_MAGIC[0] && decoded[1] == GZIP_MAGIC[1]
+        decoded.size >= 2 && decoded[0] == GZIP_MAGIC[0] && decoded[1] == GZIP_MAGIC[1]
 
     private fun decompressGzip(compressed: ByteArray): String {
         ByteArrayInputStream(compressed).use { bis ->

@@ -126,12 +126,18 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
         try {
             String rawPayload = message.getExtra(PAYLOAD_KEY);
-            if (rawPayload == null) throw new Exception();
+            if (rawPayload == null) {
+              Log.d(TAG, "Failed to parse payload - payload is empty. SendID=" + message.getSendId());
+              return builder;
+            }
 
             PayloadHandler handler = new PayloadHandler();
             String processedPayload = handler.processPayload(rawPayload);
             JsonMap payload = JsonValue.parseString(processedPayload).optMap();
-            if (!payload.containsKey(ONYX_DATA_KEY)) throw new Exception();
+            if (!payload.containsKey(ONYX_DATA_KEY)) {
+                Log.d(TAG, "Failed to process payload - no onyx data. SendID=" + message.getSendId());
+                return builder;
+            }
 
             Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
             Log.d(TAG, "payload contains onxyData");
