@@ -39,6 +39,8 @@ type ScrollOffsetContextProviderProps = ScrollOffsetContextProviderOnyxProps & {
 const defaultValue: ScrollOffsetContextValue = {
     saveScrollOffset: () => {},
     getScrollOffset: () => undefined,
+    saveScrollIndex: () => {},
+    getScrollIndex: () => undefined,
     cleanStaleScrollOffsets: () => {},
 };
 
