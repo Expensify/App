@@ -335,7 +335,7 @@ describe('actions/IOU', () => {
 
                         // Then the quickAction.action should be set to REQUEST_DISTANCE
                         expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.REQUEST_DISTANCE);
-                        // Then the quickAction.chatReportID should be set to the given chat reportID
+                        // Then the quickAction.chatReportID should be set to the given policyExpenseChat reportID
                         expect(quickAction?.chatReportID).toBe(policyExpenseChat.reportID);
                     },
                 });
