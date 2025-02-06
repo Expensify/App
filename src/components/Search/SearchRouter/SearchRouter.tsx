@@ -1,4 +1,5 @@
 import {useNavigationState} from '@react-navigation/native';
+import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {TextInputProps} from 'react-native';
@@ -185,7 +186,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
-            setAutocompleteSubstitutions(updatedSubstitutionsMap);
+            if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
+                setAutocompleteSubstitutions(updatedSubstitutionsMap);
+            }
 
             if (updatedUserQuery || textInputValue.length > 0) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
@@ -323,6 +326,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                         wrapperFocusedStyle={[styles.borderColorFocus]}
                         isSearchingForReports={isSearchingForReports}
                         selection={selection}
+                        substitutionMap={autocompleteSubstitutions}
                         ref={textInputRef}
                     />
                     <SearchAutocompleteList
