@@ -5,6 +5,8 @@ import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import type {StatusBarStyle} from '@styles/index';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {useOnyx} from '../../../__mocks__/react-native-onyx';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
@@ -19,8 +21,9 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const {isRootStatusBarEnabled, setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
-    const isDisabled = !isNested && !isRootStatusBarEnabled;
+    const isDisabled = (!hybridApp?.isRootStatusBarEnabled ?? false) || (!isNested && !isRootStatusBarEnabled);
 
     // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {

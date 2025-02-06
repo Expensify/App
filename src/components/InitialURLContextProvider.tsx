@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {setupNewDotAfterTransitionFromOldDot} from '@libs/actions/Session';
 import Navigation from '@navigation/Navigation';
+import {setIsRootStatusBarEnabled} from '@userActions/HybridApp';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -56,6 +57,7 @@ function InitialURLContextProvider({children, url, hybridAppSettings}: InitialUR
             return;
         }
 
+        setIsRootStatusBarEnabled(true);
         if (url && hybridAppSettings) {
             if (!isLoadingOnyxValue(tryNewDotMetadata) && !setupCalled.current) {
                 setupCalled.current = true;

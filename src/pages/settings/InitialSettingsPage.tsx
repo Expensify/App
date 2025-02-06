@@ -8,7 +8,6 @@ import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -40,6 +39,7 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import * as HybridAppActions from '@userActions/HybridApp';
+import {setIsRootStatusBarEnabled} from '@userActions/HybridApp';
 import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Link';
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
@@ -102,7 +102,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
     const {setInitialURL} = useContext(InitialURLContext);
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
@@ -246,7 +245,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                               action: () => {
                                   NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                                   setInitialURL(undefined);
-                                  setRootStatusBarEnabled(false);
+                                  setIsRootStatusBarEnabled(false);
                               },
                           }
                         : {
@@ -290,7 +289,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, setInitialURL, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
+    }, [styles.pt4, setInitialURL, isActingAsDelegate, shouldOpenBookACall, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
