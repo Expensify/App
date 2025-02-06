@@ -240,9 +240,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                                 }}
                                 autoFocus={false}
                                 onFocus={() => {
-                                    onSearchRouterFocus?.();
                                     animatedMargin.set(withTiming(0, {duration: ANIMATION_DURATION}));
-                                    listRef.current?.updateAndScrollToFocusedIndex(0);
+                                    // setting timeout on onSearchFocus callback to make sure that the animation run first, otherwise it lags much more
+                                    setTimeout(() => {
+                                        onSearchRouterFocus?.();
+                                        listRef.current?.updateAndScrollToFocusedIndex(0);
+                                    }, 0);
                                 }}
                                 wrapperStyle={[styles.searchAutocompleteInputResults, styles.br2]}
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
