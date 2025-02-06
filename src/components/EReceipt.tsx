@@ -1,6 +1,7 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useEReceipt from '@hooks/useEReceipt';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -9,14 +10,11 @@ import {getCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCardName} from '@libs/TransactionUtils';
-import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
-import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
-import * as MCCIcons from './Icon/MCCIcons';
 import Image from './Image';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
@@ -24,15 +22,6 @@ import Text from './Text';
 type EReceiptProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string | undefined;
-};
-
-const backgroundImages = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: eReceiptBGs.EReceiptBG_Yellow,
-    [CONST.ERECEIPT_COLORS.ICE]: eReceiptBGs.EReceiptBG_Ice,
-    [CONST.ERECEIPT_COLORS.BLUE]: eReceiptBGs.EReceiptBG_Blue,
-    [CONST.ERECEIPT_COLORS.GREEN]: eReceiptBGs.EReceiptBG_Green,
-    [CONST.ERECEIPT_COLORS.TANGERINE]: eReceiptBGs.EReceiptBG_Tangerine,
-    [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 function EReceipt({transactionID}: EReceiptProps) {
     const styles = useThemeStyles();
@@ -42,16 +31,7 @@ function EReceipt({transactionID}: EReceiptProps) {
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
-    const colorCode = StyleUtils.getEReceiptColorCode(transaction);
-    const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
-    const primaryColor = colorStyles?.backgroundColor;
-    const secondaryColor = colorStyles?.color;
-    const transactionDetails = getTransactionDetails(transaction);
-    const transactionMCCGroup = transactionDetails?.mccGroup;
-    const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
-    const tripIcon = getTripEReceiptIcon(transaction);
-
-    const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
+    const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionID);
 
     const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
     const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
@@ -73,7 +53,7 @@ function EReceipt({transactionID}: EReceiptProps) {
 
     return (
         <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
-            <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter]}>
+            <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <Image
                     source={backgroundImage}
                     style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}
@@ -84,19 +64,19 @@ function EReceipt({transactionID}: EReceiptProps) {
                         <ImageSVG
                             src={Expensicons.ReceiptBody}
                             fill={theme.white}
-                            height={500}
+                            height={variables.eReceiptBodyHeight}
                         />
                     </View>
                     <View style={styles.eReceiptContentWrapper}>
                         <View style={[StyleUtils.getBackgroundColorStyle(theme.white), styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <View
                                 style={[
-                                    StyleUtils.getWidthAndHeightStyle(64, 64),
+                                    StyleUtils.getWidthAndHeightStyle(variables.eReceiptEmptyIconWidth, variables.eReceiptEmptyIconWidth),
                                     styles.alignItemsCenter,
                                     styles.justifyContentCenter,
                                     styles.borderRadiusComponentLarge,
                                     {backgroundColor: secondaryColor},
-                                    styles.mb3,
+                                    styles.mb4,
                                 ]}
                             >
                                 <View>
@@ -120,10 +100,10 @@ function EReceipt({transactionID}: EReceiptProps) {
                             </View>
                             <Text style={[styles.eReceiptGuaranteed, primaryTextColorStyle]}>{translate('eReceipt.guaranteed')}</Text>
                             <View style={[styles.alignItemsCenter]}>
-                                <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.h48)]} />
+                                <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.h40)]} />
                             </View>
                             <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
-                                <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb8]}>
+                                <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb11]}>
                                     <View style={[styles.flexRow, styles.justifyContentCenter, StyleUtils.getWidthStyle(variables.eReceiptTextContainerWidth)]}>
                                         <View style={[styles.flexColumn, styles.pt1]}>
                                             <Text style={[styles.eReceiptCurrency, primaryTextColorStyle]}>{currency}</Text>
@@ -137,7 +117,7 @@ function EReceipt({transactionID}: EReceiptProps) {
                                     </View>
                                     <Text style={[styles.eReceiptMerchant, styles.breakWord, styles.textAlignCenter, primaryTextColorStyle]}>{transactionMerchant}</Text>
                                 </View>
-                                <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb12, styles.gap4]}>
+                                <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb11, styles.gap4, styles.ph3]}>
                                     <View style={[styles.flexColumn, styles.gap1]}>
                                         <Text style={[styles.eReceiptWaypointTitle, secondaryTextColorStyle]}>{translate('eReceipt.transactionDate')}</Text>
                                         <Text style={[styles.eReceiptWaypointAddress, primaryTextColorStyle]}>{transactionDate}</Text>

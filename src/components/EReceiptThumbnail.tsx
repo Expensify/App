@@ -1,19 +1,15 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useEReceipt from '@hooks/useEReceipt';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionDetails} from '@libs/ReportUtils';
 import {isPerDiemRequest as isPerDiemRequestTransactionUtils} from '@libs/TransactionUtils';
-import {getTripEReceiptIcon} from '@libs/TripReservationUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
-import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
-import * as MCCIcons from './Icon/MCCIcons';
 import Image from './Image';
 import Text from './Text';
 
@@ -39,30 +35,12 @@ type EReceiptThumbnailProps = {
     iconSize?: IconSize;
 };
 
-const backgroundImages = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: eReceiptBGs.EReceiptBG_Yellow,
-    [CONST.ERECEIPT_COLORS.ICE]: eReceiptBGs.EReceiptBG_Ice,
-    [CONST.ERECEIPT_COLORS.BLUE]: eReceiptBGs.EReceiptBG_Blue,
-    [CONST.ERECEIPT_COLORS.GREEN]: eReceiptBGs.EReceiptBG_Green,
-    [CONST.ERECEIPT_COLORS.TANGERINE]: eReceiptBGs.EReceiptBG_Tangerine,
-    [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
-};
-
 function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
 
-    const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
-
-    const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
-    const primaryColor = colorStyles?.backgroundColor;
-    const secondaryColor = colorStyles?.color;
-    const transactionDetails = getTransactionDetails(transaction);
-    const transactionMCCGroup = transactionDetails?.mccGroup;
-    const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
-    const tripIcon = getTripEReceiptIcon(transaction);
+    const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionID, fileExtension, isReceiptThumbnail);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
 
     let receiptIconWidth: number = variables.eReceiptIconWidth;

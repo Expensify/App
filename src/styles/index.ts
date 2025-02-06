@@ -4138,8 +4138,8 @@ const styles = (theme: ThemeColors) =>
 
         eReceiptWaypointAddress: {
             ...FontUtils.fontFamily.platform.MONOSPACE,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.lineHeightNormal,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
             color: theme.textColorfulBackground,
         },
 
@@ -4177,17 +4177,16 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContainer: {
-            width: 335,
-            minHeight: 540,
+            width: variables.eReceiptBGHWidth,
+            minHeight: variables.eReceiptBGHeight,
             borderRadius: 20,
             overflow: 'hidden',
         },
 
         eReceiptContentContainer: {
-            width: 295,
+            width: variables.eReceiptBodyWidth,
             position: 'relative',
-            marginTop: 20,
-            minHeight: 500,
+            minHeight: variables.eReceiptBodyHeight,
         },
 
         eReceiptBody: {
