@@ -171,7 +171,12 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     rightElement: (
                         <>
                             <View style={styles.flex2}>
-                                <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}>{value.subRateName}</Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}
+                                >
+                                    {value.subRateName}
+                                </Text>
                             </View>
                             <View style={styles.flex2}>
                                 <Text
