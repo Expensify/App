@@ -2,7 +2,7 @@ import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
-import {AppProps} from '@src/App';
+import type {AppProps} from '@src/App';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
@@ -41,6 +41,8 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
+        // Rules are disabled because changes to splashScreenState could trigger code
+        // that should only execute when new props (url, hybridAppSettings, timestamp) are passed.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [url, hybridAppSettings, timestamp]);
 
