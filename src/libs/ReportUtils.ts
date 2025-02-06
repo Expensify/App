@@ -1168,13 +1168,6 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if the current user is the manager of the supplied report
- */
-function isReportManager(report: OnyxEntry<Report>): boolean {
-    return !!(report && report.managerID === currentUserAccountID);
-}
-
-/**
  * Checks if the report with supplied ID has been approved
  */
 function isReportIDApproved(reportID: string | undefined) {
@@ -1186,6 +1179,13 @@ function isReportIDApproved(reportID: string | undefined) {
         return;
     }
     return isReportApproved({report});
+}
+
+/**
+ * Checks if the current user is the manager of the supplied report
+ */
+function isReportManager(report: OnyxEntry<Report>): boolean {
+    return !!(report && report.managerID === currentUserAccountID);
 }
 
 /**
