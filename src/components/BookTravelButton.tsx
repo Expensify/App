@@ -41,7 +41,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
 
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');
@@ -63,14 +63,14 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             openTravelDotLink(policy?.id)
                 ?.then(() => {
                     // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
-                    // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
-                    if (!NativeModules.HybridAppModule || !wasNewDotLaunchedJustForTravel) {
+                    // The isSingleNewDotEntry flag indicates if NewDot was launched solely for this purpose.
+                    if (!NativeModules.HybridAppModule || !hybridApp?.isSingleNewDotEntry) {
                         return;
                     }
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+                    NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                     setRootStatusBarEnabled(false);
                 })
                 ?.catch(() => {
@@ -92,7 +92,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryLogin, setRootStatusBarEnabled]);
+    }, [primaryLogin, policy, travelSettings?.hasAcceptedTerms, translate, hybridApp?.isSingleNewDotEntry, setRootStatusBarEnabled]);
 
     return (
         <>
