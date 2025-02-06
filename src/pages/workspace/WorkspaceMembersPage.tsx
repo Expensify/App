@@ -128,7 +128,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
             ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
         });
-    }, [selectedEmployees, translate, policy, currentUserAccountID, formatPhoneNumber]);
+    }, [selectedEmployees, translate, policy, currentUserAccountID]);
     /**
      * Get filtered personalDetails list with current employeeList
      */
@@ -622,7 +622,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         ];
 
         return menuItems;
-    }, [policyID, translate, isOffline]);
+    }, [policyID, translate, isOffline, isPolicyAdmin]);
 
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
