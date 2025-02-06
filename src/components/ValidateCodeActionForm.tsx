@@ -31,6 +31,7 @@ function ValidateCodeActionForm({
 }: ValidateCodeActionProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
+    const isClosedRef = useRef(false);
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
@@ -39,18 +40,24 @@ function ValidateCodeActionForm({
     useEffect(
         () => () => {
             firstRenderRef.current = true;
+            isClosedRef.current = true;
         },
         [],
     );
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
+        if (!firstRenderRef.current || hasMagicCodeBeenSent) {
+            // eslint-disable-next-line rulesdir/prefer-early-return
             return () => {
-                clearError();
+                if (isClosedRef.current && isVisible) {
+                    clearError();
+                }
             };
         }
         firstRenderRef.current = false;
-        sendValidateCode();
+        if (isVisible) {
+            sendValidateCode();
+        }
         if (hasMagicCodeBeenSent) {
             InteractionManager.runAfterInteractions(() => {
                 setCanSendHasMagicCodeBeenSent(true);
