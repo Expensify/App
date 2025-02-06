@@ -9,6 +9,7 @@ import {
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
+    canEditWriteCapability,
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
@@ -1997,6 +1998,20 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+        });
+    });
+
+    describe('canEditWriteCapability', () => {
+        it('should return false for workspace chat', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            expect(canEditWriteCapability(workspaceChat, policy)).toBe(false);
         });
     });
 });
