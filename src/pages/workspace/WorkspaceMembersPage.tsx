@@ -12,8 +12,8 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
+import {ReceiptWrangler} from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -27,19 +27,10 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant} from '@libs/ReportUtils';
-import {close} from '@userActions/Modal';
 import {
     clearAddMemberError,
     clearDeleteMemberError,
@@ -50,7 +41,18 @@ import {
     openWorkspaceMembersPage,
     removeMembers,
     updateWorkspaceMembersRole,
-} from '@userActions/Policy/Member';
+} from '@libs/actions/Policy/Member';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -98,7 +100,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const isPolicyWorkspaceAdmin = isPolicyAdmin(policy);
+    const isPolicyAdmin = isPolicyAdminUtils(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
@@ -112,14 +114,14 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
 
-    const canSelectMultiple = isPolicyWorkspaceAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
+    const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
         const approverAccountID = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
         if (!approverAccountID) {
             return translate('workspace.people.removeMembersPrompt', {
                 count: selectedEmployees.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? ''),
+                memberName: formatPhoneNumberUtil(getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? ''),
             });
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
@@ -313,14 +315,14 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     /** Opens the member details page */
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
-            if (!isPolicyWorkspaceAdmin || !isPaidGroupPolicy(policy)) {
+            if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
         },
-        [isPolicyWorkspaceAdmin, policy, policyID, route.params.policyID],
+        [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
 
     /**
@@ -376,13 +378,13 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             } else if (isAuditor) {
                 roleBadge = <Badge text={translate('common.auditor')} />;
             }
-            const isPendingDeleteOrError = isPolicyWorkspaceAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
+            const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
             result.push({
                 keyForList: String(accountID),
                 accountID,
                 isSelected,
-                isDisabledCheckbox: !(isPolicyWorkspaceAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
+                isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
@@ -391,7 +393,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: details.avatar ?? Expensicons.FallbackAvatar,
+                        source: details.avatar ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -421,7 +423,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         translate,
         styles.cursorDefault,
         canSelectMultiple,
-        isPolicyWorkspaceAdmin,
+        isPolicyAdmin,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);
@@ -469,6 +471,11 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         setSelectedEmployees([]);
     }, [setSelectedEmployees, selectionMode?.isEnabled]);
 
+    useSearchBackPress({
+        onClearSelection: () => setSelectedEmployees([]),
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
+
     const getCustomListHeader = () => {
         return (
             <CustomListHeader
@@ -498,7 +505,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             {
                 text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
-                icon: Expensicons.RemoveMembers,
+                icon: RemoveMembers,
                 onSelected: askForConfirmationToRemove,
             },
         ];
@@ -515,20 +522,20 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         const memberOption = {
             text: translate('workspace.people.makeMember'),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-            icon: Expensicons.User,
+            icon: User,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
         };
         const adminOption = {
             text: translate('workspace.people.makeAdmin'),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-            icon: Expensicons.MakeAdmin,
+            icon: MakeAdmin,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
         };
 
         const auditorOption = {
             text: translate('workspace.people.makeAuditor'),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
-            icon: Expensicons.UserEye,
+            icon: UserEye,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
 
@@ -572,7 +579,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 success
                 onPress={inviteUser}
                 text={translate('workspace.invite.member')}
-                icon={Expensicons.Plus}
+                icon={Plus}
                 innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
             />
@@ -586,7 +593,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
         const menuItems = [
             {
-                icon: Expensicons.Table,
+                icon: Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
                     if (isOffline) {
@@ -597,7 +604,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                 },
             },
             {
-                icon: Expensicons.Download,
+                icon: Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
@@ -624,12 +631,12 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-            icon={!selectionModeHeader ? Illustrations.ReceiptWrangler : undefined}
+            icon={!selectionModeHeader ? ReceiptWrangler : undefined}
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
-            shouldShowThreeDotsButton={isPolicyWorkspaceAdmin}
+            shouldShowThreeDotsButton={isPolicyAdmin}
             threeDotsMenuItems={threeDotsMenuItems}
             threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             shouldShowNonAdmin
@@ -687,14 +694,14 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             canSelectMultiple={canSelectMultiple}
                             sections={[{data, isDisabled: false}]}
                             ListItem={TableListItem}
-                            turnOnSelectionModeOnLongPress={isPolicyWorkspaceAdmin}
+                            turnOnSelectionModeOnLongPress={isPolicyAdmin}
                             onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
                             shouldUseUserSkeletonView
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={!shouldUseNarrowLayout && getHeaderContent()}
                             onSelectRow={openMemberDetails}
-                            shouldSingleExecuteRowSelect={!isPolicyWorkspaceAdmin}
+                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
                             onCheckboxPress={(item) => toggleUser(item.accountID)}
                             onSelectAll={() => toggleAllUsers(data)}
                             onDismissError={dismissError}
