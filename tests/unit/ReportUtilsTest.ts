@@ -1949,7 +1949,7 @@ describe('ReportUtils', () => {
                     });
                 });
                 describe('has transaction match with approver rule', () => {
-                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', async () => {
+                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', () => {
                         const policyTest: Policy = {
                             ...createRandomPolicy(1),
                             approver: 'owner@test.com',
