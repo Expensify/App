@@ -45,7 +45,6 @@ function IOURequestStepDescription({
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [draftTransaciton] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -139,7 +138,7 @@ function IOURequestStepDescription({
             return '';
         }
         const categoryName = Object.keys(policyCategories)
-            .filter((value) => value === draftTransaciton?.category || value === transaction?.category)
+            .filter((value) => value === transaction?.category)
             .at(0);
         return categoryName ? policyCategories[categoryName].commentHint : '';
     };
