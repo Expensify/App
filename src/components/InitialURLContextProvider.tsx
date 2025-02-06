@@ -1,7 +1,6 @@
 import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
-import type {HybridAppSettings} from '@libs/actions/Session';
 import {signInAfterTransitionFromOldDot} from '@libs/actions/Session';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -35,10 +34,8 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
 
     useEffect(() => {
         if (url && hybridAppSettings) {
-            const parsedSettings = JSON.parse(hybridAppSettings) as HybridAppSettings;
-            setInitialURL(`${url}${parsedSettings.isSingleNewDotEntry ? '?singleNewDotEntry=true' : ''}` as Route);
-
-            signInAfterTransitionFromOldDot(parsedSettings).then(() => {
+            setInitialURL(url);
+            signInAfterTransitionFromOldDot(hybridAppSettings).then(() => {
                 if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
                     return;
                 }
@@ -49,7 +46,8 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
-    }, [setSplashScreenState, url, hybridAppSettings, timestamp]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [url, hybridAppSettings, timestamp]);
 
     const initialUrlContext = useMemo(
         () => ({
