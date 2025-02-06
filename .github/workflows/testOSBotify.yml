@@ -15,7 +15,7 @@ jobs:
           sparse-checkout: Mobile-Expensify
           submodules: true
 
-      - uses: Expensify/GitHub-Actions/actions/setupGitForOSBotify@main
+      - uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         with:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
