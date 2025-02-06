@@ -718,7 +718,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: !shouldDisableParticipant(participant),
+                isInteractive: transaction?.isFromGlobalCreate,
                 shouldShowRightIcon: transaction?.isFromGlobalCreate,
             }));
             options.push({
@@ -801,26 +801,14 @@ function MoneyRequestConfirmationList({
     }, [transactionID, policyTagLists, policyTags]);
 
     /**
-     * Navigate to report details or profile of selected user
+     * Navigate to the participant step
      */
-    const navigateToReportOrUserDetail = (option: MoneyRequestConfirmationListItem) => {
-        const activeRoute = Navigation.getActiveRoute();
-
-        if (transaction?.isFromGlobalCreate) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+    const navigateToParticipantPage = () => {
+        if (!transaction?.isFromGlobalCreate) {
             return;
         }
 
-        if (option.isSelfDM) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
-            return;
-        }
-
-        if (option.accountID) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(option.accountID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
-        } else if (option.reportID) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(option.reportID, activeRoute), CONST.NAVIGATION.ACTION_TYPE.PUSH);
-        }
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
     /**
@@ -1047,7 +1035,7 @@ function MoneyRequestConfirmationList({
             <SelectionList<MoneyRequestConfirmationListItem>
                 sections={sections}
                 ListItem={UserListItem}
-                onSelectRow={navigateToReportOrUserDetail}
+                onSelectRow={navigateToParticipantPage}
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
                 shouldPreventDefaultFocusOnSelectRow
