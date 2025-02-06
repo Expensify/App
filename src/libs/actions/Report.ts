@@ -68,6 +68,7 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import shouldOpenOnAdminRoom from '@libs/Navigation/shouldOpenOnAdminRoom';
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -2942,6 +2943,20 @@ function openReportFromDeepLink(url: string) {
                             }
 
                             if (isAuthenticated) {
+                                return;
+                            }
+
+                            // Check if the report exists in the collection
+                            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                            // If the report does not exist, navigate to the last accessed report or Concierge chat
+                            if (!report) {
+                                const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                if (lastAccessedReportID) {
+                                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                    Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                                    return;
+                                }
+                                navigateToConciergeChat(false, () => true, CONST.NAVIGATION.ACTION_TYPE.PUSH);
                                 return;
                             }
 
