@@ -20,7 +20,7 @@ runs:
 
     - name: Import OSBotify GPG Key
       shell: bash
-      run: cd .github/workflows && gpg --import OSBotify-private-key.asc
+      run: gpg --import OSBotify-private-key.asc
 
     - name: Set up git for OSBotify
       shell: bash
