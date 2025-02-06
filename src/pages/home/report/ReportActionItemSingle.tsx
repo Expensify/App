@@ -112,7 +112,7 @@ function ReportActionItemSingle({
         `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
 
-    let displayName = getDisplayNameForParticipant(actorAccountID);
+    let displayName = getDisplayNameForParticipant({accountID: actorAccountID});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -125,7 +125,7 @@ function ReportActionItemSingle({
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
     if (isWorkspaceActor) {
-        displayName = getPolicyName(report, undefined, policy);
+        displayName = getPolicyName({report, policy});
         actorHint = displayName;
         avatarSource = getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
@@ -135,6 +135,8 @@ function ReportActionItemSingle({
         avatarId = delegatePersonalDetails?.accountID;
     } else if (isReportPreviewAction && isTripRoom) {
         displayName = report?.reportName ?? '';
+        avatarSource = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.avatar;
+        avatarId = ownerAccountID;
     }
 
     // If this is a report preview, display names and avatars of both people involved
@@ -154,7 +156,7 @@ function ReportActionItemSingle({
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
             const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-            const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
+            const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
             secondaryAvatar = {
                 source: secondaryUserAvatar,
@@ -172,7 +174,7 @@ function ReportActionItemSingle({
     } else if (isInvoiceReportUtils(iouReport)) {
         const secondaryAccountId = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-        const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
+        const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
         secondaryAvatar = {
             source: secondaryUserAvatar,
@@ -214,9 +216,9 @@ function ReportActionItemSingle({
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID, Navigation.getReportRHPActiveRoute()));
                 return;
             }
-            showUserDetails(action?.delegateAccountID ? action.delegateAccountID : actorAccountID);
+            showUserDetails(Number(icon.id));
         }
-    }, [isWorkspaceActor, reportID, actorAccountID, action?.delegateAccountID, iouReportID, displayAllActors]);
+    }, [isWorkspaceActor, reportID, iouReportID, displayAllActors, icon.id]);
 
     const shouldDisableDetailPage = useMemo(
         () =>

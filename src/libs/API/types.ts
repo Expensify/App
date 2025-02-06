@@ -125,6 +125,7 @@ const WRITE_COMMANDS = {
     LEAVE_GROUP_CHAT: 'LeaveGroupChat',
     INVITE_TO_ROOM: 'InviteToRoom',
     INVITE_TO_GROUP_CHAT: 'InviteToGroupChat',
+    UPDATE_TRIP_ROOM_NAME: 'UpdateTripRoomName',
     UPDATE_GROUP_CHAT_NAME: 'UpdateGroupChatName',
     UPDATE_GROUP_CHAT_MEMBER_ROLES: 'UpdateGroupChatMemberRoles',
     REMOVE_FROM_ROOM: 'RemoveFromRoom',
@@ -298,6 +299,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_DISTANCE_RATES_ENABLED: 'SetPolicyDistanceRatesEnabled',
     DELETE_POLICY_DISTANCE_RATES: 'DeletePolicyDistanceRates',
     DISMISS_TRACK_EXPENSE_ACTIONABLE_WHISPER: 'DismissActionableWhisper',
+    ADD_TRACKED_EXPENSE_TO_POLICY: 'AddTrackedExpenseToPolicy',
     CONVERT_TRACKED_EXPENSE_TO_REQUEST: 'ConvertTrackedExpenseToRequest',
     CATEGORIZE_TRACKED_EXPENSE: 'CategorizeTrackedExpense',
     SHARE_TRACKED_EXPENSE: 'ShareTrackedExpense',
@@ -369,6 +371,13 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_APPROVAL_ACCOUNT: 'UpdateNetSuiteApprovalAccount',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsReimbursable',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsNonReimbursable',
+    CONNECT_POLICY_TO_NSQS: 'ConnectPolicyToNSQS',
+    UPDATE_NSQS_CUSTOMERS_MAPPING: 'UpdateNSQSCustomersMapping',
+    UPDATE_NSQS_PROJECTS_MAPPING: 'UpdateNSQSProjectsMapping',
+    UPDATE_NSQS_EXPORTER: 'UpdateNSQSExporter',
+    UPDATE_NSQS_EXPORT_DATE: 'UpdateNSQSExportDate',
+    UPDATE_NSQS_AUTO_SYNC: 'UpdateNSQSAutoSync',
+    UPDATE_NSQS_APPROVAL_ACCOUNT: 'UpdateNSQSApprovalAccount',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
     COPY_EXISTING_POLICY_CONNECTION: 'CopyExistingPolicyConnection',
@@ -405,6 +414,7 @@ const WRITE_COMMANDS = {
     CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY: 'ConfigureExpensifyCardsForPolicy',
     CREATE_EXPENSIFY_CARD: 'CreateExpensifyCard',
     CREATE_ADMIN_ISSUED_VIRTUAL_CARD: 'CreateAdminIssuedVirtualCard',
+    QUEUE_EXPENSIFY_CARD_FOR_BILLING: 'Domain_QueueExpensifyCardForBilling',
     ADD_DELEGATE: 'AddDelegate',
     REMOVE_DELEGATE: 'RemoveDelegate',
     UPDATE_DELEGATE_ROLE: 'UpdateDelegateRole',
@@ -561,7 +571,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.LEAVE_GROUP_CHAT]: Parameters.LeaveGroupChatParams;
     [WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT]: Parameters.RemoveFromGroupChatParams;
     [WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES]: Parameters.UpdateGroupChatMemberRolesParams;
-    [WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME]: Parameters.UpdateGroupChatNameParams;
+    [WRITE_COMMANDS.UPDATE_TRIP_ROOM_NAME]: Parameters.UpdateChatNameParams;
+    [WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME]: Parameters.UpdateChatNameParams;
     [WRITE_COMMANDS.REMOVE_FROM_ROOM]: Parameters.RemoveFromRoomParams;
     [WRITE_COMMANDS.FLAG_COMMENT]: Parameters.FlagCommentParams;
     [WRITE_COMMANDS.UPDATE_REPORT_PRIVATE_NOTE]: Parameters.UpdateReportPrivateNoteParams;
@@ -758,6 +769,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISMISS_TRACK_EXPENSE_ACTIONABLE_WHISPER]: Parameters.DismissTrackExpenseActionableWhisperParams;
     [WRITE_COMMANDS.UPDATE_BILLING_CARD_CURRENCY]: Parameters.UpdateBillingCurrencyParams;
     [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST]: Parameters.ConvertTrackedExpenseToRequestParams;
+    [WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY]: Parameters.AddTrackedExpenseToPolicyParams;
     [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE]: Parameters.CategorizeTrackedExpenseParams;
     [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE]: Parameters.ShareTrackedExpenseParams;
     [WRITE_COMMANDS.LEAVE_POLICY]: Parameters.LeavePolicyParams;
@@ -856,6 +868,13 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
+    [WRITE_COMMANDS.CONNECT_POLICY_TO_NSQS]: Parameters.ConnectPolicyToNSQSParams;
+    [WRITE_COMMANDS.UPDATE_NSQS_CUSTOMERS_MAPPING]: Parameters.UpdateNSQSCustomersMappingParams;
+    [WRITE_COMMANDS.UPDATE_NSQS_PROJECTS_MAPPING]: Parameters.UpdateNSQSProjectsMappingParams;
+    [WRITE_COMMANDS.UPDATE_NSQS_EXPORTER]: Parameters.UpdateNSQSExporterParams;
+    [WRITE_COMMANDS.UPDATE_NSQS_EXPORT_DATE]: Parameters.UpdateNSQSExportDateParams;
+    [WRITE_COMMANDS.UPDATE_NSQS_AUTO_SYNC]: Parameters.UpdateNSQSAutoSyncParams;
+    [WRITE_COMMANDS.UPDATE_NSQS_APPROVAL_ACCOUNT]: Parameters.UpdateNSQSApprovalAccountParams;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY]: Parameters.UpdateSageIntacctGenericTypeParams<'entity', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_DEPARTMENT_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
@@ -873,6 +892,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CONFIGURE_EXPENSIFY_CARDS_FOR_POLICY]: Parameters.ConfigureExpensifyCardsForPolicyParams;
     [WRITE_COMMANDS.CREATE_EXPENSIFY_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'domainAccountID'>;
     [WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD]: Omit<Parameters.CreateExpensifyCardParams, 'feedCountry'>;
+    [WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING]: Parameters.QueueExpensifyCardForBillingParams;
     [WRITE_COMMANDS.ADD_DELEGATE]: Parameters.AddDelegateParams;
     [WRITE_COMMANDS.UPDATE_DELEGATE_ROLE]: Parameters.UpdateDelegateRoleParams;
     [WRITE_COMMANDS.REMOVE_DELEGATE]: Parameters.RemoveDelegateParams;
@@ -918,6 +938,7 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_QUICKBOOKS_ONLINE: 'SyncPolicyToQuickbooksOnline',
     SYNC_POLICY_TO_XERO: 'SyncPolicyToXero',
     SYNC_POLICY_TO_NETSUITE: 'SyncPolicyToNetSuite',
+    SYNC_POLICY_TO_NSQS: 'SyncPolicyToNSQS',
     SYNC_POLICY_TO_SAGE_INTACCT: 'SyncPolicyToSageIntacct',
     SYNC_POLICY_TO_QUICKBOOKS_DESKTOP: 'SyncPolicyToQuickbooksDesktop',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
@@ -984,6 +1005,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.SyncPolicyToQuickbooksOnlineParams;
     [READ_COMMANDS.SYNC_POLICY_TO_XERO]: Parameters.SyncPolicyToXeroParams;
     [READ_COMMANDS.SYNC_POLICY_TO_NETSUITE]: Parameters.SyncPolicyToNetSuiteParams;
+    [READ_COMMANDS.SYNC_POLICY_TO_NSQS]: Parameters.SyncPolicyToNSQSParams;
     [READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
