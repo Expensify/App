@@ -160,6 +160,8 @@ type CustomBaseTextInputProps = {
     /** A set of permitted characters for the input */
     allowedKeys?: MaskedTextInputOwnProps['allowedKeys'];
 
+    validationRegex?: MaskedTextInputOwnProps['validationRegex'];
+
     /** Whether the input should be enforced to be uncontrolled. Default is `false` */
     uncontrolled?: boolean;
 };
