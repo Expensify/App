@@ -41,6 +41,9 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
 
+      - name: Run git fetch
+        run: git fetch
+
       - name: Set up git for OSBotify
         id: setupGitForOSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp@main
