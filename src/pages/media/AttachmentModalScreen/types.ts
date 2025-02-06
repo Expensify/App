@@ -32,6 +32,7 @@ type AttachmentModalScreenModalCallbacks = {
 
 type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
     AttachmentModalScreenModalCallbacks & {
+        attachmentId?: string;
         reportID?: string;
         policyID?: string;
         transactionID?: string;

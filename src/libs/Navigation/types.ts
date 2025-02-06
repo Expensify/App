@@ -1736,9 +1736,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.CONCIERGE]: undefined;
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
-        [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams & {
-            attachmentId?: string;
-        };
+        [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
         [SCREENS.PROFILE_AVATAR]: {
             accountID: string;
         };
