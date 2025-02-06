@@ -23,9 +23,6 @@ on:
         value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
 
     secrets:
-      LARGE_SECRET_PASSPHRASE:
-        description: Passphrase used to decrypt GPG key
-        required: true
       SLACK_WEBHOOK:
         description: Webhook used to comment in slack
         required: true
@@ -73,8 +70,6 @@ jobs:
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotify
         id: setupGitForOSBotify
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Generate new E/App version
         id: bumpVersion
