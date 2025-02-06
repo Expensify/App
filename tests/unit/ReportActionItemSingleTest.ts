@@ -55,30 +55,33 @@ describe('ReportActionItemSingle', () => {
 
             function setup() {
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
-
-                return waitForBatchedUpdates().then(() =>
-                    Onyx.multiSet({
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
-                        [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                        ...policyCollectionDataSet,
-                    }),
-                );
+                return waitForBatchedUpdates()
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            ...policyCollectionDataSet,
+                        }),
+                    )
+                    .then(() => {
+                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
+                    });
             }
 
             it('renders secondary Avatar properly', async () => {
                 const expectedSecondaryIconTestId = 'SvgDefaultAvatar_w Icon';
 
                 await setup();
-                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
                 await waitFor(() => {
                     expect(screen.getByTestId(expectedSecondaryIconTestId)).toBeOnTheScreen();
                 });
             });
 
-            it('renders Person information', () => {
+            it('renders Person information', async () => {
                 const [expectedPerson] = fakeReportAction.person ?? [];
 
-                return setup().then(() => {
+                await setup();
+                await waitFor(() => {
                     expect(screen.getByText(expectedPerson.text ?? '')).toBeOnTheScreen();
                 });
             });
