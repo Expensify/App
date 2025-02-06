@@ -46,6 +46,7 @@ type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
 
+    /** Optional file object to be used for the attachment. If not passed in via props must be specified when modal is opened. */
     file?: FileObject;
 
     /** Optional original filename when uploading */

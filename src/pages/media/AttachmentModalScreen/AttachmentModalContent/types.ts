@@ -1,15 +1,13 @@
 import type React from 'react';
-import type {AttachmentModalScreenParams} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenModalCallbacks, AttachmentModalScreenParams} from '@pages/media/AttachmentModalScreen/types';
 import type ModalType from '@src/types/utils/ModalType';
 import type {AttachmentModalBaseContentProps} from './BaseContent';
 
-type AttachmentModalWrapperWrapperProps = {
+type AttachmentModalWrapperWrapperProps = AttachmentModalScreenModalCallbacks & {
     modalType?: ModalType;
     setModalType?: (modalType: ModalType) => void;
     setShouldLoadAttachment?: (shouldLoadAttachment: boolean) => void;
     closeConfirmModal?: () => void;
-    onModalClose?: () => void;
-    onModalHide?: () => void;
     isOverlayModalVisible?: boolean;
 };
 

@@ -60,7 +60,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
 
     const onModalHide = useCallback(() => {
         if (!isPDFLoadError.current) {
-            onModalHide?.();
+            params.onModalHide?.();
         }
         setShouldLoadAttachment(false);
         if (isPDFLoadError.current) {
@@ -68,7 +68,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
             setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
         }
-    }, []);
+    }, [params]);
 
     const onPdfLoadError = useCallback(
         (setIsModalOpen?: (isModalOpen: boolean) => void) => {
@@ -90,7 +90,9 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
         Navigation.dismissModal();
         // This enables Composer refocus when the attachments modal is closed by the browser navigation
         ComposerFocusManager.setReadyToFocus();
-    }, []);
+
+        params.onModalClose?.();
+    }, [params]);
 
     /**
      * If our attachment is a PDF, return the unswipeablge Modal type.
@@ -132,7 +134,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                       allowDownload: true,
                       isAuthTokenRequired: !!params.isAuthTokenRequired,
                       attachmentLink: params.attachmentLink ?? '',
-                      originalFileName: params.fileName ?? '',
+                      originalFileName: params.originalFileName ?? '',
                       fallbackRoute: ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID),
                   },
         [accountID, isLoadingApp, params, report],

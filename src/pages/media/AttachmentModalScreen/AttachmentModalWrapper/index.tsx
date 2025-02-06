@@ -8,7 +8,7 @@ import type {AttachmentModalWrapperProps} from './types';
 
 function AttachmentModalWrapper({
     contentProps,
-    wrapperProps: {modalType, closeConfirmModal, setShouldLoadAttachment, isOverlayModalVisible, onModalClose, onModalHide},
+    wrapperProps: {modalType, closeConfirmModal, setShouldLoadAttachment, isOverlayModalVisible, onModalShow, onModalClose, onModalHide},
     attachmentId,
 }: AttachmentModalWrapperProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
@@ -50,7 +50,7 @@ function AttachmentModalWrapper({
             isVisible={isModalOpen}
             onModalHide={onModalHide}
             onModalShow={() => {
-                // onModalShow?.();
+                onModalShow?.();
                 setShouldLoadAttachment?.(true);
             }}
             propagateSwipe

@@ -1,9 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import type {AvatarSource} from '@libs/UserUtils';
-import type CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {AttachmentModalBaseContentProps} from './AttachmentModalContent/BaseContent';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -26,34 +24,18 @@ type AttachmentModalChildrenProps = {
     show: () => void;
 };
 
-type AttachmentModalScreenParams = {
-    source?: AvatarSource;
-    file?: FileObject;
-    fallbackSource?: AvatarSource;
-    headerTitle?: string;
-    maybeIcon?: boolean;
-    reportID?: string;
-    policyID?: string;
-    type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-    accountID?: number | string;
-    isAuthTokenRequired?: boolean;
-    isReceiptAttachment?: boolean;
-    fileName?: string;
-    attachmentLink?: string;
-    transactionID?: string;
-    readonly?: boolean;
-    isFromReviewDuplicates?: boolean;
-    shouldDisableSendButton?: boolean;
-
-    onConfirm: (file: FileObject) => void;
+type AttachmentModalScreenModalCallbacks = {
     onModalShow?: () => void;
-    /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide?: () => void;
-    /** Trigger when we explicity click close button in ProfileAttachment modal */
     onModalClose?: () => void;
 };
+
+type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
+    AttachmentModalScreenModalCallbacks & {
+        reportID?: string;
+    };
 
 type AttachmentModalScreenProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
 
 // eslint-disable-next-line import/prefer-default-export
-export type {AttachmentModalScreenParams, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenParams, AttachmentModalScreenModalCallbacks, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse};
