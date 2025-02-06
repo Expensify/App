@@ -1,6 +1,6 @@
 import type {ImageSourcePropType} from 'react-native';
-import type SvgIconComponent from './SvgIconComponent';
+import type {SvgProps} from 'react-native-svg/lib/typescript';
 
-type IconAsset = SvgIconComponent | ImageSourcePropType;
+type IconAsset = React.FC<SvgProps> | ImageSourcePropType;
 
 export default IconAsset;
