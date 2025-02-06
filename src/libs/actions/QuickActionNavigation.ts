@@ -17,6 +17,8 @@ function getQuickActionRequestType(action: QuickActionName | undefined): IOU.IOU
         requestType = CONST.IOU.REQUEST_TYPE.SCAN;
     } else if ([CONST.QUICK_ACTIONS.REQUEST_DISTANCE, CONST.QUICK_ACTIONS.SPLIT_DISTANCE, CONST.QUICK_ACTIONS.TRACK_DISTANCE].some((a) => a === action)) {
         requestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+    } else if (action === CONST.QUICK_ACTIONS.PER_DIEM) {
+        requestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
     }
 
     return requestType;
@@ -30,6 +32,7 @@ function navigateToQuickAction(isValidReport: boolean, quickActionReportID: stri
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.PER_DIEM:
             selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, requestType, true), true);
             return;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
