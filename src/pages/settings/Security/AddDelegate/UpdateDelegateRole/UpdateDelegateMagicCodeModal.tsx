@@ -47,6 +47,7 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
         <ValidateCodeActionModal
             clearError={clearError}
             onClose={onBackButtonPress}
+            isLoading={currentDelegate?.isLoading}
             validateError={updateDelegateErrors}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}

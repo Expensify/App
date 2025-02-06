@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -83,7 +83,7 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                     sections={[{data: roleOptions}]}
                     ListItem={RadioListItem}
                 />
-                {newRole && (
+                {!!newRole && (
                     <UpdateDelegateMagicCodeModal
                         login={login}
                         role={newRole}
