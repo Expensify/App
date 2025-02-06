@@ -16,18 +16,23 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CategoryUtils from '@libs/CategoryUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {
+    clearCategoryErrors,
+    deleteWorkspaceCategories,
+    setPolicyCategoryDescriptionRequired,
+    setWorkspaceCategoryDescriptionHint,
+    setWorkspaceCategoryEnabled,
+} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -71,19 +76,19 @@ function CategorySettingsPage({
             return '';
         }
 
-        return `${CurrencyUtils.convertToDisplayString(policyCategory?.maxExpenseAmount, policyCurrency)} ${CONST.DOT_SEPARATOR} ${translate(
+        return `${convertToDisplayString(policyCategory?.maxExpenseAmount, policyCurrency)} ${CONST.DOT_SEPARATOR} ${translate(
             `workspace.rules.categoryRules.expenseLimitTypes.${policyCategoryExpenseLimitType}`,
         )}`;
     }, [policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
 
     const approverText = useMemo(() => {
-        const categoryApprover = CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
-        const approver = PersonalDetailsUtils.getPersonalDetailByEmail(categoryApprover);
+        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
+        const approver = getPersonalDetailByEmail(categoryApprover);
         return approver?.displayName ?? categoryApprover;
     }, [categoryName, policy?.rules?.approvalRules]);
 
     const defaultTaxRateText = useMemo(() => {
-        const taxID = CategoryUtils.getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
+        const taxID = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
 
         if (!taxID) {
             return '';
@@ -95,14 +100,14 @@ function CategorySettingsPage({
             return '';
         }
 
-        return CategoryUtils.formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
+        return formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
     }, [categoryName, policy?.rules?.expenseRules, policy?.taxRates, translate]);
 
     const requireReceiptsOverText = useMemo(() => {
         if (!policy) {
             return '';
         }
-        return CategoryUtils.formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
+        return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
 
     if (!policyCategory) {
@@ -110,7 +115,7 @@ function CategorySettingsPage({
     }
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
-        Category.setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
+        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
     };
 
     const navigateToEditCategory = () => {
@@ -120,13 +125,13 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        Category.deleteWorkspaceCategories(policyID, [categoryName]);
+        deleteWorkspaceCategories(policyID, [categoryName]);
         setDeleteCategoryConfirmModalVisible(false);
         Navigation.setNavigationActionToMicrotaskQueue(navigateBack);
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
     return (
@@ -158,10 +163,10 @@ function CategorySettingsPage({
                         />
                         <ScrollView contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}>
                             <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
+                                errors={getLatestErrorMessageField(policyCategory)}
                                 pendingAction={policyCategory?.pendingFields?.enabled}
                                 errorRowStyles={styles.mh5}
-                                onClose={() => Category.clearCategoryErrors(policyID, categoryName)}
+                                onClose={() => clearCategoryErrors(policyID, categoryName)}
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -247,9 +252,9 @@ function CategorySettingsPage({
                                                     accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
                                                     onToggle={() => {
                                                         if (policyCategory.commentHint && areCommentsRequired) {
-                                                            Category.setWorkspaceCategoryDescriptionHint(policyID, categoryName, '');
+                                                            setWorkspaceCategoryDescriptionHint(policyID, categoryName, '');
                                                         }
-                                                        Category.setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired);
+                                                        setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired);
                                                     }}
                                                 />
                                             </View>
