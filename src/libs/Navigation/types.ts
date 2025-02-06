@@ -776,10 +776,6 @@ type SettingsNavigatorParamList = {
         login: string;
         currentRole: string;
     };
-    [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_MAGIC_CODE]: {
-        login: string;
-        role: string;
-    };
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
         login: string;
         role: string;
