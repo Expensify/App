@@ -1897,7 +1897,7 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
     }
 
     // The user never was never offline.
-    if (!lastOfflineAt) {
+    if (!lastOfflineAt || !lastOnlineAt) {
         return false;
     }
 
