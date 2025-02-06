@@ -265,8 +265,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                         // Normally the focus callback of the main composer doesn't focus when willBlurTextInputOnTapOutside
                         // is false, so we need to pass true here to override this condition.
                         ReportActionComposeFocusManager.focus(true);
+                        navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
                     });
-                    navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
                 });
                 return;
             }
