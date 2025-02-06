@@ -7935,7 +7935,14 @@ function shouldDisableRename(report: OnyxEntry<Report>): boolean {
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
 function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return isPolicyAdminPolicyUtils(policy) && !isAdminRoom(report) && !isArchivedReport(getReportNameValuePairs(report?.reportID)) && !isThread(report) && !isInvoiceRoom(report);
+    return (
+        isPolicyAdminPolicyUtils(policy) &&
+        !isAdminRoom(report) &&
+        !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
+        !isThread(report) &&
+        !isInvoiceRoom(report) &&
+        !isPolicyExpenseChat(report)
+    );
 }
 
 /**
