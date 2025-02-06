@@ -32,8 +32,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -48,7 +48,7 @@ type AmountParams = {
 type IOURequestStepAmountProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
-        transaction: OnyxEntry<OnyxTypes.Transaction>;
+        transaction: OnyxEntry<Transaction>;
 
         /** Whether the user input should be kept or not */
         shouldKeepUserInput?: boolean;
@@ -222,18 +222,21 @@ function IOURequestStepAmount({
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
                     playSound(SOUNDS.DONE);
-                    trackExpense(
+                    trackExpense({
                         report,
-                        backendAmount,
-                        currency ?? 'USD',
-                        transaction?.created ?? '',
-                        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participants.at(0) ?? {},
-                        '',
-                        false,
-                    );
+                        isDraftPolicy: false,
+                        participantParams: {
+                            payeeEmail: currentUserPersonalDetails.login,
+                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            participant: participants.at(0) ?? {},
+                        },
+                        transactionParams: {
+                            amount: backendAmount,
+                            currency: currency ?? 'USD',
+                            created: transaction?.created,
+                            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                        },
+                    });
                     return;
                 }
             }
