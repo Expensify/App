@@ -156,9 +156,8 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-
                     openApp().then(() =>
-                        NativeModules.HybridAppModule.switchAccount({newDotCurrentAccountEmail: email, authToken: restrictedToken, policyID, accountID: String(previousAccountID)}),
+                        NativeModules.HybridAppModule?.switchAccount({newDotCurrentAccountEmail: email, authToken: restrictedToken, policyID, accountID: String(previousAccountID)}),
                     );
                 });
         })
@@ -241,8 +240,7 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
                     confirmReadyToOpenApp();
-
-                    openApp().then(() => NativeModules.HybridAppModule.switchAccount({newDotCurrentAccountEmail: requesterEmail, authToken, policyID: '', accountID: ''}));
+                    openApp().then(() => NativeModules.HybridAppModule?.switchAccount({newDotCurrentAccountEmail: requesterEmail, authToken, policyID: '', accountID: ''}));
                 });
         })
         .catch((error) => {
