@@ -145,6 +145,7 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    SettlementDateParams,
     ShareParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
@@ -195,7 +196,6 @@ import type {
     WaitingOnBankAccountParams,
     WalletProgramParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
     WorkspaceLockedPlanTypeParams,
@@ -997,6 +997,7 @@ const translations = {
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `moved expense from self DM to ${workspaceName ?? `chat with ${reportName}`}`,
+        movedToSelfDM: 'moved expense to self DM',
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
@@ -1715,9 +1716,6 @@ const translations = {
         roomDescriptionOptional: 'Room description (optional)',
         explainerText: 'Set a custom description for the room.',
     },
-    groupConfirmPage: {
-        groupName: 'Group name',
-    },
     groupChat: {
         lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all members. Are you sure you want to leave?",
@@ -1930,7 +1928,7 @@ const translations = {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'Oops, this page cannot be found',
-        noAccess: "You don't have access to this chat",
+        noAccess: "That chat doesn't exist or you don't have access to it. Try using search to find a chat.",
         goBackHome: 'Go back to home page',
     },
     setPasswordPage: {
@@ -2540,6 +2538,12 @@ const translations = {
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
             confirmation: 'Confirmation number',
+            cancellationPolicies: {
+                unknown: 'Unknown',
+                nonRefundable: 'Non-refundable',
+                freeCancellationUntil: 'Free cancellation until',
+                partiallyRefundable: 'Partially refundable',
+            },
         },
         car: 'Car',
         carDetails: {
@@ -2649,8 +2653,8 @@ const translations = {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
-            welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
-                `You've been invited to ${workspaceName || 'a workspace'}! Get the most out of Expensify by downloading the app at use.expensify.com/download.`,
+            defaultDescription: 'One place for all your receipts and expenses.',
+            welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
@@ -2689,7 +2693,7 @@ const translations = {
                 }
             },
             planType: 'Plan type',
-            submitExpense: 'Submit expenses using your workspace chat below:',
+            submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
         },
@@ -3354,6 +3358,70 @@ const translations = {
                 },
             },
         },
+        nsqs: {
+            setup: {
+                title: 'NSQS setup',
+                description: 'Enter your NSQS account ID',
+                formInputs: {
+                    netSuiteAccountID: 'NSQS Account ID',
+                },
+            },
+            import: {
+                expenseCategories: 'Expense categories',
+                expenseCategoriesDescription: 'NSQS expense categories import into Expensify as categories.',
+                importTypes: {
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Tags',
+                        description: 'Line-item level',
+                    },
+                    [CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Report fields',
+                        description: 'Report level',
+                    },
+                },
+                importFields: {
+                    customers: {
+                        title: 'Customers',
+                        subtitle: 'Choose how to handle NSQS *customers* in Expensify.',
+                    },
+                    projects: {
+                        title: 'Projects',
+                        subtitle: 'Choose how to handle NSQS *projects* in Expensify.',
+                    },
+                },
+            },
+            export: {
+                description: 'Configure how Expensify data exports to NSQS.',
+                exportDate: {
+                    label: 'Export date',
+                    description: 'Use this date when exporting reports to NSQS.',
+                    values: {
+                        [CONST.NSQS_EXPORT_DATE.LAST_EXPENSE]: {
+                            label: 'Date of last expense',
+                            description: 'Date of the most recent expense on the report.',
+                        },
+                        [CONST.NSQS_EXPORT_DATE.EXPORTED]: {
+                            label: 'Export date',
+                            description: 'Date the report was exported to NSQS.',
+                        },
+                        [CONST.NSQS_EXPORT_DATE.SUBMITTED]: {
+                            label: 'Submitted date',
+                            description: 'Date the report was submitted for approval.',
+                        },
+                    },
+                },
+                expense: 'Expense',
+                reimbursableExpenses: 'Export reimbursable expenses as',
+                nonReimbursableExpenses: 'Export non-reimbursable expenses as',
+            },
+            advanced: {
+                autoSyncDescription: 'Sync NSQS and Expensify automatically, every day. Export finalized report in realtime',
+                defaultApprovalAccount: 'NSQS default',
+                approvalAccount: 'A/P approval account',
+                approvalAccountDescription:
+                    'Choose the account that transactions will be approved against in NSQS. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
+            },
+        },
         intacct: {
             sageIntacctSetup: 'Sage Intacct setup',
             prerequisitesTitle: 'Before you connect...',
@@ -3400,6 +3468,10 @@ const translations = {
                         return 'mappings';
                 }
             },
+        },
+        multiConnectionSelector: {
+            title: ({connectionName}: ConnectionNameParams) => `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} setup`,
+            description: ({connectionName}: ConnectionNameParams) => `Select your ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} version to continue.`,
         },
         type: {
             free: 'Free',
@@ -3508,6 +3580,8 @@ const translations = {
             limit: 'Limit',
             currentBalance: 'Current balance',
             currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
+            balanceWillBeSettledOn: ({settlementDate}: SettlementDateParams) => `Balance will be settled on ${settlementDate}`,
+            settleBalance: 'Settle balance',
             cardLimit: 'Card limit',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
@@ -3966,6 +4040,7 @@ const translations = {
             qbd: 'QuickBooks Desktop',
             xero: 'Xero',
             netsuite: 'NetSuite',
+            nsqs: 'NSQS',
             intacct: 'Sage Intacct',
             talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
             talkYourAccountManager: 'Chat with your account manager.',
@@ -3979,6 +4054,8 @@ const translations = {
                         return 'Xero';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return 'NetSuite';
+                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
+                        return 'NSQS';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
                     default: {
@@ -4013,6 +4090,8 @@ const translations = {
                         return "Can't connect to Xero.";
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return "Can't connect to NetSuite.";
+                    case CONST.POLICY.CONNECTIONS.NAME.NSQS:
+                        return "Can't connect to NSQS.";
                     case CONST.POLICY.CONNECTIONS.NAME.QBD:
                         return "Can't connect to QuickBooks Desktop.";
                     default: {
@@ -4140,6 +4219,7 @@ const translations = {
                         case 'netSuiteSyncData':
                             return 'Importing data into Expensify';
                         case 'netSuiteSyncAccounts':
+                        case 'nsqsSyncAccounts':
                             return 'Syncing accounts';
                         case 'netSuiteSyncCurrencies':
                             return 'Syncing currencies';
@@ -4166,6 +4246,16 @@ const translations = {
                         case 'netSuiteSyncImportVendors':
                         case 'quickbooksDesktopImportVendors':
                             return 'Importing vendors';
+                        case 'nsqsSyncConnection':
+                            return 'Initializing connection to NSQS';
+                        case 'nsqsSyncEmployees':
+                            return 'Syncing employees';
+                        case 'nsqsSyncCustomers':
+                            return 'Syncing customers';
+                        case 'nsqsSyncProjects':
+                            return 'Syncing projects';
+                        case 'nsqsSyncCurrency':
+                            return 'Syncing currency';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
                         case 'intacctImportDimensions':
@@ -4636,6 +4726,7 @@ const translations = {
     },
     newRoomPage: {
         newRoom: 'New room',
+        groupName: 'Group name',
         roomName: 'Room name',
         visibility: 'Visibility',
         restrictedDescription: 'People in your workspace can find this room',
@@ -4950,9 +5041,12 @@ const translations = {
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' || role === 'user' ? 'member' : 'admin'}`,
-                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} from ${currentRole} to ${newRole}`,
-                removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' || role === 'user' ? 'a member' : 'an admin'}`,
+                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
+                    `updated the role of ${email} to ${newRole === 'member' || newRole === 'user' ? 'member' : newRole} (previously ${
+                        currentRole === 'member' || currentRole === 'user' ? 'member' : currentRole
+                    })`,
+                removeMember: ({email, role}: AddEmployeeParams) => `removed ${role === 'member' || role === 'user' ? 'member' : 'admin'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
@@ -5398,14 +5492,14 @@ const translations = {
                 subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
             earlyDiscount: {
-                claimOffer: 'Claim Offer',
+                claimOffer: 'Claim offer',
                 noThanks: 'No thanks',
                 subscriptionPageTitle: {
                     phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                    phrase2: `Just add a payment card and start an annual subscription!`,
+                    phrase2: `Just add a payment card and start an annual subscription.`,
                 },
                 onboardingChatTitle: {
-                    phrase1: 'Limited time offer:',
+                    phrase1: 'Limited-time offer:',
                     phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
                 },
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim within ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
