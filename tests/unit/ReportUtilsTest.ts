@@ -1835,6 +1835,16 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canEditWriteCapability', () => {
+        it('should return false for workspace chat', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
+        });
+    });
+
     describe('getApprovalChain', () => {
         describe('submit and close policy', () => {
             it('should return empty array', () => {
@@ -1939,7 +1949,7 @@ describe('ReportUtils', () => {
                     });
                 });
                 describe('has transaction match with approver rule', () => {
-                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', () => {
+                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', async () => {
                         const policyTest: Policy = {
                             ...createRandomPolicy(1),
                             approver: 'owner@test.com',
@@ -1998,16 +2008,6 @@ describe('ReportUtils', () => {
                     });
                 });
             });
-        });
-    });
-
-    describe('canEditWriteCapability', () => {
-        it('should return false for workspace chat', () => {
-            const workspaceChat: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            };
-            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
         });
     });
 });
