@@ -63,11 +63,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         screenIndex,
         moveTo,
         goToTheLastStep,
+        lastScreenIndex,
     } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             goToTheLastStep();
+            ref.current?.moveTo(lastScreenIndex);
+
             return;
         }
 
@@ -101,11 +104,20 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
             goToTheLastStep();
+            ref.current?.moveTo(lastScreenIndex);
             return;
         }
         ref.current?.moveNext();
         nextScreen();
-    }, [goToTheLastStep, isEditing, nextScreen]);
+    }, [goToTheLastStep, isEditing, nextScreen, lastScreenIndex]);
+
+    const handleMoveTo = useCallback(
+        (step: number) => {
+            ref.current?.moveTo(step);
+            moveTo(step);
+        },
+        [moveTo],
+    );
 
     return (
         <ScreenWrapper
@@ -127,7 +139,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             <SubStep
                 isEditing={isEditing}
                 onNext={handleNextScreen}
-                onMove={moveTo}
+                onMove={handleMoveTo}
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
             />
