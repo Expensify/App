@@ -147,67 +147,67 @@ function buildOptimisticMccGroup() {
     const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
         mccGroup: {
             airlines: {
-                category: 'Travel',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
                 groupID: 'airlines',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             commuter: {
-                category: 'Car',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
                 groupID: 'commuter',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             gas: {
-                category: 'Car',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
                 groupID: 'gas',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             goods: {
-                category: 'Materials',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.MATERIALS,
                 groupID: 'goods',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             groceries: {
-                category: 'Meals and Entertainment',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
                 groupID: 'groceries',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             hotel: {
-                category: 'Travel',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
                 groupID: 'hotel',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             mail: {
-                category: 'Office Supplies',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.OFFICE_SUPPLIES,
                 groupID: 'mail',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             meals: {
-                category: 'Meals and Entertainment',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
                 groupID: 'meals',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             rental: {
-                category: 'Travel',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
                 groupID: 'rental',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             services: {
-                category: 'Professional Services',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.PROFESSIONAL_SERVICES,
                 groupID: 'services',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             taxi: {
-                category: 'Travel',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
                 groupID: 'taxi',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             uncategorized: {
-                category: 'Other',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.OTHER,
                 groupID: 'uncategorized',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             utilities: {
-                category: 'Utilities',
+                category: CONST.POLICY.DEFAULT_CATEGORIES.UTILITIES,
                 groupID: 'utilities',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
