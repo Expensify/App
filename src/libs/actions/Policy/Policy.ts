@@ -1601,11 +1601,9 @@ function generateDefaultWorkspaceName(email = ''): string {
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
         .filter(Boolean) // Remove null matches
         .map((match) => Number(match?.[1] ?? '0'));
-    const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : -Infinity;
+    const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
 
-    return lastWorkspaceNumber !== -Infinity
-        ? translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber + 1})
-        : translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
+    return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber ? lastWorkspaceNumber + 1 : undefined});
 }
 
 /**
