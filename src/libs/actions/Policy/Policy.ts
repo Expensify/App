@@ -1684,10 +1684,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 avatarURL: file?.uri ?? null,
                 originalFileName: file?.name,
                 employeeList: {
-                    [sessionEmail]: {
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        errors: {},
-                    },
+                    [sessionEmail]: {submitsTo: sessionEmail, email: sessionEmail, role: CONST.POLICY.ROLE.ADMIN, errors: {}},
                 },
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
@@ -1755,6 +1752,8 @@ function buildPolicyData(
 
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
+    const enableAddApprovals = !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1771,7 +1770,8 @@ function buildPolicyData(
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approvalMode: enableAddApprovals ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: sessionEmail,
                 harvesting: {
                     enabled: true,
                 },
@@ -1779,14 +1779,11 @@ function buildPolicyData(
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: false,
+                areWorkflowsEnabled: true,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
-                    [sessionEmail]: {
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        errors: {},
-                    },
+                    [sessionEmail]: {submitsTo: sessionEmail, email: sessionEmail, role: CONST.POLICY.ROLE.ADMIN, errors: {}},
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
@@ -2083,6 +2080,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         policyID,
         workspaceName,
     );
+    const enableAddApprovals = !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2100,7 +2098,8 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approvalMode: enableAddApprovals ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: sessionEmail,
                 harvesting: {
                     enabled: true,
                 },
@@ -2108,14 +2107,11 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: false,
+                areWorkflowsEnabled: true,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
-                    [sessionEmail]: {
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        errors: {},
-                    },
+                    [sessionEmail]: {submitsTo: sessionEmail, email: sessionEmail, role: CONST.POLICY.ROLE.ADMIN, errors: {}},
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
