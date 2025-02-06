@@ -17242,8 +17242,9 @@ exports["default"] = newComponentCategory;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    APP_REPO: process.env.GITHUB_REPOSITORY_OWNER.split('/').at(1),
 };
 const CONST = {
     ...GIT_CONST,
