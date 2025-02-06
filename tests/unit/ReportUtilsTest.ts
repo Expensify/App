@@ -2007,11 +2007,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
-            const policy: Policy = {
-                ...createRandomPolicy(1),
-                role: CONST.POLICY.ROLE.ADMIN,
-            };
-            expect(canEditWriteCapability(workspaceChat, policy)).toBe(false);
+            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
         });
     });
 });
