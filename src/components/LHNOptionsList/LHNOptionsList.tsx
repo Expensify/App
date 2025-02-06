@@ -31,7 +31,7 @@ import type {LHNOptionsListProps, RenderItemProps} from './types';
 const keyExtractor = (item: string) => `report_${item}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
-    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const flashListRef = useRef<FlashList<string>>(null);
     const route = useRoute();
 
@@ -49,6 +49,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
     const shouldShowEmptyLHN = data.length === 0;
+    const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -237,8 +238,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+            saveScrollIndex(route, Math.ceil(e.nativeEvent.contentOffset.y / estimatedItemSize));
         },
-        [route, saveScrollOffset],
+        [estimatedItemSize, route, saveScrollIndex, saveScrollOffset],
     );
 
     const onLayout = useCallback(() => {
@@ -253,6 +255,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             console.groupEnd();
             return;
         }
+
+        return;
 
         // We need to use requestAnimationFrame to make sure it will scroll properly on iOS.
         requestAnimationFrame(() => {
@@ -288,12 +292,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
-                    estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                    estimatedItemSize={estimatedItemSize}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
                     estimatedListSize={estimatedListSize}
+                    initialScrollIndex={getScrollIndex(route)}
                 />
             )}
         </View>
