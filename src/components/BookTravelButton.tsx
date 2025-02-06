@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -10,12 +10,12 @@ import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains} from '@libs/PolicyUtils';
+import {setIsRootStatusBarEnabled} from '@userActions/HybridApp';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 
 type BookTravelButtonProps = {
@@ -37,11 +37,10 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin;
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');
@@ -63,15 +62,15 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             openTravelDotLink(policy?.id)
                 ?.then(() => {
                     // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
-                    // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
-                    if (!NativeModules.HybridAppModule || !wasNewDotLaunchedJustForTravel) {
+                    // The isSingleNewDotEntry flag indicates if NewDot was launched solely for this purpose.
+                    if (!NativeModules.HybridAppModule || !hybridApp?.isSingleNewDotEntry) {
                         return;
                     }
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, false);
-                    setRootStatusBarEnabled(false);
+                    NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+                    setIsRootStatusBarEnabled(false);
                 })
                 ?.catch(() => {
                     setErrorMessage(translate('travel.errorMessage'));
@@ -92,7 +91,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryLogin, setRootStatusBarEnabled]);
+    }, [primaryLogin, policy, travelSettings?.hasAcceptedTerms, translate, hybridApp?.isSingleNewDotEntry]);
 
     return (
         <>

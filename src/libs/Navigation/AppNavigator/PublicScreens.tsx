@@ -1,9 +1,7 @@
 import React from 'react';
-import {NativeModules} from 'react-native';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
-import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -23,7 +21,7 @@ function PublicScreens() {
             {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is BOTTOM_TAB_NAVIGATOR. */}
             <RootStack.Screen
                 name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
-                component={NativeModules.HybridAppModule ? SessionExpiredPage : SignInPage}
+                component={SignInPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}

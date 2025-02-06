@@ -89,6 +89,9 @@ type Response = {
 
     /** The ID of the original user (returned when in delegate mode) */
     requesterID?: number;
+
+    /** [HybridApp] Determines which app should be opened, NewDot or OldDot */
+    tryNewDot?: boolean;
 };
 
 export default Response;
