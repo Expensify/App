@@ -633,7 +633,7 @@ describe('OptionsListUtils', () => {
         // All the personalDetails should be returned minus the currently logged in user and Chronos
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'manager_mctest@expensify.com'})]));
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos_mctest@expensify.com'})]));
 
         // Test by excluding Manager McTest from the results
         results = OptionsListUtils.getValidOptions(
