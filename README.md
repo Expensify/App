@@ -532,6 +532,15 @@ The primary difference is that the native code, which runs React Native, is loca
 
 The `Mobile-Expensify` directory is a **Git submodule**. This means it points to a specific commit on the `Mobile-Expensify` repository.  
 
+If you'd like to fetch the submodule while executing the `git pull` command in `Expensify/App` instead of updating it manually you can run this command in the root of the project: 
+
+```
+git config submodule.recurse true
+```
+
+> [!WARNING]  
+> Please, remember that the submodule will get updated automatically only after executing the `git pull` command - if you switch between branches it is still recommended to execute `git submodule update` to make sure you're working on a compatible submodule version!
+
 If you'd like to download the most recent changes from the `main` branch, please use the following command:
 ```bash
 git submodule update --remote

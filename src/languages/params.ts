@@ -631,6 +631,10 @@ type FlightLayoverParams = {
     layover: string;
 };
 
+type SubmitsToParams = {
+    name: string;
+};
+
 type SettlementDateParams = {
     settlementDate: string;
 };
@@ -862,5 +866,6 @@ export type {
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyReportFieldDefaultValueParams,
+    SubmitsToParams,
     SettlementDateParams,
 };
