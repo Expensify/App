@@ -51,7 +51,9 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
             const isOneTransactionThreadValue = isOneTransactionThread(report?.reportID ?? '-1', report?.parentReportID ?? '-1', parentReportAction);
             Navigation.dismissModal(isOneTransactionThreadValue ? report?.parentReportID : report?.reportID);
         }
-    }, [parentReportAction, report?.parentReportID, report?.reportID]);
+
+        Navigation.goBack(params.fallbackRoute);
+    }, [params.fallbackRoute, parentReportAction, report?.parentReportID, report?.reportID]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReportValue = isTrackExpenseReport(report);

@@ -33,6 +33,10 @@ type AttachmentModalScreenModalCallbacks = {
 type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
     AttachmentModalScreenModalCallbacks & {
         reportID?: string;
+        policyID?: string;
+        transactionID?: string;
+        readonly?: boolean;
+        isFromReviewDuplicates?: boolean;
     };
 
 type AttachmentModalScreenProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;

@@ -1,6 +1,7 @@
 import React, {useCallback, useContext, useState} from 'react';
 import Modal from '@components/Modal';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
+import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent/BaseContent';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
@@ -39,8 +40,10 @@ function AttachmentModalWrapper({
             if (attachmentId) {
                 attachmentsContext.removeAttachment(attachmentId);
             }
+
+            Navigation.goBack(contentProps.fallbackRoute);
         },
-        [attachmentId, attachmentsContext, onModalClose],
+        [attachmentId, attachmentsContext, contentProps.fallbackRoute, onModalClose],
     );
 
     return (
