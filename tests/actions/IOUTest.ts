@@ -39,14 +39,7 @@ import {
     isActionOfType,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import {
-    buildOptimisticIOUReport,
-    buildOptimisticIOUReportAction,
-    buildTransactionThread,
-    createDraftTransactionAndNavigateToParticipantSelector,
-    generateReportID,
-    isIOUReport,
-} from '@libs/ReportUtils';
+import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -169,7 +162,7 @@ describe('actions/IOU', () => {
             };
 
             // Given a policyExpenseChat report
-            const expenseReport = {
+            const policyExpenseChat = {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
@@ -285,7 +278,7 @@ describe('actions/IOU', () => {
 
             // When the user confirms the category for the tracked expense
             trackExpense({
-                report: expenseReport,
+                report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
                 participantParams: {
@@ -329,6 +322,21 @@ describe('actions/IOU', () => {
                         // Then the transaction category must match the original category
                         expect(categorizedTransaction?.category).toBe(Object.keys(fakeCategories).at(0) ?? '');
                         resolve();
+                    },
+                });
+            });
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                    callback: (quickAction) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+
+                        // Then the quickAction.action should be set to REQUEST_DISTANCE
+                        expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.REQUEST_DISTANCE);
+                        // Then the quickAction.chatReportID should be set to the given chat reportID
+                        expect(quickAction?.chatReportID).toBe(policyExpenseChat.reportID);
                     },
                 });
             });
@@ -534,34 +542,6 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        });
-        it('trackExpense - categorizing tracked expense should set the quick action to REQUEST_MANUAL with the correct chatReportID', () => {
-            const chatReportID = generateReportID();
-            // When we categorize a tracked expense with a given chatReportID
-            trackExpense({
-                report: {reportID: chatReportID},
-                isDraftPolicy: true,
-                transactionParams: {amount: 1000, currency: 'USD', created: '2024-10-30', merchant: 'merchant', comment: 'comment', category: 'category', tag: 'tag'},
-                participantParams: {participant: {accountID: 123456}, payeeAccountID: 0, payeeEmail: undefined},
-                action: CONST.IOU.ACTION.CATEGORIZE,
-            });
-
-            return waitForBatchedUpdates().then(
-                () =>
-                    new Promise<void>((resolve) => {
-                        const connection = Onyx.connect({
-                            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-                            callback: (quickAction) => {
-                                Onyx.disconnect(connection);
-                                // Then the quickAction.action should be set to REQUEST_MANUAL
-                                expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.REQUEST_MANUAL);
-                                // Then the quickAction.chatReportID should be set to the given chatReportID
-                                expect(quickAction?.chatReportID).toBe(chatReportID);
-                                resolve();
-                            },
-                        });
-                    }),
-            );
         });
 
         it('updates existing chat report if there is one', () => {
