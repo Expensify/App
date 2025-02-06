@@ -4064,7 +4064,7 @@ function updateMoneyRequestDescription(
 ) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
-        comment,
+        comment: parsedComment,
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
@@ -4407,6 +4407,8 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
+    const parsedComment = getParsedComment(transactionParams.comment ?? '');
+    transactionParams.comment = parsedComment;
     const {
         amount,
         currency,
@@ -4536,6 +4538,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursible,
+                description: parsedComment,
             };
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
