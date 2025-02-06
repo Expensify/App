@@ -93,7 +93,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     inputPlaceholder: string;
 
     /** Function to display a file in a modal */
-    displayFileInModal: (file: FileObject) => void;
+    onFilePasted: (file: FileObject) => void;
 
     /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
@@ -209,7 +209,7 @@ function ComposerWithSuggestions(
         isComposerFullSize,
         isMenuVisible,
         inputPlaceholder,
-        displayFileInModal,
+        onFilePasted,
         isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
@@ -807,7 +807,7 @@ function ComposerWithSuggestions(
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
                         textInputRef.current?.blur();
-                        displayFileInModal(file);
+                        onFilePasted(file);
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}

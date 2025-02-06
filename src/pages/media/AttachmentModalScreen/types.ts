@@ -30,6 +30,7 @@ type AttachmentModalType = ValueOf<typeof CONST.ATTACHMENT_MODAL_TYPE>;
 
 type AttachmentModalScreenParams = {
     source?: AvatarSource;
+    file?: FileObject;
     fallbackSource?: AvatarSource;
     headerTitle?: string;
     maybeIcon?: boolean;
@@ -44,7 +45,9 @@ type AttachmentModalScreenParams = {
     transactionID?: string;
     readonly?: boolean;
     isFromReviewDuplicates?: boolean;
-} & {
+    shouldDisableSendButton?: boolean;
+
+    onConfirm: (file: FileObject) => void;
     onModalShow?: () => void;
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide?: () => void;
