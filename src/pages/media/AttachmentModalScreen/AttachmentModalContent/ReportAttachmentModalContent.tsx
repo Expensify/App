@@ -16,8 +16,8 @@ import type {AttachmentModalBaseContentProps} from './BaseContent';
 import type {AttachmentModalContent, AttachmentModalWrapperWrapperProps} from './types';
 
 const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}) => {
-    const accountID = Number(params.accountID ?? '-1');
-    const reportID = params.reportID ?? '-1';
+    const accountID = params.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const reportID = params.reportID ?? CONST.DEFAULT_NUMBER_ID;
     const isReceiptAttachment = params.isReceiptAttachment ?? false;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);

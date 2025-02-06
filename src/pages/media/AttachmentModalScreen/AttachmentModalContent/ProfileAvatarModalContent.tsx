@@ -5,12 +5,13 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AttachmentModalBaseContentProps} from './BaseContent';
 import type {AttachmentModalContent} from './types';
 
 const ProfileAvatarModalContent: AttachmentModalContent = ({params, children}) => {
-    const accountID = Number(params.accountID ?? '-1');
+    const accountID = params.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const personalDetail = personalDetails?.[accountID];

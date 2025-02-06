@@ -9,9 +9,9 @@ import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {clearErrorFields, setDraftValues, setErrorFields} from '@libs/actions/FormActions';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -31,7 +31,7 @@ function UploadOwnershipChart({onSubmit}: UploadOwnershipChartProps) {
     const defaultValue = reimbursementAccount?.achData?.additionalData?.corpay?.[ENTITY_CHART] ?? reimbursementAccountDraft?.[ENTITY_CHART] ?? [];
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        return ValidationUtils.getFieldRequiredErrors(values, [ENTITY_CHART]);
+        return getFieldRequiredErrors(values, [ENTITY_CHART]);
     }, []);
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -43,23 +43,23 @@ function UploadOwnershipChart({onSubmit}: UploadOwnershipChartProps) {
     const [uploadedOwnershipChartStatements, setUploadedOwnershipChartStatements] = useState<FileObject[]>(defaultValue);
 
     const handleSelectFile = (files: FileObject[]) => {
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ENTITY_CHART]: [...uploadedOwnershipChartStatements, ...files]});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ENTITY_CHART]: [...uploadedOwnershipChartStatements, ...files]});
         setUploadedOwnershipChartStatements((prev) => [...prev, ...files]);
     };
 
     const handleRemoveFile = (fileUri: string) => {
         const newUploadedOwnershipChartStatements = uploadedOwnershipChartStatements.filter((file) => file.uri !== fileUri);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ENTITY_CHART]: newUploadedOwnershipChartStatements});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ENTITY_CHART]: newUploadedOwnershipChartStatements});
         setUploadedOwnershipChartStatements(newUploadedOwnershipChartStatements);
     };
 
     const setUploadError = (error: string) => {
         if (!error) {
-            FormActions.clearErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+            clearErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
             return;
         }
 
-        FormActions.setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ENTITY_CHART]: {onUpload: error}});
+        setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[ENTITY_CHART]: {onUpload: error}});
     };
     return (
         <FormProvider

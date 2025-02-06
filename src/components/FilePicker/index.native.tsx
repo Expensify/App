@@ -4,7 +4,7 @@ import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerResponse} from 'react-native-document-picker';
 import useLocalize from '@hooks/useLocalize';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {cleanFileName} from '@libs/fileDownload/FileUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type FilePickerProps from './types';
 
@@ -28,7 +28,7 @@ const getFileDataName = (fileData: DocumentPickerResponse): string => {
 const getDataForUpload = (fileData: DocumentPickerResponse): Promise<FileObject> => {
     const fileName = fileData.name ?? 'spreadsheet';
     const fileResult: FileObject = {
-        name: FileUtils.cleanFileName(fileName),
+        name: cleanFileName(fileName),
         type: fileData.type ?? undefined,
         uri: fileData.uri,
         size: fileData.size,

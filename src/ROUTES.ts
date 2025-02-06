@@ -363,7 +363,7 @@ const ROUTES = {
             ...restParams
         }: {
             type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-            reportID?: string;
+            reportID?: string | number;
             accountID?: number;
             isAuthTokenRequired?: boolean;
             fileName?: string;
@@ -409,7 +409,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
+        getRoute: (reportID: string | number | undefined, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS route');
             }

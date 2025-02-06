@@ -15,9 +15,12 @@ import type {AttachmentModalBaseContentProps} from './BaseContent';
 import type {AttachmentModalContent} from './types';
 
 const TransactionReceiptModalContent: AttachmentModalContent = ({params, children}) => {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params.reportID ?? '-1'}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID ?? '-1'}`);
-    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${params.reportID ?? '-1'}`);
+    const reportID = params.reportID ?? CONST.DEFAULT_NUMBER_ID;
+    const transactionID = params.transactionID ?? CONST.DEFAULT_NUMBER_ID;
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const receiptURIs = getThumbnailAndImageURIs(transaction);
 
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');

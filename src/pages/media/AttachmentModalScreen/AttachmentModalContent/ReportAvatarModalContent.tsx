@@ -2,14 +2,15 @@ import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AttachmentModalBaseContentProps} from './BaseContent';
 import type {AttachmentModalContent} from './types';
 
 const ReportAvatarModalContent: AttachmentModalContent = ({params, children}) => {
-    const reportID = params.reportID ?? '-1';
-    const policyID = params.policyID ?? '-1';
+    const reportID = params.reportID ?? CONST.DEFAULT_NUMBER_ID;
+    const policyID = params.policyID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
