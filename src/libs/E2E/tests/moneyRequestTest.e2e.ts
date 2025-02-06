@@ -6,7 +6,7 @@ import E2EClient from '@libs/E2E/client';
 import {tap, waitForElement, waitForEvent, waitForTextInputValue} from '@libs/E2E/interactions';
 import getConfigValueOrThrow from '@libs/E2E/utils/getConfigValueOrThrow';
 import CONST from '@src/CONST';
-import * as NativeCommands from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
+import {makeClearCommand} from '../../../../tests/e2e/nativeCommands/NativeCommandsAction';
 
 const test = (config: NativeConfig) => {
     // check for login (if already logged in the action will simply resolve)
@@ -39,7 +39,7 @@ const test = (config: NativeConfig) => {
             })
             .then(() => waitForElement('manual'))
             .then(() => tap('manual'))
-            .then(() => E2EClient.sendNativeCommand(NativeCommands.makeClearCommand()))
+            .then(() => E2EClient.sendNativeCommand(makeClearCommand()))
             .then(() => tap('button_2'))
             .then(() => waitForTextInputValue('2', 'moneyRequestAmountInput'))
             .then(() => tap('next-button'))
