@@ -605,6 +605,10 @@ type FlightLayoverParams = {
     layover: string;
 };
 
+type SubmitsToParams = {
+    name: string;
+};
+
 type SettlementDateParams = {
     settlementDate: string;
 };
@@ -823,5 +827,6 @@ export type {
     EditDestinationSubtitleParams,
     FlightLayoverParams,
     NewWorksacepNameParams,
+    SubmitsToParams,
     SettlementDateParams,
 };
