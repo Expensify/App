@@ -23,14 +23,14 @@ on:
         value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
 
     secrets:
-      LARGE_SECRET_PASSPHRASE:
-        description: Passphrase used to decrypt GPG key
-        required: true
       SLACK_WEBHOOK:
         description: Webhook used to comment in slack
         required: true
       OS_BOTIFY_COMMIT_TOKEN:
         description: OSBotify personal access token, used to workaround committing to protected branch
+        required: true
+      OP_SERVICE_ACCOUNT_TOKEN:
+        description: 1Password service account token
         required: true
 
 jobs:
@@ -74,7 +74,7 @@ jobs:
         uses: ./.github/actions/composite/setupGitForOSBotify
         id: setupGitForOSBotify
         with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Generate new E/App version
         id: bumpVersion
