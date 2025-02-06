@@ -92,6 +92,6 @@ function AttachmentModalWrapper({
     );
 }
 
-AttachmentModalWrapper.displayName = 'AttachmentModalScreen';
+AttachmentModalWrapper.displayName = 'AttachmentModalWrapper';
 
 export default AttachmentModalWrapper;

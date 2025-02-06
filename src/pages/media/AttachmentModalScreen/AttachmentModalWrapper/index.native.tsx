@@ -14,15 +14,11 @@ function AttachmentModalWrapper({contentProps, navigation}: AttachmentModalWrapp
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
-                // onSubmitAndClose={onSubmitAndClose}
-                // onPdfLoadError={onPdfLoadError}
-                // onInvalidReasonModalHide={onInvalidReasonModalHide}
-                // onUploadFileValidated={onUploadFileValidated}
             />
         </ScreenWrapper>
     );
 }
 
-AttachmentModalWrapper.displayName = 'AttachmentModalScreen';
+AttachmentModalWrapper.displayName = 'AttachmentModalWrapper';
 
 export default memo(AttachmentModalWrapper);

@@ -19,8 +19,8 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
     const reportID = params.reportID ?? '-1';
     const isReceiptAttachment = params.isReceiptAttachment ?? false;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(true);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -116,7 +116,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
             ({
                 // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
                 source: Number(params.source) || params.source,
-                accountID: Number(params.accountID),
+                accountID,
                 shouldShowNotFoundPage: !isLoadingApp && params.type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
                 allowDownload: true,
                 isAuthTokenRequired: !!params.isAuthTokenRequired,
@@ -138,6 +138,7 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                 onUploadFileValidated,
             } satisfies Partial<AttachmentModalBaseContentProps>),
         [
+            accountID,
             attachmentInvalidReason,
             attachmentInvalidReasonTitle,
             isAttachmentInvalid,
@@ -147,7 +148,6 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
             onInvalidReasonModalHide,
             onPdfLoadError,
             onUploadFileValidated,
-            params.accountID,
             params.attachmentLink,
             params.fileName,
             params.isAuthTokenRequired,
