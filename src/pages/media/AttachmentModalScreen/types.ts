@@ -26,8 +26,6 @@ type AttachmentModalChildrenProps = {
     show: () => void;
 };
 
-type AttachmentModalType = ValueOf<typeof CONST.ATTACHMENT_MODAL_TYPE>;
-
 type AttachmentModalScreenParams = {
     source?: AvatarSource;
     file?: FileObject;
@@ -58,4 +56,4 @@ type AttachmentModalScreenParams = {
 type AttachmentModalScreenProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
 
 // eslint-disable-next-line import/prefer-default-export
-export type {AttachmentModalScreenParams, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse, AttachmentModalType};
+export type {AttachmentModalScreenParams, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse};

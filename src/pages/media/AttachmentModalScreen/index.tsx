@@ -1,5 +1,5 @@
 import React, {useContext, useMemo} from 'react';
-import CONST from '@src/CONST';
+import SCREENS from '@src/SCREENS';
 import ProfileAvatarModalContent from './AttachmentModalContent/ProfileAvatarModalContent';
 import ReportAttachmentModalContent from './AttachmentModalContent/ReportAttachmentModalContent';
 import ReportAvatarModalContent from './AttachmentModalContent/ReportAvatarModalContent';
@@ -19,7 +19,7 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         return route.params;
     }, [attachmentId, attachmentsContext, route.params]);
 
-    if (route.name === CONST.ATTACHMENT_MODAL_TYPE.REPORT_ATTACHMENT) {
+    if (route.name === SCREENS.ATTACHMENTS) {
         return (
             <ReportAttachmentModalContent params={params}>
                 {({contentProps, wrapperProps}) => (
@@ -34,7 +34,7 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         );
     }
 
-    if (route.name === CONST.ATTACHMENT_MODAL_TYPE.TRANSACTION_RECEIPT) {
+    if (route.name === SCREENS.TRANSACTION_RECEIPT) {
         return (
             <TransactionReceiptModalContent params={params}>
                 {({contentProps, wrapperProps}) => (
@@ -49,7 +49,7 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         );
     }
 
-    if (route.name === CONST.ATTACHMENT_MODAL_TYPE.PROFILE_AVATAR) {
+    if (route.name === SCREENS.PROFILE_AVATAR) {
         return (
             <ProfileAvatarModalContent params={params}>
                 {({contentProps, wrapperProps}) => (
@@ -64,7 +64,7 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         );
     }
 
-    if (route.name === CONST.ATTACHMENT_MODAL_TYPE.WORKSPACE_AVATAR) {
+    if (route.name === SCREENS.WORKSPACE_AVATAR) {
         return (
             <WorkspaceAvatarModalContent params={params}>
                 {({contentProps, wrapperProps}) => (
@@ -79,7 +79,7 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         );
     }
 
-    if (route.name === CONST.ATTACHMENT_MODAL_TYPE.REPORT_AVATAR) {
+    if (route.name === SCREENS.REPORT_AVATAR) {
         return (
             <ReportAvatarModalContent params={params}>
                 {({contentProps, wrapperProps}) => (
