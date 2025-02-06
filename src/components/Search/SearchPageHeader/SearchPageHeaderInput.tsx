@@ -232,6 +232,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                         <Animated.View style={[styles.flex1, styles.zIndex10, inputWrapperStyle]}>
                             <SearchInputSelectionWrapper
                                 value={textInputValue}
+                                substitutionMap={autocompleteSubstitutions}
                                 onSearchQueryChange={onSearchQueryChange}
                                 isFullWidth
                                 onSubmit={() => {
