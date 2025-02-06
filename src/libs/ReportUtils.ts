@@ -1103,6 +1103,20 @@ function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
 }
 
 /**
+ * Checks if the report with supplied ID has been approved or not
+ */
+function isReportIDApproved(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    const report = getReport(reportID, allReports);
+    if (!report) {
+        return;
+    }
+    return isReportApproved({report});
+}
+
+/**
  * Checks if a report is an Expense report.
  */
 function isExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
@@ -1165,20 +1179,6 @@ function isOpenTaskReport(report: OnyxInputOrEntry<Report>, parentReportAction: 
  */
 function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
     return isTaskReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-}
-
-/**
- * Checks if the report with supplied ID has been approved
- */
-function isReportIDApproved(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
-    const report = getReport(reportID, allReports);
-    if (!report) {
-        return;
-    }
-    return isReportApproved({report});
 }
 
 /**
