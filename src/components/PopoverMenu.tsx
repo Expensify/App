@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
-import type {ReactNode, RefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -136,26 +136,6 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Used to locate the component in the tests */
     testID?: string;
-};
-
-const renderWithConditionalWrapper = (
-    shouldUseScrollView: boolean,
-    contentContainerStyle: StyleProp<ViewStyle>,
-    children: ReactNode,
-    scrollViewRef: RefObject<ScrollViewType>,
-): React.JSX.Element => {
-    if (shouldUseScrollView) {
-        return (
-            <ScrollView
-                contentContainerStyle={contentContainerStyle}
-                ref={scrollViewRef}
-            >
-                {children}
-            </ScrollView>
-        );
-    }
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
 };
 
 function getSelectedItemIndex(menuItems: PopoverMenuItem[]) {
@@ -340,7 +320,7 @@ function PopoverMenu({
         const remainingScrollSpace = scrollHeight - clientHeight - scrollTop;
 
         scrollableElement.scrollBy(0, Math.min(clientHeight, remainingScrollSpace));
-    }, [isVisible]);
+    }, []);
 
     // On web and desktop, pressing the space bar after interacting with the parent view
     // can cause the parent view to scroll when the space bar is pressed.
@@ -402,7 +382,17 @@ function PopoverMenu({
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
                     {renderHeaderText()}
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems, scrollViewRef as RefObject<ScrollViewType>)}
+                    {shouldUseScrollView ? (
+                        <ScrollView
+                            contentContainerStyle={scrollContainerStyle}
+                            ref={scrollViewRef as RefObject<ScrollViewType>}
+                        >
+                            {renderedMenuItems}
+                        </ScrollView>
+                    ) : (
+                        // eslint-disable-next-line react/jsx-no-useless-fragment
+                        <>{renderedMenuItems}</>
+                    )}
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
