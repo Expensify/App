@@ -129,6 +129,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}
             testID="floating-action-button"
+            onTooltipPress={toggleFabAction}
         >
             <PressableWithoutFeedback
                 ref={(el) => {
