@@ -142,7 +142,7 @@ function bookATrip(
                 }
 
                 Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+                NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                 setRootStatusBarEnabled(false);
             })
             ?.catch(() => {
