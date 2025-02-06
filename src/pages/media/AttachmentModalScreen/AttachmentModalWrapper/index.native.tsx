@@ -1,10 +1,22 @@
-import React, {memo} from 'react';
+import React, {memo, useCallback, useContext} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent/BaseContent';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {AttachmentModalWrapperProps} from './types';
 
-function AttachmentModalWrapper({contentProps, navigation}: AttachmentModalWrapperProps) {
+function AttachmentModalWrapper({contentProps, navigation, attachmentId}: AttachmentModalWrapperProps) {
+    const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
+
+    const onModalClose = useCallback(() => {
+        if (!attachmentId) {
+            return;
+        }
+        attachmentsContext.removeAttachment(attachmentId);
+
+        Navigation.goBack(contentProps.fallbackRoute);
+    }, [attachmentId, attachmentsContext, contentProps.fallbackRoute]);
 
     return (
         <ScreenWrapper
@@ -14,6 +26,7 @@ function AttachmentModalWrapper({contentProps, navigation}: AttachmentModalWrapp
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
+                closeModal={onModalClose}
             />
         </ScreenWrapper>
     );
