@@ -88,6 +88,7 @@ import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-ve
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
+import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Feed from '@assets/images/feed.svg';
@@ -113,6 +114,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import NSQSSquare from '@assets/images/integrationicons/netsuite-quickstart-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
@@ -286,6 +288,7 @@ export {
     ExpensifyFooterLogo,
     ExpensifyFooterLogoVertical,
     Expand,
+    Export,
     Eye,
     EyeDisabled,
     FallbackAvatar,
@@ -408,6 +411,7 @@ export {
     CheckCircle,
     CheckmarkCircle,
     NetSuiteSquare,
+    NSQSSquare,
     XeroCircle,
     QBOCircle,
     Filters,
