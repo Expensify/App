@@ -128,7 +128,6 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}
-            testID="floating-action-button"
             onTooltipPress={toggleFabAction}
         >
             <PressableWithoutFeedback
@@ -144,6 +143,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 onLongPress={() => {}}
                 role={role}
                 shouldUseHapticsOnLongPress={false}
+                testID="floating-action-button"
             >
                 <Animated.View style={[styles.floatingActionButton, animatedStyle]}>
                     <Svg
