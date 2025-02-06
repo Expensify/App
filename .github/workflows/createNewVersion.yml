@@ -70,6 +70,8 @@ jobs:
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotify
         id: setupGitForOSBotify
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Generate new E/App version
         id: bumpVersion
