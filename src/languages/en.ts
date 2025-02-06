@@ -5826,7 +5826,7 @@ const translations = {
             part7: ' submit your expense',
             part8: ' and watch the magic happen!',
         },
-        workspaceExpenseTooltip: {
+        workspaceExpenseSubmit: {
             part1: 'Submit expenses',
             part2: ' to your company here',
         },

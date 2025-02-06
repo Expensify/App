@@ -6343,7 +6343,7 @@ const translations = {
             part7: ' envía tu gasto y',
             part8: ' ¡observa cómo ocurre la magia!',
         },
-        workspaceExpenseTooltip: {
+        workspaceExpenseSubmit: {
             part1: 'Envía gastos',
             part2: ' a tu empresa aquí',
         },

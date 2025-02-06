@@ -143,8 +143,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [WORKSPACE_EXPENSE_SUBMIT]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceExpenseTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.workspaceExpenseTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.workspaceExpenseSubmit.part1', isBold: true},
+            {text: 'productTrainingTooltip.workspaceExpenseSubmit.part2', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(WORKSPACE_EXPENSE_SUBMIT),
         name: WORKSPACE_EXPENSE_SUBMIT,
