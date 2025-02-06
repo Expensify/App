@@ -1090,6 +1090,14 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boole
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
+function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
+    if (!invoiceRoomID) {
+        return false;
+    }
+
+    return isInvoiceRoom(getReport(invoiceRoomID, allReports));
+}
+
 /**
  * Checks if a report is an Expense report.
  */
@@ -4487,7 +4495,9 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = report?.reportName ?? getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+        const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
     }
 
     if (isInvoiceRoom(report)) {
@@ -4626,7 +4636,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
 /**
  * Go back to the details page of a given report
  */
-function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
+function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldGoBackToDetailsPage = false) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
@@ -4636,7 +4646,11 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     }
 
     if (report?.reportID) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
+        if (shouldGoBackToDetailsPage) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+        } else {
+            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
+        }
     } else {
         Log.warn('Missing reportID during navigation back to the details page');
     }
@@ -9376,6 +9390,7 @@ export {
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
+    isNewDotInvoice,
     isOpenInvoiceReport,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,

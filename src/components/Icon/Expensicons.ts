@@ -88,6 +88,7 @@ import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-ve
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
+import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Feed from '@assets/images/feed.svg';
@@ -285,6 +286,7 @@ export {
     ExpensifyFooterLogo,
     ExpensifyFooterLogoVertical,
     Expand,
+    Export,
     Eye,
     EyeDisabled,
     FallbackAvatar,
