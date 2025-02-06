@@ -1,39 +1,8 @@
 import Onyx from 'react-native-onyx';
-import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Locale} from '@src/types/onyx';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
-
-let isOffline: boolean | undefined;
-
-let preferredLocale: Locale;
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        preferredLocale = value;
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (val) => {
-        if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(DateUtils.getLocalDateFromDatetime(preferredLocale));
-        }
-
-        const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
-        if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(DateUtils.getLocalDateFromDatetime(preferredLocale));
-        }
-        isOffline = newIsOffline;
-    },
-});
 
 function setNetworkLastOffline(lastOfflineAt: Date) {
     Onyx.merge(ONYXKEYS.NETWORK, {lastOfflineAt});
@@ -85,4 +54,14 @@ function setConnectionChanges(connectionChanges: ConnectionChanges) {
     Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges});
 }
 
-export {setIsOffline, setShouldForceOffline, setConnectionChanges, setShouldSimulatePoorConnection, setPoorConnectionTimeoutID, setShouldFailAllRequests, setTimeSkew, setNetWorkStatus};
+export {
+    setIsOffline,
+    setShouldForceOffline,
+    setConnectionChanges,
+    setShouldSimulatePoorConnection,
+    setPoorConnectionTimeoutID,
+    setShouldFailAllRequests,
+    setTimeSkew,
+    setNetWorkStatus,
+    setNetworkLastOffline,
+};
