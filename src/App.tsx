@@ -43,8 +43,9 @@ import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
+/** Values passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
 type AppProps = {
-    /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
+    /** URL containing all necessary data to run React Native app (e.g. login data) */
     url?: Route;
 };
 
@@ -81,7 +82,6 @@ function App({url}: AppProps) {
                                 SafeArea,
                                 LocaleContextProvider,
                                 HTMLEngineProvider,
-                                KeyboardStateProvider,
                                 PopoverContextProvider,
                                 CurrentReportIDContextProvider,
                                 ScrollOffsetContextProvider,
@@ -97,6 +97,7 @@ function App({url}: AppProps) {
                                 VolumeContextProvider,
                                 VideoPopoverMenuContextProvider,
                                 KeyboardProvider,
+                                KeyboardStateProvider,
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
                                 InputBlurContextProvider,

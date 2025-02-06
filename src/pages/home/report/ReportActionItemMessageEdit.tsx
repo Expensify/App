@@ -29,6 +29,7 @@ import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn, callback as inputFocusCallback, inputFocusChange} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
+import {isMobileChrome} from '@libs/Browser/index.website';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
 import {extractEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
@@ -60,7 +61,7 @@ type ReportActionItemMessageEditProps = {
     draftMessage: string;
 
     /** ReportID that holds the comment we're editing */
-    reportID: string;
+    reportID: string | undefined;
 
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
@@ -530,6 +531,9 @@ function ReportActionItemMessageEdit(
                                         reportScrollManager.scrollToIndex(index, true);
                                     });
                                 });
+                                if (isMobileChrome() && reportScrollManager.ref?.current) {
+                                    reportScrollManager.ref.current.scrollToIndex({index, animated: false});
+                                }
                                 setShouldShowComposeInputKeyboardAware(false);
                                 // The last composer that had focus should re-gain focus
                                 setUpComposeFocusManager();

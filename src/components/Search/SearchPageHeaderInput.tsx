@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -29,14 +30,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
+import SearchAutocompleteList from './SearchAutocompleteList';
+import SearchInputSelectionWrapper from './SearchInputSelectionWrapper';
 import {buildSubstitutionsMap} from './SearchRouter/buildSubstitutionsMap';
 import {getQueryWithSubstitutions} from './SearchRouter/getQueryWithSubstitutions';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './SearchRouter/getUpdatedSubstitutionsMap';
 import SearchButton from './SearchRouter/SearchButton';
 import {useSearchRouterContext} from './SearchRouter/SearchRouterContext';
-import SearchRouterInput from './SearchRouter/SearchRouterInput';
-import SearchRouterList from './SearchRouter/SearchRouterList';
 import type {SearchQueryJSON, SearchQueryString} from './types';
 
 // When counting absolute positioning, we need to account for borders
@@ -83,8 +84,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(queryText);
-    // The input text that was last used for autocomplete; needed for the SearchRouterList when browsing list via arrow keys
+    // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(queryText);
+    const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const [isAutocompleteListVisible, setIsAutocompleteListVisible] = useState(false);
@@ -122,9 +124,11 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
-            setAutocompleteSubstitutions(updatedSubstitutionsMap);
+            if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
+                setAutocompleteSubstitutions(updatedSubstitutionsMap);
+            }
 
-            if (updatedUserQuery || textInputValue.length > 0) {
+            if (updatedUserQuery) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
             } else {
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
@@ -148,9 +152,12 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
                 setIsAutocompleteListVisible(false);
+            } else {
+                setTextInputValue(queryText);
+                setAutocompleteQueryValue(queryText);
             }
         },
-        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText],
     );
 
     const onListItemPress = useCallback(
@@ -162,7 +169,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
-                    onSearchQueryChange(`${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)} `);
+                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    onSearchQueryChange(newSearchQuery);
+                    setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
                         const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
@@ -191,6 +200,14 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             setAutocompleteSubstitutions(substitutions);
         },
         [autocompleteSubstitutions],
+    );
+
+    const setTextAndUpdateSelection = useCallback(
+        (text: string) => {
+            setTextInputValue(text);
+            setSelection({start: text.length, end: text.length});
+        },
+        [setSelection, setTextInputValue],
     );
 
     if (isCannedQuery) {
@@ -255,29 +272,35 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             style={[styles.searchResultsHeaderBar, isAutocompleteListVisible && styles.ph3]}
         >
             <View style={[styles.appBG, ...autocompleteInputStyle]}>
-                <SearchRouterInput
+                <SearchInputSelectionWrapper
                     value={textInputValue}
                     onSearchQueryChange={onSearchQueryChange}
                     isFullWidth
                     onSubmit={() => {
+                        const focusedOption = listRef.current?.getFocusedOption();
+                        if (focusedOption) {
+                            return;
+                        }
                         submitSearch(textInputValue);
                     }}
                     autoFocus={false}
                     onFocus={showAutocompleteList}
                     onBlur={hideAutocompleteList}
-                    wrapperStyle={[styles.searchRouterInputResults, styles.br2]}
-                    wrapperFocusedStyle={styles.searchRouterInputResultsFocused}
+                    wrapperStyle={[styles.searchAutocompleteInputResults, styles.br2]}
+                    wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
                     rightComponent={children}
-                    routerListRef={listRef}
+                    autocompleteListRef={listRef}
                     ref={textInputRef}
+                    selection={selection}
+                    substitutionMap={autocompleteSubstitutions}
                 />
                 <View style={[styles.mh85vh, !isAutocompleteListVisible && styles.dNone]}>
-                    <SearchRouterList
+                    <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue}
                         searchQueryItem={searchQueryItem}
                         onListItemPress={onListItemPress}
-                        setTextQuery={setTextInputValue}
+                        setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
                     />
