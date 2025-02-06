@@ -371,6 +371,7 @@ function PureReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
+    const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -410,7 +411,6 @@ function PureReportActionItem({
         }
         clearAllRelatedReportActionErrors(reportID, action);
     };
-
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
@@ -1010,9 +1010,10 @@ function PureReportActionItem({
                             childReportID={`${action.childReportID}`}
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
-                            isHovered={hovered}
+                            isHovered={hovered || isContextMenuActive}
                             icons={getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
                             onSecondaryInteraction={showPopover}
+                            isActive={isReportActionActive && !isContextMenuActive}
                         />
                     </View>
                 )}
@@ -1044,7 +1045,8 @@ function PureReportActionItem({
                     shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                     report={report}
                     iouReport={iouReport}
-                    isHovered={hovered}
+                    isHovered={hovered || isContextMenuActive}
+                    isActive={isReportActionActive && !isContextMenuActive}
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
                     }
@@ -1130,6 +1132,12 @@ function PureReportActionItem({
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
                 shouldFreezeCapture={isPaymentMethodPopoverActive}
+                onHoverIn={() => {
+                    setIsReportActionActive(false);
+                }}
+                onHoverOut={() => {
+                    setIsReportActionActive(!!isReportActionLinked);
+                }}
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>

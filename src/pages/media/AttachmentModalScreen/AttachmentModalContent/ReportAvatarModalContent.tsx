@@ -27,7 +27,7 @@ const ReportAvatarModalContent: AttachmentModalContent = ({params, children}) =>
 
         return {
             source: getFullSizeAvatar(getWorkspaceIcon(report).source, 0),
-            headerTitle: getPolicyName(report, false, policy),
+            headerTitle: getPolicyName({report, policy}),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID ?? '',
             isWorkspaceAvatar: true,

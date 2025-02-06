@@ -276,19 +276,21 @@ function IOURequestStepScan({
     const createTransaction = useCallback(
         (receipt: Receipt, participant: Participant) => {
             if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                trackExpense(
+                trackExpense({
                     report,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    '',
-                    false,
-                    receipt,
-                );
+                    isDraftPolicy: false,
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    transactionParams: {
+                        amount: 0,
+                        currency: transaction?.currency ?? 'USD',
+                        created: transaction?.created,
+                        receipt,
+                    },
+                });
             } else {
                 requestMoney({
                     report,
@@ -365,31 +367,29 @@ function IOURequestStepScan({
                         (successData) => {
                             playSound(SOUNDS.DONE);
                             if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                                trackExpense(
+                                trackExpense({
                                     report,
-                                    0,
-                                    transaction?.currency ?? 'USD',
-                                    transaction?.created ?? '',
-                                    '',
-                                    currentUserPersonalDetails.login,
-                                    currentUserPersonalDetails.accountID,
-                                    participant,
-                                    '',
-                                    false,
-                                    receipt,
-                                    '',
-                                    '',
-                                    '',
-                                    0,
-                                    false,
-                                    policy,
-                                    {},
-                                    {},
-                                    {
-                                        lat: successData.coords.latitude,
-                                        long: successData.coords.longitude,
+                                    isDraftPolicy: false,
+                                    participantParams: {
+                                        payeeEmail: currentUserPersonalDetails.login,
+                                        payeeAccountID: currentUserPersonalDetails.accountID,
+                                        participant,
                                     },
-                                );
+                                    policyParams: {
+                                        policy,
+                                    },
+                                    transactionParams: {
+                                        amount: 0,
+                                        currency: transaction?.currency ?? 'USD',
+                                        created: transaction?.created,
+                                        receipt,
+                                        billable: false,
+                                        gpsPoints: {
+                                            lat: successData.coords.latitude,
+                                            long: successData.coords.longitude,
+                                        },
+                                    },
+                                });
                             } else {
                                 requestMoney({
                                     report,

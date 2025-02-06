@@ -1,4 +1,5 @@
 import {useCallback, useEffect} from 'react';
+import {isMobile} from '@libs/Browser';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
@@ -89,9 +90,14 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
-            const plainText = event.clipboardData?.getData('text/plain');
-            if (plainText) {
-                paste(plainText);
+            const markdownText = event.clipboardData?.getData('text/plain');
+            // Updated paste logic to address issue #53718
+            // When copying from a chat conversation, the clipboard contains markdown-formatted text.
+            // On desktop web, users have the option to paste as plain text, but this feature is unavailable on mobile web.
+            // A conditional check is added to determine whether to retain markdown or convert it to plain text based on the platform.
+            if (markdownText) {
+                const parsedText = isMobile() ? markdownText : Parser.htmlToText(Parser.replace(markdownText));
+                paste(parsedText);
             }
         },
         [paste],
