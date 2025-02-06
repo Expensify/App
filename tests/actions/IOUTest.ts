@@ -538,33 +538,13 @@ describe('actions/IOU', () => {
         it('trackExpense - categorizing tracked expense should set the quick action to REQUEST_MANUAL with the correct chatReportID', () => {
             const chatReportID = generateReportID();
             // When we categorize a tracked expense with a given chatReportID
-            trackExpense(
-                {reportID: chatReportID},
-                1000,
-                'USD',
-                '2024-10-30',
-                'merchant',
-                undefined,
-                0,
-                {accountID: 123456},
-                'comment',
-                true,
-                undefined,
-                'category',
-                'tag',
-                'taxCode',
-                0,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.IOU.ACTION.CATEGORIZE,
-                'actionableWhisperReportActionID',
-                {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
-                'linkedTrackedExpenseReportID',
-            );
+            trackExpense({
+                report: {reportID: chatReportID},
+                isDraftPolicy: true,
+                transactionParams: {amount: 1000, currency: 'USD', created: '2024-10-30', merchant: 'merchant', comment: 'comment', category: 'category', tag: 'tag'},
+                participantParams: {participant: {accountID: 123456}, payeeAccountID: 0, payeeEmail: undefined},
+                action: CONST.IOU.ACTION.CATEGORIZE,
+            });
 
             return waitForBatchedUpdates().then(
                 () =>
