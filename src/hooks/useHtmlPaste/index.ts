@@ -1,6 +1,7 @@
 import {useCallback, useEffect} from 'react';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
+import isMobile from '@src/utils/isMobile';
 import type UseHtmlPaste from './types';
 
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
@@ -91,7 +92,8 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
         (event: ClipboardEvent) => {
             const markdownText = event.clipboardData?.getData('text/plain');
             if (markdownText) {
-                paste(Parser.htmlToText(Parser.replace(markdownText)));
+                const parsedText = isMobile() ? markdownText : Parser.htmlToText(Parser.replace(markdownText));
+                paste(parsedText);
             }
         },
         [paste],
