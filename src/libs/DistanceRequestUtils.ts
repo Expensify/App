@@ -367,8 +367,9 @@ function getRate({
     }
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultMileageRate = getDefaultMileageRate(policy);
-    const customUnitRateID = getRateID(transaction) ?? String(CONST.DEFAULT_NUMBER_ID);
-    const customMileageRate = mileageRates?.[customUnitRateID] ?? defaultMileageRate;
+    const customUnitRateID = getRateID(transaction);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
