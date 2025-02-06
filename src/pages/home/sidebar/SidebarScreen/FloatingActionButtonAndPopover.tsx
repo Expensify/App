@@ -93,6 +93,8 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
+        case CONST.QUICK_ACTIONS.PER_DIEM:
+            return Expensicons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
@@ -144,6 +146,8 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.recordDistance';
+        case CONST.QUICK_ACTIONS.PER_DIEM:
+            return 'quickAction.perDiem';
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             return 'quickAction.splitBill';
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
