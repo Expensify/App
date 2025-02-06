@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {
@@ -73,6 +72,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import WorkspaceUpdateToUSDModal from './WorkspaceUpdateToUSDModal';
 
 type WorkspaceMenuItem = {
     translationKey: TranslationPaths;
@@ -174,12 +174,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyID = policy?.id;
     const policyName = policy?.name ?? '';
-    useEffect(() => {
-        if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
-            return;
-        }
-        setIsCurrencyModalOpen(false);
-    }, [policy?.outputCurrency, isCurrencyModalOpen]);
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -519,7 +513,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         </View>
                     )}
                 </ScrollView>
-                <ConfirmModal
+                <WorkspaceUpdateToUSDModal
                     title={translate('workspace.bankAccount.workspaceCurrency')}
                     isVisible={isCurrencyModalOpen}
                     onConfirm={confirmCurrencyChangeAndHideModal}
@@ -527,6 +521,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
                     confirmText={translate('workspace.bankAccount.updateToUSD')}
                     cancelText={translate('common.cancel')}
+                    workspaceCurrency={policy?.outputCurrency}
                     danger
                 />
             </FullPageNotFoundView>

@@ -1,7 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
@@ -19,6 +18,7 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import WorkspaceUpdateToUSDModal from '@pages/workspace/WorkspaceUpdateToUSDModal';
 import {isCurrencySupportedForDirectReimbursement, updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -112,7 +112,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
                 />
-                <ConfirmModal
+                <WorkspaceUpdateToUSDModal
                     title={translate('workspace.common.expensifyCard')}
                     isVisible={isCurrencyModalOpen}
                     onConfirm={confirmCurrencyChangeAndHideModal}
@@ -120,6 +120,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
                     confirmText={translate('workspace.bankAccount.updateToUSD')}
                     cancelText={translate('common.cancel')}
+                    workspaceCurrency={policy?.outputCurrency}
                     danger
                 />
                 <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>

@@ -3,7 +3,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
-import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -31,6 +30,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import WorkspaceUpdateToUSDModal from '@pages/workspace/WorkspaceUpdateToUSDModal';
 import * as Policy from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import * as Workflow from '@userActions/Workflow';
@@ -348,7 +348,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
-                    <ConfirmModal
+                    <WorkspaceUpdateToUSDModal
                         title={translate('workspace.bankAccount.workspaceCurrency')}
                         isVisible={isCurrencyModalOpen}
                         onConfirm={confirmCurrencyChangeAndHideModal}
@@ -356,6 +356,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
                         confirmText={translate('workspace.bankAccount.updateToUSD')}
                         cancelText={translate('common.cancel')}
+                        workspaceCurrency={policy?.outputCurrency}
                         danger
                     />
                 </View>
