@@ -8,6 +8,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
+import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReport from '../utils/collections/reports';
 
 describe('SidebarUtils', () => {
     beforeAll(() =>
@@ -340,68 +342,29 @@ describe('SidebarUtils', () => {
         it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
             // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
             const report: Report = {
+                ...createRandomReport(1),
                 chatType: 'policyAdmins',
-                currency: 'USD',
-                description: '',
-                errorFields: {},
-                hasOutstandingChildRequest: false,
-                hasOutstandingChildTask: false,
-                isCancelledIOU: false,
-                isOwnPolicyExpenseChat: false,
-                isPinned: false,
-                isWaitingOnBankAccount: false,
-                lastActorAccountID: 18921695,
                 lastMessageHtml: 'removed 0 user',
                 lastMessageText: 'removed 0 user',
-                lastReadSequenceNumber: 0,
-                lastReadTime: '2025-01-20 12:30:03.787',
                 lastVisibleActionCreated: '2025-01-20 12:30:03.784',
-                lastVisibleActionLastModified: '2025-01-20 12:30:03.784',
-                nonReimbursableTotal: 0,
-                oldPolicyName: '',
-                ownerAccountID: 0,
                 participants: {
                     '18921695': {
                         notificationPreference: 'always',
                     },
                 },
-                permissions: ['read', 'write'],
-                policyAvatar: '',
-                policyID: '6327584AE2AD92E6',
-                policyName: 'Arch Workspace 1',
-                private_isArchived: '',
-                reportID: '2336337065760599',
-                reportName: '#admins',
-                stateNum: 0,
-                statusNum: 0,
-                total: 0,
-                type: 'chat',
-                unheldNonReimbursableTotal: 0,
-                unheldTotal: 0,
-                welcomeMessage: '',
-                writeCapability: 'all',
-                managerID: 0,
-                privateNotes: {
-                    '18921695': {
-                        note: '',
-                    },
-                },
             };
             const lastAction: ReportAction = {
-                reportActionID: '8984164670214153383',
+                ...createRandomReportAction(2),
                 message: [
                     {
                         type: 'COMMENT',
                         html: '<muted-text>removed <mention-user accountID=19010378></mention-user> from <a href="https://dev.new.expensify.com:8082/r/5345362886584843" target="_blank">#r1</a></muted-text>',
                         text: 'removed  from #r1',
-                        isEdited: false,
-                        whisperedTo: [],
                         isDeletedParentAction: false,
                         deleted: '',
                     },
                 ],
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM,
-                created: '2025-01-20 12:30:03.784',
                 actorAccountID: 18921695,
                 person: [
                     {
@@ -410,6 +373,7 @@ describe('SidebarUtils', () => {
                         text: 'f50',
                     },
                 ],
+                originalMessage: undefined,
             };
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
