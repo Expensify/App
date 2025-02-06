@@ -45,6 +45,7 @@ export type {default as OpenReimbursementAccountPageParams} from './OpenReimburs
 export type {default as OpenReportParams} from './OpenReportParams';
 export type {default as OpenRoomMembersPageParams} from './OpenRoomMembersPageParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
+export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
 export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachersUniteVolunteerParams';
 export type {default as ReportVirtualExpensifyCardFraudParams} from './ReportVirtualExpensifyCardFraudParams';
@@ -69,7 +70,7 @@ export type {default as UpdateAutomaticTimezoneParams} from './UpdateAutomaticTi
 export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriorityModeParams';
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
-export type {default as UpdateGroupChatNameParams} from './UpdateGroupChatNameParams';
+export type {default as UpdateChatNameParams} from './UpdateChatNameParams';
 export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
 export type {default as UpdatePolicyAddressParams} from './UpdatePolicyAddressParams';
@@ -232,6 +233,7 @@ export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as UpdatePolicyTaxCodeParams} from './UpdatePolicyTaxCodeParams';
 export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
 export type {default as DismissTrackExpenseActionableWhisperParams} from './DismissTrackExpenseActionableWhisperParams';
+export type {default as AddTrackedExpenseToPolicyParams} from './AddTrackedExpenseToPolicyParams';
 export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';
 export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpenseParams';
 export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';
@@ -274,6 +276,14 @@ export type {default as RequestExpensifyCardLimitIncreaseParams} from './Request
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as CancelBillingSubscriptionParams} from './CancelBillingSubscriptionParams';
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
+export type {default as ConnectPolicyToNSQSParams} from './ConnectPolicyToNSQSParams';
+export type {default as SyncPolicyToNSQSParams} from './SyncPolicyToNSQSParams';
+export type {default as UpdateNSQSCustomersMappingParams} from './UpdateNSQSCustomersMappingParams';
+export type {default as UpdateNSQSProjectsMappingParams} from './UpdateNSQSProjectsMappingParams';
+export type {default as UpdateNSQSExporterParams} from './UpdateNSQSExporterParams';
+export type {default as UpdateNSQSExportDateParams} from './UpdateNSQSExportDateParams';
+export type {default as UpdateNSQSAutoSyncParams} from './UpdateNSQSAutoSyncParams';
+export type {default as UpdateNSQSApprovalAccountParams} from './UpdateNSQSApprovalAccountParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
@@ -362,6 +372,7 @@ export type {default as DismissProductTrainingParams} from './DismissProductTrai
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
 export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDeliveryFailureStatusParams';
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
+export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensifyCardForBillingParams';
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';

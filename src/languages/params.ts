@@ -208,8 +208,6 @@ type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
-type WelcomeNoteParams = {workspaceName: string};
-
 type RoomNameReservedErrorParams = {reservedName: string};
 
 type RenamedRoomActionParams = {oldName: string; newName: string};
@@ -605,6 +603,14 @@ type FlightLayoverParams = {
     layover: string;
 };
 
+type SubmitsToParams = {
+    name: string;
+};
+
+type SettlementDateParams = {
+    settlementDate: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -773,7 +779,6 @@ export type {
     WalletProgramParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
@@ -819,4 +824,6 @@ export type {
     ChatWithAccountManagerParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    SubmitsToParams,
+    SettlementDateParams,
 };

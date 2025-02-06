@@ -156,7 +156,7 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-                    openApp().then(() => NativeModules.HybridAppModule.switchAccount(email, restrictedToken, policyID, String(previousAccountID)));
+                    openApp().then(() => NativeModules.HybridAppModule?.switchAccount(email, restrictedToken, policyID, String(previousAccountID)));
                 });
         })
         .catch((error) => {
@@ -238,7 +238,7 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
                     confirmReadyToOpenApp();
-                    openApp().then(() => NativeModules.HybridAppModule.switchAccount(requesterEmail, authToken, '', ''));
+                    openApp().then(() => NativeModules.HybridAppModule?.switchAccount(requesterEmail, authToken, '', ''));
                 });
         })
         .catch((error) => {

@@ -2,13 +2,15 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isSelectedFeedExpired} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getFilteredCardList, getSelectedFeed, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -16,7 +18,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getWorkspaceAccountID, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {checkIfFeedConnectionIsBroken, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -56,7 +58,8 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isFeedAdded = !isPending && !isNoFeed;
     const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
     const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
-
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const fetchCompanyCards = useCallback(() => {
         openPolicyCompanyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
@@ -82,6 +85,16 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
         if (!selectedFeed) {
             return;
         }
+
+        const isCommercialFeed = isCustomFeed(selectedFeed);
+
+        // If the feed is a direct feed (not a commercial feed) and the user is offline,
+        // show the offline alert modal to inform them of the connectivity issue.
+        if (!isCommercialFeed && isOffline) {
+            setShouldShowOfflineModal(true);
+            return;
+        }
+
         const data: Partial<AssignCardData> = {
             bankName: selectedFeed,
         };
@@ -158,6 +171,16 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={shouldShowOfflineModal}
+                onClose={() => setShouldShowOfflineModal(false)}
             />
         </AccessOrNotFoundWrapper>
     );
