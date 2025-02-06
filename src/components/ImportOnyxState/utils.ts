@@ -1,10 +1,11 @@
 import cloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {UnknownRecord} from 'type-fest';
 import {KEYS_TO_PRESERVE} from '@libs/actions/App';
-import type {OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
+import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
 const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.PREFERRED_THEME];
@@ -56,10 +57,13 @@ function cleanAndTransformState<T>(state: string): T {
 
 function importState(transformedState: OnyxValues): Promise<void> {
     const collectionKeys = [...new Set(Object.values(ONYXKEYS.COLLECTION))];
-    const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, OnyxCollection<OnyxKey>>();
+    const collectionsMap = new Map<keyof OnyxCollectionValuesMapping, CollectionDataSet<OnyxCollectionKey>>();
     const regularState: Partial<Record<OnyxKey, OnyxEntry<OnyxKey>>> = {};
 
-    Object.entries(transformedState).forEach(([key, value]) => {
+    Object.entries(transformedState).forEach(([entryKey, entryValue]) => {
+        const key = entryKey as OnyxKey;
+        const value = entryValue as NonNullable<OnyxEntry<OnyxKey>>;
+
         const collectionKey = collectionKeys.find((cKey) => key.startsWith(cKey));
         if (collectionKey) {
             if (!collectionsMap.has(collectionKey)) {
@@ -71,9 +75,9 @@ function importState(transformedState: OnyxValues): Promise<void> {
                 return;
             }
 
-            collection[key] = value as OnyxEntry<OnyxKey>;
+            collection[key as OnyxCollectionKey] = value;
         } else {
-            regularState[key as OnyxKey] = value as OnyxEntry<OnyxKey>;
+            regularState[key] = value;
         }
     });
 
