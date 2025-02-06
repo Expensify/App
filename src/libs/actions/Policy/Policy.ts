@@ -73,14 +73,16 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
+import type {OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    IntroSelected,
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
@@ -687,6 +689,10 @@ function clearNetSuiteAutoSyncErrorField(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {config: {errorFields: {autoSync: null}}}}});
 }
 
+function clearNSQSErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuiteQuickStart: {config: {errorFields: {[fieldName]: null}}}}});
+}
+
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
     const policy = getPolicy(policyID);
 
@@ -786,7 +792,7 @@ function leaveWorkspace(policyID?: string) {
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     workspaceChats.forEach((report) => {
-        const parentReport = ReportUtils.getRootParentReport(report);
+        const parentReport = ReportUtils.getRootParentReport({report});
         const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
 
         if (ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isReportOwner(reportToCheckOwner)) {
@@ -1241,9 +1247,13 @@ function clearAvatarErrors(policyID: string) {
  * Optimistically update the general settings. Set the general settings as pending until the response succeeds.
  * If the response fails set a general error message. Clear the error message when updating.
  */
-function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
+function updateGeneralSettings(policyID: string | undefined, name: string, currencyValue?: string) {
+    if (!policyID) {
+        return;
+    }
+
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    if (!policy || !policyID) {
+    if (!policy) {
         return;
     }
 
@@ -1302,6 +1312,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
                 outputCurrency: currency,
                 ...(customUnitID && {
                     customUnits: {
+                        ...policy.customUnits,
                         [customUnitID]: {
                             ...distanceUnit,
                             rates: optimisticRates,
@@ -1694,6 +1705,12 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
     Onyx.update(optimisticData);
 }
 
+let introSelected: OnyxEntry<IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
+});
+
 /**
  * Generates onyx data for creating a new workspace
  *
@@ -1705,6 +1722,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
  * @param [engagementChoice] Purpose of using application selected by user in guided setup flow
  * @param [currency] Optional, selected currency for the workspace
  * @param [file] Optional, avatar file for workspace
+ * @param [shouldAddOnboardingTasks] whether to add onboarding tasks to the workspace
  */
 function buildPolicyData(
     policyOwnerEmail = '',
@@ -1712,9 +1730,10 @@ function buildPolicyData(
     policyName = '',
     policyID = generatePolicyID(),
     expenseReportId?: string,
-    engagementChoice?: string,
+    engagementChoice?: OnboardingPurpose,
     currency = '',
     file?: File,
+    shouldAddOnboardingTasks = true,
 ) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -1987,6 +2006,21 @@ function buildPolicyData(
         file: clonedFile,
     };
 
+    if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData(engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
+        if (!onboardingData) {
+            return {successData, optimisticData, failureData, params};
+        }
+        const {guidedSetupData, optimisticData: taskOptimisticData, successData: taskSuccessData, failureData: taskFailureData} = onboardingData;
+
+        params.guidedSetupData = JSON.stringify(guidedSetupData);
+        params.engagementChoice = engagementChoice;
+
+        optimisticData.push(...taskOptimisticData);
+        successData.push(...taskSuccessData);
+        failureData.push(...taskFailureData);
+    }
+
     return {successData, optimisticData, failureData, params};
 }
 
@@ -2006,11 +2040,22 @@ function createWorkspace(
     makeMeAdmin = false,
     policyName = '',
     policyID = generatePolicyID(),
-    engagementChoice = '',
+    engagementChoice: OnboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
     currency = '',
     file?: File,
+    shouldAddOnboardingTasks = true,
 ): CreateWorkspaceParams {
-    const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID, undefined, engagementChoice, currency, file);
+    const {optimisticData, failureData, successData, params} = buildPolicyData(
+        policyOwnerEmail,
+        makeMeAdmin,
+        policyName,
+        policyID,
+        undefined,
+        engagementChoice,
+        currency,
+        file,
+        shouldAddOnboardingTasks,
+    );
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy
@@ -2792,7 +2837,7 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID);
     }
 }
 
@@ -2849,11 +2894,11 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID);
     }
 }
 
-function enableCompanyCards(policyID: string, enabled: boolean, disableRedirect = false) {
+function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = true) {
     const authToken = NetworkStore.getAuthToken();
 
     const onyxData: OnyxData = {
@@ -2898,12 +2943,12 @@ function enableCompanyCards(policyID: string, enabled: boolean, disableRedirect 
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
+        goBackWhenEnableFeature(policyID);
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean, disableRedirect = false) {
+function enablePolicyReportFields(policyID: string, enabled: boolean, shouldGoBack = true) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -2946,8 +2991,8 @@ function enablePolicyReportFields(policyID: string, enabled: boolean, disableRed
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
+        goBackWhenEnableFeature(policyID);
     }
 }
 
@@ -3061,7 +3106,7 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID);
     }
 }
 
@@ -3152,7 +3197,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID);
     }
 }
 
@@ -3162,7 +3207,7 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
 
-function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect = false) {
+function enablePolicyRules(policyID: string, enabled: boolean, shouldGoBack = true) {
     const policy = getPolicy(policyID);
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3215,8 +3260,8 @@ function enablePolicyRules(policyID: string, enabled: boolean, disableRedirect =
     const parameters: SetPolicyRulesEnabledParams = {policyID, enabled};
     API.write(WRITE_COMMANDS.SET_POLICY_RULES_ENABLED, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
+        goBackWhenEnableFeature(policyID);
     }
 }
 
@@ -3327,7 +3372,7 @@ function enablePolicyInvoicing(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.ENABLE_POLICY_INVOICING, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID);
     }
 }
 
@@ -4816,6 +4861,7 @@ export {
     updateWorkspaceDescription,
     setWorkspacePayer,
     setWorkspaceReimbursement,
+    clearNSQSErrorField,
     openPolicyWorkflowsPage,
     enableCompanyCards,
     enablePolicyConnections,

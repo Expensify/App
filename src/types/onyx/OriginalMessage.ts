@@ -370,6 +370,18 @@ type OriginalMessageModifiedExpense = {
     attendees?: string;
 };
 
+/** Model of the `deleted transaction` report action */
+type OriginalMessageDeletedTransaction = {
+    /** The merchant of the transaction */
+    merchant?: string;
+
+    /** The amount of the transaction */
+    amount?: number;
+
+    /** The currency of the transaction */
+    currency?: string;
+};
+
 /** Model of `reimbursement queued` report action */
 type OriginalMessageReimbursementQueued = {
     /** How is the payment getting reimbursed */
@@ -637,6 +649,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
+    [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
     } & {
