@@ -33,7 +33,8 @@ type AttachmentModalScreenParams = {
     fallbackSource?: AvatarSource;
     headerTitle?: string;
     maybeIcon?: boolean;
-    reportID?: string | undefined;
+    reportID?: string;
+    policyID?: string;
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
     accountID?: number | string;
     isAuthTokenRequired?: boolean;

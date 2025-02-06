@@ -1,77 +1,18 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useState} from 'react';
-import type {FileObject} from '@components/AttachmentModal';
+import React, {useCallback, useContext, useState} from 'react';
 import Modal from '@components/Modal';
-import {translateLocal} from '@libs/Localize';
-import AttachmentModalContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
-import useAttachmentModalLogic from '@pages/media/AttachmentModalScreen/useAttachmentModalLogic';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import Navigation from '@libs/Navigation/Navigation';
+import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
+import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent/BaseContent';
 import CONST from '@src/CONST';
-import type ModalType from '@src/types/utils/ModalType';
+import type {AttachmentModalWrapperProps} from './types';
 
-function AttachmentModalScreen({route, onModalShow, onModalHide}: AttachmentModalScreenProps) {
-    const {
-        contentProps,
-        isOverlayModalVisible,
-        setIsAttachmentInvalid,
-        shouldLoadAttachment,
-        setShouldLoadAttachment,
-        isModalOpen,
-        setIsModalOpen,
-        isPDFLoadError,
-        attachmentInvalidReasonTitle,
-        setAttachmentInvalidReasonTitle,
-        attachmentInvalidReason,
-        setAttachmentInvalidReason,
-        submitRef,
-
-        closeConfirmModal,
-        closeModal,
-    } = useAttachmentModalLogic(route, true);
+function AttachmentModalWrapper({contentProps, wrapperProps: {modalType, closeConfirmModal, setShouldLoadAttachment, isOverlayModalVisible}, attachmentId}: AttachmentModalWrapperProps) {
+    const [isModalOpen, setIsModalOpen] = useState(true);
 
     const onSubmitAndClose = useCallback(() => {
         setIsModalOpen(false);
     }, [setIsModalOpen]);
-
-    const onPdfLoadError = useCallback(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        isPDFLoadError.current = true;
-        setIsModalOpen(false);
-    }, [isPDFLoadError, setIsModalOpen]);
-
-    const onInvalidReasonModalHide = useCallback(() => {
-        if (!isPDFLoadError.current) {
-            return;
-        }
-        isPDFLoadError.current = false;
-        onModalHide?.();
-    }, [isPDFLoadError, onModalHide]);
-
-    /**
-     * If our attachment is a PDF, return the unswipeablge Modal type.
-     */
-    const getModalType = useCallback(
-        (sourceURL: string, fileObject: FileObject) =>
-            sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translateLocal('attachmentView.unknownFilename'))))
-                ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-                : CONST.MODAL.MODAL_TYPE.CENTERED,
-        [],
-    );
-
-    const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
-
-    const onUploadFileValidated = useCallback(
-        (type: string, sourceURL: string, fileObject: FileObject) => {
-            if (type === 'file') {
-                const inputModalType = getModalType(sourceURL, fileObject);
-                setModalType(inputModalType);
-            } else if (type === 'uri') {
-                const inputModalType = getModalType(sourceURL, fileObject);
-                setModalType(inputModalType);
-            }
-        },
-        [getModalType],
-    );
 
     /**
      *  open the modal
@@ -80,55 +21,69 @@ function AttachmentModalScreen({route, onModalShow, onModalHide}: AttachmentModa
         setIsModalOpen(true);
     }, [setIsModalOpen]);
 
+    /**
+     * Closes the modal.
+     * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
+     * This is useful when you plan to continue navigating to another page after closing the modal, to avoid freezing the app due to navigating to another page first and dismissing the modal later.
+     * If `shouldCallDirectly` is false or undefined, it calls `attachmentModalHandler.handleModalClose` to close the modal.
+     * This ensures smooth modal closing behavior without causing delays in closing.
+     */
+    const closeModal = useCallback((shouldCallDirectly?: boolean) => {
+        setIsModalOpen(false);
+
+        // TODO: figure this out
+        // if (typeof onModalClose === 'function') {
+        //     if (shouldCallDirectly) {
+        //         onModalClose();
+        //         return;
+        //     }
+        //     attachmentModalHandler.handleModalClose(onModalClose);
+        // }
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
+    const attachmentsContext = useContext(ReportAttachmentsContext);
+    const onModalClose = useCallback(() => {
+        if (attachmentId) {
+            attachmentsContext.removeAttachment(attachmentId);
+        }
+        Navigation.dismissModal();
+        // This enables Composer refocus when the attachments modal is closed by the browser navigation
+        ComposerFocusManager.setReadyToFocus();
+    }, [attachmentId, attachmentsContext]);
+
     return (
         <Modal
-            type={modalType}
-            onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
+            type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
+            onClose={isOverlayModalVisible ? () => closeConfirmModal?.() : () => closeModal?.()}
             isVisible={isModalOpen}
             onModalShow={() => {
-                onModalShow?.();
-                setShouldLoadAttachment(true);
-            }}
-            onModalHide={() => {
-                if (!isPDFLoadError.current) {
-                    onModalHide?.();
-                }
-                setShouldLoadAttachment(false);
-                if (isPDFLoadError.current) {
-                    setIsAttachmentInvalid(true);
-                    setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                    setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                }
+                // onModalShow?.();
+                setShouldLoadAttachment?.(true);
             }}
             propagateSwipe
             initialFocus={() => {
-                if (!submitRef.current) {
+                if (!contentProps.submitRef?.current) {
                     return false;
                 }
-                return submitRef.current;
+                return contentProps.submitRef.current;
             }}
         >
-            <AttachmentModalContent
+            <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
-                shouldLoadAttachment={shouldLoadAttachment}
+                closeModal={closeModal}
+                closeConfirmModal={closeConfirmModal}
                 isOpen={isModalOpen}
                 setIsModalOpen={setIsModalOpen}
-                setIsAttachmentInvalid={setIsAttachmentInvalid}
-                attachmentInvalidReasonTitle={attachmentInvalidReasonTitle}
-                attachmentInvalidReason={attachmentInvalidReason}
-                submitRef={submitRef}
-                closeConfirmModal={closeConfirmModal}
                 openModal={openModal}
                 onSubmitAndClose={onSubmitAndClose}
-                onPdfLoadError={onPdfLoadError}
-                onInvalidReasonModalHide={onInvalidReasonModalHide}
-                onUploadFileValidated={onUploadFileValidated}
             />
         </Modal>
     );
 }
 
-AttachmentModalScreen.displayName = 'AttachmentModalScreen';
+AttachmentModalWrapper.displayName = 'AttachmentModalScreen';
 
-export default AttachmentModalScreen;
+export default AttachmentModalWrapper;

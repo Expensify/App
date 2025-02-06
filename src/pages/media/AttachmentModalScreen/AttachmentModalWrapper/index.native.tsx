@@ -1,22 +1,9 @@
 import React, {memo} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
-import AttachmentModalContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent';
-import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
-import useAttachmentModalLogic from '@pages/media/AttachmentModalScreen/useAttachmentModalLogic';
+import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent/BaseContent';
+import type {AttachmentModalWrapperProps} from './types';
 
-function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) {
-    const {
-        contentProps,
-        shouldLoadAttachment,
-        isModalOpen,
-        setIsModalOpen,
-        attachmentInvalidReasonTitle,
-        attachmentInvalidReason,
-        submitRef,
-
-        closeConfirmModal,
-    } = useAttachmentModalLogic(route, false);
-
+function AttachmentModalWrapper({contentProps, navigation}: AttachmentModalWrapperProps) {
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
 
     return (
@@ -24,16 +11,9 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
             navigation={navigation}
             testID={`attachment-modal-${testID}`}
         >
-            <AttachmentModalContent
+            <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
-                shouldLoadAttachment={shouldLoadAttachment}
-                isOpen={isModalOpen}
-                setIsModalOpen={setIsModalOpen}
-                attachmentInvalidReasonTitle={attachmentInvalidReasonTitle}
-                attachmentInvalidReason={attachmentInvalidReason}
-                submitRef={submitRef}
-                closeConfirmModal={closeConfirmModal}
                 // onSubmitAndClose={onSubmitAndClose}
                 // onPdfLoadError={onPdfLoadError}
                 // onInvalidReasonModalHide={onInvalidReasonModalHide}
@@ -43,6 +23,6 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     );
 }
 
-AttachmentModalScreen.displayName = 'AttachmentModalScreen';
+AttachmentModalWrapper.displayName = 'AttachmentModalScreen';
 
-export default memo(AttachmentModalScreen);
+export default memo(AttachmentModalWrapper);

@@ -102,7 +102,6 @@ const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../..
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
-const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
@@ -524,12 +523,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.REPORT_AVATAR}
-                        options={{
-                            headerShown: false,
-                            presentation: Presentation.TRANSPARENT_MODAL,
-                        }}
-                        getComponent={loadReportAvatar}
-                        listeners={modalScreenListeners}
+                        options={attachmentModalScreenOptions}
+                        getComponent={loadAttachmentModalScreen}
                     />
                     <RootStack.Screen
                         name={SCREENS.NOT_FOUND}

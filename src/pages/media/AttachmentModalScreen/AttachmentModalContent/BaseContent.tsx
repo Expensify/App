@@ -31,6 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+import type {AttachmentModalChildrenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -40,9 +41,8 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
-import type {AttachmentModalChildrenProps, FileObject} from './types';
 
-type AttachmentModalContentProps = {
+type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
 
@@ -99,32 +99,31 @@ type AttachmentModalContentProps = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: ((file: FileObject) => void) | null;
 
+    fallbackRoute?: string;
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
-
-    /// ///////////
-    isAttachmentInvalid: boolean;
-    shouldLoadAttachment: boolean;
-    setIsAttachmentInvalid: (value: boolean) => void;
-    isOpen: boolean;
-    setIsModalOpen: (value: boolean) => void;
-    attachmentInvalidReason: TranslationPaths | null;
-    setAttachmentInvalidReason: (value: TranslationPaths | null) => void;
-    attachmentInvalidReasonTitle: TranslationPaths | null;
-    setAttachmentInvalidReasonTitle: (value: TranslationPaths | null) => void;
-    submitRef: RefObject<View | HTMLElement>;
-
-    closeModal: (shouldCallDirectly?: boolean) => void;
-    closeConfirmModal: () => void;
-    openModal: () => void;
-
-    onSubmitAndClose: () => void;
-    onPdfLoadError: () => void;
-    onInvalidReasonModalHide: () => void;
-    onUploadFileValidated: (type: 'file' | 'uri', sourceURL: string, fileObject: FileObject) => void;
+    isAttachmentInvalid?: boolean;
+    shouldLoadAttachment?: boolean;
+    setIsAttachmentInvalid?: (value: boolean) => void;
+    isOpen?: boolean;
+    setIsModalOpen?: (value: boolean) => void;
+    attachmentInvalidReason?: TranslationPaths | null;
+    setAttachmentInvalidReason?: (value: TranslationPaths | null) => void;
+    attachmentInvalidReasonTitle?: TranslationPaths | null;
+    setAttachmentInvalidReasonTitle?: (value: TranslationPaths | null) => void;
+    submitRef?: RefObject<View | HTMLElement>;
+    isDeleteReceiptConfirmModalVisible?: boolean;
+    setIsDeleteReceiptConfirmModalVisible?: (value: boolean) => void;
+    closeModal?: (shouldCallDirectly?: boolean) => void;
+    closeConfirmModal?: () => void;
+    openModal?: () => void;
+    onSubmitAndClose?: () => void;
+    onPdfLoadError?: (setIsModalOpen?: (isModalOpen: boolean) => void) => void;
+    onInvalidReasonModalHide?: () => void;
+    onUploadFileValidated?: (type: 'file' | 'uri', sourceURL: string, fileObject: FileObject) => void;
 };
 
-function AttachmentModalContent({
+function AttachmentModalBaseContent({
     source = '',
     originalFileName = '',
     isAuthTokenRequired = false,
@@ -148,8 +147,11 @@ function AttachmentModalContent({
     onConfirm,
     onCarouselAttachmentChange = () => {},
 
-    isAttachmentInvalid,
-    shouldLoadAttachment,
+    fallbackRoute,
+    isDeleteReceiptConfirmModalVisible,
+    setIsDeleteReceiptConfirmModalVisible,
+    isAttachmentInvalid = false,
+    shouldLoadAttachment = true,
     setIsAttachmentInvalid,
     setIsModalOpen,
     attachmentInvalidReason,
@@ -166,10 +168,9 @@ function AttachmentModalContent({
     onPdfLoadError,
     onInvalidReasonModalHide,
     onUploadFileValidated,
-}: AttachmentModalContentProps) {
+}: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
 
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
@@ -258,7 +259,7 @@ function AttachmentModalContent({
             onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
         }
 
-        onSubmitAndClose();
+        onSubmitAndClose?.();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOpen, isConfirmButtonDisabled, onConfirm, file, sourceState]);
 
@@ -267,34 +268,34 @@ function AttachmentModalContent({
      */
     const deleteAndCloseModal = useCallback(() => {
         detachReceipt(transaction?.transactionID);
-        setIsDeleteReceiptConfirmModalVisible(false);
+        setIsDeleteReceiptConfirmModalVisible?.(false);
         Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
-    }, [transaction, report]);
+    }, [transaction?.transactionID, setIsDeleteReceiptConfirmModalVisible, report?.reportID]);
 
     const isValidFile = useCallback(
         (fileObject: FileObject) =>
             validateImageForCorruption(fileObject)
                 .then(() => {
                     if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
-                        setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
+                        setIsAttachmentInvalid?.(true);
+                        setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooLarge');
+                        setAttachmentInvalidReason?.('attachmentPicker.sizeExceeded');
                         return false;
                     }
 
                     if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
-                        setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
+                        setIsAttachmentInvalid?.(true);
+                        setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooSmall');
+                        setAttachmentInvalidReason?.('attachmentPicker.sizeNotMet');
                         return false;
                     }
 
                     return true;
                 })
                 .catch(() => {
-                    setIsAttachmentInvalid(true);
-                    setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                    setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    setIsAttachmentInvalid?.(true);
+                    setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
+                    setAttachmentInvalidReason?.('attachmentPicker.errorWhileSelectingCorruptedAttachment');
                     return false;
                 }),
         [setAttachmentInvalidReason, setAttachmentInvalidReasonTitle, setIsAttachmentInvalid],
@@ -303,9 +304,9 @@ function AttachmentModalContent({
     const isDirectoryCheck = useCallback(
         (data: FileObject) => {
             if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
+                setIsAttachmentInvalid?.(true);
+                setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
+                setAttachmentInvalidReason?.('attachmentPicker.folderNotAllowedMessage');
                 return false;
             }
             return true;
@@ -342,15 +343,15 @@ function AttachmentModalContent({
                     }
                     const inputSource = URL.createObjectURL(updatedFile);
                     updatedFile.uri = inputSource;
-                    setIsModalOpen(true);
+                    setIsModalOpen?.(true);
                     setSourceState(inputSource);
                     setFile(updatedFile);
-                    onUploadFileValidated('file', inputSource, updatedFile);
+                    onUploadFileValidated?.('file', inputSource, updatedFile);
                 } else if (fileObject.uri) {
-                    setIsModalOpen(true);
+                    setIsModalOpen?.(true);
                     setSourceState(fileObject.uri);
                     setFile(fileObject);
-                    onUploadFileValidated('uri', fileObject.uri, fileObject);
+                    onUploadFileValidated?.('uri', fileObject.uri, fileObject);
                 }
             });
         },
@@ -402,7 +403,7 @@ function AttachmentModalContent({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    closeModal(true);
+                    closeModal?.(true);
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
                     );
@@ -423,7 +424,7 @@ function AttachmentModalContent({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
                 onSelected: () => {
-                    setIsDeleteReceiptConfirmModalVisible(true);
+                    setIsDeleteReceiptConfirmModalVisible?.(true);
                 },
                 shouldCallAfterModalHide: true,
             });
@@ -512,7 +513,7 @@ function AttachmentModalContent({
                                         isAuthTokenRequired={isAuthTokenRequiredState}
                                         file={file}
                                         onToggleKeyboard={setIsConfirmButtonDisabled}
-                                        onPDFLoadError={onPdfLoadError}
+                                        onPDFLoadError={() => onPdfLoadError?.(setIsModalOpen)}
                                         isWorkspaceAvatar={isWorkspaceAvatar}
                                         maybeIcon={maybeIcon}
                                         fallbackSource={fallbackSource}
@@ -533,7 +534,7 @@ function AttachmentModalContent({
                                 entering={FadeIn}
                             >
                                 <Button
-                                    ref={viewRef(submitRef)}
+                                    ref={submitRef ? viewRef(submitRef) : undefined}
                                     success
                                     large
                                     style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
@@ -550,7 +551,7 @@ function AttachmentModalContent({
                 {isReceiptAttachment && (
                     <ConfirmModal
                         title={translate('receipt.deleteReceipt')}
-                        isVisible={isDeleteReceiptConfirmModalVisible}
+                        isVisible={isDeleteReceiptConfirmModalVisible ?? false}
                         onConfirm={deleteAndCloseModal}
                         onCancel={closeConfirmModal}
                         prompt={translate('receipt.deleteConfirmation')}
@@ -563,7 +564,7 @@ function AttachmentModalContent({
             {!isReceiptAttachment && (
                 <ConfirmModal
                     title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                    onConfirm={closeConfirmModal}
+                    onConfirm={() => closeConfirmModal?.()}
                     onCancel={closeConfirmModal}
                     isVisible={isAttachmentInvalid}
                     prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
@@ -575,14 +576,12 @@ function AttachmentModalContent({
 
             {children?.({
                 displayFileInModal: validateAndDisplayFileToUpload,
-                show: openModal,
+                show: () => openModal?.(),
             })}
         </>
     );
 }
 
-AttachmentModalContent.displayName = 'AttachmentModalContent';
+export default memo(AttachmentModalBaseContent);
 
-export default memo(AttachmentModalContent);
-
-export type {AttachmentModalContentProps};
+export type {AttachmentModalBaseContentProps};
