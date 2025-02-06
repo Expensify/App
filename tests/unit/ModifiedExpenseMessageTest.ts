@@ -453,7 +453,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('return the message "moved expense from your personal space to policyName" when both reportName and policyName are present', async () => {
+            it('return the message "moved expense from personal space to policyName" when both reportName and policyName are present', async () => {
                 // Given the policyExpenseChat with both reportName and policyName are present and report action
                 const policyExpenseChat = {
                     ...report,
@@ -479,7 +479,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('return the message "moved expense from your personal space to chat with reportName" when only reportName is present', async () => {
+            it('return the message "moved expense from personal space to chat with reportName" when only reportName is present', async () => {
                 // Given the policyExpenseChat with only reportName is present and report action
                 const policyExpenseChat = {
                     ...report,
