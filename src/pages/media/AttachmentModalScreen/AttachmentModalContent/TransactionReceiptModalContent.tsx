@@ -31,7 +31,7 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const canDeletedReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
+    const canDeleteReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
 
@@ -74,7 +74,7 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
                 report,
                 isReceiptAttachment: true,
                 canEditReceipt: canEditReceipt && !readonly,
-                canDeleteReceipt: canDeletedReceipt && !readonly,
+                canDeleteReceipt: canDeleteReceipt && !readonly,
                 allowDownload: !isEReceipt,
                 isTrackExpenseAction: isTrackExpenseActionValue,
                 originalFileName: receiptURIs?.filename,
@@ -82,7 +82,7 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
                 shouldShowNotFoundPage,
             } satisfies Partial<AttachmentModalBaseContentProps>),
         [
-            canDeletedReceipt,
+            canDeleteReceipt,
             canEditReceipt,
             imageSource,
             isEReceipt,
