@@ -12,7 +12,7 @@ import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/file
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AvatarSource} from '@libs/UserUtils';
-import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -332,7 +332,7 @@ function AvatarWithImagePicker({
         [disabled, enablePreview, isUsingDefaultAvatar, onViewPhotoPress, showAvatarCropModal],
     );
 
-    const reportAttachmentsContext = useContext(ReportAttachmentsContext);
+    const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(() => {
         const attachmentId = reportAttachmentsContext.addAttachment({
             source: previewSource,

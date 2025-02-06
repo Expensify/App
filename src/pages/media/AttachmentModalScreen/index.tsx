@@ -1,17 +1,17 @@
 import React, {useContext, useMemo} from 'react';
-import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import CONST from '@src/CONST';
 import ProfileAvatarModalContent from './AttachmentModalContent/ProfileAvatarModalContent';
 import ReportAttachmentModalContent from './AttachmentModalContent/ReportAttachmentModalContent';
 import ReportAvatarModalContent from './AttachmentModalContent/ReportAvatarModalContent';
 import TransactionReceiptModalContent from './AttachmentModalContent/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './AttachmentModalContent/WorkspaceAvatarModalContent';
+import AttachmentModalContext from './AttachmentModalContext';
 import AttachmentModalWrapper from './AttachmentModalWrapper';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from './types';
 
 function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) {
     const attachmentId = route.params.attachmentId;
-    const attachmentsContext = useContext(ReportAttachmentsContext);
+    const attachmentsContext = useContext(AttachmentModalContext);
     const params: AttachmentModalScreenParams = useMemo(() => {
         if (attachmentId) {
             return {...route.params, ...attachmentsContext.getAttachmentById(attachmentId)};

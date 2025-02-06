@@ -37,9 +37,9 @@ import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcie
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
-import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
@@ -416,7 +416,7 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
-    const reportAttachmentsContext = useContext(ReportAttachmentsContext);
+    const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModal = useCallback(
         (file: FileObject) => {
             const attachmentId = reportAttachmentsContext.addAttachment({

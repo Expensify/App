@@ -2,8 +2,8 @@ import React, {useCallback, useContext, useState} from 'react';
 import Modal from '@components/Modal';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
-import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent/BaseContent';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
 import type {AttachmentModalWrapperProps} from './types';
 
@@ -47,7 +47,7 @@ function AttachmentModalWrapper({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const attachmentsContext = useContext(ReportAttachmentsContext);
+    const attachmentsContext = useContext(AttachmentModalContext);
     const onModalClose = useCallback(() => {
         if (attachmentId) {
             attachmentsContext.removeAttachment(attachmentId);
