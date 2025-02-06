@@ -1891,11 +1891,6 @@ function getReportActionsLength() {
 }
 
 function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
-    // The user was never online.
-    if (!lastOnlineAt) {
-        return true;
-    }
-
     // The user never was never offline.
     if (!lastOfflineAt || !lastOnlineAt) {
         return false;
