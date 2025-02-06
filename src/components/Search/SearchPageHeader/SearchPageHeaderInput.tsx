@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useDerivedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -53,7 +53,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
     const taxRates = useMemo(() => getAllTaxRates(), []);
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
 
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
@@ -71,6 +71,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
     const {registerSearchPageInput} = useSearchRouterContext();
+    const animatedMargin = useSharedValue<number>(variables.searchRouterInputMargin);
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
@@ -99,6 +100,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
         setAutocompleteSubstitutions(substitutionsMap);
     }, [allCards, originalInputQuery, personalDetails, reports, taxRates]);
+
+    useEffect(() => {
+        if (searchRouterListVisible) {
+            return;
+        }
+        animatedMargin.set(withTiming(variables.searchRouterInputMargin, {duration: ANIMATION_DURATION}));
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchRouterListVisible]);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
@@ -202,12 +212,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
           }
         : undefined;
 
-    const animatedPadding = useDerivedValue(() => {
-        return withTiming(searchRouterListVisible ? 0 : 52, {duration: ANIMATION_DURATION});
-    }, [searchRouterListVisible]);
-    const inputWrapperStyleTest = useAnimatedStyle(() => {
+    const inputWrapperStyle = useAnimatedStyle(() => {
         return {
-            marginRight: animatedPadding.value,
+            marginRight: animatedMargin.get(),
         };
     });
 
@@ -219,7 +226,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
             >
                 <View style={[styles.appBG, styles.flex1]}>
                     <View style={[styles.flexRow, styles.mh5, styles.mb3, styles.alignItemsCenter, styles.justifyContentCenter, {height: variables.searchTopBarHeight}]}>
-                        <Animated.View style={[styles.flex1, styles.zIndex10, inputWrapperStyleTest]}>
+                        <Animated.View style={[styles.flex1, styles.zIndex10, inputWrapperStyle]}>
                             <SearchInputSelectionWrapper
                                 value={textInputValue}
                                 onSearchQueryChange={onSearchQueryChange}
@@ -229,8 +236,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                                 }}
                                 autoFocus={false}
                                 onFocus={() => {
-                                    listRef.current?.updateAndScrollToFocusedIndex(0);
                                     onSearchRouterFocus?.();
+                                    animatedMargin.set(withTiming(0, {duration: ANIMATION_DURATION}));
+                                    listRef.current?.updateAndScrollToFocusedIndex(0);
                                 }}
                                 wrapperStyle={[styles.searchAutocompleteInputResults, styles.br2]}
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}

@@ -279,6 +279,7 @@ export default {
     searchListContentMarginTop: 116,
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
+    searchRouterInputMargin: 52,
 
     h20: 20,
     h28: 28,

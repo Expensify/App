@@ -149,7 +149,7 @@ function SearchAutocompleteList(
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
 
     const participantsAutocompleteList = useMemo(() => {

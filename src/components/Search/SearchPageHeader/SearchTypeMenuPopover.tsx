@@ -55,7 +55,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const taxRates = getAllTaxRates();
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const {unmodifiedPaddings} = useStyledSafeAreaInsets();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -66,10 +66,10 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
-    const [afterFirstRender, setAfterFirstRender] = useState(false);
+    const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
     useEffect(() => {
         setTimeout(() => {
-            setAfterFirstRender(true);
+            setDelayPopoverMenuFirstRender(false);
         }, 100);
     }, []);
 
@@ -185,11 +185,11 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     return (
         <>
             <Button
-                innerStyles={[styles.typePopoverButtonStyle, styles.borderNone]}
+                innerStyles={[{backgroundColor: theme.sidebarHover}]}
                 icon={Expensicons.Bookmark}
                 onPress={openMenu}
             />
-            {afterFirstRender && (
+            {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
                     menuItems={allMenuItems as PopoverMenuItem[]}
                     isVisible={isPopoverVisible}

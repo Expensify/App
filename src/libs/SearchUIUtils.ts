@@ -710,6 +710,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             },
         });
     }
+
     typeMenuItems.push({
         translationPath: 'travel.trips',
         type: CONST.SEARCH.DATA_TYPES.TRIP,

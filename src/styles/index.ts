@@ -3717,10 +3717,6 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        typePopoverButtonStyle: {
-            backgroundColor: theme.sidebarHover,
-        },
-
         narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,

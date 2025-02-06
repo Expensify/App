@@ -59,7 +59,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
     const taxRates = getAllTaxRates();
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);

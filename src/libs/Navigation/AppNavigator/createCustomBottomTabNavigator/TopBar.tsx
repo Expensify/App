@@ -19,11 +19,10 @@ type TopBarProps = {
     breadcrumbLabel: string;
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
-    shouldDisplayCancel?: boolean;
     cancelSearch?: () => void;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancel = false, cancelSearch}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, cancelSearch}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
@@ -61,12 +60,12 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                     </View>
                 </View>
                 {displaySignIn && <SignInButton />}
-                {shouldDisplayCancel && (
+                {!!cancelSearch && (
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('common.cancel')}
                         style={[styles.textBlue]}
                         onPress={() => {
-                            cancelSearch?.();
+                            cancelSearch();
                         }}
                     >
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>

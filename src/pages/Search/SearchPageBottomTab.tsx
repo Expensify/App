@@ -98,6 +98,15 @@ function SearchPageBottomTab() {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
 
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
+    const cancelSearchCallback = useCallback(() => {
+        if (searchRouterListVisible) {
+            setSearchRouterListVisible(false);
+            return;
+        }
+        Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
+    }, [searchRouterListVisible]);
+
     if (!queryJSON) {
         return (
             <ScreenWrapper
@@ -113,8 +122,6 @@ function SearchPageBottomTab() {
             </ScreenWrapper>
         );
     }
-
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && (!isCannedSearchQuery(queryJSON) || searchRouterListVisible);
 
     if (shouldUseNarrowLayout) {
         return (
@@ -132,14 +139,7 @@ function SearchPageBottomTab() {
                                 activeWorkspaceID={policyID}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
-                                shouldDisplayCancel={shouldDisplayCancelSearch}
-                                cancelSearch={() => {
-                                    if (searchRouterListVisible) {
-                                        setSearchRouterListVisible(false);
-                                        return;
-                                    }
-                                    Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
-                                }}
+                                cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
                             />
                         </View>
                         <View style={[styles.flex1]}>
@@ -175,15 +175,17 @@ function SearchPageBottomTab() {
                         <SearchPageHeader queryJSON={queryJSON} />
                     </>
                 )}
-                <View style={[styles.flex1, searchRouterListVisible && styles.dNone]}>
-                    <Search
-                        isSearchScreenFocused={isActiveCentralPaneRoute}
-                        queryJSON={queryJSON}
-                        onSearchListScroll={scrollHandler}
-                        onContentSizeChange={onContentSizeChange}
-                        contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
-                    />
-                </View>
+                {!searchRouterListVisible && (
+                    <View style={[styles.flex1]}>
+                        <Search
+                            isSearchScreenFocused={isActiveCentralPaneRoute}
+                            queryJSON={queryJSON}
+                            onSearchListScroll={scrollHandler}
+                            onContentSizeChange={onContentSizeChange}
+                            contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+                        />
+                    </View>
+                )}
             </ScreenWrapper>
         );
     }
@@ -200,7 +202,6 @@ function SearchPageBottomTab() {
                     activeWorkspaceID={policyID}
                     breadcrumbLabel={translate('common.reports')}
                     shouldDisplaySearch={false}
-                    shouldDisplayCancel={shouldDisplayCancelSearch}
                 />
                 <SearchTypeMenu queryJSON={queryJSON} />
             </>
