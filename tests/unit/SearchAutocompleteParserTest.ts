@@ -1,5 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
-import * as autocompleteParser from '@libs/SearchParser/autocompleteParser';
+import {parse} from '@libs/SearchParser/autocompleteParser';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
@@ -13,7 +13,9 @@ const tests = [
                 length: 3,
             },
             ranges: [
+                {key: 'syntax', value: 'type', start: 0, length: 5},
                 {key: 'type', value: 'expense', start: 5, length: 7},
+                {key: 'syntax', value: 'status', start: 13, length: 7},
                 {key: 'status', value: 'all', start: 20, length: 3},
             ],
         },
@@ -23,8 +25,11 @@ const tests = [
         expected: {
             autocomplete: null,
             ranges: [
+                {key: 'syntax', value: 'taxRate', start: 0, length: 9},
                 {key: 'taxRate', value: 'rate1', start: 9, length: 5},
+                {key: 'syntax', value: 'expenseType', start: 15, length: 13},
                 {key: 'expenseType', value: 'card', start: 28, length: 4},
+                {key: 'syntax', value: 'cardID', start: 33, length: 5},
                 {key: 'cardID', value: 'Big Bank', start: 38, length: 10},
             ],
         },
@@ -34,8 +39,11 @@ const tests = [
         expected: {
             autocomplete: null,
             ranges: [
+                {key: 'syntax', value: 'taxRate', start: 0, length: 8},
                 {key: 'taxRate', value: 'rate1', start: 8, length: 5},
+                {key: 'syntax', value: 'expenseType', start: 14, length: 12},
                 {key: 'expenseType', value: 'card', start: 26, length: 4},
+                {key: 'syntax', value: 'cardID', start: 31, length: 7},
                 {key: 'cardID', value: 'Big Bank', start: 38, length: 10},
             ],
         },
@@ -50,8 +58,10 @@ const tests = [
                 value: 'meal & entertainment',
             },
             ranges: [
+                {key: 'syntax', value: 'expenseType', start: 11, length: 13},
                 {key: 'expenseType', length: 4, start: 24, value: 'cash'},
                 {key: 'expenseType', length: 4, start: 29, value: 'card'},
+                {key: 'syntax', value: 'category', start: 80, length: 9},
                 {key: 'category', length: 6, start: 89, value: 'travel'},
                 {key: 'category', length: 5, start: 96, value: 'hotel'},
                 {key: 'category', length: 22, start: 102, value: 'meal & entertainment'},
@@ -68,8 +78,11 @@ const tests = [
                 value: 'a b',
             },
             ranges: [
+                {key: 'syntax', value: 'type', start: 0, length: 5},
                 {key: 'type', value: 'expense', start: 5, length: 7},
+                {key: 'syntax', value: 'status', start: 13, length: 7},
                 {key: 'status', value: 'all', start: 20, length: 3},
+                {key: 'syntax', value: 'category', start: 24, length: 9},
                 {key: 'category', value: 'a b', start: 33, length: 5},
             ],
         },
@@ -92,7 +105,7 @@ const tests = [
         query: 'tag:,,',
         expected: {
             autocomplete: null,
-            ranges: [],
+            ranges: [{key: 'syntax', value: 'tag', start: 0, length: 4}],
         },
     },
     {
@@ -105,7 +118,9 @@ const tests = [
                 length: 3,
             },
             ranges: [
+                {key: 'syntax', value: 'in', start: 0, length: 3},
                 {key: 'in', value: '123456', start: 3, length: 6},
+                {key: 'syntax', value: 'currency', start: 10, length: 9},
                 {key: 'currency', value: 'USD', start: 19, length: 3},
             ],
         },
@@ -120,6 +135,7 @@ const tests = [
                 length: 4,
             },
             ranges: [
+                {key: 'syntax', value: 'tag', start: 0, length: 4},
                 {key: 'tag', value: 'aa', start: 4, length: 2},
                 {key: 'tag', value: 'bbb', start: 7, length: 3},
                 {key: 'tag', value: 'cccc', start: 11, length: 4},
@@ -135,7 +151,7 @@ const tests = [
                 start: 9,
                 length: 0,
             },
-            ranges: [],
+            ranges: [{key: 'syntax', value: 'category', start: 0, length: 9}],
         },
     },
     {
@@ -147,7 +163,10 @@ const tests = [
                 start: 21,
                 length: 0,
             },
-            ranges: [{key: 'category', value: 'Advertising', start: 9, length: 11}],
+            ranges: [
+                {key: 'syntax', value: 'category', start: 0, length: 9},
+                {key: 'category', value: 'Advertising', start: 9, length: 11},
+            ],
         },
     },
     {
@@ -160,6 +179,7 @@ const tests = [
                 length: 12,
             },
             ranges: [
+                {key: 'syntax', value: 'in', start: 0, length: 3},
                 {key: 'in', value: 'Big Room', start: 3, length: 10},
                 {key: 'in', value: 'small room', start: 14, length: 12},
             ],
@@ -174,7 +194,10 @@ const tests = [
                 start: 12,
                 length: 3,
             },
-            ranges: [{key: 'category', value: 'Car', start: 12, length: 3}],
+            ranges: [
+                {key: 'syntax', value: 'category', start: 0, length: 12},
+                {key: 'category', value: 'Car', start: 12, length: 3},
+            ],
         },
     },
     {
@@ -182,7 +205,9 @@ const tests = [
         expected: {
             autocomplete: null,
             ranges: [
+                {key: 'syntax', value: 'type', start: 0, length: 5},
                 {key: 'type', value: 'expense', start: 5, length: 7},
+                {key: 'syntax', value: 'status', start: 13, length: 7},
                 {key: 'status', value: 'all', start: 20, length: 3},
             ],
         },
@@ -197,11 +222,16 @@ const tests = [
                 length: 4,
             },
             ranges: [
+                {key: 'syntax', value: 'in', start: 0, length: 3},
                 {key: 'in', value: 'Big Room', start: 3, length: 10},
+                {key: 'syntax', value: 'from', start: 14, length: 5},
                 {key: 'from', value: 'Friend', start: 19, length: 6},
+                {key: 'syntax', value: 'category', start: 26, length: 9},
                 {key: 'category', value: 'Car', start: 35, length: 3},
                 {key: 'category', value: 'Cell Phone', start: 39, length: 12},
+                {key: 'syntax', value: 'status', start: 52, length: 7},
                 {key: 'status', value: 'all', start: 59, length: 3},
+                {key: 'syntax', value: 'expenseType', start: 63, length: 13},
                 {key: 'expenseType', value: 'card', start: 76, length: 4},
                 {key: 'expenseType', value: 'cash', start: 81, length: 4},
             ],
@@ -217,11 +247,15 @@ const tests = [
                 length: 8,
             },
             ranges: [
+                {key: 'syntax', value: 'currency', start: 0, length: 9},
                 {key: 'currency', value: 'PLN', start: 9, length: 3},
                 {key: 'currency', value: 'USD', start: 13, length: 3},
+                {key: 'syntax', value: 'taxRate', start: 25, length: 9},
                 {key: 'taxRate', value: 'tax', start: 34, length: 3},
+                {key: 'syntax', value: 'tag', start: 66, length: 4},
                 {key: 'tag', value: 'General Overhead', start: 70, length: 18},
                 {key: 'tag', value: 'IT', start: 89, length: 2},
+                {key: 'syntax', value: 'expenseType', start: 92, length: 13},
                 {key: 'expenseType', value: 'card', start: 105, length: 4},
                 {key: 'expenseType', value: 'distance', start: 110, length: 8},
             ],
@@ -231,7 +265,7 @@ const tests = [
 
 describe('autocomplete parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const result = autocompleteParser.parse(query) as SearchQueryJSON;
+        const result = parse(query) as SearchQueryJSON;
 
         expect(result).toEqual(expected);
     });
