@@ -29,8 +29,9 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
     const readonly = !!params.readonly;
     const isFromReviewDuplicates = !!params.isFromReviewDuplicates;
 
-    const parentReportAction = getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const canDeletedReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, true);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
 
@@ -51,7 +52,7 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
         if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             Navigation.dismissModal();
         } else {
-            const isOneTransactionThreadValue = isOneTransactionThread(report?.reportID ?? '-1', report?.parentReportID ?? '-1', parentReportAction);
+            const isOneTransactionThreadValue = isOneTransactionThread(report?.reportID, report?.parentReportID, parentReportAction);
             Navigation.dismissModal(isOneTransactionThreadValue ? report?.parentReportID : report?.reportID);
         }
 
@@ -63,9 +64,7 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReportValue || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates
-            ? !transaction
-            : (moneyRequestReportID ?? '-1') !== transaction?.reportID;
+        isTrackExpenseReportValue || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates ? !transaction : moneyRequestReportID !== transaction?.reportID;
 
     const contentProps = useMemo(
         () =>
@@ -75,6 +74,7 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
                 report,
                 isReceiptAttachment: true,
                 canEditReceipt: canEditReceipt && !readonly,
+                canDeleteReceipt: canDeletedReceipt && !readonly,
                 allowDownload: !isEReceipt,
                 isTrackExpenseAction: isTrackExpenseActionValue,
                 originalFileName: receiptURIs?.filename,
@@ -82,6 +82,7 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
                 shouldShowNotFoundPage,
             } satisfies Partial<AttachmentModalBaseContentProps>),
         [
+            canDeletedReceipt,
             canEditReceipt,
             imageSource,
             isEReceipt,
