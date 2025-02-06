@@ -435,7 +435,7 @@ describe('OptionsListUtils', () => {
         '999': {
             accountID: 999,
             displayName: 'Concierge',
-            login: 'concierge@expensify.com',
+            login: CONST.EMAIL.CONCIERGE,
             reportID: '',
         },
     };
@@ -446,7 +446,7 @@ describe('OptionsListUtils', () => {
         '1000': {
             accountID: 1000,
             displayName: 'Chronos',
-            login: 'chronos@expensify.com',
+            login: CONST.EMAIL.CHRONOS,
             reportID: '',
         },
     };
@@ -479,7 +479,7 @@ describe('OptionsListUtils', () => {
         '1003': {
             accountID: 1003,
             displayName: 'Manager McTest',
-            login: 'manager_mctest@expensify.com',
+            login: CONST.EMAIL.MANAGER_MCTEST,
             reportID: '',
         },
     };
@@ -606,7 +606,7 @@ describe('OptionsListUtils', () => {
         // (minus the currently logged in user)
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
-        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.CONCIERGE})]));
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getValidOptions(
@@ -622,7 +622,7 @@ describe('OptionsListUtils', () => {
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.CONCIERGE})]));
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getValidOptions(
@@ -633,7 +633,7 @@ describe('OptionsListUtils', () => {
         // All the personalDetails should be returned minus the currently logged in user and Chronos
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos_mctest@expensify.com'})]));
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.CHRONOS})]));
 
         // Test by excluding Manager McTest from the results
         results = OptionsListUtils.getValidOptions(
@@ -644,7 +644,7 @@ describe('OptionsListUtils', () => {
         // All the personalDetails should be returned minus the currently logged in user and Manager McTest
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_MANAGER_MCTEST.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'manager_mctest@expensify.com'})]));
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getValidOptions(
@@ -690,7 +690,7 @@ describe('OptionsListUtils', () => {
         // (minus the currently logged in user)
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
-        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.CONCIERGE})]));
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getValidOptions(
@@ -707,8 +707,8 @@ describe('OptionsListUtils', () => {
         // the currently logged in user and Concierge)
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
-        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.CONCIERGE})]));
+        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.CONCIERGE})]));
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getValidOptions(
@@ -720,8 +720,8 @@ describe('OptionsListUtils', () => {
         // the currently logged in user and Concierge)
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
-        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.CHRONOS})]));
+        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.CHRONOS})]));
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getValidOptions(
@@ -738,8 +738,8 @@ describe('OptionsListUtils', () => {
         // the currently logged in user and Concierge)
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
-        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.RECEIPTS})]));
+        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.RECEIPTS})]));
     });
 
     it('getShareDestinationsOptions()', () => {
