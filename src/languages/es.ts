@@ -4704,6 +4704,11 @@ const translations = {
                 eReceipts: 'Recibos electrónicos',
                 eReceiptsHint: 'Los recibos electrónicos se crean automáticamente',
                 eReceiptsHintLink: 'para la mayoría de las transacciones en USD',
+                prohibitedDefaultDescription: 'Marcar cualquier recibo donde se puedan encontrar alcohol o gastos incidentales de hotel en cualquiera de los artículos que SmartScan haya detectado.',
+                prohibitedExpenses: 'Gastos prohibidos',
+                none: 'Ninguno',
+                alcohol: 'Alcohol',
+                hotelIncidentals: 'Gastos incidentales de hotel',
             },
             expenseReportRules: {
                 examples: 'Ejemplos:',
