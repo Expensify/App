@@ -13,7 +13,6 @@ import type {
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
-import type {SaveCorpayOnboardingDirectorInformation} from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
@@ -29,6 +28,8 @@ import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setBankAccountSubStep} from './ReimbursementAccount';
+import SaveCorpayOnboardingDirectorInformationParams
+    from "@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams";
 
 export {
     goToWithdrawalAccountSetupStep,
@@ -542,12 +543,7 @@ function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBe
     return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER, parameters, onyxData);
 }
 
-function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardingDirectorInformation, bankAccountID: number) {
-    const formattedParams = {
-        inputs: JSON.stringify(parameters),
-        bankAccountID,
-    };
-
+function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardingDirectorInformationParams) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -582,7 +578,7 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
         ],
     };
 
-    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, formattedParams, onyxData);
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, parameters, onyxData);
 }
 
 function clearReimbursementAccount() {
