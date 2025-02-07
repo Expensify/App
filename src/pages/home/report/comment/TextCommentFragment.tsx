@@ -48,8 +48,10 @@ type TextCommentFragmentProps = {
 function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {html = ''} = fragment ?? {};
-    const text = ReportActionsUtils.getTextFromHtml(html);
+    const {translatedText = null, html = ''} = fragment ?? {};
+    const displayText = translatedText ?? html;
+    const text = ReportActionsUtils.getTextFromHtml(displayText);
+    console.log('over here', {translatedText, text});
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -67,9 +69,9 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
-    if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
+    if (!shouldRenderAsText(displayText, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
-        const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
+        const htmlWithDeletedTag = styleAsDeleted ? `<del>${displayText}</del>` : displayText;
 
         let htmlContent = htmlWithDeletedTag;
         if (containsOnlyEmojis) {

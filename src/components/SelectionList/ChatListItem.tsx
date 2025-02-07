@@ -17,6 +17,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
+import useTranslateLive from '@hooks/useTranslateLive';
 
 function ChatListItem<TItem extends ListItem>({
     item,
@@ -140,6 +141,8 @@ function ChatListItem<TItem extends ListItem>({
                                             {reportActionItem.message.map((fragment, index) => (
                                                 <ReportActionItemFragment
                                                     // eslint-disable-next-line react/no-array-index-key
+                                                    reportID={item.reportID}
+                                                    reportAction={reportActionItem}
                                                     key={`actionFragment-${reportActionItem.reportActionID}-${index}`}
                                                     fragment={fragment}
                                                     actionName={reportActionItem.actionName}
