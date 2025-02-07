@@ -179,16 +179,15 @@ async function generateTranslatedFiles() {
         const templatesToTranslate = new Map<string, TemplateExpression>();
         extractTemplateExpressions(sourceFile, templatesToTranslate);
 
-        // Translate them asynchronously
+        // Transform the template expressions to strings and add them to the map
+        for (const [key, templateExpression] of templatesToTranslate) {
+            stringsToTranslate.set(key, templateExpressionToString(templateExpression));
+        }
+
         const translations = new Map<string, string>();
         for (const [originalText] of stringsToTranslate) {
             const translatedText = await translate(originalText, lang);
             translations.set(originalText, translatedText);
-        }
-        for (const [originalTemplateString, templateExpression] of templatesToTranslate) {
-            const templateExpressionAsString = templateExpressionToString(templateExpression);
-            const translatedTemplate = await translate(templateExpressionAsString, lang);
-            translations.set(originalTemplateString, translatedTemplate);
         }
 
         // Replace translated strings in the AST
