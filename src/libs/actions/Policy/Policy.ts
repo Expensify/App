@@ -46,6 +46,7 @@ import type {
     SetPolicyDefaultReportTitleParams,
     SetPolicyPreventMemberCreatedTitleParams,
     SetPolicyPreventSelfApprovalParams,
+    SetPolicyProhibitedExpensesParams,
     SetPolicyRulesEnabledParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
@@ -3856,7 +3857,7 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: Prohi
         ],
     };
 
-    const parameters = {
+    const parameters: SetPolicyProhibitedExpensesParams = {
         policyID,
         prohibitedExpenses,
     };
