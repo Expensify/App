@@ -12,8 +12,10 @@ function ForceFullScreenView({children, shouldForceFullScreen = false}: ForceFul
 
     useEffect(() => {
         if (!shouldForceFullScreen) {
-            addRouteKey(route.key);
+            return;
         }
+
+        addRouteKey(route.key);
 
         return () => removeRouteKey(route.key);
     }, [addRouteKey, removeRouteKey, route, shouldForceFullScreen]);
