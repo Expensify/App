@@ -150,14 +150,14 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                           report.action === CONST.SEARCH.ACTION_TYPES.PAY &&
                           report.policyID &&
                           ((!!lastPaymentMethods[report.policyID] && typeof lastPaymentMethods[report.policyID] === 'string') ||
-                              !!(lastPaymentMethods[report.policyID] as LastPaymentMethodType)?.DEFAULT),
+                              !!(lastPaymentMethods[report.policyID] as LastPaymentMethodType)?.lastUsed),
                   )
                 : selectedTransactionsKeys.every(
                       (id) =>
                           selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
                           selectedTransactions[id].policyID &&
                           ((!!lastPaymentMethods[selectedTransactions[id].policyID] && typeof lastPaymentMethods[selectedTransactions[id].policyID] === 'string') ||
-                              !!(lastPaymentMethods[selectedTransactions[id].policyID] as LastPaymentMethodType).DEFAULT),
+                              !!(lastPaymentMethods[selectedTransactions[id].policyID] as LastPaymentMethodType).lastUsed),
                   ));
 
         if (shouldShowPayOption) {
