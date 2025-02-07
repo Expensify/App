@@ -307,7 +307,7 @@ export type {default as EnablePolicyDefaultReportTitleParams} from './EnablePoli
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
-export type {default as SetPolicyCustomRules} from './SetPolicyCustomRules';
+export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
 export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';

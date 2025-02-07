@@ -3874,7 +3874,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
  * @param policyID - id of the policy to set the max expense age
  * @param customRules - the custom rules description in natural language
  */
-function setPolicyCustomRules(policyID: string, customRules: string) {
+function updateCustomRules(policyID: string, customRules: string) {
     const policy = getPolicy(policyID);
     const originalCustomRules = policy?.rules?.customRules;
 
@@ -3923,7 +3923,7 @@ function setPolicyCustomRules(policyID: string, customRules: string) {
         customRules,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_CUSTOM_RULES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_CUSTOM_RULES, parameters, onyxData);
 }
 
 /**
@@ -4975,7 +4975,7 @@ export {
     setPolicyMaxExpenseAmountNoReceipt,
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
-    setPolicyCustomRules,
+    updateCustomRules,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,

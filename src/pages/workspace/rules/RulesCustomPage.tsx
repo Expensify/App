@@ -15,7 +15,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setPolicyCustomRules} from '@userActions/Policy/Policy';
+import {updateCustomRules} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -59,7 +59,7 @@ function RulesCustomPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_CUSTOM_FORM}
                     onSubmit={({customRules}) => {
-                        setPolicyCustomRules(policyID, customRules);
+                        updateCustomRules(policyID, customRules);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
