@@ -39,12 +39,13 @@ jobs:
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
 
       - name: Set up git for OSBotify
         id: setupGitForOSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
@@ -55,14 +56,19 @@ jobs:
           SEMVER_LEVEL: "PATCH"
 
       - name: Fetch history of relevant refs
-        run: |
-          git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+        run: git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
       - name: Get version bump commit
         id: getVersionBumpCommit
         run: |
           git switch main
           VERSION_BUMP_COMMIT="$(git log --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
+          if [ -z "$VERSION_BUMP_COMMIT" ]; then
+            echo "::error::❌ Could not find version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+            git log --oneline
+          else
+            echo "::notice::👀 Found version bump commit $VERSION_BUMP_COMMIT"
+          fi
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
       - name: Get merge commit for pull request to CP
@@ -85,14 +91,13 @@ jobs:
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
             echo "HAS_CONFLICTS=false" >> "$GITHUB_OUTPUT"
+            git commit --amend -m "$(git log -1 --pretty=%B)" -m "(CP triggered by ${{ github.actor }})"
           else
             echo "😞 PR can't be automerged, there are merge conflicts in the following files:"
             git --no-pager diff --name-only --diff-filter=U
-            git add .
-            GIT_MERGE_AUTOEDIT=no git cherry-pick --continue
+            git cherry-pick --abort
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
-          git commit --amend -m "$(git log -1 --pretty=%B)" -m "(CP triggered by ${{ github.actor }})"
 
       - name: Push changes
         run: |
@@ -109,7 +114,25 @@ jobs:
         run: |
           gh pr create \
             --title "🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒" \
-            --body "🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒" \
+            --body \
+              "🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒
+              This PR had conflicts when we tried to cherry-pick it to staging. You'll need to manually perform the cherry-pick, using the following steps:
+
+              \`\`\`bash
+              git fetch
+              git checkout ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_attempt }}
+              git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}
+              \`\`\`
+
+              Then manually resolve conflicts, and commit the change with \`git cherry-pick --continue\`. Lastly, please run:
+
+              \`\`\`bash
+              git commit --amend -m \"$(git log -1 --pretty=%B)\" -m \"(CP triggered by ${{ github.actor }})\"
+              \`\`\`
+
+              That will help us keep track of who triggered this CP. Once all that's done, push your changes with \`git push origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_attempt }}\`, and then open this PR for review.
+          
+              Note that you **must** test this PR, and both the author and reviewer checklist should be completed, just as if you were merging the PR to main." \
             --label "Engineering,Hourly" \
             --base "staging"
           sleep 5
@@ -117,11 +140,12 @@ jobs:
             "This pull request has merge conflicts and can not be automatically merged. :disappointed:
              Please manually resolve the conflicts, push your changes, and then request another reviewer to review and merge.
              **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving."
-          gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
+          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json author --jq .author.login)"
+          gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }},$ORIGINAL_PR_AUTHOR"
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-      - name: Label PR with CP Staging
+      - name: Label original PR with CP Staging
         run: gh pr edit ${{ inputs.PULL_REQUEST_NUMBER }} --add-label 'CP Staging'
         env:
           GITHUB_TOKEN: ${{ github.token }}

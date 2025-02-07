@@ -14,12 +14,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
@@ -29,6 +29,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -104,6 +105,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setSelectedCategories({});
     }, [isFocused]);
 
+    useSearchBackPress({
+        onClearSelection: () => setSelectedCategories({}),
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
+
+    const updateWorkspaceRequiresCategory = useCallback(
+        (value: boolean, categoryName: string) => {
+            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}});
+        },
+        [policyId],
+    );
+
     const categoryList = useMemo<PolicyOption[]>(() => {
         const categories = lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[];
         return categories.reduce<PolicyOption[]>((acc, value) => {
@@ -120,12 +133,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isDisabled,
                 pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
-                rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                rightElement: (
+                    <Switch
+                        isOn={value.enabled}
+                        disabled={isDisabled}
+                        accessibilityLabel={translate('workspace.categories.enableCategory')}
+                        onToggle={(newValue: boolean) => updateWorkspaceRequiresCategory(newValue, value.name)}
+                    />
+                ),
             });
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate]);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 

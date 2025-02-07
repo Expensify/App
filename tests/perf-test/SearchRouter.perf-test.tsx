@@ -5,8 +5,8 @@ import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {OptionsListContext} from '@components/OptionListContextProvider';
+import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
-import SearchRouterInput from '@components/Search/SearchRouter/SearchRouterInput';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
 import OnyxProvider from '@src/components/OnyxProvider';
@@ -69,6 +69,11 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
+    const runOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
+    return runOnLiveMarkdownRuntime;
+});
+
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
@@ -109,14 +114,15 @@ afterEach(() => {
 
 const mockOnClose = jest.fn();
 
-function SearchRouterInputWrapper() {
+function SearchAutocompleteInputWrapper() {
     const [value, setValue] = React.useState('');
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <SearchRouterInput
+            <SearchAutocompleteInput
                 value={value}
                 onSearchQueryChange={(searchTerm) => setValue(searchTerm)}
                 isFullWidth={false}
+                substitutionMap={CONST.EMPTY_OBJECT}
             />
         </ComposeProviders>
     );
@@ -151,7 +157,7 @@ test('[SearchRouter] should render list with cached options', async () => {
 
 test('[SearchRouter] should react to text input changes', async () => {
     const scenario = async () => {
-        const input = await screen.findByTestId('search-router-text-input');
+        const input = await screen.findByTestId('search-autocomplete-text-input');
         fireEvent.changeText(input, 'Email Four');
         fireEvent.changeText(input, 'Report');
         fireEvent.changeText(input, 'Email Five');
@@ -166,5 +172,5 @@ test('[SearchRouter] should react to text input changes', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() => measureRenders(<SearchRouterInputWrapper />, {scenario}));
+        .then(() => measureRenders(<SearchAutocompleteInputWrapper />, {scenario}));
 });

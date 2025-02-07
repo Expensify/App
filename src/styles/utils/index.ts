@@ -29,7 +29,7 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
+import searchHeaderHeight from './searchHeaderHeight';
 import type {
     AllStyles,
     AvatarSize,
@@ -753,13 +753,24 @@ type AvatarBorderStyleParams = {
     isPressed: boolean;
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
+    isActive?: boolean;
 };
 
-function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleParams): ViewStyle {
+function getHorizontalStackedAvatarBorderStyle({
+    theme,
+    isHovered,
+    isPressed,
+    isInReportAction = false,
+    shouldUseCardBackground = false,
+    isActive = false,
+}: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
+    }
+    if (isActive) {
+        borderColor = theme.messageHighlightBG;
     }
 
     if (isPressed) {
@@ -1161,7 +1172,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
 
 const staticStyleUtils = {
     positioning,
-    searchHeaderDefaultOffset,
+    searchHeaderHeight,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
