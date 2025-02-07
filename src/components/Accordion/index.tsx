@@ -50,7 +50,7 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
                 easing: Easing.inOut(Easing.quad),
             },
             (finished) => {
-                if (!finished) {
+                if (!finished || !isExpanded.get()) {
                     return;
                 }
                 isAnimating.set(false);
@@ -63,6 +63,7 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             return {
                 height: 0,
                 opacity: 0,
+                display: 'none',
             };
         }
 
@@ -71,6 +72,7 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             maxHeight: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
+            display: isExpanded.get() ? 'inline' : 'none',
         };
     });
 
