@@ -2534,11 +2534,12 @@ const CONST = {
         KO: 'ko',
         CH: 'ch',
         JA: 'ja',
+        RO: 'ro',
 
         DEFAULT: 'en',
     },
 
-    LANGUAGES: ['en', 'es', 'pt', 'it', 'de', 'fr', 'nl', 'pl', 'ru', 'tr', 'ko', 'ch', 'ja'],
+    LANGUAGES: ['en', 'es', 'pt', 'it', 'de', 'fr', 'nl', 'pl', 'ru', 'tr', 'ko', 'ch', 'ja', 'ro'],
 
     PRONOUNS_LIST: [
         'coCos',

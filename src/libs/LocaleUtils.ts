@@ -31,6 +31,8 @@ function getLanguageFromLocale(locale: ValueOf<typeof CONST.LOCALES>): TupleToUn
             return CONST.LOCALES.CH;
         case CONST.LOCALES.JA:
             return CONST.LOCALES.JA;
+        case CONST.LOCALES.RO:
+            return CONST.LOCALES.RO;
         default:
             return CONST.LOCALES.DEFAULT;
     }

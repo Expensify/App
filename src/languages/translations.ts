@@ -12,6 +12,7 @@ import pl from './pl';
 import pt from './pt';
 import ru from './ru';
 import tr from './tr';
+import ro from './ro';
 import type {FlatTranslationsObject, TranslationDeepObject} from './types';
 
 /**
@@ -67,6 +68,7 @@ export default {
     ko: flattenObject(ko),
     ch: flattenObject(ch),
     ja: flattenObject(ja),
+    ro: flattenObject(ro),
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
     es_ES: flattenObject(esES),
