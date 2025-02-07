@@ -403,7 +403,7 @@ describe('ModifiedExpenseMessage', () => {
 
         describe('when moving an expense', () => {
             beforeEach(() => Onyx.clear());
-            it('return the message "moved expense from expense report to your personal space" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
+            it('return the message "moved expense to personal space" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
                 // Given the selfDM report and report action
                 const selfDMReport = {
                     ...report,
@@ -419,11 +419,11 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`]: selfDMReport});
                 await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToSelfDM');
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
 
                 // When the expense is moved from an expense chat or 1:1 DM to selfDM
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: selfDMReport.reportID, reportAction});
-                // Then it should return the 'moved expense to self DM' message
+                // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
 
@@ -449,7 +449,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 // When the expense is moved to an expense chat with reportName empty
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
-                // Then it should return the 'changed the expense' message
+                // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
 
@@ -471,7 +471,10 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
                 await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromSelfDM', {reportName: policyExpenseChat.reportName, workspaceName: policyExpenseChat.policyName});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
+                    reportName: policyExpenseChat.reportName,
+                    workspaceName: policyExpenseChat.policyName,
+                });
 
                 // When the expense is moved to an expense chat with both reportName and policyName are present
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
@@ -496,7 +499,7 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
                 await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromSelfDM', {reportName: policyExpenseChat.reportName});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: policyExpenseChat.reportName});
 
                 // When the expense is moved to an expense chat with only reportName is present
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
