@@ -258,7 +258,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (!(offset && flashListRef.current)) {
                 return;
             }
-            flashListRef.current.scrollToOffset({offset, animated: true});
+            flashListRef.current.scrollToOffset({offset});
         });
     }, [getScrollOffset, route, isWebOrDesktop]);
 
