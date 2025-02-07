@@ -78,9 +78,12 @@ describe('actions/Policy', () => {
             expect(policy?.type).toBe(CONST.POLICY.TYPE.TEAM);
             expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policy?.owner).toBe(ESH_EMAIL);
+            expect(policy?.areWorkflowsEnabled).toBe(true);
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+            expect(policy?.approver).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
+            expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
