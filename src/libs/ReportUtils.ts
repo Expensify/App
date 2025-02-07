@@ -20,6 +20,7 @@ import type {IOUAction, IOUType, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYX_COMPUTED from '@src/ONYX_COMPUTED';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -913,6 +914,21 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
+let computedConciergeChatReportID: string | undefined;
+Onyx.connect({
+    key: ONYX_COMPUTED.CONCIERGE_CHAT_REPORT_ID,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        computedConciergeChatReportID = value as string;
+    },
+});
+
+function getConciergeChatReportID(): string | undefined {
+    return computedConciergeChatReportID;
+}
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1519,21 +1535,11 @@ function getReportNotificationPreference(report: OnyxEntry<Report>): ValueOf<typ
     return participant?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
-const CONCIERGE_ACCOUNT_ID_STRING = CONST.ACCOUNT_ID.CONCIERGE.toString();
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
-    if (!report?.participants || isThread(report)) {
-        return false;
-    }
-
-    const participantAccountIDs = new Set(Object.keys(report.participants));
-    if (participantAccountIDs.size !== 2) {
-        return false;
-    }
-
-    return participantAccountIDs.has(CONCIERGE_ACCOUNT_ID_STRING) || report?.reportID === conciergeChatReportID;
+    return computedConciergeChatReportID === report?.reportID;
 }
 
 function findSelfDMReportID(): string | undefined {
@@ -1558,7 +1564,7 @@ function isPolicyRelatedReport(report: OnyxEntry<Report>, policyID?: string) {
  */
 function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAccountIDs: number[], policyID?: string) {
     return (
-        isConciergeChatReport(report) ||
+        getConciergeChatReportID() === report?.reportID ||
         (report?.policyID === CONST.POLICY.ID_FAKE || !report?.policyID ? hasParticipantInArray(report, policyMemberAccountIDs) : isPolicyRelatedReport(report, policyID))
     );
 }
@@ -4566,7 +4572,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
     if (isInvoiceRoom(report)) {
         return translateLocal('workspace.common.invoices');
     }
-    if (isConciergeChatReport(report)) {
+    if (getConciergeChatReportID() === report?.reportID) {
         return translateLocal('reportActionsView.conciergeSupport');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
