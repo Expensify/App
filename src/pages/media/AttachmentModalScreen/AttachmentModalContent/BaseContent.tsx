@@ -94,6 +94,7 @@ type AttachmentModalBaseContentProps = {
     isAttachmentInvalid?: boolean;
     /** Determines if the attachment is invalid or not */
     shouldLoadAttachment?: boolean;
+    /** Function to set the attachment invalid or not */
     setIsAttachmentInvalid?: (value: boolean) => void;
     /** Whether the attachment modal is currently open */
     isOpen?: boolean;
