@@ -545,6 +545,12 @@ const translations = {
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
         taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `La longitud máxima del título de una tarea es de ${formattedMaxLength} caracteres.`,
+        commands: {
+            summarize: 'Resumir mensajes',
+            request: 'TODO',
+            export: 'Exportar informe de gastos',
+            split: 'TODO',
+        },
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
