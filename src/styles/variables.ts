@@ -92,6 +92,7 @@ export default {
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
     tabletResponsiveWidthBreakpoint: 1024,
+    sidePanelResponsiveWidthBreakpoint: 1175,
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
