@@ -96,10 +96,11 @@ function SuggestionCommand(
     const triggerHotkeyActions = useCallback(
         (e: KeyboardEvent) => {
             const suggestionsExist = suggestionValues.suggestedCommands.length > 0;
+            const isCommandDisabled = suggestionValues.suggestedCommands.at(highlightedCommandIndex)?.disabled ?? true;
 
             if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
                 e.preventDefault();
-                if (suggestionValues.suggestedCommands.length > 0) {
+                if (suggestionValues.suggestedCommands.length > 0 && !isCommandDisabled) {
                     insertSelectedCommand(highlightedCommandIndex);
                 }
                 return true;
@@ -115,7 +116,7 @@ function SuggestionCommand(
                 return true;
             }
         },
-        [highlightedCommandIndex, insertSelectedCommand, resetSuggestions, suggestionValues.suggestedCommands.length],
+        [highlightedCommandIndex, insertSelectedCommand, resetSuggestions, suggestionValues.suggestedCommands],
     );
 
     /**

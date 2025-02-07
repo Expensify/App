@@ -327,6 +327,9 @@ type ComposerCommand = {
 
     /** An example argument that will be included with the command */
     exampleArgument?: TranslationPaths;
+
+    /** If the command is disabled */
+    disabled: boolean;
 };
 
 const COMPOSER_COMMANDS: ComposerCommand[] = [
@@ -336,24 +339,28 @@ const COMPOSER_COMMANDS: ComposerCommand[] = [
         icon: Expensicons.Document,
         descriptionKey: 'composer.commands.summarize',
         exampleArgument: 'composer.commands.summarizeExampleArgument',
+        disabled: false,
     },
     {
         command: '/export',
         action: 'export',
         icon: Expensicons.Export,
         descriptionKey: 'composer.commands.export',
+        disabled: true,
     },
     {
         command: '/create',
         action: 'create',
         icon: Expensicons.ReceiptPlus,
         descriptionKey: 'composer.commands.create',
+        disabled: true,
     },
     {
         command: '/insight',
         action: 'insight',
         icon: Expensicons.Mute,
         descriptionKey: 'composer.commands.insight',
+        disabled: true,
     },
 ];
 
@@ -1774,7 +1781,7 @@ const CONST = {
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
         SUGGESTION_BOX_MAX_SAFE_DISTANCE: 10,
-        BIG_SCREEN_SUGGESTION_WIDTH: 300,
+        BIG_SCREEN_SUGGESTION_WIDTH: 400,
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,

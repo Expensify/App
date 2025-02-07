@@ -226,6 +226,7 @@ const translations = {
         in: 'En',
         optional: 'Opcional',
         new: 'Nuevo',
+        coming: 'Próximamente',
         center: 'Centrar',
         search: 'Buscar',
         reports: 'Informes',
