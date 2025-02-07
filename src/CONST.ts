@@ -746,6 +746,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
+        CUSTOM_RULES: 'customRules',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
