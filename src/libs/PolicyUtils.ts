@@ -1275,11 +1275,42 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
+/**
+ * Returns an array of user emails who are currently self-approving:
+ * i.e. user.submitsTo === their own email.
+ */
+function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
+    const defaultApprover = policy?.approver ?? policy?.owner;
+    if (!policy?.employeeList || !defaultApprover) {
+        return [];
+    }
+    return Object.keys(policy.employeeList).filter((email) => {
+        const employee = policy?.employeeList?.[email] ?? {};
+        return employee?.submitsTo === email && employee?.email !== defaultApprover;
+    });
+}
+
+/**
+ * Checks if the workspace has only one user and if there no approver for the policy.
+ * If so, we can't enable the "Prevent Self Approvals" feature.
+ */
+function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
+    if (!policy?.employeeList || !policy.approver) {
+        return false;
+    }
+
+    const employeeEmails = Object.keys(policy.employeeList);
+
+    return employeeEmails.length > 1;
+}
+
 export {
     canEditTaxRate,
+    canEnablePreventSelfApprovals,
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
+    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
