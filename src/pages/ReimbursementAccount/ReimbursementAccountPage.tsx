@@ -469,13 +469,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                         />
                     );
                 case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
-                //     return (
-                //         <BeneficialOwnerInfo
-                //             onBackButtonPress={nonUSDBankAccountsGoBack}
-                //             onSubmit={handleNextNonUSDBankAccountStep}
-                //         />
-                //     );
-                // eslint-disable-next-line no-fallthrough
+                    return (
+                        <BeneficialOwnerInfo
+                            onBackButtonPress={nonUSDBankAccountsGoBack}
+                            onSubmit={handleNextNonUSDBankAccountStep}
+                        />
+                    );
                 case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
                     return (
                         <SignerInfo
