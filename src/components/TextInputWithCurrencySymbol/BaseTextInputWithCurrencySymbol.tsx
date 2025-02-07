@@ -2,11 +2,11 @@ import React from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Text from '@src/components/Text';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import {getLocalizedCurrencySymbol, isCurrencySymbolLTR} from '@libs/CurrencyUtils';
+import {addLeadingZero, replaceAllDigits} from '@libs/MoneyRequestUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import type BaseTextInputWithCurrencySymbolProps from './types';
 
@@ -30,8 +30,8 @@ function BaseTextInputWithCurrencySymbol(
     ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
     const {fromLocaleDigit} = useLocalize();
-    const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(selectedCurrencyCode);
-    const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(selectedCurrencyCode);
+    const currencySymbol = getLocalizedCurrencySymbol(selectedCurrencyCode);
+    const shouldShowCurrencySymbolLTR = isCurrencySymbolLTR(selectedCurrencyCode);
     const styles = useThemeStyles();
 
     const currencySymbolButton = !hideCurrencySymbol && (
@@ -48,7 +48,7 @@ function BaseTextInputWithCurrencySymbol(
      * @param text - Changed text from user input
      */
     const setFormattedAmount = (text: string) => {
-        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
+        const newAmount = addLeadingZero(replaceAllDigits(text, fromLocaleDigit));
         onChangeAmount(newAmount);
     };
 
@@ -71,7 +71,7 @@ function BaseTextInputWithCurrencySymbol(
 
     const negativeSymbol = <Text style={[styles.iouAmountText]}>-</Text>;
 
-    if (isCurrencySymbolLTR) {
+    if (shouldShowCurrencySymbolLTR) {
         return (
             <>
                 {isNegative && negativeSymbol}
