@@ -242,6 +242,7 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childLastVisibleActionCreated'
     | 'childOldestFourAccountIDs'
     | 'delegateAccountID'
+    | 'whisperedToAccountIDs'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {

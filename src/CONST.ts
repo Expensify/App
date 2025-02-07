@@ -308,8 +308,11 @@ type OnboardingMessage = {
     type?: string;
 };
 
+type ComposerCommandAction = 'summarize' | 'export' | 'request' | 'split';
+
 type ComposerCommand = {
-    command: string;
+    command: `/${ComposerCommandAction}`;
+    action: ComposerCommandAction;
     icon: string;
     descriptionKey: TranslationPaths;
 };
@@ -317,21 +320,25 @@ type ComposerCommand = {
 const COMPOSER_COMMANDS: ComposerCommand[] = [
     {
         command: '/summarize',
+        action: 'summarize',
         icon: 'TODO',
         descriptionKey: 'composer.commands.summarize',
     },
     {
         command: '/export',
+        action: 'export',
         icon: 'TODO',
         descriptionKey: 'composer.commands.export',
     },
     {
         command: '/request',
+        action: 'request',
         icon: 'TODO',
         descriptionKey: 'composer.commands.request',
     },
     {
         command: '/split',
+        action: 'split',
         icon: 'TODO',
         descriptionKey: 'composer.commands.split',
     },
@@ -6682,6 +6689,8 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    ComposerCommandAction,
+    ComposerCommand,
 };
 
 export default CONST;
