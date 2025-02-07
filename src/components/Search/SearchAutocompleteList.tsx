@@ -67,6 +67,9 @@ type SearchAutocompleteListProps = {
 
     /** Callback to call when the list of autocomplete substitutions should be updated */
     updateAutocompleteSubstitutions: (item: SearchQueryItem) => void;
+
+    /** Whether or not the user is doing a natural search text (eg. AI search) */
+    isNaturalSearch: boolean;
 };
 
 const defaultListOptions = {
@@ -118,7 +121,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchAutocompleteList(
-    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchAutocompleteListProps,
+    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions, isNaturalSearch}: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -446,7 +449,12 @@ function SearchAutocompleteList(
             return {
                 text: getAutocompleteDisplayText(filterKey, text),
                 mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
-                singleIcon: Expensicons.MagnifyingGlass,
+
+                singleIcon: !isNaturalSearch && Expensicons.MagnifyingGlass,
+
+                // TODO substitute a cool AI search icon here when isNaturalSearch = true
+                singleLottie: undefined,
+
                 searchQuery: text,
                 autocompleteID,
                 keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique

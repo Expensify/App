@@ -78,6 +78,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const {canUseNaturalSearch} = usePermissions();
+    const [isNaturalSearch, setIsNaturalSearch] = useState(false);
 
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
@@ -125,12 +126,11 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             if (canUseNaturalSearch) {
                 // Check the user's query to see if it could be natural search or not
                 // A normal search query will usually have 2 or more colons or contain "type:expense"
-                const colonCount = (userQuery.match(/:/g) || []).length;
+                const colonCount = (userQuery.match(/:/g) ?? []).length;
                 if (!userQuery.includes('type:expense') && colonCount < 2) {
                     isNaturalSearch = true;
                 }
-
-                console.debug('timddd', userQuery, isNaturalSearch);
+                setIsNaturalSearch(isNaturalSearch);
             }
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
@@ -315,6 +315,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                         onListItemPress={onListItemPress}
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                        isNaturalSearch={isNaturalSearch}
                         ref={listRef}
                     />
                 </View>
