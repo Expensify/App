@@ -5,7 +5,6 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
@@ -30,8 +29,6 @@ type BusinessInfoProps = {
     /** Handles submit button press */
     onSubmit: () => void;
 };
-
-type BusinessInfoParamsPartial = Omit<SaveCorpayOnboardingCompanyDetails, 'currencyNeeded' | 'purposeOfTransactionId'>;
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [
     Name,
@@ -85,14 +82,9 @@ function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     }, [country]);
 
     const submit = useCallback(() => {
-        const params = {} as BusinessInfoParamsPartial;
-        Object.values(INPUT_KEYS).forEach((currentKey) => {
-            params[currentKey] = businessInfoStepValues[currentKey];
-        });
-
         saveCorpayOnboardingCompanyDetails(
             {
-                ...params,
+                ...businessInfoStepValues,
                 fundSourceCountries: country,
                 fundDestinationCountries: country,
                 currencyNeeded: currency,

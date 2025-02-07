@@ -1,10 +1,13 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
+import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
+import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,12 +38,15 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    const country = reimbursementAccount?.achData?.[COUNTRY] ?? '';
+    const country = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
+    const inputKeys = getInputKeysForBankInfoStep(corpayFields);
+    const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
+    const startFrom = getInitialSubStepForBankInfoStep(values, corpayFields);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
 
-        createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm, policyID);
+        createCorpayBankAccount({...values, ...corpayData} as ReimbursementAccountForm, policyID);
     };
 
     useEffect(() => {
@@ -72,7 +78,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
+    } = useSubStep<BankInfoSubStepProps>({bodyContent, startFrom, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (isEditing) {

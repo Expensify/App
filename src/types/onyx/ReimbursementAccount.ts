@@ -15,14 +15,24 @@ type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
 /** Model of Corpay data */
 type Corpay = {
+    /** Account holder address - country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
     /** Swift code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_CODE]?: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE]: string;
     /** Bank name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_NAME]: string;
     /** Bank address - city */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CITY]: string;
     /** Bank address - street and zip code */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_ADDRESS_LINE_1]: string;
+    /** Bank region */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_REGION]: string;
+    /** Bank postal code */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_POSTAL]: string;
+    /** Bank country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_COUNTRY]: string;
+    /** Bank currency */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CURRENCY]: string;
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
     /** Company address - street */
@@ -158,9 +168,6 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Bank account name */
     bankName?: BankName;
 
-    /** Bank account owner name */
-    addressName?: string;
-
     /** Policy ID of the workspace the bank account is being set up on */
     policyID?: string;
 
@@ -176,23 +183,30 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Bank Account setup type (plaid or manual) */
     setupType?: string;
 
-    /** Account holder name */
-    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
+    /** Account holder name - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]?: string;
+    /** Account holder name - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_NAME]?: string;
 
-    /** Account holder address - street */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STREET]: string;
+    /** Account holder street - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_ADDRESS_1]?: string;
+    /** Account holder street - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STREET]?: string;
 
-    /** Account holder address - city */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_CITY]: string;
+    /** Account holder city - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_CITY]?: string;
+    /** Account holder city - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_CITY]?: string;
 
-    /** Account holder address - state (US and CA only) */
+    /** Account holder state (US and CA only) - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_REGION]?: string;
+    /** Account holder state (US and CA only) - BE name */
     [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STATE]?: string;
 
-    /** Account holder address - zip code */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]: string;
-
-    /** Account holder address - country */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
+    /** Account holder zip code - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_POSTAL]?: string;
+    /** Account holder zip code - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]?: string;
 
     /** Country user selects in first step */
     [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';

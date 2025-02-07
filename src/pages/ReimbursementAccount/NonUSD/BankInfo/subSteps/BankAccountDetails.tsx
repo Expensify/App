@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
@@ -10,17 +11,28 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
+import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccountForm} from '@src/types/form';
 
 function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const bankAccountDetailsFields = useMemo(() => {
         return corpayFields?.formFields?.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
     }, [corpayFields]);
+
+    const subStepKeys = bankAccountDetailsFields?.reduce((acc, field) => {
+        acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
+        return acc;
+    }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
+
+    const defaultValues = getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount);
 
     const fieldIds = bankAccountDetailsFields?.map((field) => field.id);
 
@@ -73,11 +85,12 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         aria-label={field.label}
                         role={CONST.ROLE.PRESENTATION}
                         shouldSaveDraft={!isEditing}
+                        defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
                     />
                 </View>
             );
         });
-    }, [bankAccountDetailsFields, styles.mb6, isEditing]);
+    }, [bankAccountDetailsFields, styles.mb6, isEditing, defaultValues]);
 
     return (
         <FormProvider
