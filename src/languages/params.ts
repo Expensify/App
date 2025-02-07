@@ -368,6 +368,8 @@ type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
+type LeftWorkspaceParams = {nameOrEmail: string};
+
 type RemoveMemberParams = {email: string; role: string};
 
 type DateParams = {date: string};
@@ -607,6 +609,10 @@ type FlightLayoverParams = {
     layover: string;
 };
 
+type SubmitsToParams = {
+    name: string;
+};
+
 type SettlementDateParams = {
     settlementDate: string;
 };
@@ -803,6 +809,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,
     FiltersAmountBetweenParams,
@@ -825,5 +832,6 @@ export type {
     EditDestinationSubtitleParams,
     FlightLayoverParams,
     WorkEmailResendCodeParams,
+    SubmitsToParams,
     SettlementDateParams,
 };
