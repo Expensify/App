@@ -1,8 +1,8 @@
-import ONYXKEYS from '@src/ONYXKEYS';
 import {useEffect} from 'react';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry, ReportAction} from 'react-native-onyx';
 import * as API from '@libs/API';
+import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
 
 export default function useTranslateLive(reportID: string, reportAction: OnyxEntry<ReportAction>) {
@@ -33,11 +33,11 @@ export default function useTranslateLive(reportID: string, reportAction: OnyxEnt
             textToTranslate: reportAction?.message?.[0]?.html,
             targetLanguage: preferredLocale,
         }).then((response) => {
-            console.log('over here', response)
+            console.log('over here', response);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                 [reportAction.reportActionID]: {
-                    message: [{...reportAction?.message[0], translatedText: response.translation, translatedLocale: preferredLocale}]
-                }
+                    message: [{...reportAction?.message[0], translatedText: response.translation, translatedLocale: preferredLocale}],
+                },
             });
         });
     }, [reportID, reportAction.reportActionID]);

@@ -5,9 +5,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTranslateLive from '@hooks/useTranslateLive';
 import convertToLTR from '@libs/convertToLTR';
 import isReportMessageAttachment from '@libs/isReportMessageAttachment';
 import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
@@ -15,8 +17,6 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeaderSender';
-import useTranslateLive from '@hooks/useTranslateLive';
-import type {ReportAction} from '@src/types/onyx';
 
 type ReportActionItemFragmentProps = {
     /** Users accountID */
