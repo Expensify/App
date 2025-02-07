@@ -15,6 +15,8 @@ import colors from '@styles/theme/colors';
 import * as CompanyCards from '@userActions/CompanyCards';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import ExpensifyCardPromotionBanner from './ExpensifyCardPromotionBanner';
 
 const companyCardFeatures: FeatureListItem[] = [
     {
@@ -37,6 +39,7 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [hasSeenExpensifyCardPromotion, hasSeenExpensifyCardPromotionResult] = useOnyx(ONYXKEYS.NVP_SEEN_EXPENSIFY_CARD_PROMOTION, {initialValue: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const handleCtaPress = useCallback(() => {
@@ -50,6 +53,7 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            {!isLoadingOnyxValue(hasSeenExpensifyCardPromotionResult) && !hasSeenExpensifyCardPromotion && <ExpensifyCardPromotionBanner policy={policy} />}
             <FeatureList
                 menuItems={companyCardFeatures}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}

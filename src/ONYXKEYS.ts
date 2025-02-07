@@ -177,6 +177,9 @@ const ONYXKEYS = {
     /** Whether the user has dismissed the hold educational interstitial */
     NVP_DISMISSED_HOLD_USE_EXPLANATION: 'nvp_dismissedHoldUseExplanation',
 
+    /** Whether the user has clicked `Learn more` on Expensify Card promotion banner in Workspace: Company cards empty state page */
+    NVP_SEEN_EXPENSIFY_CARD_PROMOTION: 'nvp_seenExpensifyCardPromotion',
+
     /** Whether the user has seen HybridApp explanation modal */
     NVP_SEEN_NEW_USER_MODAL: 'nvp_seen_new_user_modal',
 
@@ -968,6 +971,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_ATTENDEES]: Attendee[];
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
     [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
+    [ONYXKEYS.NVP_SEEN_EXPENSIFY_CARD_PROMOTION]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT]: string;

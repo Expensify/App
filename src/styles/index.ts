@@ -396,6 +396,16 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
         },
 
+        themeTextReversedColor: {
+            color: theme.shadow,
+        },
+
+        darkMutedTextLabel: {
+            color: theme.fallbackIconColor,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         mutedTextLabel: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
@@ -1179,6 +1189,10 @@ const styles = (theme: ThemeColors) =>
 
         buttonHoveredBG: {
             backgroundColor: theme.buttonHoveredBG,
+        },
+
+        promotionBannerBG: {
+            backgroundColor: theme.promotionBannerBG,
         },
 
         autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>

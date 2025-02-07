@@ -32,6 +32,7 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {setExpensifyCardPromotionBannerShown} from './actions/CompanyCards';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {getCurrentUserAccountID} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
@@ -1080,6 +1081,13 @@ function goBackWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
+function goToExpensifyCardPage(policyID: string) {
+    setTimeout(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        setExpensifyCardPromotionBannerShown();
+    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+}
+
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
@@ -1368,6 +1376,7 @@ export {
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     goBackWhenEnableFeature,
+    goToExpensifyCardPage,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
