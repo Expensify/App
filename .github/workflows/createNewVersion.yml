@@ -33,7 +33,7 @@ on:
         description: 1Password service account token
         required: true
       OS_BOTIFY_APP_ID:
-        description: App ID for OSBotify GitHub App
+        description: Application ID for OS Botify
         required: true
       OS_BOTIFY_PRIVATE_KEY:
         description: Private key for OSBotify GitHub App
