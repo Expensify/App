@@ -43,13 +43,16 @@ type TextCommentFragmentProps = {
 
     /** Text of an IOU report action */
     iouMessage?: string;
+
+    shouldShowOriginal?: boolean;
 };
 
-function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
+function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = '', shouldShowOriginal = false}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translatedText = null, html = ''} = fragment ?? {};
-    const displayText = translatedText ?? html;
+    const displayText = shouldShowOriginal ? html : translatedText ?? html;
+    console.log('over here 1', {shouldShowOriginal, fragment, html, displayText})
     const text = ReportActionsUtils.getTextFromHtml(displayText);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

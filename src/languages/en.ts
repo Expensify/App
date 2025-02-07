@@ -1741,9 +1741,9 @@ const translations = {
             ja: {label: '日本語'},
             ro: {label: 'Română'}
         },
-        translateMessage: 'Translate messages',
-        viewOriginal: 'View original',
-        showTranslation: 'Show translation',
+        translateMessage: 'Przetłumacz wiadomości',
+        viewOriginal: 'Pokaż oryginał',
+        showTranslation: 'Pokaż tłumaczenie',
     },
     themePage: {
         theme: 'Theme',

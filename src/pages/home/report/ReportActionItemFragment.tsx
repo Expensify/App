@@ -67,6 +67,7 @@ type ReportActionItemFragmentProps = {
 
     reportAction?: string;
     reportID?: string;
+    shouldShowOriginal?: boolean;
 };
 
 const MUTED_ACTIONS = [
@@ -98,11 +99,13 @@ function ReportActionItemFragment({
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
     moderationDecision,
+    shouldShowOriginal = false,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     useTranslateLive(reportID, reportAction);
+    const displayText = shouldShowOriginal ? fragment?.html ?? '' : fragment?.translatedText ?? fragment?.html ?? '';
 
     switch (fragment?.type) {
         case 'COMMENT': {
@@ -124,7 +127,7 @@ function ReportActionItemFragment({
                 return (
                     <AttachmentCommentFragment
                         source={source}
-                        html={fragment?.translatedText ?? fragment?.html ?? ''}
+                        html={displayText}
                         addExtraMargin={!displayAsGroup}
                         styleAsDeleted={!!(isOffline && isPendingDelete)}
                     />
@@ -134,6 +137,7 @@ function ReportActionItemFragment({
             return (
                 <TextCommentFragment
                     source={source}
+                    shouldShowOriginal={shouldShowOriginal}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
                     styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
@@ -150,7 +154,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage, styles.colorMuted]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.translatedText ?? fragment?.text ?? '') : fragment?.text}
+                        {isFragmentContainingDisplayName ? convertToLTR(displayText) : fragment?.text}
                     </Text>
                 );
             }
@@ -161,7 +165,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.translatedText ?? fragment?.text ?? '') : fragment?.text}
+                        {isFragmentContainingDisplayName ? convertToLTR(displayText) : fragment?.text}
                     </Text>
                 );
             }
@@ -170,7 +174,7 @@ function ReportActionItemFragment({
                 <ReportActionItemMessageHeaderSender
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
-                    fragmentText={fragment?.translatedText ?? fragment.text}
+                    fragmentText={displayText}
                     actorIcon={actorIcon}
                     isSingleLine={isSingleLine}
                 />
