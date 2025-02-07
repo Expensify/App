@@ -28,7 +28,7 @@ Once Rules are enabled, you can customize individual expense settings:
 - **Max expense amount**: Set a spending limit per expense. Accepts decimal values.
 - **Max expense age (days)**: Define how old an expense can be. Accepts whole numbers only.
 - **Billable default**: Set expenses as billable or non-billable by default.
-- **eReceipts**: Enable eReceipts for most USD credit transactions (available when the Default currency set in the Overview is set to USD).
+- **eReceipts**: Enable eReceipts for most USD credit transactions. This is available when the Default currency set in the Overview is set to USD.
 
 # Configure expense report rules
 
@@ -38,15 +38,15 @@ Once Rules are enabled, you can customize individual expense settings:
 - **Custom report names**: Create default titles for reports.
 - **Prevent self-approvals**: Stop users from approving their own reports.
 - **Auto-approve compliant reports**: Automatically approve reports below a set amount and set a random report audit percentage.
-- **Auto-pay reports approved reports**: Automatically pay reports below a specific threshold when approved.
+- **Auto-pay approved reports**: Automatically pay reports below a specific threshold when approved.
 
 # Configure category rules
 
-1. Go to **Categories** in the left menu with workspace settings
+1. Go to **Categories** in the left menu within workspace settings
 2. Select a category to open its details.
 3. Under **Category Rules**, configure the following:
 
-- **Enable category**: Make the category visible to workspace members or not when creating or submitting expenses
+- **Enable category**: Make the category visible to workspace members when creating or submitting expenses
 - **Require description**: Make descriptions mandatory for certain categories.
 - **Approver**: Assign a specific approver per category.
 - **Default tax rate**: Set a default tax rate for each category.
@@ -55,7 +55,7 @@ Once Rules are enabled, you can customize individual expense settings:
 
 # Configure tag rules
 
-1. Go to **Tags** in the left menu with workspace settings.
+1. Go to **Tags** in the left menu within workspace settings.
 2. Select a tag to open its details.
 3. Under **Tag Rules**, configure the following:
 
@@ -63,7 +63,7 @@ Once Rules are enabled, you can customize individual expense settings:
 
 # Manage default categories and billable expenses
 
-- **Default Categories**: Set in **Categories** under the **Settings** option on the top right of the page for credit card transactions and receipts.
+- **Default Categories**: Auto-categorize expenses based on the Merchant Category Code (MCC). Set in **Categories** under the **Settings** option on the top right of the page for credit card transactions and receipts.
 - **Billable Expenses**: Set in **Tags** under the **Settings** option on the top right of the page to require tagging always or just when an expense is flagged as billable.
 
 {% include faq-begin.md %}
