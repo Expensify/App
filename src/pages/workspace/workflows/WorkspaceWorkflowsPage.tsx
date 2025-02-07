@@ -42,6 +42,10 @@ import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
+import TextInput from "@components/TextInput";
+import INPUT_IDS from "@src/types/form/CustomApprovalWorkflowForm";
+import InputWrapper from "@components/Form/InputWrapper";
+import FormProvider from "@components/Form/FormProvider";
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -195,6 +199,37 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 ),
                 isActive:
                     ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
+                pendingAction: policy?.pendingFields?.approvalMode,
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+            },
+            {
+                title: translate('workflowsPage.customWorkflowTitle'),
+                subtitle: translate('workflowsPage.customWorkflowDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
+                subMenuItems: (
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.CUSTOM_APPROVAL_WORKFLOW_FORM}
+                        isSubmitButtonVisible={true}
+                        submitButtonText={translate('common.save')}
+                        scrollContextEnabled
+                        onSubmit={setCustomPrompt()}
+                        style={[styles.mh5, styles.mt5, styles.flex1]}
+                    >
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.CUSTOM_PROMPT}
+                            label={translate('customApprovalWorkflow.placeholder')}
+                            aria-label={translate('customApprovalWorkflow.placeholder')}
+                            role={CONST.ROLE.PRESENTATION}
+                            maxLength={10000}
+                            spellCheck={false}
+                            shouldSaveDraft={true}
+                        />
+                    </FormProvider>
+                ),
+                isActive:
+                    ([CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
                 onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
