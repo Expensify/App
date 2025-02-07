@@ -60,7 +60,7 @@ function init() {
  * the translated value.
  */
 function getTranslatedPhrase<TKey extends TranslationPaths>(
-    language: Locale,
+    language: Locale | 'es-ES',
     phraseKey: TKey,
     fallbackLanguage: 'en' | 'es' | null,
     ...parameters: TranslationParameters<TKey>
