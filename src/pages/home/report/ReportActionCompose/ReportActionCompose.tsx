@@ -45,6 +45,7 @@ import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActio
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+import type {ComposerCommand} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -54,7 +55,6 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
-import {Command} from './SuggestionCommand';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -62,7 +62,7 @@ type SuggestionsRef = {
     triggerHotkeyActions: (event: KeyboardEvent) => boolean | undefined;
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
-    getSuggestions: () => Mention[] | Emoji[] | Command[];
+    getSuggestions: () => Mention[] | Emoji[] | ComposerCommand[];
     getIsSuggestionsMenuVisible: () => boolean;
 };
 

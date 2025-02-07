@@ -2,20 +2,16 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import CommandSuggestions from '@components/CommandSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
-import useLocalize from '@hooks/useLocalize';
+import {suggestCommands} from '@libs/CommandUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
+import type {ComposerCommand} from '@src/CONST';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
-type Command = {
-    code: string;
-    description: string;
-};
-
 type SuggestionsValue = {
-    suggestedCommands: Command[];
+    suggestedCommands: ComposerCommand[];
     shouldShowSuggestionMenu: boolean;
 };
 
@@ -51,12 +47,11 @@ function SuggestionCommand(
 
     /**
      * Replace the code of command and update selection
-     * @param {Number} selectedCommand
      */
     const insertSelectedCommand = useCallback(
         (commandIndex: number) => {
             const commandObj = commandIndex !== -1 ? suggestionValues.suggestedCommands.at(commandIndex) : undefined;
-            const commandCode = commandObj?.code;
+            const commandCode = commandObj?.command;
             const commentAfterColonWithCommandNameRemoved = value.slice(selection.end);
 
             updateComment(`${commandCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterColonWithCommandNameRemoved)}`, true);
@@ -135,7 +130,7 @@ function SuggestionCommand(
                 suggestedCommands: [],
                 shouldShowSuggestionMenu: false,
             };
-            const newSuggestedCommands = [];
+            const newSuggestedCommands = suggestCommands(newValue);
 
             if (newSuggestedCommands?.length && isCurrentlyShowingCommandSuggestion) {
                 nextState.suggestedCommands = newSuggestedCommands;
@@ -194,6 +189,7 @@ function SuggestionCommand(
         <CommandSuggestions
             highlightedCommandIndex={highlightedCommandIndex}
             commands={suggestionValues.suggestedCommands}
+            value={value}
             onSelect={insertSelectedCommand}
             measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
             resetSuggestions={resetSuggestions}
@@ -204,4 +200,3 @@ function SuggestionCommand(
 SuggestionCommand.displayName = 'SuggestionCommand';
 
 export default forwardRef(SuggestionCommand);
-export type {Command};
