@@ -8,6 +8,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerAddressSubstepValue from '@pages/ReimbursementAccount/NonUSD/utils/getSignerAddressSubstepValue';
+import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -94,32 +95,21 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     }, [country]);
 
     const submit = useCallback(() => {
+        const {signerDetails} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft);
+
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         } else {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            BankAccounts.saveCorpayOnboardingDirectorInformation(
-                {
-                    companyDirectors: [
-                        {
-                            signerFullName: onyxValues[INPUT_KEYS.SIGNER_FULL_NAME],
-                            signerDateOfBirth: onyxValues[INPUT_KEYS.SIGNER_DATE_OF_BIRTH],
-                            signerJobTitle: onyxValues[INPUT_KEYS.SIGNER_JOB_TITLE],
-                            signerEmail: account?.primaryLogin ?? '',
-                            signerCompleteResidentialAddress: onyxValues[INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS],
-                        },
-                    ],
-                    copyOfID: onyxValues[INPUT_KEYS.SIGNER_COPY_OF_ID],
-                    addressProof: onyxValues[INPUT_KEYS.SIGNER_ADDRESS_PROOF],
-                    // TODO: uncomment when codiceProof is added to the form
-                    codiceProof: onyxValues[INPUT_KEYS.SIGNER_ADDRESS_PROOF],
-                    pdsAndFSG: onyxValues[INPUT_KEYS.SIGNER_ADDRESS_PROOF],
-                },
+            BankAccounts.saveCorpayOnboardingDirectorInformation({
+                inputs: JSON.stringify(signerDetails),
                 bankAccountID,
-            );
+                directorIDs: 'currentUser',
+                proofOfDirectors: onyxValues[INPUT_KEYS.SIGNER_COPY_OF_ID],
+            });
             onSubmit();
         }
-    }, [account?.primaryLogin, bankAccountID, currency, onSubmit, onyxValues]);
+    }, [bankAccountID, currency, onSubmit, onyxValues, reimbursementAccountDraft]);
 
     const handleNextSubStep = useCallback(
         (value: boolean) => {
