@@ -59,7 +59,7 @@ const message = `:test_tube::test_tube: Use the links below to test this adhoc b
 
 ---
 
-:eyes: [View the workflow run that generated this build](https://github.com/Expensify/App/actions/runs/1234) :eyes:
+:eyes: [View the workflow run that generated this build](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/1234) :eyes:
 `;
 
 const onlyAndroidMessage = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
@@ -73,7 +73,7 @@ const onlyAndroidMessage = `:test_tube::test_tube: Use the links below to test t
 
 ---
 
-:eyes: [View the workflow run that generated this build](https://github.com/Expensify/App/actions/runs/1234) :eyes:
+:eyes: [View the workflow run that generated this build](https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/1234) :eyes:
 `;
 
 describe('Post test build comments action tests', () => {
