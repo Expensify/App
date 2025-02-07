@@ -34,7 +34,7 @@ function RulesCustomPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(policy?.rules?.customRules ?? ''));
+    const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(policy?.customRules ?? ''));
 
     const onChangeCustomRules = useCallback((newValue: string) => {
         setCustomRulesValue(newValue);

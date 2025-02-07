@@ -3876,7 +3876,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
  */
 function updateCustomRules(policyID: string, customRules: string) {
     const policy = getPolicy(policyID);
-    const originalCustomRules = policy?.rules?.customRules;
+    const originalCustomRules = policy?.customRules;
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3884,9 +3884,7 @@ function updateCustomRules(policyID: string, customRules: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    rules: {
-                        customRules,
-                    },
+                    customRules,
                 },
             },
         ],
@@ -3907,9 +3905,7 @@ function updateCustomRules(policyID: string, customRules: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    rules: {
-                        customRules: originalCustomRules,
-                    },
+                    customRules: originalCustomRules,
                     // TODO
                     // pendingFields: {maxExpenseAge: null},
                     // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},

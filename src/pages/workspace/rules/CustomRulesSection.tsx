@@ -32,7 +32,7 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
           > */}
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={policy?.rules?.customRules ?? ''}
+                    title={policy?.customRules ?? ''}
                     description={translate('workspace.rules.customRules.subtitle')}
                     onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(policyID))}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
