@@ -1,8 +1,8 @@
-import React from 'react';
+import LottieView from 'lottie-react-native';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
-import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/types';
@@ -17,6 +17,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
     singleLottie?: DotLottieAnimation;
+    pauseSingleLottie?: boolean;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
     searchQuery?: string;
     autocompleteID?: string;
@@ -40,6 +41,21 @@ function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQu
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const lottieRef = useRef<LottieView | null>(null);
+
+    // Normally, the lottie will remain paused on the first frame (which is a search icon)
+    // When the pauseSingleLottie prop is set to false, the animation will play once which will
+    // animate the search icon to a sparkle
+    useEffect(() => {
+        if (!lottieRef.current) {
+            return;
+        }
+        if (!item.pauseSingleLottie) {
+            lottieRef.current.play();
+            return;
+        }
+        lottieRef.current.reset();
+    }, [item.pauseSingleLottie]);
 
     return (
         <BaseListItem
@@ -66,10 +82,11 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                             medium
                         />
                     )}
+
                     {!!item.singleLottie && (
-                        <Lottie
-                            source={item.singleLottie}
-                            autoPlay
+                        <LottieView
+                            source={item.singleLottie.file}
+                            ref={lottieRef}
                             loop={false}
                             webStyle={{...styles.wIconSizeNormal, ...styles.mr3}}
                         />

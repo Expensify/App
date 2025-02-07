@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -266,8 +265,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleIcon: !isNaturalSearch ? Expensicons.MagnifyingGlass : undefined,
-              singleLottie: isNaturalSearch ? lottieAnimation : undefined,
+              singleLottie: lottieAnimation,
+              pauseSingleLottie: !isNaturalSearch,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',
