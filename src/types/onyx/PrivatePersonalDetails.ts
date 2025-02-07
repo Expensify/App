@@ -71,6 +71,9 @@ type PrivatePersonalDetails = {
 
     /** Authentication failure errors */
     errors?: OnyxCommon.Errors | null;
+
+    /** Whether the request is being processed */
+    isLoading?: boolean;
 };
 
 export default PrivatePersonalDetails;

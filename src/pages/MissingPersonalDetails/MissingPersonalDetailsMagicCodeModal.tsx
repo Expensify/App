@@ -64,6 +64,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
             sendValidateCode={() => requestValidateCodeAction()}
             hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}
+            isLoading={privatePersonalDetails?.isLoading}
         />
     );
 }
