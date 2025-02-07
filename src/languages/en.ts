@@ -556,6 +556,7 @@ const translations = {
         taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum task title length is ${formattedMaxLength} characters.`,
         commands: {
             summarize: 'Summarize messages',
+            summarizeExampleArgument: 'All messages from 3 days ago',
             export: 'Export expenses report',
             create: 'Create expense',
             insight: 'Learn about your spending',
