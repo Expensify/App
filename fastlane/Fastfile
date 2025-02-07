@@ -638,7 +638,7 @@ platform :ios do
  lane :upload_dsyms_hybrid do
    puts "dsym path: #{ENV[KEY_DSYM_PATH]}"
    upload_symbols_to_crashlytics(
-     app_id: "1:1008697809946:ios:3ffad71f664f2886",
+     app_id: ENV["FIREBASE_HYBRID_APP_ID"],
      dsym_path: ENV[KEY_DSYM_PATH],
      gsp_path: "./ios/GoogleService-Info.plist",
      # Assuming we are running this from the react-native submodule directory for HybridApp
