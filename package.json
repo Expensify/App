@@ -188,6 +188,8 @@
     "react-native-view-shot": "4.0.0",
     "react-native-vision-camera": "^4.6.1",
     "react-native-web": "0.19.13",
+    "react-native-webrtc": "^124.0.5",
+    "react-native-webrtc-web-shim": "^1.0.7",
     "react-native-webview": "13.8.6",
     "react-plaid-link": "3.3.2",
     "react-web-config": "^1.0.0",

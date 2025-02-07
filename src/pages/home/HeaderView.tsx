@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -30,6 +30,7 @@ import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {initializeConnection, startScreenCapture, stopScreenCapture} from '@libs/actions/WebRTC';
 import Parser from '@libs/Parser';
 import {
     canJoinChat,
@@ -55,6 +56,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
     isTaskReport as isTaskReportReportUtils,
+    isAdminRoom as isAdminRoomReportUtils,
     navigateToDetailsPage,
     shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
     shouldReportShowSubscript,
@@ -204,6 +206,35 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
 
+    const [isRecording, setIsRecording] = useState(false);
+    const [stopCapture, setStopCapture] = useState<(() => void) | null>(null);
+
+    const onPressSelfOnboarding = async () => {
+        if (isRecording) {
+            try {
+                const connection = getConnection('openai');
+                if (connection) {
+                    stopScreenCapture(connection);
+                    stopCapture?.();
+                    setStopCapture(null);
+                    setIsRecording(false);
+                }
+            } catch (error) {
+                console.error('[HeaderView] Failed to stop recording:', error);
+            }
+            return;
+        }
+
+        try {
+            const connection = await initializeConnection('openai');
+            const stopFn = startScreenCapture(connection);
+            setStopCapture(() => stopFn);
+            setIsRecording(true);
+        } catch (error) {
+            console.error('[HeaderView] Failed to start recording:', error);
+        }
+    };
+
     const guideBookingButton = (
         <Button
             success
@@ -256,7 +287,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 </PressableWithoutFeedback>
                             )}
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <PressableWithoutFeedback
+                            <PressableWithoutFeedback
                                     onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                     disabled={shouldDisableDetailPage}
@@ -335,6 +366,14 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         </View>
                                     )}
                                 </PressableWithoutFeedback>
+                                {isAdminRoomReportUtils(report) && (
+                                    <View style={[styles.alignItemsEnd, styles.flex1]}>
+                                        <Button
+                                            text={isRecording ? "Stop Onboarding" : "Self-Onboarding"}
+                                            onPress={onPressSelfOnboarding}
+                                        />
+                                    </View>
+                                )}
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                     {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (

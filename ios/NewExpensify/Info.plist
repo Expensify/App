@@ -70,6 +70,10 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
+	<string>Video call requires camera access</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Audio call requires microphone access</string>
+	<key>NSCameraUsageDescription</key>
 	<string>Your camera is used to create chat attachments, documents, and facial capture.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Import contacts from your phone so your favorite people are always a tap away.</string>
