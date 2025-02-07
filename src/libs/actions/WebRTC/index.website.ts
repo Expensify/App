@@ -210,7 +210,7 @@ async function initializeConnection(type: 'openai' | 'screen') {
       
       connection.dataChannel.onmessage = (event: MessageEvent) => {
           const message: OpenAIRealtimeMessage = JSON.parse(event.data);
-          handleOpenAIMessage(message);
+          handleOpenAIMessage(message, connection.dataChannel);
       };
 
       return connection;
@@ -218,17 +218,39 @@ async function initializeConnection(type: 'openai' | 'screen') {
   throw new Error('Screen sharing now handled through direct API calls');
 }
 
-function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
+function handleOpenAIMessage(message: OpenAIRealtimeMessage, dataChannel: RTCDataChannel) {
   switch (message.type) {
-      case 'audio':
-          // Handle audio data
-          break;
-      case 'transcript':
-          // Handle transcript update
-          break;
-      case 'error':
-          console.error('[WebRTC] OpenAI error:', {message: message.message});
-          break;
+    case 'audio':
+        // Handle audio data
+        break;
+    case 'transcript':
+        // Handle transcript update
+        break;
+    case 'response.function_call_arguments.done':
+        handleFunctionCall(message).then(response => {
+          // Use this is you want to respond back to the agent with stuff from our API (images)
+          // dataChannel.send(JSON.stringify({
+          //   type: 'function_response',
+          //   content: response
+          // }));
+        });
+        break;
+    case 'error':
+        console.error('[WebRTC] OpenAI error:', {message: message.message});
+        break;
+  }
+}
+
+function handleFunctionCall(message: OpenAIRealtimeMessage) {
+  const args = JSON.parse(message.arguments);
+  switch (message.name) {
+    case 'UpdateIntroSelectedNVP':
+      return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_INTRO_SELECTED_NVP, {
+          choice: args.choice,
+      });
+    default:
+      return Promise.resolve(null);
+  // Add other function handlers
   }
 }
 
