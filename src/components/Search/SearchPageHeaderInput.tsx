@@ -43,7 +43,7 @@ import SearchButton from './SearchRouter/SearchButton';
 import {useSearchRouterContext} from './SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from './types';
 
-const isQueryNaturalSearch = (canUseNaturalSearch?: boolean, query: string): boolean => {
+const isQueryNaturalSearch = (query: string, canUseNaturalSearch?: boolean): boolean => {
     // Always return false if the beta to use natural search is not enabled
     if (!canUseNaturalSearch || !query) {
         return false;
@@ -98,7 +98,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
-    const [isNaturalSearch, setIsNaturalSearch] = useState(() => isQueryNaturalSearch(canUseNaturalSearch, queryText));
+    const [isNaturalSearch, setIsNaturalSearch] = useState(() => isQueryNaturalSearch(queryText, canUseNaturalSearch));
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(queryText);
@@ -137,9 +137,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
-            if (canUseNaturalSearch) {
-                setIsNaturalSearch(isQueryNaturalSearch(canUseNaturalSearch, userQuery));
-            }
+            setIsNaturalSearch(isQueryNaturalSearch(userQuery, canUseNaturalSearch));
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
