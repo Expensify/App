@@ -1,6 +1,6 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
-import DatePicker from '@components/DatePicker';
+import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
@@ -86,7 +86,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{formTitle}</Text>
             <InputWrapper
-                InputComponent={DatePicker}
+                InputComponent={DateInputModalPicker}
                 inputID={dobInputID}
                 label={translate('common.dob')}
                 placeholder={translate('common.dateFormat')}

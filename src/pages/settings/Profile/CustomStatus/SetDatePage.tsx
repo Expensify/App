@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import DatePicker from '@components/DatePicker';
+import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -67,7 +67,7 @@ function SetDatePage({customStatus}: SetDatePageProps) {
                 enabledWhenOffline
             >
                 <InputWrapper
-                    InputComponent={DatePicker}
+                    InputComponent={DateInputModalPicker}
                     inputID={INPUT_IDS.DATE_TIME}
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}

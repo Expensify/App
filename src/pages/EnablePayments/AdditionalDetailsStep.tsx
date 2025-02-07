@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import DatePicker from '@components/DatePicker';
+import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -207,7 +207,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         shouldSaveDraft
                     />
                     <InputWrapper
-                        InputComponent={DatePicker}
+                        InputComponent={DateInputModalPicker}
                         inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}

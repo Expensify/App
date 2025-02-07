@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import DatePicker from '@components/DatePicker';
+import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -67,7 +67,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
             <InputWrapper
-                InputComponent={DatePicker}
+                InputComponent={DateInputModalPicker}
                 inputID={COMPANY_INCORPORATION_DATE_KEY}
                 label={translate('businessInfoStep.incorporationDate')}
                 containerStyles={[styles.mt6]}

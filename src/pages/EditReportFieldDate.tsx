@@ -1,6 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import DatePicker from '@components/DatePicker';
+import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -54,7 +54,7 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
         >
             <View style={styles.mb4}>
                 <InputWrapper
-                    InputComponent={DatePicker}
+                    InputComponent={DateInputModalPicker}
                     inputID={fieldKey}
                     name={fieldKey}
                     defaultValue={fieldValue}

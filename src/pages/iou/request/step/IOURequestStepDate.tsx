@@ -2,7 +2,7 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import DatePicker from '@components/DatePicker';
+import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -127,7 +127,7 @@ function IOURequestStepDate({
                 enabledWhenOffline
             >
                 <InputWrapper
-                    InputComponent={DatePicker}
+                    InputComponent={DateInputModalPicker}
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     label={translate('common.date')}
                     defaultValue={currentCreated}

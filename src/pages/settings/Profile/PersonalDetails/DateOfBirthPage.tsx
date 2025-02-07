@@ -1,7 +1,7 @@
 import {subYears} from 'date-fns';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import DatePicker from '@components/DatePicker';
+import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -63,7 +63,7 @@ function DateOfBirthPage() {
                         enabledWhenOffline
                     >
                         <InputWrapper
-                            InputComponent={DatePicker}
+                            InputComponent={DateInputModalPicker}
                             inputID={INPUT_IDS.DOB}
                             label={translate('common.date')}
                             defaultValue={privatePersonalDetails?.dob ?? ''}
