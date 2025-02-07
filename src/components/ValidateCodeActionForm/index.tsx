@@ -1,21 +1,12 @@
 import React, {forwardRef, useEffect, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Text from '@components/Text';
+import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
+import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Text from './Text';
-import type {ValidateCodeActionModalProps} from './ValidateCodeActionModal/type';
-import ValidateCodeForm from './ValidateCodeActionModal/ValidateCodeForm';
-import type {ValidateCodeFormHandle} from './ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
-
-type ValidateCodeActionFormProps = {
-    /** Ref for validate code form */
-    forwardedRef: ForwardedRef<ValidateCodeFormHandle>;
-    isValidated: boolean;
-};
-
-type ValidateCodeActionProps = ValidateCodeActionModalProps & ValidateCodeActionFormProps;
+import type {ValidateCodeActionFormProps} from './type';
 
 function ValidateCodeActionForm({
     isValidated,
@@ -29,7 +20,7 @@ function ValidateCodeActionForm({
     hasMagicCodeBeenSent,
     isLoading,
     forwardedRef,
-}: ValidateCodeActionProps) {
+}: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
     const firstRenderRef = useRef(true);
     const isClosedRef = useRef(false);
@@ -66,31 +57,29 @@ function ValidateCodeActionForm({
         }
     }, [isValidated, sendValidateCode, hasMagicCodeBeenSent, clearError]);
 
-    if (!isValidated) {
-        return (
-            <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-                {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
-                <ValidateCodeForm
-                    isLoading={isLoading}
-                    validateCodeAction={validateCodeAction}
-                    validatePendingAction={validatePendingAction}
-                    validateError={validateError}
-                    handleSubmitForm={handleSubmitForm}
-                    sendValidateCode={sendValidateCode}
-                    clearError={clearError}
-                    buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
-                    ref={forwardedRef}
-                    hasMagicCodeBeenSent={canSendHasMagicCodeBeenSent}
-                />
-            </View>
-        );
-    }
+    return (
+        <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
+            <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
+            {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+            <ValidateCodeForm
+                isLoading={isLoading}
+                validateCodeAction={validateCodeAction}
+                validatePendingAction={validatePendingAction}
+                validateError={validateError}
+                handleSubmitForm={handleSubmitForm}
+                sendValidateCode={sendValidateCode}
+                clearError={clearError}
+                buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
+                ref={forwardedRef}
+                hasMagicCodeBeenSent={canSendHasMagicCodeBeenSent}
+            />
+        </View>
+    );
 }
 
 ValidateCodeActionForm.displayName = 'ValidateCodeActionForm';
 
-export default forwardRef<ValidateCodeFormHandle, ValidateCodeActionProps>((props, ref) => (
+export default forwardRef<ValidateCodeFormHandle, ValidateCodeActionFormProps>((props, ref) => (
     <ValidateCodeActionForm
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
