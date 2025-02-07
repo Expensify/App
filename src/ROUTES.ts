@@ -1624,6 +1624,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/rules/billable',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/billable` as const,
     },
+    RULES_PROHIBITED_DEFAULT: {
+        route: 'settings/workspaces/:policyID/rules/prohibited',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/prohibited` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',

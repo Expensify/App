@@ -1,6 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -15,6 +17,7 @@ import {setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
+import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -113,6 +116,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
+    const prohibitedExpenses = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
+
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
             title: maxExpenseAmountNoReceiptText,
@@ -172,6 +177,16 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         />
                     </OfflineWithFeedback>
                 ))}
+
+                <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
+                    <MenuItem
+                        title={translate('workspace.rules.individualExpenseRules.prohibitedExpenses')}
+                        shouldShowRightIcon
+                        titleStyle={styles.textLabelSupporting}
+                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                        onPress={() => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID))}
+                    />
+                </OfflineWithFeedback>
 
                 <View style={[styles.mt3]}>
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
