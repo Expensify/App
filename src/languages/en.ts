@@ -4690,6 +4690,11 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
+            customRules: {
+                title: 'Custom rules',
+                subtitle: 'Description',
+                description: 'Input custom rules for expense reports',
+            },
         },
         planTypePage: {
             planTypes: {

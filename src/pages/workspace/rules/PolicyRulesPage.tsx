@@ -10,6 +10,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import CustomRulesSection from './CustomRulesSection';
 import ExpenseReportRulesSection from './ExpenseReportRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 
@@ -41,6 +42,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <ExpenseReportRulesSection policyID={policyID} />
+                    <CustomRulesSection policyID={policyID} />
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
