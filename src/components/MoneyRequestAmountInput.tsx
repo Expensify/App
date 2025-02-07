@@ -93,8 +93,8 @@ type MoneyRequestAmountInputProps = {
     /** The width of inner content */
     contentWidth?: number;
 
-    /** Allow negative values for the input */
-    allowNegative?: boolean;
+    /** Whether the amount is negative */
+    isNegative?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
@@ -132,7 +132,7 @@ function MoneyRequestAmountInput(
         autoGrow = true,
         autoGrowExtraSpace,
         contentWidth,
-        allowNegative = false,
+        isNegative = false,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -344,6 +344,7 @@ function MoneyRequestAmountInput(
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             contentWidth={contentWidth}
+            isNegative={isNegative}
         />
     );
 }

@@ -104,6 +104,8 @@ function MoneyRequestAmountForm(
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
 
+    const [isNegative, setIsNegative] = useState(false);
+
     const [formError, setFormError] = useState<string>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -111,6 +113,8 @@ function MoneyRequestAmountForm(
     const wasFocused = usePrevious(isFocused);
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
+
+    const absoluteAmount = Math.abs(amount);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -163,23 +167,26 @@ function MoneyRequestAmountForm(
     );
 
     const onFlipAmount = useCallback(() => {
-        const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '0';
-
-        if (!currentAmount || currentAmount === '0') {
+        if (!moneyRequestAmountInput.current?.getAmount()) {
             return;
         }
 
-        const parsedAmount = parseFloat(currentAmount);
-        const newAmount = parsedAmount * -1;
-
-        moneyRequestAmountInput.current?.changeAmount(newAmount.toString());
+        setIsNegative((prevIsNegative) => !prevIsNegative);
     }, []);
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+        if (amount >= 0) {
             return;
         }
-        initializeAmount(amount);
+
+        setIsNegative(true);
+    }, [amount]);
+
+    useEffect(() => {
+        if (!currency || typeof absoluteAmount !== 'number') {
+            return;
+        }
+        initializeAmount(absoluteAmount);
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
@@ -241,9 +248,11 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+            const newAmount = isNegative ? `-${currentAmount}` : currentAmount;
+
+            onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
@@ -270,7 +279,7 @@ function MoneyRequestAmountForm(
                 style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <MoneyRequestAmountInput
-                    amount={amount}
+                    amount={absoluteAmount}
                     autoGrowExtraSpace={variables.w80}
                     currency={currency}
                     isCurrencyPressable={isCurrencyPressable}
@@ -295,7 +304,7 @@ function MoneyRequestAmountForm(
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
                     inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
-                    allowNegative
+                    isNegative={isNegative}
                 />
                 {!!formError && (
                     <FormHelpMessage
