@@ -12,12 +12,13 @@ import type {ValidateCodeFormHandle} from './ValidateCodeActionModal/ValidateCod
 type ValidateCodeActionFormProps = {
     /** Ref for validate code form */
     forwardedRef: ForwardedRef<ValidateCodeFormHandle>;
+    isValidated: boolean;
 };
 
 type ValidateCodeActionProps = ValidateCodeActionModalProps & ValidateCodeActionFormProps;
 
 function ValidateCodeActionForm({
-    isVisible,
+    isValidated,
     descriptionPrimary,
     descriptionSecondary,
     validatePendingAction,
@@ -36,6 +37,7 @@ function ValidateCodeActionForm({
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const [canSendHasMagicCodeBeenSent, setCanSendHasMagicCodeBeenSent] = useState(false);
+    const [shouldValidate, setShouldValidate] = useState(!isValidated);
 
     useEffect(
         () => () => {
@@ -49,13 +51,16 @@ function ValidateCodeActionForm({
         if (!firstRenderRef.current || hasMagicCodeBeenSent) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             return () => {
-                if (isClosedRef.current && isVisible) {
+		    console.log('shouldValidate,: ', shouldValidate)
+                if (isClosedRef.current && shouldValidate) {
+			console.log('clearError/////////////////////////')
                     clearError();
                 }
             };
         }
         firstRenderRef.current = false;
-        if (isVisible) {
+        if (shouldValidate) {
+		console.log('sendValidateCode****************************')
             sendValidateCode();
         }
         if (hasMagicCodeBeenSent) {
@@ -63,9 +68,9 @@ function ValidateCodeActionForm({
                 setCanSendHasMagicCodeBeenSent(true);
             });
         }
-    }, [isVisible, sendValidateCode, hasMagicCodeBeenSent, clearError]);
+    }, [sendValidateCode, hasMagicCodeBeenSent, clearError]);
 
-    if (isVisible) {
+    if (shouldValidate) {
         return (
             <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
                 <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
