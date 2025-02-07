@@ -1772,6 +1772,7 @@ const translations = {
         },
         translateMessage: 'Traduire les messages',
         viewOriginal: "Voir l'original",
+        showTranslation: 'Afficher la traduction',
     },
     themePage: {
         theme: 'Th\u00E8me',

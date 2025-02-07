@@ -277,6 +277,8 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
      * Note: This is sent by the backend but we don't use it locally
      */
     timestamp?: number;
+
+    shouldShowTranslation?: boolean;
 }>;
 
 /**

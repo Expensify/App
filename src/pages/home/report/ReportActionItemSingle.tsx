@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -101,6 +101,7 @@ function ReportActionItemSingle({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const [showOriginal, setShowOriginal] = useState(false);
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(report?.policyID);
@@ -281,6 +282,7 @@ function ReportActionItemSingle({
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
+    console.log('over here', action?.shouldShowTranslation)
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
@@ -333,11 +335,13 @@ function ReportActionItemSingle({
                         {action?.message?.[0]?.translatedText && (
                             <PressableWithoutFeedback
                                 style={[styles.ml1]}
-                                onPress={() => console.log('pressed')}
+                                onPress={() => setShowOriginal(!showOriginal)}
                                 accessibilityLabel={actorHint}
                                 role={CONST.ROLE.BUTTON}
                             >
-                                <Text style={[styles.chatItemMessageHeaderTimestamp, styles.link]}>{translate('languagePage.viewOriginal')}</Text>
+                                <Text style={[styles.chatItemMessageHeaderTimestamp, styles.link]}>
+                                    {translate(showOriginal ? 'languagePage.showTranslation' : 'languagePage.viewOriginal')}
+                                </Text>
                             </PressableWithoutFeedback>
                         )}
                     </View>

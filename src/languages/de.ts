@@ -1775,6 +1775,7 @@ const translations = {
         },
         translateMessage: 'Nachrichten übersetzen',
         viewOriginal: 'Original anzeigen',
+        showTranslation: 'Übersetzung anzeigen',
     },
     themePage: {
         theme: 'Thema',

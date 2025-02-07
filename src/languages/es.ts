@@ -1746,6 +1746,7 @@ const translations = {
         },
         translateMessage: 'Traducir mensajes',
         viewOriginal: 'Ver original',
+        showTranslation: 'Mostrar traducción',
     },
     themePage: {
         theme: 'Tema',

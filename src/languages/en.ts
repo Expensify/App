@@ -1743,6 +1743,7 @@ const translations = {
         },
         translateMessage: 'Translate messages',
         viewOriginal: 'View original',
+        showTranslation: 'Show translation',
     },
     themePage: {
         theme: 'Theme',

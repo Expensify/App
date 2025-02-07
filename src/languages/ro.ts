@@ -1800,6 +1800,7 @@ const translations = {
         },
         translateMessage: 'Tradu mesajele',
         viewOriginal: 'Vezi originalul',
+        showTranslation: 'Afișează traducerea',
     },
     themePage: {
         theme: 'Tem\u0103',
