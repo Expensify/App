@@ -30,7 +30,7 @@ import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {initializeConnection, getConnection, stopScreenRecording, startScreenRecording} from '@libs/actions/WebRTC';
+import {initializeConnection, getConnection, stopConnection} from '@libs/actions/WebRTC';
 import Parser from '@libs/Parser';
 import {
     canJoinChat,
@@ -205,21 +205,20 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
+    const [isOnboarding, setIsOnboarding] = useState(!!getConnection('openai'));
 
-    const [isRecording, setIsRecording] = useState(false);
-    const [stopCapture, setStopCapture] = useState<(() => void) | null>(null);
     const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
-
-    const onPressSelfOnboarding = async () => {
-        if (isRecording) {
+    
+    const onPressSelfOnboarding = async () => {    
+        if (isOnboarding) {
             try {
-                setIsRecording(false);
-
+                stopConnection();
                 Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, {
                     open: false,
                     openMobile: false
                 });
+                setIsOnboarding(false);
             } catch (error) {
                 console.error('[HeaderView] Failed to stop recording:', error);
             }
@@ -228,15 +227,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
         try {
             const connection = await initializeConnection('openai', report?.reportID);
-            
-            /** 
-            Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, 
-                isExtraLargeScreenWidth 
-                    ? {open: !sidePanel?.open} 
-                    : {open: !sidePanel?.openMobile, openMobile: !sidePanel?.openMobile}
-            );
-            */
-            setIsRecording(true);
+            setIsOnboarding(true);
         } catch (error) {
             console.error('[HeaderView] Failed to start recording:', error);
         }
@@ -375,7 +366,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                             </PressableWithoutFeedback>
                                 {isAdminRoomReportUtils(report) && (
                                     <Button
-                                        text={isRecording ? "Stop Onboarding" : "Self-Onboarding"}
+                                        text={isOnboarding ? "Stop Onboarding" : "Self-Onboarding"}
                                         onPress={onPressSelfOnboarding}
                                         style={[styles.alignItemsEnd, styles.flex1]}
                                     />

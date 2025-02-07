@@ -131,6 +131,22 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage, dataChannel: RTCDat
   }
 }
 
+function stopConnection() {
+  const existingConnection = connections.openai;
+  if (existingConnection) {
+      // Close data channel first
+      if (existingConnection.dataChannel.readyState === 'open') {
+          existingConnection.dataChannel.close();
+      }
+      
+      // Close peer connection and clean up
+      existingConnection.pc.close();
+      
+      // Clear the stored connection
+      connections.openai = null;
+  }
+}
+
 function handleFunctionCall(message: OpenAIRealtimeMessage) {
   if (message.name === 'SendRecapInAdminsRoom') {
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEND_RECAP_IN_ADMINS_ROOM, {
@@ -148,6 +164,7 @@ export {
     initializeConnection,
     getConnection,
     handleOpenAIMessage,
+    stopConnection,
 };
   
   
