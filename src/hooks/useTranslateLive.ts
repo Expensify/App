@@ -20,6 +20,10 @@ export default function useTranslateLive(reportID: string | undefined, reportAct
             return;
         }
 
+        if (preferredLocale === 'en' || preferredLocale === 'es') {
+            return;
+        }
+
         if (reportAction.message?.length > 1) {
             return;
         }
