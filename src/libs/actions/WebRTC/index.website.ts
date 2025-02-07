@@ -12,14 +12,12 @@ import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
 import type {OpenAIRealtimeMessage, ConnectionResult, WebRTCConnections} from './types';
 
-let currentScreenCaptureDescription: string | null = null;
+let currentAdminsReportID: number | null = null;
 
 let connections: WebRTCConnections = {
   openai: null,
   screen: null,
 };
-
-let screenCaptureCleanup: (() => void) | null = null;
 
 async function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     return new Promise(async (resolve, reject) => {
@@ -100,128 +98,8 @@ async function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     });
   }
 
-async function startScreenRecording(openaiConn: ConnectionResult) {
-    if (screenCaptureCleanup) {
-        return;
-    }
-
-    let isCapturing = true;
-    let lastCaptureTime = 0;
-    const CAPTURE_INTERVAL = 10000;
-    const JPEG_QUALITY = 0.6;
-
-    try {
-        const stream = await mediaDevices.getDisplayMedia({ 
-            video: { 
-                frameRate: { ideal: 1 },
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            },
-            audio: false 
-        });
-
-        const videoTrack = stream.getVideoTracks()[0];
-        const video = document.createElement('video');
-        video.srcObject = new MediaStream([videoTrack]);
-        video.autoplay = true;
-
-        // Wait for video to be ready
-        await new Promise((resolve) => {
-            video.onloadedmetadata = () => {
-                video.play();
-                resolve(null);
-            };
-        });
-
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d', { alpha: false });
-
-        const capture = async () => {
-            if (!isCapturing || !ctx || !video.videoWidth) return;
-            const currentTime = Date.now();
-            if (currentTime - lastCaptureTime < CAPTURE_INTERVAL) {
-                requestAnimationFrame(capture);
-                return;
-            }
-
-            try {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
-
-                const blob = await new Promise<Blob>((resolve) => 
-                    canvas.toBlob((b) => resolve(b!), 'image/jpeg', JPEG_QUALITY)
-                );
-
-                const base64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result as string);
-                    reader.readAsDataURL(blob);
-                });
-
-                console.log('[JACK] base64', base64);
-
-                // Send to API endpoint
-                const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DESCRIBE_IMAGE, {
-                  base64image: base64
-                });
-
-                console.log('[JACK] response', response);
-
-                // TODO Update this to use the actual description
-                currentScreenCaptureDescription = 'The screen is entirely blue with red dots';
-                
-                 /** 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.description) {
-                        openaiConn.dataChannel.send(JSON.stringify({
-                            type: 'screen_description',
-                            description: data.description
-                        }));
-                    }
-                }
-                */
-
-                lastCaptureTime = currentTime;
-                requestAnimationFrame(capture);
-            } catch (error) {
-                console.error('[WebRTC] Capture error:', error);
-                requestAnimationFrame(capture);
-            }
-        };
-
-        // Start the capture loop
-        requestAnimationFrame(capture);
-
-        screenCaptureCleanup = () => {
-            isCapturing = false;
-            stream.getTracks().forEach(track => track.stop());
-            screenCaptureCleanup = null;
-        };
-
-    } catch (error) {
-        console.error('[WebRTC] Screen capture error:', error);
-        screenCaptureCleanup = null;
-        throw error;
-    }
-}
-
-function stopScreenRecording() {
-  if (screenCaptureCleanup) {
-      screenCaptureCleanup();
-  }
-
-  // Close OpenAI connection if it exists
-  const existingConnection = connections.openai;
-  if (existingConnection) {
-      existingConnection.pc.close();
-      existingConnection.dataChannel.close();
-      connections.openai = null;
-  }
-}
-
-async function initializeConnection(type: 'openai' | 'screen') {
+async function initializeConnection(type: 'openai' | 'screen', adminsReportID: number) {
+  currentAdminsReportID = adminsReportID;
   if (type === 'openai') {
       const connection = await connectToOpenAIRealtime();
       connections.openai = connection;
@@ -244,8 +122,8 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage, dataChannel: RTCDat
     case 'transcript':
         // Handle transcript update
         break;
-    case 'input_audio_buffer.speech_stopped':
-      handleUserSpeechStopped(dataChannel);
+    case 'response.function_call_arguments.done':
+      handleFunctionCall(message);
       break;
     case 'error':
         console.error('[WebRTC] OpenAI error:', {message: message.message});
@@ -253,30 +131,12 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage, dataChannel: RTCDat
   }
 }
 
-function handleUserSpeechStopped(dataChannel: RTCDataChannel) {
-  dataChannel.send(JSON.stringify({
-    type: 'conversation.item.create',
-    item: {
-      type: 'message',
-      role: 'user',
-      content: {
-        type: 'input_text',
-        text: currentScreenCaptureDescription
-      }
-    }
-  }));
-}
-
 function handleFunctionCall(message: OpenAIRealtimeMessage) {
-  const args = JSON.parse(message.arguments);
-  switch (message.name) {
-    case 'UpdateIntroSelectedNVP':
-      return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_INTRO_SELECTED_NVP, {
-          choice: args.choice,
-      });
-    default:
-      return Promise.resolve(null);
-  // Add other function handlers
+  if (message.name === 'SendRecapInAdminsRoom') {
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEND_RECAP_IN_ADMINS_ROOM, {
+      ...JSON.parse(message.arguments),
+      reportID: currentAdminsReportID
+    });
   }
 }
 
@@ -284,28 +144,10 @@ function getConnection(type: 'openai' | 'screen'): ConnectionResult | null {
     return connections[type];
 }
 
-function stopScreenCapture(connection: ConnectionResult) {
-    const existingConnection = connections.openai;
-    if (existingConnection) {
-        existingConnection.pc.close();
-        existingConnection.dataChannel.close();
-        connections.openai = null;
-    }
-
-    // Stop all tracks from the screen capture
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            stream.getTracks().forEach(track => track.stop());
-        })
-        .catch(console.error);
-}
-
 export {
     initializeConnection,
     getConnection,
     handleOpenAIMessage,
-    startScreenRecording,
-    stopScreenRecording,
 };
   
   

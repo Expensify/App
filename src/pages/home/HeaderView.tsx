@@ -214,7 +214,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const onPressSelfOnboarding = async () => {
         if (isRecording) {
             try {
-                stopScreenRecording();
                 setIsRecording(false);
 
                 Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, {
@@ -228,8 +227,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         }
 
         try {
-            const connection = await initializeConnection('openai');
-            await startScreenRecording(connection);
+            const connection = await initializeConnection('openai', report?.reportID);
             
             /** 
             Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, 
