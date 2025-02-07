@@ -732,6 +732,8 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
     if (requestCommentAction.originalMessage) {
         requestCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
     }
+    const nowDate = Date.now();
+    requestCommentAction.created = DateUtils.getDBTimeWithSkew(nowDate);
 
     requestCommentText = requestComment.commentText.slice(command.command.length);
 
@@ -740,6 +742,7 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
     if (answerCommentAction.originalMessage) {
         answerCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
     }
+    answerCommentAction.created = DateUtils.getDBTimeWithSkew(nowDate + 100);
 
     const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
     optimisticReportActions[requestCommentAction.reportActionID] = requestCommentAction;
@@ -754,11 +757,6 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
     };
 
     const optimisticData: OnyxUpdate[] = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        //     value: optimisticReport,
-        // },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -782,20 +780,15 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
 
     const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
 
-    Object.entries(optimisticReportActions).forEach(([actionKey, _action]) => {
+    Object.entries(optimisticReportActions).forEach(([actionKey, actionData]) => {
         failureReportActions[actionKey] = {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            ...(_action as OptimisticAddCommentReportAction),
+            ...(actionData as OptimisticAddCommentReportAction),
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
     });
 
     const failureData: OnyxUpdate[] = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        //     value: failureReport,
-        // },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
