@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setLocaleAndNavigate} from '@userActions/App';
 import type {ListItem} from '@src/components/SelectionList/types';
 import CONST from '@src/CONST';
+import { background } from '@storybook/theming';
 
 type LanguageEntry = ListItem & {
     value: ValueOf<typeof CONST.LOCALES>;
@@ -48,6 +49,7 @@ function LanguagePage() {
                 onSelectRow={updateLanguage}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={localesToLanguages.find((locale) => locale.isSelected)?.keyForList}
+                listItemTitleStyles={{fontFamily: 'INTER'}}
             />
         </ScreenWrapper>
     );

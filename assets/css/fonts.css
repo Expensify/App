@@ -69,6 +69,19 @@
 }
 
 @font-face {
+    font-family: Inter;
+    src: url('/fonts/Inter-Regular.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+@font-face {
+    font-family: Inter;
+    src: url('/fonts/Inter-Italic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face {
     font-family: Windows Segoe UI Emoji;
     src: url('/fonts/seguiemj.ttf');
 }
