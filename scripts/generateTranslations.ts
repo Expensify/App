@@ -31,7 +31,7 @@ const debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest
 //             messages: [
 //                 {
 //                     role: 'system',
-//                     content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like {username}, {count}, etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code.`,
+//                     content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like \${username}, \${count}, \${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code.`,
 //                 },
 //                 {role: 'user', content: text},
 //             ],
