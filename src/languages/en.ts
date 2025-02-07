@@ -554,6 +554,12 @@ const translations = {
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
         taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum task title length is ${formattedMaxLength} characters.`,
+        commands: {
+            summarize: 'Summarize messages',
+            request: 'TODO',
+            export: 'Export expenses report',
+            split: 'TODO',
+        },
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',

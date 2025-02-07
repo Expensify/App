@@ -7,6 +7,7 @@ import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import type {TranslationPaths} from './languages/types';
 import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
@@ -306,6 +307,35 @@ type OnboardingMessage = {
     /** Type of task described in a string format */
     type?: string;
 };
+
+type ComposerCommand = {
+    command: string;
+    icon: string;
+    descriptionKey: TranslationPaths;
+};
+
+const COMPOSER_COMMANDS: ComposerCommand[] = [
+    {
+        command: '/summarize',
+        icon: 'TODO',
+        descriptionKey: 'composer.commands.summarize',
+    },
+    {
+        command: '/export',
+        icon: 'TODO',
+        descriptionKey: 'composer.commands.export',
+    },
+    {
+        command: '/request',
+        icon: 'TODO',
+        descriptionKey: 'composer.commands.request',
+    },
+    {
+        command: '/split',
+        icon: 'TODO',
+        descriptionKey: 'composer.commands.split',
+    },
+];
 
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
@@ -6627,6 +6657,7 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    COMPOSER_COMMANDS,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
