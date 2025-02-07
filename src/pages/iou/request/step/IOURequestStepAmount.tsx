@@ -309,7 +309,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
-                allowFlippingCurrency={true}
+                allowFlippingCurrency
             />
         </StepScreenWrapper>
     );
