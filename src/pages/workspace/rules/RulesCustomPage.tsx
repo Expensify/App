@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Parser from '@libs/Parser';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +33,7 @@ function RulesCustomPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [customRulesValue, setCustomRulesValue] = useState(policy?.rules?.customRules ?? '');
+    const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(policy?.rules?.customRules ?? ''));
 
     const onChangeCustomRules = useCallback((newValue: string) => {
         setCustomRulesValue(newValue);
@@ -73,6 +74,8 @@ function RulesCustomPage({
                             value={customRulesValue}
                             onChangeText={onChangeCustomRules}
                             ref={inputCallbackRef}
+                            type="markdown"
+                            autoGrowHeight
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.customRules.description')}</Text>
                     </View>
