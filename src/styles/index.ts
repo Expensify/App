@@ -4177,10 +4177,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContainer: {
-            width: variables.eReceiptBGHWidth,
+            minWidth: variables.eReceiptBGHWidth,
             minHeight: variables.eReceiptBGHeight,
-            borderRadius: 20,
             overflow: 'hidden',
+            maxWidth: '100%',
         },
 
         eReceiptContentContainer: {

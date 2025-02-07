@@ -23,6 +23,9 @@ type EReceiptProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string | undefined;
 };
+
+const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
+const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
 function EReceipt({transactionID}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,9 +35,6 @@ function EReceipt({transactionID}: EReceiptProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionID);
-
-    const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
-    const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
 
     const {
         amount: transactionAmount,
@@ -49,6 +49,7 @@ function EReceipt({transactionID}: EReceiptProps) {
     const cardDescription = getCardName(transaction) ?? (transactionCardID ? getCardDescription(transactionCardID) : '');
 
     const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;
+    const secondaryBgcolorStyle = secondaryColor ? StyleUtils.getBackgroundColorStyle(secondaryColor) : undefined;
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
 
     return (
@@ -75,7 +76,7 @@ function EReceipt({transactionID}: EReceiptProps) {
                                     styles.alignItemsCenter,
                                     styles.justifyContentCenter,
                                     styles.borderRadiusComponentLarge,
-                                    {backgroundColor: secondaryColor},
+                                    secondaryBgcolorStyle,
                                     styles.mb4,
                                 ]}
                             >

@@ -68,8 +68,8 @@ const workspaceColorOptions: SVGAvatarColorStyle[] = [
 
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
     [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
-    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.blue800, color: colors.ice400},
-    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue400, color: colors.blue100},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.ice800, color: colors.ice400},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue800, color: colors.blue400},
     [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
     [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
     [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
