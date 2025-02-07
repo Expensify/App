@@ -3179,6 +3179,7 @@ const CONST = {
 
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
+        QUESTION: /^\\question (.*)/,
 
         EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,

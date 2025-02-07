@@ -712,6 +712,10 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     notifyNewAction(reportID, lastAction?.actorAccountID, lastAction?.reportActionID);
 }
 
+function explainFeature(question: string) {
+    API.write(WRITE_COMMANDS.EXPLAIN_FEATURE, {question});
+}
+
 /** Add an attachment and optional comment. */
 function addAttachment(reportID: string, file: FileObject, text = '') {
     addActions(reportID, text, file);
@@ -4690,6 +4694,7 @@ export {
     deleteReportField,
     dismissTrackExpenseActionableWhisper,
     editReportComment,
+    explainFeature,
     expandURLPreview,
     exportReportToCSV,
     exportToIntegration,
