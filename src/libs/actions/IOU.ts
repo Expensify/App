@@ -6724,20 +6724,20 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
                 return;
             }
 
-            const dulipcateViolation = duplicateTransactionsViolations.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-            if (!dulipcateViolation?.data?.duplicates) {
+            const duplicateViolation = duplicateTransactionsViolations.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            if (!duplicateViolation?.data?.duplicates) {
                 return;
             }
 
-            const duplicateTransactionIDs = dulipcateViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
+            const duplicateTransactionIDs = duplicateViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
 
             const optimisticViolations: OnyxTypes.TransactionViolations = duplicateTransactionsViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
 
             if (duplicateTransactionIDs.length > 0) {
                 optimisticViolations.push({
-                    ...dulipcateViolation,
+                    ...duplicateViolation,
                     data: {
-                        ...dulipcateViolation.data,
+                        ...duplicateViolation.data,
                         duplicates: duplicateTransactionIDs,
                     },
                 });
