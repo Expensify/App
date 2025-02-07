@@ -4001,6 +4001,19 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        distanceLabelWrapper: {
+            backgroundColor: colors.green500,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        distanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.productLight100,
+        },
+
         productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
             borderRadius: variables.componentBorderRadiusNormal,
