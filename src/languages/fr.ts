@@ -1770,6 +1770,7 @@ const translations = {
             ja: {label: '日本語'},
         },
         translateMessage: 'Traduire les messages',
+        viewOriginal: "Voir l'original",
     },
     themePage: {
         theme: 'Th\u00E8me',

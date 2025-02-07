@@ -1772,8 +1772,9 @@ const translations = {
             ch: {label: '中文'},
             ja: {label: '日本語'},
         },
+        translateMessage: 'Nachrichten übersetzen',
+        viewOriginal: 'Original anzeigen',
     },
-    translateMessage: 'Nachrichten übersetzen',
     themePage: {
         theme: 'Thema',
         themes: {

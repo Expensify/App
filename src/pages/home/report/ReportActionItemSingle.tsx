@@ -337,7 +337,7 @@ function ReportActionItemSingle({
                                 accessibilityLabel={actorHint}
                                 role={CONST.ROLE.BUTTON}
                             >
-                                <Text style={[styles.chatItemMessageHeaderTimestamp, styles.link]}>View original</Text>
+                                <Text style={[styles.chatItemMessageHeaderTimestamp, styles.link]}>{translate('languagePage.viewOriginal')}</Text>
                             </PressableWithoutFeedback>
                         )}
                     </View>

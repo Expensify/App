@@ -1743,6 +1743,8 @@ const translations = {
             ch: {label: '中文'},
             ja: {label: '日本語'},
         },
+        translateMessage: 'Traducir mensajes',
+        viewOriginal: 'Ver original',
     },
     themePage: {
         theme: 'Tema',
