@@ -145,12 +145,13 @@ function ReportActionsListItemRenderer({
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && (!isTransactionThread(parentReportAction) || isSentMoneyReportAction(parentReportAction));
     const shouldDisplayTripSummary = shouldDisplayParentAction && isTripRoom(report);
+    const shouldChatThread = isChatThread(report);
 
-    if (shouldDisplayTripSummary) {
+    if (shouldDisplayTripSummary && !shouldChatThread) {
         return <TripSummary report={report} />;
     }
 
-    if (shouldDisplayParentAction && isChatThread(report)) {
+    if (shouldDisplayParentAction && shouldChatThread) {
         return (
             <ReportActionItemParentAction
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
