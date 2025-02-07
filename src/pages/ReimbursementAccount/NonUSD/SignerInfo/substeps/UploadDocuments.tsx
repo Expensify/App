@@ -11,6 +11,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
 import CONST from '@src/CONST';

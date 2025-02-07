@@ -1,20 +1,21 @@
 import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AttachmentModalBaseContentProps} from './BaseContent';
 import type {AttachmentModalContent} from './types';
 
 const WorkspaceAvatarModalContent: AttachmentModalContent = ({params, children}) => {
-    const policyID = params.policyID ?? '-1';
+    const policyID = params.policyID ?? CONST.DEFAULT_NUMBER_ID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 
     const contentProps = useMemo(
         () =>
             ({
-                source: policy?.avatarURL ?? '' ? policy?.avatarURL ?? '' : getDefaultWorkspaceAvatar(policy?.name ?? ''),
-                headerTitle: policy?.name ?? '',
+                source: policy?.avatarURL ? policy?.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
+                headerTitle: policy?.name,
                 isWorkspaceAvatar: true,
                 originalFileName: policy?.originalFileName ?? policy?.id,
                 shouldShowNotFoundPage: !Object.keys(policy ?? {}).length && !isLoadingApp,
