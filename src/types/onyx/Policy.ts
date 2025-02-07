@@ -1517,10 +1517,10 @@ type ACHAccount = {
 /** Prohibited expense types */
 type ProhibitedExpenses = {
     /** Whether the policy prohibits alcohol expenses */
-    alcohol: boolean;
+    alcohol?: boolean;
 
     /** Whether the policy prohibits hotel incidental expenses */
-    hotelIncidentals: boolean;
+    hotelIncidentals?: boolean;
 };
 
 /** Day of the month to schedule submission  */
@@ -2052,4 +2052,5 @@ export type {
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
+    ProhibitedExpenses,
 };

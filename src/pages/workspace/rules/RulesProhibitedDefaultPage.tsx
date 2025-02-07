@@ -11,8 +11,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {ProhibitedExpenses} from '@src/types/onyx/Policy';
 
 type ProhibitedExpensesProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT>;
 
@@ -49,7 +51,14 @@ function RulesProhibitedDefaultPage({
                     <Switch
                         isOn={policy?.prohibitedExpenses?.alcohol ?? false}
                         accessibilityLabel={translate('workspace.rules.individualExpenseRules.alcohol')}
-                        onToggle={() => console.log('Switched')}
+                        onToggle={() => {
+                            const prohibitedExpenses: ProhibitedExpenses = {
+                                // Toggle alcohol value on  switch
+                                alcohol: !policy?.prohibitedExpenses?.alcohol,
+                                hotelIncidentals: policy?.prohibitedExpenses?.hotelIncidentals,
+                            };
+                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                        }}
                     />
                 </View>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
@@ -57,7 +66,14 @@ function RulesProhibitedDefaultPage({
                     <Switch
                         isOn={policy?.prohibitedExpenses?.hotelIncidentals ?? false}
                         accessibilityLabel={translate('workspace.rules.individualExpenseRules.hotelIncidentals')}
-                        onToggle={() => console.log('Switched')}
+                        onToggle={() => {
+                            const prohibitedExpenses: ProhibitedExpenses = {
+                                alcohol: policy?.prohibitedExpenses?.alcohol,
+                                // Toggle hotel incidentals value on switch
+                                hotelIncidentals: !policy?.prohibitedExpenses?.hotelIncidentals,
+                            };
+                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                        }}
                     />
                 </View>
             </ScreenWrapper>
