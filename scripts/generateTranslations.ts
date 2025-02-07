@@ -17,8 +17,7 @@ const TARGET_LANGUAGES = ['es'];
 
 // Temporary placeholder for actual translation function
 async function translate(text: string, targetLang: string): Promise<string> {
-    return Promise.resolve(text);
-    // return Promise.resolve(`[${targetLang}] ${text}`);
+    return Promise.resolve(`[${targetLang}] ${text}`);
 }
 
 const tsPrinter = ts.createPrinter();
