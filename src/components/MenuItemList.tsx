@@ -6,6 +6,7 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {BookmarkSparkle} from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -87,7 +88,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
                     ref={mergeRefs(ref, popoverAnchor)}
                     shouldBlockSelection={!!menuItemProps.link}
-                    icon={icon}
+                    icon={menuItemProps.wasGeneratedByAI ? BookmarkSparkle : icon}
                     iconWidth={iconWidth}
                     iconHeight={iconHeight}
                     // eslint-disable-next-line react/jsx-props-no-spreading

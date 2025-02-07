@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -36,6 +37,7 @@ import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue}
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResults} from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
@@ -129,6 +131,26 @@ function SearchAutocompleteList(
     const policy = usePolicy(activeWorkspaceID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
+    const [snapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {
+        selector: (snapshot: OnyxCollection<SearchResults>) => {
+            if (!snapshot) {
+                return {};
+            }
+            const miniSnapshots = {} as Record<string, unknown>;
+            Object.keys(snapshot).forEach((key) => {
+                const recentSearchKey = snapshot[key]?.search?.recentSearchHash ?? -1;
+                if (recentSearchKey === -1 || !snapshot[key]?.search?.userQuery) {
+                    return;
+                }
+                miniSnapshots[recentSearchKey] = {
+                    userQuery: snapshot[key]?.search?.userQuery,
+                    searchSyntax: snapshot[key]?.search?.searchSyntax,
+                };
+            });
+            return miniSnapshots;
+        },
+    });
+
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
@@ -376,14 +398,25 @@ function SearchAutocompleteList(
     ]);
 
     const sortedRecentSearches = useMemo(() => {
-        return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+        const searches = recentSearches ?? {};
+        return Object.keys(searches)
+            .map((key) => ({key, ...searches[key]}))
+            .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
     }, [recentSearches]);
 
-    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
+    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map((item) => {
+        const {key, query, timestamp} = item;
+        const snapshotData = snapshots?.[key] as {userQuery: string; searchSyntax: string};
+        const isAI = !!snapshotData;
         const searchQueryJSON = buildSearchQueryJSON(query);
+        let text = searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards) : query;
+        if (isAI) {
+            text = snapshotData?.userQuery;
+        }
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards) : query,
-            singleIcon: Expensicons.History,
+            text,
+            isAI,
+            singleIcon: isAI ? Expensicons.Sparkle : Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,
             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,

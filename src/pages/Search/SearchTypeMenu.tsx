@@ -120,9 +120,24 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, isNarrow: boolean, index: number) => {
             let title = item.name;
+            let wasGeneratedByAI = false;
+
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
                 title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
+            } else if (title.includes('AI')) {
+                // TODO: remove hardcoded AI string
+                const titleSections = title.split('AI -');
+                if (titleSections.length === 2) {
+                    const possibleTitle = titleSections.at(1)?.trim() ?? '';
+                    if (possibleTitle.length > 0) {
+                        wasGeneratedByAI = true;
+                        title = possibleTitle;
+                    } else {
+                        // HACK: If the title is empty not AI generated
+                        title = item.query;
+                    }
+                }
             }
 
             return {
@@ -130,6 +145,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
                 title,
                 hash: key,
                 query: item.query,
+                wasGeneratedByAI,
                 shouldShowRightComponent: true,
                 focused: Number(key) === hash,
                 onPress: () => {

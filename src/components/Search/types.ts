@@ -116,6 +116,8 @@ type SearchQueryAST = {
     sortOrder: SortOrder;
     filters: ASTNode;
     policyID?: string;
+    userQuery?: string;
+    searchSyntax?: string;
 };
 
 type SearchQueryJSON = {

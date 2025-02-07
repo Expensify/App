@@ -66,6 +66,16 @@ type SearchResultsInfo = {
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
 
+    // TODO: now for natural language search
+    /** The hash of the most recent search */
+    recentSearchHash?: string;
+
+    /** The raw search query */
+    userQuery?: string;
+
+    /** The search query */
+    searchSyntax?: string;
+
     /** A hash of the search query */
     hash?: number;
 };
