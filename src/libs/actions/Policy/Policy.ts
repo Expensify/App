@@ -3870,6 +3870,63 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
 }
 
 /**
+ * Call the API to set the custom rules for the given policy
+ * @param policyID - id of the policy to set the max expense age
+ * @param customRules - the custom rules description in natural language
+ */
+function setPolicyCustomRules(policyID: string, customRules: string) {
+    const policy = getPolicy(policyID);
+    const originalCustomRules = policy?.rules?.customRules;
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        customRules,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        // TODO
+                        // maxExpenseAge: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    rules: {
+                        customRules: originalCustomRules,
+                    },
+                    // TODO
+                    // pendingFields: {maxExpenseAge: null},
+                    // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        customRules,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CUSTOM_RULES, parameters, onyxData);
+}
+
+/**
  * Call the API to enable or disable the billable mode for the given policy
  * @param policyID - id of the policy to enable or disable the bilable mode
  * @param defaultBillable - whether the billable mode is enabled in the given policy
@@ -4918,6 +4975,7 @@ export {
     setPolicyMaxExpenseAmountNoReceipt,
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
+    setPolicyCustomRules,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
