@@ -8,7 +8,6 @@ const useHover = () => {
             onMouseEnter: () => setHovered(true),
             onMouseLeave: () => setHovered(false),
         },
-        setHovered,
     };
 };
 
