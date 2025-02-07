@@ -31,7 +31,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
 
     const config = policy?.connections?.netsuite?.options.config;
     const currentSettingName = isReimbursable ? CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT : CONST.NETSUITE_CONFIG.PAYABLE_ACCT;
-    const currentPayableAccountID = config?.[currentSettingName];
+    const currentPayableAccountID = config?.[currentSettingName] ?? CONST.NETSUITE_PAYABLE_ACCOUNT_DEFAULT_VALUE;
     const netsuitePayableAccountOptions = useMemo<SelectorType[]>(() => getNetSuitePayableAccountOptions(policy ?? undefined, currentPayableAccountID), [currentPayableAccountID, policy]);
 
     const initiallyFocusedOptionKey = useMemo(() => netsuitePayableAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuitePayableAccountOptions]);
@@ -40,9 +40,9 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
         ({value}: SelectorType) => {
             if (currentPayableAccountID !== value && policyID) {
                 if (isReimbursable) {
-                    updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID ?? `${CONST.DEFAULT_NUMBER_ID}`);
+                    Connections.updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID);
                 } else {
-                    updateNetSuitePayableAcct(policyID, value, currentPayableAccountID ?? `${CONST.DEFAULT_NUMBER_ID}`);
+                    Connections.updateNetSuitePayableAcct(policyID, value, currentPayableAccountID);
                 }
             }
             Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));

@@ -2092,6 +2092,8 @@ const CONST = {
 
     NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
 
+    NETSUITE_PAYABLE_ACCOUNT_DEFAULT_VALUE: '',
+
     /**
      * Countries where tax setting is permitted (Strings are in the format of Netsuite's Country type/enum)
      *
