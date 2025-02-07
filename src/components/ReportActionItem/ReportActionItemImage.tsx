@@ -91,7 +91,7 @@ function ReportActionItemImage({
     const {translate} = useLocalize();
     const isDistanceRequest = !!transaction && TransactionUtils.isDistanceRequest(transaction);
     const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
-    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields);
+    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     const showMapAsImage = isDistanceRequest && (hasErrors || hasPendingWaypoints);
 
     if (showMapAsImage) {

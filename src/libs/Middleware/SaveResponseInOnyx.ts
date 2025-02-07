@@ -10,7 +10,6 @@ const requestsToIgnoreLastUpdateID: string[] = [
     SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
     WRITE_COMMANDS.CLOSE_ACCOUNT,
     WRITE_COMMANDS.DELETE_MONEY_REQUEST,
-    WRITE_COMMANDS.SUBMIT_REPORT,
     SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
 ];
 
@@ -26,13 +25,16 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
 
         const responseToApply = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-            lastUpdateID: Number(response?.lastUpdateID ?? 0),
-            previousUpdateID: Number(response?.previousUpdateID ?? 0),
+            lastUpdateID: Number(response?.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
+            previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
             request,
             response: response ?? {},
         };
 
-        if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response?.previousUpdateID ?? 0))) {
+        if (
+            requestsToIgnoreLastUpdateID.includes(request.command) ||
+            !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})
+        ) {
             return OnyxUpdates.apply(responseToApply);
         }
 

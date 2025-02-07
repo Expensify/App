@@ -1,24 +1,31 @@
 import React from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type NotFoundPageProps = {
     onBackButtonPress?: () => void;
     isReportRelatedPage?: boolean;
+    shouldShowOfflineIndicator?: boolean;
 } & FullPageNotFoundViewProps;
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRelatedPage, ...fullPageNotFoundViewProps}: NotFoundPageProps) {
+function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRelatedPage, shouldShowOfflineIndicator, ...fullPageNotFoundViewProps}: NotFoundPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to go back to the not found page on large screens and to the home page on small screen
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const topmostReportId = Navigation.getTopmostReportId();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
 
     return (
-        <ScreenWrapper testID={NotFoundPage.displayName}>
+        <ScreenWrapper
+            testID={NotFoundPage.displayName}
+            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+        >
             <FullPageNotFoundView
                 shouldShow
                 onBackButtonPress={() => {
@@ -26,8 +33,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
                         onBackButtonPress();
                         return;
                     }
-                    const topmostReportId = Navigation.getTopmostReportId();
-                    const report = ReportUtils.getReport(topmostReportId ?? '');
+
                     // detect the report is invalid
                     if (topmostReportId && (!report || report.errorFields?.notFound)) {
                         Navigation.dismissModal();

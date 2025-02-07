@@ -7,7 +7,7 @@ type CollectionDataSet<TCollectionKey extends OnyxCollectionKey> = Record<`${TCo
 const toCollectionDataSet = <TCollectionKey extends OnyxCollectionKey>(
     collectionKey: TCollectionKey,
     collection: Array<OnyxInputValue<OnyxCollectionValuesMapping[TCollectionKey]>>,
-    idSelector: (collectionValue: OnyxCollectionValuesMapping[TCollectionKey]) => string,
+    idSelector: (collectionValue: OnyxCollectionValuesMapping[TCollectionKey]) => string | undefined,
 ) => {
     const collectionDataSet = collection.reduce<CollectionDataSet<TCollectionKey>>((result, collectionValue) => {
         if (collectionValue) {

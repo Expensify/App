@@ -43,7 +43,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
             Navigation.goBack();
             return;
         }
-        if (!customUnit) {
+        if (!customUnit || !rate) {
             return;
         }
         DistanceRate.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);

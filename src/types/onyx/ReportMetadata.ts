@@ -1,3 +1,17 @@
+import type * as OnyxCommon from './OnyxCommon';
+
+/** The pending member of report */
+type PendingChatMember = {
+    /** Account ID of the pending member */
+    accountID: string;
+
+    /** Action to be applied to the pending member of report */
+    pendingAction: OnyxCommon.PendingAction;
+
+    /** Collection of errors to show to the user */
+    errors?: OnyxCommon.Errors;
+};
+
 /** Model of report metadata */
 type ReportMetadata = {
     /** Are we loading newer report actions? */
@@ -23,6 +37,11 @@ type ReportMetadata = {
 
     /** Whether the current report is optimistic */
     isOptimisticReport?: boolean;
+
+    /** Pending members of the report */
+    pendingChatMembers?: PendingChatMember[];
 };
 
 export default ReportMetadata;
+
+export type {PendingChatMember};

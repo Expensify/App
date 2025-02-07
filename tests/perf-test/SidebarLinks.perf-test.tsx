@@ -11,6 +11,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@libs/Permissions');
 jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('@src/hooks/useIsCurrentRouteHome');
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
@@ -27,6 +28,7 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
 jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
+jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Object.fromEntries(

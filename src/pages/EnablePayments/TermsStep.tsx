@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,16 +13,11 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {UserWallet, WalletTerms} from '@src/types/onyx';
+import type {UserWallet} from '@src/types/onyx';
 import LongTermsForm from './TermsPage/LongTermsForm';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 
-type TermsStepOnyxProps = {
-    /** Comes from Onyx. Information about the terms for the wallet */
-    walletTerms: OnyxEntry<WalletTerms>;
-};
-
-type TermsStepProps = TermsStepOnyxProps & {
+type TermsStepProps = {
     /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
@@ -44,9 +39,9 @@ function AgreeToTheLabel() {
     return (
         <Text>
             {`${translate('termsStep.agreeToThe')} `}
-            <TextLink href={CONST.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
             {`${translate('common.and')} `}
-            <TextLink href={CONST.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
         </Text>
     );
 }
@@ -57,8 +52,8 @@ function TermsStep(props: TermsStepProps) {
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
     const [error, setError] = useState(false);
     const {translate} = useLocalize();
-
-    const errorMessage = error ? translate('common.error.acceptTerms') : ErrorUtils.getLatestErrorMessage(props.walletTerms ?? {}) ?? '';
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const errorMessage = error ? translate('common.error.acceptTerms') : ErrorUtils.getLatestErrorMessage(walletTerms ?? {}) ?? '';
 
     const toggleDisclosure = () => {
         setHasAcceptedDisclosure(!hasAcceptedDisclosure);
@@ -109,12 +104,12 @@ function TermsStep(props: TermsStepProps) {
                         setError(false);
                         BankAccounts.acceptWalletTerms({
                             hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                            reportID: props.walletTerms?.chatReportID ?? '-1',
+                            reportID: walletTerms?.chatReportID ?? '-1',
                         });
                     }}
                     message={errorMessage}
                     isAlertVisible={error || !!errorMessage}
-                    isLoading={!!props.walletTerms?.isLoading}
+                    isLoading={!!walletTerms?.isLoading}
                     containerStyles={[styles.mh0, styles.mv4]}
                 />
             </ScrollView>
@@ -124,8 +119,4 @@ function TermsStep(props: TermsStepProps) {
 
 TermsStep.displayName = 'TermsPage';
 
-export default withOnyx<TermsStepProps, TermsStepOnyxProps>({
-    walletTerms: {
-        key: ONYXKEYS.WALLET_TERMS,
-    },
-})(TermsStep);
+export default TermsStep;

@@ -8,7 +8,7 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AssignCardForm';
@@ -32,7 +32,7 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
     const {translate} = useLocalize();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM> =>
-        ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.START_DATE]);
+        getFieldRequiredErrors(values, [INPUT_IDS.START_DATE]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ASSIGN_CARD_FORM>) => {
         handleSelectDate(values[INPUT_IDS.START_DATE]);
@@ -51,7 +51,6 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={TransactionStartDateSelectorModal.displayName}
             >
                 <HeaderWithBackButton
@@ -63,10 +62,9 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
                     formID={ONYXKEYS.FORMS.ASSIGN_CARD_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={submit}
-                    style={[styles.flex1, styles.mh5]}
+                    style={[styles.flexGrow1, styles.ph5]}
                     enabledWhenOffline
                     validate={validate}
-                    submitButtonStyles={[styles.mb0, styles.pb0, styles.mh0]}
                 >
                     <InputWrapper
                         InputComponent={DatePicker}

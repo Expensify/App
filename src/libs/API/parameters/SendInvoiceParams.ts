@@ -4,7 +4,7 @@ import type {RequireAtLeastOne, ValueOf} from 'type-fest';
 
 type SendInvoiceParams = RequireAtLeastOne<
     {
-        senderWorkspaceID: string;
+        senderWorkspaceID: string | undefined;
         accountID: number;
         receiverEmail?: string;
         receiverInvoiceRoomID?: string;
@@ -23,7 +23,7 @@ type SendInvoiceParams = RequireAtLeastOne<
         companyName?: string;
         companyWebsite?: string;
         createdIOUReportActionID: string;
-        createdReportActionIDForThread: string;
+        createdReportActionIDForThread: string | undefined;
         reportActionID: string;
         receipt?: Receipt;
         receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;

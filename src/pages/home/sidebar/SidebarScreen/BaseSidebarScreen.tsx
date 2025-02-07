@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,41 +15,29 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
-    const isSwitchingWorkspace = useRef(false);
     useEffect(() => {
-        // Whether the active workspace or the "Everything" page is loaded
-        const isWorkspaceOrEverythingLoaded = !!activeWorkspace || activeWorkspaceID === undefined;
-
-        // If we are currently switching workspaces, we don't want to do anything until the target workspace is loaded
-        if (isSwitchingWorkspace.current) {
-            if (isWorkspaceOrEverythingLoaded) {
-                isSwitchingWorkspace.current = false;
-            }
+        if (!!activeWorkspace || activeWorkspaceID === undefined || isLoading) {
             return;
         }
 
-        // Otherwise, if the workspace is already loaded, we don't need to do anything
-        if (isWorkspaceOrEverythingLoaded) {
-            return;
-        }
-
-        isSwitchingWorkspace.current = true;
         Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         updateLastAccessedWorkspace(undefined);
-    }, [activeWorkspace, activeWorkspaceID]);
+    }, [activeWorkspace, activeWorkspaceID, isLoading]);
 
     const shouldDisplaySearch = shouldUseNarrowLayout;
 
@@ -67,7 +55,6 @@ function BaseSidebarScreen() {
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
                         shouldDisplaySearch={shouldDisplaySearch}
-                        onSwitchWorkspace={() => (isSwitchingWorkspace.current = true)}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />

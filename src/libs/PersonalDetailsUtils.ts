@@ -52,6 +52,8 @@ const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
+    let login = passedPersonalDetails?.login ?? '';
+
     // If the displayName starts with the merged account prefix, remove it.
     if (regexMergedAccount.test(displayName)) {
         // Remove the merged account prefix from the displayName.
@@ -60,8 +62,11 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
 
     // If the displayName is not set by the user, the backend sets the diplayName same as the login so
     // we need to remove the sms domain from the displayName if it is an sms login.
-    if (displayName === passedPersonalDetails?.login && Str.isSMSLogin(passedPersonalDetails?.login)) {
-        displayName = Str.removeSMSDomain(displayName);
+    if (Str.isSMSLogin(login)) {
+        if (displayName === login) {
+            displayName = Str.removeSMSDomain(displayName);
+        }
+        login = Str.removeSMSDomain(login);
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
@@ -75,7 +80,16 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     if (displayName) {
         return displayName;
     }
-    return defaultValue || (shouldFallbackToHidden ? hiddenTranslation : '');
+
+    if (defaultValue) {
+        return defaultValue;
+    }
+
+    if (login) {
+        return login;
+    }
+
+    return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
 /**
@@ -85,11 +99,21 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
  * @param shouldChangeUserDisplayName - It will replace the current user's personal detail object's displayName with 'You'.
  * @returns - Array of personal detail objects
  */
-function getPersonalDetailsByIDs(accountIDs: number[], currentUserAccountID: number, shouldChangeUserDisplayName = false): PersonalDetails[] {
+function getPersonalDetailsByIDs({
+    accountIDs,
+    currentUserAccountID,
+    shouldChangeUserDisplayName = false,
+    personalDetailsParam = allPersonalDetails,
+}: {
+    accountIDs: number[];
+    currentUserAccountID: number;
+    shouldChangeUserDisplayName?: boolean;
+    personalDetailsParam?: Partial<PersonalDetailsList>;
+}): PersonalDetails[] {
     const result: PersonalDetails[] = accountIDs
-        .filter((accountID) => !!allPersonalDetails?.[accountID])
+        .filter((accountID) => !!personalDetailsParam?.[accountID])
         .map((accountID) => {
-            const detail = (allPersonalDetails?.[accountID] ?? {}) as PersonalDetails;
+            const detail = (personalDetailsParam?.[accountID] ?? {}) as PersonalDetails;
 
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {

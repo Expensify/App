@@ -7,6 +7,7 @@ import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
+import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
 import ArrowsUpDown from '@assets/images/arrows-updown.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
 import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
@@ -32,6 +33,7 @@ import Box from '@assets/images/box.svg';
 import Briefcase from '@assets/images/briefcase.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
+import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
@@ -42,6 +44,7 @@ import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
 import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
+import ChatBubbleSlash from '@assets/images/chatbubble-slash.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
@@ -85,6 +88,7 @@ import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-ve
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
+import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Feed from '@assets/images/feed.svg';
@@ -110,6 +114,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import NSQSSquare from '@assets/images/integrationicons/netsuite-quickstart-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
@@ -125,6 +130,7 @@ import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
 import Luggage from '@assets/images/luggage.svg';
+import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
@@ -187,6 +193,7 @@ import Task from '@assets/images/task.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -218,6 +225,7 @@ export {
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
+    ArrowsLeftRight,
     ArrowUpLong,
     ArrowDownLong,
     AttachmentNotFound,
@@ -234,6 +242,7 @@ export {
     Briefcase,
     Bug,
     Building,
+    Buildings,
     Calendar,
     Camera,
     Car,
@@ -277,6 +286,7 @@ export {
     ExpensifyFooterLogo,
     ExpensifyFooterLogoVertical,
     Expand,
+    Export,
     Eye,
     EyeDisabled,
     FallbackAvatar,
@@ -387,6 +397,7 @@ export {
     Linkedin,
     Instagram,
     ChatBubbleAdd,
+    ChatBubbleSlash,
     ChatBubbleUnread,
     ChatBubbleReply,
     Lightbulb,
@@ -398,6 +409,7 @@ export {
     CheckCircle,
     CheckmarkCircle,
     NetSuiteSquare,
+    NSQSSquare,
     XeroCircle,
     QBOCircle,
     Filters,
@@ -413,5 +425,7 @@ export {
     Star,
     QBDSquare,
     GalleryNotFound,
+    Train,
     boltSlash,
+    MagnifyingGlassSpyMouthClosed,
 };

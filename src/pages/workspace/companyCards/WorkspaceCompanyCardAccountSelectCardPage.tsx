@@ -28,7 +28,7 @@ type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<Setti
 function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {policyID, cardID, bank} = route.params;
+    const {policyID, cardID, bank, backTo} = route.params;
     const policy = usePolicy(policyID);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [searchText, setSearchText] = useState('');
@@ -36,10 +36,11 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
     const card = allBankCards?.[cardID];
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, backTo);
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
+    const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const searchedListOptions = useMemo(() => {
         return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
@@ -81,15 +82,18 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
                     {!!exportMenuItem?.description && (
                         <Text style={[styles.textNormal]}>
                             {translate('workspace.moreFeatures.companyCards.integrationExportTitleFirstPart', {integration: exportMenuItem.description})}{' '}
-                            {!!exportMenuItem && (
-                                <TextLink
-                                    style={styles.link}
-                                    onPress={exportMenuItem.onExportPagePress}
-                                >
-                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitleLinkPart')}{' '}
-                                </TextLink>
+                            {!!exportMenuItem && !isXeroConnection && (
+                                <>
+                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitlePart')}{' '}
+                                    <TextLink
+                                        style={styles.link}
+                                        onPress={exportMenuItem.onExportPagePress}
+                                    >
+                                        {translate('workspace.moreFeatures.companyCards.integrationExportTitleLinkPart')}{' '}
+                                    </TextLink>
+                                    {translate('workspace.moreFeatures.companyCards.integrationExportTitleSecondPart')}
+                                </>
                             )}
-                            {translate('workspace.moreFeatures.companyCards.integrationExportTitleSecondPart')}
                         </Text>
                     )}
                 </View>

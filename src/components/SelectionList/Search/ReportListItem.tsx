@@ -12,9 +12,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -41,13 +40,13 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
 
     // Only invert non-zero values otherwise we'll end up with -0.00
     if (total) {
-        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1;
+        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
     }
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(total, reportItem?.currency)}
+            text={convertToDisplayString(total, reportItem?.currency)}
             style={[styles.optionDisplayName, styles.textNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
@@ -61,7 +60,6 @@ function ReportListItem<TItem extends ListItem>({
     canSelectMultiple,
     onCheckboxPress,
     onSelectRow,
-    onDismissError,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
@@ -110,8 +108,6 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    const hasHeldExpenses = ReportUtils.hasHeldExpenses('', reportItem.transactions);
-
     const participantFrom = reportItem.from;
     const participantTo = reportItem.to;
 
@@ -132,7 +128,6 @@ function ReportListItem<TItem extends ListItem>({
                 canSelectMultiple={canSelectMultiple}
                 onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
                 onSelectRow={onSelectRow}
-                onDismissError={onDismissError}
                 onFocus={onFocus}
                 onLongPressRow={onLongPressRow}
                 shouldSyncFocus={shouldSyncFocus}
@@ -153,8 +148,6 @@ function ReportListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onLongPressRow={onLongPressRow}
-            onDismissError={onDismissError}
-            errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
@@ -205,7 +198,6 @@ function ReportListItem<TItem extends ListItem>({
                         <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                             <ActionCell
                                 action={reportItem.action}
-                                shouldUseSuccessStyle={!hasHeldExpenses}
                                 goToItem={handleOnButtonPress}
                                 isSelected={item.isSelected}
                                 isLoading={reportItem.isActionLoading}

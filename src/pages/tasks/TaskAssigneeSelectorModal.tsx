@@ -40,15 +40,14 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
             {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
             },
             {
                 betas,
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
-                maxRecentReportsToShow: 0,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
 
@@ -69,8 +68,8 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = OptionsListUtils.getHeaderMessage(

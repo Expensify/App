@@ -109,6 +109,7 @@ function LegalNamePage() {
                                 role={CONST.ROLE.PRESENTATION}
                                 defaultValue={legalFirstName}
                                 spellCheck={false}
+                                autoCapitalize="words"
                             />
                         </View>
                         <View>
@@ -121,6 +122,7 @@ function LegalNamePage() {
                                 role={CONST.ROLE.PRESENTATION}
                                 defaultValue={legalLastName}
                                 spellCheck={false}
+                                autoCapitalize="words"
                             />
                         </View>
                     </FormProvider>

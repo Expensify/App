@@ -36,7 +36,7 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
         return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
     }
 
-    const maxExpenseAmountToDisplay = policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmount;
+    const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
 
     return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
         defaultAmount: CurrencyUtils.convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),

@@ -28,7 +28,7 @@ function WorkspaceInvoiceBalanceSection({policyID}: WorkspaceInvoiceBalanceSecti
         >
             <MenuItemWithTopDescription
                 description={translate('walletPage.balance')}
-                title={CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0)}
+                title={CurrencyUtils.convertToDisplayString(policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0, policy?.outputCurrency)}
                 titleStyle={styles.textHeadlineH2}
                 interactive={false}
                 wrapperStyle={styles.sectionMenuItemTopDescription}

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +17,7 @@ type SearchQueryItem = ListItem & {
     searchQuery?: string;
     autocompleteID?: string;
     roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
+    mapKey?: string;
 };
 
 type SearchQueryListItemProps = {
@@ -24,7 +25,7 @@ type SearchQueryListItemProps = {
     isFocused?: boolean;
     showTooltip: boolean;
     onSelectRow: (item: SearchQueryItem) => void;
-    onFocus?: () => void;
+    onFocus?: ListItemFocusEventHandler;
     shouldSyncFocus?: boolean;
 };
 

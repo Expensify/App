@@ -28,14 +28,14 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
     const taxRateExternalID = rate?.attributes?.taxRateExternalID;
-    const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, taxRateExternalID ?? '');
+    const selectedTaxRate = taxRateExternalID ? TransactionUtils.getWorkspaceTaxesSettingsName(policy, taxRateExternalID) : undefined;
 
     const onTaxRateChange = (newTaxRate: TaxOptionsListUtils.TaxRatesOption) => {
         if (taxRateExternalID === newTaxRate.code) {
             Navigation.goBack();
             return;
         }
-        if (!customUnit) {
+        if (!customUnit || !rate) {
             return;
         }
         DistanceRate.updateDistanceTaxRate(policyID, customUnit, [

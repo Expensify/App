@@ -15,7 +15,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
-import linkingConfig from './linkingConfig';
+import {linkingConfig} from './linkingConfig';
 import switchPolicyID from './switchPolicyID';
 import type {RootStackParamList, StackNavigationAction, State} from './types';
 
@@ -45,8 +45,8 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
         case SCREENS.REPORT_AVATAR:
         case SCREENS.CONCIERGE:
             // If we are not in the target report, we need to navigate to it after dismissing the modal
-            if (targetReport?.reportID !== getTopmostReportId(state)) {
-                const reportState = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID ?? '-1'));
+            if (targetReport?.reportID && targetReport?.reportID !== getTopmostReportId(state)) {
+                const reportState = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID));
                 const policyID = getPolicyIDFromState(state as State<RootStackParamList>);
                 const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
                 const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
@@ -77,4 +77,5 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
     }
 }
 
-export default dismissModalWithReport;
+// eslint-disable-next-line import/prefer-default-export
+export {dismissModalWithReport};

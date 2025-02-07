@@ -1,16 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useMemo} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DebugUtils from '@libs/DebugUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
+import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -38,6 +38,52 @@ function DebugReportActionPage({
     });
     const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction);
 
+    const DebugDetailsTab = useCallback(
+        () => (
+            <DebugDetails
+                formType={CONST.DEBUG.FORMS.REPORT_ACTION}
+                data={reportAction}
+                onSave={(data) => {
+                    Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
+                }}
+                onDelete={() => {
+                    Navigation.goBack();
+                    // We need to wait for navigation animations to finish before deleting an action,
+                    // otherwise the user will see a not found page briefly.
+                    InteractionManager.runAfterInteractions(() => {
+                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                    });
+                }}
+                validate={DebugUtils.validateReportActionDraftProperty}
+            >
+                {!!transactionID && (
+                    <View style={[styles.mh5, styles.mb5]}>
+                        <Button
+                            text={translate('debug.viewTransaction')}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
+                            }}
+                        />
+                    </View>
+                )}
+            </DebugDetails>
+        ),
+        [reportAction, reportActionID, reportID, styles.mb5, styles.mh5, transactionID, translate],
+    );
+
+    const DebugJSONTab = useCallback(() => <DebugJSON data={reportAction ?? {}} />, [reportAction]);
+
+    const DebugReportActionPreviewTab = useCallback(() => <DebugReportActionPreview reportAction={reportAction} />, [reportAction]);
+
+    const routes = useMemo<DebugTabNavigatorRoutes>(
+        () => [
+            {name: CONST.DEBUG.DETAILS, component: DebugDetailsTab},
+            {name: CONST.DEBUG.JSON, component: DebugJSONTab},
+            {name: CONST.DEBUG.REPORT_ACTION_PREVIEW, component: DebugReportActionPreviewTab},
+        ],
+        [DebugDetailsTab, DebugJSONTab, DebugReportActionPreviewTab],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -51,40 +97,10 @@ function DebugReportActionPage({
                         title={`${translate('debug.debug')} - ${translate('debug.reportAction')}`}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <OnyxTabNavigator
+                    <DebugTabNavigator
                         id={CONST.TAB.DEBUG_TAB_ID}
-                        tabBar={TabSelector}
-                    >
-                        <TopTab.Screen name={CONST.DEBUG.DETAILS}>
-                            {() => (
-                                <DebugDetails
-                                    formType={CONST.DEBUG.FORMS.REPORT_ACTION}
-                                    data={reportAction}
-                                    onSave={(data) => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
-                                    }}
-                                    onDelete={() => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
-                                        Navigation.goBack();
-                                    }}
-                                    validate={DebugUtils.validateReportActionDraftProperty}
-                                >
-                                    {!!transactionID && (
-                                        <View style={[styles.mh5, styles.mb5]}>
-                                            <Button
-                                                text={translate('debug.viewTransaction')}
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
-                                                }}
-                                            />
-                                        </View>
-                                    )}
-                                </DebugDetails>
-                            )}
-                        </TopTab.Screen>
-                        <TopTab.Screen name={CONST.DEBUG.JSON}>{() => <DebugJSON data={reportAction ?? {}} />}</TopTab.Screen>
-                        <TopTab.Screen name={CONST.DEBUG.REPORT_ACTION_PREVIEW}>{() => <DebugReportActionPreview reportAction={reportAction} />}</TopTab.Screen>
-                    </OnyxTabNavigator>
+                        routes={routes}
+                    />
                 </View>
             )}
         </ScreenWrapper>

@@ -39,7 +39,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 /** Model of selected reports */
 type SelectedReports = {
     reportID: string;
-    policyID: string;
+    policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     total: number;
 };
@@ -65,7 +65,8 @@ type SearchContext = {
     selectedReports: SelectedReports[];
     setCurrentSearchHash: (hash: number) => void;
     setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
-    clearSelectedTransactions: (hash?: number) => void;
+    clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
+    shouldTurnOffSelectionMode: boolean;
     shouldShowStatusBarLoading: boolean;
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
@@ -97,6 +98,10 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
 
+type SearchAutocompleteQueryRangeKey = SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RANGE_NAME;
+
+type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
+
 type QueryFilters = Array<{
     key: SearchFilterKey;
     filters: QueryFilter[];
@@ -127,7 +132,7 @@ type SearchAutocompleteResult = {
 };
 
 type SearchAutocompleteQueryRange = {
-    key: SearchFilterKey;
+    key: SearchAutocompleteQueryRangeKey;
     length: number;
     start: number;
     value: string;
@@ -148,6 +153,7 @@ export type {
     QueryFilter,
     QueryFilters,
     SearchFilterKey,
+    UserFriendlyKey,
     ExpenseSearchStatus,
     InvoiceSearchStatus,
     TripSearchStatus,
@@ -155,4 +161,5 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    SearchAutocompleteQueryRangeKey,
 };

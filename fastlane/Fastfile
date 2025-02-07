@@ -71,9 +71,9 @@ platform :android do
 
   desc "Generate a production HybridApp AAB"
     lane :build_hybrid do
-      ENV["ENVFILE"]="../.env.production.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: "bundleRelease",
         flags: "--refresh-dependencies",
         properties: {
@@ -88,9 +88,9 @@ platform :android do
 
   desc "Generate AdHoc HybridApp apk"
     lane :build_adhoc_hybrid do
-      ENV["ENVFILE"]="../.env.adhoc.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp.android"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: 'assembleAdhoc',
         properties: {
             "android.injected.signing.store.file" => './upload-key.keystore',
@@ -116,12 +116,11 @@ platform :android do
 
   desc "Generate a new local HybridApp APK"
     lane :build_local_hybrid do
-      ENV["ENVFILE"]=".env.production"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.android"
       gradle(
-        project_dir: '../Android',
+        project_dir: 'Mobile-Expensify/Android',
         task: 'assemble',
-        flavor: 'Production',
-        build_type: 'Release',
+        build_type: 'Debug',
       )
       setGradleOutputsInEnv()
     end
@@ -333,7 +332,7 @@ def setupIOSSigningCertificate()
   )
 
   import_certificate(
-    certificate_path: "./ios/Certificates.p12",
+    certificate_path: "./Certificates.p12",
     keychain_name: "ios-build.keychain",
     keychain_password: keychain_password
   )
@@ -347,11 +346,11 @@ platform :ios do
     setupIOSSigningCertificate()
 
     install_provisioning_profile(
-      path: "./ios/NewApp_AppStore.mobileprovision"
+      path: "./NewApp_AppStore.mobileprovision"
     )
 
     install_provisioning_profile(
-      path: "./ios/NewApp_AppStore_Notification_Service.mobileprovision"
+      path: "./NewApp_AppStore_Notification_Service.mobileprovision"
     )
 
     build_app(
@@ -372,7 +371,7 @@ platform :ios do
 
   desc "Build an iOS HybridApp production build"
     lane :build_hybrid do
-      ENV["ENVFILE"]="../.env.production.hybridapp"
+      ENV["ENVFILE"]="Mobile-Expensify/.env.production.hybridapp.ios"
 
       setupIOSSigningCertificate()
 
@@ -389,7 +388,7 @@ platform :ios do
       )
 
       build_app(
-        workspace: "../iOS/Expensify.xcworkspace",
+        workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
         scheme: "Expensify",
         output_name: "Expensify.ipa",
         export_method: "app-store",
@@ -406,22 +405,68 @@ platform :ios do
       setIOSBuildOutputsInEnv()
     end
 
+  desc "Build an iOS HybridApp Adhoc build"
+    lane :build_adhoc_hybrid do
+      ENV["ENVFILE"]="Mobile-Expensify/.env.adhoc.hybridapp.ios"
+
+      setupIOSSigningCertificate()
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc_Share_Extension.mobileprovision"
+      )
+
+      install_provisioning_profile(
+        path: "./OldApp_AdHoc_Notification_Service.mobileprovision"
+      )
+
+      build_app(
+        workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
+        scheme: "Expensify AdHoc",
+        output_name: "Expensify.ipa",
+        export_method: "ad-hoc",
+        export_options: {
+          manageAppVersionAndBuildNumber: false,
+          provisioningProfiles: {
+              "com.expensify.expensifylite.adhoc" => "(OldApp) AdHoc",
+              "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AdHoc: Share Extension",
+              "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AdHoc: Notification Service",
+          }
+        }
+      )
+
+      setIOSBuildOutputsInEnv()
+    end
+
   desc "Build an unsigned iOS production build"
   lane :build_unsigned do
     ENV["ENVFILE"]=".env.production"
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "New Expensify"
+        scheme: "New Expensify",
+        configuration: "Debug",
+        sdk: "iphonesimulator",
+        skip_codesigning: true,
+        skip_archive: true,
+        export_method: "development"
     )
     setIOSBuildOutputsInEnv()
   end
 
   desc "Build an unsigned iOS HybridApp production build"
     lane :build_unsigned_hybrid do
-      ENV["ENVFILE"]="../Mobile-Expensify/.env.production.hybridapp"
+      ENV["ENVFILE"]="./Mobile-Expensify/.env.production.hybridapp.ios"
       build_app(
-          workspace: "../Mobile-Expensify/iOS/Expensify.xcworkspace",
-          scheme: "Expensify"
+          workspace: "./Mobile-Expensify/iOS/Expensify.xcworkspace",
+          scheme: "Expensify",
+          configuration: "Debug",
+          sdk: "iphonesimulator",
+          skip_codesigning: true,
+          skip_archive: true,
+          export_method: "development"
       )
       setIOSBuildOutputsInEnv()
     end
@@ -433,11 +478,11 @@ platform :ios do
     setupIOSSigningCertificate()
 
     install_provisioning_profile(
-      path: "./ios/NewApp_AdHoc.mobileprovision"
+      path: "./NewApp_AdHoc.mobileprovision"
     )
 
     install_provisioning_profile(
-      path: "./ios/NewApp_AdHoc_Notification_Service.mobileprovision"
+      path: "./NewApp_AdHoc_Notification_Service.mobileprovision"
     )
 
     build_app(
@@ -475,7 +520,7 @@ platform :ios do
   lane :upload_testflight do
     upload_to_testflight(
       app_identifier: "com.chat.expensify.chat",
-      api_key_path: "./ios/ios-fastlane-json-key.json",
+      api_key_path: "./ios-fastlane-json-key.json",
       distribute_external: true,
       notify_external_testers: true,
       changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
@@ -509,7 +554,7 @@ platform :ios do
     lane :upload_testflight_hybrid do
       upload_to_testflight(
         app_identifier: "com.expensify.expensifylite",
-        api_key_path: "./ios/ios-fastlane-json-key.json",
+        api_key_path: "./ios-fastlane-json-key.json",
         distribute_external: true,
         notify_external_testers: true,
         reject_build_waiting_for_review: true,
@@ -537,7 +582,7 @@ platform :ios do
       dsym_path: ENV[KEY_DSYM_PATH],
       gsp_path: "./ios/GoogleService-Info.plist",
       # Assuming we are running this from the react-native submodule directory for HybridApp
-      binary_path: "../iOS/Pods/FirebaseCrashlytics/upload-symbols"
+      binary_path: "./Mobile-Expensify/iOS/Pods/FirebaseCrashlytics/upload-symbols"
     )
     end
 
@@ -545,7 +590,7 @@ platform :ios do
   lane :submit_for_review do
     deliver(
       app_identifier: "com.chat.expensify.chat",
-      api_key_path: "./ios/ios-fastlane-json-key.json",
+      api_key_path: "./ios-fastlane-json-key.json",
 
       # Skip HTMl report verification
       force: true,
@@ -629,7 +674,7 @@ platform :ios do
     lane :submit_hybrid_for_rollout do
       deliver(
         app_identifier: "com.expensify.expensifylite",
-        api_key_path: "./ios/ios-fastlane-json-key.json",
+        api_key_path: "./ios-fastlane-json-key.json",
 
         # Skip HTML report verification
         force: true,

@@ -3,6 +3,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type ExampleOnyxState = {
     session: OnyxTypes.Session;
+    [key: string]: unknown;
 };
 
 describe('maskOnyxState', () => {
@@ -84,5 +85,18 @@ describe('maskOnyxState', () => {
 
         const result = ExportOnyxState.maskOnyxState(input, true) as Record<string, string>;
         expect(result.emailString).not.toContain('user@example.com');
+    });
+
+    it('should mask keys that are in the fixed list', () => {
+        const input = {
+            session: mockSession,
+            edits: ['hey', 'hi'],
+            lastMessageHtml: 'hey',
+        };
+
+        const result = ExportOnyxState.maskOnyxState(input, true) as ExampleOnyxState;
+
+        expect(result.edits).toEqual(['***', '***']);
+        expect(result.lastMessageHtml).toEqual('***');
     });
 });
