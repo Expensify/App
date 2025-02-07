@@ -3,7 +3,7 @@ import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -110,6 +110,22 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
+
+    // we're running this callback after animation is complete, otherwise animation would be laggy
+    const delayedFocusCallback = useCallback(() => {
+        onSearchRouterFocus?.();
+        listRef.current?.updateAndScrollToFocusedIndex(0);
+    }, [onSearchRouterFocus]);
+
+    const onFocus = useCallback(() => {
+        animatedMargin.set(
+            withTiming(0, {duration: ANIMATION_DURATION}, () => {
+                runOnJS(delayedFocusCallback)();
+            }),
+        );
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [delayedFocusCallback]);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
@@ -239,15 +255,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                                     submitSearch(textInputValue);
                                 }}
                                 autoFocus={false}
-                                onFocus={() => {
-                                    animatedMargin.set(withTiming(0, {duration: ANIMATION_DURATION}));
-                                    // setting timeout on onSearchFocus callback to make sure that the animation run first, otherwise it lags much more
-                                    setTimeout(() => {
-                                        onSearchRouterFocus?.();
-                                        listRef.current?.updateAndScrollToFocusedIndex(0);
-                                    }, 0);
-                                }}
-                                wrapperStyle={[styles.searchAutocompleteInputResults, styles.br2]}
+                                onFocus={onFocus}
+                                wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                                 wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                                 rightComponent={inputRightComponent}
                                 autocompleteListRef={listRef}
@@ -314,7 +323,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                     autoFocus={false}
                     onFocus={showAutocompleteList}
                     onBlur={hideAutocompleteList}
-                    wrapperStyle={[styles.searchAutocompleteInputResults, styles.br2]}
+                    wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                     wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                     outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
                     rightComponent={inputRightComponent}

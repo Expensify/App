@@ -1,9 +1,10 @@
+/* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -53,10 +54,10 @@ type SearchAutocompleteInputProps = {
     onBlur?: () => void;
 
     /** Any additional styles to apply */
-    wrapperStyle?: StyleProp<ViewStyle>;
+    wrapperStyle?: ViewStyle;
 
     /** Any additional styles to apply when input is focused */
-    wrapperFocusedStyle?: StyleProp<ViewStyle>;
+    wrapperFocusedStyle?: ViewStyle;
 
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
@@ -85,7 +86,7 @@ function SearchAutocompleteInput(
         onBlur,
         caretHidden = false,
         wrapperStyle,
-        wrapperFocusedStyle,
+        wrapperFocusedStyle = {},
         outerWrapperStyle,
         rightComponent,
         isSearchingForReports,
@@ -97,7 +98,6 @@ function SearchAutocompleteInput(
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [isFocused, setIsFocused] = useState<boolean>(false);
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -123,6 +123,26 @@ function SearchAutocompleteInput(
     const emailListSharedValue = useSharedValue(emailList);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const focusedSharedValue = useSharedValue(false);
+
+    const unfocusedStyle = useMemo(() => {
+        return Object.entries(wrapperFocusedStyle ?? {}).reduce<ViewStyle>((acc, styleValue) => {
+            const key = styleValue[0] as keyof ViewStyle;
+            if (!wrapperStyle || !wrapperStyle?.[key]) {
+                acc[key] = undefined;
+                return acc;
+            }
+            const acc2 = {
+                ...acc,
+                [key]: wrapperStyle[key],
+            };
+            return acc2;
+        }, {});
+    }, [wrapperFocusedStyle, wrapperStyle]);
+
+    const focusedAnimatedStyle = useAnimatedStyle(() => {
+        return focusedSharedValue.get() ? wrapperFocusedStyle : unfocusedStyle;
+    });
 
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
@@ -172,7 +192,7 @@ function SearchAutocompleteInput(
 
     return (
         <View style={[outerWrapperStyle]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
+            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, focusedAnimatedStyle]}>
                 <View
                     style={styles.flex1}
                     fsClass={CONST.FULL_STORY.UNMASK}
@@ -201,13 +221,13 @@ function SearchAutocompleteInput(
                         inputStyle={[inputWidth, styles.pl3, styles.pr3]}
                         placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
-                            setIsFocused(true);
                             autocompleteListRef?.current?.updateExternalTextInputFocus(true);
+                            focusedSharedValue.set(true);
                             onFocus?.();
                         }}
                         onBlur={() => {
-                            setIsFocused(false);
                             autocompleteListRef?.current?.updateExternalTextInputFocus(false);
+                            focusedSharedValue.set(false);
                             onBlur?.();
                         }}
                         isLoading={!!isSearchingForReports}
@@ -220,7 +240,7 @@ function SearchAutocompleteInput(
                     />
                 </View>
                 {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
-            </View>
+            </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}
                 isError={false}
