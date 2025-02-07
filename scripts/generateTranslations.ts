@@ -6,7 +6,7 @@ import ts from 'typescript';
 // Path to the English source file
 const SOURCE_FILE = path.join(__dirname, '../src/languages/en.ts');
 
-const TARGET_LANGUAGES = ['en', 'es'];
+const TARGET_LANGUAGES = ['es'];
 
 // Initialize OpenAI API
 // const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
@@ -40,30 +40,33 @@ async function translate(text: string, targetLang: string): Promise<string> {
 
 // Extracts all string literals from the AST
 function extractStrings(node: ts.Node, strings: Map<string, string>) {
-    if (ts.isStringLiteral(node)) {
+    if (
+        ts.isStringLiteral(node) &&
+        node.parent && // Ensure the node has a parent
+        !ts.isImportDeclaration(node.parent) && // Ignore import paths
+        !ts.isExportDeclaration(node.parent) // Ignore export paths
+    ) {
         strings.set(node.text, node.text);
     }
     node.forEachChild((child) => extractStrings(child, strings));
-}
-
-// Ensures the node remains a SourceFile
-function ensureSourceFile(node: ts.Node): ts.SourceFile {
-    if (ts.isSourceFile(node)) {
-        return node;
-    }
-    throw new Error('Transformed node is not a SourceFile');
 }
 
 // Creates a transformer to replace strings with translations
 function createTransformer(translations: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
     return (context: ts.TransformationContext) => {
         const visit: ts.Visitor = (node) => {
-            if (ts.isStringLiteral(node)) {
+            if (
+                ts.isStringLiteral(node) &&
+                node.parent && // Ensure the node has a parent
+                !ts.isImportDeclaration(node.parent) && // Ignore import paths
+                !ts.isExportDeclaration(node.parent) // Ignore export paths
+            ) {
                 const translatedText = translations.get(node.text);
                 return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
             }
             return ts.visitEachChild(node, visit, context);
         };
+
         return (node: ts.SourceFile) => {
             const transformedNode = ts.visitNode(node, visit) ?? node; // Ensure we always return a valid node
             return transformedNode as ts.SourceFile; // Safe cast since we always pass in a SourceFile
@@ -90,18 +93,15 @@ async function generateTranslatedFiles() {
 
         // Step 3: Replace translated strings in the AST
         const result = ts.transform(sourceFile, [createTransformer(translations)]);
-        const transformedNode = result.transformed.at(0) ?? sourceFile;
+        const transformedNode = result.transformed.at(0) ?? sourceFile; // Ensure we always have a valid SourceFile
         result.dispose();
-
-        // Ensure transformedNode is always a SourceFile
-        const translatedAST = ensureSourceFile(transformedNode);
 
         // Step 4: Generate translated TypeScript code
         const printer = ts.createPrinter();
-        const translatedCode = printer.printFile(translatedAST);
+        const translatedCode = printer.printFile(transformedNode);
 
         // Step 5: Write to file
-        const outputPath = path.join(__dirname, `./${lang}.ts`);
+        const outputPath = path.join(__dirname, `../src/languages/${lang}.ts`);
         fs.writeFileSync(outputPath, translatedCode, 'utf8');
 
         console.log(`✅ Translated file created: ${outputPath}`);
