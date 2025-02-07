@@ -174,7 +174,7 @@ Yes, you can edit an expense until it is paid. When an expense is submitted, the
 
 **Can I add multiple receipts to a newly created expense?**
 
-Yes, you can add multiple receipt images to a new expense. One possible way to do this is to combine both receipts into a single PDF file. From there, simply upload the combined PDF to the expense to capture both.
+Yes, you can add multiple receipt images to a new expense. One possible way to do this is to combine all receipts into a single PDF file. From there, simply upload the combined PDF to the expense to capture both.
 
 **What are expense reports?**
 
