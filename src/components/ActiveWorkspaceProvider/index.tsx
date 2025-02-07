@@ -21,7 +21,7 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
             // We are exporting setActiveWorkspace to speedup updating this value after changing activeWorkspaceID to avoid flickering of workspace avatar.
             setActiveWorkspaceID,
         }),
-        [activeWorkspaceID, setActiveWorkspaceID],
+        [activeWorkspaceID],
     );
 
     return <ActiveWorkspaceContext.Provider value={value}>{children}</ActiveWorkspaceContext.Provider>;
