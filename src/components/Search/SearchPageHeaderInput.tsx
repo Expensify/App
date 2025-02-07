@@ -153,7 +153,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
+        [autocompleteSubstitutions, setTextInputValue, textInputValue, canUseNaturalSearch],
     );
 
     const submitSearch = useCallback(
@@ -260,13 +260,13 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         setIsAutocompleteListVisible(true);
     };
 
-    const lottieAnimation: DotLottieAnimation = themePreference === CONST.THEME.DARK ? LottieAnimations.SparkleDark : LottieAnimations.SparkleLight;
+    const lottieAnimationMagnifyingGlassToSparkle: DotLottieAnimation = themePreference === CONST.THEME.DARK ? LottieAnimations.SparkleDark : LottieAnimations.SparkleLight;
+    const lottieAnimationSparkleToMagnifyingGlass: DotLottieAnimation = themePreference === CONST.THEME.DARK ? LottieAnimations.Coin : LottieAnimations.Coin;
 
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleLottie: lottieAnimation,
-              pauseSingleLottie: !isNaturalSearch,
+              singleLottie: !isNaturalSearch ? lottieAnimationSparkleToMagnifyingGlass : lottieAnimationMagnifyingGlassToSparkle,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',
