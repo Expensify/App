@@ -523,7 +523,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        if (!shouldFetchReport(report, reportMetadata)) {
+        if (!shouldFetchReport(report, reportMetadata.isOptimisticReport)) {
             return;
         }
         // When creating an optimistic report that already exists, we need to skip openReport
@@ -534,7 +534,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         fetchReport();
-    }, [reportIDFromRoute, isLoadingApp, report, reportMetadata, fetchReport]);
+    }, [reportIDFromRoute, isLoadingApp, report, fetchReport, reportMetadata.isOptimisticReport]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);

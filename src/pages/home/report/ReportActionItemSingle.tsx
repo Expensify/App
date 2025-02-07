@@ -69,6 +69,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being hovered */
     isHovered?: boolean;
+
+    /** If the action is being actived */
+    isActive?: boolean;
 };
 
 const showUserDetails = (accountID: number | undefined) => {
@@ -92,6 +95,7 @@ function ReportActionItemSingle({
     report,
     iouReport,
     isHovered = false,
+    isActive = false,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -222,6 +226,15 @@ function ReportActionItemSingle({
         [action, isWorkspaceActor, actorAccountID],
     );
 
+    const getBackgroundColor = () => {
+        if (isActive) {
+            return theme.messageHighlightBG;
+        }
+        if (isHovered) {
+            return theme.hoverComponentBG;
+        }
+        return theme.sidebar;
+    };
     const getAvatar = () => {
         if (shouldShowSubscriptAvatar) {
             return (
@@ -229,6 +242,7 @@ function ReportActionItemSingle({
                     mainAvatar={icon}
                     secondaryAvatar={secondaryAvatar}
                     noMargin
+                    backgroundColor={getBackgroundColor()}
                 />
             );
         }

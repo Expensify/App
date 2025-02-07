@@ -36,6 +36,7 @@ type VideoPopoverMenuContext = {
     currentPlaybackSpeed: PlaybackSpeed;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
     setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
+    setSource: (source: string) => void;
 };
 
 type FullScreenContext = {
