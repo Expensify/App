@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import {when} from 'jest-when';
 import ghAction from '@github/actions/javascript/postTestBuildComment/postTestBuildComment';
+import CONST from '@github/libs/CONST';
 import type {CreateCommentResponse} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import asMutable from '@src/types/utils/asMutable';
@@ -31,8 +32,9 @@ Object.defineProperty(GithubUtils, 'graphql', {
 jest.mock('@actions/github', () => ({
     context: {
         repo: {
-            owner: 'Expensify',
-            repo: 'App',
+            owner: process.env.GITHUB_REPOSITORY_OWNER,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            repo: process.env.GITHUB_REPOSITORY.split('/').at(1)!,
         },
         runId: 1234,
     },
@@ -116,7 +118,7 @@ describe('Post test build comments action tests', () => {
             }
         `);
         expect(createCommentMock).toBeCalledTimes(1);
-        expect(createCommentMock).toBeCalledWith('App', 12, message);
+        expect(createCommentMock).toBeCalledWith(CONST.APP_REPO, 12, message);
     });
 
     test('Test GH action when input is not complete', async () => {
@@ -148,6 +150,6 @@ describe('Post test build comments action tests', () => {
             }
         `);
         expect(createCommentMock).toBeCalledTimes(1);
-        expect(createCommentMock).toBeCalledWith('App', 12, onlyAndroidMessage);
+        expect(createCommentMock).toBeCalledWith(CONST.APP_REPO, 12, onlyAndroidMessage);
     });
 });
