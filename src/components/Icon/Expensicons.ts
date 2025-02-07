@@ -369,7 +369,6 @@ export {
     Scan,
     Send,
     Shield,
-    Sparkle,
     Stopwatch,
     Suitcase,
     Sync,
