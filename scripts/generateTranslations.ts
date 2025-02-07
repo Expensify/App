@@ -2,6 +2,7 @@ import {execSync} from 'child_process';
 import fs from 'fs';
 // import OpenAI from 'openai';
 import path from 'path';
+import type {StringLiteral, TemplateExpression} from 'typescript';
 import ts from 'typescript';
 
 const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
@@ -41,33 +42,107 @@ async function translate(text: string, targetLang: string): Promise<string> {
 //     }
 // }
 
-// Modify extractStrings to skip case statements
-function extractStrings(node: ts.Node, strings: Map<string, string>) {
-    if (
+function isPlainStringNode(node: ts.Node): node is StringLiteral {
+    return (
         ts.isStringLiteral(node) &&
-        node.parent && // Ensure the node has a parent
+        !!node.parent && // Ensure the node has a parent
         !ts.isImportDeclaration(node.parent) && // Ignore import paths
         !ts.isExportDeclaration(node.parent) && // Ignore export paths
-        !ts.isCaseClause(node.parent) // Ignore switch-case strings
-    ) {
+        !ts.isCaseClause(node.parent)
+    ); // Ignore switch-case strings
+}
+
+function isTemplateExpressionNode(node: ts.Node): node is TemplateExpression {
+    return ts.isTemplateExpression(node) && !!node.parent;
+}
+
+function templateExpressionToString(node: TemplateExpression): string {
+    let result = node.head.text; // Start with TemplateHead text
+
+    node.templateSpans.forEach((span) => {
+        result += `\${${span.expression.getText()}}`; // Append placeholder
+        result += span.literal.text; // Append static text after placeholder
+    });
+
+    return result;
+}
+
+function stringToTemplateExpression(input: string): ts.TemplateExpression {
+    const parts: Array<string | ts.Expression> = [];
+    const regex = /\${(.*?)}/dg;
+    let lastIndex = 0;
+
+    for (const match of input.matchAll(regex)) {
+        const [fullMatch, expr] = match;
+        const index = match.index ?? 0;
+
+        // Add static text before placeholder
+        if (index > lastIndex) {
+            parts.push(input.slice(lastIndex, index));
+        }
+
+        // Add the placeholder as an AST expression
+        parts.push(ts.factory.createIdentifier(expr));
+
+        lastIndex = index + fullMatch.length;
+    }
+
+    // Add remaining static text after last placeholder
+    if (lastIndex < input.length) {
+        parts.push(input.slice(lastIndex));
+    }
+
+    // Ensure we have at least one static text part
+    const thingy = parts.at(0);
+    const headText = typeof thingy === 'string' ? thingy : '';
+    const templateHead = ts.factory.createTemplateHead(headText);
+
+    // Create template spans
+    const spans: ts.TemplateSpan[] = [];
+    for (let i = 1; i < parts.length; i += 2) {
+        const expr = parts.at(i) as ts.Expression;
+        const literalText = i + 1 < parts.length ? (parts.at(i + 1) as string) : '';
+
+        spans.push(ts.factory.createTemplateSpan(expr, i + 2 >= parts.length ? ts.factory.createTemplateTail(literalText) : ts.factory.createTemplateMiddle(literalText)));
+    }
+
+    return ts.factory.createTemplateExpression(templateHead, spans);
+}
+
+function extractStrings(node: ts.Node, strings: Map<string, string>) {
+    if (isPlainStringNode(node)) {
         strings.set(node.text, node.text);
     }
     node.forEachChild((child) => extractStrings(child, strings));
 }
 
-// Modify the transformer to skip case statements
+function extractTemplateExpressions(node: ts.Node, templateExpressions: Map<string, TemplateExpression>) {
+    if (isTemplateExpressionNode(node)) {
+        templateExpressions.set(templateExpressionToString(node), node);
+    }
+    node.forEachChild((child) => extractTemplateExpressions(child, templateExpressions));
+}
+
 function createTransformer(translations: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
     return (context: ts.TransformationContext) => {
         const visit: ts.Visitor = (node) => {
-            if (
-                ts.isStringLiteral(node) &&
-                node.parent &&
-                !ts.isImportDeclaration(node.parent) &&
-                !ts.isExportDeclaration(node.parent) &&
-                !ts.isCaseClause(node.parent) // Ignore case statements
-            ) {
+            if (isPlainStringNode(node)) {
                 const translatedText = translations.get(node.text);
+                // console.log(`🔵 Replacing String: "${node.text}" → "${translatedText}"`);
                 return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
+            }
+            if (isTemplateExpressionNode(node)) {
+                const originalTemplateExpressionAsString = templateExpressionToString(node);
+                console.log(`🟡 Checking TemplateExpression: "${originalTemplateExpressionAsString}"`);
+                const translatedTemplate = translations.get(originalTemplateExpressionAsString);
+                if (translatedTemplate) {
+                    console.log(`🔹 Found Translation: "${translatedTemplate}"`);
+                    const translatedTemplateExpression = stringToTemplateExpression(translatedTemplate);
+                    console.log('🪇 Transformed translated template back to TemplateExpression: ');
+                    return translatedTemplateExpression;
+                }
+                console.log('⚠️ No translation found for template expression', originalTemplateExpressionAsString);
+                return node;
             }
             return ts.visitEachChild(node, visit, context);
         };
@@ -85,31 +160,40 @@ async function generateTranslatedFiles() {
     const sourceFile = ts.createSourceFile(SOURCE_FILE, sourceCode, ts.ScriptTarget.Latest, true);
 
     for (const lang of TARGET_LANGUAGES) {
-        // Step 1: Extract strings
+        // Extract strings
         const stringsToTranslate = new Map<string, string>();
         extractStrings(sourceFile, stringsToTranslate);
 
-        // Step 2: Translate them asynchronously
+        // Extract templateExpressions
+        const templatesToTranslate = new Map<string, TemplateExpression>();
+        extractTemplateExpressions(sourceFile, templatesToTranslate);
+
+        // Translate them asynchronously
         const translations = new Map<string, string>();
         for (const [originalText] of stringsToTranslate) {
             const translatedText = await translate(originalText, lang);
             translations.set(originalText, translatedText);
         }
+        for (const [originalTemplateString, templateExpression] of templatesToTranslate) {
+            const templateExpressionAsString = templateExpressionToString(templateExpression);
+            const translatedTemplate = await translate(templateExpressionAsString, lang);
+            translations.set(originalTemplateString, translatedTemplate);
+        }
 
-        // Step 3: Replace translated strings in the AST
+        // Replace translated strings in the AST
         const result = ts.transform(sourceFile, [createTransformer(translations)]);
         const transformedNode = result.transformed.at(0) ?? sourceFile; // Ensure we always have a valid SourceFile
         result.dispose();
 
-        // Step 4: Generate translated TypeScript code
+        // Generate translated TypeScript code
         const printer = ts.createPrinter();
         const translatedCode = printer.printFile(transformedNode);
 
-        // Step 5: Write to file
+        // Write to file
         const outputPath = `${LANGUAGES_DIR}/${lang}.ts`;
         fs.writeFileSync(outputPath, translatedCode, 'utf8');
 
-        // Step 6: Format the files using prettier
+        // Format the files using prettier
         execSync(`npx prettier --write ${LANGUAGES_DIR}`);
 
         console.log(`✅ Translated file created: ${outputPath}`);
