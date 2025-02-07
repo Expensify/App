@@ -16,7 +16,7 @@ import * as CompanyCards from '@userActions/CompanyCards';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import ExpensifyCardPromotionBanner from './ExpensifyCardPromotionBanner';
+import WorkspaceCompanyCardExpensifyCardPromotionBanner from './WorkspaceCompanyCardExpensifyCardPromotionBanner';
 
 const companyCardFeatures: FeatureListItem[] = [
     {
@@ -53,7 +53,7 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!isLoadingOnyxValue(hasSeenExpensifyCardPromotionResult) && !hasSeenExpensifyCardPromotion && <ExpensifyCardPromotionBanner policy={policy} />}
+            {!isLoadingOnyxValue(hasSeenExpensifyCardPromotionResult) && !hasSeenExpensifyCardPromotion && <WorkspaceCompanyCardExpensifyCardPromotionBanner policy={policy} />}
             <FeatureList
                 menuItems={companyCardFeatures}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}

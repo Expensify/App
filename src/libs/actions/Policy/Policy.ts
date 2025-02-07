@@ -99,8 +99,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {goToExpensifyCardPage} from '../../PolicyUtils';
-import {setExpensifyCardPromotionBannerShown} from '../CompanyCards';
+import {navigateToExpensifyCardPage} from '../../PolicyUtils';
+import {setHasSeenExpensifyCardPromotionBanner} from '../CompanyCards';
 import {buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<
@@ -2848,6 +2848,13 @@ function savePreferredExportMethod(policyID: string, exportMethod: ReportExportT
     Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
 }
 
+/**
+ * Enables or disables the Expensify Card feature for a given policy.
+ *
+ * @param policyID
+ * @param enabled - Whether the feature should be enabled (`true`) or disabled (`false`).
+ * @param shouldNavigateToExpensifyCardPage - [Optional, Default: `false`] Whether to navigate to the Expensify Card page after enabling the feature.
+ */
 function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateToExpensifyCardPage = false) {
     const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
@@ -2895,9 +2902,9 @@ function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateT
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS, parameters, onyxData);
 
-    if (shouldNavigateToExpensifyCardPage) {
-        goToExpensifyCardPage(policyID);
-        setExpensifyCardPromotionBannerShown();
+    if (enabled && shouldNavigateToExpensifyCardPage) {
+        navigateToExpensifyCardPage(policyID);
+        setHasSeenExpensifyCardPromotionBanner();
         return;
     }
 

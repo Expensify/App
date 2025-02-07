@@ -33,7 +33,6 @@ type ThemeColors = {
     linkHover: Color;
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
-    promotionBannerBG: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
     danger: Color;

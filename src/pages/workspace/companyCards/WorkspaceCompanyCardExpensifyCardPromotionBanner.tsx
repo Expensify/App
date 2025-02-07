@@ -2,20 +2,23 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import {CreditCardsNew} from '@components/Icon/Illustrations';
+import {CreditCardsNewGreen} from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {enableExpensifyCard} from '@libs/actions/Policy/Policy';
-import {goToExpensifyCardPage} from '@libs/PolicyUtils';
+import {navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
 import type {Policy} from '@src/types/onyx';
 
-function ExpensifyCardPromotionBanner({policy}: {policy: OnyxEntry<Policy>}) {
+type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
+    policy: OnyxEntry<Policy>;
+};
+
+function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
 
@@ -25,7 +28,7 @@ function ExpensifyCardPromotionBanner({policy}: {policy: OnyxEntry<Policy>}) {
         }
 
         if (areExpensifyCardsEnabled) {
-            goToExpensifyCardPage(policyID);
+            navigateToExpensifyCardPage(policyID);
             return;
         }
 
@@ -34,32 +37,31 @@ function ExpensifyCardPromotionBanner({policy}: {policy: OnyxEntry<Policy>}) {
 
     const rightComponent = useMemo(() => {
         const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
-
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
                 <Button
                     success
-                    style={shouldUseNarrowLayout && styles.flex1}
-                    text="Learn more"
                     onPress={handleLearnMore}
+                    style={shouldUseNarrowLayout && styles.flex1}
+                    text={translate('workspace.moreFeatures.companyCards.expensifyCardBannerLearnMoreButton')}
                 />
             </View>
         );
-    }, [shouldUseNarrowLayout, styles, translate]);
+    }, [styles, shouldUseNarrowLayout, translate, handleLearnMore]);
 
     return (
         <View style={[styles.ph4, styles.mb4]}>
             <BillingBanner
-                title="Get the Expensify Card"
+                icon={CreditCardsNewGreen}
+                title={translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}
                 titleStyle={styles.themeTextReversedColor}
-                style={[styles.promotionBannerBG, styles.borderRadiusComponentLarge]}
-                subtitle="Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more."
+                subtitle={translate('workspace.moreFeatures.companyCards.expensifyCardBannerSubtitle')}
                 subtitleStyle={[styles.mt1, styles.darkMutedTextLabel]}
-                icon={CreditCardsNew}
+                style={[styles.promotionBannerBG, styles.borderRadiusComponentLarge]}
                 rightComponent={rightComponent}
             />
         </View>
     );
 }
 
-export default ExpensifyCardPromotionBanner;
+export default WorkspaceCompanyCardExpensifyCardPromotionBanner;

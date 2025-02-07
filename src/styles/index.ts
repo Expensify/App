@@ -1192,7 +1192,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         promotionBannerBG: {
-            backgroundColor: theme.promotionBannerBG,
+            backgroundColor: colors.green100,
         },
 
         autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>

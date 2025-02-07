@@ -3780,6 +3780,9 @@ const translations = {
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
+                expensifyCardBannerTitle: 'Get the Expensify Card',
+                expensifyCardBannerSubtitle: 'Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more.',
+                expensifyCardBannerLearnMoreButton: 'Learn more',
             },
             workflows: {
                 title: 'Workflows',

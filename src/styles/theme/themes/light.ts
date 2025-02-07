@@ -27,7 +27,6 @@ const lightTheme = {
     linkHover: colors.blue500,
     buttonDefaultBG: colors.productLight400,
     buttonHoveredBG: colors.productLight500,
-    promotionBannerBG: colors.green100,
     buttonPressedBG: colors.productLight600,
     buttonSuccessText: colors.productLight100,
     danger: colors.red,
