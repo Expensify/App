@@ -37,6 +37,7 @@ import {detachReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -86,7 +87,7 @@ type AttachmentModalBaseContentProps = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: ((file: FileObject) => void) | null;
     /** Fallback route when the modal is closed */
-    fallbackRoute?: string;
+    fallbackRoute?: Route;
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
     /** Determines if the attachment is invalid or not */
