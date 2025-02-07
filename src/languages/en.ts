@@ -4641,10 +4641,10 @@ const translations = {
                 prohibitedExpenses: 'Prohibited expenses',
                 none: 'None',
                 alcohol: 'Alcohol',
-                hotelIncidentals: 'Hotel Incidentals',
+                hotelIncidentals: 'Hotel incidentals',
                 gambling: 'Gambling',
                 tobacco: 'Tobacco',
-                adultEntertainment: 'Adult Entertainment',
+                adultEntertainment: 'Adult entertainment',
             },
             expenseReportRules: {
                 examples: 'Examples:',
