@@ -53,6 +53,10 @@ function canUseNaturalSearch(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NATURAL_SEARCH) || canUseAllBetas(betas);
 }
 
+function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -65,4 +69,5 @@ export default {
     canUseInternationalBankAccount,
     canUseNSQS,
     canUseNaturalSearch,
+    canUseCustomRules,
 };
