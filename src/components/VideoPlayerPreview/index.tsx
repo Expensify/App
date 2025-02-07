@@ -22,7 +22,7 @@ type VideoPlayerPreviewProps = {
     videoUrl: string;
 
     /** reportID of the video */
-    reportID: string;
+    reportID: string | undefined;
 
     /** Dimension of a video. */
     videoDimensions: VideoDimensions;

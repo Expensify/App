@@ -36,7 +36,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                         <VideoPlayerPreview
                             key={key}
                             videoUrl={sourceURL}
-                            reportID={currentReportIDValue?.currentReportID ?? '-1'}
+                            reportID={currentReportIDValue?.currentReportID}
                             fileName={fileName}
                             thumbnailUrl={thumbnailUrl}
                             videoDimensions={{width, height}}
@@ -46,7 +46,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                 if (!sourceURL || !type) {
                                     return;
                                 }
-                                const route = ROUTES.ATTACHMENTS.getRoute({reportID: report?.reportID ?? '-1', type, source: sourceURL, accountID});
+                                const route = ROUTES.ATTACHMENTS.getRoute({reportID: report?.reportID, type, source: sourceURL, accountID});
                                 Navigation.navigate(route);
                             }}
                         />

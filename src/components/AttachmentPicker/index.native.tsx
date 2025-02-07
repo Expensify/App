@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -178,23 +178,28 @@ function AttachmentPicker({
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
-                                    manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
-                                        .then((manipResult) => {
-                                            const uri = manipResult.uri;
-                                            const convertedAsset = {
-                                                uri,
-                                                name: uri
-                                                    .substring(uri.lastIndexOf('/') + 1)
-                                                    .split('?')
-                                                    .at(0),
-                                                type: 'image/jpeg',
-                                                width: manipResult.width,
-                                                height: manipResult.height,
-                                            };
+                                    ImageManipulator.manipulate(targetAssetUri)
+                                        .renderAsync()
+                                        .then((image) =>
+                                            image
+                                                .saveAsync({format: SaveFormat.JPEG})
+                                                .then((manipResult) => {
+                                                    const uri = manipResult.uri;
+                                                    const convertedAsset = {
+                                                        uri,
+                                                        name: uri
+                                                            .substring(uri.lastIndexOf('/') + 1)
+                                                            .split('?')
+                                                            .at(0),
+                                                        type: 'image/jpeg',
+                                                        width: manipResult.width,
+                                                        height: manipResult.height,
+                                                    };
 
-                                            return resolve([convertedAsset]);
-                                        })
-                                        .catch((err) => reject(err));
+                                                    return resolve([convertedAsset]);
+                                                })
+                                                .catch((err) => reject(err)),
+                                        );
                                 } else {
                                     return resolve(response.assets);
                                 }
