@@ -262,22 +262,23 @@ function ScreenWrapper(
     }, []);
 
     const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
-    const paddingStyle: StyleProp<ViewStyle> = {};
+    const paddingTopStyle: StyleProp<ViewStyle> = {};
+    const paddingBottomStyle: StyleProp<ViewStyle> = {};
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     if (includePaddingTop) {
-        paddingStyle.paddingTop = paddingTop;
+        paddingTopStyle.paddingTop = paddingTop;
     }
     if (includePaddingTop && ignoreInsetsConsumption) {
-        paddingStyle.paddingTop = unmodifiedPaddings.top;
+        paddingTopStyle.paddingTop = unmodifiedPaddings.top;
     }
 
     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
     if (includeSafeAreaPaddingBottom) {
-        paddingStyle.paddingBottom = paddingBottom;
+        paddingBottomStyle.paddingBottom = paddingBottom;
     }
     if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
-        paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
+        paddingBottomStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
@@ -297,7 +298,7 @@ function ScreenWrapper(
             >
                 <View
                     fsClass="fs-unmask"
-                    style={[styles.flex1, paddingStyle, style]}
+                    style={[styles.flex1, paddingTopStyle, style]}
                     // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
                     {...keyboardDismissPanResponder.panHandlers}
                 >
@@ -350,8 +351,8 @@ function ScreenWrapper(
                             </ScreenWrapperStatusContext.Provider>
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
-                    <View style={styles.bottomContentContainer(shouldUseNarrowLayout, paddingBottom)}>{bottomContent}</View>
                 </View>
+                <View style={paddingBottomStyle}>{bottomContent}</View>
             </View>
         </FocusTrapForScreens>
     );
