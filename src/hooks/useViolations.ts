@@ -36,6 +36,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
     perDayLimit: 'amount',
     receiptNotSmartScanned: 'receipt',
     receiptRequired: 'receipt',
+    customRules: 'receipt',
     rter: 'merchant',
     smartscanFailed: 'receipt',
     someTagLevelsRequired: 'tag',
