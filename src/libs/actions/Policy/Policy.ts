@@ -6,7 +6,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import {setHasSeenExpensifyCardPromotionBanner} from '@libs/actions/CompanyCards';
-import {buildOptimisticPolicyCategories} from '@libs/actions/Policy/Category';
 import * as API from '@libs/API';
 import type {
     AddBillingCardAndRequestWorkspaceOwnerChangeParams,
@@ -101,6 +100,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<
     string,
