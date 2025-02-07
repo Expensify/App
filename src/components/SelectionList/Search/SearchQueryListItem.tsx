@@ -2,9 +2,12 @@ import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
+import Lottie from '@components/Lottie';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
@@ -13,7 +16,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
-    singleLottie?: any;
+    singleLottie?: DotLottieAnimation;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
     searchQuery?: string;
     autocompleteID?: string;
@@ -37,6 +40,13 @@ function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQu
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const prevSingleIcon = usePrevious(item.singleIcon);
+    const prevSingleLottie = usePrevious(item.singleLottie);
+
+    console.debug('timddd', !!prevSingleIcon, !!item.singleIcon);
+    console.debug('timddd', !!prevSingleLottie, !!item.singleLottie);
+
+    const animationDirection = item.singleLottie && prevSingleLottie !== item.singleLottie ? -1 : 1;
 
     return (
         <BaseListItem
@@ -58,6 +68,15 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         fill={theme.icon}
                         additionalStyles={styles.mr3}
                         medium
+                    />
+                )}
+                {!!item.singleLottie && (
+                    <Lottie
+                        source={item.singleLottie}
+                        autoPlay
+                        loop
+                        webStyle={styles.h13}
+                        direction={animationDirection}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>

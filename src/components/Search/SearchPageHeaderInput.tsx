@@ -7,6 +7,7 @@ import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -257,7 +258,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleIcon: isNaturalSearch ? Expensicons.Megaphone : Expensicons.MagnifyingGlass,
+              singleIcon: isNaturalSearch ? undefined : Expensicons.MagnifyingGlass,
+              singleLottie: isNaturalSearch ? LottieAnimations.Magician : undefined,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',
@@ -315,7 +317,6 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                         onListItemPress={onListItemPress}
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                        isNaturalSearch={isNaturalSearch}
                         ref={listRef}
                     />
                 </View>
