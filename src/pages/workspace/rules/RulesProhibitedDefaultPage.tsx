@@ -56,7 +56,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 adultEntertainment: !policy?.prohibitedExpenses?.adultEntertainment,
                             };
-                            setPolicyProhibitedExpenses(policyID, JSON.stringify(prohibitedExpenses));
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
@@ -70,7 +70,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 alcohol: !policy?.prohibitedExpenses?.alcohol,
                             };
-                            setPolicyProhibitedExpenses(policyID, JSON.stringify(prohibitedExpenses));
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
@@ -84,7 +84,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 gambling: !policy?.prohibitedExpenses?.gambling,
                             };
-                            setPolicyProhibitedExpenses(policyID, JSON.stringify(prohibitedExpenses));
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
@@ -98,7 +98,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 hotelIncidentals: !policy?.prohibitedExpenses?.hotelIncidentals,
                             };
-                            setPolicyProhibitedExpenses(policyID, JSON.stringify(prohibitedExpenses));
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
@@ -112,7 +112,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 tobacco: !policy?.prohibitedExpenses?.tobacco,
                             };
-                            setPolicyProhibitedExpenses(policyID, JSON.stringify(prohibitedExpenses));
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
