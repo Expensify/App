@@ -1,8 +1,11 @@
-import type {ProhibitedExpenses} from '@src/types/onyx/Policy';
-
 type SetPolicyProhibitedExpensesParams = {
     policyID: string;
-    prohibitedExpenses: ProhibitedExpenses;
+    /**
+     * A JSON string representing the prohibited expenses
+     *
+     * e.g. {'alcohol': true, 'gambling': true, 'hotelIncidentals': true, 'tobacco': true}
+     */
+    prohibitedExpenses: string;
 };
 
 export default SetPolicyProhibitedExpensesParams;

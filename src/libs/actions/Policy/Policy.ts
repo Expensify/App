@@ -3820,7 +3820,7 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
  * @param policyID
  * @param prohibitedExpenses
  */
-function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: ProhibitedExpenses) {
+function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: string) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
