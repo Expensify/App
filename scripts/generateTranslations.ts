@@ -41,28 +41,30 @@ async function translate(text: string, targetLang: string): Promise<string> {
 //     }
 // }
 
-// Extracts all string literals from the AST
+// Modify extractStrings to skip case statements
 function extractStrings(node: ts.Node, strings: Map<string, string>) {
     if (
         ts.isStringLiteral(node) &&
         node.parent && // Ensure the node has a parent
         !ts.isImportDeclaration(node.parent) && // Ignore import paths
-        !ts.isExportDeclaration(node.parent) // Ignore export paths
+        !ts.isExportDeclaration(node.parent) && // Ignore export paths
+        !ts.isCaseClause(node.parent) // Ignore switch-case strings
     ) {
         strings.set(node.text, node.text);
     }
     node.forEachChild((child) => extractStrings(child, strings));
 }
 
-// Creates a transformer to replace strings with translations
+// Modify the transformer to skip case statements
 function createTransformer(translations: Map<string, string>): ts.TransformerFactory<ts.SourceFile> {
     return (context: ts.TransformationContext) => {
         const visit: ts.Visitor = (node) => {
             if (
                 ts.isStringLiteral(node) &&
-                node.parent && // Ensure the node has a parent
-                !ts.isImportDeclaration(node.parent) && // Ignore import paths
-                !ts.isExportDeclaration(node.parent) // Ignore export paths
+                node.parent &&
+                !ts.isImportDeclaration(node.parent) &&
+                !ts.isExportDeclaration(node.parent) &&
+                !ts.isCaseClause(node.parent) // Ignore case statements
             ) {
                 const translatedText = translations.get(node.text);
                 return translatedText ? ts.factory.createStringLiteral(translatedText) : node;
