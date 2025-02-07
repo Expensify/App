@@ -241,9 +241,11 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 return;
             }
             saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-            saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
+            if (isWebOrDesktop) {
+                saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
+            }
         },
-        [estimatedItemSize, route, saveScrollIndex, saveScrollOffset],
+        [estimatedItemSize, isWebOrDesktop, route, saveScrollIndex, saveScrollOffset],
     );
 
     const onLayout = useCallback(() => {
