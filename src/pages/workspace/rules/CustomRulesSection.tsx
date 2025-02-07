@@ -7,6 +7,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 type CustomRulesSectionProps = {
     policyID: string;
@@ -26,19 +27,20 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
             subtitleMuted
         >
             <View style={[styles.mt3]}>
-                {/* <OfflineWithFeedback
-              pendingAction={item.pendingAction}
-              key={translate(item.descriptionTranslationKey)}
-          > */}
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={policy?.customRules ?? ''}
-                    description={translate('workspace.rules.customRules.subtitle')}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(policyID))}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    numberOfLinesTitle={2}
-                />
-                {/* </OfflineWithFeedback> */}
+                <OfflineWithFeedback
+                    pendingAction={policy?.pendingFields?.customRules}
+                    errors={policy?.errors?.customRules}
+                >
+                    <MenuItemWithTopDescription
+                        title={policy?.customRules ?? ''}
+                        description={translate('workspace.rules.customRules.subtitle')}
+                        shouldShowRightIcon
+                        interactive
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(policyID))}
+                        shouldRenderAsHTML
+                    />
+                </OfflineWithFeedback>
             </View>
         </Section>
     );
