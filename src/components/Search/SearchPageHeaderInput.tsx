@@ -260,8 +260,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         setIsAutocompleteListVisible(true);
     };
 
-    const lottieAnimationMagnifyingGlassToSparkle: DotLottieAnimation = themePreference === CONST.THEME.DARK ? LottieAnimations.SparkleDark : LottieAnimations.SparkleLight;
-    const lottieAnimationSparkleToMagnifyingGlass: DotLottieAnimation = themePreference === CONST.THEME.DARK ? LottieAnimations.Coin : LottieAnimations.Coin;
+    const lottieAnimationMagnifyingGlassToSparkle: DotLottieAnimation =
+        themePreference === CONST.THEME.DARK ? LottieAnimations.MagnifyingGlassToSparkleDark : LottieAnimations.MagnifyingGlassToSparkleLight;
+    const lottieAnimationSparkleToMagnifyingGlass: DotLottieAnimation =
+        themePreference === CONST.THEME.DARK ? LottieAnimations.SparkleToMagnifyingGlassDark : LottieAnimations.SparkleToMagnifyingGlassLight;
 
     const searchQueryItem = textInputValue
         ? {
