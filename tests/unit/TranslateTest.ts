@@ -35,7 +35,6 @@ asMutable(translations).default = {
             }),
         },
     }),
-    [CONST.LOCALES.ES_ES]: translations.flattenObject({testKey1: 'Spanish ES'}),
 };
 
 describe('translate', () => {
