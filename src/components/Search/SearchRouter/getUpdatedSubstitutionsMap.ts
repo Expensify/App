@@ -1,8 +1,9 @@
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
-import * as parser from '@libs/SearchParser/autocompleteParser';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteQueryRangeKey} from '@components/Search/types';
+import {parse} from '@libs/SearchParser/autocompleteParser';
+import CONST from '@src/CONST';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
-const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
+const getSubstitutionsKey = (filterKey: SearchAutocompleteQueryRangeKey, value: string) => `${filterKey}:${value}`;
 
 /**
  * Given a plaintext query and a SubstitutionMap object,
@@ -16,9 +17,9 @@ const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${fi
  * return: {}
  */
 function getUpdatedSubstitutionsMap(query: string, substitutions: SubstitutionMap): SubstitutionMap {
-    const parsedQuery = parser.parse(query) as {ranges: SearchAutocompleteQueryRange[]};
+    const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
-    const searchAutocompleteQueryRanges = parsedQuery.ranges;
+    const searchAutocompleteQueryRanges = parsedQuery.ranges.filter((range) => range.key !== CONST.SEARCH.SYNTAX_RANGE_NAME);
 
     if (searchAutocompleteQueryRanges.length === 0) {
         return {};
