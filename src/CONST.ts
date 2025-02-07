@@ -310,9 +310,14 @@ type OnboardingMessage = {
     type?: string;
 };
 
+type ComposerCommandAction = 'summarize' | 'export' | 'create' | 'insight';
+
 type ComposerCommand = {
     /** Name of the command */
-    command: string;
+    command: `/${ComposerCommandAction}`;
+
+    /** Action identifier that will be sent to the server */
+    action: ComposerCommandAction;
 
     /** Icon to be displayed next to the command name */
     icon: React.FC<SvgProps>;
@@ -327,22 +332,26 @@ type ComposerCommand = {
 const COMPOSER_COMMANDS: ComposerCommand[] = [
     {
         command: '/summarize',
+        action: 'summarize',
         icon: Expensicons.Document,
         descriptionKey: 'composer.commands.summarize',
         exampleArgument: 'composer.commands.summarizeExampleArgument',
     },
     {
         command: '/export',
+        action: 'export',
         icon: Expensicons.Export,
         descriptionKey: 'composer.commands.export',
     },
     {
         command: '/create',
+        action: 'create',
         icon: Expensicons.ReceiptPlus,
         descriptionKey: 'composer.commands.create',
     },
     {
         command: '/insight',
+        action: 'insight',
         icon: Expensicons.Mute,
         descriptionKey: 'composer.commands.insight',
     },
@@ -6693,6 +6702,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    ComposerCommandAction,
     ComposerCommand,
 };
 
