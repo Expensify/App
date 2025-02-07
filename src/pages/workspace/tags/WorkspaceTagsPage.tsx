@@ -28,6 +28,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -100,6 +101,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
         setSelectedTags({});
     }, [isFocused]);
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedTags({});
+        },
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
         if (!policyTagList) {
