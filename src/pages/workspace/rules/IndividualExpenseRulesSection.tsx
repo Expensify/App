@@ -116,7 +116,25 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const billableModeText = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
 
-    const prohibitedExpenses = translate(`workspace.rules.individualExpenseRules.${policy?.defaultBillable ? 'billable' : 'nonBillable'}`);
+    const prohibitedExpenses = useMemo(() => {
+        // Check if both prohibited expenses are disabled
+        if (!policy?.prohibitedExpenses?.alcohol && !policy?.prohibitedExpenses?.hotelIncidentals) {
+            return translate('workspace.rules.individualExpenseRules.none');
+        }
+
+        // Otherwise return which expenses are prohibited comma separated
+        const prohibitedExpensesList = [];
+        if (policy?.prohibitedExpenses?.alcohol) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.alcohol'));
+        }
+
+        if (policy?.prohibitedExpenses?.hotelIncidentals) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.hotelIncidentals'));
+        }
+
+        return prohibitedExpensesList.join(', ');
+
+    }, [policy?.prohibitedExpenses, translate]);
 
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
@@ -141,6 +159,12 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             title: billableModeText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.billableDefault',
             action: () => Navigation.navigate(ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.defaultBillable,
+        },
+        {
+            title: prohibitedExpenses,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
+            action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.defaultBillable,
         },
     ];

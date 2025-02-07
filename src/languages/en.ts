@@ -4630,6 +4630,7 @@ const translations = {
                 billableDefaultDescription: 'Choose whether cash and credit card expenses should be billable by default. Billable expenses are enabled or disabled in',
                 prohibitedDefaultDescription: 'Flag any receipts where alcohol or hotel incidentals might be found on any line items SmartScan detected.',
                 prohibitedExpenses: 'Prohibited expenses',
+                none: 'None',
                 alcohol: 'Alcohol',
                 hotelIncidentals: 'Hotel Incidentals',
                 billable: 'Billable',
