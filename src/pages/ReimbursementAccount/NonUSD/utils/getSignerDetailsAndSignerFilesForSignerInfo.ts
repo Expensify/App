@@ -7,27 +7,22 @@ const {FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, ADDRESS, STREET, CITY, COUNTR
 
 const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET, CITY, STATE, ZIP_CODE, COUNTRY];
 
-function getSignerDetailsAndSignerFilesForSignerInfo(signerKeys: string[], reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>) {
+function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>) {
     const signerDetails: Record<string, string | FileObject[]> = {};
-    // const signerFiles: Record<string, string | FileObject> = {};
 
-    signerKeys.forEach((signerKey: string) => {
-        signerDetailsFields.forEach((fieldName: string) => {
-            if (!reimbursementAccountDraft?.[signerKey]) {
-                return;
-            }
+    signerDetailsFields.forEach((fieldName: string) => {
+        if (!reimbursementAccountDraft?.[fieldName]) {
+            return;
+        }
 
-            if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
-                signerDetails[ADDRESS] = signerDetails[ADDRESS]
-                    ? `${String(signerDetails[ADDRESS])}, ${String(reimbursementAccountDraft?.[signerKey])}`
-                    : reimbursementAccountDraft?.[signerKey];
-            }
+        if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
+            signerDetails[ADDRESS] = signerDetails[ADDRESS] ? `${String(signerDetails[ADDRESS])}, ${String(reimbursementAccountDraft?.[fieldName])}` : reimbursementAccountDraft?.[fieldName];
+        }
 
-            signerDetails[signerKey] = reimbursementAccountDraft?.[signerKey];
-        });
+        signerDetails[fieldName] = reimbursementAccountDraft?.[fieldName];
     });
 
-    return null;
+    return {signerDetails};
 }
 
 export default getSignerDetailsAndSignerFilesForSignerInfo;
