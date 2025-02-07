@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 type CustomRulesSectionProps = {
     policyID: string;
