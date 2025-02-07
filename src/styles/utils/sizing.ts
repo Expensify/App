@@ -25,8 +25,8 @@ export default {
         width: '15%',
     },
 
-    w20: {
-        width: '20%',
+    w20px: {
+        width: 20,
     },
 
     w25: {

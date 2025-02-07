@@ -16,6 +16,7 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -79,6 +80,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const {canUseNaturalSearch} = usePermissions();
+    const themePreference = useThemePreference();
     const [isNaturalSearch, setIsNaturalSearch] = useState(false);
 
     const {type, inputQuery: originalInputQuery} = queryJSON;
@@ -255,11 +257,16 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         setIsAutocompleteListVisible(true);
     };
 
+    let lottieAnimation;
+    if (isNaturalSearch) {
+        lottieAnimation = themePreference === CONST.THEME.DARK ? LottieAnimations.Sparkle : LottieAnimations.Sparkle;
+    }
+
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
               singleIcon: isNaturalSearch ? undefined : Expensicons.MagnifyingGlass,
-              singleLottie: isNaturalSearch ? LottieAnimations.Magician : undefined,
+              singleLottie: lottieAnimation,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',

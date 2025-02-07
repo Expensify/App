@@ -94,6 +94,11 @@ const DotLottieAnimations = {
         w: 375,
         h: 240,
     },
+    Sparkle: {
+        file: require<LottieViewProps['source']>('@assets/animations/Sparkle.lottie'),
+        w: 128,
+        h: 128,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;
