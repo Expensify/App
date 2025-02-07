@@ -47,9 +47,7 @@ function ValidateCodeActionForm({
             };
         }
         firstRenderRef.current = false;
-        if (!isValidated) {
-            sendValidateCode();
-        }
+        sendValidateCode();
         if (hasMagicCodeBeenSent) {
             InteractionManager.runAfterInteractions(() => {
                 setCanSendHasMagicCodeBeenSent(true);
