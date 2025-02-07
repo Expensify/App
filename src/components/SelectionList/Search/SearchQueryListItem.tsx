@@ -17,6 +17,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
     singleLottie?: DotLottieAnimation;
+    pauseSingleLottie?: boolean;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
     searchQuery?: string;
     autocompleteID?: string;
@@ -42,14 +43,19 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     const theme = useTheme();
     const lottieRef = useRef<LottieView | null>(null);
 
-    // Normally, the lottie will remain paused on the first frame, if the file changes, then play the animation once
-    // This will result in a transaction from the magnifying glass to the AI sparkle or vice versa
+    // Normally, the lottie will remain paused on the first frame (which is a search icon)
+    // When the pauseSingleLottie prop is set to false, the animation will play once which will
+    // animate the search icon to a sparkle
     useEffect(() => {
         if (!lottieRef.current) {
             return;
         }
-        lottieRef.current.play();
-    }, [item.singleLottie?.file]);
+        if (!item.pauseSingleLottie) {
+            lottieRef.current.play();
+            return;
+        }
+        lottieRef.current.reset();
+    }, [item.pauseSingleLottie]);
 
     return (
         <BaseListItem
@@ -81,7 +87,6 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         <LottieView
                             source={item.singleLottie.file}
                             ref={lottieRef}
-                            autoPlay
                             loop={false}
                             webStyle={{...styles.wIconSizeNormal, ...styles.mr3}}
                         />

@@ -262,13 +262,12 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const lottieAnimationMagnifyingGlassToSparkle: DotLottieAnimation =
         themePreference === CONST.THEME.DARK ? LottieAnimations.MagnifyingGlassToSparkleDark : LottieAnimations.MagnifyingGlassToSparkleLight;
-    const lottieAnimationSparkleToMagnifyingGlass: DotLottieAnimation =
-        themePreference === CONST.THEME.DARK ? LottieAnimations.SparkleToMagnifyingGlassDark : LottieAnimations.SparkleToMagnifyingGlassLight;
 
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleLottie: !isNaturalSearch ? lottieAnimationSparkleToMagnifyingGlass : lottieAnimationMagnifyingGlassToSparkle,
+              singleLottie: lottieAnimationMagnifyingGlassToSparkle,
+              pauseSingleLottie: !isNaturalSearch,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',
