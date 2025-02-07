@@ -94,8 +94,13 @@ const DotLottieAnimations = {
         w: 375,
         h: 240,
     },
-    Sparkle: {
-        file: require<LottieViewProps['source']>('@assets/animations/Sparkle.lottie'),
+    SparkleLight: {
+        file: require<LottieViewProps['source']>('@assets/animations/Sparkle-light.lottie'),
+        w: 128,
+        h: 128,
+    },
+    SparkleDark: {
+        file: require<LottieViewProps['source']>('@assets/animations/Sparkle-dark.lottie'),
         w: 128,
         h: 128,
     },

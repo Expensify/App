@@ -8,6 +8,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -260,16 +261,13 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         setIsAutocompleteListVisible(true);
     };
 
-    let lottieAnimation;
-    if (isNaturalSearch) {
-        lottieAnimation = themePreference === CONST.THEME.DARK ? LottieAnimations.Sparkle : LottieAnimations.Sparkle;
-    }
+    const lottieAnimation: DotLottieAnimation = themePreference === CONST.THEME.DARK ? LottieAnimations.SparkleDark : LottieAnimations.SparkleLight;
 
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleIcon: isNaturalSearch ? undefined : Expensicons.MagnifyingGlass,
-              singleLottie: lottieAnimation,
+              singleIcon: !isNaturalSearch ? Expensicons.MagnifyingGlass : undefined,
+              singleLottie: isNaturalSearch ? lottieAnimation : undefined,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',

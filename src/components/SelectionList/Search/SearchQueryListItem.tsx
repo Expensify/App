@@ -55,24 +55,26 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             showTooltip={showTooltip}
         >
             <>
-                {!!item.singleIcon && (
-                    <Icon
-                        src={item.singleIcon}
-                        fill={theme.icon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                        additionalStyles={styles.mr3}
-                        medium
-                    />
-                )}
-                {!!item.singleLottie && (
-                    <Lottie
-                        source={item.singleLottie}
-                        autoPlay
-                        loop={false}
-                        webStyle={{...styles.wIconSizeNormal, ...styles.mr3}}
-                    />
-                )}
+                <View style={[styles.wIconSizeNormal, styles.mr3]}>
+                    {!!item.singleIcon && (
+                        <Icon
+                            src={item.singleIcon}
+                            fill={theme.icon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            additionalStyles={styles.mr3}
+                            medium
+                        />
+                    )}
+                    {!!item.singleLottie && (
+                        <Lottie
+                            source={item.singleLottie}
+                            autoPlay
+                            loop={false}
+                            webStyle={{...styles.wIconSizeNormal, ...styles.mr3}}
+                        />
+                    )}
+                </View>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip ?? false}
