@@ -43,7 +43,6 @@ function TaskView({report}: TaskViewProps) {
         setTaskReport(report);
     }, [report]);
     const taskTitle = `<task-title>${convertToLTR(report.reportName ?? '')}<task-title>`;
-    const personalDetails = usePersonalDetails();
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
 
     const isOpen = isOpenTaskReport(report);
