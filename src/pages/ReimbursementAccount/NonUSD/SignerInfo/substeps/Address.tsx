@@ -11,14 +11,15 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type NameProps = SubStepProps & {isSecondSigner: boolean};
 
-const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_ADDRESS_DATA;
-const {SIGNER_COMPLETE_RESIDENTIAL_ADDRESS, SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const SIGNER_PREFIX = 'signer';
+const SECOND_SIGNER_PREFIX = 'signerSecond';
 
 function Address({onNext, isEditing, onMove, isSecondSigner}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const prefix = isSecondSigner ? SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS : SIGNER_COMPLETE_RESIDENTIAL_ADDRESS;
+    const prefix = isSecondSigner ? SECOND_SIGNER_PREFIX : SIGNER_PREFIX;
 
     const countryInputKey = `${prefix}_${COUNTRY}` as const;
     const inputKeys = {
