@@ -2519,15 +2519,20 @@ const CONST = {
         ES_ES_ONFIDO: 'es_ES',
         PT: 'pt',
         IT: 'it',
-        GE: 'ge',
+        DE: 'de',
         FR: 'fr',
-        CN: 'cn',
-        JP: 'jp',
+        NL: 'nl',
+        PL: 'pl',
+        RU: 'ru',
+        TR: 'tr',
+        KO: 'ko',
+        CH: 'ch',
+        JA: 'ja',
 
         DEFAULT: 'en',
     },
 
-    LANGUAGES: ['en', 'es', 'pt', 'it', 'ge', 'fr', 'cn', 'jp'],
+    LANGUAGES: ['en', 'es', 'pt', 'it', 'de', 'fr', 'nl', 'pl', 'ru', 'tr', 'ko', 'ch', 'ja'],
 
     PRONOUNS_LIST: [
         'coCos',
