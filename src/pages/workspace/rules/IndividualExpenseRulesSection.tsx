@@ -211,16 +211,6 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     </OfflineWithFeedback>
                 ))}
 
-                <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
-                    <MenuItem
-                        title={translate('workspace.rules.individualExpenseRules.prohibitedExpenses')}
-                        shouldShowRightIcon
-                        titleStyle={styles.textLabelSupporting}
-                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID))}
-                    />
-                </OfflineWithFeedback>
-
                 <View style={[styles.mt3]}>
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.eReceipts}>
                         <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
