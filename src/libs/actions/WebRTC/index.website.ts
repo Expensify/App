@@ -105,7 +105,7 @@ async function startScreenRecording(openaiConn: ConnectionResult) {
 
     let isCapturing = true;
     let lastCaptureTime = 0;
-    const CAPTURE_INTERVAL = 3000;
+    const CAPTURE_INTERVAL = 10000;
     const JPEG_QUALITY = 0.6;
 
     try {
@@ -123,57 +123,70 @@ async function startScreenRecording(openaiConn: ConnectionResult) {
         video.srcObject = new MediaStream([videoTrack]);
         video.autoplay = true;
 
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+            video.onloadedmetadata = () => {
+                video.play();
+                resolve(null);
+            };
+        });
+
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d', { alpha: false });
 
         const capture = async () => {
             if (!isCapturing || !ctx || !video.videoWidth) return;
-
             const currentTime = Date.now();
             if (currentTime - lastCaptureTime < CAPTURE_INTERVAL) {
                 requestAnimationFrame(capture);
                 return;
             }
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
+            try {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
 
-            const blob = await new Promise<Blob>((resolve) => 
-                canvas.toBlob((b) => resolve(b!), 'image/jpeg', JPEG_QUALITY)
-            );
+                const blob = await new Promise<Blob>((resolve) => 
+                    canvas.toBlob((b) => resolve(b!), 'image/jpeg', JPEG_QUALITY)
+                );
 
-            const base64 = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.readAsDataURL(blob);
-            });
+                const base64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                });
 
-            // Send to API endpoint
-            /**
+                console.log('[JACK] base64', base64);
 
-            const response = await fetch('/api/screen-capture', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ image: base64 })
-            });
+                // Send to API endpoint
+                const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DESCRIBE_IMAGE, {
+                  base64image: base64
+                });
 
-            // Send description to OpenAI through WebRTC
-            if (response.ok) {
-                const data = await response.json();
-                if (data.description) {
-                    openaiConn.dataChannel.send(JSON.stringify({
-                        type: 'screen_description',
-                        description: data.description
-                    }));
+                console.log('[JACK] response', response);
+                
+                 /** 
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.description) {
+                        openaiConn.dataChannel.send(JSON.stringify({
+                            type: 'screen_description',
+                            description: data.description
+                        }));
+                    }
                 }
-            }
-              */
+                */
 
-            lastCaptureTime = currentTime;
-            requestAnimationFrame(capture);
+                lastCaptureTime = currentTime;
+                requestAnimationFrame(capture);
+            } catch (error) {
+                console.error('[WebRTC] Capture error:', error);
+                requestAnimationFrame(capture);
+            }
         };
 
+        // Start the capture loop
         requestAnimationFrame(capture);
 
         screenCaptureCleanup = () => {

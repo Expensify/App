@@ -231,11 +231,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             const connection = await initializeConnection('openai');
             await startScreenRecording(connection);
             
+            /** 
             Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, 
                 isExtraLargeScreenWidth 
                     ? {open: !sidePanel?.open} 
                     : {open: !sidePanel?.openMobile, openMobile: !sidePanel?.openMobile}
             );
+            */
             setIsRecording(true);
         } catch (error) {
             console.error('[HeaderView] Failed to start recording:', error);
@@ -374,14 +376,11 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                             </PressableWithoutFeedback>
                                 {isAdminRoomReportUtils(report) && (
-                                    <View style={[styles.alignItemsEnd, styles.flex1]}>
-                                        <Pressable
-                                            onPress={onPressSelfOnboarding}
-                                            role="button"
-                                        >
-                                            <Text>{isRecording ? "Stop Onboarding" : "Self-Onboarding"}</Text>
-                                        </Pressable>
-                                    </View>
+                                    <Button
+                                        text={isRecording ? "Stop Onboarding" : "Self-Onboarding"}
+                                        onPress={onPressSelfOnboarding}
+                                        style={[styles.alignItemsEnd, styles.flex1]}
+                                    />
                                 )}
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                     {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
