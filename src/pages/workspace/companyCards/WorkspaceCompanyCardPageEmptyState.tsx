@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import colors from '@styles/theme/colors';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -47,7 +47,7 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
             setIsNoDelegateAccessMenuVisible(true);
             return;
         }
-        CompanyCards.clearAddNewCardFlow();
+        clearAddNewCardFlow();
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy?.id ?? '-1'));
     }, [policy, isActingAsDelegate]);
 
