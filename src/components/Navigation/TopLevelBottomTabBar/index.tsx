@@ -1,4 +1,4 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
@@ -6,14 +6,14 @@ import BottomTabBar from '@components/Navigation/BottomTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
-import {FULLSCREEN_TO_TAB, SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
-import type {FullScreenName} from '@libs/Navigation/types';
-import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
-import useIsBottomTabVisibleDirectly from './useIsBottomTabVisibleDirectly';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import getIsBottomTabVisibleDirectly from './getIsBottomTabVisibleDirectly';
+import getIsScreenWithBottomTabFocused from './getIsScreenWithBottomTabFocused';
+import getSelectedTab from './getSelectedTab';
 
-const SCREENS_WITH_BOTTOM_TAB_BAR = [...Object.keys(SIDEBAR_TO_SPLIT), SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.WORKSPACES];
+type TopLevelBottomTabBarProps = {
+    state: PlatformStackNavigationState<ParamListBase>;
+};
 
 /**
  * TopLevelBottomTabBar is displayed when the user can interact with the bottom tab bar.
@@ -23,8 +23,7 @@ const SCREENS_WITH_BOTTOM_TAB_BAR = [...Object.keys(SIDEBAR_TO_SPLIT), SCREENS.S
  * 3. The bottom tab bar is under the overlay.
  * For cases 2 and 3, local bottom tab bar mounted on the screen will be displayed.
  */
-
-function TopLevelBottomTabBar() {
+function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom} = useStyledSafeAreaInsets();
@@ -32,22 +31,10 @@ function TopLevelBottomTabBar() {
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
 
-    const selectedTab = useNavigationState((state) => {
-        const topmostFullScreenRoute = state?.routes.findLast((route) => isFullScreenName(route.name));
-        return FULLSCREEN_TO_TAB[(topmostFullScreenRoute?.name as FullScreenName) ?? NAVIGATORS.REPORTS_SPLIT_NAVIGATOR];
-    });
-
-    // There always should be a focused screen.
-    const isScreenWithBottomTabFocused = useNavigationState((state) => {
-        const focusedRoute = findFocusedRoute(state);
-
-        // We are checking if the focused route is a split navigator because there may be a brief moment where the navigator don't have state yet.
-        // That mens we don't have screen with bottom tab focused. This caused glitching.
-        return SCREENS_WITH_BOTTOM_TAB_BAR.includes(focusedRoute?.name ?? '') || isSplitNavigatorName(focusedRoute?.name);
-    });
-
     // That means it's visible and it's not covered by the overlay.
-    const isBottomTabVisibleDirectly = useIsBottomTabVisibleDirectly();
+    const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state);
+    const selectedTab = getSelectedTab(state);
+    const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state);
 
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
@@ -79,4 +66,5 @@ function TopLevelBottomTabBar() {
         </View>
     );
 }
+
 export default TopLevelBottomTabBar;
