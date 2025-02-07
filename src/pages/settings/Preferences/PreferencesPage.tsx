@@ -99,7 +99,7 @@ function PreferencesPage() {
                             />
                             <View style={[styles.flexRow, styles.mb3, styles.mt4, styles.justifyContentBetween]}>
                                 <View style={styles.flex4}>
-                                    <Text>{'Auto translate messages'}</Text>
+                                    <Text>{'Translate messages'}</Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch

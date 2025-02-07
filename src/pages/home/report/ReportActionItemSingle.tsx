@@ -330,6 +330,16 @@ function ReportActionItemSingle({
                             </Tooltip>
                         )}
                         <ReportActionItemDate created={action?.created ?? ''} />
+                        {action?.message?.[0]?.translatedText && (
+                            <PressableWithoutFeedback
+                                style={[styles.ml1]}
+                                onPress={() => console.log('pressed')}
+                                accessibilityLabel={actorHint}
+                                role={CONST.ROLE.BUTTON}
+                            >
+                                <Text style={[styles.chatItemMessageHeaderTimestamp, styles.link]}>View original</Text>
+                            </PressableWithoutFeedback>
+                        )}
                     </View>
                 ) : null}
                 {!!action?.delegateAccountID && (
