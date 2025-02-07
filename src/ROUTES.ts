@@ -377,7 +377,7 @@ const ROUTES = {
               }
         )) => {
             if ('attachmentId' in restParams) {
-                return `attachment?attachmentId=${encodeURIComponent(restParams.attachmentId)}`;
+                return `attachment?attachmentId=${encodeURIComponent(restParams.attachmentId)}` as const;
             }
 
             const sourceParam = `?source=${encodeURIComponent(restParams.source)}`;
