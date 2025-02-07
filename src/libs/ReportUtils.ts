@@ -3437,7 +3437,7 @@ function getMoneyRequestReportName({
 function getTransactionDetails(
     transaction: OnyxInputOrEntry<Transaction>,
     createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
-    allowNegativeAmount?: boolean = false,
+    allowNegativeAmount = false,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
