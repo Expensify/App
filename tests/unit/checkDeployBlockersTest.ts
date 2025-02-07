@@ -144,7 +144,10 @@ describe('checkDeployBlockers', () => {
 
         test('Test an issue with all QA checked but not all deploy blockers', async () => {
             mockGetIssue.mockResolvedValue(
-                mockIssue([{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6882`, isQASuccess: true}], [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6883`, isQASuccess: false}]),
+                mockIssue(
+                    [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6882`, isQASuccess: true}],
+                    [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6883`, isQASuccess: false}],
+                ),
             );
             mockListComments.mockResolvedValue(baseComments);
             await expect(run()).resolves.toBeUndefined();
@@ -153,7 +156,10 @@ describe('checkDeployBlockers', () => {
 
         test('Test an issue with all QA checked and all deploy blockers resolved', async () => {
             mockGetIssue.mockResolvedValue(
-                mockIssue([{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6882`, isQASuccess: true}], [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6883`, isQASuccess: true}]),
+                mockIssue(
+                    [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6882`, isQASuccess: true}],
+                    [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6883`, isQASuccess: true}],
+                ),
             );
             mockListComments.mockResolvedValue(baseComments);
             await expect(run()).resolves.toBeUndefined();

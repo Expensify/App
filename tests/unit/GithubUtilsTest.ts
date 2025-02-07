@@ -89,8 +89,7 @@ describe('GithubUtils', () => {
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
-        issueWithDeployBlockers.body +=
-            `\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234\r\n`;
+        issueWithDeployBlockers.body += `\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234\r\n`;
 
         const baseExpectedResponse: Partial<Awaited<ReturnType<typeof GithubUtils.getStagingDeployCash>>> = {
             PRList: [
