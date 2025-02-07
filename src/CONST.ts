@@ -4998,6 +4998,7 @@ const CONST = {
         PER_DAY_LIMIT: 'perDayLimit',
         RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
         RECEIPT_REQUIRED: 'receiptRequired',
+        CUSTOM_RULES: 'customRules',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
         SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
