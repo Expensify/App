@@ -2517,11 +2517,17 @@ const CONST = {
         ES: 'es',
         ES_ES: 'es-ES',
         ES_ES_ONFIDO: 'es_ES',
+        PT: 'pt',
+        IT: 'it',
+        GE: 'ge',
+        FR: 'fr',
+        CN: 'cn',
+        JP: 'jp',
 
         DEFAULT: 'en',
     },
 
-    LANGUAGES: ['en', 'es'],
+    LANGUAGES: ['en', 'es', 'pt', 'it', 'ge', 'fr', 'cn', 'jp'],
 
     PRONOUNS_LIST: [
         'coCos',

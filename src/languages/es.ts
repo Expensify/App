@@ -1729,12 +1729,14 @@ const translations = {
     languagePage: {
         language: 'Idioma',
         languages: {
-            en: {
-                label: 'Inglés',
-            },
-            es: {
-                label: 'Español',
-            },
+            en: 'Inglés',
+            es: 'Español',
+            pt: 'Portugués',
+            it: 'Italiano',
+            ge: 'Alemán',
+            fr: 'Francés',
+            cn: 'Chino',
+            jp: 'Japonés',
         },
     },
     themePage: {

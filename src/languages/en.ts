@@ -1726,12 +1726,14 @@ const translations = {
     languagePage: {
         language: 'Language',
         languages: {
-            en: {
-                label: 'English',
-            },
-            es: {
-                label: 'Spanish',
-            },
+            en: 'English',
+            es: 'Spanish',
+            pt: 'Portuguese',
+            it: 'Italian',
+            ge: 'German',
+            fr: 'French',
+            cn: 'Chinese',
+            jp: 'Japanese',
         },
     },
     themePage: {
