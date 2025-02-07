@@ -31,7 +31,7 @@ export default function useTranslateLive(reportID: string, reportAction: OnyxEnt
             console.log('over here', response)
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                 [reportAction.reportActionID]: {
-                    message: [{...reportAction?.message, translatedText: response.translation}]
+                    message: [{...reportAction?.message[0], translatedText: response.translation}]
                 }
             });
         });
