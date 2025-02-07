@@ -313,10 +313,20 @@ type OnboardingMessage = {
 type ComposerCommandAction = 'summarize' | 'export' | 'create' | 'insight';
 
 type ComposerCommand = {
+    /** Name of the command */
     command: `/${ComposerCommandAction}`;
+
+    /** Action identifier that will be sent to the server */
     action: ComposerCommandAction;
+
+    /** Icon to be displayed next to the command name */
     icon: React.FC<SvgProps>;
+
+    /** Translation key for the description */
     descriptionKey: TranslationPaths;
+
+    /** An example argument that will be included with the command */
+    exampleArgument?: TranslationPaths;
 };
 
 const COMPOSER_COMMANDS: ComposerCommand[] = [
@@ -325,6 +335,7 @@ const COMPOSER_COMMANDS: ComposerCommand[] = [
         action: 'summarize',
         icon: Expensicons.Document,
         descriptionKey: 'composer.commands.summarize',
+        exampleArgument: 'composer.commands.summarizeExampleArgument',
     },
     {
         command: '/export',

@@ -16,7 +16,7 @@ type CommandSuggestionsProps = {
     /** The index of the highlighted command */
     highlightedCommandIndex?: number;
 
-    /** Array of suggested command */
+    /** Array of suggested commands */
     commands: ComposerCommand[];
 
     /** Current composer value */
@@ -55,8 +55,7 @@ function CommandSuggestions({commands, onSelect, value, highlightedCommandIndex 
                     <Icon
                         src={item.icon}
                         fill={theme.iconSuccessFill}
-                        height={16}
-                        width={16}
+                        medium
                     />
                     <Text
                         numberOfLines={1}

@@ -2,6 +2,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import CommandSuggestions from '@components/CommandSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useLocalize from '@hooks/useLocalize';
 import {suggestCommands} from '@libs/CommandUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import type {ComposerCommand} from '@src/CONST';
@@ -31,6 +32,7 @@ function SuggestionCommand(
 ) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
+    const {translate} = useLocalize();
     // eslint-disable-next-line react-compiler/react-compiler
     suggestionValuesRef.current = suggestionValues;
 
@@ -52,9 +54,11 @@ function SuggestionCommand(
         (commandIndex: number) => {
             const commandObj = commandIndex !== -1 ? suggestionValues.suggestedCommands.at(commandIndex) : undefined;
             const commandCode = commandObj?.command;
-            const commentAfterColonWithCommandNameRemoved = value.slice(selection.end);
+            const trailingCommentText = value.slice(selection.end);
+            const commandExampleArgument = commandObj?.exampleArgument ? translate(commandObj.exampleArgument) : '';
+            const restOfComment = trailingCommentText ? SuggestionsUtils.trimLeadingSpace(trailingCommentText) : commandExampleArgument;
 
-            updateComment(`${commandCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterColonWithCommandNameRemoved)}`, true);
+            updateComment(`${commandCode} ${restOfComment}`, true);
 
             // In some Android phones keyboard, the text to search for the command is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
@@ -63,11 +67,11 @@ function SuggestionCommand(
 
             setSelection({
                 start: (commandCode?.length ?? 0) + CONST.SPACE_LENGTH,
-                end: (commandCode?.length ?? 0) + CONST.SPACE_LENGTH,
+                end: (commandCode?.length ?? 0) + CONST.SPACE_LENGTH + restOfComment.length,
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedCommands: []}));
         },
-        [resetKeyboardInput, selection.end, setSelection, suggestionValues.suggestedCommands, updateComment, value],
+        [resetKeyboardInput, selection.end, setSelection, suggestionValues.suggestedCommands, translate, updateComment, value],
     );
 
     /**
@@ -125,12 +129,13 @@ function SuggestionCommand(
                 return;
             }
             const isCurrentlyShowingCommandSuggestion = newValue.startsWith('/');
+            const leftString = newValue.substring(0, selectionEnd);
 
             const nextState: SuggestionsValue = {
                 suggestedCommands: [],
                 shouldShowSuggestionMenu: false,
             };
-            const newSuggestedCommands = suggestCommands(newValue);
+            const newSuggestedCommands = suggestCommands(leftString);
 
             if (newSuggestedCommands?.length && isCurrentlyShowingCommandSuggestion) {
                 nextState.suggestedCommands = newSuggestedCommands;
