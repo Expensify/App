@@ -1,5 +1,4 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import type {EffectCallback} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
