@@ -729,13 +729,17 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
 
     const requestComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
     const requestCommentAction: OptimisticAddCommentReportAction = requestComment.reportAction;
-    requestCommentAction.whisperedToAccountIDs = [currentUserAccountID];
+    if (requestCommentAction.originalMessage) {
+        requestCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
+    }
 
     requestCommentText = requestComment.commentText.slice(command.command.length);
 
-    const answerComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+    const answerComment = buildOptimisticAddCommentReportAction('Analyzing...', undefined, CONST.ACCOUNT_ID.CONCIERGE, undefined, undefined, reportID);
     const answerCommentAction: OptimisticAddCommentReportAction = answerComment.reportAction;
-    answerCommentAction.whisperedToAccountIDs = [currentUserAccountID];
+    if (answerCommentAction.originalMessage) {
+        answerCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
+    }
 
     const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
     optimisticReportActions[requestCommentAction.reportActionID] = requestCommentAction;

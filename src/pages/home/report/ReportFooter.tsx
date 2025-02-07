@@ -169,7 +169,7 @@ function ReportFooter({
             }
 
             for (const command of CONST.COMPOSER_COMMANDS) {
-                if (text === command.action || text.startsWith(`${command.action} `)) {
+                if (text === command.command || text.startsWith(`${command.command} `)) {
                     Report.addActionComment(report.reportID, text, command);
                     return;
                 }
