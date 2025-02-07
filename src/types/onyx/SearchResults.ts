@@ -65,6 +65,9 @@ type SearchResultsInfo = {
 
     /** The optional columns that should be shown according to policy settings */
     columnsToShow: ColumnsToShow;
+
+    /** A hash of the search query */
+    hash?: number;
 };
 
 /** Model of personal details search result */
