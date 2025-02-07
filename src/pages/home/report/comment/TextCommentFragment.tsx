@@ -51,7 +51,6 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const {translatedText = null, html = ''} = fragment ?? {};
     const displayText = translatedText ?? html;
     const text = ReportActionsUtils.getTextFromHtml(displayText);
-    console.log('over here', {translatedText, text});
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
