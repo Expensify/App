@@ -11,7 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {setPolicyProhibitedExpenses} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {ProhibitedExpenses} from '@src/types/onyx/Policy';
@@ -56,7 +56,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 alcohol: !policy?.prohibitedExpenses?.alcohol,
                             };
-                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
@@ -70,7 +70,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 hotelIncidentals: !policy?.prohibitedExpenses?.hotelIncidentals,
                             };
-                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
@@ -84,7 +84,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 gambling: !policy?.prohibitedExpenses?.gambling,
                             };
-                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
@@ -98,7 +98,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 tobacco: !policy?.prohibitedExpenses?.tobacco,
                             };
-                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
@@ -112,7 +112,7 @@ function RulesProhibitedDefaultPage({
                                 ...policy?.prohibitedExpenses,
                                 adultEntertainment: !policy?.prohibitedExpenses?.adultEntertainment,
                             };
-                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
                     />
                 </View>
