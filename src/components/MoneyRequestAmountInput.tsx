@@ -171,7 +171,7 @@ function MoneyRequestAmountInput(
                 : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!MoneyRequestUtils.validateAmount(finalAmount, decimals, undefined, true)) {
+            if (!MoneyRequestUtils.validateAmount(finalAmount, decimals)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -237,7 +237,7 @@ function MoneyRequestAmountInput(
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return
-        if (MoneyRequestUtils.validateAmount(currentAmount, decimals, undefined, true)) {
+        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
             return;
         }
 

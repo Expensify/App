@@ -69,9 +69,12 @@ type MoneyRequestAmountFormProps = {
 
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
+
+    /** Whether to allow flipping the currency */
+    allowFlippingCurrency?: boolean;
 };
 
-const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) === 0;
+const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
     isTaxAmountForm && Number.parseFloat(currentAmount) > convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
@@ -84,7 +87,7 @@ function MoneyRequestAmountForm(
         amount = 0,
         taxAmount = 0,
         currency = CONST.CURRENCY.USD,
-        isCurrencyPressable = false,
+        isCurrencyPressable = true,
         isEditing = false,
         skipConfirmation = false,
         iouType = CONST.IOU.TYPE.SUBMIT,
@@ -94,6 +97,7 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
+        allowFlippingCurrency = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -282,7 +286,7 @@ function MoneyRequestAmountForm(
                     amount={absoluteAmount}
                     autoGrowExtraSpace={variables.w80}
                     currency={currency}
-                    isCurrencyPressable={isCurrencyPressable}
+                    isCurrencyPressable={false}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     onAmountChange={() => {
                         if (!formError) {
@@ -316,20 +320,24 @@ function MoneyRequestAmountForm(
             </View>
             <View>
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
-                    <Button
-                        shouldShowRightIcon
-                        small
-                        iconRight={Expensicons.DownArrow}
-                        onPress={onCurrencyButtonPress}
-                        text={currency}
-                    />
-                    <Button
-                        shouldShowRightIcon
-                        small
-                        iconRight={Expensicons.PlusMinus}
-                        onPress={onFlipAmount}
-                        text={translate('iou.flip')}
-                    />
+                    {isCurrencyPressable && (
+                        <Button
+                            shouldShowRightIcon
+                            small
+                            iconRight={Expensicons.DownArrow}
+                            onPress={onCurrencyButtonPress}
+                            text={currency}
+                        />
+                    )}
+                    {allowFlippingCurrency && (
+                        <Button
+                            shouldShowRightIcon
+                            small
+                            iconRight={Expensicons.PlusMinus}
+                            onPress={onFlipAmount}
+                            text={translate('iou.flip')}
+                        />
+                    )}
                 </View>
             </View>
             <View
