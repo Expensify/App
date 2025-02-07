@@ -27,20 +27,20 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
             subtitleMuted
         >
             <View style={[styles.mt3]}>
-                <OfflineWithFeedback
+                {/* <OfflineWithFeedback
                     pendingAction={policy?.pendingFields?.customRules}
                     errors={policy?.errors?.customRules}
-                >
-                    <MenuItemWithTopDescription
-                        title={policy?.customRules ?? ''}
-                        description={translate('workspace.rules.customRules.subtitle')}
-                        shouldShowRightIcon
-                        interactive
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(policyID))}
-                        shouldRenderAsHTML
-                    />
-                </OfflineWithFeedback>
+                > */}
+                <MenuItemWithTopDescription
+                    title={policy?.customRules ?? ''}
+                    description={translate('workspace.rules.customRules.subtitle')}
+                    shouldShowRightIcon
+                    interactive
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    onPress={() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(policyID))}
+                    shouldRenderAsHTML
+                />
+                {/* </OfflineWithFeedback> */}
             </View>
         </Section>
     );
