@@ -7,6 +7,7 @@ import type {TextSelection} from '@components/Composer/types';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
 import type {SuggestionsRef} from './ReportActionCompose';
+import SuggestionCommand from './SuggestionCommand';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 
@@ -67,6 +68,7 @@ function Suggestions(
 ) {
     const suggestionEmojiRef = useRef<SuggestionsRef>(null);
     const suggestionMentionRef = useRef<SuggestionsRef>(null);
+    const suggestionCommandRef = useRef<SuggestionsRef>(null);
     const {isDraggingOver} = useContext(DragAndDropContext);
     const prevIsDraggingOver = usePrevious(isDraggingOver);
 
@@ -85,6 +87,13 @@ function Suggestions(
             }
         }
 
+        if (suggestionCommandRef.current?.getSuggestions) {
+            const commandSuggestions = suggestionCommandRef.current.getSuggestions();
+            if (commandSuggestions.length > 0) {
+                return commandSuggestions;
+            }
+        }
+
         return [];
     }, []);
 
@@ -94,6 +103,7 @@ function Suggestions(
     const resetSuggestions = useCallback(() => {
         suggestionEmojiRef.current?.resetSuggestions();
         suggestionMentionRef.current?.resetSuggestions();
+        suggestionCommandRef.current?.resetSuggestions();
     }, []);
 
     /**
@@ -102,28 +112,34 @@ function Suggestions(
     const triggerHotkeyActions = useCallback((e: KeyboardEvent) => {
         const emojiHandler = suggestionEmojiRef.current?.triggerHotkeyActions(e);
         const mentionHandler = suggestionMentionRef.current?.triggerHotkeyActions(e);
-        return emojiHandler ?? mentionHandler;
+        const commandHandler = suggestionCommandRef.current?.triggerHotkeyActions(e);
+
+        return emojiHandler ?? mentionHandler ?? commandHandler;
     }, []);
 
     const onSelectionChange = useCallback((e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
+        const commandHandler = suggestionCommandRef.current?.onSelectionChange?.(e);
         suggestionMentionRef.current?.onSelectionChange?.(e);
-        return emojiHandler;
+        return emojiHandler ?? commandHandler;
     }, []);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         suggestionEmojiRef.current?.updateShouldShowSuggestionMenuToFalse();
         suggestionMentionRef.current?.updateShouldShowSuggestionMenuToFalse();
+        suggestionCommandRef.current?.updateShouldShowSuggestionMenuToFalse();
     }, []);
 
     const setShouldBlockSuggestionCalc = useCallback((shouldBlock: boolean) => {
         suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
+        suggestionCommandRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
     }, []);
     const getIsSuggestionsMenuVisible = useCallback((): boolean => {
         const isEmojiVisible = suggestionEmojiRef.current?.getIsSuggestionsMenuVisible() ?? false;
         const isSuggestionVisible = suggestionMentionRef.current?.getIsSuggestionsMenuVisible() ?? false;
-        return isEmojiVisible || isSuggestionVisible;
+        const isCommandVisible = suggestionCommandRef.current?.getIsSuggestionsMenuVisible() ?? false;
+        return isEmojiVisible || isSuggestionVisible || isCommandVisible;
     }, []);
 
     useImperativeHandle(
@@ -171,6 +187,12 @@ function Suggestions(
                 ref={suggestionMentionRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
+            />
+            <SuggestionCommand
+                ref={suggestionCommandRef}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...baseProps}
+                resetKeyboardInput={resetKeyboardInput}
             />
         </View>
     );

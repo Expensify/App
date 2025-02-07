@@ -54,6 +54,7 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
+import {Command} from './SuggestionCommand';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -61,7 +62,7 @@ type SuggestionsRef = {
     triggerHotkeyActions: (event: KeyboardEvent) => boolean | undefined;
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
-    getSuggestions: () => Mention[] | Emoji[];
+    getSuggestions: () => Mention[] | Emoji[] | Command[];
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
