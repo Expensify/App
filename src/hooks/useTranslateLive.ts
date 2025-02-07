@@ -30,20 +30,18 @@ export default function useTranslateLive(reportID: string | undefined, reportAct
 
         const fragment = reportAction.message[0];
         if (!isAutoTranslateMessagesEnabled) {
-            console.log('over here 1')
             if (!fragment.translatedText) {
                 return;
             }
-            console.log('over here 2')
+
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                 [reportAction.reportActionID]: {
                     message: [{...reportAction?.message[0], translatedText: null}],
                 },
             });
-            console.log('over here 3')
             return;
         }
-        console.log('over here 4')
+
         makeRequestWithSideEffects('Translate', {
             type: 'live',
             textToTranslate: fragment?.html,
