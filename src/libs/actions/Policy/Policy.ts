@@ -3859,7 +3859,7 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: strin
 
     const parameters: SetPolicyProhibitedExpensesParams = {
         policyID,
-        prohibitedExpenses,
+        prohibitedExpenses: JSON.stringify(prohibitedExpenses),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES, parameters, onyxData);
