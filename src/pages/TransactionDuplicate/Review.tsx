@@ -10,13 +10,13 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
-import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
-import {getTransaction, getTransactionViolations} from '@libs/TransactionUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -28,24 +28,23 @@ function TransactionDuplicateReview() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionID = getLinkedTransactionID(reportAction, report?.reportID) ?? undefined;
-    const transactionViolations = getTransactionViolations(transactionID);
-
+    const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction, report?.reportID ?? '-1') ?? '-1';
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const duplicateTransactionIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
     );
-    const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : [...duplicateTransactionIDs];
+    const transactionIDs = [transactionID, ...duplicateTransactionIDs];
 
-    const transactions = transactionIDs.map((item) => getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
+    const transactions = transactionIDs.map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
 
     const keepAll = () => {
-        dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails);
+        Transaction.dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails);
         Navigation.goBack();
     };
 
-    const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
+    const hasSettledOrApprovedTransaction = transactions.some((transaction) => ReportUtils.isSettled(transaction?.reportID) || ReportUtils.isReportIDApproved(transaction?.reportID));
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
