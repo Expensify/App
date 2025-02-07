@@ -122,15 +122,15 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
-            let isNaturalSearch = false;
+            let isUserQueryNaturalSearch = false;
             if (canUseNaturalSearch) {
                 // Check the user's query to see if it could be natural search or not
                 // A normal search query will usually have 2 or more colons or contain "type:expense"
                 const colonCount = (userQuery.match(/:/g) ?? []).length;
                 if (!userQuery.includes('type:expense') && colonCount < 2) {
-                    isNaturalSearch = true;
+                    isUserQueryNaturalSearch = true;
                 }
-                setIsNaturalSearch(isNaturalSearch);
+                setIsNaturalSearch(isUserQueryNaturalSearch);
             }
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
