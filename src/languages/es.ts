@@ -4758,6 +4758,11 @@ const translations = {
                 goTo: 'Ve a',
                 andEnableWorkflows: 'y habilita los flujos de trabajo, luego añade aprobaciones para desbloquear esta función.',
             },
+            customRules: {
+                title: 'Reglas personalizadas',
+                subtitle: 'Descripción',
+                description: 'Introduzca reglas personalizadas para los informes de gastos',
+            },
         },
     },
     getAssistancePage: {
