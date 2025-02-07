@@ -473,9 +473,10 @@ function BaseVideoPlayer({
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
                                             }}
                                             onLoad={() => {
-                                                if (isCurrentlyURLSet && !isUploading) {
-                                                    playVideo();
+                                                if (!isCurrentlyURLSet || isUploading) {
+                                                    return;
                                                 }
+                                                playVideo();
                                             }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
