@@ -6,7 +6,9 @@ import type {Dictionary} from 'lodash';
 import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
+import * as Expensicons from './components/Icon/Expensicons';
 import type {TranslationPaths} from './languages/types';
 import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
@@ -310,30 +312,30 @@ type OnboardingMessage = {
 
 type ComposerCommand = {
     command: string;
-    icon: string;
+    icon: React.FC<SvgProps>;
     descriptionKey: TranslationPaths;
 };
 
 const COMPOSER_COMMANDS: ComposerCommand[] = [
     {
         command: '/summarize',
-        icon: 'TODO',
+        icon: Expensicons.Document,
         descriptionKey: 'composer.commands.summarize',
     },
     {
         command: '/export',
-        icon: 'TODO',
+        icon: Expensicons.Export,
         descriptionKey: 'composer.commands.export',
     },
     {
-        command: '/request',
-        icon: 'TODO',
-        descriptionKey: 'composer.commands.request',
+        command: '/create',
+        icon: Expensicons.ReceiptPlus,
+        descriptionKey: 'composer.commands.create',
     },
     {
-        command: '/split',
-        icon: 'TODO',
-        descriptionKey: 'composer.commands.split',
+        command: '/insight',
+        icon: Expensicons.Mute,
+        descriptionKey: 'composer.commands.insight',
     },
 ];
 
@@ -6682,6 +6684,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    ComposerCommand,
 };
 
 export default CONST;
