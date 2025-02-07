@@ -43,6 +43,18 @@ import SearchButton from './SearchRouter/SearchButton';
 import {useSearchRouterContext} from './SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from './types';
 
+const isQueryNaturalSearch = (canUseNaturalSearch?: boolean, query: string): boolean => {
+    // Always return false if the beta to use natural search is not enabled
+    if (!canUseNaturalSearch || !query) {
+        return false;
+    }
+
+    // Check the user's query to see if it could be natural search or not
+    // A normal search query will usually have 2 or more colons or contain "type:expense"
+    const colonCount = (query.match(/:/g) ?? []).length;
+    return !query.includes('type:expense') && colonCount < 2;
+};
+
 // When counting absolute positioning, we need to account for borders
 const BORDER_WIDTH = 1;
 
@@ -81,12 +93,12 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const {canUseNaturalSearch} = usePermissions();
     const themePreference = useThemePreference();
-    const [isNaturalSearch, setIsNaturalSearch] = useState(false);
 
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
+    const [isNaturalSearch, setIsNaturalSearch] = useState(() => isQueryNaturalSearch(canUseNaturalSearch, queryText));
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(queryText);
@@ -125,15 +137,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
-            let isUserQueryNaturalSearch = false;
             if (canUseNaturalSearch) {
-                // Check the user's query to see if it could be natural search or not
-                // A normal search query will usually have 2 or more colons or contain "type:expense"
-                const colonCount = (userQuery.match(/:/g) ?? []).length;
-                if (!userQuery.includes('type:expense') && colonCount < 2) {
-                    isUserQueryNaturalSearch = true;
-                }
-                setIsNaturalSearch(isUserQueryNaturalSearch);
+                setIsNaturalSearch(isQueryNaturalSearch(canUseNaturalSearch, userQuery));
             }
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
