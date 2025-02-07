@@ -64,6 +64,9 @@ const fallbackIcon: Icon = {
 };
 
 function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONST.AVATAR_SIZE.DEFAULT, shouldEnableDetailPageNavigation = false}: AvatarWithDisplayNameProps) {
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST) ?? CONST.EMPTY_OBJECT;
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -71,10 +74,8 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const title = getReportName(report, invoiceReceiverPolicy);
-    const subtitle = getChatRoomSubtitle(report);
+    const title = getReportName(report, undefined, undefined, undefined, invoiceReceiverPolicy);
+    const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = isMoneyRequestReport(report) || isMoneyRequest(report) || isTrackExpenseReport(report) || isInvoiceReport(report);
     const icons = getIcons(report, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
@@ -86,10 +87,8 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
         if (!report?.parentReportActionID) {
-            actorAccountID.current = CONST.DEFAULT_NUMBER_ID;
             return;
         }
-
         const parentReportAction = parentReportActions?.[report?.parentReportActionID];
         actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     }, [parentReportActions, report]);
@@ -203,5 +202,7 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
         </PressableWithoutFeedback>
     );
 }
+
+AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
 export default AvatarWithDisplayName;
