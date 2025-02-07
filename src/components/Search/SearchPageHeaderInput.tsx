@@ -14,6 +14,7 @@ import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQuery
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -76,6 +77,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const {canUseNaturalSearch} = usePermissions();
 
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
@@ -119,6 +121,17 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
+            let isNaturalSearch = false;
+            if (canUseNaturalSearch) {
+                // Check the user's query to see if it could be natural search or not
+                // A normal search query will usually have 2 or more colons or contain "type:expense"
+                const colonCount = (userQuery.match(/:/g) || []).length;
+                if (!userQuery.includes('type:expense') && colonCount < 2) {
+                    isNaturalSearch = true;
+                }
+
+                console.debug('timddd', userQuery, isNaturalSearch);
+            }
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
