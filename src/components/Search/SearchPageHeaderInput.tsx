@@ -257,7 +257,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleIcon: Expensicons.MagnifyingGlass,
+              singleIcon: isNaturalSearch ? Expensicons.Megaphone : Expensicons.MagnifyingGlass,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',
