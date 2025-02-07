@@ -37,7 +37,6 @@ function ValidateCodeActionForm({
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const [canSendHasMagicCodeBeenSent, setCanSendHasMagicCodeBeenSent] = useState(false);
-    const [shouldValidate, setShouldValidate] = useState(!isValidated);
 
     useEffect(
         () => () => {
@@ -51,16 +50,13 @@ function ValidateCodeActionForm({
         if (!firstRenderRef.current || hasMagicCodeBeenSent) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             return () => {
-		    console.log('shouldValidate,: ', shouldValidate)
-                if (isClosedRef.current && shouldValidate) {
-			console.log('clearError/////////////////////////')
+                if (isClosedRef.current && !isValidated) {
                     clearError();
                 }
             };
         }
         firstRenderRef.current = false;
-        if (shouldValidate) {
-		console.log('sendValidateCode****************************')
+        if (!isValidated) {
             sendValidateCode();
         }
         if (hasMagicCodeBeenSent) {
@@ -68,9 +64,9 @@ function ValidateCodeActionForm({
                 setCanSendHasMagicCodeBeenSent(true);
             });
         }
-    }, [sendValidateCode, hasMagicCodeBeenSent, clearError]);
+    }, [isValidated, sendValidateCode, hasMagicCodeBeenSent, clearError]);
 
-    if (shouldValidate) {
+    if (!isValidated) {
         return (
             <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
                 <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
