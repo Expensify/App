@@ -4774,6 +4774,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
             minHeight: variables.optionRowHeight,
+            fontFamily: 'INTER',
         },
 
         searchQueryListItemStyle: {
