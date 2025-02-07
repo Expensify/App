@@ -1,6 +1,7 @@
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import type {Animated} from 'react-native';
 import DomUtils from '@libs/DomUtils';
 

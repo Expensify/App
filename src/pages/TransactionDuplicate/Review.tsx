@@ -44,11 +44,11 @@ function TransactionDuplicateReview() {
         Navigation.goBack();
     };
 
-    const hasSettledOrApprovedTransaction = transactions.some((transaction) => ReportUtils.isSettled(transaction?.reportID) || ReportUtils.isReportApproved(transaction?.reportID));
+    const hasSettledOrApprovedTransaction = transactions.some((transaction) => ReportUtils.isSettled(transaction?.reportID) || ReportUtils.isReportIDApproved(transaction?.reportID));
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
-            <FullPageNotFoundView shouldShow={transactionID === '-1'}>
+            <FullPageNotFoundView shouldShow={!transactionID}>
                 <HeaderWithBackButton
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}

@@ -1,4 +1,5 @@
 import lodashDeepClone from 'lodash/cloneDeep';
+import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -9,11 +10,11 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {translateLocal} from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as NumberUtils from '@libs/NumberUtils';
-import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -69,7 +70,7 @@ function generateCustomUnitID(): string {
     return NumberUtils.generateHexadecimalValue(13);
 }
 
-function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, disableRedirect?: boolean) {
+function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean) {
     const doesCustomUnitExists = !!customUnitID;
     const finalCustomUnitID = doesCustomUnitExists ? customUnitID : generateCustomUnitID();
     const optimisticCustomUnit = {
@@ -122,8 +123,8 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
 
     API.write(WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
+        goBackWhenEnableFeature(policyID);
     }
 }
 
@@ -397,6 +398,23 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
+let allRecentlyUsedDestinations: OnyxCollection<RecentlyUsedCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedDestinations = val),
+});
+
+function buildOptimisticPolicyRecentlyUsedDestinations(policyID: string | undefined, destination: string | undefined) {
+    if (!policyID || !destination) {
+        return [];
+    }
+
+    const policyRecentlyUsedDestinations = allRecentlyUsedDestinations?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`] ?? [];
+
+    return lodashUnion([destination], policyRecentlyUsedDestinations);
+}
+
 export {
     generateCustomUnitID,
     enablePerDiem,
@@ -409,4 +427,5 @@ export {
     editPerDiemRateSubrate,
     editPerDiemRateAmount,
     editPerDiemRateCurrency,
+    buildOptimisticPolicyRecentlyUsedDestinations,
 };

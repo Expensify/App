@@ -1,0 +1,36 @@
+diff --git a/node_modules/expo-modules-core/src/NativeModulesProxy.native.ts b/node_modules/expo-modules-core/src/NativeModulesProxy.native.ts
+index 4f4244d..d378217 100644
+--- a/node_modules/expo-modules-core/src/NativeModulesProxy.native.ts
++++ b/node_modules/expo-modules-core/src/NativeModulesProxy.native.ts
+@@ -5,7 +5,7 @@
+ 
+ import { NativeModules } from 'react-native';
+ 
+-import { ProxyNativeModule } from './NativeModulesProxy.types';
++import type { ProxyNativeModule } from './NativeModulesProxy.types';
+ 
+ const LegacyNativeProxy = NativeModules.NativeUnimoduleProxy;
+ // Fixes `cannot find name 'global'.` in tests
+diff --git a/node_modules/expo-modules-core/src/NativeModulesProxy.ts b/node_modules/expo-modules-core/src/NativeModulesProxy.ts
+index e0409ba..5eab9de 100644
+--- a/node_modules/expo-modules-core/src/NativeModulesProxy.ts
++++ b/node_modules/expo-modules-core/src/NativeModulesProxy.ts
+@@ -1,4 +1,4 @@
+-import { ProxyNativeModule } from './NativeModulesProxy.types';
++import type { ProxyNativeModule } from './NativeModulesProxy.types';
+ 
+ // We default to an empty object shim wherever we don't have an environment-specific implementation
+ 
+diff --git a/node_modules/expo-modules-core/src/index.ts b/node_modules/expo-modules-core/src/index.ts
+index 944f46f..5cdb4af 100644
+--- a/node_modules/expo-modules-core/src/index.ts
++++ b/node_modules/expo-modules-core/src/index.ts
+@@ -2,7 +2,7 @@ import EventEmitter, { type EventSubscription } from './EventEmitter';
+ import { LegacyEventEmitter } from './LegacyEventEmitter';
+ import NativeModule from './NativeModule';
+ import NativeModulesProxy from './NativeModulesProxy';
+-import { ProxyNativeModule } from './NativeModulesProxy.types';
++import type { ProxyNativeModule } from './NativeModulesProxy.types';
+ import { requireNativeViewManager } from './NativeViewManagerAdapter';
+ import Platform from './Platform';
+ import SharedObject from './SharedObject';

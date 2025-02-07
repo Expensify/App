@@ -1,6 +1,6 @@
 import {getActionFromState, StackActions} from '@react-navigation/native';
 import type {NavigationAction} from '@react-navigation/native';
-import linkingConfig from '@libs/Navigation/linkingConfig';
+import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {GetPartialStateDiffReturnType} from './getPartialStateDiff';
 

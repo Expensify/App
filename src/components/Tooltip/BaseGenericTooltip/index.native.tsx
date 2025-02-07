@@ -4,6 +4,7 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -36,6 +37,9 @@ function BaseGenericTooltip({
     wrapperStyle = {},
     shouldUseOverlay = false,
     onHideTooltip = () => {},
+    shouldTeleportPortalToModalLayer = false,
+    isEducationTooltip = false,
+    onTooltipPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -68,6 +72,7 @@ function BaseGenericTooltip({
                 anchorAlignment,
                 wrapperStyle,
                 shouldAddHorizontalPadding: false,
+                isEducationTooltip,
             }),
         [
             StyleUtils,
@@ -84,6 +89,7 @@ function BaseGenericTooltip({
             shouldForceRenderingBelow,
             anchorAlignment,
             wrapperStyle,
+            isEducationTooltip,
         ],
     );
 
@@ -109,12 +115,17 @@ function BaseGenericTooltip({
         );
     }
 
+    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
+
     return (
-        <Portal hostName={!shouldUseOverlay ? 'modal' : undefined}>
+        <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Animated.View
-                ref={rootWrapper}
+            <AnimatedWrapper
                 style={[rootWrapperStyle, animationStyle]}
+                ref={rootWrapper}
+                onPress={isEducationTooltip ? onTooltipPress : undefined}
+                role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 onLayout={(e) => {
                     const {height, width} = e.nativeEvent.layout;
                     if (height === wrapperMeasuredHeightAnimated.get()) {
@@ -133,7 +144,7 @@ function BaseGenericTooltip({
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Animated.View>
+            </AnimatedWrapper>
         </Portal>
     );
 }

@@ -56,4 +56,15 @@ function hasSeenTourSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDIN
     return !!onboarding?.selfTourViewed;
 }
 
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector};
+/**
+ * Selector to get the value of nvp_introSelected NVP from the Onyx Store
+ *
+ * `undefined` means the value is not loaded yet
+ * `true` means they were invited to NewDot
+ * `false` means they are an organic sign-in
+ */
+function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean | undefined {
+    return introSelected?.inviteType !== undefined;
+}
+
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector};

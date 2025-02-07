@@ -70,6 +70,7 @@ export type {SageIntactCredentialsForm} from './SageIntactCredentialsForm';
 export type {NetSuiteCustomFieldForm} from './NetSuiteCustomFieldForm';
 export type {NetSuiteTokenInputForm} from './NetSuiteTokenInputForm';
 export type {NetSuiteCustomFormIDForm} from './NetSuiteCustomFormIDForm';
+export type {NSQSOAuth2Form} from './NSQSOAuth2Form';
 export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';
@@ -87,6 +88,8 @@ export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName'
 export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
 export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
+export type {WorkspaceConfirmationForm} from './WorkspaceConfirmationForm';
 export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
 export type {MoneyRequestSubrateForm} from './MoneyRequestSubrateForm';
+export type {InternationalBankAccountForm} from './InternationalBankAccountForm';
 export type {WorkspacePerDiemForm} from './WorkspacePerDiemForm';
