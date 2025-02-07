@@ -105,7 +105,7 @@ We use 1Password for many secrets and in general use two different actions from 
 ### Important note about Secrets
 Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).
 
-Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, you must declare it as an input and pass it in. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
+Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, _you must declare it as an input and pass it in_. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
 
 ## Actions
 
