@@ -326,6 +326,7 @@ function IOURequestStepConfirmation({
                     category: transaction.category,
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
+                    billable: transaction.billable,
                 },
             });
         },
