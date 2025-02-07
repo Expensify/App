@@ -1,0 +1,569 @@
+diff --git a/node_modules/expensify-common/dist/ExpensiMark.js b/node_modules/expensify-common/dist/ExpensiMark.js
+index 5c8cd83..7df90cd 100644
+--- a/node_modules/expensify-common/dist/ExpensiMark.js
++++ b/node_modules/expensify-common/dist/ExpensiMark.js
+@@ -1,41 +1,61 @@
+-"use strict";
++'use strict';
+ 'worklet';
+-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+-    if (k2 === undefined) k2 = k;
+-    var desc = Object.getOwnPropertyDescriptor(m, k);
+-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+-      desc = { enumerable: true, get: function() { return m[k]; } };
+-    }
+-    Object.defineProperty(o, k2, desc);
+-}) : (function(o, m, k, k2) {
+-    if (k2 === undefined) k2 = k;
+-    o[k2] = m[k];
+-}));
+-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+-    Object.defineProperty(o, "default", { enumerable: true, value: v });
+-}) : function(o, v) {
+-    o["default"] = v;
+-});
+-var __importStar = (this && this.__importStar) || function (mod) {
+-    if (mod && mod.__esModule) return mod;
+-    var result = {};
+-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+-    __setModuleDefault(result, mod);
+-    return result;
+-};
+-var __importDefault = (this && this.__importDefault) || function (mod) {
+-    return (mod && mod.__esModule) ? mod : { "default": mod };
+-};
+-Object.defineProperty(exports, "__esModule", { value: true });
+-const str_1 = __importDefault(require("./str"));
+-const Constants = __importStar(require("./CONST"));
+-const UrlPatterns = __importStar(require("./Url"));
+-const Logger_1 = __importDefault(require("./Logger"));
+-const Utils = __importStar(require("./utils"));
++var __createBinding =
++    (this && this.__createBinding) ||
++    (Object.create
++        ? function (o, m, k, k2) {
++              if (k2 === undefined) k2 = k;
++              var desc = Object.getOwnPropertyDescriptor(m, k);
++              if (!desc || ('get' in desc ? !m.__esModule : desc.writable || desc.configurable)) {
++                  desc = {
++                      enumerable: true,
++                      get: function () {
++                          return m[k];
++                      },
++                  };
++              }
++              Object.defineProperty(o, k2, desc);
++          }
++        : function (o, m, k, k2) {
++              if (k2 === undefined) k2 = k;
++              o[k2] = m[k];
++          });
++var __setModuleDefault =
++    (this && this.__setModuleDefault) ||
++    (Object.create
++        ? function (o, v) {
++              Object.defineProperty(o, 'default', {enumerable: true, value: v});
++          }
++        : function (o, v) {
++              o['default'] = v;
++          });
++var __importStar =
++    (this && this.__importStar) ||
++    function (mod) {
++        if (mod && mod.__esModule) return mod;
++        var result = {};
++        if (mod != null) for (var k in mod) if (k !== 'default' && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
++        __setModuleDefault(result, mod);
++        return result;
++    };
++var __importDefault =
++    (this && this.__importDefault) ||
++    function (mod) {
++        return mod && mod.__esModule ? mod : {default: mod};
++    };
++Object.defineProperty(exports, '__esModule', {value: true});
++const str_1 = __importDefault(require('./str'));
++const Constants = __importStar(require('./CONST'));
++const UrlPatterns = __importStar(require('./Url'));
++const Logger_1 = __importDefault(require('./Logger'));
++const Utils = __importStar(require('./utils'));
+ const EXTRAS_DEFAULT = {};
+ const MARKDOWN_LINK_REGEX = new RegExp(`\\[([^\\][]*(?:\\[[^\\][]*][^\\][]*)*)]\\(${UrlPatterns.MARKDOWN_URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+ const MARKDOWN_IMAGE_REGEX = new RegExp(`\\!(?:\\[([^\\][]*(?:\\[[^\\][]*][^\\][]*)*)])?\\(${UrlPatterns.MARKDOWN_URL_REGEX}\\)(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+-const MARKDOWN_VIDEO_REGEX = new RegExp(`\\!(?:\\[([^\\][]*(?:\\[[^\\][]*][^\\][]*)*)])?\\(((${UrlPatterns.MARKDOWN_URL_REGEX})\\.(?:${Constants.CONST.VIDEO_EXTENSIONS.join('|')}))\\)(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
++const MARKDOWN_VIDEO_REGEX = new RegExp(
++    `\\!(?:\\[([^\\][]*(?:\\[[^\\][]*][^\\][]*)*)])?\\(((${UrlPatterns.MARKDOWN_URL_REGEX})\\.(?:${Constants.CONST.VIDEO_EXTENSIONS.join('|')}))\\)(?![^<]*(<\\/pre>|<\\/code>))`,
++    'gi',
++);
+ const SLACK_SPAN_NEW_LINE_TAG = '<span class="c-mrkdwn__br" data-stringify-type="paragraph-break" style="box-sizing: inherit; display: block; height: unset;"></span>';
+ class ExpensiMark {
+     /**
+@@ -49,7 +69,7 @@ class ExpensiMark {
+         this.getAttributeCache = (extras) => {
+             var _a, _b;
+             if (!extras) {
+-                return { attrCachingFn: undefined, attrCache: undefined };
++                return {attrCachingFn: undefined, attrCache: undefined};
+             }
+             return {
+                 attrCachingFn: (_a = extras.mediaAttributeCachingFn) !== null && _a !== void 0 ? _a : extras.cacheVideoAttributes,
+@@ -116,7 +136,9 @@ class ExpensiMark {
+                 rawInputReplacement: (extras, _match, videoName, videoSource) => {
+                     const attrCache = this.getAttributeCache(extras).attrCache;
+                     const extraAttrs = attrCache && attrCache[videoSource];
+-                    return `<video data-expensify-source="${str_1.default.sanitizeURL(videoSource)}" data-raw-href="${videoSource}" data-link-variant="${typeof videoName === 'string' ? 'labeled' : 'auto'}" ${extraAttrs || ''}>${videoName ? `${videoName}` : ''}</video>`;
++                    return `<video data-expensify-source="${str_1.default.sanitizeURL(videoSource)}" data-raw-href="${videoSource}" data-link-variant="${
++                        typeof videoName === 'string' ? 'labeled' : 'auto'
++                    }" ${extraAttrs || ''}>${videoName ? `${videoName}` : ''}</video>`;
+                 },
+             },
+             /**
+@@ -196,7 +218,9 @@ class ExpensiMark {
+                 rawInputReplacement: (extras, _match, imgAlt, imgSource) => {
+                     const attrCache = this.getAttributeCache(extras).attrCache;
+                     const extraAttrs = attrCache && attrCache[imgSource];
+-                    return `<img src="${str_1.default.sanitizeURL(imgSource)}"${imgAlt ? ` alt="${this.escapeAttributeContent(imgAlt)}"` : ''} data-raw-href="${imgSource}" data-link-variant="${typeof imgAlt === 'string' ? 'labeled' : 'auto'}" ${extraAttrs || ''}/>`;
++                    return `<img src="${str_1.default.sanitizeURL(imgSource)}"${
++                        imgAlt ? ` alt="${this.escapeAttributeContent(imgAlt)}"` : ''
++                    } data-raw-href="${imgSource}" data-link-variant="${typeof imgAlt === 'string' ? 'labeled' : 'auto'}" ${extraAttrs || ''}/>`;
+                 },
+             },
+             /**
+@@ -237,6 +261,13 @@ class ExpensiMark {
+                     return `${g1}<mention-here>${g2}</mention-here>${g3}`;
+                 },
+             },
++            {
++                name: 'commandSummarize',
++                regex: /^(\/summarize)(?=\s|$)/gm,
++                replacement: (_extras, match) => {
++                    return `<command>${match}</command>`;
++                },
++            },
+             /**
+              * A room mention is a string that starts with the '#' symbol and is followed by a valid room name.
+              *
+@@ -259,7 +290,10 @@ class ExpensiMark {
+              */
+             {
+                 name: 'userMentions',
+-                regex: new RegExp(`(@here|[a-zA-Z0-9.!$%&+=?^\`{|}-]?)(@${Constants.CONST.REG_EXP.EMAIL_PART}|@${Constants.CONST.REG_EXP.PHONE_PART})(?!((?:(?!<a).)+)?<\\/a>|[^<]*(<\\/pre>|<\\/code>))`, 'gim'),
++                regex: new RegExp(
++                    `(@here|[a-zA-Z0-9.!$%&+=?^\`{|}-]?)(@${Constants.CONST.REG_EXP.EMAIL_PART}|@${Constants.CONST.REG_EXP.PHONE_PART})(?!((?:(?!<a).)+)?<\\/a>|[^<]*(<\\/pre>|<\\/code>))`,
++                    'gim',
++                ),
+                 replacement: (_extras, match, g1, g2) => {
+                     const phoneNumberRegex = new RegExp(`^${Constants.CONST.REG_EXP.PHONE_PART}$`);
+                     const mention = g2.slice(1);
+@@ -322,11 +356,11 @@ class ExpensiMark {
+                     return replacedText;
+                 },
+                 replacement: (_extras, g1) => {
+-                    const { replacedText } = this.replaceQuoteText(g1, false);
++                    const {replacedText} = this.replaceQuoteText(g1, false);
+                     return `<blockquote>${replacedText || ' '}</blockquote>`;
+                 },
+                 rawInputReplacement: (_extras, g1) => {
+-                    const { replacedText, shouldAddSpace } = this.replaceQuoteText(g1, true);
++                    const {replacedText, shouldAddSpace} = this.replaceQuoteText(g1, true);
+                     return `<blockquote>${shouldAddSpace ? ' ' : ''}${replacedText}</blockquote>`;
+                 },
+             },
+@@ -425,13 +459,14 @@ class ExpensiMark {
+                 name: 'newline',
+                 // Replaces open and closing <br><br/> tags with a single <br/>
+                 // Slack uses special <span> tag for empty lines instead of <br> tag
+-                pre: (inputString) => inputString
+-                    .replace('<br></br>', '<br/>')
+-                    .replace('<br><br/>', '<br/>')
+-                    .replace(/(<tr.*?<\/tr>)/g, '$1<br/>')
+-                    .replace('<br/></tbody>', '')
+-                    .replace(SLACK_SPAN_NEW_LINE_TAG + SLACK_SPAN_NEW_LINE_TAG, '<br/><br/><br/>')
+-                    .replace(SLACK_SPAN_NEW_LINE_TAG, '<br/><br/>'),
++                pre: (inputString) =>
++                    inputString
++                        .replace('<br></br>', '<br/>')
++                        .replace('<br><br/>', '<br/>')
++                        .replace(/(<tr.*?<\/tr>)/g, '$1<br/>')
++                        .replace('<br/></tbody>', '')
++                        .replace(SLACK_SPAN_NEW_LINE_TAG + SLACK_SPAN_NEW_LINE_TAG, '<br/><br/><br/>')
++                        .replace(SLACK_SPAN_NEW_LINE_TAG, '<br/><br/>'),
+                 // Include the immediately followed newline as `<br>\n` should be equal to one \n.
+                 regex: /<br(?:"[^"]*"|'[^']*'|[^'"><])*>\n?/gi,
+                 replacement: '\n',
+@@ -501,15 +536,15 @@ class ExpensiMark {
+                     });
+                     resultString = resultString
+                         .map((text) => {
+-                        let modifiedText = text;
+-                        let depth;
+-                        do {
+-                            depth = (modifiedText.match(/<blockquote>/gi) || []).length;
+-                            modifiedText = modifiedText.replace(/<blockquote>/gi, '');
+-                            modifiedText = modifiedText.replace(/<\/blockquote>/gi, '');
+-                        } while (/<blockquote>/i.test(modifiedText));
+-                        return `${'>'.repeat(depth)} ${modifiedText}`;
+-                    })
++                            let modifiedText = text;
++                            let depth;
++                            do {
++                                depth = (modifiedText.match(/<blockquote>/gi) || []).length;
++                                modifiedText = modifiedText.replace(/<blockquote>/gi, '');
++                                modifiedText = modifiedText.replace(/<\/blockquote>/gi, '');
++                            } while (/<blockquote>/i.test(modifiedText));
++                            return `${'>'.repeat(depth)} ${modifiedText}`;
++                        })
+                         .join('\n');
+                     // We want to keep <blockquote> tag here and let method replaceBlockElementWithNewLine to handle the line break later
+                     return `<blockquote>${resultString}</blockquote>`;
+@@ -601,7 +636,7 @@ class ExpensiMark {
+                 replacement: (extras, _match, g1, _offset, _string) => {
+                     const reportToNameMap = extras.reportIDToName;
+                     if (!reportToNameMap || !reportToNameMap[g1]) {
+-                        ExpensiMark.Log.alert('[ExpensiMark] Missing report name', { reportID: g1 });
++                        ExpensiMark.Log.alert('[ExpensiMark] Missing report name', {reportID: g1});
+                         return '#Hidden';
+                     }
+                     return reportToNameMap[g1];
+@@ -615,7 +650,7 @@ class ExpensiMark {
+                     if (g1) {
+                         const accountToNameMap = extras.accountIDToName;
+                         if (!accountToNameMap || !accountToNameMap[g1]) {
+-                            ExpensiMark.Log.alert('[ExpensiMark] Missing account name', { accountID: g1 });
++                            ExpensiMark.Log.alert('[ExpensiMark] Missing account name', {accountID: g1});
+                             return '@Hidden';
+                         }
+                         return `@${str_1.default.removeSMSDomain((_b = (_a = extras.accountIDToName) === null || _a === void 0 ? void 0 : _a[g1]) !== null && _b !== void 0 ? _b : '')}`;
+@@ -680,7 +715,7 @@ class ExpensiMark {
+                 replacement: (extras, _match, g1, _offset, _string) => {
+                     const reportToNameMap = extras.reportIDToName;
+                     if (!reportToNameMap || !reportToNameMap[g1]) {
+-                        ExpensiMark.Log.alert('[ExpensiMark] Missing report name', { reportID: g1 });
++                        ExpensiMark.Log.alert('[ExpensiMark] Missing report name', {reportID: g1});
+                         return '#Hidden';
+                     }
+                     return reportToNameMap[g1];
+@@ -693,7 +728,7 @@ class ExpensiMark {
+                     var _a, _b;
+                     const accountToNameMap = extras.accountIDToName;
+                     if (!accountToNameMap || !accountToNameMap[g1]) {
+-                        ExpensiMark.Log.alert('[ExpensiMark] Missing account name', { accountID: g1 });
++                        ExpensiMark.Log.alert('[ExpensiMark] Missing account name', {accountID: g1});
+                         return '@Hidden';
+                     }
+                     return `@${str_1.default.removeSMSDomain((_b = (_a = extras.accountIDToName) === null || _a === void 0 ? void 0 : _a[g1]) !== null && _b !== void 0 ? _b : '')}`;
+@@ -704,6 +739,31 @@ class ExpensiMark {
+                 regex: /(<([^>]+)>)/gi,
+                 replacement: '',
+             },
++            /**
++             * Apply the hereMention first because the string @here is still a valid mention for the userMention regex.
++             * This ensures that the hereMention is always considered first, even if it is followed by a valid
++             * userMention.
++             *
++             * Also, apply the mention rule after email/link to prevent mention appears in an email/link.
++             */
++            {
++                name: 'hereMentions',
++                regex: /([a-zA-Z0-9.!$%&+/=?^`{|}_-]?)(@here)([.!$%&+/=?^`{|}_-]?)(?=\b)(?!([\w'#%+-]*@(?:[a-z\d-]+\.)+[a-z]{2,}(?:\s|$|@here))|((?:(?!<a).)+)?<\/a>|[^<]*(<\/pre>|<\/code>))/gm,
++                replacement: (_extras, match, g1, g2, g3) => {
++                    if (!str_1.default.isValidMention(match)) {
++                        return match;
++                    }
++                    return `${g1}<mention-here>${g2}</mention-here>${g3}`;
++                },
++            },
++
++            {
++                name: 'commandSummarize',
++                regex: /^(\/summarize)(?=\s|$)/gm,
++                replacement: (_extras, match) => {
++                    return `<command>${match}</command>`;
++                },
++            },
+         ];
+         /**
+          * The list of rules that we have to exclude in shouldKeepWhitespaceRules list.
+@@ -761,7 +821,7 @@ class ExpensiMark {
+      * @param [options.disabledRules=[]] - An array of name of rules as defined in this class.
+      * If not provided, all available rules will be applied. If provided, the rules in the array will be skipped.
+      */
+-    replace(text, { filterRules = [], shouldEscapeText = true, shouldKeepRawInput = false, disabledRules = [], extras = EXTRAS_DEFAULT } = {}) {
++    replace(text, {filterRules = [], shouldEscapeText = true, shouldKeepRawInput = false, disabledRules = [], extras = EXTRAS_DEFAULT} = {}) {
+         // This ensures that any html the user puts into the comment field shows as raw html
+         let replacedText = shouldEscapeText ? Utils.escapeText(text) : text;
+         const rules = this.getHtmlRuleset(filterRules, disabledRules, shouldKeepRawInput);
+@@ -773,8 +833,7 @@ class ExpensiMark {
+             const replacement = shouldKeepRawInput && rule.rawInputReplacement ? rule.rawInputReplacement : rule.replacement;
+             if ('process' in rule) {
+                 replacedText = rule.process(replacedText, replacement, shouldKeepRawInput);
+-            }
+-            else {
++            } else {
+                 replacedText = this.replaceTextWithExtras(replacedText, rule.regex, extras, replacement);
+             }
+             // Post-process text after applying regex
+@@ -784,9 +843,8 @@ class ExpensiMark {
+         };
+         try {
+             rules.forEach(processRule);
+-        }
+-        catch (e) {
+-            ExpensiMark.Log.alert('Error replacing text with html in ExpensiMark.replace', { error: e });
++        } catch (e) {
++            ExpensiMark.Log.alert('Error replacing text with html in ExpensiMark.replace', {error: e});
+             // We want to return text without applying rules if exception occurs during replacing
+             return shouldEscapeText ? Utils.escapeText(text) : text;
+         }
+@@ -807,8 +865,7 @@ class ExpensiMark {
+             for (let i = 0; i < url.length; i++) {
+                 if (url[i] === '(') {
+                     unmatchedOpenParentheses++;
+-                }
+-                else if (url[i] === ')') {
++                } else if (url[i] === ')') {
+                     // Unmatched closing parenthesis
+                     if (unmatchedOpenParentheses <= 0) {
+                         const numberOfCharsToRemove = url.length - i;
+@@ -828,8 +885,7 @@ class ExpensiMark {
+                 for (let i = url.length - 1; i >= 0; i--) {
+                     if (Constants.CONST.SPECIAL_CHARS_TO_REMOVE.includes(url[i])) {
+                         numberOfCharsToRemove++;
+-                    }
+-                    else {
++                    } else {
+                         break;
+                     }
+                 }
+@@ -850,10 +906,9 @@ class ExpensiMark {
+                 const domainMatch = domainRegex.exec(url);
+                 // If we find another domain in the remainder of the string, we apply the auto link rule again and set a flag to avoid re-doing below.
+                 if (domainMatch !== null && domainMatch[3] !== '') {
+-                    replacedText = replacedText.concat(domainMatch[1] + this.replace(domainMatch[3], { filterRules: ['autolink'] }));
++                    replacedText = replacedText.concat(domainMatch[1] + this.replace(domainMatch[3], {filterRules: ['autolink']}));
+                     shouldApplyAutoLinkAgain = false;
+-                }
+-                else {
++                } else {
+                     // Otherwise, we're done applying rules
+                     isDoneMatching = true;
+                 }
+@@ -862,8 +917,7 @@ class ExpensiMark {
+             // or if match[1] is multiline text preceeded by markdown heading, e.g., # [example\nexample\nexample](https://example.com)
+             if (isDoneMatching || match[1].includes('</pre>') || match[1].includes('</h1>')) {
+                 replacedText = replacedText.concat(textToCheck.substr(match.index, match[0].length));
+-            }
+-            else if (shouldApplyAutoLinkAgain) {
++            } else if (shouldApplyAutoLinkAgain) {
+                 const urlRegex = new RegExp(`^${UrlPatterns.LOOSE_URL_REGEX}$|^${UrlPatterns.URL_REGEX}$`, 'i');
+                 // `match[1]` contains the text inside the [] of the markdown e.g. [example](https://example.com)
+                 // At the entry of function this.replace, text is already escaped due to the rules that precede the link
+@@ -873,9 +927,9 @@ class ExpensiMark {
+                 const linkText = urlRegex.test(match[1])
+                     ? match[1]
+                     : this.replace(match[1], {
+-                        filterRules: ['bold', 'strikethrough', 'italic'],
+-                        shouldEscapeText: false,
+-                    });
++                          filterRules: ['bold', 'strikethrough', 'italic'],
++                          shouldEscapeText: false,
++                      });
+                 replacedText = replacedText.concat(replacement(EXTRAS_DEFAULT, match[0], linkText, url));
+             }
+             startIndex = match.index + match[0].length;
+@@ -908,7 +962,7 @@ class ExpensiMark {
+             startIndex = match.index + match[0].length;
+             // Line breaks (`\n`) followed by empty contents are already removed
+             // but line breaks inside contents should be parsed to <br/> to skip `autoEmail` rule
+-            replacedText = this.replace(replacedText, { filterRules: ['newline'], shouldEscapeText: false });
++            replacedText = this.replace(replacedText, {filterRules: ['newline'], shouldEscapeText: false});
+             // Now we move to the next match that the js regex found in the text
+             match = regex.exec(textToCheck);
+         }
+@@ -926,7 +980,9 @@ class ExpensiMark {
+      */
+     replaceBlockElementWithNewLine(htmlString) {
+         // eslint-disable-next-line max-len
+-        let splitText = htmlString.split(/<div.*?>|<\/div>|<comment.*?>|\n<\/comment>|<\/comment>|<h1>|<\/h1>|<h2>|<\/h2>|<h3>|<\/h3>|<h4>|<\/h4>|<h5>|<\/h5>|<h6>|<\/h6>|<p>|<\/p>|<li>|<\/li>|<blockquote>|<\/blockquote>/);
++        let splitText = htmlString.split(
++            /<div.*?>|<\/div>|<comment.*?>|\n<\/comment>|<\/comment>|<h1>|<\/h1>|<h2>|<\/h2>|<h3>|<\/h3>|<h4>|<\/h4>|<h5>|<\/h5>|<h6>|<\/h6>|<p>|<\/p>|<li>|<\/li>|<blockquote>|<\/blockquote>/,
++        );
+         const stripHTML = (text) => str_1.default.stripHTML(text);
+         splitText = splitText.map(stripHTML);
+         let joinedText = '';
+@@ -945,8 +1001,7 @@ class ExpensiMark {
+             // Insert '\n' unless it ends with '\n' or '>' or it's the last element, or if it's a header ('# ') with a space.
+             if ((nextItem && text.match(/>[\s]?$/) && !nextItem.startsWith('> ')) || text.match(/\n[\s]?$/) || index === splitText.length - 1 || text === '# ') {
+                 joinedText += text;
+-            }
+-            else {
++            } else {
+                 joinedText += `${text}\n`;
+             }
+         };
+@@ -984,25 +1039,25 @@ class ExpensiMark {
+         let count = 0;
+         parsedText = splittedText
+             .map((line) => {
+-            const hasBR = line.endsWith('<br />');
+-            if (line === '' && count === 0) {
+-                return '';
+-            }
+-            const textLine = line.replace(/(<br \/>)$/g, '');
+-            if (textLine.startsWith('<blockquote>')) {
+-                count += (textLine.match(/<blockquote>/g) || []).length;
+-            }
+-            if (textLine.endsWith('</blockquote>')) {
+-                count -= (textLine.match(/<\/blockquote>/g) || []).length;
++                const hasBR = line.endsWith('<br />');
++                if (line === '' && count === 0) {
++                    return '';
++                }
++                const textLine = line.replace(/(<br \/>)$/g, '');
++                if (textLine.startsWith('<blockquote>')) {
++                    count += (textLine.match(/<blockquote>/g) || []).length;
++                }
++                if (textLine.endsWith('</blockquote>')) {
++                    count -= (textLine.match(/<\/blockquote>/g) || []).length;
++                    if (count > 0) {
++                        return `${textLine}${'<blockquote>'.repeat(count)}`;
++                    }
++                }
+                 if (count > 0) {
+-                    return `${textLine}${'<blockquote>'.repeat(count)}`;
++                    return `${textLine}${'</blockquote>'}${'<blockquote>'.repeat(count)}`;
+                 }
+-            }
+-            if (count > 0) {
+-                return `${textLine}${'</blockquote>'}${'<blockquote>'.repeat(count)}`;
+-            }
+-            return textLine + (hasBR ? '<br />' : '');
+-        })
++                return textLine + (hasBR ? '<br />' : '');
++            })
+             .join('');
+         return parsedText;
+     }
+@@ -1040,6 +1095,7 @@ class ExpensiMark {
+         // Unescaping because the text is escaped in 'replace' function
+         // We use 'htmlDecode' instead of 'unescape' to replace entities like '&#32;'
+         replacedText = str_1.default.htmlDecode(replacedText);
++
+         return replacedText;
+     }
+     /**
+@@ -1066,7 +1122,7 @@ class ExpensiMark {
+             shouldKeepRawInput,
+         });
+         this.currentQuoteDepth = 0;
+-        return { replacedText, shouldAddSpace: isStartingWithSpace };
++        return {replacedText, shouldAddSpace: isStartingWithSpace};
+     }
+     /**
+      * Check if the input text includes only the open or the close tag of an element.
+@@ -1084,8 +1140,7 @@ class ExpensiMark {
+             if (openingTag && openingTag !== 'br') {
+                 // If it's an opening tag, push it onto the stack
+                 tagStack.push(openingTag);
+-            }
+-            else if (closingTag) {
++            } else if (closingTag) {
+                 // If it's a closing tag, pop the top of the stack
+                 const expectedTag = tagStack.pop();
+                 // If the closing tag doesn't match the expected opening tag, return false
+@@ -1103,7 +1158,7 @@ class ExpensiMark {
+      */
+     extractLinksInMarkdownComment(comment) {
+         try {
+-            const htmlString = this.replace(comment, { filterRules: ['link'] });
++            const htmlString = this.replace(comment, {filterRules: ['link']});
+             // We use same anchor tag template as link and autolink rules to extract link
+             const regex = new RegExp(`<a href="${UrlPatterns.MARKDOWN_URL_REGEX}" target="_blank" rel="noreferrer noopener">`, 'gi');
+             const matches = [...htmlString.matchAll(regex)];
+@@ -1111,9 +1166,8 @@ class ExpensiMark {
+             const sanitizeMatch = (match) => str_1.default.sanitizeURL(match[1]);
+             const links = matches.map(sanitizeMatch);
+             return links;
+-        }
+-        catch (e) {
+-            ExpensiMark.Log.alert('Error parsing url in ExpensiMark.extractLinksInMarkdownComment', { error: e });
++        } catch (e) {
++            ExpensiMark.Log.alert('Error parsing url in ExpensiMark.extractLinksInMarkdownComment', {error: e});
+             return undefined;
+         }
+     }
+@@ -1156,8 +1210,7 @@ class ExpensiMark {
+         const defaultPosition = maxLength - totalLength;
+         // Define the slop value, which determines the tolerance for cutting off content near the maximum length
+         const slop = opts.slop;
+-        if (!slop)
+-            return defaultPosition;
++        if (!slop) return defaultPosition;
+         // Initialize the position to the default position
+         let position = defaultPosition;
+         // Determine if the default position is considered "short" based on the slop value
+@@ -1173,8 +1226,7 @@ class ExpensiMark {
+             if (tailPosition && substr.length <= tailPosition) {
+                 // If tail position is defined and the substring length is within the tail position, set position to the substring length
+                 position = substr.length;
+-            }
+-            else {
++            } else {
+                 // Iterate through word boundary matches to adjust the position
+                 while (wordBreakMatch !== null) {
+                     if (wordBreakMatch.index < slopPos) {
+@@ -1183,13 +1235,11 @@ class ExpensiMark {
+                         if (wordBreakMatch.index === 0 && defaultPosition <= 1) {
+                             break;
+                         }
+-                    }
+-                    else if (wordBreakMatch.index === slopPos) {
++                    } else if (wordBreakMatch.index === slopPos) {
+                         // If the word boundary is at the slop position, set position to the default position
+                         position = defaultPosition;
+                         break;
+-                    }
+-                    else {
++                    } else {
+                         // If the word boundary is after the slop position, adjust position forward
+                         position = defaultPosition + (wordBreakMatch.index - slopPos);
+                         break;
+@@ -1233,7 +1283,7 @@ class ExpensiMark {
+         let tag;
+         let selfClose = null;
+         let htmlString = html;
+-        const opts = Object.assign({ ellipsis: DEFAULT_TRUNCATE_SYMBOL, truncateLastWord: true, slop: DEFAULT_SLOP }, options);
++        const opts = Object.assign({ellipsis: DEFAULT_TRUNCATE_SYMBOL, truncateLastWord: true, slop: DEFAULT_SLOP}, options);
+         function removeImageTag(content) {
+             const match = IMAGE_TAG_REGEX.exec(content);
+             if (!match) {
+@@ -1247,8 +1297,8 @@ class ExpensiMark {
+             return tags
+                 .reverse()
+                 .map((mappedTag) => {
+-                return `</${mappedTag}>`;
+-            })
++                    return `</${mappedTag}>`;
++                })
+                 .join('');
+         }
+         while (matches) {
+@@ -1278,16 +1328,14 @@ class ExpensiMark {
+             if (totalLength + index > maxLength) {
+                 truncatedContent += htmlString.substring(0, this.getEndPosition(htmlString, index, maxLength, totalLength, opts));
+                 break;
+-            }
+-            else {
++            } else {
+                 totalLength += index;
+                 truncatedContent += htmlString.substring(0, index);
+             }
+             if (endResult[1] === '/') {
+                 tagsStack.pop();
+                 selfClose = null;
+-            }
+-            else {
++            } else {
+                 selfClose = SELF_CLOSE_REGEX.exec(endResult);
+                 if (!selfClose) {
+                     tag = matches[1];
