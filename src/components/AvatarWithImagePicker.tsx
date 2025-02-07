@@ -338,7 +338,7 @@ function AvatarWithImagePicker({
             source: previewSource,
             fallbackSource: fallbackIcon,
             headerTitle,
-            fileName: originalFileName,
+            originalFileName,
             maybeIcon: isUsingDefaultAvatar,
         });
         Navigation.navigate(ROUTES.ATTACHMENTS.getRoute({attachmentId}));
