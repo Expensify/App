@@ -12,6 +12,8 @@ import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
 import type {OpenAIRealtimeMessage, ConnectionResult, WebRTCConnections} from './types';
 
+let currentScreenCaptureDescription: string | null = null;
+
 let connections: WebRTCConnections = {
   openai: null,
   screen: null,
@@ -165,6 +167,9 @@ async function startScreenRecording(openaiConn: ConnectionResult) {
                 });
 
                 console.log('[JACK] response', response);
+
+                // TODO Update this to use the actual description
+                currentScreenCaptureDescription = 'The screen is entirely blue with red dots';
                 
                  /** 
                 if (response.ok) {
@@ -239,19 +244,27 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage, dataChannel: RTCDat
     case 'transcript':
         // Handle transcript update
         break;
-    case 'response.function_call_arguments.done':
-        handleFunctionCall(message).then(response => {
-          // Use this is you want to respond back to the agent with stuff from our API (images)
-          // dataChannel.send(JSON.stringify({
-          //   type: 'function_response',
-          //   content: response
-          // }));
-        });
-        break;
+    case 'input_audio_buffer.speech_stopped':
+      handleUserSpeechStopped(dataChannel);
+      break;
     case 'error':
         console.error('[WebRTC] OpenAI error:', {message: message.message});
         break;
   }
+}
+
+function handleUserSpeechStopped(dataChannel: RTCDataChannel) {
+  dataChannel.send(JSON.stringify({
+    type: 'conversation.item.create',
+    item: {
+      type: 'message',
+      role: 'user',
+      content: {
+        type: 'input_text',
+        text: currentScreenCaptureDescription
+      }
+    }
+  }));
 }
 
 function handleFunctionCall(message: OpenAIRealtimeMessage) {
