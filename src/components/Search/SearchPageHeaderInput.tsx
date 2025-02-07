@@ -5,8 +5,9 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -14,6 +15,8 @@ import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQuery
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
+import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -39,6 +42,18 @@ import {getUpdatedSubstitutionsMap} from './SearchRouter/getUpdatedSubstitutions
 import SearchButton from './SearchRouter/SearchButton';
 import {useSearchRouterContext} from './SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from './types';
+
+const isQueryNaturalSearch = (query: string, canUseNaturalSearch?: boolean): boolean => {
+    // Always return false if the beta to use natural search is not enabled
+    if (!canUseNaturalSearch || !query) {
+        return false;
+    }
+
+    // Check the user's query to see if it could be natural search or not
+    // A normal search query will usually have 2 or more colons or contain "type:expense"
+    const colonCount = (query.match(/:/g) ?? []).length;
+    return !query.includes('type:expense') && colonCount < 2;
+};
 
 // When counting absolute positioning, we need to account for borders
 const BORDER_WIDTH = 1;
@@ -76,11 +91,14 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const {canUseNaturalSearch} = usePermissions();
+    const themePreference = useThemePreference();
 
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
+    const [isNaturalSearch, setIsNaturalSearch] = useState(() => isQueryNaturalSearch(queryText, canUseNaturalSearch));
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(queryText);
@@ -110,7 +128,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     useEffect(() => {
         setTextInputValue(queryText);
-    }, [queryText]);
+        setIsNaturalSearch(isQueryNaturalSearch(queryText, canUseNaturalSearch));
+    }, [queryText, canUseNaturalSearch]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
@@ -121,6 +140,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         (userQuery: string) => {
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
+            setIsNaturalSearch(isQueryNaturalSearch(userQuery, canUseNaturalSearch));
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
@@ -134,7 +154,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
+        [autocompleteSubstitutions, setTextInputValue, textInputValue, canUseNaturalSearch],
     );
 
     const submitSearch = useCallback(
@@ -150,14 +170,16 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             if (updatedQuery !== originalInputQuery) {
                 clearAllFilters();
                 setTextInputValue('');
+                setIsNaturalSearch(true);
                 setAutocompleteQueryValue('');
                 setIsAutocompleteListVisible(false);
             } else {
                 setTextInputValue(queryText);
+                setIsNaturalSearch(isQueryNaturalSearch(queryText, canUseNaturalSearch));
                 setAutocompleteQueryValue(queryText);
             }
         },
-        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText],
+        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText, canUseNaturalSearch],
     );
 
     const onListItemPress = useCallback(
@@ -205,9 +227,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const setTextAndUpdateSelection = useCallback(
         (text: string) => {
             setTextInputValue(text);
+            setIsNaturalSearch(isQueryNaturalSearch(text, canUseNaturalSearch));
             setSelection({start: text.length, end: text.length});
         },
-        [setSelection, setTextInputValue],
+        [setSelection, setTextInputValue, canUseNaturalSearch],
     );
 
     if (isCannedQuery) {
@@ -241,10 +264,14 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
         setIsAutocompleteListVisible(true);
     };
 
+    const lottieAnimationMagnifyingGlassToSparkle: DotLottieAnimation =
+        themePreference === CONST.THEME.DARK ? LottieAnimations.MagnifyingGlassToSparkleDark : LottieAnimations.MagnifyingGlassToSparkleLight;
+
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleIcon: Expensicons.MagnifyingGlass,
+              singleLottie: lottieAnimationMagnifyingGlassToSparkle,
+              pauseSingleLottie: !isNaturalSearch,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',

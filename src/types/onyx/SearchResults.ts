@@ -75,6 +75,9 @@ type SearchResultsInfo = {
 
     /** The search query */
     searchSyntax?: string;
+
+    /** A hash of the search query */
+    hash?: number;
 };
 
 /** Model of personal details search result */

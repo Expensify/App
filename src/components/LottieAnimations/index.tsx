@@ -94,6 +94,26 @@ const DotLottieAnimations = {
         w: 375,
         h: 240,
     },
+    MagnifyingGlassToSparkleLight: {
+        file: require<LottieViewProps['source']>('@assets/animations/MagnifyingGlassToSparkleLight.lottie'),
+        w: 128,
+        h: 128,
+    },
+    MagnifyingGlassToSparkleDark: {
+        file: require<LottieViewProps['source']>('@assets/animations/MagnifyingGlassToSparkleDark.lottie'),
+        w: 128,
+        h: 128,
+    },
+    SparkleToMagnifyingGlassLight: {
+        file: require<LottieViewProps['source']>('@assets/animations/SparkleToMagnifyingGlassLight.lottie'),
+        w: 128,
+        h: 128,
+    },
+    SparkleToMagnifyingGlassDark: {
+        file: require<LottieViewProps['source']>('@assets/animations/SparkleToMagnifyingGlassDark.lottie'),
+        w: 128,
+        h: 128,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;

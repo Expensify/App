@@ -427,6 +427,7 @@ export {
     SpreadsheetComputer,
     Bookmark,
     Star,
+    Sparkle,
     QBDSquare,
     GalleryNotFound,
     Train,
