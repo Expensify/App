@@ -116,24 +116,24 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const prohibitedExpenses = useMemo(() => {
         // Otherwise return which expenses are prohibited comma separated
         const prohibitedExpensesList = [];
-        if (policy?.prohibitedExpenses?.alcohol) {
-            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.alcohol'));
+        if (policy?.prohibitedExpenses?.adultEntertainment) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.adultEntertainment'));
         }
 
-        if (policy?.prohibitedExpenses?.hotelIncidentals) {
-            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.hotelIncidentals'));
+        if (policy?.prohibitedExpenses?.alcohol) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.alcohol'));
         }
 
         if (policy?.prohibitedExpenses?.gambling) {
             prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.gambling'));
         }
 
-        if (policy?.prohibitedExpenses?.tobacco) {
-            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
+        if (policy?.prohibitedExpenses?.hotelIncidentals) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.hotelIncidentals'));
         }
 
-        if (policy?.prohibitedExpenses?.adultEntertainment) {
-            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.adultEntertainment'));
+        if (policy?.prohibitedExpenses?.tobacco) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
         }
 
         // If no expenses are prohibited, return empty string

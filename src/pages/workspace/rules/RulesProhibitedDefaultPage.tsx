@@ -47,6 +47,20 @@ function RulesProhibitedDefaultPage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.prohibitedDefaultDescription')}</Text>
                 </Text>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
+                    <Text>{translate('workspace.rules.individualExpenseRules.adultEntertainment')}</Text>
+                    <Switch
+                        isOn={policy?.prohibitedExpenses?.adultEntertainment ?? false}
+                        accessibilityLabel={translate('workspace.rules.individualExpenseRules.adultEntertainment')}
+                        onToggle={() => {
+                            const prohibitedExpenses: ProhibitedExpenses = {
+                                ...policy?.prohibitedExpenses,
+                                adultEntertainment: !policy?.prohibitedExpenses?.adultEntertainment,
+                            };
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                        }}
+                    />
+                </View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
                     <Text>{translate('workspace.rules.individualExpenseRules.alcohol')}</Text>
                     <Switch
                         isOn={policy?.prohibitedExpenses?.alcohol ?? false}
@@ -55,20 +69,6 @@ function RulesProhibitedDefaultPage({
                             const prohibitedExpenses: ProhibitedExpenses = {
                                 ...policy?.prohibitedExpenses,
                                 alcohol: !policy?.prohibitedExpenses?.alcohol,
-                            };
-                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
-                        }}
-                    />
-                </View>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
-                    <Text>{translate('workspace.rules.individualExpenseRules.hotelIncidentals')}</Text>
-                    <Switch
-                        isOn={policy?.prohibitedExpenses?.hotelIncidentals ?? false}
-                        accessibilityLabel={translate('workspace.rules.individualExpenseRules.hotelIncidentals')}
-                        onToggle={() => {
-                            const prohibitedExpenses: ProhibitedExpenses = {
-                                ...policy?.prohibitedExpenses,
-                                hotelIncidentals: !policy?.prohibitedExpenses?.hotelIncidentals,
                             };
                             setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
@@ -89,6 +89,20 @@ function RulesProhibitedDefaultPage({
                     />
                 </View>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
+                    <Text>{translate('workspace.rules.individualExpenseRules.hotelIncidentals')}</Text>
+                    <Switch
+                        isOn={policy?.prohibitedExpenses?.hotelIncidentals ?? false}
+                        accessibilityLabel={translate('workspace.rules.individualExpenseRules.hotelIncidentals')}
+                        onToggle={() => {
+                            const prohibitedExpenses: ProhibitedExpenses = {
+                                ...policy?.prohibitedExpenses,
+                                hotelIncidentals: !policy?.prohibitedExpenses?.hotelIncidentals,
+                            };
+                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                        }}
+                    />
+                </View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
                     <Text>{translate('workspace.rules.individualExpenseRules.tobacco')}</Text>
                     <Switch
                         isOn={policy?.prohibitedExpenses?.tobacco ?? false}
@@ -97,20 +111,6 @@ function RulesProhibitedDefaultPage({
                             const prohibitedExpenses: ProhibitedExpenses = {
                                 ...policy?.prohibitedExpenses,
                                 tobacco: !policy?.prohibitedExpenses?.tobacco,
-                            };
-                            setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
-                        }}
-                    />
-                </View>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
-                    <Text>{translate('workspace.rules.individualExpenseRules.adultEntertainment')}</Text>
-                    <Switch
-                        isOn={policy?.prohibitedExpenses?.adultEntertainment ?? false}
-                        accessibilityLabel={translate('workspace.rules.individualExpenseRules.adultEntertainment')}
-                        onToggle={() => {
-                            const prohibitedExpenses: ProhibitedExpenses = {
-                                ...policy?.prohibitedExpenses,
-                                adultEntertainment: !policy?.prohibitedExpenses?.adultEntertainment,
                             };
                             setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
