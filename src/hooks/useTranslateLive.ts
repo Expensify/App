@@ -10,26 +10,24 @@ export default function useTranslateLive(reportID: string, reportAction: OnyxEnt
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     useEffect(() => {
-        console.log('over here 1')
         if (reportAction.message.length > 1) {
             return;
         }
-        console.log('over here 2')
+
         if (reportAction.actorAccountID === session?.accountID) {
             return;
         }
-        console.log('over here 3')
+
         if (!reportAction?.message?.[0]?.html) {
             return;
         }
 
         const fragment = reportAction.message[0];
-        console.log('over here 4')
+
         if (fragment.translatedText && fragment.translatedLocale === preferredLocale) {
             return;
         }
 
-        console.log('over here 5')
         API.makeRequestWithSideEffects('Translate', {
             type: 'live',
             textToTranslate: reportAction?.message?.[0]?.html,
