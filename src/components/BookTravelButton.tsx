@@ -9,7 +9,7 @@ import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdminsPrivateEmailDomains} from '@libs/PolicyUtils';
+import {getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -49,6 +49,11 @@ function BookTravelButton({text}: BookTravelButtonProps) {
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryLogin || Str.isSMSLogin(primaryLogin)) {
             setErrorMessage(translate('travel.phoneError'));
+            return;
+        }
+
+        if (!isPaidGroupPolicy(policy)) {
+            Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
             return;
         }
 
