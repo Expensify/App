@@ -53,9 +53,8 @@ function RulesProhibitedDefaultPage({
                         accessibilityLabel={translate('workspace.rules.individualExpenseRules.alcohol')}
                         onToggle={() => {
                             const prohibitedExpenses: ProhibitedExpenses = {
-                                // Toggle alcohol value on  switch
+                                ...policy?.prohibitedExpenses,
                                 alcohol: !policy?.prohibitedExpenses?.alcohol,
-                                hotelIncidentals: policy?.prohibitedExpenses?.hotelIncidentals,
                             };
                             PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}
@@ -68,9 +67,50 @@ function RulesProhibitedDefaultPage({
                         accessibilityLabel={translate('workspace.rules.individualExpenseRules.hotelIncidentals')}
                         onToggle={() => {
                             const prohibitedExpenses: ProhibitedExpenses = {
-                                alcohol: policy?.prohibitedExpenses?.alcohol,
-                                // Toggle hotel incidentals value on switch
+                                ...policy?.prohibitedExpenses,
                                 hotelIncidentals: !policy?.prohibitedExpenses?.hotelIncidentals,
+                            };
+                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                        }}
+                    />
+                </View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
+                    <Text>{translate('workspace.rules.individualExpenseRules.gambling')}</Text>
+                    <Switch
+                        isOn={policy?.prohibitedExpenses?.gambling ?? false}
+                        accessibilityLabel={translate('workspace.rules.individualExpenseRules.gambling')}
+                        onToggle={() => {
+                            const prohibitedExpenses: ProhibitedExpenses = {
+                                ...policy?.prohibitedExpenses,
+                                gambling: !policy?.prohibitedExpenses?.gambling,
+                            };
+                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                        }}
+                    />
+                </View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
+                    <Text>{translate('workspace.rules.individualExpenseRules.tobacco')}</Text>
+                    <Switch
+                        isOn={policy?.prohibitedExpenses?.tobacco ?? false}
+                        accessibilityLabel={translate('workspace.rules.individualExpenseRules.tobacco')}
+                        onToggle={() => {
+                            const prohibitedExpenses: ProhibitedExpenses = {
+                                ...policy?.prohibitedExpenses,
+                                tobacco: !policy?.prohibitedExpenses?.tobacco,
+                            };
+                            PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
+                        }}
+                    />
+                </View>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
+                    <Text>{translate('workspace.rules.individualExpenseRules.adultEntertainment')}</Text>
+                    <Switch
+                        isOn={policy?.prohibitedExpenses?.adultEntertainment ?? false}
+                        accessibilityLabel={translate('workspace.rules.individualExpenseRules.adultEntertainment')}
+                        onToggle={() => {
+                            const prohibitedExpenses: ProhibitedExpenses = {
+                                ...policy?.prohibitedExpenses,
+                                adultEntertainment: !policy?.prohibitedExpenses?.adultEntertainment,
                             };
                             PolicyActions.setPolicyProhibitedExpenses(policyID, prohibitedExpenses);
                         }}

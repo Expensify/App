@@ -132,8 +132,19 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.hotelIncidentals'));
         }
 
-        return prohibitedExpensesList.join(', ');
+        if (policy?.prohibitedExpenses?.gambling) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.gambling'));
+        }
 
+        if (policy?.prohibitedExpenses?.tobacco) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
+        }
+
+        if (policy?.prohibitedExpenses?.adultEntertainment) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.adultEntertainment'));
+        }
+
+        return prohibitedExpensesList.join(', ');
     }, [policy?.prohibitedExpenses, translate]);
 
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
