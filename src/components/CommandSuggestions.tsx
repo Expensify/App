@@ -9,6 +9,7 @@ import getStyledTextArray from '@libs/GetStyledTextArray';
 import type {ComposerCommand} from '@src/CONST';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import type {MeasureParentContainerAndCursorCallback} from './AutoCompleteSuggestions/types';
+import Badge from './Badge';
 import Icon from './Icon';
 import Text from './Text';
 
@@ -51,7 +52,7 @@ function CommandSuggestions({commands, onSelect, value, highlightedCommandIndex 
             const styledTextArray = getStyledTextArray(item.command, value);
 
             return (
-                <View style={styles.autoCompleteCommandSuggestionContainer}>
+                <View style={[styles.autoCompleteCommandSuggestionContainer, item.disabled && styles.opacitySemiTransparent]}>
                     <Icon
                         src={item.icon}
                         fill={theme.iconSuccessFill}
@@ -71,10 +72,25 @@ function CommandSuggestions({commands, onSelect, value, highlightedCommandIndex 
                         ))}
                     </Text>
                     <Text style={styles.commandSuggestions}>{translate(item.descriptionKey)}</Text>
+                    <Badge
+                        text={translate(item.disabled ? 'common.coming' : 'common.new')}
+                        badgeStyles={item.disabled ? styles.activeItemBadge : styles.borderColorFocus}
+                    />
                 </View>
             );
         },
-        [value, styles.autoCompleteCommandSuggestionContainer, styles.emojiCommandSuggestionsText, styles.commandSuggestions, theme.iconSuccessFill, translate, StyleUtils],
+        [
+            value,
+            styles.autoCompleteCommandSuggestionContainer,
+            styles.opacitySemiTransparent,
+            styles.emojiCommandSuggestionsText,
+            styles.commandSuggestions,
+            styles.activeItemBadge,
+            styles.borderColorFocus,
+            theme.iconSuccessFill,
+            translate,
+            StyleUtils,
+        ],
     );
 
     return (

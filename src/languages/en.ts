@@ -236,6 +236,7 @@ const translations = {
         in: 'In',
         optional: 'Optional',
         new: 'New',
+        coming: 'Coming',
         search: 'Search',
         reports: 'Reports',
         find: 'Find',
