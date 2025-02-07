@@ -1,6 +1,17 @@
+import ch from './ch';
+import de from './de';
 import en from './en';
 import es from './es';
 import esES from './es-ES';
+import fr from './fr';
+import it from './it';
+import ja from './ja';
+import ko from './ko';
+import nl from './nl';
+import pl from './pl';
+import pt from './pt';
+import ru from './ru';
+import tr from './tr';
 import type {FlatTranslationsObject, TranslationDeepObject} from './types';
 
 /**
@@ -45,6 +56,18 @@ export function flattenObject<TTranslations>(obj: TranslationDeepObject<TTransla
 export default {
     en: flattenObject(en),
     es: flattenObject(es),
+    pt: flattenObject(pt),
+    it: flattenObject(it),
+    de: flattenObject(de),
+    fr: flattenObject(fr),
+    nl: flattenObject(nl),
+    pl: flattenObject(pl),
+    ru: flattenObject(ru),
+    tr: flattenObject(tr),
+    ko: flattenObject(ko),
+    ch: flattenObject(ch),
+    ja: flattenObject(ja),
+
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'es-ES': flattenObject(esES),
 };
