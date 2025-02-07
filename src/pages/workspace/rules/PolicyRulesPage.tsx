@@ -13,11 +13,13 @@ import type SCREENS from '@src/SCREENS';
 import CustomRulesSection from './CustomRulesSection';
 import ExpenseReportRulesSection from './ExpenseReportRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
+import usePermissions from '@hooks/usePermissions';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
 function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();
+    const {canUseCustomRules} = usePermissions();
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -42,7 +44,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <ExpenseReportRulesSection policyID={policyID} />
-                    <CustomRulesSection policyID={policyID} />
+                    {canUseCustomRules ? <CustomRulesSection policyID={policyID} /> : null}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
