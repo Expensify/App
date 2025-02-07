@@ -30,7 +30,7 @@ import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {initializeConnection, startScreenCapture, stopScreenCapture} from '@libs/actions/WebRTC';
+import {initializeConnection, getConnection, stopScreenCapture} from '@libs/actions/WebRTC';
 import Parser from '@libs/Parser';
 import {
     canJoinChat,
@@ -214,9 +214,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             try {
                 const connection = getConnection('openai');
                 if (connection) {
-                    stopScreenCapture(connection);
-                    stopCapture?.();
-                    setStopCapture(null);
+                    //stopScreenCapture(connection);
+                    //stopCapture?.();
+                    //setStopCapture(null);
                     setIsRecording(false);
                 }
             } catch (error) {
@@ -227,8 +227,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
         try {
             const connection = await initializeConnection('openai');
-            const stopFn = startScreenCapture(connection);
-            setStopCapture(() => stopFn);
+            //const stopFn = startScreenCapture(connection);
+            //setStopCapture(() => stopFn);
             setIsRecording(true);
         } catch (error) {
             console.error('[HeaderView] Failed to start recording:', error);
@@ -365,7 +365,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             />
                                         </View>
                                     )}
-                                </PressableWithoutFeedback>
+                            </PressableWithoutFeedback>
                                 {isAdminRoomReportUtils(report) && (
                                     <View style={[styles.alignItemsEnd, styles.flex1]}>
                                         <Button
