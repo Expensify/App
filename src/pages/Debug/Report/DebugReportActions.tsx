@@ -4,11 +4,11 @@ import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,13 +30,13 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
     const searchedReportActions = useMemo(() => {
         return (sortedAllReportActions ?? [])
-            .filter((reportAction) => reportAction.reportActionID.includes(searchValue))
+            .filter((reportAction) => reportAction.reportActionID.includes(searchValue) || getReportActionMessageText(reportAction).toLowerCase().includes(searchValue.toLowerCase()))
             .map((reportAction) => ({
                 reportActionID: reportAction.reportActionID,
-                text: reportAction.reportActionID,
-                rightElement: <Text style={styles.textLabelSupporting}>{datetimeToCalendarTime(reportAction.created, false, false)}</Text>,
+                text: getReportActionMessageText(reportAction),
+                alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
             }));
-    }, [sortedAllReportActions, searchValue, datetimeToCalendarTime, styles.textLabelSupporting]);
+    }, [sortedAllReportActions, searchValue, datetimeToCalendarTime]);
 
     return (
         <ScrollView style={styles.mv3}>
