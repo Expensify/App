@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -30,8 +30,7 @@ import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {initializeConnection, getConnection, stopScreenCapture} from '@libs/actions/WebRTC';
-import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
+import {initializeConnection, getConnection, stopScreenRecording, startScreenRecording} from '@libs/actions/WebRTC';
 import Parser from '@libs/Parser';
 import {
     canJoinChat,
@@ -215,13 +214,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const onPressSelfOnboarding = async () => {
         if (isRecording) {
             try {
-                const connection = getConnection('openai');
-                if (connection) {
-                    //stopScreenCapture(connection);
-                    //stopCapture?.();
-                    //setStopCapture(null);
-                    setIsRecording(false);
-                }
+                stopScreenRecording();
+                setIsRecording(false);
+
+                Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, {
+                    open: false,
+                    openMobile: false
+                });
             } catch (error) {
                 console.error('[HeaderView] Failed to stop recording:', error);
             }
@@ -230,9 +229,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
         try {
             const connection = await initializeConnection('openai');
-            //const stopFn = startScreenCapture(connection);
-            //setStopCapture(() => stopFn);
-            Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, isExtraLargeScreenWidth ? {open: !sidePanel?.open} : {open: !sidePanel?.openMobile, openMobile: !sidePanel?.openMobile});
+            await startScreenRecording(connection);
+            
+            Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, 
+                isExtraLargeScreenWidth 
+                    ? {open: !sidePanel?.open} 
+                    : {open: !sidePanel?.openMobile, openMobile: !sidePanel?.openMobile}
+            );
             setIsRecording(true);
         } catch (error) {
             console.error('[HeaderView] Failed to start recording:', error);
@@ -372,10 +375,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                             </PressableWithoutFeedback>
                                 {isAdminRoomReportUtils(report) && (
                                     <View style={[styles.alignItemsEnd, styles.flex1]}>
-                                        <Button
-                                            text={isRecording ? "Stop Onboarding" : "Self-Onboarding"}
+                                        <Pressable
                                             onPress={onPressSelfOnboarding}
-                                        />
+                                            role="button"
+                                        >
+                                            <Text>{isRecording ? "Stop Onboarding" : "Self-Onboarding"}</Text>
+                                        </Pressable>
                                     </View>
                                 )}
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>

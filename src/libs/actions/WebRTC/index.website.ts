@@ -17,6 +17,8 @@ let connections: WebRTCConnections = {
   screen: null,
 };
 
+let screenCaptureCleanup: (() => void) | null = null;
+
 async function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     return new Promise(async (resolve, reject) => {
       try {
@@ -96,55 +98,109 @@ async function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     });
   }
 
-  function startScreenCapture(openaiConn: ConnectionResult) {
+async function startScreenRecording(openaiConn: ConnectionResult) {
+    if (screenCaptureCleanup) {
+        return;
+    }
+
     let isCapturing = true;
+    let lastCaptureTime = 0;
+    const CAPTURE_INTERVAL = 3000;
+    const JPEG_QUALITY = 0.6;
 
-    const captureAndSend = async () => {
-        try {
-            const stream = await mediaDevices.getDisplayMedia({ 
-                video: true,
-                audio: false 
-            });
+    try {
+        const stream = await mediaDevices.getDisplayMedia({ 
+            video: { 
+                frameRate: { ideal: 1 },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false 
+        });
 
-            const videoTrack = stream.getVideoTracks()[0];
-            const video = document.createElement('video');
-            video.srcObject = new MediaStream([videoTrack]);
-            video.autoplay = true;
+        const videoTrack = stream.getVideoTracks()[0];
+        const video = document.createElement('video');
+        video.srcObject = new MediaStream([videoTrack]);
+        video.autoplay = true;
 
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
 
-            while (isCapturing && openaiConn) {
-                if (!ctx || !video.videoWidth) continue;
-                
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
+        const capture = async () => {
+            if (!isCapturing || !ctx || !video.videoWidth) return;
 
-                const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.8));
-                const base64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result as string);
-                    reader.readAsDataURL(blob);
-                });
-
-                await fetch('/api/screen-capture', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ image: base64 })
-                });
-
-                await new Promise(resolve => setTimeout(resolve, 1000));
+            const currentTime = Date.now();
+            if (currentTime - lastCaptureTime < CAPTURE_INTERVAL) {
+                requestAnimationFrame(capture);
+                return;
             }
 
-            stream.getTracks().forEach(track => track.stop());
-        } catch (error) {
-            console.error('[WebRTC] Screen capture error:', error);
-        }
-    };
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
 
-    captureAndSend();
-    return () => { isCapturing = false; };
+            const blob = await new Promise<Blob>((resolve) => 
+                canvas.toBlob((b) => resolve(b!), 'image/jpeg', JPEG_QUALITY)
+            );
+
+            const base64 = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.readAsDataURL(blob);
+            });
+
+            // Send to API endpoint
+            /**
+
+            const response = await fetch('/api/screen-capture', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ image: base64 })
+            });
+
+            // Send description to OpenAI through WebRTC
+            if (response.ok) {
+                const data = await response.json();
+                if (data.description) {
+                    openaiConn.dataChannel.send(JSON.stringify({
+                        type: 'screen_description',
+                        description: data.description
+                    }));
+                }
+            }
+              */
+
+            lastCaptureTime = currentTime;
+            requestAnimationFrame(capture);
+        };
+
+        requestAnimationFrame(capture);
+
+        screenCaptureCleanup = () => {
+            isCapturing = false;
+            stream.getTracks().forEach(track => track.stop());
+            screenCaptureCleanup = null;
+        };
+
+    } catch (error) {
+        console.error('[WebRTC] Screen capture error:', error);
+        screenCaptureCleanup = null;
+        throw error;
+    }
+}
+
+function stopScreenRecording() {
+  if (screenCaptureCleanup) {
+      screenCaptureCleanup();
+  }
+
+  // Close OpenAI connection if it exists
+  const existingConnection = connections.openai;
+  if (existingConnection) {
+      existingConnection.pc.close();
+      existingConnection.dataChannel.close();
+      connections.openai = null;
+  }
 }
 
 async function initializeConnection(type: 'openai' | 'screen') {
@@ -200,8 +256,8 @@ export {
     initializeConnection,
     getConnection,
     handleOpenAIMessage,
-    startScreenCapture,
-    stopScreenCapture,
+    startScreenRecording,
+    stopScreenRecording,
 };
   
   
