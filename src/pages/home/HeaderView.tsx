@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
@@ -31,6 +31,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {initializeConnection, getConnection, stopScreenCapture} from '@libs/actions/WebRTC';
+import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import Parser from '@libs/Parser';
 import {
     canJoinChat,
@@ -208,6 +209,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const [isRecording, setIsRecording] = useState(false);
     const [stopCapture, setStopCapture] = useState<(() => void) | null>(null);
+    const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
+    const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
     const onPressSelfOnboarding = async () => {
         if (isRecording) {
@@ -229,6 +232,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             const connection = await initializeConnection('openai');
             //const stopFn = startScreenCapture(connection);
             //setStopCapture(() => stopFn);
+            Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, isExtraLargeScreenWidth ? {open: !sidePanel?.open} : {open: !sidePanel?.openMobile, openMobile: !sidePanel?.openMobile});
             setIsRecording(true);
         } catch (error) {
             console.error('[HeaderView] Failed to start recording:', error);
