@@ -1,4 +1,5 @@
 import type {ViewStyle} from 'react-native';
+import variables from '@styles/variables';
 
 /**
  * Sizing utility styles with Bootstrap inspired naming.
@@ -25,8 +26,8 @@ export default {
         width: '15%',
     },
 
-    w20px: {
-        width: 20,
+    wIconSizeNormal: {
+        width: variables.iconSizeNormal,
     },
 
     w25: {

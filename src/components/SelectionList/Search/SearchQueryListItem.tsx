@@ -10,6 +10,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -58,7 +59,9 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                     <Icon
                         src={item.singleIcon}
                         fill={theme.icon}
-                        additionalStyles={[styles.w20px, styles.mr3]}
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                        additionalStyles={styles.mr3}
                         medium
                     />
                 )}
@@ -67,7 +70,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         source={item.singleLottie}
                         autoPlay
                         loop={false}
-                        webStyle={{...styles.w20px, ...styles.mr3}}
+                        webStyle={{...styles.wIconSizeNormal, ...styles.mr3}}
                     />
                 )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
