@@ -203,6 +203,7 @@ type MoneyRequestInformation = {
     transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
     onyxData: OnyxData;
+    billable?: boolean;
 };
 
 type TrackExpenseInformation = {
@@ -338,6 +339,7 @@ type PerDiemExpenseTransactionParams = {
     tag?: string;
     created: string;
     customUnit: TransactionCustomUnit;
+    billable?: boolean;
 };
 
 type RequestMoneyPolicyParams = {
@@ -446,6 +448,35 @@ type CreateDistanceRequestInformation = {
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
     policyParams?: RequestMoneyPolicyParams;
+};
+
+type TrackExpenseTransactionParams = {
+    amount: number;
+    currency: string;
+    created: string | undefined;
+    merchant?: string;
+    comment?: string;
+    receipt?: Receipt;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    validWaypoints?: WaypointCollection;
+    gpsPoints?: GPSPoint;
+    actionableWhisperReportActionID?: string;
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID?: string;
+    customUnitRateID?: string;
+};
+
+type CreateTrackExpenseParams = {
+    report: OnyxTypes.Report;
+    isDraftPolicy: boolean;
+    action?: IOUAction;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: RequestMoneyPolicyParams;
+    transactionParams: TrackExpenseTransactionParams;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -2801,7 +2832,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment = '', currency, created, category, tag, customUnit} = transactionParams;
+    const {comment = '', currency, created, category, tag, customUnit, billable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
     const merchant = computePerDiemExpenseMerchant(customUnit, policy);
@@ -2876,6 +2907,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             merchant,
             tag,
             customUnit,
+            billable,
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         },
     });
@@ -2995,6 +3027,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             successData,
             failureData,
         },
+        billable,
     };
 }
 
@@ -3864,7 +3897,7 @@ function updateMoneyRequestAttendees(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
+    violations: OnyxEntry<OnyxTypes.TransactionViolations>,
 ) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -4165,7 +4198,7 @@ type AddTrackedExpenseToPolicyParam = {
     merchant: string;
     transactionID: string;
     reimbursable: boolean;
-    actionableWhisperReportActionID: string;
+    actionableWhisperReportActionID: string | undefined;
     moneyRequestReportID: string;
     reportPreviewReportActionID: string;
     modifiedExpenseReportActionID: string;
@@ -4182,7 +4215,7 @@ function convertTrackedExpenseToRequest(
     payerEmail: string,
     chatReportID: string,
     transactionID: string,
-    actionableWhisperReportActionID: string,
+    actionableWhisperReportActionID: string | undefined,
     createdChatReportActionID: string | undefined,
     moneyRequestReportID: string,
     moneyRequestCreatedReportActionID: string | undefined,
@@ -4435,7 +4468,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 
     switch (action) {
         case CONST.IOU.ACTION.SUBMIT: {
-            if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
                 return;
             }
             const workspaceParams =
@@ -4554,6 +4587,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionThreadReportID,
         createdReportActionIDForThread,
         onyxData,
+        billable,
     } = getPerDiemExpenseInformation({
         parentChatReport: currentChatReport,
         participantParams,
@@ -4584,6 +4618,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         tag,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        billable,
     };
 
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
@@ -4659,34 +4694,30 @@ function sendInvoice(
 /**
  * Track an expense
  */
-function trackExpense(
-    report: OnyxTypes.Report,
-    amount: number,
-    currency: string,
-    created: string,
-    merchant: string,
-    payeeEmail: string | undefined,
-    payeeAccountID: number,
-    participant: Participant,
-    comment: string,
-    isDraftPolicy: boolean,
-    receipt?: Receipt,
-    category?: string,
-    tag?: string,
-    taxCode = '',
-    taxAmount = 0,
-    billable?: boolean,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints?: GPSPoint,
-    validWaypoints?: WaypointCollection,
-    action?: IOUAction,
-    actionableWhisperReportActionID?: string,
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
-    linkedTrackedExpenseReportID?: string,
-    customUnitRateID?: string,
-) {
+function trackExpense(params: CreateTrackExpenseParams) {
+    const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData} = params;
+    const {participant, payeeAccountID, payeeEmail} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyData;
+    const {
+        amount,
+        currency,
+        created = '',
+        merchant = '',
+        comment = '',
+        receipt,
+        category,
+        tag,
+        taxCode = '',
+        taxAmount = 0,
+        billable,
+        gpsPoints,
+        validWaypoints,
+        actionableWhisperReportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        customUnitRateID,
+    } = transactionData;
+
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
@@ -8022,14 +8053,15 @@ function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
+    allViolations?: OnyxCollection<OnyxTypes.TransactionViolations>,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isArchived = isArchivedReportWithID(report?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList);
-    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
+    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
 
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
@@ -8068,10 +8100,18 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain.at(-1) === currentUserEmail;
 }
 
-function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>) {
+function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>, isUnapproved = false) {
     const policy = getPolicy(report?.policyID);
     const approvalChain = getApprovalChain(policy, report);
     const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (isUnapproved) {
+        if (approvalChain.includes(currentUserEmail)) {
+            return userAccountID;
+        }
+
+        return report?.managerID;
+    }
 
     if (approvalChain.length === 0) {
         return submitToAccountID;
@@ -8260,7 +8300,7 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
 
     const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
-    const optimisticNextStep = buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const optimisticNextStep = buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED, true);
 
     const optimisticReportActionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,

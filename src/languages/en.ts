@@ -95,6 +95,7 @@ import type {
     LastFourDigitsParams,
     LastSyncAccountingParams,
     LastSyncDateParams,
+    LeftWorkspaceParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -156,6 +157,7 @@ import type {
     StatementTitleParams,
     StepCounterParams,
     StripePaidParams,
+    SubmitsToParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -1107,6 +1109,7 @@ const translations = {
         }),
         dates: 'Dates',
         rates: 'Rates',
+        submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -3940,7 +3943,7 @@ const translations = {
         },
         emptyWorkspace: {
             title: 'Create a workspace',
-            subtitle: 'Create a workspace to track receipts, reimburse expenses, send invoices, and more — all at the speed of chat.',
+            subtitle: 'Create a workspace to track receipts, reimburse expenses, manage travel, send invoices, and more — all at the speed of chat.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
@@ -4324,7 +4327,6 @@ const translations = {
             users: 'users',
             invited: 'invited',
             removed: 'removed',
-            leftWorkspace: 'left the workspace',
             to: 'to',
             from: 'from',
         },
@@ -4516,6 +4518,11 @@ const translations = {
                     'Per diem is a great way to keep your daily costs compliant and predictable whenever your employees travel. Enjoy features like custom rates, default categories, and more granular details like destinations and subrates.',
                 onlyAvailableOnPlan: 'Per diem are only available on the Control plan, starting at ',
             },
+            travel: {
+                title: 'Travel',
+                description: 'Expensify Travel is a new corporate travel booking and management platform that allows members to book accommodations, flights, transportation, and more.',
+                onlyAvailableOnPlan: 'Travel is available on the Collect plan, starting at ',
+            },
             pricing: {
                 perActiveMember: 'per active member per month.',
             },
@@ -4529,6 +4536,7 @@ const translations = {
                 headline: `You've upgraded your workspace!`,
                 successMessage: ({policyName}: ReportPolicyNameParams) => `You've successfully upgraded ${policyName} to the Control plan!`,
                 categorizeMessage: `You've successfully upgraded to a workspace on the Collect plan. Now you can categorize your expenses!`,
+                travelMessage: `You've successfully upgraded to a workspace on the Collect plan. Now you can start booking and managing travel!`,
                 viewSubscription: 'View your subscription',
                 moreDetails: 'for more details.',
                 gotIt: 'Got it, thanks',
@@ -4645,6 +4653,11 @@ const translations = {
                 unlockFeatureGoToSubtitle: 'Go to',
                 unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `and enable workflows, then add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `and enable ${featureName} to unlock this feature.`,
+                preventSelfApprovalsModalText: ({managerEmail}: {managerEmail: string}) =>
+                    `Any members currently approving their own expenses will be removed and replaced with the default approver for this workspace (${managerEmail}).`,
+                preventSelfApprovalsConfirmButton: 'Prevent self-approvals',
+                preventSelfApprovalsModalTitle: 'Prevent self-approvals?',
+                preventSelfApprovalsDisabledSubtitle: "Self approvals can't be enabled until this workspace has at least two members.",
             },
             categoryRules: {
                 title: 'Category rules',
@@ -5043,6 +5056,7 @@ const translations = {
                     `updated the role of ${email} to ${newRole === 'member' || newRole === 'user' ? 'member' : newRole} (previously ${
                         currentRole === 'member' || currentRole === 'user' ? 'member' : currentRole
                     })`,
+                leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role === 'member' || role === 'user' ? 'member' : 'admin'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },

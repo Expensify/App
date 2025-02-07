@@ -118,7 +118,7 @@ function ReportActionsView({
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const openReportIfNecessary = () => {
-        if (!shouldFetchReport(report, reportMetadata)) {
+        if (!shouldFetchReport(report, reportMetadata?.isOptimisticReport)) {
             return;
         }
 
