@@ -376,7 +376,7 @@ function IOURequestStepDistance({
 
         // If there was no reportID, then that means the user started this flow from the global menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-        if (isPaidGroupPolicy(activePolicy)) {
+        if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
             setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
             Navigation.navigate(
