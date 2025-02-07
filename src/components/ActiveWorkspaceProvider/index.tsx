@@ -12,7 +12,7 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
 
     useEffect(() => {
         setActiveWorkspaceID(policyID);
-    }, [policyID, setActiveWorkspaceID]);
+    }, [policyID]);
 
     const value = useMemo(
         () => ({
