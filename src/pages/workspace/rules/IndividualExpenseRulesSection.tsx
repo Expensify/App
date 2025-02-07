@@ -138,7 +138,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
         // If no expenses are prohibited, return empty string
         if (!prohibitedExpensesList.length) {
-            return translate('workspace.rules.individualExpenseRules.none')
+            return translate('workspace.rules.individualExpenseRules.none');
         }
 
         return prohibitedExpensesList.join(', ');
