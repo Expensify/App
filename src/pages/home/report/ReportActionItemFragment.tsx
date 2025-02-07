@@ -9,7 +9,6 @@ import useTranslateLive from '@hooks/useTranslateLive';
 import convertToLTR from '@libs/convertToLTR';
 import isReportMessageAttachment from '@libs/isReportMessageAttachment';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';

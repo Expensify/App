@@ -29,6 +29,7 @@ function PreferencesPage() {
     const isPlatformMuted = mutedPlatforms[platform];
     const [user] = useOnyx(ONYXKEYS.USER);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const [isAutoTranslateMessageEnabled] = useOnyx(ONYXKEYS.NVP_AUTO_TRANSLATE_MESSAGES);
 
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
@@ -96,6 +97,18 @@ function PreferencesPage() {
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
+                            <View style={[styles.flexRow, styles.mb3, styles.mt4, styles.justifyContentBetween]}>
+                                <View style={styles.flex4}>
+                                    <Text>{'Auto translate messages'}</Text>
+                                </View>
+                                <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                    <Switch
+                                        accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                                        isOn={isAutoTranslateMessageEnabled ?? false}
+                                        onToggle={() => User.toggleAutoTranslateMessage(!isAutoTranslateMessageEnabled)}
+                                    />
+                                </View>
+                            </View>
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={translate(`themePage.themes.${preferredTheme ?? CONST.THEME.DEFAULT}.label`)}

@@ -126,6 +126,9 @@ const ONYXKEYS = {
     /** This NVP contains list of at most 5 recent attendees */
     NVP_RECENT_ATTENDEES: 'nvp_expensify_recentAttendees',
 
+    /** This NVP contains list of at most 5 recent attendees */
+    NVP_AUTO_TRANSLATE_MESSAGES: 'nvp_autoTranslateMessages',
+
     /** This NVP contains information about whether the onboarding flow was completed or not */
     NVP_ONBOARDING: 'nvp_onboarding',
 
@@ -1074,6 +1077,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
+    [ONYXKEYS.NVP_AUTO_TRANSLATE_MESSAGES]: boolean;
 };
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
 

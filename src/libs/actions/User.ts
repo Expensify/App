@@ -1147,6 +1147,25 @@ function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<P
     });
 }
 
+function toggleAutoTranslateMessage(isEnabled: boolean) {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_AUTO_TRANSLATE_MESSAGES,
+        value: isEnabled,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_AUTO_TRANSLATE_MESSAGES,
+            value: isEnabled,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
+}
+
 /**
  * Clear the data about a screen share request from Onyx.
  */
@@ -1532,4 +1551,5 @@ export {
     subscribeToActiveGuides,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
+    toggleAutoTranslateMessage,
 };
