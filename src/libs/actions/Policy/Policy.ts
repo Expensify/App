@@ -1686,7 +1686,12 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 avatarURL: file?.uri ?? null,
                 originalFileName: file?.name,
                 employeeList: {
-                    [sessionEmail]: {submitsTo: sessionEmail, email: sessionEmail, role: CONST.POLICY.ROLE.ADMIN, errors: {}},
+                    [sessionEmail]: {
+                        submitsTo: sessionEmail,
+                        email: sessionEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        errors: {},
+                    },
                 },
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
@@ -1785,7 +1790,12 @@ function buildPolicyData(
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
-                    [sessionEmail]: {submitsTo: sessionEmail, email: sessionEmail, role: CONST.POLICY.ROLE.ADMIN, errors: {}},
+                    [sessionEmail]: {
+                        submitsTo: sessionEmail,
+                        email: sessionEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        errors: {},
+                    },
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
@@ -2113,7 +2123,12 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
-                    [sessionEmail]: {submitsTo: sessionEmail, email: sessionEmail, role: CONST.POLICY.ROLE.ADMIN, errors: {}},
+                    [sessionEmail]: {
+                        submitsTo: sessionEmail,
+                        email: sessionEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        errors: {},
+                    },
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
                 pendingFields: {
