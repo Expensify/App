@@ -725,17 +725,14 @@ function addComment(reportID: string, text: string) {
 
 /** Add an action comment to a report */
 function addActionComment(reportID: string, text: string, command: ComposerCommand) {
-    let requestCommentText = '';
+    const nowDate = Date.now();
 
     const requestComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
     const requestCommentAction: OptimisticAddCommentReportAction = requestComment.reportAction;
     if (requestCommentAction.originalMessage) {
         requestCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
     }
-    const nowDate = Date.now();
     requestCommentAction.created = DateUtils.getDBTimeWithSkew(nowDate);
-
-    requestCommentText = requestComment.commentText.slice(command.command.length);
 
     const answerComment = buildOptimisticAddCommentReportAction('Analyzing...', undefined, CONST.ACCOUNT_ID.CONCIERGE, undefined, undefined, reportID);
     const answerCommentAction: OptimisticAddCommentReportAction = answerComment.reportAction;
@@ -752,7 +749,7 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
         reportID,
         reportActionID: requestCommentAction.reportActionID,
         answerReportActionID: answerCommentAction.reportActionID,
-        reportComment: requestCommentText,
+        reportComment: requestComment.commentText,
         actionType: command.action,
     };
 
