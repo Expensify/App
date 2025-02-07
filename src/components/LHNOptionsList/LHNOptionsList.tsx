@@ -290,7 +290,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onLayout={onLayout}
                     onScroll={onScroll}
                     estimatedListSize={estimatedListSize}
-                    initialScrollIndex={getScrollIndex(route)}
+                    initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
                 />
             )}
         </View>
