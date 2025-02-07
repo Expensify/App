@@ -53,7 +53,7 @@ import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDe
 import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import {close} from '@userActions/Modal';
-import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
+import {dismissAddedWithPrimaryLoginMessages, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -225,12 +225,18 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             return;
         }
 
+        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
+        const newEmployeesCount = previousEmployeesCount - accountIDsToRemove.length;
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             removeMembers(accountIDsToRemove, route.params.policyID);
+            if (newEmployeesCount === 1 && policy?.preventSelfApproval) {
+                // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
+                setPolicyPreventSelfApproval(route.params.policyID, false);
+            }
         });
     };
 
@@ -406,7 +412,6 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
-        isPolicyAdmin,
         personalDetails,
         policy?.owner,
         policy?.ownerAccountID,
@@ -418,6 +423,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         translate,
         styles.cursorDefault,
         canSelectMultiple,
+        isPolicyAdmin,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);

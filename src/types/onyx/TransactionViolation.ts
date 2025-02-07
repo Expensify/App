@@ -89,6 +89,9 @@ type TransactionViolationData = {
     /** Type of the RTER violation */
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 
+    /** A generic message to display to the user */
+    message?: string;
+
     /** Message to display to the user */
     tooltip?: string;
 };

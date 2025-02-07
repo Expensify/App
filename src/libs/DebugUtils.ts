@@ -1241,6 +1241,7 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 duplicates: 'array',
                 rterType: CONST.RTER_VIOLATION_TYPES,
                 tooltip: 'string',
+                message: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
