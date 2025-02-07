@@ -712,8 +712,115 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     notifyNewAction(reportID, lastAction?.actorAccountID, lastAction?.reportActionID);
 }
 
-function explainFeature(question: string) {
-    API.write(WRITE_COMMANDS.EXPLAIN_FEATURE, {question});
+function explainFeature(question: string, report: Report) {
+    const reportID = report.reportID;
+
+    // TODO: refactor it to contain only what's needed
+    let text = 'Waiting for backend to respond.....';
+    let file = undefined;
+    let reportCommentText = '';
+    let reportCommentAction: OptimisticAddCommentReportAction | undefined;
+    let attachmentAction: OptimisticAddCommentReportAction | undefined;
+    let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
+
+    if (text && !file) {
+        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+        reportCommentAction = reportComment.reportAction;
+        reportCommentText = reportComment.commentText;
+    }
+
+    if (file) {
+        // When we are adding an attachment we will call AddAttachment.
+        // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
+        commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
+        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
+        attachmentAction = attachment.reportAction;
+    }
+
+    if (text && file) {
+        // When there is both text and a file, the text for the report comment needs to be parsed)
+        reportCommentText = getParsedComment(text ?? '', {reportID});
+
+        // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
+        commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
+    }
+
+    // Always prefer the file as the last action over text
+    const lastAction = attachmentAction ?? reportCommentAction;
+    const currentTime = DateUtils.getDBTimeWithSkew();
+    const lastComment = ReportActionsUtils.getReportActionMessage(lastAction);
+    const lastCommentText = formatReportLastMessageText(lastComment?.text ?? '');
+
+    const optimisticReport: Partial<Report> = {
+        lastVisibleActionCreated: lastAction?.created,
+        lastMessageText: lastCommentText,
+        lastMessageHtml: lastCommentText,
+        lastActorAccountID: currentUserAccountID,
+        lastReadTime: currentTime,
+    };
+
+    const shouldUpdateNotificationPreference = !isEmptyObject(report) && isHiddenForCurrentUser(report);
+    if (shouldUpdateNotificationPreference) {
+        optimisticReport.participants = {
+            [currentUserAccountID]: {notificationPreference: getDefaultNotificationPreferenceForReport(report)},
+        };
+    }
+
+    // Optimistically add the new actions to the store before waiting to save them to the server
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
+
+    // Only add the reportCommentAction when there is no file attachment. If there is both a file attachment and text, that will all be contained in the attachmentAction.
+    if (text && reportCommentAction?.reportActionID && !file) {
+        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
+    }
+    if (file && attachmentAction?.reportActionID) {
+        optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: optimisticReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticReportActions as ReportActions,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {
+                [lastAction!!.reportActionID]: null,
+            },
+        },
+    ];
+
+    // we already posted a comment and we want it to be marked as failed after failure
+    // TODO: make the question message be marked as failed?
+    // const questionAction = ReportActionsUtils.getLastVisibleAction(reportID);
+    const failedComment = buildOptimisticAddCommentReportAction('Resolving the question failed....', undefined, undefined, undefined, undefined, reportID);
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {
+                [lastAction!!.reportActionID]: failedComment,
+            },
+        },
+    ];
+
+
+    API.write(WRITE_COMMANDS.EXPLAIN_FEATURE, {question}, {
+        optimisticData,
+        successData,
+        failureData
+    });
 }
 
 /** Add an attachment and optional comment. */

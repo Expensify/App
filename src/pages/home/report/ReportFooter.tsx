@@ -167,19 +167,15 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            // TODO: What about editting the comment to be question?
+            Report.addComment(report.reportID, text);
             if (ReportUtils.isSelfDM(report)) {
                 // We want to try the regex only if it is self DM to not waste resources
                 const matches = text.match(CONST.REGEX.QUESTION);
                 const questionString = matches && matches[1];
-                // console.log('QUESITON: |', questionString);
                 if (questionString) {
-                    // console.log('works');
-                    Report.explainFeature(questionString);
+                    Report.explainFeature(questionString, report);
                 }
-                return;
             }
-            Report.addComment(report.reportID, text);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
