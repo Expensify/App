@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -13,7 +14,6 @@ import type SCREENS from '@src/SCREENS';
 import CustomRulesSection from './CustomRulesSection';
 import ExpenseReportRulesSection from './ExpenseReportRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
-import usePermissions from '@hooks/usePermissions';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
