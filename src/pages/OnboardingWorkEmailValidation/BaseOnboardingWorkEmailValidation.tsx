@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -12,9 +12,11 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
+import {openOldDotLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
@@ -34,6 +36,27 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
 
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
+    useEffect(() => {
+        if (onboardingValues?.shouldRedirectToClassicAfterMerge === undefined) {
+            return;
+        }
+
+        if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
+        }
+
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            return;
+        }
+
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    }, [onboardingValues, isVsb]);
+
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {
             return;
@@ -50,11 +73,11 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={40}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute())}
             />
             <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmailValidation.title')}</Text>
-                <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
+                <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {

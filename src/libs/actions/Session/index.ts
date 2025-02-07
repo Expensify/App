@@ -1298,9 +1298,7 @@ function AddWorkEmail(workEmail: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: {
-                errorMessage: 'onboarding.error',
-            },
+            value: 'onboarding.error',
         },
     ];
 
@@ -1340,9 +1338,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: {
-                errorMessage: 'onboarding.error',
-            },
+            value: 'onboarding.error',
         },
     ];
 

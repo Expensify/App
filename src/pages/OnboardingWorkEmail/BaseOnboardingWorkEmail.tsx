@@ -19,6 +19,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 import {AddWorkEmail} from '@userActions/Session';
 import {setOnboardingErrorMessage} from '@userActions/Welcome';
@@ -49,6 +50,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isOffline} = useNetwork();
     const ICON_SIZE = 48;
+    const operatingSystem = getOperatingSystem();
 
     useEffect(() => {
         setOnboardingErrorMessage('');
@@ -72,11 +74,11 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
     }, [onboardingValues, isVsb]);
 
-    const validatePrivateDomain = useCallback((values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
+    const validatePrivateDomain = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
     }, []);
 
-    const validate = (values: FormOnyxValues<'onboardingWorkEmailForm'>) => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         if (!shouldValidateOnChange) {
             setShouldValidateOnChange(true);
         }
@@ -152,6 +154,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                     </View>
                 }
                 shouldRenderFooterAboveSubmit
+                shouldHideFixErrorsAlert
             >
                 <View>
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
@@ -187,7 +190,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 <View style={[styles.mb4, styles.pt3]}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        ref={inputCallbackRef}
+                        // We do not want to auto-focus for mobile platforms
+                        ref={operatingSystem === CONST.OS.NATIVE ? undefined : inputCallbackRef}
                         name="fname"
                         inputID={INPUT_IDS.ONBOARDING_WORK_EMAIL}
                         label={translate('common.workEmail')}
