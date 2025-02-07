@@ -201,8 +201,8 @@ platform | result
 🤖🔄 android HybridApp 🤖🔄|success ✅
 🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
                 issue_number: PR.issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });
@@ -233,8 +233,8 @@ platform | result
 🤖🔄 android HybridApp 🤖🔄|success ✅
 🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
                 issue_number: PRList[i + 1].issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });
@@ -297,10 +297,10 @@ platform | result
 🤖🔄 android HybridApp 🤖🔄|success ✅
 🍎🔄 iOS HybridApp 🍎🔄|success ✅
 
-@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/${process.env.GITHUB_REPOSITORY}/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
+@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
             issue_number: 3,
-            owner: 'Expensify',
-            repo: 'App',
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
         });
     });
 
@@ -336,8 +336,8 @@ platform | result
 🤖🔄 android HybridApp 🤖🔄|success ✅
 🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
                 issue_number: PR.issue_number,
-                owner: 'Expensify',
-                repo: 'App',
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
             });
         }
     });
