@@ -3916,7 +3916,7 @@ function updateCustomRules(policyID: string, customRules: string) {
 
     const parameters = {
         policyID,
-        customRules,
+        description: customRules,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CUSTOM_RULES, parameters, onyxData);

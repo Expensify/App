@@ -1,6 +1,6 @@
 type UpdateCustomRules = {
     policyID: string;
-    customRules: string;
+    description: string;
 };
 
 export default UpdateCustomRules;
