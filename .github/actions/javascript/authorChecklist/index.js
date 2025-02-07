@@ -17241,11 +17241,6 @@ exports["default"] = newComponentCategory;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-// Needed for tests to have the necessary environment variables set
-if (!('GITHUB_REPOSITORY' in process.env)) {
-    process.env.GITHUB_REPOSITORY_OWNER = 'Expensify';
-    process.env.GITHUB_REPOSITORY = 'Expensify/App';
-}
 const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
