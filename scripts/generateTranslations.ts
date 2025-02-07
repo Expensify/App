@@ -3,7 +3,7 @@ import fs from 'fs';
 // import OpenAI from 'openai';
 import path from 'path';
 import type {StringLiteral, TemplateExpression} from 'typescript';
-import ts from 'typescript';
+import ts, {EmitHint} from 'typescript';
 
 const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
 
@@ -17,8 +17,12 @@ const TARGET_LANGUAGES = ['es'];
 
 // Temporary placeholder for actual translation function
 async function translate(text: string, targetLang: string): Promise<string> {
-    return Promise.resolve(`[${targetLang}] ${text}`);
+    return Promise.resolve(text);
+    // return Promise.resolve(`[${targetLang}] ${text}`);
 }
+
+const tsPrinter = ts.createPrinter();
+const debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest);
 
 // Helper function to call OpenAI for translation
 // async function translateText(text: string, targetLang: string): Promise<string> {
@@ -69,7 +73,7 @@ function templateExpressionToString(node: TemplateExpression): string {
 
 function stringToTemplateExpression(input: string): ts.TemplateExpression {
     const parts: Array<string | ts.Expression> = [];
-    const regex = /\${(.*?)}/dg;
+    const regex = /\$\{((?:[^{}]|\$\{[^{}]*})*)}/g;
     let lastIndex = 0;
 
     for (const match of input.matchAll(regex)) {
@@ -138,10 +142,18 @@ function createTransformer(translations: Map<string, string>): ts.TransformerFac
                 if (translatedTemplate) {
                     console.log(`🔹 Found Translation: "${translatedTemplate}"`);
                     const translatedTemplateExpression = stringToTemplateExpression(translatedTemplate);
-                    console.log('🪇 Transformed translated template back to TemplateExpression: ');
+                    try {
+                        // Try printing the expression to validate it
+                        const printedCode = tsPrinter.printNode(EmitHint.Unspecified, translatedTemplateExpression, debugFile);
+                        console.log(`🪇 Transforming translated template back to TemplateExpression: ${printedCode}`);
+                    } catch (e) {
+                        console.warn(`⚠️ Unhandled TemplateExpression: ${translatedTemplate}`);
+                        return node;
+                    }
+
                     return translatedTemplateExpression;
                 }
-                console.log('⚠️ No translation found for template expression', originalTemplateExpressionAsString);
+                console.warn('⚠️ No translation found for template expression', originalTemplateExpressionAsString);
                 return node;
             }
             return ts.visitEachChild(node, visit, context);
