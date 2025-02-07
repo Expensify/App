@@ -637,7 +637,7 @@ describe('OptionsListUtils', () => {
         // Test for check if Manager McTest is correctly included or excluded from the results
         let options = OptionsListUtils.getValidOptions(
             {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-            {includeP2P: true, action: 'create', betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+            {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
         );
         expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
 
@@ -655,7 +655,7 @@ describe('OptionsListUtils', () => {
                 // Manager McTest shouldn't be included to recipients when the user has already submitted an expense
                 const optionsWhenUserAlreadySubmittedExpense = OptionsListUtils.getValidOptions(
                     {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                    {includeP2P: true, action: 'create', betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                    {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
                 );
                 expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
             });
