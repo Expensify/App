@@ -26,7 +26,7 @@ export default function useTranslateLive(reportID: string, reportAction: OnyxEnt
         API.makeRequestWithSideEffects('Translate', {
             type: 'live',
             textToTranslate: reportAction?.message?.[0]?.html,
-            targetLanguage: 'pt'
+            targetLanguage: preferredLocale,
         }).then((response) => {
             console.log('over here', response)
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
