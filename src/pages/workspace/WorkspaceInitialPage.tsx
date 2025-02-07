@@ -37,6 +37,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
@@ -60,7 +61,6 @@ import {
 } from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getIcons, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
-import {confirmReadyToOpenApp} from '@userActions/App';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -242,6 +242,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 icon: CalendarSolid,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
                 routeName: SCREENS.WORKSPACE.PER_DIEM,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
             });
         }
 
@@ -400,17 +401,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const prevPolicy = usePrevious(policy);
 
     const shouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => checkIfShouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
-    // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
+    const isPendingDelete = isPendingDeletePolicy(policy);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
+    // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEmptyObject(policy) || (!shouldShowPolicy && !prevShouldShowPolicy);
+    const shouldShowNotFoundPage = !shouldShowPolicy && (!isPendingDelete || prevIsPendingDelete);
 
     useEffect(() => {
-        if (isEmptyObject(prevPolicy) || isPendingDeletePolicy(prevPolicy) || !isPendingDeletePolicy(policy)) {
+        if (isEmptyObject(prevPolicy) || prevIsPendingDelete || !isPendingDelete) {
             return;
         }
         goBackFromInvalidPolicy();
-    }, [policy, prevPolicy]);
+    }, [isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
 
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
