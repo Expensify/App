@@ -1,10 +1,13 @@
+import {execSync} from 'child_process';
 import fs from 'fs';
 // import OpenAI from 'openai';
 import path from 'path';
 import ts from 'typescript';
 
+const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
+
 // Path to the English source file
-const SOURCE_FILE = path.join(__dirname, '../src/languages/en.ts');
+const SOURCE_FILE = `${LANGUAGES_DIR}/en.ts`;
 
 const TARGET_LANGUAGES = ['es'];
 
@@ -101,8 +104,11 @@ async function generateTranslatedFiles() {
         const translatedCode = printer.printFile(transformedNode);
 
         // Step 5: Write to file
-        const outputPath = path.join(__dirname, `../src/languages/${lang}.ts`);
+        const outputPath = `${LANGUAGES_DIR}/${lang}.ts`;
         fs.writeFileSync(outputPath, translatedCode, 'utf8');
+
+        // Step 6: Format the files using prettier
+        execSync(`npx prettier --write ${LANGUAGES_DIR}`);
 
         console.log(`✅ Translated file created: ${outputPath}`);
     }
