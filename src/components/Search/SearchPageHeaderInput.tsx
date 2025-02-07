@@ -128,7 +128,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     useEffect(() => {
         setTextInputValue(queryText);
-    }, [queryText]);
+        setIsNaturalSearch(isQueryNaturalSearch(queryText, canUseNaturalSearch));
+    }, [queryText, canUseNaturalSearch]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
@@ -137,9 +138,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
-            setIsNaturalSearch(isQueryNaturalSearch(userQuery, canUseNaturalSearch));
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
+            setIsNaturalSearch(isQueryNaturalSearch(userQuery, canUseNaturalSearch));
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
@@ -169,14 +170,16 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             if (updatedQuery !== originalInputQuery) {
                 clearAllFilters();
                 setTextInputValue('');
+                setIsNaturalSearch(true);
                 setAutocompleteQueryValue('');
                 setIsAutocompleteListVisible(false);
             } else {
                 setTextInputValue(queryText);
+                setIsNaturalSearch(isQueryNaturalSearch(queryText, canUseNaturalSearch));
                 setAutocompleteQueryValue(queryText);
             }
         },
-        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText],
+        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText, canUseNaturalSearch],
     );
 
     const onListItemPress = useCallback(
@@ -224,9 +227,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const setTextAndUpdateSelection = useCallback(
         (text: string) => {
             setTextInputValue(text);
+            setIsNaturalSearch(isQueryNaturalSearch(text, canUseNaturalSearch));
             setSelection({start: text.length, end: text.length});
         },
-        [setSelection, setTextInputValue],
+        [setSelection, setTextInputValue, canUseNaturalSearch],
     );
 
     if (isCannedQuery) {

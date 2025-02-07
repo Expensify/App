@@ -55,7 +55,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             return;
         }
         lottieRef.current.reset();
-    }, [item.pauseSingleLottie]);
+    }, [item.pauseSingleLottie, lottieRef.current]);
 
     return (
         <BaseListItem
