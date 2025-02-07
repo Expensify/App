@@ -41,6 +41,9 @@ function ValidateCodeActionForm({
         if (!firstRenderRef.current || hasMagicCodeBeenSent) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             return () => {
+                // We need to run clearError in cleanup function to use as onClose function.
+                // As 'useEffect cleanup function' runs when even the component is unmounted, we need to put clearError() in the if condition.
+                // So clearError() will not run when the form is unmounted.
                 if (isClosedRef.current && !isValidated) {
                     clearError();
                 }
