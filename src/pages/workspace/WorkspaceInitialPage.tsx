@@ -64,6 +64,7 @@ import type {FullScreenNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -461,7 +462,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
                             Navigation.resetToHome();
-                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo));
+                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
                         } else {
                             Navigation.dismissModal();
                         }
