@@ -22,6 +22,9 @@ type Message = {
     /** The html content of the fragment. */
     html?: string;
 
+    /** Translate text */
+    translatedText?: string;
+
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
      */

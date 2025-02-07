@@ -309,6 +309,8 @@ function ReportActionItemSingle({
                             {personArray?.map((fragment, index) => (
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
+                                    reportID={reportID}
+                                    reportAction={action}
                                     key={`person-${action?.reportActionID}-${index}`}
                                     accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
