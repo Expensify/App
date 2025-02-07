@@ -120,9 +120,17 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, isNarrow: boolean, index: number) => {
             let title = item.name;
+
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
                 title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
+            } else if (title.includes('AI')) {
+                // TODO: remove hardcoded AI string
+                const titleSections = title.split('AI -');
+                if (titleSections.length === 2) {
+                    const possibleTitle = titleSections.at(1)?.trim() ?? '';
+                    title = possibleTitle?.length === 0 ? item.query : possibleTitle;
+                }
             }
 
             return {
