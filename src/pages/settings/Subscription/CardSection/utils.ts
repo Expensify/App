@@ -46,6 +46,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
                 subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle'),
                 isError: true,
+                isRetryAvailable: true,
             };
 
         case SubscriptionUtils.PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:
