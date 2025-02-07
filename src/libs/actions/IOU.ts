@@ -942,7 +942,7 @@ function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: st
         comment: {
             customUnit: {
                 customUnitRateID,
-                defaultP2PRate: null,
+                ...(!!policy && {defaultP2PRate: null}),
                 ...(distanceRate && {distanceUnit: distanceRate.unit}),
             },
         },
