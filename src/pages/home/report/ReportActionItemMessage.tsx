@@ -44,9 +44,11 @@ type ReportActionItemMessageProps = {
 
     /** The ID of the report */
     reportID: string | undefined;
+
+    shouldShowOriginal?: boolean;
 };
 
-function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
+function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false, showOriginal = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -108,6 +110,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const reportActionItemFragments = fragments.map((fragment, index) => (
             <ReportActionItemFragment
                 /* eslint-disable-next-line react/no-array-index-key */
+                showOriginal={showOriginal}
                 key={`actionFragment-${action.reportActionID}-${index}`}
                 reportID={reportID}
                 reportAction={action}

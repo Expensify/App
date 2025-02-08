@@ -274,7 +274,7 @@ function AttachmentView({
             <>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
-                        url={imageSource}
+                        url={'https://staging.expensify.com/receipts/w_5e4b010571e35891b486dcd98440fd4e2628f585.jpg.1024.jpg'}
                         file={file}
                         isAuthTokenRequired={isAuthTokenRequired}
                         loadComplete={loadComplete}
