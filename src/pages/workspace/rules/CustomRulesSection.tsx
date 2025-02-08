@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParsedComment} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
-import LoadingBar from '@components/LoadingBar';
 import { useOnyx } from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
