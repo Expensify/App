@@ -206,18 +206,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const [isOnboarding, setIsOnboarding] = useState(!!getConnection('openai'));
+    const [isInitializing, setIsInitializing] = useState(false);
 
-    const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
-    const {isExtraLargeScreenWidth} = useResponsiveLayout();
-    
     const onPressSelfOnboarding = async () => {    
         if (isOnboarding) {
             try {
                 stopConnection();
-                Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, {
-                    open: false,
-                    openMobile: false
-                });
                 setIsOnboarding(false);
             } catch (error) {
                 console.error('[HeaderView] Failed to stop recording:', error);
@@ -226,10 +220,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         }
 
         try {
+            setIsInitializing(true);
             const connection = await initializeConnection('openai', report?.reportID);
             setIsOnboarding(true);
         } catch (error) {
             console.error('[HeaderView] Failed to start recording:', error);
+        } finally {
+            setIsInitializing(false);
         }
     };
 
@@ -365,11 +362,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                             </PressableWithoutFeedback>
                                 {isAdminRoomReportUtils(report) && (
-                                    <Button
-                                        text={isOnboarding ? "Stop Onboarding" : "Self-Onboarding"}
-                                        onPress={onPressSelfOnboarding}
-                                        style={[styles.alignItemsEnd, styles.flex1]}
-                                    />
+                                <Button
+                                    text={isOnboarding ? "Stop Onboarding" : "Self-Onboarding"}
+                                    onPress={onPressSelfOnboarding}
+                                    style={[styles.alignItemsEnd, styles.flex1]}
+                                    isLoading={isInitializing}
+                                    isDisabled={isInitializing}
+                                />
                                 )}
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                     {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
