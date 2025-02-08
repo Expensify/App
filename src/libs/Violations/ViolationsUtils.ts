@@ -227,7 +227,7 @@ const ViolationsUtils = {
 
         const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
         const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
-        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDate(inputDate) && isControlPolicy;
+        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
         const amount = updatedTransaction.modifiedAmount ?? updatedTransaction.amount;
