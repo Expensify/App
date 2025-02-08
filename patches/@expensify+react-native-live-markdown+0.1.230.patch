@@ -1,0 +1,55 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/parseExpensiMark.js b/node_modules/@expensify/react-native-live-markdown/lib/module/parseExpensiMark.js
+index f492c22..f31996c 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/parseExpensiMark.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/parseExpensiMark.js
+@@ -142,6 +142,8 @@ function parseTreeToTextAndRanges(tree) {
+         addChildrenWithStyle(node, 'mention-user');
+       } else if (node.tag === '<mention-short>') {
+         addChildrenWithStyle(node, 'mention-short');
++      } else if (node.tag === '<command>') {
++        addChildrenWithStyle(node, 'command');
+       } else if (node.tag === '<mention-report>') {
+         addChildrenWithStyle(node, 'mention-report');
+       } else if (node.tag === '<blockquote>') {
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/styleUtils.js b/node_modules/@expensify/react-native-live-markdown/lib/module/styleUtils.js
+index 1ab9c63..74a89d2 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/styleUtils.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/styleUtils.js
+@@ -47,6 +47,10 @@ function makeDefaultMarkdownStyle() {
+       color: 'red',
+       backgroundColor: 'pink'
+     },
++    command: {
++      color: 'green',
++      backgroundColor: 'lime'
++    },
+     inlineImage: {
+       minWidth: 50,
+       minHeight: 50,
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/blockUtils.js b/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/blockUtils.js
+index ad119d2..a47fce9 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/blockUtils.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/blockUtils.js
+@@ -34,6 +34,9 @@ function addStyleToBlock(targetElement, type, markdownStyle, isMultiline = true)
+     case 'mention-here':
+       Object.assign(node.style, markdownStyle.mentionHere);
+       break;
++    case 'command':
++        Object.assign(node.style, markdownStyle.command);
++        break;      
+     case 'mention-user':
+       Object.assign(node.style, markdownStyle.mentionUser);
+       break;
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/parserUtils.js b/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/parserUtils.js
+index dcbe8fa..c096d8f 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/parserUtils.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/web/utils/parserUtils.js
+@@ -76,7 +76,7 @@ function addTextToElement(node, text, isMultiline = true) {
+       span.appendChild(document.createTextNode(line));
+       appendNode(span, node, 'text', line.length);
+       const parentType = (_span$parentElement = span.parentElement) === null || _span$parentElement === void 0 ? void 0 : _span$parentElement.dataset.type;
+-      if (!isMultiline && parentType && ['pre', 'code', 'mention-here', 'mention-user', 'mention-report'].includes(parentType)) {
++      if (!isMultiline && parentType && ['pre', 'code', 'mention-here', 'mention-user', 'mention-report', 'command'].includes(parentType)) {
+         // this is a fix to background colors being shifted downwards in a singleline input
+         addStyleToBlock(span, 'text', {}, false);
+       }
