@@ -56,7 +56,7 @@ function CommandSuggestions({commands, onSelect, value, highlightedCommandIndex 
                     <Icon
                         src={item.icon}
                         fill={theme.iconSuccessFill}
-                        medium
+                        small
                     />
                     <Text
                         numberOfLines={1}
