@@ -45,6 +45,10 @@ type TextCommentFragmentProps = {
     iouMessage?: string;
 };
 
+function removeLeadingCommand(text: string) {
+    return `<command>${text.replace(/^<command>(\/summarize)<\/command>/gm, '')}</command>`;
+}
+
 function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -67,6 +71,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
+
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
@@ -83,6 +88,8 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         if (styleAsMuted) {
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
+
+        htmlWithTag = removeLeadingCommand(htmlWithTag);
 
         return (
             <RenderCommentHTML
