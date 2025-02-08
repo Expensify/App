@@ -47,6 +47,18 @@ Onyx.connect({
     },
 });
 
+let defaultCountry = '';
+
+Onyx.connect({
+    key: ONYXKEYS.COUNTRY,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        defaultCountry = value;
+    },
+});
+
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
@@ -370,6 +382,10 @@ function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'display
     return email;
 }
 
+function getDefaultCountry() {
+    return defaultCountry;
+}
+
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -388,4 +404,5 @@ export {
     getNewAccountIDsAndLogins,
     getPersonalDetailsLength,
     getUserNameByEmail,
+    getDefaultCountry,
 };

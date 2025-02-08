@@ -4,10 +4,11 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getCurrentAddress, getDefaultCountry} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import type {FormOnyxValues} from '@src/components/Form/types';
+import type {Country} from '@src/CONST';
+import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
@@ -26,7 +27,7 @@ type PersonalAddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
  * @param values - form input values
  */
 function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) {
-    PersonalDetails.updateAddress(
+    updateAddressPersonalDetails(
         values.addressLine1?.trim() ?? '',
         values.addressLine2?.trim() ?? '',
         values.city.trim(),
@@ -38,10 +39,12 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
 
 function PersonalAddressPage({privatePersonalDetails, isLoadingApp = true}: PersonalAddressPageProps) {
     const {translate} = useLocalize();
-    const address = useMemo(() => PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
+    const address = useMemo(() => getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
+    const defaultCountry = getDefaultCountry();
 
     return (
         <AddressPage
+            defaultCountry={defaultCountry as Country}
             address={address}
             isLoadingApp={isLoadingApp}
             updateAddress={updateAddress}
