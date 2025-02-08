@@ -174,7 +174,7 @@ function ReportActionItemFragment({
                 <ReportActionItemMessageHeaderSender
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
-                    fragmentText={displayText}
+                    fragmentText={fragment?.text}
                     actorIcon={actorIcon}
                     isSingleLine={isSingleLine}
                 />
