@@ -3877,7 +3877,8 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
 function updateCustomRules(policyID: string, customRules: string) {
     const policy = getPolicy(policyID);
     const originalCustomRules = policy?.customRules;
-    if (customRules === originalCustomRules) {
+    const parsedCustomRules = ReportUtils.getParsedComment(customRules);
+    if (parsedCustomRules === originalCustomRules) {
         return;
     }
 
@@ -3887,7 +3888,7 @@ function updateCustomRules(policyID: string, customRules: string) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    customRules,
+                    customRules: parsedCustomRules,
                 },
             },
         ],
@@ -3919,7 +3920,7 @@ function updateCustomRules(policyID: string, customRules: string) {
 
     const parameters = {
         policyID,
-        description: customRules,
+        description: parsedCustomRules,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CUSTOM_RULES, parameters, onyxData);
