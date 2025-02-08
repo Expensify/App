@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -18,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER>;
 
@@ -42,6 +44,7 @@ function CategoryRequireReceiptsOverPage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [toggleOn, setToggleOn] = React.useState(false);
 
     const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === 0;
     const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
@@ -88,6 +91,14 @@ function CategoryRequireReceiptsOverPage({
                     title={translate('workspace.rules.categoryRules.requireReceiptsOver')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
+                <View style={[styles.mt5, styles.ph5]}>
+                    <ToggleSettingOptionRow
+                        title={"Require itemized receipts"}
+                        switchAccessibilityLabel={translate('workspace.xero.accountsSwitchDescription')}
+                        isActive={toggleOn}
+                        onToggle={() => {setToggleOn(!toggleOn)}}
+                    />
+                </View>
                 <SelectionList
                     sections={[{data: requireReceiptsOverListData}]}
                     ListItem={RadioListItem}
