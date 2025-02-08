@@ -28,6 +28,7 @@ import Bill from '@assets/images/bill.svg';
 import Binoculars from '@assets/images/binoculars.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
+import BookmarkSparkle from '@assets/images/bookmark-sparkle.svg';
 import Bookmark from '@assets/images/bookmark.svg';
 import Box from '@assets/images/box.svg';
 import Briefcase from '@assets/images/briefcase.svg';
@@ -240,6 +241,7 @@ export {
     Binoculars,
     Bolt,
     Box,
+    BookmarkSparkle,
     Briefcase,
     Bug,
     Building,

@@ -6231,6 +6231,8 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            USER_QUERY: 'userQuery',
+            SEARCH_SYNTAX: 'searchSyntax',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
