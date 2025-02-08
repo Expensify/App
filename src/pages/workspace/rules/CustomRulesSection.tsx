@@ -8,6 +8,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParsedComment} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
+import LoadingBar from '@components/LoadingBar';
+import { useOnyx } from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type CustomRulesSectionProps = {
     policyID: string;
@@ -19,6 +22,7 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
     const policy = usePolicy(policyID);
     const parsedRules = useMemo(() => getParsedComment(policy?.customRules ?? ''), [policy]);
     const rulesDescription = typeof parsedRules === 'string' ? parsedRules : '';
+    const [isLoadingSectionData] = useOnyx(ONYXKEYS.IS_LOADING_SECTION_DATA);
 
     return (
         <Section
@@ -27,6 +31,7 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
             subtitle={translate('workspace.rules.customRules.description')}
             titleStyles={styles.accountSettingsSectionTitle}
             subtitleMuted
+            shouldShowLoading={isLoadingSectionData ?? false}
         >
             <View style={[styles.mt3]}>
                 {/* <OfflineWithFeedback

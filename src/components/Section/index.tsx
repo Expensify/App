@@ -17,6 +17,7 @@ import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import IconSection from './IconSection';
+import LoadingBar from '@components/LoadingBar';
 
 const CARD_LAYOUT = {
     ICON_ON_TOP: 'iconOnTop',
@@ -93,6 +94,8 @@ type SectionProps = Partial<ChildrenProps> & {
 
     /** Banner to display at the top of the section */
     banner?: ReactNode;
+
+    shouldShowLoading: boolean;
 };
 
 function Section({
@@ -120,6 +123,7 @@ function Section({
     iconHeight,
     renderSubtitle,
     banner = null,
+    shouldShowLoading = false,
 }: SectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -131,6 +135,7 @@ function Section({
     const lottieIllustration = isLottie ? illustration : undefined;
     return (
         <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+            <LoadingBar shouldShow={shouldShowLoading}/>
             {banner}
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection

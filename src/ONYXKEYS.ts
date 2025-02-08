@@ -292,6 +292,8 @@ const ONYXKEYS = {
     /** Is report data loading? */
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
+    IS_LOADING_SECTION_DATA: 'isLoadingSection',
+
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
 

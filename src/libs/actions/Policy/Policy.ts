@@ -3891,7 +3891,13 @@ function updateCustomRules(policyID: string, customRules: string) {
                     customRules,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.IS_LOADING_SECTION_DATA}`,
+                value: true,
+            },
         ],
+
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -3902,6 +3908,11 @@ function updateCustomRules(policyID: string, customRules: string) {
                         // maxExpenseAge: null,
                     },
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.IS_LOADING_SECTION_DATA}`,
+                value: false,
             },
         ],
         failureData: [
@@ -3914,6 +3925,11 @@ function updateCustomRules(policyID: string, customRules: string) {
                     // pendingFields: {maxExpenseAge: null},
                     // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.IS_LOADING_SECTION_DATA}`,
+                value: false,
             },
         ],
     };
