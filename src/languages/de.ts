@@ -709,7 +709,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: 'zugeh\u00F6rig.',
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'Dieser Chat ist mit',
+        beginningOfChatHistory: 'Dieser Chat ist mit ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Dies ist der Ort',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: 'wird Ausgaben einreichen an',
         beginningOfChatHistoryPolicyExpenseChatPartThree: '. Verwenden Sie einfach die + Taste.',

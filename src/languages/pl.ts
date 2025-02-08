@@ -711,7 +711,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: "I'm sorry, but there's no text provided for translation. Please provide the text you want to be translated.",
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'Ta rozmowa jest z ${username}',
+        beginningOfChatHistory: 'Ta rozmowa jest z ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'To jest miejsce',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: 'z\u0142o\u017C\u0119 wydatki do',
         beginningOfChatHistoryPolicyExpenseChatPartThree: '. Po prostu u\u017Cyj przycisku +.',

@@ -708,7 +708,7 @@ const translations = {
             'As a language model AI developed by OpenAI, I need the source text in order to provide a translation. Please provide the text you want to translate.',
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'This chat is with ${username}',
+        beginningOfChatHistory: 'This chat is with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne:
             "You haven't provided any text or TypeScript function to translate. Please provide the necessary information so I can assist you further.",
         beginningOfChatHistoryPolicyExpenseChatPartTwo: 'The text provided does not contain any content to translate. Please provide a complete sentence or paragraph for translation.',

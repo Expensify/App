@@ -718,7 +718,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: "Sorry, but there's no text provided for translation. Could you please provide the text you want to be translated?",
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'Bu sohbet ${username} ile',
+        beginningOfChatHistory: 'Bu sohbet ile',
         beginningOfChatHistoryPolicyExpenseChatPartOne:
             "Bu, ${username} oldu\u011Fu yerdir. ${count} adet var. ${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} durumuna ba\u011Fl\u0131 olarak de\u011Fi\u015Fir.",
         beginningOfChatHistoryPolicyExpenseChatPartTwo: 'masraflar\u0131 g\u00F6nderecektir ${username}',

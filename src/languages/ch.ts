@@ -727,7 +727,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: "Sorry, but there's no text provided for translation. Could you please provide the text you want to be translated?",
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: '\u8FD9\u4E2A\u804A\u5929\u662F\u4E0E${username}',
+        beginningOfChatHistory: '\u8FD9\u4E2A\u804A\u5929\u662F\u4E0E ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '\u8FD9\u5C31\u662F\u5730\u65B9',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: '\u5C07\u63D0\u4EA4\u8CBB\u7528\u7D66',
         beginningOfChatHistoryPolicyExpenseChatPartThree: '. \u53EA\u9700\u4F7F\u7528 + \u6309\u94AE\u3002',

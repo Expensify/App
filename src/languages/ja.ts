@@ -752,7 +752,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: '\u95A2\u9023\u3057\u3066\u3044\u307E\u3059\u3002',
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: '\u3053\u306E\u30C1\u30E3\u30C3\u30C8\u306F ${username} \u3068\u3067\u3059',
+        beginningOfChatHistory: '\u3053\u306E\u30C1\u30E3\u30C3\u30C8\u306F\u3068\u3067\u3059 ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '\u3053\u3053\u304C',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: '\u306F\u7D4C\u8CBB\u3092\u63D0\u51FA\u3057\u307E\u3059',
         beginningOfChatHistoryPolicyExpenseChatPartThree: '. + \u30DC\u30BF\u30F3\u3092\u4F7F\u3063\u3066\u304F\u3060\u3055\u3044\u3002',

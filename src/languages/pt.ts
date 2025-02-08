@@ -708,7 +708,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: 'relacionado.',
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'Este chat \u00E9 com',
+        beginningOfChatHistory: 'Este chat \u00E9 com ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Este \u00E9 o lugar',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: 'ir\u00E1 submeter as despesas para',
         beginningOfChatHistoryPolicyExpenseChatPartThree: '. Basta usar o bot\u00E3o +.',

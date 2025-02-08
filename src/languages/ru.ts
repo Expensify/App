@@ -789,7 +789,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: '\u0441\u0432\u044F\u0437\u0430\u043D\u043D\u044B\u0439.',
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: '\u042D\u0442\u043E\u0442 \u0447\u0430\u0442 \u0441 ${username}',
+        beginningOfChatHistory: '\u042D\u0442\u043E\u0442 \u0447\u0430\u0442 \u0441 ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '\u042D\u0442\u043E \u043C\u0435\u0441\u0442\u043E, \u0433\u0434\u0435',
         beginningOfChatHistoryPolicyExpenseChatPartTwo:
             '\u0431\u0443\u0434\u0435\u0442 \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u0442\u044C \u0440\u0430\u0441\u0445\u043E\u0434\u044B \u043D\u0430',

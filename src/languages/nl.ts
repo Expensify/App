@@ -704,7 +704,7 @@ const translations = {
         beginningOfChatHistoryUserRoomPartTwo: 'gerelateerd.',
         beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
         beginningOfChatHistoryInvoiceRoomPartTwo: `. Use the + button to send an invoice.`,
-        beginningOfChatHistory: 'Deze chat is met',
+        beginningOfChatHistory: 'Deze chat is met ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Dit is waar',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: 'zal onkosten indienen bij',
         beginningOfChatHistoryPolicyExpenseChatPartThree: 'Gebruik gewoon de + knop.',
