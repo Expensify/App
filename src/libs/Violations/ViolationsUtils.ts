@@ -311,6 +311,7 @@ const ViolationsUtils = {
             taxName,
             type,
             rterType,
+            message = '',
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -367,6 +368,8 @@ const ViolationsUtils = {
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
                 return translate('violations.receiptRequired', {formattedLimit, category});
+            case 'customRules':
+                return translate('violations.customRules', {message});
             case 'rter':
                 return translate('violations.rter', {
                     brokenBankConnection,

@@ -11502,6 +11502,7 @@ GithubUtils_1.default.octokit.pulls
     .then(({ data: PR }) => {
     if (!(0, EmptyObject_1.isEmptyObject)(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
+        console.log(`Pull request details: ${JSON.stringify(PR)}}`);
         core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
         core.setOutput('HEAD_COMMIT_SHA', PR.head?.sha);
         core.setOutput('IS_MERGED', PR.merged);
