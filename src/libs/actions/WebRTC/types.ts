@@ -1,4 +1,8 @@
-type OpenAIRealtimeMessage = {type: 'audio'; data: string;} | {type: 'transcript'; text: string;} | {type: 'error'; code: number; message: string;} | {type: 'input_audio_buffer.speech_stopped'};
+type OpenAIRealtimeMessage =
+    | {type: 'audio'; data: string}
+    | {type: 'transcript'; text: string}
+    | {type: 'error'; code: number; message: string}
+    | {type: 'input_audio_buffer.speech_stopped'};
 
 type ConnectionResult = {
     pc: RTCPeerConnection;

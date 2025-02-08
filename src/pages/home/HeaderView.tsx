@@ -27,10 +27,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
+import {getConnection, initializeConnection, stopConnection} from '@libs/actions/WebRTC';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {initializeConnection, getConnection, stopConnection} from '@libs/actions/WebRTC';
 import Parser from '@libs/Parser';
 import {
     canJoinChat,
@@ -44,6 +44,7 @@ import {
     getReportDescription,
     getReportName,
     hasReportNameError,
+    isAdminRoom as isAdminRoomReportUtils,
     isArchivedReport,
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
@@ -56,7 +57,6 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
     isTaskReport as isTaskReportReportUtils,
-    isAdminRoom as isAdminRoomReportUtils,
     navigateToDetailsPage,
     shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
     shouldReportShowSubscript,
@@ -208,7 +208,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [isOnboarding, setIsOnboarding] = useState(!!getConnection('openai'));
     const [isInitializing, setIsInitializing] = useState(false);
 
-    const onPressSelfOnboarding = async () => {    
+    const onPressSelfOnboarding = async () => {
         if (isOnboarding) {
             try {
                 stopConnection();
@@ -282,7 +282,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 </PressableWithoutFeedback>
                             )}
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <PressableWithoutFeedback
+                                <PressableWithoutFeedback
                                     onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute())}
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                     disabled={shouldDisableDetailPage}
@@ -360,15 +360,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             />
                                         </View>
                                     )}
-                            </PressableWithoutFeedback>
+                                </PressableWithoutFeedback>
                                 {isAdminRoomReportUtils(report) && (
-                                <Button
-                                    text={isOnboarding ? "Stop Onboarding" : "Self-Onboarding"}
-                                    onPress={onPressSelfOnboarding}
-                                    style={[styles.alignItemsEnd, styles.flex1]}
-                                    isLoading={isInitializing}
-                                    isDisabled={isInitializing}
-                                />
+                                    <Button
+                                        text={isOnboarding ? 'Stop Onboarding' : 'Self-Onboarding'}
+                                        onPress={onPressSelfOnboarding}
+                                        style={[styles.alignItemsEnd, styles.flex1]}
+                                        isLoading={isInitializing}
+                                        isDisabled={isInitializing}
+                                    />
                                 )}
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                     {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
