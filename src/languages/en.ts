@@ -184,6 +184,7 @@ import type {
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsCustomRulesParams,
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
@@ -5358,7 +5359,7 @@ const translations = {
             }
             return message;
         },
-        prohibitedExpense: 'Prohibited expense',
+        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => `Prohibited expense: ${prohibitedExpenseType}`,
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
