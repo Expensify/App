@@ -42,6 +42,8 @@ import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
+import Lottie from './Lottie';
+import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 
@@ -193,6 +195,8 @@ function AttachmentModal({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
+    const [isTranslating, setIsTranslating] = useState(false);
+
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
             ? {
@@ -204,6 +208,7 @@ function AttachmentModal({
     const {isOffline} = useNetwork();
 
     const translateReceipt = () => {
+        setIsTranslating(true);
         makeRequestWithSideEffects('Translate', {
             type: 'receipt',
             imageURLs: 'https://media-cdn.tripadvisor.com/media/photo-s/0b/be/e0/72/facture-repas.jpg',
@@ -216,6 +221,7 @@ function AttachmentModal({
                 uri: response.translatedImage,
                 size: 12345, // optional
             });
+            setIsTranslating(false);
         });
     };
 
@@ -562,6 +568,13 @@ function AttachmentModal({
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}
+                        {isTranslating && (
+                            <Lottie
+                                source={LottieAnimations.SpinningPyramid}
+                                loop
+                                autoPlay
+                            />
+                        )}
                         {shouldShowNotFoundPage && !isLoading && (
                             <BlockingView
                                 icon={Illustrations.ToddBehindCloud}
@@ -589,7 +602,8 @@ function AttachmentModal({
                             ) : (
                                 !!sourceForAttachmentView &&
                                 shouldLoadAttachment &&
-                                !isLoading && (
+                                !isLoading &&
+                                !isTranslating && (
                                     <AttachmentCarouselPagerContext.Provider value={context}>
                                         <AttachmentView
                                             containerStyles={[styles.mh5]}
