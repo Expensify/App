@@ -84,6 +84,12 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
+        // workaround for now, we will have a better solution for this
+        const cmd = CONST.COMPOSER_COMMANDS.at(0)?.command ?? '';
+        if (htmlWithTag.startsWith(cmd)) {
+            htmlWithTag = `<command>${htmlWithTag.slice(cmd.length)}</command>`;
+        }
+
         return (
             <RenderCommentHTML
                 containsOnlyEmojis={containsOnlyEmojis}

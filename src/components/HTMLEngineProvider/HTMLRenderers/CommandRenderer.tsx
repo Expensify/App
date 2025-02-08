@@ -2,12 +2,11 @@ import React from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 
-function CommandRenderer({style, tnode}: CustomRendererProps<TText | TPhrasing>) {
+function CommandRenderer({style}: CustomRendererProps<TText | TPhrasing>) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -20,7 +19,7 @@ function CommandRenderer({style, tnode}: CustomRendererProps<TText | TPhrasing>)
                 color={theme.ourMentionText}
                 style={[styleWithoutColor, StyleUtils.getMentionStyle(true)]}
             >
-                <TNodeChildrenRenderer tnode={tnode} />
+                /summarize
             </Text>
         </Text>
     );
