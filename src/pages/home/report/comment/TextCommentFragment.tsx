@@ -45,6 +45,10 @@ type TextCommentFragmentProps = {
     iouMessage?: string;
 };
 
+function removeLeadingCommand(text: string) {
+    return `<command>${text.replace(/^<command>(\/summarize)<\/command>/gm, '')}</command>`;
+}
+
 function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -67,6 +71,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
+
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
@@ -84,11 +89,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        // workaround for now, we will have a better solution for this
-        const cmd = CONST.COMPOSER_COMMANDS.at(0)?.command ?? '';
-        if (htmlWithTag.startsWith(cmd)) {
-            htmlWithTag = `<command>${htmlWithTag.slice(cmd.length)}</command>`;
-        }
+        htmlWithTag = removeLeadingCommand(htmlWithTag);
 
         return (
             <RenderCommentHTML
