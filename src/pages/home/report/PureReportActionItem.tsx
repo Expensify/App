@@ -14,6 +14,8 @@ import Icon from '@components/Icon';
 import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
+import Lottie from '@components/Lottie';
+import DotLottieAnimations from '@components/LottieAnimations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -692,8 +694,19 @@ function PureReportActionItem({
     const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false): React.JSX.Element => {
         let children;
 
+        if (action?.message?.[0]?.lottieUrl) {
+            children = (
+                <Lottie
+                    source={DotLottieAnimations.Abracadabra}
+                    // style={styles.justSignedInModalAnimation(is2FARequired)}
+                    webStyle={{height: 200, width: 200}}
+                    autoPlay
+                    loop
+                />
+            );
+        }
         // Show the MoneyRequestPreview for when expense is present
-        if (
+        else if (
             isMoneyRequestAction(action) &&
             getOriginalMessage(action) &&
             // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message

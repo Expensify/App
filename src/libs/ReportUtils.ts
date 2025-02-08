@@ -242,6 +242,7 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childLastVisibleActionCreated'
     | 'childOldestFourAccountIDs'
     | 'delegateAccountID'
+    | 'lottieUrl'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -4844,6 +4845,7 @@ function buildOptimisticAddCommentReportAction(
     createdOffset = 0,
     shouldEscapeText?: boolean,
     reportID?: string,
+    isQuestion: boolean = false,
 ): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file);
@@ -4879,6 +4881,7 @@ function buildOptimisticAddCommentReportAction(
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
+                    lottieUrl: isQuestion,
                 },
             ],
             originalMessage: {
