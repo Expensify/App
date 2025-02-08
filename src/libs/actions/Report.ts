@@ -725,21 +725,21 @@ function addComment(reportID: string, text: string) {
 
 /** Add an action comment to a report */
 function addActionComment(reportID: string, text: string, command: ComposerCommand) {
-    let requestCommentText = '';
+    const nowDate = Date.now();
 
     const requestComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
     const requestCommentAction: OptimisticAddCommentReportAction = requestComment.reportAction;
     if (requestCommentAction.originalMessage) {
         requestCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
     }
-
-    requestCommentText = requestComment.commentText.slice(command.command.length);
+    requestCommentAction.created = DateUtils.getDBTimeWithSkew(nowDate);
 
     const answerComment = buildOptimisticAddCommentReportAction('Analyzing...', undefined, CONST.ACCOUNT_ID.CONCIERGE, undefined, undefined, reportID);
     const answerCommentAction: OptimisticAddCommentReportAction = answerComment.reportAction;
     if (answerCommentAction.originalMessage) {
         answerCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
     }
+    answerCommentAction.created = DateUtils.getDBTimeWithSkew(nowDate + 100);
 
     const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
     optimisticReportActions[requestCommentAction.reportActionID] = requestCommentAction;
@@ -749,16 +749,11 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
         reportID,
         reportActionID: requestCommentAction.reportActionID,
         answerReportActionID: answerCommentAction.reportActionID,
-        reportComment: requestCommentText,
+        reportComment: requestComment.commentText,
         actionType: command.action,
     };
 
     const optimisticData: OnyxUpdate[] = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        //     value: optimisticReport,
-        // },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -782,20 +777,15 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
 
     const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
 
-    Object.entries(optimisticReportActions).forEach(([actionKey, _action]) => {
+    Object.entries(optimisticReportActions).forEach(([actionKey, actionData]) => {
         failureReportActions[actionKey] = {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            ...(_action as OptimisticAddCommentReportAction),
+            ...(actionData as OptimisticAddCommentReportAction),
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
         };
     });
 
     const failureData: OnyxUpdate[] = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        //     value: failureReport,
-        // },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
