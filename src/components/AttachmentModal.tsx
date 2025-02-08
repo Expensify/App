@@ -43,6 +43,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
+import { makeRequestWithSideEffects } from '@libs/API';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -201,6 +202,22 @@ function AttachmentModal({
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
+    const translateReceipt = () => {
+        makeRequestWithSideEffects('Translate', {
+            type: 'receipt',
+            imageURLs: 'https://media-cdn.tripadvisor.com/media/photo-s/0b/be/e0/72/facture-repas.jpg',
+            targetLanguage: 'en',
+        }).then((response: any) => {
+            setSourceState(response.translatedImage);            
+            setFile({
+                name: 'Base64Pic.png',
+                type: 'image/png',
+                uri: response.translatedImage,
+                size: 12345, // optional
+            });
+        });
+    }
 
     const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
 
@@ -429,6 +446,13 @@ function AttachmentModal({
         }
 
         const menuItems = [];
+        menuItems.push({
+            icon: Expensicons.ArrowsLeftRight,
+            text: translate('common.translate'),
+            onSelected: () => {
+                translateReceipt();
+            },
+        });
         if (canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Camera,
