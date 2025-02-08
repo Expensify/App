@@ -218,11 +218,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? [], isReceiptBeingScanned || !isPaidGroupPolicy(report));
-    const hasViolations = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
-            getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
-        [getViolationsForField],
-    );
 
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
@@ -292,7 +287,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
 
-    const getErrorForField = useCallback(
+    const getErrorsForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
@@ -314,27 +309,26 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             const {isError, translationPath} = fieldChecks[field] ?? {};
 
             if (readonly) {
-                return '';
+                return [];
             }
 
             // Return form errors if there are any
             if (hasErrors && isError && translationPath) {
-                return translate(translationPath);
+                return [translate(translationPath)];
+            }
+
+            const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
+
+            if (violations.length === 0) {
+                return [];
             }
 
             // Return violations if there are any
-            if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
-                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-                const firstViolation = violations.at(0);
+            const translated = violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate));
+            return translated;
 
-                if (firstViolation) {
-                    return ViolationsUtils.getViolationTranslation(firstViolation, translate);
-                }
-            }
-
-            return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField],
+        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, translate, getViolationsForField],
     );
 
     const distanceRequestFields = (
@@ -377,8 +371,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             ),
                         );
                     }}
-                    brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={getErrorForField('customUnitRateID')}
+                    brickRoadIndicator={getErrorsForField('customUnitRateID').length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorTexts={getErrorsForField('customUnitRateID')}
                 />
             </OfflineWithFeedback>
         </>
@@ -427,7 +421,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             return null;
         }
 
-        const tagError = getErrorForField(
+        const tagError = getErrorsForField(
             'tag',
             {
                 tagListIndex: index,
@@ -435,7 +429,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             },
             hasDependentTags(policy, policyTagList),
             tagForDisplay,
-        );
+        ).at(0);
+
         return (
             <OfflineWithFeedback
                 key={name}
@@ -577,8 +572,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 ),
                             );
                         }}
-                        brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('amount')}
+                        brickRoadIndicator={getErrorsForField('amount').length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorTexts={getErrorsForField('amount')}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
@@ -604,8 +599,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             );
                         }}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('comment')}
+                        brickRoadIndicator={getErrorsForField('comment').length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={getErrorsForField('comment')}
                         numberOfLinesTitle={0}
                     />
                 </OfflineWithFeedback>
@@ -634,8 +629,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 );
                             }}
                             wrapperStyle={[styles.taskDescriptionMenuItem]}
-                            brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('merchant')}
+                            brickRoadIndicator={getErrorsForField('merchant').length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorTexts={getErrorsForField('merchant')}
                             numberOfLinesTitle={0}
                         />
                     </OfflineWithFeedback>
@@ -655,8 +650,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                 ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, Navigation.getReportRHPActiveRoute()),
                             );
                         }}
-                        brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorForField('date')}
+                        brickRoadIndicator={getErrorsForField('date').length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorTexts={getErrorsForField('date')}
                     />
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
@@ -681,8 +676,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     ),
                                 );
                             }}
-                            brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('category')}
+                            brickRoadIndicator={getErrorsForField('category').length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorTexts={getErrorsForField('category')}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -719,8 +714,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     ),
                                 );
                             }}
-                            brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('tax')}
+                            brickRoadIndicator={getErrorsForField('tax').length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorsText={getErrorsForField('tax')}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -791,7 +786,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
                             <Text>{translate('common.billable')}</Text>
-                            {!!getErrorForField('billable') && (
+                            {getErrorsForField('billable').length > 0 && (
                                 <ViolationMessages
                                     violations={getViolationsForField('billable')}
                                     containerStyle={[styles.mt1]}
