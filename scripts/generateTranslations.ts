@@ -9,6 +9,7 @@ import ts, {EmitHint} from 'typescript';
 const TARGET_LANGUAGES = ['it'];
 const TRANSLATION_BATCH_SIZE = 20;
 
+// Ensure OPEN_AI_KEY is set in environment
 if (!process.env.OPENAI_API_KEY) {
     dotenv.config({path: path.resolve(__dirname, '../.env')});
     if (!process.env.OPENAI_API_KEY) {
