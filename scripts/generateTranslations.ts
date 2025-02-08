@@ -5,15 +5,37 @@ import path from 'path';
 import type {StringLiteral, TemplateExpression} from 'typescript';
 import ts, {EmitHint} from 'typescript';
 
+const TARGET_LANGUAGES = ['it'];
+const TRANSLATION_BATCH_SIZE = 20;
+
+function loadOpenAIKey(): string {
+    const initialDir = __dirname;
+    const absolutePath = path.resolve(__dirname, '../.env');
+    const fileContent = fs.readFileSync(absolutePath, 'utf-8');
+
+    const envVariables: Record<string, string> = {};
+    fileContent.split('\n').forEach((line) => {
+        if (!line || line.trim().length === 0) {
+            return;
+        }
+        const [key, value] = line.split('=');
+        if (key && value) {
+            envVariables[key.trim()] = value.trim();
+        }
+    });
+    __dirname = initialDir;
+    return envVariables['OPENAI_API_KEY'];
+}
+
+// Initialize OpenAI API
+const openai = new OpenAI({
+    apiKey: loadOpenAIKey(),
+});
+
 const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
 
 // Path to the English source file
-const SOURCE_FILE = `${LANGUAGES_DIR}/en_test.ts`;
-
-const TARGET_LANGUAGES = ['de'];
-
-// Initialize OpenAI API
-const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+const SOURCE_FILE = `${LANGUAGES_DIR}/es.ts`;
 
 // Temporary placeholder for actual translation function
 async function translate(text: string, targetLang: string): Promise<string> {
@@ -27,12 +49,15 @@ const debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest
 // Helper function to call OpenAI for translation
 async function translateText(text: string, targetLang: string): Promise<string> {
     try {
+        if (!text || text.trim().length === 0) {
+            return text;
+        }
         const response = await openai.chat.completions.create({
             model: 'gpt-4',
             messages: [
                 {
                     role: 'system',
-                    content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like \${username}, \${count}, \${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code.`,
+                    content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like \${username}, \${count}, \${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code. If it can't be translated, reply with the same text unchanged.`,
                 },
                 {role: 'user', content: text},
             ],
@@ -171,16 +196,15 @@ function createTransformer(translations: Map<string, string>): ts.TransformerFac
 
 async function translateInBatches(stringsToTranslate: Map<string, string>, lang: string): Promise<Map<string, string>> {
     const translations = new Map<string, string>();
-    const batchSize = 10;
     const entries = Array.from(stringsToTranslate.entries());
 
-    for (let i = 0; i < entries.length; i += batchSize) {
-        const batch = entries.slice(i, i + batchSize);
+    for (let i = 0; i < entries.length; i += TRANSLATION_BATCH_SIZE) {
+        const batch = entries.slice(i, i + TRANSLATION_BATCH_SIZE);
         const results = await Promise.all(
             batch.map(async ([originalText]) => {
                 const translatedText = await translate(originalText, lang);
                 return [originalText, translatedText] as [string, string];
-            })
+            }),
         );
 
         results.forEach(([originalText, translatedText]) => {
