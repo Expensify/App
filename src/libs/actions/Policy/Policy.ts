@@ -2850,13 +2850,6 @@ function savePreferredExportMethod(policyID: string, exportMethod: ReportExportT
     Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
 }
 
-/**
- * Enables or disables the Expensify Card feature for a given policy.
- *
- * @param policyID
- * @param enabled - Whether the feature should be enabled (`true`) or disabled (`false`).
- * @param shouldNavigateToExpensifyCardPage - [Optional, Default: `false`] Whether to navigate to the Expensify Card page after enabling the feature.
- */
 function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateToExpensifyCardPage = false) {
     const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
@@ -2906,7 +2899,6 @@ function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateT
 
     if (enabled && shouldNavigateToExpensifyCardPage) {
         navigateToExpensifyCardPage(policyID);
-        setHasSeenExpensifyCardPromotionBanner();
         return;
     }
 

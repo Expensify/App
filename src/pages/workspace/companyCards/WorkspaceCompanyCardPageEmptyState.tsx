@@ -44,12 +44,15 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const handleCtaPress = useCallback(() => {
+        if (!policy?.id) {
+            return;
+        }
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
             return;
         }
         clearAddNewCardFlow();
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)));
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy.id));
     }, [policy, isActingAsDelegate]);
 
     return (

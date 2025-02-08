@@ -5,6 +5,8 @@ import Button from '@components/Button';
 import {CreditCardsNewGreen} from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {enableExpensifyCard} from '@libs/actions/Policy/Policy';
 import {navigateToExpensifyCardPage} from '@libs/PolicyUtils';
@@ -16,8 +18,10 @@ type WorkspaceCompanyCardExpensifyCardPromotionBannerProps = {
 };
 
 function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCompanyCardExpensifyCardPromotionBannerProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const policyID = policy?.id;
     const areExpensifyCardsEnabled = policy?.areExpensifyCardsEnabled;
@@ -54,10 +58,10 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy}: WorkspaceCom
             <BillingBanner
                 icon={CreditCardsNewGreen}
                 title={translate('workspace.moreFeatures.companyCards.expensifyCardBannerTitle')}
-                titleStyle={styles.themeTextReversedColor}
+                titleStyle={StyleUtils.getTextColorStyle(theme.text)}
                 subtitle={translate('workspace.moreFeatures.companyCards.expensifyCardBannerSubtitle')}
-                subtitleStyle={[styles.mt1, styles.darkMutedTextLabel]}
-                style={[styles.promotionBannerBG, styles.borderRadiusComponentLarge]}
+                subtitleStyle={[styles.mt1, styles.textLabel]}
+                style={[styles.borderRadiusComponentLarge]}
                 rightComponent={rightComponent}
             />
         </View>

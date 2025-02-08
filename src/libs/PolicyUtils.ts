@@ -1082,10 +1082,10 @@ function goBackWhenEnableFeature(policyID: string) {
 }
 
 function navigateToExpensifyCardPage(policyID: string) {
-    setTimeout(() => {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-        setHasSeenExpensifyCardPromotionBanner();
-    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+    });
+    setHasSeenExpensifyCardPromotionBanner();
 }
 
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
