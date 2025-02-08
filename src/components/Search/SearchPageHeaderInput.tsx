@@ -52,7 +52,8 @@ const isQueryNaturalSearch = (query: string, canUseNaturalSearch?: boolean): boo
     // Check the user's query to see if it could be natural search or not
     // A normal search query will usually have 2 or more colons or contain "type:expense"
     const colonCount = (query.match(/:/g) ?? []).length;
-    return !query.includes('type:expense') && colonCount < 2;
+    const wordCount = query.trim().split(/\s+/).length;
+    return !query.includes('type:expense') && colonCount < 2 && wordCount > 1;
 };
 
 // When counting absolute positioning, we need to account for borders
