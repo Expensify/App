@@ -163,6 +163,8 @@ type MenuItemBaseProps = {
     /** Any additional styles to pass to error text. */
     errorTextStyle?: StyleProp<ViewStyle>;
 
+    errorTexts?: string[];
+
     /** Hint to display at the bottom of the component */
     hintText?: string | ReactNode;
 
@@ -407,6 +409,7 @@ function MenuItem(
         helperText,
         helperTextStyle,
         errorText,
+        errorTexts,
         errorTextStyle,
         shouldShowRedDotIndicator,
         hintText,
@@ -909,6 +912,20 @@ function MenuItem(
                                                 shouldRenderMessageAsHTML={shouldRenderErrorAsHTML}
                                             />
                                         )}
+                                        {!!errorTexts?.length && (
+                                            <View>
+                                                {errorTexts.length > 0 &&
+                                                    errorTexts.map((errorMessage) => (
+                                                        <FormHelpMessage
+                                                            isError
+                                                            shouldShowRedDotIndicator={!!shouldShowRedDotIndicator}
+                                                            message={errorMessage}
+                                                            style={[styles.menuItemError, errorTextStyle]}
+                                                            shouldRenderMessageAsHTML={shouldRenderErrorAsHTML}
+                                                        />
+                                                    ))}
+                                            </View>
+                                        )}
                                         {!!hintText && (
                                             <FormHelpMessage
                                                 isError={false}
@@ -924,7 +941,7 @@ function MenuItem(
                         )}
                     </Hoverable>
                     {!!helperText &&
-                        (shouldParseHelperText ? (
+                        (!!shouldParseHelperText ? (
                             <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5]}>
                                 <RenderHTML html={processedHelperText} />
                             </View>

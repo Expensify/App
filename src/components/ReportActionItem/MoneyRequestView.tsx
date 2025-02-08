@@ -683,6 +683,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             }}
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('category')}
+                            errorTexts={['error 1', 'error 2']}
                         />
                     </OfflineWithFeedback>
                 )}
