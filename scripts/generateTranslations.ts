@@ -1,4 +1,5 @@
 import {execSync} from 'child_process';
+import * as dotenv from 'dotenv';
 import fs from 'fs';
 import OpenAI from 'openai';
 import path from 'path';
@@ -8,28 +9,16 @@ import ts, {EmitHint} from 'typescript';
 const TARGET_LANGUAGES = ['it'];
 const TRANSLATION_BATCH_SIZE = 20;
 
-function loadOpenAIKey(): string {
-    const initialDir = __dirname;
-    const absolutePath = path.resolve(__dirname, '../.env');
-    const fileContent = fs.readFileSync(absolutePath, 'utf-8');
-
-    const envVariables: Record<string, string> = {};
-    fileContent.split('\n').forEach((line) => {
-        if (!line || line.trim().length === 0) {
-            return;
-        }
-        const [key, value] = line.split('=');
-        if (key && value) {
-            envVariables[key.trim()] = value.trim();
-        }
-    });
-    __dirname = initialDir;
-    return envVariables['OPENAI_API_KEY'];
+if (!process.env.OPENAI_API_KEY) {
+    dotenv.config({path: path.resolve(__dirname, '../.env')});
+    if (!process.env.OPENAI_API_KEY) {
+        console.error(`❌ OPENAI_API_KEY not found in environment.`);
+    }
 }
 
 // Initialize OpenAI API
 const openai = new OpenAI({
-    apiKey: loadOpenAIKey(),
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
 const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
