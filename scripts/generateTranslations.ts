@@ -37,56 +37,34 @@ function templateExpressionToString(node: ts.TemplateExpression): string {
     return result;
 }
 
-/** Converts a translated string back into a TemplateExpression */
-function stringToTemplateExpression(input: string, translations: Map<string, ts.TemplateExpression>): ts.TemplateExpression {
+function stringToTemplateExpression(input: string): ts.TemplateExpression {
     const tsPrinter = ts.createPrinter();
     const debugFile = ts.createSourceFile('debug.ts', '', ts.ScriptTarget.Latest);
-    const parts: Array<string | ts.Expression> = [];
 
-    // Updated regex to correctly extract multiple placeholders without merging them
-    const regex = /\$\{([^}]+)}/g;
-    let lastIndex = 0;
+    const regex = /(\${[^}]+})/g;
+    const parts: string[] = input.split(regex);
 
-    for (const match of input.matchAll(regex)) {
-        const [fullMatch, expr] = match;
-        const index = match.index ?? 0;
-
-        // Capture static text before the placeholder
-        if (index > lastIndex) {
-            parts.push(input.slice(lastIndex, index));
-        }
-
-        // Ensure each placeholder is correctly translated or used as an identifier
-        const translatedExpression = translations.get(expr.trim());
-        if (translatedExpression) {
-            console.log(`🔄 Replacing placeholder with translated AST: "${expr}"`);
-            parts.push(translatedExpression);
-        } else {
-            parts.push(ts.factory.createIdentifier(expr.trim()));
-        }
-
-        lastIndex = index + fullMatch.length;
+    if (parts.length === 0) {
+        throw new Error('Invalid template expression: empty input');
     }
 
-    // Capture any remaining static text after the last placeholder
-    if (lastIndex < input.length) {
-        parts.push(input.slice(lastIndex));
-    }
+    // The first part is always the head
+    const templateHead = ts.factory.createTemplateHead(parts.at(0) ?? '');
 
-    // Ensure the first segment is a string
-    const thingy = parts.at(0);
-    const headText = typeof thingy === 'string' ? thingy : '';
-    const templateHead = ts.factory.createTemplateHead(headText);
+    // The rest are spans of the TemplateExpression
     const spans: ts.TemplateSpan[] = [];
-
     for (let i = 1; i < parts.length; i++) {
-        const expr = parts.at(i) as ts.Expression;
-        const literalText = i + 1 < parts.length && typeof parts.at(i + 1) === 'string' ? (parts.at(i + 1) as string) : '';
+        const part = parts.at(i) ?? '';
 
-        spans.push(ts.factory.createTemplateSpan(expr, i + 1 >= parts.length ? ts.factory.createTemplateTail(literalText) : ts.factory.createTemplateMiddle(literalText)));
+        if (part.startsWith('${') && part.endsWith('}')) {
+            const expressionText = part.slice(2, -1).trim(); // Extract the identifier inside `${}`
+            const expression = ts.factory.createIdentifier(expressionText);
 
-        if (typeof parts.at(i + 1) === 'string') {
-            i++;
+            // Determine if it's the last span (Tail) or a middle span
+            const isLast = i === parts.length - 1;
+            const nextPart = isLast ? '' : parts.at(i + 1) ?? '';
+
+            spans.push(ts.factory.createTemplateSpan(expression, isLast ? ts.factory.createTemplateTail(nextPart) : ts.factory.createTemplateMiddle(nextPart)));
         }
     }
 
