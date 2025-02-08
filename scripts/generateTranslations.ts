@@ -35,17 +35,11 @@ const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
 // Path to the English source file
 const SOURCE_FILE = `${LANGUAGES_DIR}/en.ts`;
 
-// Temporary placeholder for actual translation function
-async function translate(text: string, targetLang: string): Promise<string> {
-    // return Promise.resolve(`[${targetLang}] ${text}`);
-    return translateText(text, targetLang);
-}
-
 const tsPrinter = ts.createPrinter();
 const debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest);
 
 // Helper function to call OpenAI for translation
-async function translateText(text: string, targetLang: string): Promise<string> {
+async function translate(text: string, targetLang: string): Promise<string> {
     if (isDryRun || !openai) {
         return Promise.resolve(`${targetLang} ${text}`);
     }
@@ -236,11 +230,6 @@ async function generateTranslatedFiles() {
             stringsToTranslate.set(key, templateExpressionToString(templateExpression));
         }
 
-        // const translations = new Map<string, string>();
-        // for (const [originalText] of stringsToTranslate) {
-        //     const translatedText = await translate(originalText, lang);
-        //     translations.set(originalText, translatedText);
-        // }
         const translations = await translateInBatches(stringsToTranslate, lang);
 
         // Replace translated strings in the AST
