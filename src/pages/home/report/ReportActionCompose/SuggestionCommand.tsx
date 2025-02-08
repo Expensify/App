@@ -52,6 +52,11 @@ function SuggestionCommand(
      */
     const insertSelectedCommand = useCallback(
         (commandIndex: number) => {
+            const isCommandDisabled = suggestionValues.suggestedCommands.at(commandIndex)?.disabled ?? true;
+            if (isCommandDisabled) {
+                return;
+            }
+
             const commandObj = commandIndex !== -1 ? suggestionValues.suggestedCommands.at(commandIndex) : undefined;
             const commandCode = commandObj?.command;
             const trailingCommentText = value.slice(selection.end);
@@ -96,11 +101,10 @@ function SuggestionCommand(
     const triggerHotkeyActions = useCallback(
         (e: KeyboardEvent) => {
             const suggestionsExist = suggestionValues.suggestedCommands.length > 0;
-            const isCommandDisabled = suggestionValues.suggestedCommands.at(highlightedCommandIndex)?.disabled ?? true;
 
             if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
                 e.preventDefault();
-                if (suggestionValues.suggestedCommands.length > 0 && !isCommandDisabled) {
+                if (suggestionValues.suggestedCommands.length > 0) {
                     insertSelectedCommand(highlightedCommandIndex);
                 }
                 return true;
