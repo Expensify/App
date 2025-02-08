@@ -1956,6 +1956,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
+
+        /** Processor utilized for dynamic external workflow */
+        dynamicExternalWorkflowRulesProcessor?: string;
+
+        /** Custom Approval workflow prompt entered by user */
+        customApprovalWorkflowPrompt?: string;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;

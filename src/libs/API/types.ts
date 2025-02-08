@@ -460,6 +460,7 @@ const WRITE_COMMANDS = {
     RESET_SMS_DELIVERY_FAILURE_STATUS: 'ResetSMSDeliveryFailureStatus',
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
+    SET_CUSTOM_APPROVAL_WORKFLOW_PROMPT: 'SetCustomApprovalWorkflowPrompt',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -931,6 +932,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY]: Parameters.JoinAccessiblePolicyParams;
     // Dismis Product Training
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
+
+    [WRITE_COMMANDS.SET_CUSTOM_APPROVAL_WORKFLOW_PROMPT]: Parameters.SetCustomApprovalWorkflowPromptParams,
 };
 
 const READ_COMMANDS = {
