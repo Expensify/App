@@ -22,6 +22,7 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
     const parsedRules = useMemo(() => getParsedComment(policy?.customRules ?? ''), [policy]);
     const rulesDescription = typeof parsedRules === 'string' ? parsedRules : '';
     const [isLoadingSectionData] = useOnyx(ONYXKEYS.IS_LOADING_SECTION_DATA);
+    //comment
 
     return (
         <Section
