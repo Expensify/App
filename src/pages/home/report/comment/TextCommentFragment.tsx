@@ -51,12 +51,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translatedText = null, html = ''} = fragment ?? {};
-<<<<<<< Updated upstream
     const displayText = showOriginal ? html : translatedText ?? html;
-=======
-    const displayText = shouldShowOriginal ? html : translatedText ?? html;
-
->>>>>>> Stashed changes
     const text = ReportActionsUtils.getTextFromHtml(displayText);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();

@@ -137,10 +137,7 @@ function ReportActionItemFragment({
             return (
                 <TextCommentFragment
                     source={source}
-<<<<<<< Updated upstream
                     showOriginal={showOriginal}
-=======
->>>>>>> Stashed changes
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
                     styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
