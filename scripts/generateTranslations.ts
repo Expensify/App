@@ -9,8 +9,13 @@ import ts, {EmitHint} from 'typescript';
 const TARGET_LANGUAGES = ['it'];
 const TRANSLATION_BATCH_SIZE = 20;
 
+const isDryRun = process.argv.includes('--dry-run');
+if (isDryRun) {
+    console.log('🍸 Dry run enabled');
+}
+
 // Ensure OPEN_AI_KEY is set in environment
-if (!process.env.OPENAI_API_KEY) {
+if (!isDryRun && !process.env.OPENAI_API_KEY) {
     dotenv.config({path: path.resolve(__dirname, '../.env')});
     if (!process.env.OPENAI_API_KEY) {
         console.error(`❌ OPENAI_API_KEY not found in environment.`);
@@ -18,9 +23,12 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 // Initialize OpenAI API
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+let openai: OpenAI | undefined;
+if (!isDryRun) {
+    openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
+}
 
 const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
 
@@ -38,6 +46,10 @@ const debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest
 
 // Helper function to call OpenAI for translation
 async function translateText(text: string, targetLang: string): Promise<string> {
+    if (isDryRun || !openai) {
+        return Promise.resolve(`${targetLang} ${text}`);
+    }
+
     try {
         if (!text || text.trim().length === 0) {
             return text;
