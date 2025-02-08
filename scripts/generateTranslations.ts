@@ -35,7 +35,7 @@ const openai = new OpenAI({
 const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
 
 // Path to the English source file
-const SOURCE_FILE = `${LANGUAGES_DIR}/es.ts`;
+const SOURCE_FILE = `${LANGUAGES_DIR}/en.ts`;
 
 // Temporary placeholder for actual translation function
 async function translate(text: string, targetLang: string): Promise<string> {
