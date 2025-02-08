@@ -111,6 +111,7 @@ describe('Session', () => {
 
     test('ReconnectApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         App.confirmReadyToOpenApp();
@@ -128,8 +129,29 @@ describe('Session', () => {
         expect(PersistedRequests.getAll().length).toBe(0);
     });
 
+    test('ReconnectApp should open if app is not loaded', async () => {
+        await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, false);
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        App.confirmReadyToOpenApp();
+        App.reconnectApp();
+
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(1);
+        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(0);
+    });
+
     test('ReconnectApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         App.confirmReadyToOpenApp();
