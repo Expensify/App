@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {makeRequestWithSideEffects} from '@libs/API';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
 import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
@@ -43,7 +44,6 @@ import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
-import { makeRequestWithSideEffects } from '@libs/API';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -209,7 +209,7 @@ function AttachmentModal({
             imageURLs: 'https://media-cdn.tripadvisor.com/media/photo-s/0b/be/e0/72/facture-repas.jpg',
             targetLanguage: 'en',
         }).then((response: any) => {
-            setSourceState(response.translatedImage);            
+            setSourceState(response.translatedImage);
             setFile({
                 name: 'Base64Pic.png',
                 type: 'image/png',
@@ -217,7 +217,7 @@ function AttachmentModal({
                 size: 12345, // optional
             });
         });
-    }
+    };
 
     const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
 
