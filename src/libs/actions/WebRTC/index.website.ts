@@ -156,6 +156,9 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
       reportID: currentAdminsReportID
     });
   }
+  if (message.name === 'EndCall') {
+    stopConnection();
+  }
 }
 
 function getConnection(type: 'openai' | 'screen'): ConnectionResult | null {
