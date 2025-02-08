@@ -1,49 +1,74 @@
 import {execSync} from 'child_process';
+import * as dotenv from 'dotenv';
 import fs from 'fs';
-// import OpenAI from 'openai';
+import OpenAI from 'openai';
 import path from 'path';
 import type {StringLiteral, TemplateExpression} from 'typescript';
 import ts, {EmitHint} from 'typescript';
+
+const TARGET_LANGUAGES = ['it'];
+const TRANSLATION_BATCH_SIZE = 20;
+
+const isDryRun = process.argv.includes('--dry-run');
+if (isDryRun) {
+    console.log('🍸 Dry run enabled');
+}
+
+// Ensure OPEN_AI_KEY is set in environment
+if (!isDryRun && !process.env.OPENAI_API_KEY) {
+    dotenv.config({path: path.resolve(__dirname, '../.env')});
+    if (!process.env.OPENAI_API_KEY) {
+        console.error(`❌ OPENAI_API_KEY not found in environment.`);
+    }
+}
+
+// Initialize OpenAI API
+let openai: OpenAI | undefined;
+if (!isDryRun) {
+    openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    });
+}
 
 const LANGUAGES_DIR = path.join(__dirname, '../src/languages');
 
 // Path to the English source file
 const SOURCE_FILE = `${LANGUAGES_DIR}/en.ts`;
 
-const TARGET_LANGUAGES = ['es'];
-
-// Initialize OpenAI API
-// const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
-
-// Temporary placeholder for actual translation function
-async function translate(text: string, targetLang: string): Promise<string> {
-    return Promise.resolve(`[${targetLang}] ${text}`);
-}
-
 const tsPrinter = ts.createPrinter();
 const debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest);
 
 // Helper function to call OpenAI for translation
-// async function translateText(text: string, targetLang: string): Promise<string> {
-//     try {
-//         const response = await openai.chat.completions.create({
-//             model: 'gpt-4',
-//             messages: [
-//                 {
-//                     role: 'system',
-//                     content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like \${username}, \${count}, \${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code.`,
-//                 },
-//                 {role: 'user', content: text},
-//             ],
-//             temperature: 0.3,
-//         });
-//
-//         return response.choices.at(0)?.message?.content?.trim() ?? text;
-//     } catch (error) {
-//         console.error(`Error translating "${text}" to ${targetLang}:`, error);
-//         return text; // Fallback to English if translation fails
-//     }
-// }
+async function translate(text: string, targetLang: string): Promise<string> {
+    if (isDryRun || !openai) {
+        return Promise.resolve(`${targetLang} ${text}`);
+    }
+
+    try {
+        if (!text || text.trim().length === 0) {
+            return text;
+        }
+        const response = await openai.chat.completions.create({
+            model: 'gpt-4',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a professional translator. Translate the following text to ${targetLang}. It is either a plain string or a TypeScript function that returns a template string. Preserve placeholders like \${username}, \${count}, \${someBoolean ? 'valueIfTrue' : 'valueIfFalse'} etc without modifying their contents or removing the brackets. The contents of the placeholders are descriptive of what they represent in the phrase, but may include ternary expressions or other TypeScript code. If it can't be translated, reply with the same text unchanged.`,
+                },
+                {role: 'user', content: text},
+            ],
+            temperature: 0.3,
+        });
+
+        console.log(`Translating "${text}" to ${targetLang}`);
+        const translatedText = response.choices.at(0)?.message?.content?.trim() ?? text;
+        console.log(`   Translation: "${translatedText}"`);
+        return translatedText;
+    } catch (error) {
+        console.error(`Error translating "${text}" to ${targetLang}:`, error);
+        return text; // Fallback to English if translation fails
+    }
+}
 
 function isPlainStringNode(node: ts.Node): node is StringLiteral {
     return (
@@ -165,6 +190,27 @@ function createTransformer(translations: Map<string, string>): ts.TransformerFac
     };
 }
 
+async function translateInBatches(stringsToTranslate: Map<string, string>, lang: string): Promise<Map<string, string>> {
+    const translations = new Map<string, string>();
+    const entries = Array.from(stringsToTranslate.entries());
+
+    for (let i = 0; i < entries.length; i += TRANSLATION_BATCH_SIZE) {
+        const batch = entries.slice(i, i + TRANSLATION_BATCH_SIZE);
+        const results = await Promise.all(
+            batch.map(async ([originalText]) => {
+                const translatedText = await translate(originalText, lang);
+                return [originalText, translatedText] as [string, string];
+            }),
+        );
+
+        results.forEach(([originalText, translatedText]) => {
+            translations.set(originalText, translatedText);
+        });
+    }
+
+    return translations;
+}
+
 // Main function to process translations
 async function generateTranslatedFiles() {
     const sourceCode = fs.readFileSync(SOURCE_FILE, 'utf8');
@@ -184,11 +230,7 @@ async function generateTranslatedFiles() {
             stringsToTranslate.set(key, templateExpressionToString(templateExpression));
         }
 
-        const translations = new Map<string, string>();
-        for (const [originalText] of stringsToTranslate) {
-            const translatedText = await translate(originalText, lang);
-            translations.set(originalText, translatedText);
-        }
+        const translations = await translateInBatches(stringsToTranslate, lang);
 
         // Replace translated strings in the AST
         const result = ts.transform(sourceFile, [createTransformer(translations)]);
