@@ -574,6 +574,7 @@ function ReportActionItemMessageEdit(
                         value={draft}
                         selection={selection}
                         setSelection={setSelection}
+                        isEditingComment
                     />
 
                     <View style={styles.editChatItemEmojiWrapper}>
