@@ -14,8 +14,6 @@ import type {OpenAIRealtimeMessage, ConnectionResult, WebRTCConnections} from '.
 
 let currentAdminsReportID: number | null = null;
 
-let stopSelfOnboardingCallBack: (() => void) | null = null;
-
 let connections: WebRTCConnections = {
   openai: null,
   screen: null,
@@ -102,9 +100,8 @@ async function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     });
   }
 
-async function initializeConnection(type: 'openai' | 'screen', adminsReportID: number, stopSelfOnboarding: () => void) {
+async function initializeConnection(type: 'openai' | 'screen', adminsReportID: number) {
   currentAdminsReportID = adminsReportID;
-  stopSelfOnboardingCallBack = stopSelfOnboarding;
   if (type === 'openai') {
       const connection = await connectToOpenAIRealtime();
       connections.openai = connection;
@@ -158,8 +155,6 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
       ...JSON.parse(message.arguments),
       reportID: currentAdminsReportID
     });
-    stopSelfOnboardingCallBack?.();
-    pc?.close();
   }
 }
 
