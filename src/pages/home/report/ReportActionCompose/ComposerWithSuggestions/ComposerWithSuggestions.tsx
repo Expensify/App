@@ -155,7 +155,7 @@ type SwitchToCurrentReportProps = {
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
+    replaceSelectionWithText: (text: string) => void;
     getCurrentText: () => string;
     isFocused: () => boolean;
     /**
@@ -163,6 +163,7 @@ type ComposerRef = {
      * Once the composer ahs cleared onCleared will be called with the value that was cleared.
      */
     clear: () => void;
+    setSelection: React.Dispatch<React.SetStateAction<TextSelection>>;
 };
 
 const {RNTextInputReset} = NativeModules;
@@ -700,6 +701,7 @@ function ComposerWithSuggestions(
             isFocused: () => !!textInputRef.current?.isFocused(),
             clear,
             getCurrentText,
+            setSelection,
         }),
         [blur, clear, focus, replaceSelectionWithText, getCurrentText],
     );
