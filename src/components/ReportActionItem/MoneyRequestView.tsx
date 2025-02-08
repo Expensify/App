@@ -289,8 +289,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const getErrorsForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
-
-            return ['error 1', 'error 2'];
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -601,7 +599,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         }}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         brickRoadIndicator={getErrorsForField('comment').length > 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={getErrorsForField('comment')}
+                        errorTexts={getErrorsForField('comment')}
                         numberOfLinesTitle={0}
                     />
                 </OfflineWithFeedback>
