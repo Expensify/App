@@ -7,6 +7,8 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import LottieAnimations from '@components/LottieAnimations';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
@@ -21,6 +23,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
@@ -68,6 +71,20 @@ function getContextualSearchQuery(item: SearchQueryItem) {
     return baseQuery + additionalQuery;
 }
 
+// TODO: Move this to a utility file is duplicated in SearchPageHeaderInput
+const isQueryNaturalSearch = (query: string, canUseNaturalSearch?: boolean): boolean => {
+    // Always return false if the beta to use natural search is not enabled
+    if (!canUseNaturalSearch || !query) {
+        return false;
+    }
+
+    // Check the user's query to see if it could be natural search or not
+    // A normal search query will usually have 2 or more colons or contain "type:expense"
+    const colonCount = (query.match(/:/g) ?? []).length;
+    const wordCount = query.trim().split(/\s+/).length;
+    return !query.includes('type:expense') && colonCount < 2 && wordCount > 1;
+};
+
 type SearchRouterProps = {
     onRouterClose: () => void;
     shouldHideInputCaret?: TextInputProps['caretHidden'];
@@ -83,6 +100,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
+    const {canUseNaturalSearch} = usePermissions();
+    const themePreference = useThemePreference();
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -91,6 +110,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
+    const [isNaturalSearch, setIsNaturalSearch] = useState(() => isQueryNaturalSearch(autocompleteQueryValue, canUseNaturalSearch));
 
     const contextualReportID = useNavigationState<Record<string, {reportID: string}>, string | undefined>((state) => {
         return state?.routes.at(-1)?.params?.reportID;
@@ -156,10 +176,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         [contextualReportID, styles.activeComponentBG, textInputValue, translate],
     );
 
+    const lottieAnimationMagnifyingGlassToSparkle: DotLottieAnimation =
+        themePreference === CONST.THEME.DARK ? LottieAnimations.MagnifyingGlassToSparkleDark : LottieAnimations.MagnifyingGlassToSparkleLight;
+
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleIcon: Expensicons.MagnifyingGlass,
+              singleLottie: lottieAnimationMagnifyingGlassToSparkle,
+              pauseSingleLottie: !isNaturalSearch,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',
@@ -186,7 +210,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
-
+            setIsNaturalSearch(isQueryNaturalSearch(updatedUserQuery, !!canUseNaturalSearch));
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
             if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
@@ -198,7 +222,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
                 listRef.current?.updateAndScrollToFocusedIndex(-1);
             }
         },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
+        [autocompleteSubstitutions, setTextInputValue, textInputValue, canUseNaturalSearch],
     );
 
     const submitSearch = useCallback(
@@ -223,8 +247,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
         (text: string) => {
             setTextInputValue(text);
             setSelection({start: text.length, end: text.length});
+            setIsNaturalSearch(isQueryNaturalSearch(text, !!canUseNaturalSearch));
         },
-        [setSelection, setTextInputValue],
+        [setSelection, setTextInputValue, setIsNaturalSearch, canUseNaturalSearch],
     );
 
     const onListItemPress = useCallback(
