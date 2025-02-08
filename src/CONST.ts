@@ -3267,6 +3267,8 @@ const CONST = {
             return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
         },
 
+        STARTS_WITH_COMMAND: /^\s*<command>\/summarize<\/command>/,
+
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
         ROUTES: {
             VALIDATE_LOGIN: /\/v($|(\/\/*))/,

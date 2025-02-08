@@ -65,7 +65,7 @@ function CommandSuggestions({commands, onSelect, value, highlightedCommandIndex 
                         {styledTextArray.map(({text, isColored}) => (
                             <Text
                                 key={`${text}+${isColored}`}
-                                style={StyleUtils.getColoredBackgroundStyle(isColored)}
+                                style={StyleUtils.getCommandColoredBackgroundStyle(isColored)}
                             >
                                 {text}
                             </Text>

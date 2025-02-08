@@ -89,7 +89,10 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = removeLeadingCommand(htmlWithTag);
+        const startWithCommand = CONST.REGEX.STARTS_WITH_COMMAND.test(html ?? '');
+        if (startWithCommand) {
+            htmlWithTag = removeLeadingCommand(htmlWithTag);
+        }
 
         return (
             <RenderCommentHTML
