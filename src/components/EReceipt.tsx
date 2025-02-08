@@ -34,7 +34,7 @@ function EReceipt({transactionID}: EReceiptProps) {
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
-    const {primaryColor, secondaryColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionID);
+    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionID);
 
     const {
         amount: transactionAmount,
@@ -48,9 +48,9 @@ function EReceipt({transactionID}: EReceiptProps) {
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
     const cardDescription = getCardName(transaction) ?? (transactionCardID ? getCardDescription(transactionCardID) : '');
 
-    const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;
     const secondaryBgcolorStyle = secondaryColor ? StyleUtils.getBackgroundColorStyle(secondaryColor) : undefined;
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
+    const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;
 
     return (
         <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
@@ -120,11 +120,11 @@ function EReceipt({transactionID}: EReceiptProps) {
                                 </View>
                                 <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb11, styles.gap4, styles.ph3]}>
                                     <View style={[styles.flexColumn, styles.gap1]}>
-                                        <Text style={[styles.eReceiptWaypointTitle, secondaryTextColorStyle]}>{translate('eReceipt.transactionDate')}</Text>
+                                        <Text style={[styles.eReceiptWaypointTitle, titleTextColorStyle]}>{translate('eReceipt.transactionDate')}</Text>
                                         <Text style={[styles.eReceiptWaypointAddress, primaryTextColorStyle]}>{transactionDate}</Text>
                                     </View>
                                     <View style={[styles.flexColumn, styles.gap1]}>
-                                        <Text style={[styles.eReceiptWaypointTitle, secondaryTextColorStyle]}>{translate('common.card')}</Text>
+                                        <Text style={[styles.eReceiptWaypointTitle, titleTextColorStyle]}>{translate('common.card')}</Text>
                                         <Text style={[styles.eReceiptWaypointAddress, primaryTextColorStyle]}>{cardDescription}</Text>
                                     </View>
                                 </View>

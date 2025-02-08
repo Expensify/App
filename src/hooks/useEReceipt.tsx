@@ -25,6 +25,7 @@ export default function useEReceipt(transactionID: string | undefined, fileExten
     const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
+    const titleColor = colorStyles?.titleColor;
     const transactionDetails = getTransactionDetails(transaction);
     const transactionMCCGroup = transactionDetails?.mccGroup;
     const MCCIcon = transactionMCCGroup ? MCCIcons[`${transactionMCCGroup}`] : undefined;
@@ -35,6 +36,7 @@ export default function useEReceipt(transactionID: string | undefined, fileExten
     return {
         primaryColor,
         secondaryColor,
+        titleColor,
         MCCIcon,
         tripIcon,
         backgroundImage,

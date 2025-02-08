@@ -67,12 +67,12 @@ const workspaceColorOptions: SVGAvatarColorStyle[] = [
 ];
 
 const eReceiptColorStyles: Partial<Record<EReceiptColorName, EreceiptColorStyle>> = {
-    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow600, color: colors.yellow100},
-    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.ice800, color: colors.ice400},
-    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue800, color: colors.blue400},
-    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400},
-    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400},
-    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400},
+    [CONST.ERECEIPT_COLORS.YELLOW]: {backgroundColor: colors.yellow800, color: colors.yellow400, titleColor: colors.yellow500},
+    [CONST.ERECEIPT_COLORS.ICE]: {backgroundColor: colors.ice800, color: colors.ice400, titleColor: colors.ice500},
+    [CONST.ERECEIPT_COLORS.BLUE]: {backgroundColor: colors.blue800, color: colors.blue400, titleColor: colors.blue500},
+    [CONST.ERECEIPT_COLORS.GREEN]: {backgroundColor: colors.green800, color: colors.green400, titleColor: colors.green500},
+    [CONST.ERECEIPT_COLORS.TANGERINE]: {backgroundColor: colors.tangerine800, color: colors.tangerine400, titleColor: colors.tangerine500},
+    [CONST.ERECEIPT_COLORS.PINK]: {backgroundColor: colors.pink800, color: colors.pink400, titleColor: colors.pink500},
 };
 
 const eReceiptColors: EReceiptColorName[] = [
