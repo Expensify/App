@@ -5358,6 +5358,7 @@ const translations = {
             }
             return message;
         },
+        prohibitedExpense: 'Prohibited expense',
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {

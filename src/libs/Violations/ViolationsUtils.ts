@@ -257,6 +257,11 @@ const ViolationsUtils = {
             message = '',
         } = violation.data ?? {};
 
+        // If violation name contains prohibitedExpense
+        if (violation.name.includes('prohibitedExpense')) {
+            return translate('violations.prohibitedExpense');
+        }
+
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
