@@ -289,6 +289,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const getErrorsForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
+
+            return ['error 1', 'error 2'];
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -326,7 +328,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             // Return violations if there are any
             const translated = violations.map((violation) => ViolationsUtils.getViolationTranslation(violation, translate));
             return translated;
-
         },
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, translate, getViolationsForField],
     );
