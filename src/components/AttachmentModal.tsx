@@ -138,8 +138,6 @@ type AttachmentModalProps = {
     shouldDisableSendButton?: boolean;
 
     attachmentLink?: string;
-
-    shouldShowTranslateButton?: boolean;
 };
 
 function AttachmentModal({
@@ -524,7 +522,6 @@ function AttachmentModal({
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
                     <HeaderWithBackButton
-                        shouldShowTranslateButton
                         title={headerTitleNew}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={shouldShowDownloadButton}

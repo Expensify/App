@@ -72,7 +72,6 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
 
     return (
         <AttachmentModal
-            shouldShowTranslateButton
             source={imageSource}
             isAuthTokenRequired={!isLocalFile}
             report={report}

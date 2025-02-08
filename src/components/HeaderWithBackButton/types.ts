@@ -157,8 +157,6 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
-
-    shouldShowTranslateButton?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

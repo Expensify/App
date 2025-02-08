@@ -21,8 +21,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type HeaderWithBackButtonProps from './types';
-import Button from '@components/Button';
-import useTranslateReceipt from '@hooks/useTranslateReceipt';
 
 function HeaderWithBackButton({
     icon,
@@ -51,7 +49,6 @@ function HeaderWithBackButton({
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
     shouldUseHeadlineHeader = false,
-    shouldShowTranslateButton = false,
     stepCounter,
     subtitle = '',
     title = '',
@@ -200,12 +197,6 @@ function HeaderWithBackButton({
                 {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
                     {children}
-                    {shouldShowTranslateButton && <Button
-                        text={'Translate'}
-                        onPress={() => console.log('pressed')}
-                        icon={Expensicons.ArrowsLeftRight}
-                        success
-                    />}
                     {shouldShowDownloadButton &&
                         (!isDownloading ? (
                             <Tooltip text={translate('common.download')}>
