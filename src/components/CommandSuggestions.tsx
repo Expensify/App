@@ -60,7 +60,7 @@ function CommandSuggestions({commands, onSelect, value, highlightedCommandIndex 
                     />
                     <Text
                         numberOfLines={1}
-                        style={styles.emojiCommandSuggestionsText}
+                        style={styles.actionCommandSuggestionsText}
                     >
                         {styledTextArray.map(({text, isColored}) => (
                             <Text
@@ -71,26 +71,15 @@ function CommandSuggestions({commands, onSelect, value, highlightedCommandIndex 
                             </Text>
                         ))}
                     </Text>
-                    <Text style={styles.commandSuggestions}>{translate(item.descriptionKey)}</Text>
+                    <Text style={styles.textSupporting}>{translate(item.descriptionKey)}</Text>
                     <Badge
                         text={translate(item.disabled ? 'common.coming' : 'common.new')}
-                        badgeStyles={item.disabled ? styles.activeItemBadge : styles.borderColorFocus}
+                        badgeStyles={[styles.minHeight5, styles.pl2, styles.pr2, styles.ml2, item.disabled ? styles.activeItemBadge : styles.borderColorFocus]}
                     />
                 </View>
             );
         },
-        [
-            value,
-            styles.autoCompleteCommandSuggestionContainer,
-            styles.opacitySemiTransparent,
-            styles.emojiCommandSuggestionsText,
-            styles.commandSuggestions,
-            styles.activeItemBadge,
-            styles.borderColorFocus,
-            theme.iconSuccessFill,
-            translate,
-            StyleUtils,
-        ],
+        [value, styles, theme, translate, StyleUtils],
     );
 
     return (

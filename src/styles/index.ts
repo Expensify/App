@@ -322,6 +322,12 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pl3,
             ...spacing.pr2,
         },
+        actionCommandSuggestionsText: {
+            fontSize: variables.fontSizeMedium,
+            ...wordBreak.breakWord,
+            ...spacing.pl3,
+            ...spacing.pr2,
+        },
 
         mentionSuggestionsAvatarContainer: {
             width: 24,
