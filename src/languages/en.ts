@@ -5359,7 +5359,23 @@ const translations = {
             }
             return message;
         },
-        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => `Prohibited expense: ${prohibitedExpenseType}`,
+        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+            const preMessage = 'Prohibited Expense: ';
+            switch (prohibitedExpenseType) {
+                case 'alcohol':
+                    return `${preMessage} Alcohol`;
+                case 'gambling':
+                    return `${preMessage} Gambling`;
+                case 'tobacco':
+                    return `${preMessage} Tobacco`;
+                case 'adultEntertainment':
+                    return `${preMessage} Adult Entertainment`;
+                case 'hotelIncidentals':
+                    return `${preMessage} Hotel Incidentals`;
+                default:
+                    return `${preMessage}${prohibitedExpenseType}`;
+            }
+        },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {

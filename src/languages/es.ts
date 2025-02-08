@@ -192,6 +192,7 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
@@ -5870,6 +5871,23 @@ const translations = {
                 }
             }
             return message;
+        },
+        prohibitedExpense: ({prohibitedExpenseType}: ViolationsProhibitedExpenseParams) => {
+            const preMessage = 'Gasto prohibido: ';
+            switch (prohibitedExpenseType) {
+                case 'alcohol':
+                    return `${preMessage} Alcohol`;
+                case 'gambling':
+                    return `${preMessage} Juego de apuestas`;
+                case 'tobacco':
+                    return `${preMessage} Tobacco`;
+                case 'adultEntertainment':
+                    return `${preMessage} Entretenimiento para adultos`;
+                case 'hotelIncidentals':
+                    return `${preMessage} Gastos adicionales de hotel`;
+                default:
+                    return `${preMessage}${prohibitedExpenseType}`;
+            }
         },
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisión requerida',
