@@ -54,6 +54,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import ConciergeAIButton from './ConciergeAIButton';
 import SendButton from './SendButton';
 
 type SuggestionsRef = {
@@ -533,6 +534,15 @@ function ReportActionCompose({
                                     </>
                                 )}
                             </AttachmentModal>
+                            {isCommentEmpty && (
+                                <ConciergeAIButton
+                                    onPress={() => {
+                                        focus();
+                                        composerRef.current?.replaceSelectionWithText('/');
+                                        composerRef.current?.setSelection({start: 1, end: 1, positionX: 1, positionY: 0});
+                                    }}
+                                />
+                            )}
                             {canUseTouchScreen() && isMediumScreenWidth ? null : (
                                 <EmojiPickerButton
                                     isDisabled={isBlockedFromConcierge || disabled}
@@ -546,7 +556,9 @@ function ReportActionCompose({
                                         }
                                         focus();
                                     }}
-                                    onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
+                                    onEmojiSelected={(emojiCode: string) => {
+                                        composerRef.current?.replaceSelectionWithText(emojiCode);
+                                    }}
                                     emojiPickerID={report?.reportID}
                                     shiftVertical={emojiShiftVertical}
                                 />

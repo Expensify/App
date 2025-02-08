@@ -2356,6 +2356,15 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        chatItemConciergeAIButton: {
+            alignSelf: 'flex-end',
+            borderRadius: variables.buttonBorderRadius,
+            height: 40,
+            marginVertical: 3,
+            paddingHorizontal: 10,
+            justifyContent: 'center',
+        },
+
         editChatItemEmojiWrapper: {
             marginRight: 3,
             alignSelf: 'flex-end',

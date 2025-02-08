@@ -675,6 +675,7 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        conciergeAI: 'Concierge AI',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',
