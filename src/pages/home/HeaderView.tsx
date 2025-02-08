@@ -221,7 +221,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
         try {
             setIsInitializing(true);
-            const connection = await initializeConnection('openai', report?.reportID);
+            await initializeConnection('openai', report?.reportID);
             setIsOnboarding(true);
         } catch (error) {
             console.error('[HeaderView] Failed to start recording:', error);

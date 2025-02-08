@@ -14,10 +14,14 @@ import type {OpenAIRealtimeMessage, ConnectionResult, WebRTCConnections} from '.
 
 let currentAdminsReportID: number | null = null;
 
+let stopSelfOnboardingCallBack: (() => void) | null = null;
+
 let connections: WebRTCConnections = {
   openai: null,
   screen: null,
 };
+
+let pc: RTCPeerConnection | null = null;
 
 async function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     return new Promise(async (resolve, reject) => {
@@ -29,7 +33,7 @@ async function connectToOpenAIRealtime(): Promise<ConnectionResult> {
         console.log('ephemeralToken', ephemeralToken);
 
         // 1. Create peer connection
-        const pc = (new RTCPeerConnection({
+        pc = (new RTCPeerConnection({
             iceServers: [],
         } as RTCConfiguration) as unknown) as RTCPeerConnection;
   
@@ -98,8 +102,9 @@ async function connectToOpenAIRealtime(): Promise<ConnectionResult> {
     });
   }
 
-async function initializeConnection(type: 'openai' | 'screen', adminsReportID: number) {
+async function initializeConnection(type: 'openai' | 'screen', adminsReportID: number, stopSelfOnboarding: () => void) {
   currentAdminsReportID = adminsReportID;
+  stopSelfOnboardingCallBack = stopSelfOnboarding;
   if (type === 'openai') {
       const connection = await connectToOpenAIRealtime();
       connections.openai = connection;
@@ -153,6 +158,8 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
       ...JSON.parse(message.arguments),
       reportID: currentAdminsReportID
     });
+    stopSelfOnboardingCallBack?.();
+    pc?.close();
   }
 }
 
