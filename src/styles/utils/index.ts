@@ -1402,6 +1402,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getColoredBackgroundStyle: (isColored: boolean): StyleProp<TextStyle> => ({backgroundColor: isColored ? theme.mentionBG : undefined}),
 
     /**
+     * Select the correct color for text.
+     */
+    getCommandColoredBackgroundStyle: (isColored: boolean): StyleProp<TextStyle> => ({backgroundColor: isColored ? theme.ourMentionBG : undefined}),
+
+    /**
      * Returns link styles based on whether the link is disabled or not
      */
     getDisabledLinkStyles: (isDisabled = false): TextStyle => {
