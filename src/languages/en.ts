@@ -221,6 +221,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        translate: 'Translate',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
         yes: 'Yes',
