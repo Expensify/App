@@ -358,7 +358,7 @@ const COMPOSER_COMMANDS: ComposerCommand[] = [
     {
         command: '/insight',
         action: 'insight',
-        icon: Expensicons.Table,
+        icon: Expensicons.PieChart,
         descriptionKey: 'composer.commands.insight',
         disabled: true,
     },
