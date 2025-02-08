@@ -211,23 +211,23 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
+    const stopSelfOnboarding = () => {
+        setIsRecording(false);
+
+        Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, {
+            open: false,
+            openMobile: false
+        });
+    }
+
     const onPressSelfOnboarding = async () => {
         if (isRecording) {
-            try {
-                setIsRecording(false);
-
-                Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, {
-                    open: false,
-                    openMobile: false
-                });
-            } catch (error) {
-                console.error('[HeaderView] Failed to stop recording:', error);
-            }
+            stopSelfOnboarding();
             return;
         }
 
         try {
-            const connection = await initializeConnection('openai', report?.reportID);
+            await initializeConnection('openai', report?.reportID, stopSelfOnboarding);
             
             /** 
             Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, 
