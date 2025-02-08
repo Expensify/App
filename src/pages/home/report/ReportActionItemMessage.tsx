@@ -44,9 +44,15 @@ type ReportActionItemMessageProps = {
 
     /** The ID of the report */
     reportID: string | undefined;
+
+    shouldShowOriginal?: boolean;
 };
 
+<<<<<<< Updated upstream
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false, showOriginal = false}: ReportActionItemMessageProps) {
+=======
+function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false, shouldShowOriginal = false}: ReportActionItemMessageProps) {
+>>>>>>> Stashed changes
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
