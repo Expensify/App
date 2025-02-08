@@ -97,11 +97,12 @@ function ReportActionItemSingle({
     iouReport,
     isHovered = false,
     isActive = false,
+    showOriginal = false,
+    setShowOriginal = () => {}
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [showOriginal, setShowOriginal] = useState(false);
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(report?.policyID);

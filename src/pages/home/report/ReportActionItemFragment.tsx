@@ -67,7 +67,7 @@ type ReportActionItemFragmentProps = {
 
     reportAction?: string;
     reportID?: string;
-    shouldShowOriginal?: boolean;
+    showOriginal?: boolean;
 };
 
 const MUTED_ACTIONS = [
@@ -99,13 +99,13 @@ function ReportActionItemFragment({
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
     moderationDecision,
-    shouldShowOriginal = false,
+    showOriginal = false,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     useTranslateLive(reportID, reportAction);
-    const displayText = shouldShowOriginal ? fragment?.html ?? '' : fragment?.translatedText ?? fragment?.html ?? '';
+    const displayText = showOriginal ? fragment?.html ?? '' : fragment?.translatedText ?? fragment?.html ?? '';
 
     switch (fragment?.type) {
         case 'COMMENT': {
@@ -137,7 +137,7 @@ function ReportActionItemFragment({
             return (
                 <TextCommentFragment
                     source={source}
-                    shouldShowOriginal={shouldShowOriginal}
+                    showOriginal={showOriginal}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
                     styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}

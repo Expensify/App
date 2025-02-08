@@ -373,7 +373,7 @@ function PureReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
-
+    const [showOriginal, setShowOriginal] = useState(false);
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
@@ -914,6 +914,7 @@ function PureReportActionItem({
                             {draftMessage === undefined ? (
                                 <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                                     <ReportActionItemMessage
+                                        showOriginal={showOriginal}
                                         reportID={reportID}
                                         action={action}
                                         displayAsGroup={displayAsGroup}
@@ -1039,6 +1040,8 @@ function PureReportActionItem({
         if (!displayAsGroup) {
             return (
                 <ReportActionItemSingle
+                    setShowOriginal={setShowOriginal}
+                    showOriginal={showOriginal}
                     action={action}
                     showHeader={draftMessage === undefined}
                     wrapperStyle={isWhisper ? styles.pt1 : {}}
