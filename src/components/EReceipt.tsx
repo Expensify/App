@@ -75,7 +75,7 @@ function EReceipt({transactionID}: EReceiptProps) {
                                     StyleUtils.getWidthAndHeightStyle(variables.eReceiptEmptyIconWidth, variables.eReceiptEmptyIconWidth),
                                     styles.alignItemsCenter,
                                     styles.justifyContentCenter,
-                                    styles.borderRadiusComponentLarge,
+                                    styles.borderRadiusComponentNormal,
                                     secondaryBgcolorStyle,
                                     styles.mb4,
                                 ]}

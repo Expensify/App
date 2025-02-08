@@ -566,6 +566,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
+        borderRadiusComponentNormal: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
