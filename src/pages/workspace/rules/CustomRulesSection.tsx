@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
@@ -7,6 +7,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import * as ReportUtils from '@libs/ReportUtils';
 
 type CustomRulesSectionProps = {
     policyID: string;
@@ -16,6 +17,8 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const parsedRules = useMemo(() => ReportUtils.getParsedComment(policy?.customRules ?? ''), [policy]);
+    const rulesDescription = typeof parsedRules === 'string' ? parsedRules : '';
 
     return (
         <Section
@@ -31,7 +34,7 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
                     errors={policy?.errors?.customRules}
                 > */}
                 <MenuItemWithTopDescription
-                    title={policy?.customRules ?? ''}
+                    title={rulesDescription}
                     description={translate('workspace.rules.customRules.subtitle')}
                     shouldShowRightIcon
                     interactive
