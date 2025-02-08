@@ -96,7 +96,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, canUseNaturalSearch);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
     const [isNaturalSearch, setIsNaturalSearch] = useState(() => isQueryNaturalSearch(queryText, canUseNaturalSearch));
 
@@ -159,8 +159,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
 
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
-            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
+            const isNatural = isQueryNaturalSearch(queryString, canUseNaturalSearch);
+            const queryWithSubstitutions = isNatural ? queryString : getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
+            const updatedQuery = isNatural ? queryString : getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
             if (!updatedQuery) {
                 return;
             }

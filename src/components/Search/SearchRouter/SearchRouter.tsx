@@ -19,13 +19,14 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getQueryWithUpdatedValues, isNaturalSearchQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport} from '@userActions/Report';
@@ -78,6 +79,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {canUseNaturalSearch} = usePermissions();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
@@ -201,8 +203,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
 
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
-            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
+            const isNatural = isNaturalSearchQuery(queryString);
+            const queryWithSubstitutions = canUseNaturalSearch && isNatural ? queryString : getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
+            const updatedQuery = canUseNaturalSearch && isNatural ? queryString : getQueryWithUpdatedValues(queryWithSubstitutions, activeWorkspaceID);
             if (!updatedQuery) {
                 return;
             }
@@ -213,7 +216,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps) 
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID],
+        [autocompleteSubstitutions, onRouterClose, setTextInputValue, activeWorkspaceID, canUseNaturalSearch],
     );
 
     const setTextAndUpdateSelection = useCallback(

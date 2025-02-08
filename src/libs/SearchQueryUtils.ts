@@ -565,6 +565,10 @@ function getFilterDisplayValue(
     return filterValue;
 }
 
+function isNaturalSearchQuery(query: string) {
+    return (query.match(/:/g) ?? []).length <= 1;
+}
+
 /**
  * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
  * This format of query is the one which we want to display to users.
@@ -577,9 +581,15 @@ function buildUserReadableQueryString(
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
     cardList: OnyxTypes.CardList,
+    canUseNaturalSearch = false,
 ) {
     const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters;
+
+    const {inputQuery} = queryJSON;
+    if (canUseNaturalSearch && isNaturalSearchQuery(inputQuery)) {
+        return inputQuery;
+    }
 
     let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
@@ -736,4 +746,5 @@ export {
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getUserFriendlyKey,
+    isNaturalSearchQuery,
 };
