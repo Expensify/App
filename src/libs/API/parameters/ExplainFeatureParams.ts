@@ -1,5 +1,5 @@
 type ExplainFeatureParams = {
-    question: string;
+    questionAI: string;
 };
 
 export default ExplainFeatureParams;

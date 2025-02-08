@@ -816,7 +816,7 @@ function explainFeature(question: string, report: Report) {
     ];
 
 
-    API.write(WRITE_COMMANDS.EXPLAIN_FEATURE, {question}, {
+    API.write(WRITE_COMMANDS.EXPLAIN_FEATURE, {questionAI: question}, {
         optimisticData,
         successData,
         failureData
