@@ -1,5 +1,5 @@
 diff --git a/node_modules/expensify-common/dist/ExpensiMark.js b/node_modules/expensify-common/dist/ExpensiMark.js
-index 5c8cd83..7df90cd 100644
+index 5c8cd83..910b42b 100644
 --- a/node_modules/expensify-common/dist/ExpensiMark.js
 +++ b/node_modules/expensify-common/dist/ExpensiMark.js
 @@ -1,41 +1,61 @@
@@ -275,10 +275,10 @@ index 5c8cd83..7df90cd 100644
 +            },
 +
 +            {
-+                name: 'commandSummarize',
-+                regex: /^(\/summarize)(?=\s|$)/gm,
++                name: 'removeCommandTags',
++                regex: /<command>(\/summarize)<\/command>/gm,
 +                replacement: (_extras, match) => {
-+                    return `<command>${match}</command>`;
++                    return match.replace(/<\/?command>/g, ''); // Removes <command> tags
 +                },
 +            },
          ];
