@@ -44,6 +44,9 @@ type SuggestionProps = {
 
     /** The policyID of the report connected to current composer */
     policyID?: string;
+
+    /** If the user is editing the comment */
+    isEditingComment?: boolean;
 };
 
 /**
@@ -63,6 +66,7 @@ function Suggestions(
         isComposerFocused,
         isGroupPolicyReport,
         policyID,
+        isEditingComment,
     }: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
@@ -188,12 +192,14 @@ function Suggestions(
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />
-            <SuggestionCommand
-                ref={suggestionCommandRef}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...baseProps}
-                resetKeyboardInput={resetKeyboardInput}
-            />
+            {!isEditingComment && (
+                <SuggestionCommand
+                    ref={suggestionCommandRef}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...baseProps}
+                    resetKeyboardInput={resetKeyboardInput}
+                />
+            )}
         </View>
     );
 }
