@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
@@ -6,8 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getParsedComment} from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
-import * as ReportUtils from '@libs/ReportUtils';
 
 type CustomRulesSectionProps = {
     policyID: string;
@@ -17,7 +17,7 @@ function CustomRulesSection({policyID}: CustomRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const parsedRules = useMemo(() => ReportUtils.getParsedComment(policy?.customRules ?? ''), [policy]);
+    const parsedRules = useMemo(() => getParsedComment(policy?.customRules ?? ''), [policy]);
     const rulesDescription = typeof parsedRules === 'string' ? parsedRules : '';
 
     return (
