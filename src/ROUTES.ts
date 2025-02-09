@@ -845,7 +845,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const, backTo, false),
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const, backTo, false);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
@@ -853,15 +858,30 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-select` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/card-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/card-select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/card-select` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
@@ -1113,6 +1133,28 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
         getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
             `settings/workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const,
+    },
+    WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
+        getRoute: (
+            policyID: string,
+            connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>,
+            integrationToDisconnect?: ConnectionName,
+            shouldDisconnectIntegrationBeforeConnecting?: boolean,
+        ) => {
+            const searchParams = new URLSearchParams();
+
+            if (integrationToDisconnect) {
+                searchParams.append('integrationToDisconnect', integrationToDisconnect);
+            }
+            if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
+                searchParams.append('shouldDisconnectIntegrationBeforeConnecting', shouldDisconnectIntegrationBeforeConnecting.toString());
+            }
+
+            const queryParams = searchParams.size ? `?${searchParams.toString()}` : '';
+
+            return `settings/workspaces/${policyID}/accounting/${connection}/connection-selector${queryParams}` as const;
+        },
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
@@ -1582,6 +1624,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/rules/billable',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/billable` as const,
     },
+    RULES_CUSTOM: {
+        route: 'settings/workspaces/:policyID/rules/custom',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/custom` as const,
+    },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
         route: 'referral/:contentType',
@@ -1596,6 +1642,7 @@ const ROUTES = {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
     },
+    TRAVEL_UPGRADE: 'travel/upgrade',
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
@@ -1941,6 +1988,50 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_SETUP: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/setup',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/setup` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/import/customers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/customers` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/import/customers/displayed-as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/customers/displayed-as` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/import/projects',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/projects` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS_DISPLAYED_AS: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/import/projects/displayed-as',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/projects/displayed-as` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_EXPORT_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_EXPORT_DATE: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/export/date',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/date` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_ADVANCED: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/advanced',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced` as const,
+    },
+    POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/advanced/approval-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced/approval-account` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',

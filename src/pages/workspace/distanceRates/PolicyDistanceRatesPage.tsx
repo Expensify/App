@@ -19,6 +19,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -107,6 +108,11 @@ function PolicyDistanceRatesPage({
         }
         setSelectedDistanceRates([]);
     }, [isFocused]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedDistanceRates([]),
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
 
     const updateDistanceRateEnabled = useCallback(
         (value: boolean, rateID: string) => {
