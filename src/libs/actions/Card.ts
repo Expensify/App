@@ -47,6 +47,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
+                cardID,
                 isLoading: true,
                 errors: null,
             },
@@ -223,6 +224,10 @@ function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: numbe
  */
 function clearCardListErrors(cardID: number) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
+}
+
+function clearReportVirtualCardFraudForm() {
+    Onyx.merge(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {cardID: null, isLoading: false, errors: null});
 }
 
 /**
@@ -892,10 +897,20 @@ function updateSelectedFeed(feed: CompanyCardFeed, policyID: string | undefined)
     ]);
 }
 
+function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
+    const parameters = {
+        feedCountry,
+        domainAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
     clearCardListErrors,
+    clearReportVirtualCardFraudForm,
     clearIssueNewCardError,
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
@@ -914,5 +929,6 @@ export {
     updateSelectedFeed,
     deactivateCard,
     getCardDefaultName,
+    queueExpensifyCardForBilling,
 };
 export type {ReplacementReason};

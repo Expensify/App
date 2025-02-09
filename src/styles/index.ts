@@ -208,7 +208,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
-                ...FontUtils.fontFamily.platform.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
@@ -2086,7 +2086,7 @@ const styles = (theme: ThemeColors) =>
         chatItemRight: {
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: 0,
+            flexBasis: 'auto',
             position: 'relative',
         },
 
@@ -2110,6 +2110,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: variables.fontSizeSmall,
             paddingTop: 2,
+        },
+
+        chatItemMessageHeaderPolicy: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
         },
 
         chatItemMessage: {
@@ -3054,8 +3059,6 @@ const styles = (theme: ThemeColors) =>
         sectionDividerLine: {
             height: 1,
             backgroundColor: theme.border,
-            ...spacing.mh5,
-            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -3685,13 +3688,13 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
         },
 
-        searchRouterInputResults: {
+        searchAutocompleteInputResults: {
             backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
 
-        searchRouterInputResultsFocused: {
+        searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
             backgroundColor: theme.appBG,
@@ -3996,6 +3999,19 @@ const styles = (theme: ThemeColors) =>
         textReactionSenders: {
             color: theme.tooltipPrimaryText,
             ...wordBreak.breakWord,
+        },
+
+        distanceLabelWrapper: {
+            backgroundColor: colors.green500,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        distanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.productLight100,
         },
 
         productTrainingTooltipWrapper: {

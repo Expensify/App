@@ -207,7 +207,7 @@ function ReportPreview({
     }));
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
-    const isApproved = isReportApproved(iouReport, action);
+    const isApproved = isReportApproved({report: iouReport, parentReportAction: action});
     const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
     const thumbsUpStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,
@@ -238,8 +238,8 @@ function ReportPreview({
     const lastThreeTransactions = transactions?.slice(-3) ?? [];
     const lastTransaction = transactions?.at(0);
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
+    const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, getTransactionViolations(lastTransaction?.transactionID, transactionViolations));
-    const transactionIDList = [lastTransaction?.transactionID].filter((transactionID): transactionID is string => transactionID !== undefined);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
     const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
@@ -250,7 +250,9 @@ function ReportPreview({
 
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
     const shouldShowSubmitButton = canSubmitReport(iouReport, policy, transactionIDList, transactionViolations) || isSubmitAnimationRunning;
+    const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
@@ -377,11 +379,11 @@ function ReportPreview({
 
         let payerOrApproverName;
         if (isPolicyExpenseChat || isTripRoom) {
-            payerOrApproverName = getPolicyName(chatReport, undefined, policy);
+            payerOrApproverName = getPolicyName({report: chatReport, policy});
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
-            payerOrApproverName = getDisplayNameForParticipant(managerID, true);
+            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true});
         }
 
         if (isApproved) {
@@ -392,7 +394,7 @@ function ReportPreview({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
+            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true});
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
