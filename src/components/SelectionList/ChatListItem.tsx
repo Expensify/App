@@ -106,6 +106,7 @@ function ChatListItem<TItem extends ListItem>({
                                     <TextLink
                                         fontSize={variables.fontSizeSmall}
                                         onPress={() => onSelectRow(item)}
+                                        numberOfLines={1}
                                     >
                                         {reportActionItem.reportName}
                                     </TextLink>
