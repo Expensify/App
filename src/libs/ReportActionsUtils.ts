@@ -1743,7 +1743,7 @@ function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Rep
 
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = originalMessage?.role ?? '';
+    const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
     return translateLocal('report.actions.type.addEmployee', {email: formattedEmail, role});
 }
@@ -1758,8 +1758,8 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const newRole = originalMessage?.newValue ?? '';
-    const oldRole = originalMessage?.oldValue ?? '';
+    const newRole = translateLocal('workspace.common.roleName', {role: originalMessage?.newValue ?? ''}).toLowerCase();
+    const oldRole = translateLocal('workspace.common.roleName', {role: originalMessage?.oldValue ?? ''}).toLowerCase();
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
 }
 
@@ -1789,7 +1789,7 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = originalMessage?.role ?? '';
+    const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     return translateLocal('report.actions.type.removeMember', {email, role});
 }
 
