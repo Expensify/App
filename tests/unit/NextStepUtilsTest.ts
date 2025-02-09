@@ -97,7 +97,7 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, true);
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, true);
 
                 expect(result).toMatchObject(optimisticNextStep);
             });

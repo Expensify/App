@@ -1,7 +1,7 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
