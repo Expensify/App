@@ -102,7 +102,6 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                         label={translate('addDebitCardPage.cvv')}
                         aria-label={translate('addDebitCardPage.cvv')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={4}
                         containerStyles={[styles.mt5]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                     />

@@ -51,9 +51,27 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
 
             if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
+            } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'firstName',
+                    translate('common.error.characterLimitExceedCounter', {
+                        length: values.firstName.length,
+                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                    }),
+                );
             }
             if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
+            } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'lastName',
+                    translate('common.error.characterLimitExceedCounter', {
+                        length: values.lastName.length,
+                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                    }),
+                );
             }
             if (!values.partnerUserID) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
@@ -99,7 +117,6 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
@@ -111,7 +128,6 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>

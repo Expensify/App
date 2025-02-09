@@ -46,6 +46,9 @@ function EditTagPage({route}: EditTagPageProps) {
                 errors.tagName = translate('workspace.tags.invalidTagNameError');
             } else if (tags?.[escapedTagName] && currentTagName !== tagName) {
                 errors.tagName = translate('workspace.tags.existingTagError');
+            } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
+                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+                errors.tagName = translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT});
             }
 
             return errors;
@@ -102,7 +105,6 @@ function EditTagPage({route}: EditTagPageProps) {
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        maxLength={CONST.TAG_NAME_LIMIT}
                         defaultValue={currentTagName}
                         label={translate('common.name')}
                         accessibilityLabel={translate('common.name')}

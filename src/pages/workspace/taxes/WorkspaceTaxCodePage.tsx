@@ -93,7 +93,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                             label={translate('workspace.taxes.taxCode')}
                             accessibilityLabel={translate('workspace.taxes.taxCode')}
                             defaultValue={currentTaxCode}
-                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             ref={inputCallbackRef}
                         />
                     </View>

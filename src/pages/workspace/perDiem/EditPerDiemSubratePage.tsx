@@ -45,6 +45,8 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
 
             if (!values.subrate.trim()) {
                 errors.subrate = translate('common.error.fieldRequired');
+            } else if (values.subrate.trim().length > CONST.MAX_LENGTH_256) {
+                errors.subrate = translate('common.error.characterLimitExceedCounter', {length: values.subrate.trim().length, limit: CONST.MAX_LENGTH_256});
             }
 
             return errors;
@@ -96,7 +98,6 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
                         accessibilityLabel={translate('common.subrate')}
                         inputID={INPUT_IDS.SUBRATE}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>

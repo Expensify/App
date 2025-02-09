@@ -44,6 +44,11 @@ function WorkspaceTaxesSettingsCustomTaxName({
 
             if (!ValidationUtils.isRequiredFulfilled(customTaxName)) {
                 errors.name = translate('workspace.taxes.error.customNameRequired');
+            } else if (customTaxName.length > CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH) {
+                errors.name = translate('common.error.characterLimitExceedCounter', {
+                    length: customTaxName.length,
+                    limit: CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH,
+                });
             }
 
             return errors;
@@ -87,7 +92,6 @@ function WorkspaceTaxesSettingsCustomTaxName({
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             defaultValue={policy?.taxRates?.name}
-                            maxLength={CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH}
                             multiline={false}
                             ref={inputCallbackRef}
                         />

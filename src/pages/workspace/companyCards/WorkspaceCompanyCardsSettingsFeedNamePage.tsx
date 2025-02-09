@@ -52,6 +52,11 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
 
             if (!ValidationUtils.isRequiredFulfilled(value)) {
                 errors.name = translate('workspace.moreFeatures.companyCards.error.feedNameRequired');
+            } else if (value.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+                errors.name = translate('common.error.characterLimitExceedCounter', {
+                    length: value.length,
+                    limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                });
             }
 
             return errors;
@@ -103,7 +108,6 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             defaultValue={feedName}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             multiline={false}
                             ref={inputCallbackRef}
                         />

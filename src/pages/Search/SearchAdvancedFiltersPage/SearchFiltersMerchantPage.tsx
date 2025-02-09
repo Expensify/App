@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -30,6 +30,17 @@ function SearchFiltersMerchantPage() {
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
+        const merchantValue = values.merchant.trim();
+
+        if (merchantValue.length > CONST.MERCHANT_NAME_MAX_LENGTH) {
+            errors.merchant = translate('common.error.characterLimitExceedCounter', {length: merchantValue.length, limit: CONST.MERCHANT_NAME_MAX_LENGTH});
+        }
+
+        return errors;
+    };
+
     return (
         <ScreenWrapper
             testID={SearchFiltersMerchantPage.displayName}
@@ -47,6 +58,7 @@ function SearchFiltersMerchantPage() {
             <FormProvider
                 style={[styles.flex1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                validate={validate}
                 onSubmit={updateMerchantFilter}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
@@ -57,7 +69,6 @@ function SearchFiltersMerchantPage() {
                         inputID={FILTER_KEYS.MERCHANT}
                         name={FILTER_KEYS.MERCHANT}
                         defaultValue={merchant}
-                        maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}

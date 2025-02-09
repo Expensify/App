@@ -80,7 +80,6 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             <InputWrapper
                 ref={inputCallbackRef}
                 InputComponent={TextInput}
-                maxLength={CONST.CATEGORY_NAME_LIMIT}
                 defaultValue={categoryName}
                 label={translate('common.name')}
                 accessibilityLabel={translate('common.name')}

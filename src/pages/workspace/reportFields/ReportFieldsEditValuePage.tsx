@@ -89,7 +89,6 @@ function ReportFieldsEditValuePage({
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                         defaultValue={currentValueName}
                         label={translate('common.value')}
                         accessibilityLabel={translate('common.value')}

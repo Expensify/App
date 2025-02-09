@@ -74,7 +74,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         User.clearUnvalidatedNewContactMethodAction();
     }, [pendingContactAction?.actionVerified]);
 
-    const validate = React.useCallback(
+    const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>): Errors => {
             const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);
             const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
@@ -83,6 +83,15 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
 
             if (!values.phoneOrEmail) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('contacts.genericFailureMessages.contactMethodRequired'));
+            } else if (values.phoneOrEmail.length > CONST.LOGIN_CHARACTER_LIMIT) {
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'phoneOrEmail',
+                    translate('common.error.characterLimitExceedCounter', {
+                        length: values.phoneOrEmail.length,
+                        limit: CONST.LOGIN_CHARACTER_LIMIT,
+                    }),
+                );
             }
 
             if (!!values.phoneOrEmail && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
@@ -141,7 +150,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
                             inputID={INPUT_IDS.PHONE_OR_EMAIL}
                             autoCapitalize="none"
                             enterKeyHint="done"
-                            maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                         />
                     </View>
                     {hasFailedToSendVerificationCode && (

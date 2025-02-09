@@ -35,6 +35,8 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 errors.categoryName = translate('workspace.categories.categoryRequiredError');
             } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
+            } else if ([...newCategoryName].length > CONST.CATEGORY_NAME_LIMIT) {
+                errors.categoryName = translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT});
             }
 
             return errors;

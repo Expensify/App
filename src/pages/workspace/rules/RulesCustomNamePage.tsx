@@ -46,6 +46,11 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
         if (!customName) {
             errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.fieldRequired');
+        } else if (customName.length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+            errors[INPUT_IDS.CUSTOM_NAME] = translate('common.error.characterLimitExceedCounter', {
+                length: customName.length,
+                limit: CONST.WORKSPACE_NAME_CHARACTER_LIMIT,
+            });
         }
         return errors;
     };
@@ -95,7 +100,6 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                         defaultValue={customNameDefaultValue}
                         label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
                         aria-label={translate('workspace.rules.expenseReportRules.customNameInputLabel')}
-                        maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                         ref={inputCallbackRef}
                     />
                     <BulletList

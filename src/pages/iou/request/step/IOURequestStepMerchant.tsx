@@ -64,6 +64,11 @@ function IOURequestStepMerchant({
 
             if (isMerchantRequired && !value.moneyRequestMerchant) {
                 errors.moneyRequestMerchant = translate('common.error.fieldRequired');
+            } else if (value.moneyRequestMerchant.length > CONST.MERCHANT_NAME_MAX_LENGTH) {
+                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', {
+                    length: value.moneyRequestMerchant.length,
+                    limit: CONST.MERCHANT_NAME_MAX_LENGTH,
+                });
             }
 
             return errors;
@@ -123,7 +128,6 @@ function IOURequestStepMerchant({
                         name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         defaultValue={initialMerchant}
                         onValueChange={updateMerchantRef}
-                        maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}

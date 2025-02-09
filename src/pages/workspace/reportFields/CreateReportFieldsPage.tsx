@@ -61,7 +61,7 @@ function CreateReportFieldsPage({
 
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type} = values;
+            const {name, type, initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
             if (!ValidationUtils.isRequiredFulfilled(name)) {
@@ -81,9 +81,20 @@ function CreateReportFieldsPage({
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
             }
 
+            if (type === CONST.REPORT_FIELD_TYPES.TEXT && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
+                    length: formInitialValue.length,
+                    limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
+                });
+            }
+
+            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(formInitialValue)) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
+            }
+
             return errors;
         },
-        [policy?.fieldList, translate],
+        [availableListValuesLength, policy?.fieldList, translate],
     );
 
     useEffect(() => {

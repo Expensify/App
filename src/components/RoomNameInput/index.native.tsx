@@ -43,7 +43,6 @@ function RoomNameInput(
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}
             value={value?.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
-            maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             onBlur={(event) => isFocused && onBlur?.(event)}
             autoFocus={isFocused && autoFocus}
             shouldDelayFocus={shouldDelayFocus}

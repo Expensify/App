@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -46,6 +46,20 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         );
     }, [orderWeight, route.params.policyID, tagName, isQuickSettingsFlow, backTo]);
 
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+            const tagGLCode = values.glCode.trim();
+
+            if (tagGLCode.length > CONST.MAX_LENGTH_256) {
+                errors.glCode = translate('common.error.characterLimitExceedCounter', {length: tagGLCode.length, limit: CONST.MAX_LENGTH_256});
+            }
+
+            return errors;
+        },
+        [translate],
+    );
+
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const newGLCode = values.glCode.trim();
@@ -76,6 +90,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
+                    validate={validate}
                     onSubmit={editGLCode}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
@@ -89,7 +104,6 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
                         accessibilityLabel={translate('workspace.tags.glCode')}
                         inputID={INPUT_IDS.TAG_GL_CODE}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>

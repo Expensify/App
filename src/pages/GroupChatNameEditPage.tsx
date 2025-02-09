@@ -94,7 +94,6 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
             >
                 <InputWrapper
                     InputComponent={TextInput}
-                    maxLength={CONST.REPORT_NAME_LIMIT}
                     defaultValue={currentChatName}
                     label={translate('common.name')}
                     accessibilityLabel={translate('common.name')}

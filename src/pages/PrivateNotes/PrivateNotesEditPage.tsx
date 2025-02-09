@@ -30,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
 import type {Report} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Note} from '@src/types/onyx/Report';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
@@ -100,6 +101,18 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         }
     };
 
+    const validate = useCallback((): Errors => {
+        const errors: Errors = {};
+        if (privateNote.trim().length > CONST.MAX_COMMENT_LENGTH) {
+            errors.privateNotes = translate('common.error.characterLimitExceedCounter', {
+                length: privateNote.trim().length,
+                limit: CONST.MAX_COMMENT_LENGTH,
+            });
+        }
+
+        return errors;
+    }, [privateNote, translate]);
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -115,6 +128,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
             <FormProvider
                 formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                 onSubmit={savePrivateNote}
+                validate={validate}
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
@@ -140,7 +154,6 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                         label={translate('privateNotes.composerLabel')}
                         accessibilityLabel={translate('privateNotes.title')}
                         autoCompleteType="off"
-                        maxLength={CONST.MAX_COMMENT_LENGTH}
                         autoCorrect={false}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

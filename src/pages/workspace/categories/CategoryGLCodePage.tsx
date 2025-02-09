@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -33,6 +33,23 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const glCode = policyCategories?.[categoryName]?.['GL Code'];
     const {inputCallbackRef} = useAutoFocusInput();
     const isQuickSettingsFlow = !!backTo;
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+            const value = values[INPUT_IDS.GL_CODE];
+
+            if (value.length > CONST.MAX_LENGTH_256) {
+                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', {
+                    length: value.length,
+                    limit: CONST.MAX_LENGTH_256,
+                });
+            }
+
+            return errors;
+        },
+        [translate],
+    );
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -73,6 +90,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
+                    validate={validate}
                     onSubmit={editGLCode}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
@@ -86,7 +104,6 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                         accessibilityLabel={translate('workspace.categories.glCode')}
                         inputID={INPUT_IDS.GL_CODE}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>

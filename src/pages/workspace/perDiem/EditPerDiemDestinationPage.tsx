@@ -46,6 +46,8 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
 
             if (!values.destination.trim()) {
                 errors.destination = translate('common.error.fieldRequired');
+            } else if (values.destination.trim().length > CONST.MAX_LENGTH_256) {
+                errors.destination = translate('common.error.characterLimitExceedCounter', {length: values.destination.trim().length, limit: CONST.MAX_LENGTH_256});
             }
 
             return errors;
@@ -102,7 +104,6 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                         accessibilityLabel={translate('common.destination')}
                         inputID={INPUT_IDS.DESTINATION}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>

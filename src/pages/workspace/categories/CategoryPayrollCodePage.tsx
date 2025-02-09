@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -49,6 +49,23 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
         [categoryName, payrollCode, route.params.policyID, isQuickSettingsFlow, backTo],
     );
 
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+            const value = values[INPUT_IDS.PAYROLL_CODE];
+
+            if (value.length > CONST.MAX_LENGTH_256) {
+                errors[INPUT_IDS.PAYROLL_CODE] = translate('common.error.characterLimitExceedCounter', {
+                    length: value.length,
+                    limit: CONST.MAX_LENGTH_256,
+                });
+            }
+
+            return errors;
+        },
+        [translate],
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -73,6 +90,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
+                    validate={validate}
                     onSubmit={editPayrollCode}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
@@ -86,7 +104,6 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                         accessibilityLabel={translate('workspace.categories.payrollCode')}
                         inputID={INPUT_IDS.PAYROLL_CODE}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>

@@ -60,9 +60,27 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
 
             if (!values.firstName || !ValidationUtils.isValidDisplayName(values.firstName)) {
                 ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+            } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'firstName',
+                    translate('common.error.characterLimitExceedCounter', {
+                        length: values.firstName.length,
+                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                    }),
+                );
             }
             if (!values.lastName || !ValidationUtils.isValidDisplayName(values.lastName)) {
                 ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+            } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'lastName',
+                    translate('common.error.characterLimitExceedCounter', {
+                        length: values.lastName.length,
+                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                    }),
+                );
             }
             if (!values.partnerUserID) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
@@ -105,7 +123,6 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
@@ -117,7 +134,6 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>

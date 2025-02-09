@@ -184,7 +184,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         spellCheck={false}
                     />
                 </View>
@@ -199,7 +198,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         spellCheck={false}
                     />
                 </View>

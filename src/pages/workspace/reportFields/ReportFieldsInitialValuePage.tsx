@@ -22,7 +22,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
-import * as ErrorUtils from '@src/libs/ErrorUtils';
 import * as ValidationUtils from '@src/libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -64,29 +63,23 @@ function ReportFieldsInitialValuePage({
 
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type, initialValue: formInitialValue} = values;
+            const {initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
-            if (!ValidationUtils.isRequiredFulfilled(name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
-            } else if (Object.values(policy?.fieldList ?? {}).some((currentReportField) => currentReportField.name === name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
-            } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(
-                    errors,
-                    INPUT_IDS.NAME,
-                    translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}),
-                );
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
+                    length: formInitialValue.length,
+                    limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
+                });
             }
 
-            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(formInitialValue)) {
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(formInitialValue)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
             }
 
             return errors;
         },
-        [availableListValuesLength, policy?.fieldList, translate],
+        [availableListValuesLength, reportField?.type, translate],
     );
 
     if (!reportField || hasAccountingConnections) {
@@ -135,7 +128,6 @@ function ReportFieldsInitialValuePage({
                             inputID={INPUT_IDS.INITIAL_VALUE}
                             label={translate('common.initialValue')}
                             accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
-                            maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                             multiline={false}
                             value={initialValue}
                             role={CONST.ROLE.PRESENTATION}

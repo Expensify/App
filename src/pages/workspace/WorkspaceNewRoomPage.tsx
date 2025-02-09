@@ -282,7 +282,6 @@ function WorkspaceNewRoomPage() {
                                 role={CONST.ROLE.PRESENTATION}
                                 autoGrowHeight
                                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                 autoCapitalize="none"
                                 shouldInterceptSwipe
                                 type="markdown"

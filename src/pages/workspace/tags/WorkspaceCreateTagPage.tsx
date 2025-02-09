@@ -91,7 +91,6 @@ function CreateTagPage({route}: CreateTagPageProps) {
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        maxLength={CONST.TAG_NAME_LIMIT}
                         label={translate('common.name')}
                         accessibilityLabel={translate('common.name')}
                         inputID={INPUT_IDS.TAG_NAME}
