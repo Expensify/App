@@ -230,6 +230,7 @@ const ViolationsUtils = {
         const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
         const shouldShowReceiptRequiredViolation =
             !isInvoiceTransaction &&
