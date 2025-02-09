@@ -104,7 +104,7 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
-    MovedFromSelfDMParams,
+    MovedFromPersonalSpaceParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -184,6 +184,7 @@ import type {
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
+    ViolationsCustomRulesParams,
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
@@ -999,8 +1000,8 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
-        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `moved expense from self DM to ${workspaceName ?? `chat with ${reportName}`}`,
-        movedToSelfDM: 'moved expense to self DM',
+        movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
+        movedToPersonalSpace: 'moved expense to personal space',
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
@@ -2388,6 +2389,20 @@ const translations = {
         selectCountry: 'Select country',
         findCountry: 'Find country',
         address: 'Address',
+        chooseFile: 'Choose file',
+        uploadDocuments: 'Upload additional documentation',
+        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a direct or indirect owner of 25% or more of the business entity.',
+        acceptedFiles: 'Accepted file formats: PDF, PNG, JPEG. Total file size for each section cannot exceed 5 MB.',
+        proofOfBeneficialOwner: 'Proof of beneficial owner',
+        proofOfBeneficialOwnerDescription:
+            "Please provide a signed attestation and org chart from a public accountant, notary, or lawyer verifying ownership of 25% or more of the business. It must be dated within the last three months and include the signer's license number.",
+        copyOfID: 'Copy of ID for beneficial owner',
+        copyOfIDDescription: "Examples: Passport, driver's license, etc.",
+        proofOfAddress: 'Address proof for beneficial owner',
+        proofOfAddressDescription: 'Examples: Utility bill, rental agreement, etc.',
+        codiceFiscale: 'Codice fiscale/Tax ID',
+        codiceFiscaleDescription:
+            'Please upload a video of a site visit or a recorded call with the signing officer. The officer must provide: full name, date of birth, company name, registered number, fiscal code number, registered address, nature of business and purpose of account.',
     },
     validationStep: {
         headerTitle: 'Validate bank account',
@@ -4710,6 +4725,11 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
+            customRules: {
+                title: 'Custom rules',
+                subtitle: 'Description',
+                description: 'Input custom rules for expense reports',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -5349,6 +5369,7 @@ const translations = {
             }
             return message;
         },
+        customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {

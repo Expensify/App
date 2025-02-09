@@ -82,6 +82,7 @@ export type {RulesAutoPayReportsUnderModalForm} from './RulesAutoPayReportsUnder
 export type {RulesRequiredReceiptAmountForm} from './RulesRequiredReceiptAmountForm';
 export type {RulesMaxExpenseAmountForm} from './RulesMaxExpenseAmountForm';
 export type {RulesMaxExpenseAgeForm} from './RulesMaxExpenseAgeForm';
+export type {RulesCustomForm} from './RulesCustomForm';
 export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDescriptionHintForm';
 export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName';
