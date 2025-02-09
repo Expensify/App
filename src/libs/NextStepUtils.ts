@@ -124,6 +124,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         {
                             text: `${ownerDisplayName}`,
                             type: 'strong',
+                            clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
                         },
                         {
                             text: ' to ',
