@@ -1,6 +1,6 @@
 import type {ParamListBase} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
-import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
+import useNavigationResetRootOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetRootOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -12,7 +12,7 @@ const ResponsiveStackNavigatorComponent = createPlatformStackNavigatorComponent(
     createRouter: CustomRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomState: useStateWithSearch,
-    useCustomEffects: useNavigationResetOnLayoutChange,
+    useCustomEffects: useNavigationResetRootOnLayoutChange,
     ExtraContent: RenderSearchRoute,
 });
 

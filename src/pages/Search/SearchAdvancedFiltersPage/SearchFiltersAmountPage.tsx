@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import AmountWithoutCurrencyForm from '@components/AmountWithoutCurrencyForm';
+import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -43,7 +43,7 @@ function SearchFiltersAmountPage() {
             testID={SearchFiltersAmountPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -61,7 +61,7 @@ function SearchFiltersAmountPage() {
             >
                 <View style={styles.mb5}>
                     <InputWrapper
-                        InputComponent={AmountWithoutCurrencyForm}
+                        InputComponent={AmountWithoutCurrencyInput}
                         inputID={INPUT_IDS.GREATER_THAN}
                         name={INPUT_IDS.GREATER_THAN}
                         defaultValue={greaterThanFormattedAmount}
@@ -69,17 +69,19 @@ function SearchFiltersAmountPage() {
                         accessibilityLabel={translate('search.filters.amount.greaterThan')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
+                        uncontrolled
                     />
                 </View>
                 <View style={styles.mb5}>
                     <InputWrapper
-                        InputComponent={AmountWithoutCurrencyForm}
+                        InputComponent={AmountWithoutCurrencyInput}
                         inputID={INPUT_IDS.LESS_THAN}
                         name={INPUT_IDS.LESS_THAN}
                         defaultValue={lessThanFormattedAmount}
                         label={translate('search.filters.amount.lessThan')}
                         accessibilityLabel={translate('search.filters.amount.lessThan')}
                         role={CONST.ROLE.PRESENTATION}
+                        uncontrolled
                     />
                 </View>
             </FormProvider>

@@ -6,9 +6,6 @@ type User = {
     /** Whether we should use the staging version of the secure API server */
     shouldUseStagingServer?: boolean;
 
-    /** Whether user muted all sounds in application */
-    isMutedAllSounds?: boolean;
-
     /** Is the user account validated? */
     validated: boolean;
 

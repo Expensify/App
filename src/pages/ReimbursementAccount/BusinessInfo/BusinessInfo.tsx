@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -60,6 +61,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
 
     const submit = useCallback(
         (isConfirmPage: boolean) => {
+            const companyWebsite = Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
             BankAccounts.updateCompanyInformationForBankAccount(
                 Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
                 {
@@ -67,7 +69,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
                     companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
                     companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
-                    website: ValidationUtils.isValidWebsite(values.website) ? values.website : undefined,
+                    website: ValidationUtils.isValidWebsite(companyWebsite) ? companyWebsite : undefined,
                 },
                 policyID,
                 isConfirmPage,

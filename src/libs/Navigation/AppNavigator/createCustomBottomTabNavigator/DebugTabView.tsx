@@ -9,10 +9,12 @@ import Text from '@components/Text';
 import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
+import {useReportIDs} from '@hooks/useReportIDs';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoadReport} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
@@ -75,7 +77,10 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
             return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(reimbursementAccount?.achData?.currentStep, reimbursementAccount?.achData?.policyID);
+            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
+                reimbursementAccount?.achData?.policyID,
+                getReimbursementAccountRouteForCurrentStep(reimbursementAccount?.achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
+            );
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
             return ROUTES.SETTINGS_SUBSCRIPTION;
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
@@ -98,6 +103,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
+    const {orderedReportIDs} = useReportIDs();
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === SCREENS.HOME) {
@@ -131,10 +137,10 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
 
     const navigateTo = useCallback(() => {
         if (selectedTab === SCREENS.HOME && !!chatTabBrickRoad) {
-            const report = getChatTabBrickRoadReport(activeWorkspaceID);
+            const report = getChatTabBrickRoadReport(activeWorkspaceID, orderedReportIDs);
 
             if (report) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
             }
         }
         if (selectedTab === SCREENS.SETTINGS.ROOT) {
@@ -144,7 +150,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, orderedReportIDs, status, reimbursementAccount, policyIDWithErrors]);
 
     if (!([SCREENS.HOME, SCREENS.SETTINGS.ROOT] as string[]).includes(selectedTab) || !indicator) {
         return null;

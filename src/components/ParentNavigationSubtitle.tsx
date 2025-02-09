@@ -1,12 +1,14 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -27,8 +29,9 @@ type ParentNavigationSubtitleProps = {
 function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportActionID, parentReportID = '', pressableStyles}: ParentNavigationSubtitleProps) {
     const styles = useThemeStyles();
     const {workspaceName, reportName} = parentNavigationSubtitleData;
-    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
@@ -38,11 +41,11 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                const parentAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '-1');
-                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '-1');
+                const parentAction = getReportAction(parentReportID, parentReportActionID);
+                const isVisibleAction = shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID, canUserPerformWriteAction);
                 // Pop the thread report screen before navigating to the chat report.
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
-                if (isVisibleAction && !isOffline) {
+                if (isVisibleAction) {
                     // Pop the chat report screen before navigating to the linked report action.
                     Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID), true);
                 }
@@ -52,7 +55,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
             style={pressableStyles}
         >
             <Text
-                style={[styles.optionAlternateText]}
+                style={[styles.optionAlternateText, styles.textLabelSupporting]}
                 numberOfLines={1}
             >
                 {!!reportName && (
@@ -61,7 +64,9 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{reportName}</Text>
                     </>
                 )}
-                {!!workspaceName && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>}
+                {!!workspaceName && workspaceName !== reportName && (
+                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>
+                )}
             </Text>
         </PressableWithoutFeedback>
     );

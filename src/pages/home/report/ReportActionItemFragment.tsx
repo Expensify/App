@@ -2,12 +2,11 @@ import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import * as ReportUtils from '@libs/ReportUtils';
+import isReportMessageAttachment from '@libs/isReportMessageAttachment';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
@@ -15,6 +14,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
+import ReportActionItemMessageHeaderSender from './ReportActionItemMessageHeaderSender';
 
 type ReportActionItemFragmentProps = {
     /** Users accountID */
@@ -106,14 +106,14 @@ function ReportActionItemFragment({
             // immediately display "[Deleted message]" while the delete action is pending.
 
             if ((!isOffline && isThreadParentMessage && isPendingDelete) || fragment?.isDeletedParentAction) {
-                return <RenderHTML html={`<comment>${translate('parentReportAction.deletedMessage')}</comment>`} />;
+                return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedMessage')}</deleted-action>`} />;
             }
 
             if (isThreadParentMessage && moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-                return <RenderHTML html={`<comment>${translate('parentReportAction.hiddenMessage')}</comment>`} />;
+                return <RenderHTML html={`<deleted-action ${CONST.HIDDEN_MESSAGE_ATTRIBUTE}="true">${translate('parentReportAction.hiddenMessage')}</deleted-action>`} />;
             }
 
-            if (ReportUtils.isReportMessageAttachment(fragment)) {
+            if (isReportMessageAttachment(fragment)) {
                 return (
                     <AttachmentCommentFragment
                         source={source}
@@ -160,18 +160,13 @@ function ReportActionItemFragment({
             }
 
             return (
-                <UserDetailsTooltip
+                <ReportActionItemMessageHeaderSender
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
-                    icon={actorIcon}
-                >
-                    <Text
-                        numberOfLines={isSingleLine ? 1 : undefined}
-                        style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
-                    >
-                        {fragment?.text}
-                    </Text>
-                </UserDetailsTooltip>
+                    fragmentText={fragment.text}
+                    actorIcon={actorIcon}
+                    isSingleLine={isSingleLine}
+                />
             );
         }
         case 'LINK':

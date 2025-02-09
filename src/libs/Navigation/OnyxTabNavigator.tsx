@@ -41,6 +41,9 @@ type OnyxTabNavigatorProps = ChildrenProps & {
      * Together, with the `onActiveTabFocusTrapContainerElementChanged` callback, we can manage the focus trap of the tab navigator in the parent component.
      */
     onTabBarFocusTrapContainerElementChanged?: (containerElement: HTMLElement | null) => void;
+
+    /** Whether to show the label when the tab is inactive */
+    shouldShowLabelWhenInactive?: boolean;
 };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -62,6 +65,7 @@ function OnyxTabNavigator({
     onActiveTabFocusTrapContainerElementChanged,
     onTabSelected = () => {},
     screenListeners,
+    shouldShowLabelWhenInactive = true,
     ...rest
 }: OnyxTabNavigatorProps) {
     // Mapping of tab name to focus trap container element
@@ -90,12 +94,13 @@ function OnyxTabNavigator({
             return (
                 <TabBar
                     onFocusTrapContainerElementChanged={onTabBarFocusTrapContainerElementChanged}
+                    shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             );
         },
-        [onTabBarFocusTrapContainerElementChanged, TabBar],
+        [TabBar, onTabBarFocusTrapContainerElementChanged, shouldShowLabelWhenInactive],
     );
 
     // If the selected tab changes, we need to update the focus trap container element of the active tab

@@ -22,15 +22,16 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getActivePolicies} from '@libs/PolicyUtils';
+import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
+import {isExistingRoomName, isReservedRoomName, isValidRoomName} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
-import * as Report from '@userActions/Report';
+import {addPolicyReport, clearNewRoomFormError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -51,6 +52,7 @@ function WorkspaceNewRoomPage() {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {top} = useSafeAreaInsets();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
@@ -62,14 +64,14 @@ function WorkspaceNewRoomPage() {
 
     const workspaceOptions = useMemo(
         () =>
-            PolicyUtils.getActivePolicies(policies)
+            getActivePolicies(policies, session?.email)
                 ?.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL)
                 .map((policy) => ({
                     label: policy.name,
                     value: policy.id,
                 }))
                 .sort((a, b) => localeCompare(a.label, b.label)) ?? [],
-        [policies],
+        [policies, session?.email],
     );
     const [policyID, setPolicyID] = useState<string>(() => {
         if (!!activeWorkspaceOrDefaultID && workspaceOptions.some((option) => option.value === activeWorkspaceOrDefaultID)) {
@@ -77,12 +79,12 @@ function WorkspaceNewRoomPage() {
         }
         return '';
     });
-    const isPolicyAdmin = useMemo(() => {
+    const isAdminPolicy = useMemo(() => {
         if (!policyID) {
             return false;
         }
 
-        return ReportUtils.isPolicyAdmin(policyID, policies);
+        return isPolicyAdmin(policyID, policies);
     }, [policyID, policies]);
     const [newRoomReportID, setNewRoomReportID] = useState<string>();
 
@@ -90,9 +92,9 @@ function WorkspaceNewRoomPage() {
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
-        const participants = [session?.accountID ?? -1];
-        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '', {policyID});
-        const policyReport = ReportUtils.buildOptimisticChatReport(
+        const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
+        const policyReport = buildOptimisticChatReport(
             participants,
             values.roomName,
             CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
@@ -108,11 +110,11 @@ function WorkspaceNewRoomPage() {
             parsedDescription,
         );
         setNewRoomReportID(policyReport.reportID);
-        Report.addPolicyReport(policyReport);
+        addPolicyReport(policyReport);
     };
 
     useEffect(() => {
-        Report.clearNewRoomFormError();
+        clearNewRoomFormError();
     }, []);
 
     useEffect(() => {
@@ -138,12 +140,12 @@ function WorkspaceNewRoomPage() {
     }, [isLoading, errorFields]);
 
     useEffect(() => {
-        if (isPolicyAdmin) {
+        if (isAdminPolicy) {
             return;
         }
 
         setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    }, [isPolicyAdmin]);
+    }, [isAdminPolicy]);
 
     /**
      * @param values - form input values passed by the Form component
@@ -155,27 +157,23 @@ function WorkspaceNewRoomPage() {
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
-            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
+            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !isValidRoomName(values.roomName)) {
                 // We error if the room name has invalid characters
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
-            } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
+            } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
-            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, values.policyID ?? '-1')) {
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+            } else if (isExistingRoomName(values.roomName, reports, values.policyID)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
-            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription, {policyID});
+            const descriptionLength = getCommentLength(values.reportDescription, {policyID});
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                ErrorUtils.addErrorMessage(
-                    errors,
-                    'reportDescription',
-                    translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}),
-                );
+                addErrorMessage(errors, 'reportDescription', translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}));
             }
 
             if (!values.policyID) {
@@ -239,7 +237,7 @@ function WorkspaceNewRoomPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom={isOffline}
+            includeSafeAreaPaddingBottom
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
@@ -247,94 +245,92 @@ function WorkspaceNewRoomPage() {
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
         >
-            {({insets}) =>
-                workspaceOptions.length === 0 ? (
-                    renderEmptyWorkspaceView()
-                ) : (
-                    <KeyboardAvoidingView
-                        style={styles.h100}
-                        behavior="padding"
-                        // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                        // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                        keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
+            {workspaceOptions.length === 0 ? (
+                renderEmptyWorkspaceView()
+            ) : (
+                <KeyboardAvoidingView
+                    style={styles.h100}
+                    behavior="padding"
+                    // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                    // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                    keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
+                >
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                        submitButtonText={translate('newRoomPage.createRoom')}
+                        style={[styles.mh5, styles.flexGrow1]}
+                        validate={validate}
+                        onSubmit={submit}
+                        enabledWhenOffline
                     >
-                        <FormProvider
-                            formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                            submitButtonText={translate('newRoomPage.createRoom')}
-                            style={[styles.mh5, styles.flexGrow1]}
-                            validate={validate}
-                            onSubmit={submit}
-                            enabledWhenOffline
-                        >
-                            <View style={styles.mb5}>
-                                <InputWrapper
-                                    InputComponent={RoomNameInput}
-                                    ref={inputCallbackRef}
-                                    inputID={INPUT_IDS.ROOM_NAME}
-                                    isFocused={isFocused}
-                                    shouldDelayFocus
-                                    autoFocus
-                                />
-                            </View>
-                            <View style={styles.mb5}>
-                                <InputWrapper
-                                    InputComponent={TextInput}
-                                    inputID={INPUT_IDS.REPORT_DESCRIPTION}
-                                    label={translate('reportDescriptionPage.roomDescriptionOptional')}
-                                    accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    autoGrowHeight
-                                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                    maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
-                                    autoCapitalize="none"
-                                    shouldInterceptSwipe
-                                    isMarkdownEnabled
-                                />
-                            </View>
-                            <View style={[styles.mhn5]}>
-                                <InputWrapper
-                                    InputComponent={ValuePicker}
-                                    inputID={INPUT_IDS.POLICY_ID}
-                                    label={translate('workspace.common.workspace')}
-                                    items={workspaceOptions}
-                                    value={policyID}
-                                    onValueChange={(value) => setPolicyID(value as typeof policyID)}
-                                />
-                            </View>
-                            {isPolicyAdmin && (
-                                <View style={styles.mhn5}>
-                                    <InputWrapper
-                                        InputComponent={ValuePicker}
-                                        inputID={INPUT_IDS.WRITE_CAPABILITY}
-                                        label={translate('writeCapabilityPage.label')}
-                                        items={writeCapabilityOptions}
-                                        value={writeCapability}
-                                        onValueChange={(value) => setWriteCapability(value as typeof writeCapability)}
-                                    />
-                                </View>
-                            )}
-                            <View style={[styles.mb1, styles.mhn5]}>
+                        <View style={styles.mb5}>
+                            <InputWrapper
+                                InputComponent={RoomNameInput}
+                                ref={inputCallbackRef}
+                                inputID={INPUT_IDS.ROOM_NAME}
+                                isFocused={isFocused}
+                                shouldDelayFocus
+                                autoFocus
+                            />
+                        </View>
+                        <View style={styles.mb5}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.REPORT_DESCRIPTION}
+                                label={translate('reportDescriptionPage.roomDescriptionOptional')}
+                                accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
+                                role={CONST.ROLE.PRESENTATION}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
+                                autoCapitalize="none"
+                                shouldInterceptSwipe
+                                type="markdown"
+                            />
+                        </View>
+                        <View style={[styles.mhn5]}>
+                            <InputWrapper
+                                InputComponent={ValuePicker}
+                                inputID={INPUT_IDS.POLICY_ID}
+                                label={translate('workspace.common.workspace')}
+                                items={workspaceOptions}
+                                value={policyID}
+                                onValueChange={(value) => setPolicyID(value as typeof policyID)}
+                            />
+                        </View>
+                        {isAdminPolicy && (
+                            <View style={styles.mhn5}>
                                 <InputWrapper
                                     InputComponent={ValuePicker}
-                                    inputID={INPUT_IDS.VISIBILITY}
-                                    label={translate('newRoomPage.visibility')}
-                                    items={visibilityOptions}
-                                    onValueChange={(value) => setVisibility(value as typeof visibility)}
-                                    value={visibility}
-                                    furtherDetails={visibilityDescription}
-                                    shouldShowTooltips={false}
+                                    inputID={INPUT_IDS.WRITE_CAPABILITY}
+                                    label={translate('writeCapabilityPage.label')}
+                                    items={writeCapabilityOptions}
+                                    value={writeCapability}
+                                    onValueChange={(value) => setWriteCapability(value as typeof writeCapability)}
                                 />
                             </View>
-                        </FormProvider>
-                        {isSmallScreenWidth && (
-                            <>
-                                <OfflineIndicator />
-                                <ImportedStateIndicator />
-                            </>
                         )}
-                    </KeyboardAvoidingView>
-                )
-            }
+                        <View style={[styles.mb1, styles.mhn5]}>
+                            <InputWrapper
+                                InputComponent={ValuePicker}
+                                inputID={INPUT_IDS.VISIBILITY}
+                                label={translate('newRoomPage.visibility')}
+                                items={visibilityOptions}
+                                onValueChange={(value) => setVisibility(value as typeof visibility)}
+                                value={visibility}
+                                furtherDetails={visibilityDescription}
+                                shouldShowTooltips={false}
+                            />
+                        </View>
+                    </FormProvider>
+                    {isSmallScreenWidth && (
+                        <>
+                            <OfflineIndicator />
+                            <ImportedStateIndicator />
+                        </>
+                    )}
+                </KeyboardAvoidingView>
+            )}
         </ScreenWrapper>
     );
 }

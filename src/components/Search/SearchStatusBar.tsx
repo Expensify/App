@@ -180,7 +180,7 @@ function SearchStatusBar({queryJSON, onStatusChange}: SearchStatusBarProps) {
                     const query = SearchQueryUtils.buildSearchQueryString({...queryJSON, status: item.status});
                     Navigation.setParams({q: query});
                 });
-                const isActive = queryJSON.status === item.status;
+                const isActive = Array.isArray(queryJSON.status) ? queryJSON.status.includes(item.status) : queryJSON.status === item.status;
                 const isFirstItem = index === 0;
                 const isLastItem = index === options.length - 1;
 

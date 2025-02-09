@@ -88,8 +88,6 @@ function ReportActionItemEmojiReactions({
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
 
-    let totalReactionCount = 0;
-
     const reportActionID = reportAction.reportActionID;
 
     // Each emoji is sorted by the oldest timestamp of user reactions so that they will always appear in the same order for everyone
@@ -104,8 +102,6 @@ function ReportActionItemEmojiReactions({
             if (reactionCount === 0) {
                 return null;
             }
-            // eslint-disable-next-line react-compiler/react-compiler
-            totalReactionCount += reactionCount;
 
             const onPress = () => {
                 toggleReaction(emoji, true);
@@ -129,6 +125,8 @@ function ReportActionItemEmojiReactions({
         }),
         ['oldestTimestamp'],
     );
+
+    const totalReactionCount = formattedReactions.reduce((prev, curr) => (curr === null ? prev : prev + curr.reactionCount), 0);
 
     return (
         totalReactionCount > 0 && (

@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as Url from '@libs/Url';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInvoicesCompanyWebsiteForm';
 
-type WorkspaceInvoicingDetailsWebsiteProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE>;
+type WorkspaceInvoicingDetailsWebsiteProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE>;
 
 function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebsiteProps) {
     const {policyID} = route.params;
@@ -34,7 +34,8 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>) => {
-        Policy.updateInvoiceCompanyWebsite(policyID, values[INPUT_IDS.COMPANY_WEBSITE]);
+        const companyWebsite = Str.sanitizeURL(values[INPUT_IDS.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+        Policy.updateInvoiceCompanyWebsite(policyID, companyWebsite);
         Navigation.goBack();
     };
 
@@ -44,10 +45,11 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
         const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE]);
 
         if (values.companyWebsite) {
-            if (!ValidationUtils.isValidWebsite(values.companyWebsite)) {
+            const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+            if (!ValidationUtils.isValidWebsite(companyWebsite)) {
                 errors.companyWebsite = translate('bankAccount.error.website');
             } else {
-                const domain = Url.extractUrlDomain(values.companyWebsite);
+                const domain = Url.extractUrlDomain(companyWebsite);
 
                 if (!domain || !Str.isValidDomainName(domain)) {
                     errors.companyWebsite = translate('iou.invalidDomainError');

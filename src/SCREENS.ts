@@ -22,17 +22,29 @@ const SCREENS = {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     CONNECTION_COMPLETE: 'ConnectionComplete',
+    BANK_CONNECTION_COMPLETE: 'BankConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
+        TRIP_SUMMARY: 'Travel_TripSummary',
+        TRIP_DETAILS: 'Travel_TripDetails',
+        UPGRADE: 'Travel_Upgrade',
+        DOMAIN_SELECTOR: 'Travel_DomainSelector',
+        DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
+        PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
     },
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
+        ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
+        ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
+        ADVANCED_FILTERS_PAID_RHP: 'Search_Advanced_Filters_Paid_RHP',
+        ADVANCED_FILTERS_EXPORTED_RHP: 'Search_Advanced_Filters_Exported_RHP',
+        ADVANCED_FILTERS_POSTED_RHP: 'Search_Advanced_Filters_Posted_RHP',
         ADVANCED_FILTERS_CURRENCY_RHP: 'Search_Advanced_Filters_Currency_RHP',
         ADVANCED_FILTERS_DESCRIPTION_RHP: 'Search_Advanced_Filters_Description_RHP',
         ADVANCED_FILTERS_MERCHANT_RHP: 'Search_Advanced_Filters_Merchant_RHP',
@@ -62,6 +74,7 @@ const SCREENS = {
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
+        ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
@@ -111,11 +124,13 @@ const SCREENS = {
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
+            REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
             VERIFY_ACCOUNT: 'Settings_Wallet_Verify_Account',
         },
 
         EXIT_SURVEY: {
+            BOOK_CALL: 'Settings_ExitSurvey_Book_Call',
             REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
             CONFIRM: 'Settings_ExitSurvey_Confirm',
@@ -150,6 +165,7 @@ const SCREENS = {
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
+        WORKSPACE_CONFIRMATION: 'Workspace_Confirmation',
         REPORT_SETTINGS: 'Report_Settings',
         REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
@@ -198,6 +214,7 @@ const SCREENS = {
         HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         START: 'Money_Request_Start',
+        STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
         STEP_CURRENCY: 'Money_Request_Step_Currency',
@@ -221,6 +238,12 @@ const SCREENS = {
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
         STEP_ATTENDEES: 'Money_Request_Attendee',
+        STEP_DESTINATION: 'Money_Request_Destination',
+        STEP_TIME: 'Money_Request_Time',
+        STEP_SUBRATE: 'Money_Request_SubRate',
+        STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
+        STEP_TIME_EDIT: 'Money_Request_Time_Edit',
+        STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -309,6 +332,8 @@ const SCREENS = {
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
     },
+
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
 
     WORKSPACE: {
         ACCOUNTING: {
@@ -405,6 +430,19 @@ const SCREENS = {
             NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: 'Policy_Accounting_NetSuite_Journal_Entry_Approval_Level_Select',
             NETSUITE_APPROVAL_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Approval_Account_Select',
             NETSUITE_CUSTOM_FORM_ID: 'Policy_Accounting_NetSuite_Custom_Form_ID',
+            NETSUITE_AUTO_SYNC: 'Policy_Accounting_NetSuite_Auto_Sync',
+            NETSUITE_ACCOUNTING_METHOD: 'Policy_Accounting_NetSuite_Accounting_Method',
+            NSQS_SETUP: 'Policy_Accounting_NSQS_Setup',
+            NSQS_IMPORT: 'Policy_Accounting_NSQS_Import',
+            NSQS_IMPORT_CUSTOMERS: 'Policy_Accounting_NSQS_Import_Customers',
+            NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_NSQS_Import_Customers_Displayed_As',
+            NSQS_IMPORT_PROJECTS: 'Policy_Accounting_NSQS_Import_Projects',
+            NSQS_IMPORT_PROJECTS_DISPLAYED_AS: 'Policy_Accounting_NSQS_Import_Projects_Displayed_As',
+            NSQS_EXPORT: 'Policy_Accounting_NSQS_Export',
+            NSQS_EXPORT_PREFERRED_EXPORTER: 'Policy_Accounting_NSQS_Export_Preferred_Exporter',
+            NSQS_EXPORT_DATE: 'Policy_Accounting_NSQS_Export_Date',
+            NSQS_ADVANCED: 'Policy_Accounting_NSQS_Advanced',
+            NSQS_ADVANCED_APPROVAL_ACCOUNT: 'Policy_Accounting_NSQS_Advanced_Approval_Account',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
@@ -428,12 +466,14 @@ const SCREENS = {
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
+            MULTI_CONNECTION_SELECTOR: 'Policy_Accounting_Multi_Connection_Selector',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_ASSIGN_CARD: 'Workspace_CompanyCards_AssignCard',
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
+        COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
         COMPANY_CARDS_TYPE: 'Workspace_CompanyCards_Type',
         COMPANY_CARDS_INSTRUCTIONS: 'Workspace_CompanyCards_Instructions',
@@ -494,6 +534,7 @@ const SCREENS = {
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Profile_Currency',
         ADDRESS: 'Workspace_Profile_Address',
+        PLAN: 'Workspace_Profile_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVALS_NEW: 'Workspace_Approvals_New',
@@ -542,6 +583,16 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
+        RULES_CUSTOM: 'Rules_Custom',
+        PER_DIEM: 'Per_Diem',
+        PER_DIEM_IMPORT: 'Per_Diem_Import',
+        PER_DIEM_IMPORTED: 'Per_Diem_Imported',
+        PER_DIEM_SETTINGS: 'Per_Diem_Settings',
+        PER_DIEM_DETAILS: 'Per_Diem_Details',
+        PER_DIEM_EDIT_DESTINATION: 'Per_Diem_Edit_Destination',
+        PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
+        PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
+        PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
     },
 
     EDIT_REQUEST: {
@@ -566,8 +617,10 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
+        PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
+        WORKSPACES: 'Onboarding_Workspaces',
     },
 
     WELCOME_VIDEO: {
@@ -576,6 +629,10 @@ const SCREENS = {
 
     EXPLANATION_MODAL: {
         ROOT: 'Explanation_Modal_Root',
+    },
+
+    MIGRATED_USER_WELCOME_MODAL: {
+        ROOT: 'MigratedUserWelcomeModal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
@@ -616,6 +673,9 @@ const SCREENS = {
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
         DETAILS_CONSTANT_PICKER_PAGE: 'Debug_Details_Constant_Picker_Page',
         DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
+        TRANSACTION: 'Debug_Transaction',
+        TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
+        TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
     },
 } as const;
 

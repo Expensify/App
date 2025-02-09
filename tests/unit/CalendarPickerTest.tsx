@@ -1,5 +1,5 @@
 import type ReactNavigationNative from '@react-navigation/native';
-import {fireEvent, render, screen, within} from '@testing-library/react-native';
+import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 import type {ComponentType} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
@@ -121,9 +121,11 @@ describe('CalendarPicker', () => {
         expect(onSelectedMock).toHaveBeenCalledWith('2022-02-15');
     });
 
-    test('should block the back arrow when there is no available dates in the previous month', () => {
+    test('should block the back arrow when there is no available dates in the previous month', async () => {
         const minDate = new Date('2003-02-01');
         const value = new Date('2003-02-17');
+
+        // given the min date is 1
         render(
             <CalendarPicker
                 minDate={minDate}
@@ -131,12 +133,18 @@ describe('CalendarPicker', () => {
             />,
         );
 
-        expect(screen.getByTestId('prev-month-arrow')).toBeDisabled();
+        // When the previous month arrow is pressed
+        const user = userEvent.setup();
+        await user.press(screen.getByTestId('prev-month-arrow'));
+
+        // Then the previous month should not be called as the previous month button is disabled
+        const prevMonth = subMonths(value, 1).getMonth();
+        expect(screen.queryByText(monthNames.at(prevMonth) ?? '')).not.toBeOnTheScreen();
     });
 
-    test('should block the next arrow when there is no available dates in the next month', () => {
+    test('should block the next arrow when there is no available dates in the next month', async () => {
         const maxDate = new Date('2003-02-24');
-        const value = '2003-02-17';
+        const value = new Date('2003-02-17');
         render(
             <CalendarPicker
                 maxDate={maxDate}
@@ -144,12 +152,20 @@ describe('CalendarPicker', () => {
             />,
         );
 
-        expect(screen.getByTestId('next-month-arrow')).toBeDisabled();
+        // When the next month arrow is pressed
+        const user = userEvent.setup();
+        await user.press(screen.getByTestId('next-month-arrow'));
+
+        // Then the next month should not be called as the next month button is disabled
+        const nextMonth = addMonths(value, 1).getMonth();
+        expect(screen.queryByText(monthNames.at(nextMonth) ?? '')).not.toBeOnTheScreen();
     });
 
     test('should allow navigating to the month of the max date when it has less days than the selected date', () => {
         const maxDate = new Date('2003-11-27'); // This month has 30 days
         const value = '2003-10-31';
+
+        // given the max date is 27
         render(
             <CalendarPicker
                 maxDate={maxDate}
@@ -157,7 +173,8 @@ describe('CalendarPicker', () => {
             />,
         );
 
-        expect(screen.getByTestId('next-month-arrow')).not.toBeDisabled();
+        // then the next arrow should be enabled
+        expect(screen.getByTestId('next-month-arrow')).toBeEnabled();
     });
 
     test('should open the calendar on a month from max date if it is earlier than current month', () => {
@@ -198,32 +215,62 @@ describe('CalendarPicker', () => {
     test('should not allow to press earlier day than minDate', () => {
         const value = '2003-02-17';
         const minDate = new Date('2003-02-16');
+        const onSelectedMock = jest.fn();
+
+        // given the min date is 16
         render(
             <CalendarPicker
                 minDate={minDate}
                 value={value}
+                onSelected={onSelectedMock}
             />,
         );
 
-        expect(screen.getByLabelText('15')).toBeDisabled();
+        //  When the day 15 is pressed
+        fireEvent.press(screen.getByLabelText('15'));
+
+        // Then the onSelected should not be called as the label 15 is disabled
+        expect(onSelectedMock).not.toHaveBeenCalled();
+
+        // When the day 16 is pressed
+        fireEvent.press(screen.getByLabelText('16'));
+
+        // Then the onSelected should be called as the label 16 is enabled
+        expect(onSelectedMock).toHaveBeenCalledWith('2003-02-16');
     });
 
     test('should not allow to press later day than max', () => {
         const value = '2003-02-17';
         const maxDate = new Date('2003-02-24');
+        const onSelectedMock = jest.fn();
+
+        // given the max date is 24
         render(
             <CalendarPicker
                 maxDate={maxDate}
                 value={value}
+                onSelected={onSelectedMock}
             />,
         );
 
-        expect(screen.getByLabelText('25')).toBeDisabled();
+        //  When the day 25 is pressed
+        fireEvent.press(screen.getByLabelText('25'));
+
+        // Then the onSelected should not be called as the label 15 is disabled
+        expect(onSelectedMock).not.toHaveBeenCalled();
+
+        // When the day 24 is pressed
+        fireEvent.press(screen.getByLabelText('24'));
+
+        // Then the onSelected should be called as the label 24 is enabled
+        expect(onSelectedMock).toHaveBeenCalledWith('2003-02-24');
     });
 
     test('should allow to press min date', () => {
         const value = '2003-02-17';
         const minDate = new Date('2003-02-16');
+
+        // given the min date is 16
         render(
             <CalendarPicker
                 minDate={minDate}
@@ -231,12 +278,15 @@ describe('CalendarPicker', () => {
             />,
         );
 
-        expect(screen.getByLabelText('16')).not.toBeDisabled();
+        // then the label 16 should be clickable
+        expect(screen.getByLabelText('16')).toBeEnabled();
     });
 
     test('should allow to press max date', () => {
         const value = '2003-02-17';
         const maxDate = new Date('2003-02-24');
+
+        // given the max date is 24
         render(
             <CalendarPicker
                 maxDate={maxDate}
@@ -244,6 +294,7 @@ describe('CalendarPicker', () => {
             />,
         );
 
-        expect(screen.getByLabelText('24')).not.toBeDisabled();
+        // then the label 24 should be clickable
+        expect(screen.getByLabelText('24')).toBeEnabled();
     });
 });

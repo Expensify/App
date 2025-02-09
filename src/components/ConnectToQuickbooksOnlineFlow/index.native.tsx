@@ -32,8 +32,7 @@ function ConnectToQuickbooksOnlineFlow({policyID, session}: ConnectToQuickbooksO
         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
         PolicyAction.enablePolicyTaxes(policyID, false);
         setWebViewOpen(true);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     if (isWebViewOpen) {

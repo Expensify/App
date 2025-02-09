@@ -20,7 +20,7 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import shouldReplayVideo from './shouldReplayVideo';
 import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
@@ -70,31 +70,33 @@ function BaseVideoPlayer({
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEnded, setIsEnded] = useState(false);
     const [isBuffering, setIsBuffering] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
-    const [sourceURL] = useState(VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
+    const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: controlsOpacity.value,
+        opacity: controlsOpacity.get(),
     }));
 
     const videoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
-    const {updateVolume} = useVolumeContext();
-    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {updateVolume, lastNonZeroVolume} = useVolumeContext();
+    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
     const togglePlayCurrentVideo = useCallback(() => {
+        setIsEnded(false);
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
             updateCurrentlyPlayingURL(url);
@@ -106,9 +108,12 @@ function BaseVideoPlayer({
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
-    }, [controlsOpacity]);
+        if (isEnded) {
+            return;
+        }
+
+        controlsOpacity.set(withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE)));
+    }, [controlsOpacity, isEnded]);
     const debouncedHideControl = useMemo(() => debounce(hideControl, 1500), [hideControl]);
 
     useEffect(() => {
@@ -144,7 +149,7 @@ function BaseVideoPlayer({
             return;
         }
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
-        controlsOpacity.value = 1;
+        controlsOpacity.set(1);
     }, [controlStatusState, controlsOpacity, hideControl]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -158,6 +163,7 @@ function BaseVideoPlayer({
             }
             setIsPopoverVisible(true);
         });
+        setPopoverMenuSource(url);
         if (!event || !('nativeEvent' in event)) {
             return;
         }
@@ -182,9 +188,8 @@ function BaseVideoPlayer({
         },
         [playVideo, videoResumeTryNumberRef],
     );
-
-    const prevIsMutedRef = useRef(false);
-    const prevVolumeRef = useRef(0);
+    const prevIsMuted = useSharedValue(true);
+    const prevVolume = useSharedValue(0);
 
     const handlePlaybackStatusUpdate = useCallback(
         (status: AVPlaybackStatus) => {
@@ -198,22 +203,32 @@ function BaseVideoPlayer({
                 onPlaybackStatusUpdate?.(status);
                 return;
             }
-
-            if (prevIsMutedRef.current && prevVolumeRef.current === 0 && !status.isMuted) {
-                updateVolume(0.25);
+            if (status.didJustFinish) {
+                setIsEnded(status.didJustFinish && !status.isLooping);
+                setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+                controlsOpacity.set(1);
+            } else if (status.isPlaying && isEnded) {
+                setIsEnded(false);
             }
-            if (isFullScreenRef.current && prevVolumeRef.current !== 0 && status.volume === 0 && !status.isMuted) {
+
+            // These two conditions are essential for the mute and unmute functionality to work properly during
+            // fullscreen playback on the web
+            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted) {
+                updateVolume(lastNonZeroVolume.get());
+            }
+
+            if (isFullScreenRef.current && prevVolume.get() !== 0 && status.volume === 0 && !status.isMuted) {
                 currentVideoPlayerRef.current?.setStatusAsync({isMuted: true});
             }
-            prevIsMutedRef.current = status.isMuted;
-            prevVolumeRef.current = status.volume;
+            prevIsMuted.set(status.isMuted);
+            prevVolume.set(status.volume);
 
             const isVideoPlaying = status.isPlaying;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const currentDuration = status.durationMillis || videoDuration * 1000;
             const currentPositon = status.positionMillis || 0;
 
-            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPositon)) {
+            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPositon) && !isEnded) {
                 videoPlayerRef.current?.setStatusAsync({positionMillis: 0, shouldPlay: true});
             }
 
@@ -228,7 +243,7 @@ function BaseVideoPlayer({
             onPlaybackStatusUpdate?.(status);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this when isPlaying changes because isPlaying is only used inside shouldReplayVideo
-        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration],
+        [onPlaybackStatusUpdate, preventPausingWhenExitingFullscreen, videoDuration, isEnded],
     );
 
     const handleFullscreenUpdate = useCallback(
@@ -254,7 +269,6 @@ function BaseVideoPlayer({
                     if (!('isMuted' in status)) {
                         return;
                     }
-
                     updateVolume(status.isMuted ? 0 : status.volume || 1);
                 });
 
@@ -329,8 +343,21 @@ function BaseVideoPlayer({
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef]);
 
+    // Call bindFunctions() through the refs to avoid adding it to the dependency array of the DOM mutation effect, as doing so would change the DOM when the functions update.
+    const bindFunctionsRef = useRef<(() => void) | null>(null);
+    const shouldBindFunctionsRef = useRef(false);
+
+    useEffect(() => {
+        bindFunctionsRef.current = bindFunctions;
+        if (shouldBindFunctionsRef.current) {
+            bindFunctions();
+        }
+    }, [bindFunctions]);
+
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
+        shouldBindFunctionsRef.current = false;
+
         if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
@@ -347,7 +374,8 @@ function BaseVideoPlayer({
         videoPlayerRef.current = currentVideoPlayerRef.current;
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
             newParentRef.appendChild(sharedElement as HTMLDivElement);
-            bindFunctions();
+            bindFunctionsRef.current?.();
+            shouldBindFunctionsRef.current = true;
         }
         return () => {
             if (!originalParent || !('appendChild' in originalParent)) {
@@ -360,7 +388,7 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
@@ -456,7 +484,7 @@ function BaseVideoPlayer({
                             </PressableWithoutFeedback>
                             {((isLoading && !isOffline) || (isBuffering && !isPlaying)) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                             {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
-                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen) && (
+                            {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                 <VideoPlayerControls
                                     duration={duration}
                                     position={position}

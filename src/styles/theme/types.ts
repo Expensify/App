@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
 import type CONST from '@src/CONST';
 import type {ColorScheme, StatusBarStyle} from '..';
 
@@ -99,6 +100,7 @@ type ThemeColors = {
     transparentWhite: Color;
     emptyFolderBG: Color;
     travelBG: Color;
+    trialTimer: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 
@@ -106,6 +108,7 @@ type ThemeColors = {
     // Therefore, we need to define specific themes for these elements
     // e.g. the StatusBar displays either "light-content" or "dark-content" based on the theme
     statusBarStyle: StatusBarStyle;
+    navigationBarButtonsStyle: NavBarButtonStyle;
     colorScheme: ColorScheme;
 };
 

@@ -33,7 +33,7 @@ type CreateOnyxContext<TOnyxKey extends OnyxKey> = [
     WithOnyxKey<TOnyxKey>,
     ComponentType<Omit<ProviderPropsWithOnyx<TOnyxKey>, TOnyxKey>>,
     React.Context<OnyxValue<TOnyxKey>>,
-    () => NonNullable<OnyxValue<TOnyxKey>>,
+    () => OnyxValue<TOnyxKey>,
 ];
 
 export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxContext<TOnyxKey> => {
@@ -43,7 +43,7 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
     }
 
     Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
-
+    // eslint-disable-next-line
     const ProviderWithOnyx = withOnyx<ProviderPropsWithOnyx<TOnyxKey>, ProviderOnyxProps<TOnyxKey>>({
         [onyxKeyName]: {
             key: onyxKeyName,
@@ -87,7 +87,7 @@ export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxCont
         if (value === null) {
             throw new Error(`useOnyxContext must be used within a OnyxProvider [key: ${onyxKeyName}]`);
         }
-        return value as NonNullable<OnyxValue<TOnyxKey>>;
+        return value as OnyxValue<TOnyxKey>;
     };
 
     return [withOnyxKey, ProviderWithOnyx, Context, useOnyxContext];

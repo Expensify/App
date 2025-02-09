@@ -1,6 +1,6 @@
 type UpdateCompanyCard = {
     authToken?: string | null;
-    cardID: string;
+    cardID: number;
 };
 
 export default UpdateCompanyCard;

@@ -1,4 +1,4 @@
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -18,7 +18,7 @@ type BankIcon = {
     iconWidth?: number;
 
     /** Icon wrapper styles */
-    iconStyles?: ViewStyle[];
+    iconStyles?: StyleProp<ViewStyle>;
 };
 
 /** Bank names */

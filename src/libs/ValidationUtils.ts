@@ -5,12 +5,13 @@ import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
-import * as CardUtils from './CardUtils';
+import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
-import * as LoginUtils from './LoginUtils';
+import {translateLocal} from './Localize';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -20,16 +21,24 @@ import StringUtils from './StringUtils';
  */
 function validateCardNumber(value: string): boolean {
     let sum = 0;
-    for (let i = 0; i < value.length; i++) {
-        let intVal = parseInt(value.substr(i, 1), 10);
-        if (i % 2 === 0) {
+    let shouldDouble = false;
+
+    // Loop through the card number from right to left
+    for (let i = value.length - 1; i >= 0; i--) {
+        let intVal = parseInt(value[i], 10);
+
+        // Double every second digit from the right
+        if (shouldDouble) {
             intVal *= 2;
             if (intVal > 9) {
-                intVal = 1 + (intVal % 10);
+                intVal -= 9;
             }
         }
+
         sum += intVal;
+        shouldDouble = !shouldDouble;
     }
+
     return sum % 10 === 0;
 }
 
@@ -41,7 +50,7 @@ function isValidAddress(value: FormValue): boolean {
         return false;
     }
 
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.EMOJIS)) {
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
         return false;
     }
 
@@ -110,7 +119,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
             return;
         }
 
-        errors[fieldKey] = Localize.translateLocal('common.error.fieldRequired');
+        errors[fieldKey] = translateLocal('common.error.fieldRequired');
     });
 
     return errors;
@@ -129,7 +138,7 @@ function isValidExpirationDate(string: string): boolean {
     }
 
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
+    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
     return isAfter(new Date(expirationDate), endOfMonth(new Date()));
 }
 
@@ -158,6 +167,10 @@ function isValidIndustryCode(code: string): boolean {
 
 function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
+}
+
+function isValidPaymentZipCode(zipCode: string): boolean {
+    return CONST.REGEX.ALPHANUMERIC_WITH_SPACE_AND_HYPHEN.test(zipCode);
 }
 
 function isValidSSNLastFour(ssnLast4: string): boolean {
@@ -194,7 +207,7 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     const maximalDate = subYears(currentDate, minimumAge);
@@ -205,10 +218,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
+        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
     }
 
-    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
+    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
 }
 
 /**
@@ -220,14 +233,14 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     // Clear time for currentDate so comparison is based solely on the date
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translateLocal('common.error.dateInvalid');
     }
 
     return '';
@@ -238,8 +251,7 @@ function getDatePassedError(inputDate: string): string {
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    const isLowerCase = url === url.toLowerCase();
-    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
+    return new RegExp(`^${Url.URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
 }
 
 /** Checks if the domain is public */
@@ -311,7 +323,7 @@ function isValidTwoFactorCode(code: string): boolean {
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  */
 function isNumericWithSpecialChars(input: string): boolean {
-    return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?[\d\\+]*$/.test(getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -336,7 +348,7 @@ function isValidRoutingNumber(routingNumber: string): boolean {
  * Checks that the provided name doesn't contain any emojis
  */
 function isValidCompanyName(name: string) {
-    return !name.match(CONST.REGEX.EMOJIS);
+    return !name.match(CONST.REGEX.ALL_EMOJIS);
 }
 
 function isValidReportName(name: string) {
@@ -383,8 +395,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string): boolean {
-    return Object.values(reports ?? {}).some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string | undefined): boolean {
+    return Object.values(reports ?? {}).some((report) => report && policyID && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -495,6 +507,143 @@ function isValidSubscriptionSize(subscriptionSize: string): boolean {
     return !Number.isNaN(parsedSubscriptionSize) && parsedSubscriptionSize > 0 && parsedSubscriptionSize <= CONST.SUBSCRIPTION_SIZE_LIMIT && Number.isInteger(parsedSubscriptionSize);
 }
 
+/**
+ * Validates the given value if it is correct email address.
+ * @param email
+ */
+function isValidEmail(email: string): boolean {
+    return Str.isValidEmail(email);
+}
+
+/**
+ * Validates the given value if it is correct phone number in E164 format (international standard).
+ * @param phoneNumber
+ */
+function isValidPhoneInternational(phoneNumber: string): boolean {
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+
+    return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
+}
+
+/**
+ * Validates the given value if it is correct zip code for international addresses.
+ * @param zipCode
+ */
+function isValidZipCodeInternational(zipCode: string): boolean {
+    return /^[a-z0-9][a-z0-9\- ]{0,10}[a-z0-9]$/.test(zipCode);
+}
+
+/**
+ * Validates the given value if it is correct ownership percentage
+ * @param value
+ * @param totalOwnedPercentage
+ * @param ownerBeingModifiedID
+ */
+function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<string, number>, ownerBeingModifiedID: string): boolean {
+    const parsedValue = Number(value);
+    const isValidNumber = !Number.isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 100;
+
+    let totalOwnedPercentageSum = 0;
+    const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
+    totalOwnedPercentageKeys.forEach((key) => {
+        if (key === ownerBeingModifiedID) {
+            return;
+        }
+
+        totalOwnedPercentageSum += totalOwnedPercentage[key];
+    });
+
+    const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
+
+    return isValidNumber && isTotalSumValid;
+}
+
+/**
+ * Validates the given value if it is correct ABN number - https://abr.business.gov.au/Help/AbnFormat
+ * @param registrationNumber - number to validate.
+ */
+function isValidABN(registrationNumber: string): boolean {
+    const cleanedAbn: string = registrationNumber.replaceAll(/[ _]/g, '');
+    if (cleanedAbn.length !== 11) {
+        return false;
+    }
+
+    const weights: number[] = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    const checksum: number = [...cleanedAbn].reduce((total: number, char: string, index: number) => {
+        let digit = Number(char);
+        if (index === 0) {
+            digit--;
+        } // First digit special rule
+        return total + digit * (weights.at(index) ?? 0); // Using optional chaining for safety
+    }, 0);
+
+    return checksum % 89 === 0;
+}
+
+/**
+ * Validates the given value if it is correct ACN number - https://asic.gov.au/for-business/registering-a-company/steps-to-register-a-company/australian-company-numbers/australian-company-number-digit-check/
+ * @param registrationNumber - number to validate.
+ */
+function isValidACN(registrationNumber: string): boolean {
+    const cleanedAcn: string = registrationNumber.replaceAll(/\s|-/g, '');
+    if (cleanedAcn.length !== 9 || Number.isNaN(Number(cleanedAcn))) {
+        return false;
+    }
+
+    const weights: number[] = [8, 7, 6, 5, 4, 3, 2, 1];
+    const tally: number = weights.reduce((total: number, weight: number, index: number) => {
+        return total + Number(cleanedAcn[index]) * weight;
+    }, 0);
+
+    const checkDigit: number = 10 - (tally % 10);
+    return checkDigit === Number(cleanedAcn[8]) || (checkDigit === 10 && Number(cleanedAcn[8]) === 0);
+}
+
+/**
+ * Validates the given value if it is correct australian registration number.
+ * @param registrationNumber
+ */
+function isValidAURegistrationNumber(registrationNumber: string): boolean {
+    return isValidABN(registrationNumber) || isValidACN(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct british registration number.
+ * @param registrationNumber
+ */
+function isValidGBRegistrationNumber(registrationNumber: string): boolean {
+    return /^(?:\d{8}|[A-Z]{2}\d{6})$/.test(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct canadian registration number.
+ * @param registrationNumber
+ */
+function isValidCARegistrationNumber(registrationNumber: string): boolean {
+    return /^\d{9}(?:[A-Z]{2}\d{4})?$/.test(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct registration number for the given country.
+ * @param registrationNumber
+ * @param country
+ */
+function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
+    switch (country) {
+        case CONST.COUNTRY.AU:
+            return isValidAURegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.GB:
+            return isValidGBRegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.CA:
+            return isValidCARegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.US:
+            return isValidTaxID(registrationNumber);
+        default:
+            return true;
+    }
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -507,6 +656,7 @@ export {
     isValidDebitCard,
     isValidIndustryCode,
     isValidZipCode,
+    isValidPaymentZipCode,
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
@@ -539,4 +689,9 @@ export {
     isValidSubscriptionSize,
     isExistingTaxCode,
     isPublicDomain,
+    isValidEmail,
+    isValidPhoneInternational,
+    isValidZipCodeInternational,
+    isValidOwnershipPercentage,
+    isValidRegistrationNumber,
 };

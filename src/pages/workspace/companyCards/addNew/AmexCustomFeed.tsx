@@ -59,6 +59,13 @@ function AmexCustomFeed() {
             keyForList: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.BUSINESS,
             isSelected: typeSelected === CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.BUSINESS,
         },
+        {
+            value: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.PERSONAL,
+            text: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.PERSONAL,
+            alternateText: translate('workspace.companyCards.addNewCard.amexPersonal'),
+            keyForList: CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.PERSONAL,
+            isSelected: typeSelected === CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED.PERSONAL,
+        },
     ];
 
     return (
@@ -69,14 +76,14 @@ function AmexCustomFeed() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mb6]}>
-                {`${translate('workspace.companyCards.addNewCard.learnMoreAboutConnections.text')}`}
-                <TextLink href={CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}>{`${translate('workspace.companyCards.addNewCard.learnMoreAboutConnections.linkText')}`}</TextLink>
+                {`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.text')}`}
+                <TextLink href={CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}>{`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.linkText')}`}</TextLink>
             </Text>
 
             <SelectionList

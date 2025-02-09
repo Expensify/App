@@ -11,6 +11,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -42,11 +43,50 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
         },
     ];
 
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const policy = PolicyUtils.getPolicy(policyID);
+    const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
+
+    if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areReportFieldsEnabled: false,
+                pendingFields: {
+                    areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    areReportFieldsEnabled: null,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                areReportFieldsEnabled: policy?.areReportFieldsEnabled,
+                pendingFields: {
+                    areReportFieldsEnabled: null,
+                },
+            },
+        });
+    }
+
     const parameters: RemovePolicyConnectionParams = {
         policyID,
         connectionName,
     };
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, successData, failureData});
 }
 
 function createPendingFields<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
@@ -165,6 +205,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_NETSUITE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.NSQS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_NSQS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NSQS_SYNC_CONNECTION};
+        }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION};
         }
@@ -228,11 +271,14 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
-    policyID: string,
+    policyID: string | undefined,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
 ) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -327,6 +373,21 @@ function isConnectionUnverified(policy: OnyxEntry<Policy>, connectionName: Polic
     return !(policy?.connections?.[connectionName]?.lastSync?.isConnected ?? true);
 }
 
+function setConnectionError(policyID: string, connectionName: PolicyConnectionName, errorMessage?: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        connections: {
+            [connectionName]: {
+                lastSync: {
+                    isSuccessful: false,
+                    isConnected: false,
+                    errorDate: new Date().toISOString(),
+                    errorMessage,
+                },
+            },
+        },
+    });
+}
+
 function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID: string, connectionName: ConnectionName) {
     let stageInProgress;
     switch (connectionName) {
@@ -389,4 +450,5 @@ export {
     isConnectionUnverified,
     isConnectionInProgress,
     hasSynchronizationErrorMessage,
+    setConnectionError,
 };

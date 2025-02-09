@@ -1,8 +1,7 @@
-import React, {useEffect, useRef} from 'react';
-import {Animated, InteractionManager} from 'react-native';
+import React, {useEffect} from 'react';
+import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -35,11 +34,15 @@ const OFFSET_X = {
 
 function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
     const styles = useThemeStyles();
-    const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
+    const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
     const theme = useTheme();
 
+    useEffect(() => {
+        offsetX.set(withTiming(isOn ? OFFSET_X.ON : OFFSET_X.OFF, {duration: 300}));
+    }, [isOn, offsetX]);
+
     const handleSwitchPress = () => {
-        InteractionManager.runAfterInteractions(() => {
+        requestAnimationFrame(() => {
             if (disabled) {
                 disabledAction?.();
                 return;
@@ -48,18 +51,17 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
         });
     };
 
-    useEffect(() => {
-        Animated.timing(offsetX.current, {
-            toValue: isOn ? OFFSET_X.ON : OFFSET_X.OFF,
-            duration: 300,
-            useNativeDriver,
-        }).start();
-    }, [isOn]);
+    const animatedThumbStyle = useAnimatedStyle(() => ({
+        transform: [{translateX: offsetX.get()}],
+    }));
+
+    const animatedSwitchTrackStyle = useAnimatedStyle(() => ({
+        backgroundColor: interpolateColor(offsetX.get(), [OFFSET_X.OFF, OFFSET_X.ON], [theme.icon, theme.success]),
+    }));
 
     return (
         <PressableWithFeedback
             disabled={!disabledAction && disabled}
-            style={[styles.switchTrack, !isOn && styles.switchInactive]}
             onPress={handleSwitchPress}
             onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
@@ -69,16 +71,17 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
         >
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
-            <Animated.View style={[styles.switchThumb, styles.switchThumbTransformation(offsetX.current)]}>
-                {(!!disabled || !!showLockIcon) && (
-                    <Icon
-                        src={Expensicons.Lock}
-                        fill={isOn ? theme.text : theme.icon}
-                        width={styles.toggleSwitchLockIcon.width}
-                        height={styles.toggleSwitchLockIcon.height}
-                    />
-                )}
+            <Animated.View style={[styles.switchTrack, animatedSwitchTrackStyle]}>
+                <Animated.View style={[styles.switchThumb, animatedThumbStyle]}>
+                    {(!!disabled || !!showLockIcon) && (
+                        <Icon
+                            src={Expensicons.Lock}
+                            fill={isOn ? theme.text : theme.icon}
+                            width={styles.toggleSwitchLockIcon.width}
+                            height={styles.toggleSwitchLockIcon.height}
+                        />
+                    )}
+                </Animated.View>
             </Animated.View>
         </PressableWithFeedback>
     );

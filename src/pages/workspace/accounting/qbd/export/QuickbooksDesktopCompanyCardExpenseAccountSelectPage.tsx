@@ -39,7 +39,9 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
             value: card,
             text: card.name,
             keyForList: card.name,
-            isSelected: card.id === nonReimbursableAccount,
+            // We use the logical OR (||) here instead of ?? because `nonReimbursableAccount` can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            isSelected: card.id === (nonReimbursableAccount || accounts.at(0)?.id),
         }));
     }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
 

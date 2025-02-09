@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
@@ -11,13 +12,33 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {ListItemDataType, ListItemType, SearchDataTypes, SearchPersonalDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import * as CurrencyUtils from './CurrencyUtils';
+import type {
+    ListItemDataType,
+    ListItemType,
+    SearchDataTypes,
+    SearchPersonalDetails,
+    SearchPolicy,
+    SearchReport,
+    SearchTransaction,
+    SearchTransactionAction,
+} from '@src/types/onyx/SearchResults';
+import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
+import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
-import * as ReportActionsUtils from './ReportActionsUtils';
-import * as TransactionUtils from './TransactionUtils';
+import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
+import {
+    getSearchReportName,
+    hasOnlyHeldExpenses,
+    hasViolations,
+    isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
+    isClosedReport,
+    isInvoiceReport,
+    isMoneyRequestReport,
+    isSettled,
+} from './ReportUtils';
+import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isExpensifyCardTransaction, isPending} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -47,6 +68,9 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
+type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
+type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
 /**
  * @private
  *
@@ -61,10 +85,10 @@ function getTransactionItemCommonFormattedProperties(
 
     const formattedFrom = from?.displayName ?? from?.login ?? '';
     const formattedTo = to?.displayName ?? to?.login ?? '';
-    const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
+    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-    const merchant = TransactionUtils.getMerchant(transactionItem);
-    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+    const merchant = getTransactionMerchant(transactionItem);
+    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
 
     return {
         formattedFrom,
@@ -92,6 +116,17 @@ function isTransactionEntry(key: string): key is TransactionKey {
 /**
  * @private
  */
+function isPolicyEntry(key: string): key is PolicyKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
+}
+
+function isViolationEntry(key: string): key is ViolationKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+}
+
+/**
+ * @private
+ */
 function isReportActionEntry(key: string): key is ReportActionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
 }
@@ -104,7 +139,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
         if (isTransactionEntry(key)) {
             const item = data[key];
             const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
-            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
         }
         return false;
     });
@@ -144,7 +179,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
             if (isReportListItemType(item)) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
-                    const transactionYear = new Date(TransactionUtils.getCreated(transaction)).getFullYear();
+                    const transactionYear = new Date(getTransactionCreatedDate(transaction)).getFullYear();
                     return transactionYear !== currentYear;
                 });
             }
@@ -157,7 +192,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     for (const key in data) {
         if (isTransactionEntry(key)) {
             const item = data[key];
-            const date = TransactionUtils.getCreated(item);
+            const date = getTransactionCreatedDate(item);
 
             if (DateUtils.doesDateBelongToAPastYear(date)) {
                 return true;
@@ -183,7 +218,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
-    const formattedAmount = CurrencyUtils.convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
+    const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW) {
         return translateLocal('iou.payerOwesAmount', {
             payer: payerName,
@@ -209,7 +244,6 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
  */
 function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
     return Object.keys(data)
@@ -223,6 +257,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
             return {
                 ...transactionItem,
+                action: getAction(data, key),
                 from,
                 to,
                 formattedFrom,
@@ -241,6 +276,93 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 }
 
 /**
+ * Returns the action that can be taken on a given transaction or report
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTransactionAction {
+    const isTransaction = isTransactionEntry(key);
+    if (!isTransaction && !isReportEntry(key)) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
+    const transaction = isTransaction ? data[key] : undefined;
+    const report = isTransaction ? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] : data[key];
+
+    // Tracked and unreported expenses don't have a report, so we return early.
+    if (!report) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
+    if (isSettled(report)) {
+        return CONST.SEARCH.ACTION_TYPES.PAID;
+    }
+
+    if (isClosedReport(report)) {
+        return CONST.SEARCH.ACTION_TYPES.DONE;
+    }
+
+    // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (transaction?.errors || report?.errors) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
+    // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcircuit the logic for performance reasons
+    if (!isMoneyRequestReport(report)) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
+    const allReportTransactions = (
+        isReportEntry(key)
+            ? Object.entries(data)
+                  .filter(([itemKey, value]) => isTransactionEntry(itemKey) && (value as SearchTransaction)?.reportID === report.reportID)
+                  .map((item) => item[1])
+            : [transaction]
+    ) as SearchTransaction[];
+
+    const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    const shouldShowReview = hasViolations(report.reportID, allViolations, undefined, allReportTransactions);
+
+    if (shouldShowReview) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
+    // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
+    // If this condition is not met, return early for performance reasons
+    if (isTransaction && !data[key].isFromOneTransactionReport) {
+        return CONST.SEARCH.ACTION_TYPES.VIEW;
+    }
+
+    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
+
+    const invoiceReceiverPolicy =
+        isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
+            ? data[`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver?.policyID}`]
+            : undefined;
+
+    const chatReport = data[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`] ?? {};
+    const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`] ?? undefined;
+
+    if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
+        return CONST.SEARCH.ACTION_TYPES.PAY;
+    }
+    const hasOnlyPendingTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+
+    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
+    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingTransactions) {
+        return CONST.SEARCH.ACTION_TYPES.APPROVE;
+    }
+
+    // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations) && isAllowedToApproveExpenseReport) {
+        return CONST.SEARCH.ACTION_TYPES.SUBMIT;
+    }
+
+    return CONST.SEARCH.ACTION_TYPES.VIEW;
+}
+
+/**
  * @private
  * Organizes data into List Sections for display, for the ReportActionListItemType of Search Results.
  *
@@ -248,18 +370,40 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
  */
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
+
+    const transactions = Object.keys(data)
+        .filter(isTransactionEntry)
+        .map((key) => data[key]);
+
+    const reports = Object.keys(data)
+        .filter(isReportEntry)
+        .map((key) => data[key]);
+
+    const policies = Object.keys(data)
+        .filter(isPolicyEntry)
+        .map((key) => data[key]);
+
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
                 const from = data.personalDetailsList?.[reportAction.accountID];
-                if (ReportActionsUtils.isDeletedAction(reportAction)) {
+                const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
+                const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
+                const invoiceReceiverPolicy: SearchPolicy | undefined =
+                    report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
+                if (isDeletedAction(reportAction)) {
+                    // eslint-disable-next-line no-continue
+                    continue;
+                }
+                if (!isAddCommentAction(reportAction)) {
                     // eslint-disable-next-line no-continue
                     continue;
                 }
                 reportActionItems.push({
                     ...reportAction,
                     from,
+                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -291,8 +435,9 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
+                action: getAction(data, key),
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID ?? -1],
+                from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 reportName: isIOUReport ? getIOUReportName(data, reportItem) : reportItem.reportName,
@@ -308,6 +453,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             const transaction = {
                 ...transactionItem,
+                action: getAction(data, key),
                 from,
                 to,
                 formattedFrom,
@@ -397,7 +543,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 
         // We are guaranteed that both a and b will be string or number at the same time
         if (typeof aValue === 'string' && typeof bValue === 'string') {
-            return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aValue.toLowerCase().localeCompare(bValue) : bValue.toLowerCase().localeCompare(aValue);
+            return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
         }
 
         const aNum = aValue as number;
@@ -521,4 +667,6 @@ export {
     getExpenseTypeTranslationKey,
     getOverflowMenu,
     isCorrectSearchUserName,
+    isReportActionEntry,
+    getAction,
 };

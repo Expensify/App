@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {Keyboard, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, Keyboard, StyleSheet, View} from 'react-native';
 import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
@@ -10,7 +10,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -26,6 +25,9 @@ import type HeaderWithBackButtonProps from './types';
 function HeaderWithBackButton({
     icon,
     iconFill,
+    iconWidth,
+    iconHeight,
+    iconStyles,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -39,12 +41,14 @@ function HeaderWithBackButton({
     shouldShowBorderBottom = false,
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
+    isDownloading = false,
     shouldShowGetAssistanceButton = false,
     shouldDisableGetAssistanceButton = false,
     shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
+    shouldUseHeadlineHeader = false,
     stepCounter,
     subtitle = '',
     title = '',
@@ -64,16 +68,13 @@ function HeaderWithBackButton({
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
+    subTitleLink = '',
 }: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const {isKeyboardShown} = useKeyboardState();
-
-    // If the icon is present, the header bar should be taller and use different font.
-    const isCentralPaneSettings = !!icon;
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -106,12 +107,14 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, isCentralPaneSettings && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
+                subTitleLink={subTitleLink}
             />
         );
     }, [
         StyleUtils,
-        isCentralPaneSettings,
+        subTitleLink,
+        shouldUseHeadlineHeader,
         policy,
         progressBarPercentage,
         report,
@@ -136,7 +139,7 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                isCentralPaneSettings && styles.headerBarDesktopHeight,
+                shouldUseHeadlineHeader && styles.headerBarDesktopHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
                 // be falsey, hence using !== undefined explicitly
@@ -151,7 +154,7 @@ function HeaderWithBackButton({
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             onPress={() => {
-                                if (isKeyboardShown) {
+                                if (Keyboard.isVisible()) {
                                     Keyboard.dismiss();
                                 }
                                 const topmostReportId = Navigation.getTopmostReportId();
@@ -176,9 +179,10 @@ function HeaderWithBackButton({
                 {!!icon && (
                     <Icon
                         src={icon}
-                        width={variables.iconHeader}
-                        height={variables.iconHeader}
-                        additionalStyles={[styles.mr2]}
+                        width={iconWidth ?? variables.iconHeader}
+                        height={iconHeight ?? variables.iconHeader}
+                        additionalStyles={[styles.mr2, iconStyles]}
+                        fill={iconFill}
                     />
                 )}
                 {!!policyAvatar && (
@@ -193,32 +197,39 @@ function HeaderWithBackButton({
                 {middleContent}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
                     {children}
-                    {shouldShowDownloadButton && (
-                        <Tooltip text={translate('common.download')}>
-                            <PressableWithoutFeedback
-                                onPress={(event) => {
-                                    // Blur the pressable in case this button triggers a Growl notification
-                                    // We do not want to overlap Growl with the Tooltip (#15271)
-                                    (event?.currentTarget as HTMLElement)?.blur();
+                    {shouldShowDownloadButton &&
+                        (!isDownloading ? (
+                            <Tooltip text={translate('common.download')}>
+                                <PressableWithoutFeedback
+                                    onPress={(event) => {
+                                        // Blur the pressable in case this button triggers a Growl notification
+                                        // We do not want to overlap Growl with the Tooltip (#15271)
+                                        (event?.currentTarget as HTMLElement)?.blur();
 
-                                    if (!isDownloadButtonActive) {
-                                        return;
-                                    }
+                                        if (!isDownloadButtonActive) {
+                                            return;
+                                        }
 
-                                    onDownloadButtonPress();
-                                    temporarilyDisableDownloadButton();
-                                }}
+                                        onDownloadButtonPress();
+                                        temporarilyDisableDownloadButton();
+                                    }}
+                                    style={[styles.touchableButtonImage]}
+                                    role="button"
+                                    accessibilityLabel={translate('common.download')}
+                                >
+                                    <Icon
+                                        src={Expensicons.Download}
+                                        fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                    />
+                                </PressableWithoutFeedback>
+                            </Tooltip>
+                        ) : (
+                            <ActivityIndicator
                                 style={[styles.touchableButtonImage]}
-                                role="button"
-                                accessibilityLabel={translate('common.download')}
-                            >
-                                <Icon
-                                    src={Expensicons.Download}
-                                    fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
-                                />
-                            </PressableWithoutFeedback>
-                        </Tooltip>
-                    )}
+                                size="small"
+                                color={theme.spinner}
+                            />
+                        ))}
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback

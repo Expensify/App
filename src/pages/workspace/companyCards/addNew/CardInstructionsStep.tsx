@@ -9,24 +9,35 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {updateSelectedFeed} from '@libs/actions/Card';
+import {setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
+import {getBankName} from '@libs/CardUtils';
 import Parser from '@libs/Parser';
 import Navigation from '@navigation/Navigation';
-import * as Card from '@userActions/Card';
-import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 type CardInstructionsStepProps = {
     policyID?: string;
 };
+
+function getCardInstructionHeader(feedProvider: CardFeedProvider) {
+    if (feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.VISA) {
+        return 'workspace.companyCards.addNewCard.enableFeed.visa';
+    }
+    if (feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD) {
+        return 'workspace.companyCards.addNewCard.enableFeed.mastercard';
+    }
+
+    return 'workspace.companyCards.addNewCard.enableFeed.heading';
+}
+
 function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {canUseDirectFeeds} = usePermissions();
 
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
@@ -36,49 +47,49 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const isAmexFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
+    const translationKey = getCardInstructionHeader(feedProvider);
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
     const submit = () => {
-        if (canUseDirectFeeds && isStripeFeedProvider) {
-            Card.updateSelectedFeed(feedProvider, policyID ?? '-1');
+        if (isStripeFeedProvider && policyID) {
+            updateSelectedFeed(feedProvider, policyID);
             Navigation.goBack();
             return;
         }
-        if (!canUseDirectFeeds || isOtherBankSelected) {
-            CompanyCards.setAddNewCompanyCardStepAndData({
+        if (isOtherBankSelected) {
+            setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_NAME,
             });
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({
+        setAddNewCompanyCardStepAndData({
             step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS,
         });
     };
 
     const handleBackButtonPress = () => {
-        if (canUseDirectFeeds && isAmexFeedProvider) {
-            CompanyCards.setAddNewCompanyCardStepAndData({
+        if (isAmexFeedProvider) {
+            setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED,
             });
             return;
         }
-        if (canUseDirectFeeds && isStripeFeedProvider) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        if (isStripeFeedProvider) {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
     };
 
     return (
         <ScreenWrapper
             testID={CardInstructionsStep.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <ScrollView
@@ -86,9 +97,9 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
                 contentContainerStyle={styles.flexGrow1}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: CardUtils.getCardFeedName(feedProvider)})}
+                    {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: getBankName(feedProvider)})}
                 </Text>
-                <Text style={[styles.ph5, styles.mb3]}>{translate('workspace.companyCards.addNewCard.enableFeed.heading')}</Text>
+                <Text style={[styles.ph5, styles.mb3]}>{translate(translationKey)}</Text>
                 <View style={[styles.ph5]}>
                     <RenderHTML html={Parser.replace(feedProvider ? translate(`workspace.companyCards.addNewCard.enableFeed.${feedProvider}`) : '')} />
                 </View>

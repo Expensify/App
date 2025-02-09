@@ -17,7 +17,7 @@ import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 function ButtonWithDropdownMenu<IValueType>({
-    success = false,
+    success = true,
     isSplitButton = true,
     isLoading = false,
     isDisabled = false,
@@ -44,18 +44,22 @@ function ButtonWithDropdownMenu<IValueType>({
     shouldUseStyleUtilityForAnchorPosition = false,
     defaultSelectedIndex = 0,
     shouldShowSelectedItemCheck = false,
+    testID,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedItemIndex, setSelectedItemIndex] = useState(defaultSelectedIndex);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
-    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
+    // In tests, skip the popover anchor position calculation. The default values are needed for popover menu to be rendered in tests.
+    const defaultPopoverAnchorPosition = process.env.NODE_ENV === 'test' ? {horizontal: 100, vertical: 100} : null;
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
     // eslint-disable-next-line react-compiler/react-compiler
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
+    const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
@@ -127,7 +131,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         ref={dropdownButtonRef}
                         onPress={handlePress}
                         text={customText ?? selectedItem?.text ?? ''}
-                        isDisabled={isDisabled || !!selectedItem?.disabled}
+                        isDisabled={isDisabled || areAllOptionsDisabled}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
                         style={isSplitButton ? [styles.flex1, styles.pr0] : {}}
@@ -139,6 +143,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         iconRight={Expensicons.DownArrow}
                         shouldShowRightIcon={!isSplitButton}
                         isSplitButton={isSplitButton}
+                        testID={testID}
                     />
 
                     {isSplitButton && (

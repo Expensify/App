@@ -9,16 +9,18 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import * as UserLocation from '@userActions/UserLocation';
+import {clearUserLocation, setUserLocation} from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -26,13 +28,12 @@ import getCurrentPosition from '@src/libs/getCurrentPosition';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
 import './mapbox.css';
-import type {MapViewHandle} from './MapViewTypes';
+import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
-const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
+const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
     (
         {
             style,
@@ -40,15 +41,31 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
             waypoints,
             mapPadding,
             accessToken,
-            userLocation,
             directionCoordinates,
             initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
             interactive = true,
+            distanceInMeters,
+            unit,
         },
         ref,
     ) => {
+        const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
+
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
+        const [distanceUnit, setDistanceUnit] = useState(unit);
+        useEffect(() => {
+            if (!unit || distanceUnit) {
+                return;
+            }
+            setDistanceUnit(unit);
+        }, [unit, distanceUnit]);
+
+        const toggleDistanceUnit = useCallback(() => {
+            setDistanceUnit((currentUnit) =>
+                currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+        }, []);
 
         const theme = useTheme();
         const styles = useThemeStyles();
@@ -74,7 +91,7 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
                 if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
                     return;
                 }
-                UserLocation.clearUserLocation();
+                clearUserLocation();
             },
             [initialLocation],
         );
@@ -98,7 +115,7 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    UserLocation.setUserLocation(currentCoords);
+                    setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
@@ -232,6 +249,20 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
             };
         }, [waypoints, directionCoordinates, interactive, currentPosition, initialState.zoom]);
 
+        const distanceSymbolCoorinate = useMemo(() => {
+            const length = directionCoordinates?.length;
+            // If the array is empty, return undefined
+            if (!length) {
+                return undefined;
+            }
+
+            // Find the index of the middle element
+            const middleIndex = Math.floor(length / 2);
+
+            // Return the middle element
+            return directionCoordinates.at(middleIndex);
+        }, [directionCoordinates]);
+
         return !isOffline && !!accessToken && !!initialViewState ? (
             <View
                 style={style}
@@ -244,7 +275,7 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
                     mapLib={mapboxgl}
                     mapboxAccessToken={accessToken}
                     initialViewState={initialViewState}
-                    style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
+                    style={{...StyleUtils.getTextColorStyle(theme.mapAttributionText), zIndex: -1}}
                     mapStyle={styleURL}
                     interactive={interactive}
                 >
@@ -255,6 +286,24 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
                             latitude={currentPosition?.latitude ?? 0}
                         >
                             <View style={styles.currentPositionDot} />
+                        </Marker>
+                    )}
+                    {!!distanceSymbolCoorinate && !!distanceInMeters && !!distanceUnit && (
+                        <Marker
+                            key="distance"
+                            longitude={distanceSymbolCoorinate.at(0) ?? 0}
+                            latitude={distanceSymbolCoorinate.at(1) ?? 0}
+                        >
+                            <PressableWithoutFeedback
+                                accessibilityLabel={CONST.ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
+                                onPress={toggleDistanceUnit}
+                                style={{marginRight: 100}}
+                            >
+                                <View style={styles.distanceLabelWrapper}>
+                                    <View style={styles.distanceLabelText}> {DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters, distanceUnit)}</View>
+                                </View>
+                            </PressableWithoutFeedback>
                         </Marker>
                     )}
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
@@ -295,8 +344,4 @@ const MapViewImpl = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default withOnyx<ComponentProps, MapViewOnyxProps>({
-    userLocation: {
-        key: ONYXKEYS.USER_LOCATION,
-    },
-})(MapViewImpl);
+export default MapViewImpl;

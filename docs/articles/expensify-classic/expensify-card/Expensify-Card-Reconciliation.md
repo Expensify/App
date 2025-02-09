@@ -1,108 +1,110 @@
 ---
 title: Expensify Card reconciliation
-description: Reconcile expenses from Expensify Cards
+description: Learn how to reconcile expenses from Expensify Cards through auto-reconciliation or manual methods.
 ---
 
-<div id="expensify-classic" markdown="1">
+To manage unapproved Expensify Card expenses after closing your books for the month, you can set up **auto-reconciliation** with an accounting integration or **manually reconcile** the expenses. 
 
-To handle unapproved Expensify Card expenses that are left after you close your books for the month, you can set up auto-reconciliation with an accounting integration, or you can manually reconcile the expenses.
+---
+# Set Up Automatic Reconciliation
 
-# Set up automatic reconciliation
+Auto-reconciliation deducts Expensify Card purchases from your company's settlement account on a daily or monthly basis.
 
-Auto-reconciliation automatically deducts Expensify Card purchases from your company’s settlement account on a daily or monthly basis.
+_**Note: A business bank account must be linked as your settlement account to complete this process.**_
 
-{% include info.html %}
-You must link a business bank account as your settlement account before you can complete this process.
-{% include end-info.html %}
-
-1. Hover over Settings, then click **Domains**.
-2. Click the desired domain name. 
-3. On the Company Cards tab, click the dropdown under the Imported Cards section to select the desired Expensify Card.
-4. To the right of the dropdown, click the **Settings** tab.
-5. Click the Expensify Card settlement account dropdown and select your settlement business bank account. 
-   - To verify which account is your settlement account: Hover over Settings, then click **Account**. Click the **Payments** tab on the left and verify the bank account listed as the Settlement Account. If these accounts do not match, repeat the steps above to select the correct bank account.
+## Steps to set up auto-reconciliation:
+1. Go to **Settings > Domains**.
+2. Click your desired domain name.
+3. Under the **Company Cards** tab, find the **Imported Cards** section and select the desired Expensify Card from the dropdown.
+4. To the right of the dropdown, click **Settings**.
+5. Use the **Settlement Account** dropdown to select your settlement business bank account.
+   - To verify your settlement account, go to **Settings > Account > Payments** and check the listed settlement account.
+   - If the accounts do not match, repeat the steps above to update the account.
 6. Click **Save**.
 
-If your workspace is connected to a QuickBooks Online, Xero, NetSuite, or Sage Intacct integration, complete the following additional steps.
+If your workspace is integrated with QuickBooks Online, Xero, NetSuite, or Sage Intacct, complete these additional steps:
 
-1. Click the Expensify Card Reconciliation Account dropdown and select the GL account from your integration for your Settlement Account. Then click **Save**.
-2. (Optional) If using the Sage Intacct integration, select your cash-only and accrual-only journals. If your organization operates on a cash-only or accrual-only basis, choose **No Selection** for the journals that do not apply.
-3. Click the **Advanced** tab and ensure Auto-Sync is enabled. Then click **Save**
-4. Hover over **Settings**, then click **Workspaces**. 
-5. Open the workspace linked to the integration. 
+1. From the **Reconciliation Account** dropdown, select the GL account associated with your settlement account and click **Save**.
+2. *(Optional)* For Sage Intacct users:
+   - Specify cash-only or accrual-only journals.
+   - Choose **No Selection** for journals that do not apply.
+3. Navigate to the **Advanced** tab and enable **Auto-Sync**. Click **Save**.
+4. Go to **Settings > Workspaces**.
+5. Open the workspace linked to the integration.
 6. Click the **Connections** tab.
-7. Next to the desired integration, click **Configure**. 
-8. Under the Export tab, ensure that the Preferred Exporter is also a Workspace Admin and has an email address associated with your Expensify Cards' domain. For example, if your domain is company.com, the Preferred Exporter's email should be name@company.com.
+7. Next to the desired integration, click **Configure**.
+8. Under the **Export** tab:
+   - Ensure the **Preferred Exporter** is a Workspace Admin.
+   - Verify their email matches the domain of the Expensify Cards (e.g., name@company.com).
 
-# Manually reconcile expenses 
+---
+# Manually Reconcile Expenses
 
-To manually reconcile Expensify Card expenses, 
+Follow these steps to reconcile Expensify Card expenses manually:
 
-1. Hover over Settings, then click **Domains**.
-2. Click the desired domain name. 
-3. On the Company Cards tab, click the dropdown under the Imported Cards section to select the desired Expensify Card.
-4. To the right of the dropdown, click the **Reconciliation** tab.
-5. For the Reconcile toggle, ensure Expenses is selected. 
-6. Select the start and end dates, then click **Run**. 
-7. Use the Imported, Approved, and Unapproved totals to manually reconcile your clearing account in your accounting system. 
-   - The Unapproved total should match the final clearing account balance. Depending on your accounting policies, you can use this balance to book an accrual entry by debiting the appropriate expense and crediting the offsetting clearing account in your accounting system.
+1. Navigate to **Settings > Domains**.
+2. Click your desired domain name.
+3. Under the **Company Cards** tab, select the desired Expensify Card from the **Imported Cards** dropdown.
+4. Click the **Reconciliation** tab on the right.
+5. Ensure the **Expenses** toggle is selected for reconciliation.
+6. Set the start and end dates, then click **Run**.
+7. Use the **Imported**, **Approved**, and **Unapproved** totals to reconcile your clearing account in your accounting system:
+   - The **Unapproved** total should match the clearing account balance.
+   - Depending on your policies, book an accrual entry by debiting the appropriate expense and crediting the clearing account.
 
-## Troubleshooting
+---
+# Troubleshooting Reconciliation Issues
 
-Use the steps below to do additional research if:
-- The amounts vary to a degree that needs further investigation.
-- The Reconciliation tab was not run when the accounts payable (AP) was closed.
-- Multiple subsidiaries within the accounting system closed on different dates.
-- There are foreign currency implications in the accounting system.
+## When to Troubleshoot:
+- Amounts vary significantly.
+- Reconciliation was not run when accounts payable (AP) closed.
+- Multiple subsidiaries closed on different dates.
+- Foreign currency complications arise.
 
-To do a more in-depth reconciliation, 
+## Steps for In-Depth Reconciliation:
 
-1. In your accounting system, lock your AP.
+1. Lock your AP in your accounting system.
+   > **Tip**: Perform this step at the beginning or end of the day to avoid overlapping entries.
+2. In Expensify, go to the **Reports** tab.
+3. Filter by date:
+   - **From**: First day of the month (or date of the first applicable expense).
+   - **To**: Today's date.
+4. Set other filters to **All**.
+5. Select all expense reports by checking the top-left checkbox. For more than 50 reports, click **Select All**.
+6. Click **Export To > All Data - Expense Level Export**. This sends a CSV report to your email.
+7. Open the report and apply filters (or create a pivot table):
+   - **Daily Settlements**:
+      - Filter by Date = Month being reconciled.
+      - Bank = Expensify Card.
+      - Posted Date = Month being reconciled.
+      - Export Non-Reimb = Blank or after AP lock date.
+   - **Monthly Settlements**:
+      - Filter by Date = Month being reconciled.
+      - Bank = Expensify Card.
+      - Posted Date = First date after last settlement until month-end.
+      - Export Non-Reimb = Current and new month until AP lock date.
 
-{% include info.html %}
-It’s best to do this step at the beginning or end of the day. Otherwise, expenses with the same export date may be posted in different accounting periods.
-{% include end-info.html %}
+The filtered list will show expenses with settlement entries but no corresponding approved entries in Expensify. The total at the bottom should equal the balance in your Clearing or Liability Account.
 
-2. In Expensify, click the **Reports** tab.
-3. Set the From date filter to the first day of the month or the date of the first applicable Expensify Card expense, and set the To date filter to today’s date. 
-4. Set the other filters to show **All**.
-5. Select all of the expense reports by clicking the checkbox to the top left of the list. If you have more than 50 expense reports, click **Select All**. 
-6. In the top right corner of the page, click **Export To** and select **All Data - Expense Level Export**. This will generate and send a CSV report to your email. 
-7. Click the link from the email to automatically download a copy of the report to your computer. 
-8. Open the report and apply the following filters (or create a pivot with these filters) depending on whether you want to view the daily or monthly settlements:
-   - Daily settlements: 
-      - Date = the month you are reconciling
-      - Bank = Expensify Card
-      - Posted Date = the month you are reconciling
-      - [Accounting system] Export Non Reimb = blank/after your AP lock date 
-   - Monthly settlements:
-      - Date = the month you are reconciling
-      - Bank = Expensify Card
-      - Posted Date = The first date after your last settlement until the end of the month
-      - [Accounting system] Export Non Reimb = the current month and new month until your AP lock date
-         - To determine your total Expensify Card liability at the end of the month, set this filter to blank/after your AP lock date.
+---
+# Tips for Efficient Reconciliation
 
-This filtered list should now only include Expensify Card expenses that have a settlement/card payment entry in your accounting system but don’t have a corresponding expense entry (because they have not yet been approved in Expensify). The sum is shown at the bottom of the sheet.
+- Enable [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/workspaces/reports/Scheduled-Submit) to ensure timely expense submissions.
+- Communicate with employees about unapproved expenses via the #announce room on [new.expensify.com](http://new.expensify.com).
+- Be aware that Expensify Card payments are posted to your general ledger immediately but may not be withdrawn from your bank until the next business day.
+- Consider accruing for Expensify Cards based on your internal policies.
 
-The sum of the expenses should equal the balance in your Expensify Clearing or Liability Account in your accounting system. 
+---
+# FAQ
 
-# Tips
+## Why is the Expensify report amount different from my accounting system?
 
-- Enable [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/workspaces/reports/Scheduled-Submit) to ensure that expenses are submitted regularly and on time.
-- Expenses that remain unapproved for several months can complicate the reconciliation process. If you're an admin in Expensify, you can communicate with all employees who have an active Expensify account by going to [new.expensify.com](http://new.expensify.com) and using the #announce room to send a message. This way, you can remind employees to ensure their expenses are submitted and approved before the end of each month.
-- Keep in mind that although Expensify Card settlements/card payments will post to your general ledger on the date it is recorded in Expensify, the payment may not be withdrawn from your bank account until the following business day.
-- Based on your internal policies, you may want to accrue for the Expensify Cards.
+- Verify that expenses were posted to the correct GL month.
+- Export all transactions from your Clearing (Daily Settlement) or Liability (Monthly Settlement) account and group them into expenses and settlements via pivot tables:
+   - Run the settlements report in the Reconciliation Dashboard.
+   - Compare **Approved** activity to posted activity in your accounting system.
 
-{% include faq-begin.md %}
+## What if Auto-Reconciliation is disabled for Expensify Cards?
 
-**Why is the amount in my Expensify report so different from the amount in my accounting system?**
-
-If the Expensify report shows an amount that is significantly different to your accounting system, there are a few ways to identify the issues:
-- Double check that the expenses posted to the GL are within the correct month. Filter out these expenses to see if they now match those in the CSV report.
-- Use the process outlined above to export a report of all the transactions from your Clearing (for Daily Settlement) or Liability (for monthly settlement) account, then create a pivot table to group the transactions into expenses and settlements. 
-   - Run the settlements report in the “settlements” view of the Reconciliation Dashboard to confirm that the numbers match.
-   - Compare “Approved” activity to your posted activity within your accounting system to confirm the numbers match. 
-
-{% include faq-end.md %}
-
-</div>
+A Domain Admin can set export accounts for individual cards via:
+**Settings > Domains > [Domain Name] > Company Cards > Edit Exports**.

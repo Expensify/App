@@ -52,6 +52,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                                 height={variables.lhnLogoHeight * fontScale}
                             />
                         }
+                        style={styles.justifyContentCenter}
                         shouldShowEnvironmentBadge
                     />
                 </View>

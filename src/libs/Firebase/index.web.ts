@@ -1,7 +1,7 @@
 import {trace} from '@firebase/performance';
 import * as Environment from '@libs/Environment/Environment';
 import {firebasePerfWeb} from './firebaseWebConfig';
-import type {Log, StartTrace, StopTrace, TraceMap} from './types';
+import type {FirebaseAttributes, Log, StartTrace, StopTrace, TraceMap} from './types';
 import utils from './utils';
 
 const traceMap: TraceMap = {};
@@ -19,7 +19,7 @@ const startTrace: StartTrace = (customEventName) => {
 
     const perfTrace = trace(firebasePerfWeb, customEventName);
 
-    const attributes = utils.getAttributes();
+    const attributes: FirebaseAttributes = utils.getAttributes(['accountId', 'personalDetailsLength', 'reportActionsLength', 'reportsLength', 'policiesLength']);
 
     Object.entries(attributes).forEach(([name, value]) => {
         perfTrace.putAttribute(name, value);

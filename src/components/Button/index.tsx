@@ -122,6 +122,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Id to use for this button */
     id?: string;
 
+    /** Used to locate this button in ui tests */
+    testID?: string;
+
     /** Accessibility label for the component */
     accessibilityLabel?: string;
 
@@ -237,6 +240,7 @@ function Button(
         shouldShowRightIcon = false,
 
         id = '',
+        testID = undefined,
         accessibilityLabel = '',
         isSplitButton = false,
         link = false,
@@ -290,14 +294,14 @@ function Button(
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
-                            <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>
+                            <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    hasText={!!text}
                                     fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             </View>
                         )}
@@ -312,6 +316,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             ) : (
                                 <Icon
@@ -320,6 +325,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             )}
                         </View>
@@ -358,6 +364,10 @@ function Button(
 
                     if (shouldEnableHapticFeedback) {
                         HapticFeedback.press();
+                    }
+
+                    if (isDisabled || isLoading) {
+                        return; // Prevent the onPress from being triggered when the button is disabled or in a loading state
                     }
                     return onPress(event);
                 }}
@@ -403,6 +413,7 @@ function Button(
                 ]}
                 disabledStyle={disabledStyle}
                 id={id}
+                testID={testID}
                 accessibilityLabel={accessibilityLabel}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}

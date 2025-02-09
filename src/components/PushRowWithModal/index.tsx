@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import CONST from '@src/CONST';
@@ -8,11 +8,11 @@ type PushRowWithModalProps = {
     /** The list of options that we want to display where key is option code and value is option name */
     optionsList: Record<string, string>;
 
-    /** The currently selected option */
-    selectedOption: string;
+    /** Current value of the selected item */
+    value?: string;
 
-    /** Function to call when the user selects an option */
-    onOptionChange: (option: string) => void;
+    /** Function called whenever list item is selected */
+    onInputChange?: (value: string, key?: string) => void;
 
     /** Additional styles to apply to container */
     wrapperStyles?: StyleProp<ViewStyle>;
@@ -32,13 +32,15 @@ type PushRowWithModalProps = {
     /** Text to display on error message */
     errorText?: string;
 
-    /** Function called whenever option changes */
-    onInputChange?: (value: string) => void;
+    /** The ID of the input that should be reset when the value changes */
+    stateInputIDToReset?: string;
+
+    /**  Callback to call when the picker modal is dismissed */
+    onBlur?: () => void;
 };
 
 function PushRowWithModal({
-    selectedOption,
-    onOptionChange,
+    value,
     optionsList,
     wrapperStyles,
     description,
@@ -47,10 +49,15 @@ function PushRowWithModal({
     shouldAllowChange = true,
     errorText,
     onInputChange = () => {},
+    stateInputIDToReset,
+    onBlur = () => {},
 }: PushRowWithModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
-
+    const shouldBlurOnCloseRef = useRef(true);
     const handleModalClose = () => {
+        if (shouldBlurOnCloseRef.current) {
+            onBlur?.();
+        }
         setIsModalVisible(false);
     };
 
@@ -58,16 +65,19 @@ function PushRowWithModal({
         setIsModalVisible(true);
     };
 
-    const handleOptionChange = (value: string) => {
-        onOptionChange(value);
-        onInputChange(value);
+    const handleOptionChange = (optionValue: string) => {
+        onInputChange(optionValue);
+        shouldBlurOnCloseRef.current = false;
+        if (stateInputIDToReset) {
+            onInputChange('', stateInputIDToReset);
+        }
     };
 
     return (
         <>
             <MenuItemWithTopDescription
                 description={description}
-                title={optionsList[selectedOption]}
+                title={value ? optionsList[value] : ''}
                 shouldShowRightIcon={shouldAllowChange}
                 onPress={handleModalOpen}
                 wrapperStyle={wrapperStyles}
@@ -77,7 +87,7 @@ function PushRowWithModal({
             />
             <PushRowModal
                 isVisible={isModalVisible}
-                selectedOption={selectedOption}
+                selectedOption={value ?? ''}
                 onOptionChange={handleOptionChange}
                 onClose={handleModalClose}
                 optionsList={optionsList}

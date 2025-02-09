@@ -13,6 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CardUtils from '@libs/CardUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -22,19 +23,28 @@ import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
 type AssigneeStepProps = {
-    // The policy that the card will be issued under
+    /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Selected feed */
+    feed: OnyxTypes.CompanyCardFeed;
 };
 
-function AssigneeStep({policy}: AssigneeStepProps) {
+function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const workspaceAccountID = policy?.id ? PolicyUtils.getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
+
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
     const isEditing = assignCard?.isEditing;
 
@@ -53,18 +63,34 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             setShouldShowError(true);
             return;
         }
+
+        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
+        const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
+        const data: Partial<AssignCardData> = {
+            email: selectedMember,
+            cardName: CardUtils.getDefaultCardName(memberName),
+        };
+
+        if (CardUtils.hasOnlyOneCardToAssign(filteredCardList)) {
+            nextStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
+            data.cardNumber = Object.keys(filteredCardList).at(0);
+            data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+        }
+
         CompanyCards.setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.CARD,
-            data: {
-                email: selectedMember,
-            },
+            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
+            data,
             isEditing: false,
         });
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
+            CompanyCards.setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                isEditing: false,
+            });
             return;
         }
         Navigation.goBack();

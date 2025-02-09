@@ -1,13 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
-import {ActivityIndicator, FlatList, View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
@@ -24,11 +23,16 @@ type WorkspaceCompanyCardsListProps = {
 
     /** Current policy id */
     policyID: string;
+
+    /** Handle assign card action */
+    handleAssignCard: () => void;
+
+    /** Whether to disable assign card button */
+    isDisabledAssignCardButton?: boolean;
 };
 
-function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsListProps) {
+function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
@@ -38,17 +42,20 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
             const cardID = Object.keys(cardsList ?? {}).find((id) => cardsList?.[id].cardID === item.cardID);
+            const isCardDeleted = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             return (
                 <OfflineWithFeedback
                     key={`${item.nameValuePairs?.cardTitle}_${index}`}
                     errorRowStyles={styles.ph5}
                     errors={item.errors}
+                    pendingAction={item.pendingAction}
                 >
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
                         accessibilityLabel="row"
                         hoverStyle={styles.hoveredComponentBG}
+                        disabled={isCardDeleted}
                         onPress={() => {
                             if (!cardID || !item?.accountID) {
                                 return;
@@ -58,8 +65,8 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     >
                         <WorkspaceCompanyCardsListRow
                             cardholder={personalDetails?.[item.accountID ?? '-1']}
-                            cardNumber={CardUtils.getCompanyCardNumber(cardsList?.cardList ?? {}, item.lastFourPAN)}
-                            name={customCardNames?.[item.cardID] ?? ''}
+                            cardNumber={item.lastFourPAN ?? ''}
+                            name={customCardNames?.[item.cardID] ?? CardUtils.getDefaultCardName(personalDetails?.[item.accountID ?? '-1']?.firstName)}
                         />
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
@@ -81,25 +88,20 @@ function WorkspaceCompanyCardsList({cardsList, policyID}: WorkspaceCompanyCardsL
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
                 >
-                    {translate('workspace.companyCards.cardNumber')}
+                    {translate('workspace.expensifyCard.lastFour')}
                 </Text>
             </View>
         ),
         [styles, translate],
     );
 
-    if (!cardsList) {
+    if (sortedCards.length === 0) {
         return (
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                style={styles.flex1}
-                color={theme.spinner}
+            <WorkspaceCompanyCardsFeedAddedEmptyPage
+                handleAssignCard={handleAssignCard}
+                isDisabledAssignCardButton={isDisabledAssignCardButton}
             />
         );
-    }
-
-    if (sortedCards.length === 0) {
-        return <WorkspaceCompanyCardsFeedAddedEmptyPage />;
     }
 
     return (

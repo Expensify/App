@@ -22,6 +22,7 @@ function RadioListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
     wrapperStyle,
+    titleStyles,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
@@ -32,7 +33,7 @@ function RadioListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow, isFocused && styles.sidebarLinkActive, wrapperStyle]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow, wrapperStyle]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -59,6 +60,7 @@ function RadioListItem<TItem extends ListItem>({
                             item.alternateText ? styles.mb1 : null,
                             isDisabled && styles.colorMuted,
                             isMultilineSupported ? {paddingLeft} : null,
+                            titleStyles,
                         ]}
                         numberOfLines={isMultilineSupported ? 2 : 1}
                     />

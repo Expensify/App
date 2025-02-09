@@ -101,11 +101,6 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
     action: ValueOf<typeof CONST.APPROVAL_WORKFLOW.ACTION>;
 
     /**
-     * Whether we are waiting for the API action to complete
-     */
-    isLoading: boolean;
-
-    /**
      * List of available members that can be selected in the workflow
      */
     availableMembers: Member[];

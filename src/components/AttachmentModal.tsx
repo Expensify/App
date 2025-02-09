@@ -1,26 +1,26 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Animated, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
+import Animated, {FadeIn, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
+import {detachReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -133,7 +133,11 @@ type AttachmentModalProps = {
 
     canEditReceipt?: boolean;
 
+    canDeleteReceipt?: boolean;
+
     shouldDisableSendButton?: boolean;
+
+    attachmentLink?: string;
 };
 
 function AttachmentModal({
@@ -155,15 +159,16 @@ function AttachmentModal({
     children,
     fallbackSource,
     canEditReceipt = false,
+    canDeleteReceipt = false,
     onModalClose = () => {},
     isLoading = false,
     shouldShowNotFoundPage = false,
     type = undefined,
     accountID = undefined,
     shouldDisableSendButton = false,
+    attachmentLink = '',
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -174,7 +179,6 @@ function AttachmentModal({
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const isPDFLoadError = useRef(false);
     const {windowWidth} = useWindowDimensions();
@@ -182,9 +186,11 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
     const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-    const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -211,6 +217,7 @@ function AttachmentModal({
             setFile(attachment.file);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
+            setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
         },
         [onCarouselAttachmentChange],
     );
@@ -246,7 +253,7 @@ function AttachmentModal({
         }
 
         if (typeof sourceURL === 'string') {
-            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? FileUtils.getFileName(`${sourceURL}`) : file?.name;
+            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
             fileDownload(sourceURL, fileName ?? '');
         }
 
@@ -285,14 +292,14 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        IOU.detachReceipt(transaction?.transactionID ?? '-1');
+        detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
+        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
     }, [transaction, report]);
 
     const isValidFile = useCallback(
         (fileObject: FileObject) =>
-            FileUtils.validateImageForCorruption(fileObject)
+            validateImageForCorruption(fileObject)
                 .then(() => {
                     if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                         setIsAttachmentInvalid(true);
@@ -352,7 +359,7 @@ function AttachmentModal({
                      * upload, drag and drop, copy-paste
                      */
                     let updatedFile = fileObject;
-                    const cleanName = FileUtils.cleanFileName(updatedFile.name);
+                    const cleanName = cleanFileName(updatedFile.name);
                     if (updatedFile.name !== cleanName) {
                         updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
                     }
@@ -376,17 +383,28 @@ function AttachmentModal({
     );
 
     /**
-     * close the modal
+     * Closes the modal.
+     * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
+     * This is useful when you plan to continue navigating to another page after closing the modal, to avoid freezing the app due to navigating to another page first and dismissing the modal later.
+     * If `shouldCallDirectly` is false or undefined, it calls `attachmentModalHandler.handleModalClose` to close the modal.
+     * This ensures smooth modal closing behavior without causing delays in closing.
      */
-    const closeModal = useCallback(() => {
-        setIsModalOpen(false);
+    const closeModal = useCallback(
+        (shouldCallDirectly?: boolean) => {
+            setIsModalOpen(false);
 
-        if (typeof onModalClose === 'function') {
-            onModalClose();
-        }
+            if (typeof onModalClose === 'function') {
+                if (shouldCallDirectly) {
+                    onModalClose();
+                    return;
+                }
+                attachmentModalHandler.handleModalClose(onModalClose);
+            }
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [onModalClose]);
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        },
+        [onModalClose],
+    );
 
     /**
      *  open the modal
@@ -416,15 +434,9 @@ function AttachmentModal({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    closeModal();
+                    closeModal(true);
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            iouType,
-                            transaction?.transactionID ?? '-1',
-                            report?.reportID ?? '-1',
-                            Navigation.getActiveRouteWithoutParams(),
-                        ),
+                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
                     );
                 },
             });
@@ -436,13 +448,9 @@ function AttachmentModal({
                 onSelected: () => downloadAttachment(),
             });
         }
-        if (
-            !TransactionUtils.hasEReceipt(transaction) &&
-            TransactionUtils.hasReceipt(transaction) &&
-            !TransactionUtils.isReceiptBeingScanned(transaction) &&
-            canEditReceipt &&
-            !TransactionUtils.hasMissingSmartscanFields(transaction)
-        ) {
+
+        const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
+        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDeleteReceipt && !hasMissingSmartscanFields(transaction)) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
@@ -486,7 +494,6 @@ function AttachmentModal({
         <>
             <Modal
                 type={modalType}
-                onSubmit={submitAndClose}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
                 onModalShow={() => {
@@ -527,6 +534,7 @@ function AttachmentModal({
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
+                        subTitleLink={currentAttachmentLink ?? ''}
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}
@@ -552,6 +560,7 @@ function AttachmentModal({
                                     onClose={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                    attachmentLink={currentAttachmentLink}
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&
@@ -583,7 +592,10 @@ function AttachmentModal({
                     {!!onConfirm && !isConfirmButtonDisabled && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                <Animated.View
+                                    style={safeAreaPaddingBottomStyle}
+                                    entering={FadeIn}
+                                >
                                     <Button
                                         ref={viewRef(submitRef)}
                                         success

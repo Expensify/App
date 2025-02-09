@@ -56,6 +56,10 @@ export default {
         minHeight: 0,
     },
 
+    mnh13: {
+        minHeight: 52,
+    },
+
     mnw0: {
         minWidth: 0,
     },
@@ -94,6 +98,10 @@ export default {
 
     w80: {
         width: '80%',
+    },
+
+    w90: {
+        width: '90%',
     },
 
     w100: {

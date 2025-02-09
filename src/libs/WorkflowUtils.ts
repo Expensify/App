@@ -13,7 +13,6 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     usedApproverEmails: [],
     isDefault: false,
     action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
-    isLoading: false,
 };
 
 type GetApproversParams = {

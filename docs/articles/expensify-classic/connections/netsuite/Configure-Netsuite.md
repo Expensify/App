@@ -36,28 +36,36 @@ The three options for the date your report will export with are:
 - Submitted date: The date the employee submitted the report
 - Exported date: The date you export the report to NetSuite
 
+## Accounting Method
+
+This dictates when reimbursable expenses will export, according to your preferred accounting method:
+- Accrual: Out-of-pocket expenses will export immediately when the report is final approved
+- Cash: Out-of-pocket expenses will export when paid via Expensify or marked as Reimbursed
+
 ## Export Settings for Reimbursable Expenses 
 
 **Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the payables account designated in NetSuite. 
 
-**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and will be mapped to the subsidiary associated with the corresponding policy. Each report will be posted as payable to the vendor associated with the employee who submitted the report. You can also set an approval level in NetSuite for vendor bills.
+**Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and are mapped to the subsidiary associated with the corresponding workspace. Each report is posted as payable to the vendor associated with the employee who submitted it. You can also set an approval level in NetSuite for vendor bills.
 
-**Journal Entries:** Expensify transactions that are set to export as journal entries in NetSuite will be mapped to the subsidiary associated with this policy. All the transactions will be posted to the payable account specified in the policy. You can also set an approval level in NetSuite for the journal entries.
+**Journal Entries:** Expensify transactions that are set to export as journal entries in NetSuite will be mapped to the subsidiary associated with this workspace. All the transactions will be posted to the payable account specified in the workspace. You can also set an approval level in NetSuite for the journal entries.
 
 - Journal entry forms by default do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
 ## Export Settings for Non-Reimbursable Expenses
 
-**Vendor Bills:** Non-reimbursable expenses will be posted as a vendor bill payable to the default vendor specified in your policy's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific vendor in NetSuite. You can also set an approval level in NetSuite for the bills. 
+**Vendor Bills:** Non-reimbursable expenses will be posted as a vendor bill payable to the default vendor specified in your workspace's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific vendor in NetSuite. You can also set an approval level in NetSuite for the bills. 
 
-**Journal Entries:** Non-reimbursable expenses will be posted to the Journal Entries posting account selected in your policy's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific account in NetSuite.
+**Journal Entries:** Non-reimbursable expenses will be posted to the Journal Entries posting account selected in your workspace's connection settings. If you centrally manage your company cards through Domains, you can export expenses from each card to a specific account in NetSuite.
 
-- Expensify Card expenses will always export as Journal Entries, even if you have Expense Reports or Vendor Bills configured for non-reimbursable expenses on the Export tab
+- When [automatic reconciliation](https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Reconciliation) is enabled, Expensify Card expenses will always export as individual, itemized Journal Entries, regardless of Expense Reports or Vendor Bills settings configured for non-reimbursable expenses on the Export tab.
+- Without automatic reconciliation, Expensify Card expenses will export using the export type configured for non-reimbursable expenses on the Export tab.
+- Expensify Card expenses exported as Journal Entries will always export as individual, itemized Journal Entries, regardless of whether the "one journal entry for all items on report" setting is enabled.
 - Journal entry forms do not contain a customer column, so it is not possible to export customers or projects with this export option
 - The credit line and header level classifications are pulled from the employee record
 
-**Expense Reports:** To use the expense report option for your corporate card expenses, you will need to set up your default corporate cards in NetSuite. 
+**Expense Reports:** To use the expense report option for your corporate card expenses, you must set up your default corporate cards in NetSuite. 
 
 To use a default corporate card for non-reimbursable expenses, you must select the correct card on the employee records (for individual accounts) or the subsidiary record (If you use a non-one world account, the default is found in your accounting preferences).
 
@@ -80,6 +88,8 @@ When selecting the option to export non-reimbursable expenses as vendor bills, t
 # Step 2: Configure Coding Settings
 
 The Coding tab is where NetSuite information is configured in Expensify, which allows employees to code expenses and reports accurately. There are several coding options in NetSuite. Let’s go over each of those below. 
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_08.png){:width="100%"}
 
 ## Expense Categories
 
@@ -218,6 +228,8 @@ From there, you should see the values for the Custom Lists under the Tag or Repo
 # Step 3: Configure Advanced Settings
 
 The NetSuite integration’s advanced configuration settings are accessed under **Settings > Workspaces > Group > _[Workspace Name]_ > Connections > NetSuite > Configure > Advanced tab**.
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/NetSuite_Configure_09.png){:width="100%"}
 
 Let’s review the different advanced settings and how they interact with the integration.
 
@@ -449,5 +461,11 @@ If you're having trouble importing your Categories, you'll want to start by chec
 - If no Expense Categories are visible click on "New" to create new Expense Categories
 
 If you have confirmed that your categories are set as Expense Categories in NetSuite and they still aren't importing to Expensify, make sure that the subsidiary of the Expense Category matches the subsidiary selected in your connection settings.
+
+## What's the difference between a Custom Segment, Custom Record, and Custom List?
+
+- **Custom Record**: This is a completely customizable record type used to store detailed, structured information not covered by standard NetSuite records (e.g., customers, vendors, and transactions). Unlike Segments, Custom Records are designed to manage standalone data, like tracking projects, assets, or other entities.
+- **Custom Segment**: A custom classification field, similar to standard NetSuite segments like Department, Class, or Location. Typically used when you need to categorize transactions, records, or GL entries for reporting purposes or to separate financials. (NetSuite automatically creates a Custom Record behind the scenes to power the segment.)
+- **Custom List**: A static dropdown of predefined values used for simple selections, like "Preferred Contact Method." Custom Lists are lightweight and don’t support complex relationships or GL impacts.
 
 {% include faq-end.md %}

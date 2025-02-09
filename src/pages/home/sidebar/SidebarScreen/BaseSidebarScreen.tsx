@@ -15,21 +15,15 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-/**
- * Function called when a pinned chat is selected.
- */
-const startTimer = () => {
-    Timing.start(CONST.TIMING.SWITCH_REPORT);
-    Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-};
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? -1}`);
+    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -37,13 +31,13 @@ function BaseSidebarScreen() {
     }, []);
 
     useEffect(() => {
-        if (!!activeWorkspace || activeWorkspaceID === undefined) {
+        if (!!activeWorkspace || activeWorkspaceID === undefined || isLoading) {
             return;
         }
 
         Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         updateLastAccessedWorkspace(undefined);
-    }, [activeWorkspace, activeWorkspaceID]);
+    }, [activeWorkspace, activeWorkspaceID, isLoading]);
 
     const shouldDisplaySearch = shouldUseNarrowLayout;
 
@@ -63,10 +57,7 @@ function BaseSidebarScreen() {
                         shouldDisplaySearch={shouldDisplaySearch}
                     />
                     <View style={[styles.flex1]}>
-                        <SidebarLinksData
-                            onLinkClick={startTimer}
-                            insets={insets}
-                        />
+                        <SidebarLinksData insets={insets} />
                     </View>
                 </>
             )}

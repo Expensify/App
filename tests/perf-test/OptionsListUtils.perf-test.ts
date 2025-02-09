@@ -93,36 +93,36 @@ describe('OptionsListUtils', () => {
     });
 
     /* Testing getSearchOptions */
-    test('[OptionsListUtils] getSearchOptions with search value', async () => {
+    test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getSearchOptions(options, SEARCH_VALUE, mockedBetas));
+        await measureFunction(() => OptionsListUtils.getSearchOptions(options, mockedBetas));
     });
 
     /* Testing getShareLogOptions */
-    test('[OptionsListUtils] getShareLogOptions with search value', async () => {
+    test('[OptionsListUtils] getShareLogOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getShareLogOptions(options, SEARCH_VALUE, mockedBetas));
+        await measureFunction(() => OptionsListUtils.getShareLogOptions(options, mockedBetas));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        // It's recommended not to use getFilteredOptions with both options and a search value
-        // For better performance, use filterOptions instead, especially when passing a search value with options that include reports and personal details.
-        // @ts-expect-error pass both options and search value together
-        await measureFunction(() => OptionsListUtils.getFilteredOptions({reports: options.reports, personalDetails: options.personalDetails, betas: mockedBetas, searchValue: SEARCH_VALUE}));
+        await measureFunction(() => {
+            const formattedOptions = OptionsListUtils.getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {betas: mockedBetas});
+            OptionsListUtils.filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+        });
     });
 
     /* Testing getShareDestinationOptions */
-    test('[OptionsListUtils] getShareDestinationOptions with search value', async () => {
+    test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas, SEARCH_VALUE));
+        await measureFunction(() => OptionsListUtils.getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
     });
 
     /* Testing getMemberInviteOptions */
-    test('[OptionsListUtils] getMemberInviteOptions with search value', async () => {
+    test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getMemberInviteOptions(options.personalDetails, mockedBetas, SEARCH_VALUE));
+        await measureFunction(() => OptionsListUtils.getMemberInviteOptions(options.personalDetails, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
