@@ -38,5 +38,14 @@ describe('IOU Utils', () => {
             // Then we should start distance track request flow
             expect(IOU.startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK, reportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
         });
+
+        it('should be navigated to Per Diem Expense', () => {
+            // When the quick action is PER_DIEM
+            QuickActionNavigate.navigateToQuickAction(true, reportID, {action: CONST.QUICK_ACTIONS.PER_DIEM}, (onSelected: () => void) => {
+                onSelected();
+            });
+            // Then we should start per diem request flow
+            expect(IOU.startMoneyRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, CONST.IOU.REQUEST_TYPE.PER_DIEM, true);
+        });
     });
 });
