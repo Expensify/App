@@ -1711,7 +1711,6 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
     // we should navigate to its report in order to not show not found page
     if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
-        // @TODO: Check if this method works the same as on the main branch
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 }
@@ -2540,7 +2539,6 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
  */
 function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    // @TODO: Check if this method works the same as on the main branch
     if (shouldPopToTop) {
         Navigation.setShouldPopAllStateOnUP(true);
         Navigation.goBack(undefined, {shouldPopToTop: true});
