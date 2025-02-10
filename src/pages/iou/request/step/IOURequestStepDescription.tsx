@@ -134,7 +134,7 @@ function IOURequestStepDescription({
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
     const getDescriptionHint = () => {
-        return transaction?.category && policyCategories ? policyCategories[transaction?.category].commentHint : '';
+        return transaction?.category && policyCategories ? policyCategories[transaction?.category]?.commentHint ?? '' : '';
     };
 
     return (
