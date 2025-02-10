@@ -108,6 +108,7 @@ describe('CardSectionUtils', () => {
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
             isError: true,
+            isRetryAvailable: true,
         });
     });
 
