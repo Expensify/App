@@ -45,7 +45,7 @@ jobs:
         id: setupGitForOSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
@@ -56,14 +56,19 @@ jobs:
           SEMVER_LEVEL: "PATCH"
 
       - name: Fetch history of relevant refs
-        run: |
-          git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+        run: git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
       - name: Get version bump commit
         id: getVersionBumpCommit
         run: |
           git switch main
           VERSION_BUMP_COMMIT="$(git log --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
+          if [ -z "$VERSION_BUMP_COMMIT" ]; then
+            echo "::error::❌ Could not find version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
+            git log --oneline
+          else
+            echo "::notice::👀 Found version bump commit $VERSION_BUMP_COMMIT"
+          fi
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
       - name: Get merge commit for pull request to CP
