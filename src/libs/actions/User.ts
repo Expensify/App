@@ -892,11 +892,8 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     });
 }
 
-// Holds a map of all the PINGs that have been sent to the server and when they were sent
-// Once a PONG is received, the event data will be removed from this map.
-type PingPongTimestampMap = Record<string, number>;
-let pingIDsAndTimestamps: PingPongTimestampMap = {};
-
+let lastPingSentTimestamp = Date.now();
+let lastPongReceivedTimestamp = Date.now();
 function subscribeToPusherPong() {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
     if (currentUserAccountID === -1) {
@@ -905,21 +902,13 @@ function subscribeToPusherPong() {
 
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
         Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
-        const pongEvent = pushJSON as Pusher.PingPongEvent;
-        // First, check to see if the PONG event is in the pingIDsAndTimestamps map
-        // It's OK if it doesn't exist. The client was maybe refreshed while still waiting for a PONG event, in which case it might
-        // receive the PONG event but has already lost it's memory of the PING.
-        const pingEventTimestamp = pingIDsAndTimestamps[pongEvent.pingID];
-        if (!pingEventTimestamp) {
-            return;
-        }
+        lastPongReceivedTimestamp = Date.now();
 
         // Calculate the latency between the client and the server
-        const latency = Date.now() - Number(pingEventTimestamp);
+        const pongEvent = pushJSON as Pusher.PingPongEvent;
+        const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
 
-        // Remove the event from the map
-        delete pingIDsAndTimestamps[pongEvent.pingID];
         Timing.end(CONST.TIMING.PUSHER_PING_PONG);
     });
 }
@@ -928,15 +917,14 @@ function subscribeToPusherPong() {
 const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
 
 // Specify how long between each check for missing PONG events
-const CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
+const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
 
 // Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
 const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
-let lastTimestamp = Date.now();
 function pingPusher() {
     if (isOffline()) {
-        Log.info('[Pusher PINGPONG] Skipping ping because the client is offline');
+        Log.info('[Pusher PINGPONG] Skipping PING because the client is offline');
         return;
     }
     // Send a PING event to the server with a specific ID and timestamp
@@ -947,34 +935,29 @@ function pingPusher() {
 
     // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
     // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
-    if (pingTimestamp - lastTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
+    if (pingTimestamp - lastPingSentTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
         return;
     }
-    lastTimestamp = pingTimestamp;
+    lastPingSentTimestamp = pingTimestamp;
 
-    pingIDsAndTimestamps[pingID] = pingTimestamp;
     const parameters: PusherPingParams = {pingID, pingTimestamp};
     API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
     Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
 
-function checkforMissingPongEvents() {
-    Log.info(`[Pusher PINGPONG] Checking for missing PONG events`);
-    // Get the oldest PING timestamp that is left in the event map
-    const oldestPingTimestamp = Math.min(...Object.values(pingIDsAndTimestamps));
-    const ageOfEventInMS = Date.now() - oldestPingTimestamp;
+function checkforLatePongReplies() {
+    Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
+    const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
 
-    // Get the eventID of that timestamp
-    const eventID = Object.keys(pingIDsAndTimestamps).find((key) => pingIDsAndTimestamps[key] === oldestPingTimestamp);
-
-    // If the oldest timestamp is older than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then set the network status to offline
-    if (ageOfEventInMS > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event ${eventID} in ${ageOfEventInMS} ms so going offline`);
+    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then record it in the logs
+    if (timeSinceLastPongReceived > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so going offline`);
 
         // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
-        lastTimestamp = Date.now();
-        pingIDsAndTimestamps = {};
+        lastPingSentTimestamp = Date.now();
+    } else {
+        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
     }
 }
 
@@ -992,7 +975,7 @@ function initializePusherPingPong() {
     }
     pingPongStarted = true;
 
-    Log.info(`[Pusher PINGPONG] Starting Pusher Ping Pong and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
+    Log.info(`[Pusher PINGPONG] Starting Pusher PING PONG and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
 
     // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
     // so there could be a little delay before the client is actually listening to this event.
@@ -1005,7 +988,7 @@ function initializePusherPingPong() {
     // events to be sent and received
     setTimeout(() => {
         // Check for any missing pong events on a regular interval
-        setInterval(checkforMissingPongEvents, CHECK_MISSING_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
+        setInterval(checkforLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
     }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 

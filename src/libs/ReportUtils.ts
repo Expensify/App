@@ -692,6 +692,10 @@ type Thread = {
     parentReportActionID: string;
 } & Report;
 
+type GetChatRoomSubtitleConfig = {
+    isCreateExpenseFlow?: boolean;
+};
+
 type GetPolicyNameParams = {
     report: OnyxInputOrEntry<Report>;
     returnEmptyIfNotFound?: boolean;
@@ -1090,6 +1094,28 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boole
     return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
+function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
+    if (!invoiceRoomID) {
+        return false;
+    }
+
+    return isInvoiceRoom(getReport(invoiceRoomID, allReports));
+}
+
+/**
+ * Checks if the report with supplied ID has been approved or not
+ */
+function isReportIDApproved(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    const report = getReport(reportID, allReports);
+    if (!report) {
+        return;
+    }
+    return isReportApproved({report});
+}
+
 /**
  * Checks if a report is an Expense report.
  */
@@ -1160,20 +1186,6 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
  */
 function isReportManager(report: OnyxEntry<Report>): boolean {
     return !!(report && report.managerID === currentUserAccountID);
-}
-
-/**
- * Checks if the report with supplied ID has been approved
- */
-function isReportIDApproved(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
-    const report = getReport(reportID, allReports);
-    if (!report) {
-        return;
-    }
-    return isReportApproved({report});
 }
 
 /**
@@ -3534,7 +3546,7 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
  * Checks if the current user can edit the provided property of an expense
  *
  */
-function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, isDeleteAction?: boolean): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -3587,13 +3599,14 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
-        return (
-            !isInvoiceReport(moneyRequestReport) &&
+        return !isInvoiceReport(moneyRequestReport) &&
             !isReceiptBeingScanned(transaction) &&
             !isDistanceRequest(transaction) &&
             !isPerDiemRequest(transaction) &&
-            (isAdmin || isManager || isRequestor)
-        );
+            (isAdmin || isManager || isRequestor) &&
+            isDeleteAction
+            ? isRequestor
+            : true;
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
@@ -4487,7 +4500,9 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = report?.reportName ?? getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+        const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
     }
 
     if (isInvoiceRoom(report)) {
@@ -4541,7 +4556,7 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
+function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubtitleConfig = {isCreateExpenseFlow: false}): string | undefined {
     if (isChatThread(report)) {
         return '';
     }
@@ -4562,7 +4577,15 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        return translateLocal('workspace.common.workspace');
+        const submitToAccountID = getSubmitToAccountID(getPolicy(report?.policyID), report);
+        const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+        const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
+
+        if (!subtitle || !config.isCreateExpenseFlow) {
+            return translateLocal('workspace.common.workspace');
+        }
+
+        return translateLocal('iou.submitsTo', {name: subtitle ?? ''});
     }
     if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';
@@ -4626,7 +4649,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
 /**
  * Go back to the details page of a given report
  */
-function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
+function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldGoBackToDetailsPage = false) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
@@ -4636,7 +4659,11 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     }
 
     if (report?.reportID) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
+        if (shouldGoBackToDetailsPage) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+        } else {
+            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID, backTo));
+        }
     } else {
         Log.warn('Missing reportID during navigation back to the details page');
     }
@@ -7909,7 +7936,14 @@ function shouldDisableRename(report: OnyxEntry<Report>): boolean {
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
 function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return isPolicyAdminPolicyUtils(policy) && !isAdminRoom(report) && !isArchivedReport(getReportNameValuePairs(report?.reportID)) && !isThread(report) && !isInvoiceRoom(report);
+    return (
+        isPolicyAdminPolicyUtils(policy) &&
+        !isAdminRoom(report) &&
+        !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
+        !isThread(report) &&
+        !isInvoiceRoom(report) &&
+        !isPolicyExpenseChat(report)
+    );
 }
 
 /**
@@ -9348,11 +9382,11 @@ export {
     isPolicyExpenseChat,
     isPolicyExpenseChatAdmin,
     isProcessingReport,
+    isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicAnnounceRoom,
     isPublicRoom,
     isReportApproved,
-    isReportIDApproved,
     isReportManuallyReimbursed,
     isReportDataReady,
     isReportFieldDisabled,
@@ -9376,6 +9410,7 @@ export {
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
+    isNewDotInvoice,
     isOpenInvoiceReport,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,

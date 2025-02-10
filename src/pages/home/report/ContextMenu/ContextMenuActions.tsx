@@ -78,6 +78,7 @@ import {
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
     getReportAutomaticallySubmittedMessage,
+    getReportName,
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
@@ -479,7 +480,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const taskPreviewMessage = getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
-                    const logMessage = getMemberChangeMessageFragment(reportAction).html ?? '';
+                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(reportAction)));
