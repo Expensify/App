@@ -205,7 +205,7 @@ function ReportPreview({
     }));
     const checkMarkScale = useSharedValue(iouSettled ? 1 : 0);
 
-    const isApproved = isReportApproved(iouReport, action);
+    const isApproved = isReportApproved({report: iouReport, parentReportAction: action});
     const thumbsUpScale = useSharedValue(isApproved ? 1 : 0);
     const thumbsUpStyle = useAnimatedStyle(() => ({
         ...styles.defaultCheckmarkWrapper,
@@ -356,11 +356,11 @@ function ReportPreview({
 
         let payerOrApproverName;
         if (isPolicyExpenseChat || isTripRoom) {
-            payerOrApproverName = getPolicyName(chatReport, undefined, policy);
+            payerOrApproverName = getPolicyName({report: chatReport, policy});
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
-            payerOrApproverName = getDisplayNameForParticipant(managerID, true);
+            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true});
         }
 
         if (isApproved) {
@@ -371,7 +371,7 @@ function ReportPreview({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant(chatReport?.ownerAccountID, true);
+            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true});
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
