@@ -60,7 +60,7 @@ const story: Meta<typeof FormProvider> = {
         CheckboxWithLabel: CheckboxWithLabel as ComponentType<unknown>,
         Picker: Picker as ComponentType<unknown>,
         StateSelector: StateSelector as ComponentType<unknown>,
-        DatePicker: DatePicker as ComponentType<unknown>,
+        DateInputModalPicker: DateInputModalPicker as ComponentType<unknown>,
     },
 };
 

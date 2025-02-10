@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidDate, isValidPastDate} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -35,11 +35,11 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
+            if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
                 errors.incorporationDate = translate('common.error.dateInvalid');
-            } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+            } else if (values.incorporationDate && !isValidPastDate(values.incorporationDate)) {
                 errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
             }
 
