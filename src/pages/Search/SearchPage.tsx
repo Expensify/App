@@ -51,11 +51,13 @@ function SearchPage({route}: SearchPageProps) {
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
     if (shouldUseNarrowLayout) {
         return (
-            <SearchPageNarrow
-                queryJSON={queryJSON}
-                policyID={policyID}
-                searchName={searchName}
-            />
+            <FreezeWrapper>
+                <SearchPageNarrow
+                    queryJSON={queryJSON}
+                    policyID={policyID}
+                    searchName={searchName}
+                />
+            </FreezeWrapper>
         );
     }
 
