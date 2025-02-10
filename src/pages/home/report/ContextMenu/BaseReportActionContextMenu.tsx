@@ -18,6 +18,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
+import getPlatform from '@libs/getPlatform';
 import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as PolicyUtilsIsPolicyAdmin} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
 import {
@@ -323,9 +324,11 @@ function BaseReportActionContextMenu({
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyAdmin = PolicyUtilsIsPolicyAdmin(getPolicy(policyID));
     const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
+    const isUsingBottomDockedModal =
+        getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS || (shouldUseNarrowLayout && getPlatform(true) === CONST.PLATFORM.MOBILEWEB);
 
     return (
-        (isVisible || shouldKeepOpen) && (
+        (isVisible || shouldKeepOpen || isUsingBottomDockedModal) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth}>
                 <View
                     ref={contentRef}
