@@ -9,24 +9,21 @@ import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type NameProps = SubStepProps & {isSecondSigner: boolean};
+type NameProps = SubStepProps;
 
 const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
-const SIGNER_PREFIX = 'signer';
-const SECOND_SIGNER_PREFIX = 'signerSecond';
 
-function Address({onNext, isEditing, onMove, isSecondSigner}: NameProps) {
+function Address({onNext, isEditing, onMove}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const prefix = isSecondSigner ? SECOND_SIGNER_PREFIX : SIGNER_PREFIX;
 
-    const countryInputKey = `${prefix}_${COUNTRY}` as const;
+    const countryInputKey = COUNTRY;
     const inputKeys = {
-        street: `${prefix}_${STREET}`,
-        city: `${prefix}_${CITY}`,
-        state: `${prefix}_${STATE}`,
-        zipCode: `${prefix}_${ZIP_CODE}`,
+        street: STREET,
+        city: CITY,
+        state: STATE,
+        zipCode: ZIP_CODE,
         country: countryInputKey,
     } as const;
 
