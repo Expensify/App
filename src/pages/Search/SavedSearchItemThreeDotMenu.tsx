@@ -20,17 +20,18 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
         <View
             ref={threeDotsMenuContainerRef}
             style={[isDisabledItem && styles.pointerEventsNone]}
+            onLayout={(e) => {
+                const target = e.target;
+                target?.measureInWindow((x, y, width) => {
+                    setThreeDotsMenuPosition({
+                        horizontal: x + width,
+                        vertical: y,
+                    });
+                });
+            }}
         >
             <ThreeDotsMenu
                 menuItems={menuItems}
-                onIconPress={() => {
-                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width) => {
-                        setThreeDotsMenuPosition({
-                            horizontal: x + width,
-                            vertical: y,
-                        });
-                    });
-                }}
                 anchorPosition={threeDotsMenuPosition}
                 renderProductTrainingTooltipContent={renderTooltipContent}
                 shouldShowProductTrainingTooltip={shouldRenderTooltip}
