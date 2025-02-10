@@ -48,7 +48,7 @@ function parseMessage(messages: Message[] | undefined) {
 
         if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
             tagType = 'strong';
-            content = nextPart?.text === `'s` ? 'Your' : 'You';
+            content = nextPart?.text === `'s` ? 'your' : 'you';
         } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
             content = '';
         } else if (isEmail) {
