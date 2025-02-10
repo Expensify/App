@@ -183,6 +183,7 @@ import type {
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
+    ViolationsCustomRulesParams,
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
@@ -4773,6 +4774,11 @@ const translations = {
                 goTo: 'Ve a',
                 andEnableWorkflows: 'y habilita los flujos de trabajo, luego añade aprobaciones para desbloquear esta función.',
             },
+            customRules: {
+                title: 'Reglas personalizadas',
+                subtitle: 'Descripción',
+                description: 'Introduzca reglas personalizadas para los informes de gastos',
+            },
         },
     },
     getAssistancePage: {
@@ -5856,6 +5862,7 @@ const translations = {
             }
             return message;
         },
+        customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {

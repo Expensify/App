@@ -258,6 +258,8 @@ type ViolationsPerDayLimitParams = {formattedLimit: string};
 
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
+type ViolationsCustomRulesParams = {message: string};
+
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
     isAdmin: boolean;
@@ -774,6 +776,7 @@ export type {
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
     ViolationsReceiptRequiredParams,
+    ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,

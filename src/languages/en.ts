@@ -184,6 +184,7 @@ import type {
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
+    ViolationsCustomRulesParams,
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
@@ -4704,6 +4705,11 @@ const translations = {
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
             },
+            customRules: {
+                title: 'Custom rules',
+                subtitle: 'Description',
+                description: 'Input custom rules for expense reports',
+            },
         },
         planTypePage: {
             planTypes: {
@@ -5343,6 +5349,7 @@ const translations = {
             }
             return message;
         },
+        customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
