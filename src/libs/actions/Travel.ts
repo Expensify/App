@@ -58,5 +58,4 @@ function cleanupTravelProvisioningSession() {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, null);
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export {acceptSpotnanaTerms, cleanupTravelProvisioningSession};
