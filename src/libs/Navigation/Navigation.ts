@@ -148,8 +148,12 @@ function isActiveRoute(routePath: Route): boolean {
 }
 
 /**
+ * Navigates to a specified route.
  * Main navigation method for redirecting to a route.
- * @param [options] - linkTo function options. They allow to specify if the replace action should be performed.
+ *
+ * @param {Route} route - The route to navigate to.
+ * @param {LinkToOptions} [options] - Optional navigation options.
+ * @param {boolean} [options.forceReplace] - If true, the navigation action will replace the current route instead of pushing a new one.
  */
 function navigate(route: Route, options?: LinkToOptions) {
     if (!canNavigate('navigate', {route})) {
