@@ -6943,7 +6943,7 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         return false;
     }
 
-    // And if any have a violation, then it should have a RBR
+    // If any report has a violation, then it should have a RBR
     const potentialReports = reportsByPolicyID[report.policyID ?? ''] ?? [];
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
