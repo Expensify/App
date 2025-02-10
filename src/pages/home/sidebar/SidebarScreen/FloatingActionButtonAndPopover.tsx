@@ -1,13 +1,12 @@
 import {useIsFocused as useIsFocusedOriginal, useNavigationState} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
-import FloatingActionButton from '@components/FloatingActionButton';
+import {FABPopoverContext} from '@components/FABPopoverProvider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -189,9 +188,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
 
-    const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
+    const {isCreateMenuActive, setIsCreateMenuActive, fabRef} = useContext(FABPopoverContext);
     const [modalVisible, setModalVisible] = useState(false);
-    const fabRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -330,14 +328,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         },
     }));
 
-    const toggleCreateMenu = () => {
-        if (isCreateMenuActive) {
-            hideCreateMenu();
-        } else {
-            showCreateMenu();
-        }
-    };
-
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
         return [
             {
@@ -464,10 +454,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     return (
-        <View style={styles.flexGrow1}>
+        <>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
+                isVisible={isCreateMenuActive}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
@@ -559,14 +549,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 confirmText={translate('exitSurvey.goToExpensifyClassic')}
                 cancelText={translate('common.cancel')}
             />
-            <FloatingActionButton
-                accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
-                role={CONST.ROLE.BUTTON}
-                isActive={isCreateMenuActive}
-                ref={fabRef}
-                onPress={toggleCreateMenu}
-            />
-        </View>
+        </>
     );
 }
 

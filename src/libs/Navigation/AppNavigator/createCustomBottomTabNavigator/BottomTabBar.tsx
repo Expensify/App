@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -33,6 +33,8 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import DebugTabView from './DebugTabView';
+import FloatingActionButton from '@components/FloatingActionButton';
+import { FABPopoverContext } from '@components/FABPopoverProvider';
 
 type BottomTabBarProps = {
     selectedTab: string | undefined;
@@ -67,6 +69,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
 }
 
 function BottomTabBar({selectedTab}: BottomTabBarProps) {
+    const {isCreateMenuActive, setIsCreateMenuActive, fabRef} = useContext(FABPopoverContext); 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -208,7 +211,13 @@ function BottomTabBar({selectedTab}: BottomTabBarProps) {
                 </PressableWithFeedback>
                 <BottomTabAvatar isSelected={selectedTab === SCREENS.SETTINGS.ROOT} />
                 <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <BottomTabBarFloatingActionButton />
+                    <FloatingActionButton
+                        accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
+                        role={CONST.ROLE.BUTTON}
+                        isActive={isCreateMenuActive}
+                        ref={fabRef}
+                        onPress={() => setIsCreateMenuActive(!isCreateMenuActive)}
+                    />
                 </View>
             </View>
         </>
