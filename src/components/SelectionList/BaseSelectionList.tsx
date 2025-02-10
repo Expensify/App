@@ -24,6 +24,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -130,6 +131,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
+    const hasKeyBeenPressed = useRef(false);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
@@ -319,6 +321,16 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const debouncedScrollToIndex = useMemo(() => lodashDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true}), [scrollToIndex]);
 
+    const setHasKeyBeenPressed = useCallback(() => {
+        if (hasKeyBeenPressed.current) {
+            return;
+        }
+
+        // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
+        // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
+        hasKeyBeenPressed.current = true;
+    }, []);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
@@ -334,8 +346,15 @@ function BaseSelectionList<TItem extends ListItem>(
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
+        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
     });
+
+    useEffect(() => {
+        addKeyDownPressListener(setHasKeyBeenPressed);
+
+        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
+    }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
@@ -555,7 +574,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldIgnoreFocus={shouldIgnoreFocus}
                     setFocusedIndex={setFocusedIndex}
                     normalizedIndex={normalizedIndex}
-                    shouldSyncFocus={!isTextInputFocusedRef.current}
+                    shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     wrapperStyle={listItemWrapperStyle}
                     titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}

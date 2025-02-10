@@ -202,6 +202,11 @@ function getDistanceForDisplay(
     return `${distanceInUnits} ${unitString}`;
 }
 
+function getDistanceForDisplayLabel(distanceInMeters: number, unit: Unit): string {
+    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
+    return `${distanceInUnits} ${unit}`;
+}
+
 /**
  * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
@@ -407,6 +412,7 @@ export default {
     getUpdatedDistanceUnit,
     getRate,
     getRateByCustomUnitRateID,
+    getDistanceForDisplayLabel,
 };
 
 export type {MileageRate};
