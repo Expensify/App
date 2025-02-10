@@ -1,13 +1,12 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {createContext, useCallback, useEffect, useMemo, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {PriorityMode} from '@src/types/onyx';
 
 type ScrollOffsetContextValue = {
     /** Save scroll offset of flashlist on given screen */
@@ -26,12 +25,7 @@ type ScrollOffsetContextValue = {
     cleanStaleScrollOffsets: (state: State) => void;
 };
 
-type ScrollOffsetContextProviderOnyxProps = {
-    /** The chat priority mode */
-    priorityMode: PriorityMode;
-};
-
-type ScrollOffsetContextProviderProps = ScrollOffsetContextProviderOnyxProps & {
+type ScrollOffsetContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;
 };
@@ -54,7 +48,8 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
     return `${route.name}-global`;
 }
 
-function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetContextProviderProps) {
+function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
+    const priorityMode = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const scrollOffsetsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
 
@@ -120,11 +115,7 @@ function ScrollOffsetContextProvider({children, priorityMode}: ScrollOffsetConte
     return <ScrollOffsetContext.Provider value={contextValue}>{children}</ScrollOffsetContext.Provider>;
 }
 
-export default withOnyx<ScrollOffsetContextProviderProps, ScrollOffsetContextProviderOnyxProps>({
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-    },
-})(ScrollOffsetContextProvider);
+export default ScrollOffsetContextProvider;
 
 export {ScrollOffsetContext};
 
