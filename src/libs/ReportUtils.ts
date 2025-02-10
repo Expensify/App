@@ -717,6 +717,8 @@ type GetReportNameParams = {
     policies?: SearchPolicy[];
 };
 
+type ReportByPolicyMap = Record<string, Report[]>;
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -778,7 +780,7 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<Report>;
-let reportsByPolicyID: Record<string, Report[]>;
+let reportsByPolicyID: ReportByPolicyMap;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -795,7 +797,7 @@ Onyx.connect({
             return;
         }
 
-        reportsByPolicyID = Object.values(value).reduce((acc, report) => {
+        reportsByPolicyID = Object.values(value).reduce<ReportByPolicyMap>((acc, report) => {
             if (!report) {
                 return acc;
             }
@@ -814,7 +816,7 @@ Onyx.connect({
             }
 
             return acc;
-        }, {} as Record<string, Report[]>);
+        }, {});
     },
 });
 
@@ -6942,7 +6944,7 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     }
 
     // And if any have a violation, then it should have a RBR
-    const potentialReports = reportsByPolicyID?.[report.policyID] ?? [];
+    const potentialReports = reportsByPolicyID[report.policyID ?? ''] ?? [];
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
