@@ -243,6 +243,8 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 renderTooltipContent={renderProductTrainingTooltip}
                 onTooltipPress={onPress}
+                name={CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP}
+                shouldHideOnEdge={true}
             >
                 <Button
                     icon={Expensicons.Filters}
