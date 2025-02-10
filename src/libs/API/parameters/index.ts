@@ -276,6 +276,14 @@ export type {default as RequestExpensifyCardLimitIncreaseParams} from './Request
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as CancelBillingSubscriptionParams} from './CancelBillingSubscriptionParams';
 export type {default as UpdateNetSuiteCustomFormIDParams} from './UpdateNetSuiteCustomFormIDParams';
+export type {default as ConnectPolicyToNSQSParams} from './ConnectPolicyToNSQSParams';
+export type {default as SyncPolicyToNSQSParams} from './SyncPolicyToNSQSParams';
+export type {default as UpdateNSQSCustomersMappingParams} from './UpdateNSQSCustomersMappingParams';
+export type {default as UpdateNSQSProjectsMappingParams} from './UpdateNSQSProjectsMappingParams';
+export type {default as UpdateNSQSExporterParams} from './UpdateNSQSExporterParams';
+export type {default as UpdateNSQSExportDateParams} from './UpdateNSQSExportDateParams';
+export type {default as UpdateNSQSAutoSyncParams} from './UpdateNSQSAutoSyncParams';
+export type {default as UpdateNSQSApprovalAccountParams} from './UpdateNSQSApprovalAccountParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
@@ -299,6 +307,7 @@ export type {default as EnablePolicyDefaultReportTitleParams} from './EnablePoli
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
+export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
 export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
@@ -368,3 +377,4 @@ export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensi
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
+export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';

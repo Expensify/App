@@ -33,7 +33,7 @@ function buildSubstitutionsMap(
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
-    const searchAutocompleteQueryRanges = parsedQuery.ranges;
+    const searchAutocompleteQueryRanges = parsedQuery.ranges.filter((range) => range.key !== CONST.SEARCH.SYNTAX_RANGE_NAME);
 
     if (searchAutocompleteQueryRanges.length === 0) {
         return {};
