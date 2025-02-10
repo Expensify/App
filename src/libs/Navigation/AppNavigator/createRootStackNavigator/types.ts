@@ -6,7 +6,7 @@ type RootStackNavigatorActionType =
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
           payload: {
-              policyID: string;
+              policyID: string | undefined;
           };
       }
     | {
