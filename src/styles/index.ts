@@ -3718,6 +3718,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             zIndex: variables.searchTopBarZIndex,
             backgroundColor: theme.appBG,
+            paddingTop: 12,
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
