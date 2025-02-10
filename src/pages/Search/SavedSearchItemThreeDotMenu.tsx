@@ -1,4 +1,5 @@
 import React, {useRef, useState} from 'react';
+import type {LayoutChangeEvent, LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -12,6 +13,9 @@ type SavedSearchItemThreeDotMenuProps = {
     renderTooltipContent: () => React.JSX.Element;
     shouldRenderTooltip: boolean;
 };
+
+type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
+
 function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip}: SavedSearchItemThreeDotMenuProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState({horizontal: 0, vertical: 0});
@@ -20,8 +24,8 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
         <View
             ref={threeDotsMenuContainerRef}
             style={[isDisabledItem && styles.pointerEventsNone]}
-            onLayout={(e) => {
-                const target = e.target;
+            onLayout={(e: LayoutChangeEvent) => {
+                const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
                 target?.measureInWindow((x, y, width) => {
                     setThreeDotsMenuPosition({
                         horizontal: x + width,
