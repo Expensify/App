@@ -84,6 +84,8 @@ jest.mock('../../src/hooks/useScreenWrapperTransitionStatus', () => ({
     })),
 }));
 
+jest.mock('@libs/Navigation/isSearchTopmostCentralPane', () => jest.fn());
+
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
