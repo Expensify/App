@@ -88,8 +88,9 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
+    const sharedVideoPlayerElementRef = useRef(false);
     const canUseTouchScreen = canUseTouchScreenLib();
-    const isCurrentlyURLSet = currentlyPlayingURL === url;
+    const isCurrentlyURLSet = currentlyPlayingURL === url && reportID === currentlyPlayingURLReportID;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
@@ -340,9 +341,10 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || sharedVideoPlayerElementRef.current) {
             return;
         }
+        sharedVideoPlayerElementRef.current = true;
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentlyPlayingURLReportID]);
 
@@ -361,7 +363,7 @@ function BaseVideoPlayer({
     useEffect(() => {
         shouldBindFunctionsRef.current = false;
 
-        if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current || reportID !== currentlyPlayingURLReportID) {
+        if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
 
@@ -471,7 +473,7 @@ function BaseVideoPlayer({
                                             isLooping={isLooping}
                                             onReadyForDisplay={(e) => {
                                                 if (isCurrentlyURLSet && !isUploading) {
-                                                    playVideo();
+                                                    // playVideo();
                                                 }
                                                 onVideoLoaded?.(e);
                                                 if (shouldUseNewRate) {
