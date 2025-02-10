@@ -4,7 +4,8 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
-    RemovePolicyConnectionParams, SyncPolicyToNSQSParams,
+    RemovePolicyConnectionParams,
+    SyncPolicyToNSQSParams,
     SyncPolicyToQuickbooksDesktopParams,
     UpdateManyPolicyConnectionConfigurationsParams,
     UpdatePolicyConnectionConfigParams,
@@ -12,13 +13,13 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getNSQSCompanyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getNSQSCompanyID} from "@libs/PolicyUtils";
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
