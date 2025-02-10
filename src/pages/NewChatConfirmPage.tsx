@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,15 +15,26 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getParticipantsOption} from '@libs/OptionsListUtils';
-import {generateReportID, getDefaultGroupAvatar, getGroupChatName} from '@libs/ReportUtils';
-import {navigateToAndOpenReport, setGroupDraft} from '@userActions/Report';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+type NewChatConfirmPageOnyxProps = {
+    /** New group chat draft data */
+    newGroupDraft: OnyxEntry<OnyxTypes.NewGroupChatDraft>;
+
+    /** All of the personal details for everyone */
+    allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+};
+
+type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
 function navigateBack() {
     Navigation.goBack(ROUTES.NEW_CHAT);
@@ -32,26 +44,23 @@ function navigateToEditChatName() {
     Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
 }
 
-function NewChatConfirmPage() {
-    const optimisticReportID = useRef<string>(generateReportID());
+function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
+    const optimisticReportID = useRef<string>(ReportUtils.generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
             return [];
         }
         const options: Participant[] = newGroupDraft.participants.map((participant) =>
-            getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
+            OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
         );
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(newGroupDraft?.participants);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : ReportUtils.getGroupChatName(newGroupDraft?.participants);
     const sections: ListItem[] = useMemo(
         () =>
             selectedOptions
@@ -84,7 +93,7 @@ function NewChatConfirmPage() {
                 return;
             }
             const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant?.login !== option.login);
-            setGroupDraft({participants: newSelectedParticipants});
+            Report.setGroupDraft({participants: newSelectedParticipants});
         },
         [newGroupDraft],
     );
@@ -95,7 +104,7 @@ function NewChatConfirmPage() {
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
+        Report.navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
     }, [newGroupDraft, avatarFile]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
@@ -111,12 +120,12 @@ function NewChatConfirmPage() {
 
         const onFailure = () => {
             setAvatarFile(undefined);
-            setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
+            Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
         };
 
         // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
         // To handle this, we re-read the avatar image file from disk whenever the component re-mounts.
-        readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
+        FileUtils.readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
 
         // we only need to run this when the component re-mounted
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -132,14 +141,14 @@ function NewChatConfirmPage() {
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     // eslint-disable-next-line react-compiler/react-compiler
-                    source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
+                    source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
-                        setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
+                        Report.setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
                     }}
                     onImageRemoved={() => {
                         setAvatarFile(undefined);
-                        setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
+                        Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
@@ -155,7 +164,7 @@ function NewChatConfirmPage() {
                 onPress={navigateToEditChatName}
                 shouldShowRightIcon
                 shouldCheckActionAllowedOnPress={false}
-                description={translate('newRoomPage.groupName')}
+                description={translate('groupConfirmPage.groupName')}
                 wrapperStyle={[styles.ph4]}
             />
             <View style={[styles.flex1, styles.mt3]}>
@@ -176,4 +185,11 @@ function NewChatConfirmPage() {
 
 NewChatConfirmPage.displayName = 'NewChatConfirmPage';
 
-export default NewChatConfirmPage;
+export default withOnyx<NewChatConfirmPageProps, NewChatConfirmPageOnyxProps>({
+    newGroupDraft: {
+        key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
+    },
+    allPersonalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+})(NewChatConfirmPage);
