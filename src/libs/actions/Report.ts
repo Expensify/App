@@ -79,7 +79,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
-import * as Pusher from '@libs/Pusher/pusher';
+import * as Pusher from '@libs/Pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
 import {

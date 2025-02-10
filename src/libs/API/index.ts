@@ -5,7 +5,7 @@ import Log from '@libs/Log';
 import {HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
-import {getPusherSocketID} from '@libs/Pusher/pusher';
+import {getPusherSocketID} from '@libs/Pusher';
 import {processWithMiddleware, use} from '@libs/Request';
 import {getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';

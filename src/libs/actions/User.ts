@@ -32,7 +32,7 @@ import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as Pusher from '@libs/Pusher/pusher';
+import * as Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';

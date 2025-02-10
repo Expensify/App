@@ -4,8 +4,8 @@ import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import Log from './Log';
 import NetworkConnection from './NetworkConnection';
-import {subscribe} from './Pusher/pusher';
-import type {PingPongEvent} from './Pusher/pusher';
+import {subscribe} from './Pusher';
+import type {PingPongEvent} from './Pusher';
 
 type Callback = (data: OnyxUpdate[]) => Promise<void>;
 

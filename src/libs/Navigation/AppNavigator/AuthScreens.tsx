@@ -34,7 +34,7 @@ import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList}
 import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import NetworkConnection from '@libs/NetworkConnection';
 import onyxSubscribe from '@libs/onyxSubscribe';
-import * as Pusher from '@libs/Pusher/pusher';
+import * as Pusher from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';

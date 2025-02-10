@@ -1,6 +1,6 @@
+import * as Pusher from '@libs/Pusher';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import * as Pusher from '@src/libs/Pusher/pusher';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import asMutable from '@src/types/utils/asMutable';
