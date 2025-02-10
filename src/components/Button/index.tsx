@@ -145,6 +145,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
     isPressOnEnterActive?: boolean;
+
+    /** The text displays under the first line */
+    secondLineText?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -246,6 +249,7 @@ function Button(
         link = false,
         isContentCentered = false,
         isPressOnEnterActive,
+        secondLineText = '',
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -260,7 +264,7 @@ function Button(
             return rest.children;
         }
 
-        const textComponent = (
+        const primaryText = (
             <Text
                 numberOfLines={1}
                 style={[
@@ -284,6 +288,15 @@ function Button(
             >
                 {text}
             </Text>
+        );
+
+        const textComponent = secondLineText ? (
+            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1]}>
+                {primaryText}
+                <Text style={[isLoading && styles.opacity0, styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker]}>{secondLineText}</Text>
+            </View>
+        ) : (
+            primaryText
         );
 
         const defaultFill = success || danger ? theme.textLight : theme.icon;
