@@ -66,6 +66,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.SESSION,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.HAS_LOADED_APP,
     ONYXKEYS.STASHED_CREDENTIALS,
 
     // We need to preserve the sidebar loaded state since we never unrender the sidebar when connecting as a delegate

@@ -746,6 +746,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
+        CUSTOM_RULES: 'customRules',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -4998,6 +4999,7 @@ const CONST = {
         PER_DAY_LIMIT: 'perDayLimit',
         RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
         RECEIPT_REQUIRED: 'receiptRequired',
+        CUSTOM_RULES: 'customRules',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
         SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
