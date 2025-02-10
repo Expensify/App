@@ -119,6 +119,7 @@ const getIouType = (action: QuickActionName) => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.PER_DIEM:
             return CONST.IOU.TYPE.SUBMIT;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
@@ -386,6 +387,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         if (quickAction?.action) {
             const iouType = getIouType(quickAction?.action);
             if (!!iouType && !canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
+                return [];
+            }
+            if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !quickActionPolicy?.arePerDiemRatesEnabled) {
                 return [];
             }
             const onSelected = () => {
