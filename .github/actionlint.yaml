@@ -4,8 +4,8 @@ self-hosted-runner:
     - ubuntu-latest-xl
     - macos-15-large
     - macos-15-xlarge
-    - ubuntu-latest-reassure-tests
     - macos-12
+    - ubuntu-20.04-v4
 
 paths:
   '**/*':
