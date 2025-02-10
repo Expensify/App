@@ -318,6 +318,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     shouldPreventEnterKeySubmit?: boolean;
+    shouldShowBlueBorderOnFocus?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
