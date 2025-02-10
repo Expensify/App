@@ -55,6 +55,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last updated time */
     lastScrape?: string;
 
+    /** Last update result */
+    lastScrapeResult?: number;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
