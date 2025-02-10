@@ -88,6 +88,17 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             return;
         }
 
+        // Handle initial personal details load
+        if (!prevPersonalDetails) {
+            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, reports);
+            setOptions((prevOptions) => ({
+                ...prevOptions,
+                personalDetails: newPersonalDetailsOptions,
+                reports: newReports,
+            }));
+            return;
+        }
+
         const newReportOptions: Array<{
             replaceIndex: number;
             newReportOption: SearchOption<Report>;
