@@ -21,11 +21,12 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
 }));
 jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({
-        routes: [],
+        routes: [{name: 'Report'}],
     }),
     getRootState: () => ({
         routes: [],
     }),
+    addListener: () => () => {},
 }));
 jest.mock('@components/Icon/Expensicons');
 
