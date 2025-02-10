@@ -16,7 +16,7 @@ function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
     return {...state, routes: routesToRender, index: routesToRender.length - 1};
 }
 
-const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('ResponsiveStackNavigator', {
+const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootStackNavigator', {
     createRouter: RootStackRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomEffects: useNavigationResetOnLayoutChange,

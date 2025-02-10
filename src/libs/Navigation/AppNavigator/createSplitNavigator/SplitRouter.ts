@@ -101,7 +101,6 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
         getStateForAction(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType, configOptions: RouterConfigOptions) {
             if (isPushingSidebarOnCentralPane(state, action, options)) {
                 if (getIsNarrowLayout()) {
-                    // @TODO: It's possible that it's better to push whole new SplitNavigator in such case. Not sure yet.
                     const newAction = StackActions.popToTop();
                     return stackRouter.getStateForAction(state, newAction, configOptions);
                 }
