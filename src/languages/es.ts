@@ -201,6 +201,7 @@ import type {
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
@@ -1868,6 +1869,11 @@ const translations = {
         workEmailValidationError: {
             publicEmail: 'Please enter a valid work email from a private domain e.g. mitch@company.com',
             offline: 'We couldn’t add your work email as you appear to be offline',
+        },
+        mergeBlockScreen: {
+            title: 'No se pudo añadir el correo electrónico de trabajo',
+            subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
+                `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
         },
     },
     featureTraining: {

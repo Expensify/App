@@ -56,24 +56,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         setOnboardingErrorMessage('');
     }, []);
 
-    useEffect(() => {
-        if (onboardingValues?.shouldValidate === undefined) {
-            return;
-        }
-
-        if (onboardingValues.shouldValidate) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
-            return;
-        }
-
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-            return;
-        }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    }, [onboardingValues, isVsb]);
-
     const validatePrivateDomain = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
     }, []);

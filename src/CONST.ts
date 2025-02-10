@@ -5347,6 +5347,8 @@ const CONST = {
             DEBUG: 'DEBUG',
         },
     },
+
+    MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {

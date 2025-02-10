@@ -1,8 +1,11 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -14,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -33,29 +37,15 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const [isMergingAccountBlocked, setIsMergingAccountBlocked] = useState(false);
 
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
-
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
     useEffect(() => {
-        if (onboardingValues?.shouldRedirectToClassicAfterMerge === undefined) {
-            return;
+        if (!!onboardingErrorMessage && onboardingErrorMessage !== CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
+            setIsMergingAccountBlocked(true);
         }
-
-        if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-            return;
-        }
-
-        if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-            return;
-        }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    }, [onboardingValues, isVsb]);
+    }, [onboardingErrorMessage]);
 
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {
@@ -64,6 +54,13 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         resendValidateCode(credentials.login);
     }, [credentials?.login]);
 
+    const validateAccountAndMerge = useCallback(
+        (validateCode: string) => {
+            MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
+        },
+        [workEmail, session?.accountID],
+    );
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -71,35 +68,43 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={!isMergingAccountBlocked}
                 progressBarPercentage={40}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute())}
             />
-            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmailValidation.title')}</Text>
-                <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
-                <ValidateCodeForm
-                    validateCodeAction={validateCodeAction}
-                    handleSubmitForm={(code) => {
-                        MergeIntoAccountAndLogin(workEmail, code, session?.accountID);
-                    }}
-                    sendValidateCode={sendValidateCode}
-                    clearError={() => {}}
-                    hideSubmitButton
-                />
-                <View style={[styles.flex2, styles.justifyContentEnd]}>
+            {isMergingAccountBlocked ? (
+                <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                    <BlockingView
+                        icon={Illustrations.ToddBehindCloud}
+                        iconWidth={variables.modalTopIconWidth}
+                        iconHeight={variables.modalTopIconHeight}
+                        title={translate('onboarding.mergeBlockScreen.title')}
+                        subtitle={translate('onboarding.mergeBlockScreen.subtitle', {workEmail})}
+                        subtitleStyle={[styles.colorMuted]}
+                    />
                     <Button
-                        isDisabled={isOffline}
-                        success={false}
+                        success={isMergingAccountBlocked}
                         large
                         style={[styles.mb5]}
-                        text={translate('common.skip')}
-                        isLoading={isValidateCodeFormSubmitting}
-                        onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute())}
                     />
-                    {shouldUseNarrowLayout && <OfflineIndicator />}
                 </View>
-            </View>
+            ) : (
+                <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                    <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmailValidation.title')}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
+                    <ValidateCodeForm
+                        validateCodeAction={validateCodeAction}
+                        handleSubmitForm={validateAccountAndMerge}
+                        sendValidateCode={sendValidateCode}
+                        clearError={() => {}}
+                        buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
+                        shouldShowSkipButton
+                        handleSkipButtonPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute())}
+                    />
+                </View>
+            )}
         </ScreenWrapper>
     );
 }

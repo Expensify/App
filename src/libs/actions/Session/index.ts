@@ -55,9 +55,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {Onboarding} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
+import {openOldDotLink} from '../Link';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 
@@ -104,6 +106,12 @@ let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
+});
+
+let onboarding: Onboarding | undefined;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (val) => (onboarding = val),
 });
 
 function isSupportAuthToken(): boolean {
@@ -1261,9 +1269,7 @@ function AddWorkEmail(workEmail: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: {
-                errorMessage: null,
-            },
+            value: null,
         },
     ];
 
@@ -1279,9 +1285,7 @@ function AddWorkEmail(workEmail: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: {
-                errorMessage: null,
-            },
+            value: null,
         },
     ];
 
@@ -1302,15 +1306,30 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    API.write(
-        WRITE_COMMANDS.ADD_WORK_EMAIL,
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
         {workEmail},
         {
             optimisticData,
             successData,
             failureData,
         },
-    );
+    ).then((response) => {
+        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && onboarding?.shouldValidate) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
+            return;
+        }
+
+        const isVsb = onboarding && 'signupQualifier' in onboarding && onboarding.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            return;
+        }
+
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    });
 }
 
 function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
@@ -1342,15 +1361,34 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         },
     ];
 
-    API.write(
-        WRITE_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
         {workEmail, validateCode, accountID},
         {
             optimisticData,
             successData,
             failureData,
         },
-    );
+    ).then((response) => {
+        if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
+            Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, response?.message ?? '');
+            return;
+        }
+        if (response?.jsonCode === CONST.JSON_CODE.SUCCESS && onboarding?.shouldRedirectToClassicAfterMerge) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
+        }
+
+        const isVsb = onboarding && 'signupQualifier' in onboarding && onboarding.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            return;
+        }
+
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+    });
 }
 
 /**
