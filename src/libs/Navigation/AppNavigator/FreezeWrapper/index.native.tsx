@@ -4,12 +4,7 @@ import {Freeze} from 'react-freeze';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import getIsScreenBlurred from './getIsScreenBlurred';
 
-type FreezeWrapperProps = ChildrenProps & {
-    /** Prop to disable freeze */
-    keepVisible?: boolean;
-};
-
-function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
+function FreezeWrapper({children}: ChildrenProps) {
     const navigation = useNavigation();
     const currentRoute = useRoute();
 
@@ -20,7 +15,7 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
         return () => unsubscribe();
     }, [currentRoute.key, navigation]);
 
-    return <Freeze freeze={isScreenBlurred && !keepVisible}>{children}</Freeze>;
+    return <Freeze freeze={isScreenBlurred}>{children}</Freeze>;
 }
 
 FreezeWrapper.displayName = 'FreezeWrapper';
