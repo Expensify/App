@@ -291,7 +291,8 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             Onyx.multiSet(onyxSetParams);
 
             if (response?.hasOldDotAuthCookies) {
-                asyncOpenURL(redirectToSignIn(), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}/${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+                Log.info('Redirecting to OldDot sign out');
+                asyncOpenURL(redirectToSignIn(), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
             } else {
                 redirectToSignIn();
             }
