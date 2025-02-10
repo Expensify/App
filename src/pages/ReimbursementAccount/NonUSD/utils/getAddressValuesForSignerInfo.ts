@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 
 type SignerInfoAddressValues = {
@@ -7,6 +8,8 @@ type SignerInfoAddressValues = {
     state: string;
     zipCode: string;
 };
+
+const {STREET, CITY, STATE, ZIP_CODE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function getAddressValuesForSignerInfo(prefix: string, reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>): SignerInfoAddressValues {
     if (!reimbursementAccountDraft) {
@@ -19,10 +22,10 @@ function getAddressValuesForSignerInfo(prefix: string, reimbursementAccountDraft
     }
 
     return {
-        street: reimbursementAccountDraft[`${prefix}_street`],
-        city: reimbursementAccountDraft[`${prefix}_city`],
-        state: reimbursementAccountDraft[`${prefix}_state`],
-        zipCode: reimbursementAccountDraft[`${prefix}_zipCode`],
+        street: reimbursementAccountDraft[STREET],
+        city: reimbursementAccountDraft[CITY],
+        state: reimbursementAccountDraft[STATE],
+        zipCode: reimbursementAccountDraft[ZIP_CODE],
     };
 }
 
