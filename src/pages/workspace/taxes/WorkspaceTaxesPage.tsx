@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
@@ -92,6 +93,13 @@ function WorkspaceTaxesPage({
         }
         setSelectedTaxesIDs([]);
     }, [isFocused]);
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedTaxesIDs([]);
+        },
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
 
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate): string => {

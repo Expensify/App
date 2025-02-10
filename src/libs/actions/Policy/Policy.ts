@@ -643,7 +643,10 @@ function clearPolicyErrorField(policyID: string | undefined, fieldName: string) 
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
-function clearQBOErrorField(policyID: string, fieldName: string) {
+function clearQBOErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
@@ -1312,6 +1315,7 @@ function updateGeneralSettings(policyID: string | undefined, name: string, curre
                 outputCurrency: currency,
                 ...(customUnitID && {
                     customUnits: {
+                        ...policy.customUnits,
                         [customUnitID]: {
                             ...distanceUnit,
                             rates: optimisticRates,
@@ -3866,6 +3870,63 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
 }
 
 /**
+ * Call the API to set the custom rules for the given policy
+ * @param policyID - id of the policy to set the max expense age
+ * @param customRules - the custom rules description in natural language
+ */
+function updateCustomRules(policyID: string, customRules: string) {
+    const policy = getPolicy(policyID);
+    const originalCustomRules = policy?.customRules;
+    const parsedCustomRules = ReportUtils.getParsedComment(customRules);
+    if (parsedCustomRules === originalCustomRules) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customRules: parsedCustomRules,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        // TODO
+                        // maxExpenseAge: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customRules: originalCustomRules,
+                    // TODO
+                    // pendingFields: {maxExpenseAge: null},
+                    // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        description: parsedCustomRules,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_CUSTOM_RULES, parameters, onyxData);
+}
+
+/**
  * Call the API to enable or disable the billable mode for the given policy
  * @param policyID - id of the policy to enable or disable the bilable mode
  * @param defaultBillable - whether the billable mode is enabled in the given policy
@@ -4914,6 +4975,7 @@ export {
     setPolicyMaxExpenseAmountNoReceipt,
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
+    updateCustomRules,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,

@@ -971,6 +971,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_CUSTOM]: {
+                            path: ROUTES.RULES_CUSTOM.route,
+                        },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
                         },
@@ -1379,6 +1382,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
+                        [SCREENS.TRAVEL.UPGRADE]: ROUTES.TRAVEL_UPGRADE,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
                         [SCREENS.TRAVEL.TRIP_DETAILS]: {

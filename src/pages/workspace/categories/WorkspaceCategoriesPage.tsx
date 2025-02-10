@@ -29,6 +29,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -103,6 +104,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         setSelectedCategories({});
     }, [isFocused]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedCategories({}),
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
 
     const updateWorkspaceRequiresCategory = useCallback(
         (value: boolean, categoryName: string) => {

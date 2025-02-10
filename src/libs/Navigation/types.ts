@@ -957,6 +957,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_CUSTOM]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
         policyID: string;
     };

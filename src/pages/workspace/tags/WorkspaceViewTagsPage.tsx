@@ -19,6 +19,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -87,6 +88,13 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             turnOffMobileSelectionMode();
         };
     }, [isFocused]);
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedTags({});
+        },
+        onNavigationCallBack: () => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : undefined),
+    });
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {

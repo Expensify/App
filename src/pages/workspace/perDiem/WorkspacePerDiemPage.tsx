@@ -24,6 +24,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -171,16 +172,26 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     rightElement: (
                         <>
                             <View style={styles.flex2}>
-                                <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}>{value.subRateName}</Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}
+                                >
+                                    {value.subRateName}
+                                </Text>
                             </View>
-                            <View style={styles.flex1}>
-                                <Text style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}>{convertAmountToDisplayString(value.rate, value.currency)}</Text>
+                            <View style={styles.flex2}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}
+                                >
+                                    {convertAmountToDisplayString(value.rate, value.currency)}
+                                </Text>
                             </View>
                         </>
                     ),
                 };
             }),
-        [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.flex1, styles.alignSelfEnd],
+        [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
     );
 
     const toggleSubRate = (subRate: PolicyOption) => {
@@ -211,7 +222,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             <View style={styles.flex2}>
                 <Text style={[styles.searchInputStyle, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
             </View>
-            <View style={styles.flex1}>
+            <View style={styles.flex2}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
             </View>
         </View>
@@ -278,6 +289,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
         setSelectedPerDiem([]);
     }, [setSelectedPerDiem, selectionMode?.isEnabled]);
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedPerDiem([]);
+        },
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
 
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 

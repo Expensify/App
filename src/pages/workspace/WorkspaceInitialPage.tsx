@@ -229,6 +229,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 icon: CalendarSolid,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.PER_DIEM,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
             });
         }
 
