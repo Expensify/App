@@ -267,7 +267,7 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         parameters.forceDataRefresh = forceDataRefresh;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NSQS) {
-        (parameters as SyncPolicyToNSQSParams).netSuiteAccountID = getNSQSCompanyID(policy) as string;
+        (parameters as SyncPolicyToNSQSParams).netSuiteAccountID = getNSQSCompanyID(policy) ?? '';
     }
 
     API.read(syncConnectionData.readCommand, parameters, {

@@ -39,7 +39,6 @@ import {
     getCurrentSageIntacctEntityName,
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
-    getNSQSCompanyID,
     getXeroTenants,
     hasUnsupportedIntegration,
     isControlPolicy,
