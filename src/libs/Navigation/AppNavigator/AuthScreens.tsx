@@ -1,5 +1,5 @@
-import {findFocusedRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useRef, useState} from 'react';
+import {findFocusedRoute, useNavigation} from '@react-navigation/native';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
@@ -12,11 +12,13 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import TestToolsModal from '@components/TestToolsModal';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -51,6 +53,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import '@src/libs/subscribeToFullReconnect';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -219,6 +222,15 @@ const modalScreenListeners = {
     },
 };
 
+const fullScreenListeners = {
+    focus: () => {
+        setFullscreenVisibility(true);
+    },
+    beforeRemove: () => {
+        setFullscreenVisibility(false);
+    },
+};
+
 // Extended modal screen listeners with additional cancellation of pending requests
 const modalScreenListenersWithCancelSearch = {
     ...modalScreenListeners,
@@ -235,10 +247,25 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const rootNavigatorOptions = useRootNavigatorOptions();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('state', () => {
+            PriorityMode.autoSwitchToFocusMode();
+        });
+        return () => unsubscribe();
+    }, [navigation]);
+
+    // On HybridApp we need to prevent flickering during transition to OldDot
+    const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
+        return NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_EMPLOYEES.route) && isOnboardingCompleted === true;
+    }, [isOnboardingCompleted]);
+
     const [initialReportID] = useState(() => {
         const currentURL = getCurrentUrl();
         const reportIdFromPath = currentURL && new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1);
@@ -354,7 +381,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Session.checkIfActionIsAllowed(() => {
+                Session.callFunctionIfActionIsAllowed(() => {
                     const state = navigationRef.getRootState();
                     const currentFocusedRoute = findFocusedRoute(state);
                     if (isOnboardingFlowName(currentFocusedRoute?.name)) {
@@ -371,7 +398,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeChatShortcut = KeyboardShortcut.subscribe(
             chatShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
+                Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -400,6 +427,32 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const clearStatus = () => {
+        User.clearCustomStatus();
+        User.clearDraftCustomStatus();
+    };
+    useEffect(() => {
+        if (!currentUserPersonalDetails.status?.clearAfter) {
+            return;
+        }
+        const currentTime = new Date();
+        const clearAfterTime = new Date(currentUserPersonalDetails.status.clearAfter);
+        if (Number.isNaN(clearAfterTime.getTime())) {
+            return;
+        }
+        const subMilisecondsTime = clearAfterTime.getTime() - currentTime.getTime();
+        if (subMilisecondsTime > 0) {
+            const timeoutID = setTimeout(() => {
+                clearStatus();
+            }, subMilisecondsTime);
+            return () => {
+                clearTimeout(timeoutID);
+            };
+        }
+
+        clearStatus();
+    }, [currentUserPersonalDetails.status?.clearAfter]);
+
     const CentralPaneScreenOptions: PlatformStackNavigationOptions = {
         ...hideKeyboardOnSwipe,
         headerShown: false,
@@ -426,6 +479,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             headerShown: false,
                             title: 'New Expensify',
                         }}
+                        listeners={fullScreenListeners}
                         getComponent={loadValidateLoginPage}
                     />
                     <RootStack.Screen
@@ -489,6 +543,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.NOT_FOUND}
                         options={rootNavigatorOptions.fullScreen}
                         component={NotFoundPage}
+                        listeners={fullScreenListeners}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
@@ -533,7 +588,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={rootNavigatorOptions.basicModalNavigator}
                         component={WelcomeVideoModalNavigator}
                     />
-                    {isOnboardingCompleted === false && (
+                    {(isOnboardingCompleted === false || shouldRenderOnboardingExclusivelyOnHybridApp) && (
                         <RootStack.Screen
                             name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                             options={{...rootNavigatorOptions.basicModalNavigator, gestureEnabled: false}}
@@ -565,7 +620,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={SCREENS.CONNECTION_COMPLETE}
-                        options={defaultScreenOptions}
+                        options={rootNavigatorOptions.fullScreen}
+                        component={ConnectionCompletePage}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.BANK_CONNECTION_COMPLETE}
+                        options={rootNavigatorOptions.fullScreen}
                         component={ConnectionCompletePage}
                     />
                     {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {

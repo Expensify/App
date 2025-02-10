@@ -13,11 +13,11 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,11 +28,11 @@ type CardSelectionStepProps = {
     feed: CompanyCardFeed;
 
     /** Current policy id */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -43,21 +43,21 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const filteredCardList = CardUtils.getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({
+            setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
             return;
         }
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
 
     const handleSelectCard = (cardNumber: string) => {
@@ -76,7 +76,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
                 ?.at(0) ?? '';
 
-        CompanyCards.setAssignCardStepAndData({
+        setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
             data: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
@@ -86,11 +86,11 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
-        text: CardUtils.maskCardNumber(cardNumber, feed),
+        text: maskCardNumber(cardNumber, feed),
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
-                src={CardUtils.getCardFeedIcon(feed)}
+                src={getCardFeedIcon(feed)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -151,7 +151,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
                                     {translate('workspace.companyCards.chooseCardFor', {
                                         assignee: assigneeDisplayName,
-                                        feed: CardUtils.getCardFeedName(feed),
+                                        feed: getBankName(feed),
                                     })}
                                 </Text>
                             </View>

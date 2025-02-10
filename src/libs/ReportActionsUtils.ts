@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Locale, OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Locale, OnyxInputOrEntry, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -17,20 +17,19 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
-import * as Environment from './Environment/Environment';
+import {getEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-import * as Localize from './Localize';
+import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import * as PolicyUtils from './PolicyUtils';
-import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import {getEffectiveDisplayName, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
-// eslint-disable-next-line import/no-cycle
-import * as TransactionUtils from './TransactionUtils';
+import {isOnHoldByTransactionID} from './TransactionUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -101,7 +100,7 @@ Onyx.connect({
 });
 
 let environmentURL: string;
-Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
+getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 /*
  * Url to the Xero non reimbursable expenses list
@@ -636,8 +635,51 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
+/**
+ * Checks if a given report action corresponds to an actionable mention whisper.
+ * @param reportAction
+ */
+function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
+}
+
+/**
+ * Checks if a given report action corresponds to an actionable report mention whisper.
+ * @param reportAction
+ */
+function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER);
+}
+
+/**
+ * Checks whether an action is actionable track expense.
+ */
+function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
+}
+
+function isActionableWhisper(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER
+> {
+    return isActionableMentionWhisper(reportAction) || isActionableTrackExpense(reportAction) || isActionableReportMentionWhisper(reportAction);
+}
+
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
 const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
+
+/**
+ * Checks whether an action is actionable track expense and resolved.
+ *
+ */
+function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(reportAction);
+    const resolution = originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage ? originalMessage?.resolution : null;
+    return !!resolution;
+}
 
 /**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
@@ -687,6 +729,11 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return true;
     }
 
+    // If action is actionable whisper and resolved by user, then we don't want to render anything
+    if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
@@ -702,24 +749,6 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
         return true;
     }
     return !isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-}
-
-/**
- * Checks whether an action is actionable track expense.
- *
- */
-function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
-}
-
-/**
- * Checks whether an action is actionable track expense and resolved.
- *
- */
-function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    const originalMessage = getOriginalMessage(reportAction);
-    const resolution = originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage ? originalMessage?.resolution : null;
-    return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
 /**
@@ -740,8 +769,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
-        !isResolvedActionTrackExpense(reportAction)
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
     );
 }
 
@@ -775,10 +803,11 @@ function getLastVisibleAction(
     reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+    reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
 ): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
-        reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
+        reportActions = Object.values(fastMerge(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
             ReportAction | null | undefined
         >;
     } else {
@@ -792,12 +821,15 @@ function getLastVisibleAction(
     return sortedReportActions.at(0);
 }
 
-function formatLastMessageText(lastMessageText: string) {
+function formatLastMessageText(lastMessageText: string | undefined) {
     const trimmedMessage = String(lastMessageText).trim();
 
     // Add support for inline code containing only space characters
     // The message will appear as a blank space in the LHN
-    if ((trimmedMessage === '' && lastMessageText.length > 0) || (trimmedMessage === '?\u2026' && lastMessageText.length > CONST.REPORT.MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS)) {
+    if (
+        (trimmedMessage === '' && (lastMessageText?.length ?? 0) > 0) ||
+        (trimmedMessage === '?\u2026' && (lastMessageText?.length ?? 0) > CONST.REPORT.MIN_LENGTH_LAST_MESSAGE_WITH_ELLIPSIS)
+    ) {
         return ' ';
     }
 
@@ -923,12 +955,12 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNu
 /**
  * Find the transaction associated with this reportAction, if one exists.
  */
-function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction>, reportID?: string): string | null {
+function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction> | undefined, reportID?: string): string | undefined {
     const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionOrID] : reportActionOrID;
     if (!reportAction || !isMoneyRequestAction(reportAction)) {
-        return null;
+        return undefined;
     }
-    return getOriginalMessage(reportAction)?.IOUTransactionID ?? null;
+    return getOriginalMessage(reportAction)?.IOUTransactionID;
 }
 
 function getReportAction(reportID: string | undefined, reportActionID: string | undefined): ReportAction | undefined {
@@ -1167,7 +1199,8 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
+// We pass getReportName as a param to avoid cyclic dependency.
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
 
@@ -1176,22 +1209,22 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     }
 
     // Currently, we only render messages when members are invited
-    let verb = Localize.translateLocal('workspace.invite.removed');
+    let verb = translateLocal('workspace.invite.removed');
     if (isInviteAction) {
-        verb = Localize.translateLocal('workspace.invite.invited');
+        verb = translateLocal('workspace.invite.invited');
     }
 
     if (isLeaveAction) {
-        verb = Localize.translateLocal('workspace.invite.leftWorkspace');
+        verb = getPolicyChangeLogEmployeeLeftMessage(reportAction);
     }
 
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+    const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
 
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const handleText = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden');
+        const handleText = getEffectiveDisplayName(personalDetail) ?? translateLocal('common.hidden');
 
         return {
             kind: 'userMention',
@@ -1201,10 +1234,9 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        const roomName = originalMessage?.roomName;
-
-        if (roomName) {
-            const preposition = isInviteAction ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
+        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`]);
+        if (roomName && originalMessage) {
+            const preposition = isInviteAction ? ` ${translateLocal('workspace.invite.to')} ` : ` ${translateLocal('workspace.invite.from')} `;
 
             if (originalMessage.reportID) {
                 return [
@@ -1230,7 +1262,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
             kind: 'text',
             content: `${verb} `,
         },
-        ...Localize.formatMessageElementList(mentionElements),
+        ...formatMessageElementList(mentionElements),
         ...buildRoomElements(),
     ];
 }
@@ -1319,58 +1351,58 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
             const {oldValue, newValue, fieldName} = originalMessage;
             if (!oldValue) {
-                return Localize.translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
+                return translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
             }
-            return Localize.translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
+            return translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
         }
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
             const {fromPolicy, toPolicy} = originalMessage;
-            return Localize.translateLocal('report.actions.type.changePolicy', {fromPolicy, toPolicy});
+            return translateLocal('report.actions.type.changePolicy', {fromPolicy, toPolicy});
         }
         case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
             const {delegateUser, originalManager} = originalMessage;
-            return Localize.translateLocal('report.actions.type.delegateSubmit', {delegateUser, originalManager});
+            return translateLocal('report.actions.type.delegateSubmit', {delegateUser, originalManager});
         }
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
-            return Localize.translateLocal('report.actions.type.exportedToCSV');
+            return translateLocal('report.actions.type.exportedToCSV');
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
             const {result, label} = originalMessage;
             const errorMessage = result?.messages?.join(', ') ?? '';
-            return Localize.translateLocal('report.actions.type.integrationsMessage', {errorMessage, label});
+            return translateLocal('report.actions.type.integrationsMessage', {errorMessage, label});
         }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
-            return Localize.translateLocal('report.actions.type.managerAttachReceipt');
+            return translateLocal('report.actions.type.managerAttachReceipt');
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT:
-            return Localize.translateLocal('report.actions.type.managerDetachReceipt');
+            return translateLocal('report.actions.type.managerDetachReceipt');
         case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
             const {amount, currency} = originalMessage;
-            return Localize.translateLocal('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
+            return translateLocal('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
         }
         case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
-            return Localize.translateLocal('report.actions.type.outdatedBankAccount');
+            return translateLocal('report.actions.type.outdatedBankAccount');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE:
-            return Localize.translateLocal('report.actions.type.reimbursementACHBounce');
+            return translateLocal('report.actions.type.reimbursementACHBounce');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED:
-            return Localize.translateLocal('report.actions.type.reimbursementACHCancelled');
+            return translateLocal('report.actions.type.reimbursementACHCancelled');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
-            return Localize.translateLocal('report.actions.type.reimbursementAccountChanged');
+            return translateLocal('report.actions.type.reimbursementAccountChanged');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
-            return Localize.translateLocal('report.actions.type.reimbursementDelayed');
+            return translateLocal('report.actions.type.reimbursementDelayed');
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
-            return Localize.translateLocal(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
+            return translateLocal(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
-            return Localize.translateLocal('report.actions.type.share', {to: originalMessage.to});
+            return translateLocal('report.actions.type.share', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
-            return Localize.translateLocal('report.actions.type.unshare', {to: originalMessage.to});
+            return translateLocal('report.actions.type.unshare', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
-            return Localize.translateLocal('report.actions.type.takeControl');
+            return translateLocal('report.actions.type.takeControl');
         default:
             return '';
     }
 }
 
-function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {
@@ -1398,11 +1430,6 @@ function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
         text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
-}
-
-function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
-    const messageElements = getMemberChangeMessageElements(reportAction);
-    return messageElements.map((element) => element.content).join('');
 }
 
 function getReportActionMessageFragments(action: ReportAction): Message[] {
@@ -1450,22 +1477,6 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
 }
 
 /**
- * Checks if a given report action corresponds to an actionable mention whisper.
- * @param reportAction
- */
-function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
-}
-
-/**
- * Checks if a given report action corresponds to an actionable report mention whisper.
- * @param reportAction
- */
-function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER);
-}
-
-/**
  * Constructs a message for an actionable mention whisper report action.
  * @param reportAction
  * @returns the actionable mention whisper message.
@@ -1476,11 +1487,11 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     }
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.inviteeAccountIDs ?? [];
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+    const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
-        const displayName = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail);
-        const handleText = isEmpty(displayName) ? Localize.translateLocal('common.hidden') : displayName;
+        const displayName = getEffectiveDisplayName(personalDetail);
+        const handleText = isEmpty(displayName) ? translateLocal('common.hidden') : displayName;
         return `<mention-user accountID=${accountID}>@${handleText}</mention-user>`;
     });
     const preMentionsText = 'Heads up, ';
@@ -1561,7 +1572,7 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
 function getDismissedViolationMessageText(originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {
     const reason = originalMessage?.reason;
     const violationName = originalMessage?.violationName;
-    return Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
+    return translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
 }
 
 /**
@@ -1569,7 +1580,7 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
  */
 function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
     const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
-    return linkedTransactionID ? TransactionUtils.isOnHoldByTransactionID(linkedTransactionID) : false;
+    return linkedTransactionID ? isOnHoldByTransactionID(linkedTransactionID) : false;
 }
 
 function getMentionedAccountIDsFromAction(reportAction: OnyxInputOrEntry<ReportAction>) {
@@ -1599,7 +1610,10 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
 /**
  * Get IOU action for a reportID and transactionID
  */
-function getIOUActionForReportID(reportID: string, transactionID: string): OnyxEntry<ReportAction> {
+function getIOUActionForReportID(reportID: string | undefined, transactionID: string): OnyxEntry<ReportAction> {
+    if (!reportID) {
+        return;
+    }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID);
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
@@ -1657,30 +1671,30 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     const result: Array<{text: string; url: string}> = [];
     if (isPending) {
         result.push({
-            text: Localize.translateLocal('report.actions.type.exportedToIntegration.pending', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.pending', {label}),
             url: '',
         });
     } else if (markedManually) {
         result.push({
-            text: Localize.translateLocal('report.actions.type.exportedToIntegration.manual', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.manual', {label}),
             url: '',
         });
     } else {
         result.push({
-            text: Localize.translateLocal('report.actions.type.exportedToIntegration.automatic', {label}),
+            text: translateLocal('report.actions.type.exportedToIntegration.automatic', {label}),
             url: '',
         });
     }
 
     if (reimbursableUrls.length === 1) {
         result.push({
-            text: Localize.translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
+            text: translateLocal('report.actions.type.exportedToIntegration.reimburseableLink'),
             url: reimbursableUrls.at(0) ?? '',
         });
     }
 
     if (nonReimbursableUrls.length) {
-        const text = Localize.translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
+        const text = translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         let url = '';
 
         if (nonReimbursableUrls.length === 1) {
@@ -1712,10 +1726,10 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
 function getUpdateRoomDescriptionMessage(reportAction: ReportAction): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageChangeLog;
     if (originalMessage?.description) {
-        return `${Localize.translateLocal('roomChangeLog.updateRoomDescription')} ${originalMessage?.description}`;
+        return `${translateLocal('roomChangeLog.updateRoomDescription')} ${originalMessage?.description}`;
     }
 
-    return Localize.translateLocal('roomChangeLog.clearRoomDescription');
+    return translateLocal('roomChangeLog.clearRoomDescription');
 }
 
 function isPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE> {
@@ -1731,7 +1745,7 @@ function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Rep
     const email = originalMessage?.email ?? '';
     const role = originalMessage?.role ?? '';
     const formattedEmail = formatPhoneNumber(email);
-    return Localize.translateLocal('report.actions.type.addEmployee', {email: formattedEmail, role});
+    return translateLocal('report.actions.type.addEmployee', {email: formattedEmail, role});
 }
 
 function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> {
@@ -1746,7 +1760,21 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     const email = originalMessage?.email ?? '';
     const newRole = originalMessage?.newValue ?? '';
     const oldRole = originalMessage?.oldValue ?? '';
-    return Localize.translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+    return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+}
+
+function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
+    if (!isLeavePolicyAction(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const personalDetails = getPersonalDetailsByIDs({accountIDs: reportAction.actorAccountID ? [reportAction.actorAccountID] : [], currentUserAccountID: 0})?.at(0);
+    if (!!originalMessage && !originalMessage.email) {
+        originalMessage.email = personalDetails?.login;
+    }
+    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : originalMessage?.email ?? '';
+    const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
+    return translateLocal('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
 }
 
 function isPolicyChangeLogDeleteMemberMessage(
@@ -1762,7 +1790,7 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
     const role = originalMessage?.role ?? '';
-    return Localize.translateLocal('report.actions.type.removeMember', {email, role});
+    return translateLocal('report.actions.type.removeMember', {email, role});
 }
 
 function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
@@ -1771,12 +1799,12 @@ function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): str
     }
     const originalMessage = getOriginalMessage(reportAction);
     const connectionName = originalMessage?.connectionName;
-    return connectionName ? Localize.translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
+    return connectionName ? translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
     const originalMessage = getOriginalMessage(reportAction);
-    return Localize.translateLocal('newRoomPage.renamedRoomAction', {
+    return translateLocal('newRoomPage.renamedRoomAction', {
         oldName: originalMessage?.oldName ?? '',
         newName: originalMessage?.newName ?? '',
     });
@@ -1784,10 +1812,11 @@ function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPO
 
 function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
     const originalMessage = getOriginalMessage(reportAction);
-    const submittersNames = PersonalDetailsUtils.getPersonalDetailsByIDs(originalMessage?.submittersAccountIDs ?? [], currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID).map(
-        ({displayName, login}) => displayName ?? login ?? 'Unknown Submitter',
-    );
-    return Localize.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
+    const submittersNames = getPersonalDetailsByIDs({
+        accountIDs: originalMessage?.submittersAccountIDs ?? [],
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    }).map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
+    return translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
 }
 
 function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -1800,7 +1829,19 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1', shouldDisplayLinkToCard = false) {
+function getCardIssuedMessage({
+    reportAction,
+    shouldRenderHTML = false,
+    policyID = '-1',
+    shouldDisplayLinkToCard = false,
+    personalDetails,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    shouldRenderHTML?: boolean;
+    policyID?: string;
+    shouldDisplayLinkToCard?: boolean;
+    personalDetails?: Partial<PersonalDetailsList>;
+}) {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
@@ -1813,17 +1854,21 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
 
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const assigneeDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID).at(0);
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(PolicyUtils.getPolicy(policyID));
+    const assigneeDetails = getPersonalDetailsByIDs({
+        accountIDs: [assigneeAccountID],
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        personalDetailsParam: personalDetails,
+    }).at(0);
+    const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
     const expensifyCardLink =
         shouldRenderHTML && shouldDisplayLinkToCard
-            ? `<a href='${environmentURL}/${navigateRoute}'>${Localize.translateLocal('cardPage.expensifyCard')}</a>`
-            : Localize.translateLocal('cardPage.expensifyCard');
+            ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>`
+            : translateLocal('cardPage.expensifyCard');
     const companyCardLink = shouldRenderHTML
-        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${Localize.translateLocal('workspace.companyCards.companyCard')}</a>`
-        : Localize.translateLocal('workspace.companyCards.companyCard');
+        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
+        : translateLocal('workspace.companyCards.companyCard');
 
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
@@ -1838,13 +1883,13 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
     const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
-            return Localize.translateLocal('workspace.expensifyCard.issuedCard', {assignee});
+            return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            return Localize.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
+            return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
-            return Localize.translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
+            return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            return Localize.translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
+            return translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
         default:
             return '';
     }
@@ -1900,7 +1945,6 @@ export {
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
-    getMemberChangeMessagePlainText,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
@@ -1922,6 +1966,7 @@ export {
     getWhisperedTo,
     hasRequestFromCurrentAccount,
     isActionOfType,
+    isActionableWhisper,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableMentionWhisper,
@@ -1955,7 +2000,6 @@ export {
     isReportActionAttachment,
     isReportActionDeprecated,
     isReportPreviewAction,
-    isResolvedActionTrackExpense,
     isReversedTransaction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
@@ -1987,6 +2031,7 @@ export {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogEmployeeLeftMessage,
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,

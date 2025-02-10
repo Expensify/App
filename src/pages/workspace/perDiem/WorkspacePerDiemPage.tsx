@@ -24,21 +24,22 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {deleteWorkspacePerDiemRates, downloadPerDiemCSV, openPolicyPerDiemPage} from '@libs/actions/Policy/PerDiem';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Link from '@userActions/Link';
-import * as Modal from '@userActions/Modal';
-import * as PerDiem from '@userActions/Policy/PerDiem';
+import {openExternalLink} from '@userActions/Link';
+import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -138,7 +139,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
     const fetchPerDiem = useCallback(() => {
-        PerDiem.openPolicyPerDiemPage(policyID);
+        openPolicyPerDiemPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchPerDiem});
@@ -170,19 +171,27 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     pendingAction: value.pendingAction,
                     rightElement: (
                         <>
-                            <View style={styles.flex1}>
-                                <Text style={[styles.alignItemsStart, styles.textSupporting, styles.label]}>{value.subRateName}</Text>
+                            <View style={styles.flex2}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2]}
+                                >
+                                    {value.subRateName}
+                                </Text>
                             </View>
-                            <View style={styles.flex1}>
-                                <Text style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}>
-                                    {CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency)}
+                            <View style={styles.flex2}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.alignSelfEnd, styles.textSupporting, styles.pl2, styles.label]}
+                                >
+                                    {convertAmountToDisplayString(value.rate, value.currency)}
                                 </Text>
                             </View>
                         </>
                     ),
                 };
             }),
-        [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex1, styles.alignItemsStart, styles.textSupporting, styles.label, styles.alignSelfEnd, styles.pl2],
+        [allSubRates, selectedPerDiem, canSelectMultiple, styles.flex2, styles.alignItemsStart, styles.textSupporting, styles.label, styles.pl2, styles.alignSelfEnd],
     );
 
     const toggleSubRate = (subRate: PolicyOption) => {
@@ -207,13 +216,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, !canSelectMultiple && [styles.ph9, styles.pv3, styles.pb5]]}>
-            <View style={styles.flex1}>
+            <View style={styles.flex3}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfStart]}>{translate('common.destination')}</Text>
             </View>
-            <View style={styles.flex1}>
-                <Text style={[styles.searchInputStyle, styles.alignItemsStart]}>{translate('common.subrate')}</Text>
+            <View style={styles.flex2}>
+                <Text style={[styles.searchInputStyle, styles.alignItemsStart, styles.pl2]}>{translate('common.subrate')}</Text>
             </View>
-            <View style={styles.flex1}>
+            <View style={styles.flex2}>
                 <Text style={[styles.searchInputStyle, styles.alignSelfEnd]}>{translate('workspace.perDiem.amount')}</Text>
             </View>
         </View>
@@ -228,7 +237,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const handleDeletePerDiemRates = () => {
-        PerDiem.deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
+        deleteWorkspacePerDiemRates(policyID, customUnit, selectedPerDiem);
         setSelectedPerDiem([]);
         setDeletePerDiemConfirmModalVisible(false);
     };
@@ -281,6 +290,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         setSelectedPerDiem([]);
     }, [setSelectedPerDiem, selectionMode?.isEnabled]);
 
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedPerDiem([]);
+        },
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
+
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const getHeaderText = () => (
@@ -289,7 +305,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.perDiem.subtitle')}</Text>
                 <TextLink
                     style={[styles.textNormal, styles.link]}
-                    onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
+                    onPress={() => openExternalLink(CONST.DEEP_DIVE_PER_DIEM)}
                 >
                     {translate('workspace.common.learnMore')}
                 </TextLink>
@@ -304,7 +320,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: () => {
                     if (isOffline) {
-                        Modal.close(() => setIsOfflineModalVisible(true));
+                        close(() => setIsOfflineModalVisible(true));
                         return;
                     }
                     Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID));
@@ -315,10 +331,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        Modal.close(() => setIsOfflineModalVisible(true));
+                        close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    PerDiem.downloadPerDiemCSV(policyID, () => {
+                    downloadPerDiemCSV(policyID, () => {
                         setIsDownloadFailureModalVisible(true);
                     });
                 },
@@ -415,12 +431,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         sections={[{data: subRatesList, isDisabled: false}]}
                         onCheckboxPress={toggleSubRate}
                         onSelectRow={openSubRateDetails}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         onSelectAll={toggleAllSubRates}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
+                        listItemTitleContainerStyles={styles.flex3}
                         showScrollIndicator={false}
                     />
                 )}

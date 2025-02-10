@@ -18,7 +18,7 @@ function DateOfBirthUBO({onNext, onMove, isEditing, beneficialOwnerBeingModified
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}` as const;
-    const dobDefaultValue = reimbursementAccountDraft?.[dobInputID] ?? '';
+    const dobDefaultValue = String(reimbursementAccountDraft?.[dobInputID] ?? '');
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: [dobInputID],

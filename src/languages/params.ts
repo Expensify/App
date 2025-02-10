@@ -115,6 +115,11 @@ type RequestCountParams = {
     pendingReceipts: number;
 };
 
+type DeleteTransactionParams = {
+    amount: string;
+    merchant: string;
+};
+
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -165,6 +170,8 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
+type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
+
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
@@ -200,8 +207,6 @@ type StepCounterParams = {step: number; total?: number; text?: string};
 type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
-
-type WelcomeNoteParams = {workspaceName: string};
 
 type RoomNameReservedErrorParams = {reservedName: string};
 
@@ -252,6 +257,8 @@ type ViolationsOverLimitParams = {formattedLimit: string};
 type ViolationsPerDayLimitParams = {formattedLimit: string};
 
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
+
+type ViolationsCustomRulesParams = {message: string};
 
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
@@ -363,6 +370,8 @@ type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
 
+type LeftWorkspaceParams = {nameOrEmail: string};
+
 type RemoveMemberParams = {email: string; role: string};
 
 type DateParams = {date: string};
@@ -416,6 +425,10 @@ type BillingBannerCardExpiredParams = {amountOwed: number};
 type BillingBannerCardOnDisputeParams = {amountOwed: string; cardEnding: string};
 
 type TrialStartedTitleParams = {numOfDays: number};
+
+type EarlyDiscountTitleParams = {discountType: number};
+
+type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
 
 type CardNextPaymentParams = {nextPaymentDate: string};
 
@@ -586,24 +599,20 @@ type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
 
-type FirstDayTextParams = {
-    hours: string;
-};
-
-type LastDayTextParams = {
-    hours: string;
-};
-
-type TripLengthTextParams = {
-    days: number;
-};
-
 type EditDestinationSubtitleParams = {
     destination: string;
 };
 
 type FlightLayoverParams = {
     layover: string;
+};
+
+type SubmitsToParams = {
+    name: string;
+};
+
+type SettlementDateParams = {
+    settlementDate: string;
 };
 
 export type {
@@ -654,6 +663,8 @@ export type {
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     TrialStartedTitleParams,
+    EarlyDiscountTitleParams,
+    EarlyDiscountSubtitleParams,
     RemoveMemberPromptParams,
     StatementTitleParams,
     RenamedWorkspaceNameActionParams,
@@ -702,6 +713,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
+    MovedFromPersonalSpaceParams,
     SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -728,6 +740,7 @@ export type {
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
+    DeleteTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -763,6 +776,7 @@ export type {
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
     ViolationsReceiptRequiredParams,
+    ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
@@ -770,7 +784,6 @@ export type {
     WalletProgramParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
@@ -795,6 +808,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,
     FiltersAmountBetweenParams,
@@ -814,9 +828,8 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
-    FirstDayTextParams,
-    LastDayTextParams,
-    TripLengthTextParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    SubmitsToParams,
+    SettlementDateParams,
 };
