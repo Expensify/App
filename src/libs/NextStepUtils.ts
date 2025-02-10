@@ -5,14 +5,15 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getNextApproverAccountID} from './actions/IOU';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
+import {getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
+import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
@@ -33,6 +34,15 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+let transactionViolations: OnyxCollection<TransactionViolations>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        transactionViolations = value;
+    },
 });
 
 function parseMessage(messages: Message[] | undefined) {
@@ -89,8 +99,13 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
-    const ownerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID});
+    // const ownerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID});
     const nextApproverDisplayName = getNextApproverDisplayName(report);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const shouldShowFixMessage = hasViolations && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    const accountIDToDisplay = shouldShowFixMessage ? ownerAccountID : policy.ownerAccountID;
+    const ownerAccount = getPersonalDetailsByIDs({accountIDs: [accountIDToDisplay ?? CONST.DEFAULT_NUMBER_ID], currentUserAccountID, shouldChangeUserDisplayName: true});
+    const ownerDisplayName = ownerAccount?.at(0)?.displayName ?? getDisplayNameForParticipant({accountID: accountIDToDisplay});
 
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber;
@@ -104,23 +119,18 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             {
                 text: 'Waiting for ',
             },
-            reimburserAccountID === -1
+            ownerAccountID === -1 || !policy.ownerAccountID
                 ? {
                       text: 'an admin',
                   }
                 : {
-                      text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
+                      text: ownerDisplayName,
                       type: 'strong',
                   },
             {
                 text: ' to ',
             },
-            {
-                text: 'pay',
-            },
-            {
-                text: ' %expenses.',
-            },
+            ...(shouldShowFixMessage ? [{text: 'fix the issue(s)'}] : [{text: 'pay'}, {text: ' %expenses.'}]),
         ],
     };
 
