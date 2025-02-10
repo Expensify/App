@@ -45,6 +45,7 @@ import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContex
 import {KEYS_TO_PRESERVE, openApp, reconnectApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
+import {openOldDotLink} from '@userActions/Link';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
@@ -55,11 +56,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {Onboarding} from '@src/types/onyx';
+import type {Onboarding} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import {openOldDotLink} from '../Link';
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
 

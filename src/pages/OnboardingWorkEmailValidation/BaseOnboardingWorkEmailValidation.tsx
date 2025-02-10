@@ -2,20 +2,16 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
-import {openOldDotLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
@@ -25,8 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
 
-function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseOnboardingWorkEmailValidationProps) {
-    const {isOffline} = useNetwork();
+function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardingWorkEmailValidationProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -36,13 +31,16 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const workEmail = onboardingEmail?.onboardingWorkEmail;
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [isMergingAccountBlocked, setIsMergingAccountBlocked] = useState(false);
 
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
     useEffect(() => {
-        if (!!onboardingErrorMessage && onboardingErrorMessage !== CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
+        if (!onboardingErrorMessage) {
+            return;
+        }
+        if (onboardingErrorMessage !== CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
             setIsMergingAccountBlocked(true);
         }
     }, [onboardingErrorMessage]);
@@ -102,6 +100,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute())}
+                        isLoading={isValidateCodeFormSubmitting}
                     />
                 </View>
             )}
