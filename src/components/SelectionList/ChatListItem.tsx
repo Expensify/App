@@ -102,7 +102,7 @@ function ChatListItem<TItem extends ListItem>({
                         <AttachmentContext.Provider value={attachmentContextValue}>
                             <View style={styles.webViewStyles.tagStyles.ol}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                                    <Text style={styles.chatItemMessageHeaderPolicy}>In </Text>
+                                    <Text style={styles.chatItemMessageHeaderPolicy}>In&nbsp;</Text>
                                     <TextLink
                                         fontSize={variables.fontSizeSmall}
                                         onPress={() => onSelectRow(item)}
