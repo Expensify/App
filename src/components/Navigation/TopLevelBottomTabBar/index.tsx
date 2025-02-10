@@ -40,8 +40,6 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
 
     useEffect(() => {
-        cancelAfterInteractions.current?.cancel();
-
         if (!shouldDisplayBottomBar) {
             // If the bottom tab is not visible, that means there is a screen covering it.
             // In that case we need to set the flag to true because there will be a transition for which we need to wait.
@@ -51,6 +49,7 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
             cancelAfterInteractions.current = InteractionManager.runAfterInteractions(() => {
                 setIsAfterClosingTransition(true);
             });
+            return () => cancelAfterInteractions.current?.cancel();
         }
     }, [shouldDisplayBottomBar]);
 
