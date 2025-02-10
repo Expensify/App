@@ -33,7 +33,6 @@ function AddPersonalBankAccountPage() {
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const topmostFullScreenRoute = navigationRef.current?.getRootState().routes.findLast((route) => isFullScreenName(route.name));
 
-    // @TODO: Verify if this method works correctly
     const goBack = useCallback(() => {
         switch (topmostFullScreenRoute?.name) {
             case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
