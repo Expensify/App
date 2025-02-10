@@ -23,6 +23,9 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({
         routes: [],
     }),
+    getRootState: () => ({
+        routes: [],
+    }),
 }));
 jest.mock('@components/Icon/Expensicons');
 
