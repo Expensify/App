@@ -92,7 +92,7 @@ jobs:
           id: getHeadRef
           run: |
             set -e
-            if [[ ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} == '' ]]; then
+            if [[ -z "${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}" ]]; then
               echo "REF=" >> "$GITHUB_OUTPUT"
             else
               echo "REF=$(gh pr view ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
