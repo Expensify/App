@@ -895,7 +895,7 @@ const reauthenticatePusher = throttle(
     {trailing: false},
 );
 
-function authenticatePusher(socketID: string, channelName: string, callback: ChannelAuthorizationCallback) {
+function authenticatePusher(socketID: string, channelName: string, callback?: ChannelAuthorizationCallback) {
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
     const params: AuthenticatePusherParams = {
@@ -933,6 +933,23 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
             callback(new Error('AuthenticatePusher request failed'), {auth: ''});
         });
+}
+
+async function onAuthorizer(channelName: string, socketId: string) {
+    Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
+
+    const params: AuthenticatePusherParams = {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        socket_id: socketId,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        channel_name: channelName,
+        shouldRetry: false,
+        forceNetworkRequest: true,
+    };
+
+    const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params);
+
+    return response;
 }
 
 /**
@@ -1336,4 +1353,5 @@ export {
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
     resetSMSDeliveryFailureStatus,
+    onAuthorizer,
 };

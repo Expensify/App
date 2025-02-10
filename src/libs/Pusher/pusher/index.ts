@@ -4,13 +4,13 @@ import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {LiteralUnion, ValueOf} from 'type-fest';
 import Log from '@libs/Log';
+import TYPE from '@libs/Pusher/EventType';
+import Pusher from '@libs/Pusher/library';
+import type {SocketEventName} from '@libs/Pusher/library/types';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import TYPE from './EventType';
-import Pusher from './library';
-import type {SocketEventName} from './library/types';
 
 type States = {
     previous: string;
@@ -98,7 +98,7 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
  * Initialize our pusher lib
  * @returns resolves when Pusher has connected
  */
-function init(args: Args, params?: unknown): Promise<void> {
+function init(args: Args): Promise<void> {
     return new Promise<void>((resolve) => {
         if (socket) {
             resolve();
@@ -122,15 +122,6 @@ function init(args: Args, params?: unknown): Promise<void> {
         }
 
         socket = new Pusher(args.appKey, options);
-        // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
-        // as per the documentation
-        // (https://pusher.com/docs/channels/using_channels/connection#channels-options-parameter).
-        // Any param mentioned here will show up in $_REQUEST when we call "AuthenticatePusher". Params passed here need
-        // to pass our inputRules to show up in the request.
-        if (params) {
-            socket.config.auth = {};
-            socket.config.auth.params = params;
-        }
 
         // Listen for connection errors and log them
         socket?.connection.bind('error', (error: EventCallbackError) => {

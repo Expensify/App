@@ -1,0 +1,406 @@
+import type {PusherChannel} from '@pusher/pusher-websocket-react-native';
+import {Pusher} from '@pusher/pusher-websocket-react-native';
+import isObject from 'lodash/isObject';
+import {InteractionManager} from 'react-native';
+import Onyx from 'react-native-onyx';
+import type {LiteralUnion, ValueOf} from 'type-fest';
+import Log from '@libs/Log';
+import TYPE from '@libs/Pusher/EventType';
+import type {SocketEventName} from '@libs/Pusher/library/types';
+import {onAuthorizer} from '@userActions/Session';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+type States = {
+    previous: string;
+    current: string;
+};
+
+type Args = {
+    appKey: string;
+    cluster: string;
+    authEndpoint: string;
+};
+
+type UserIsTypingEvent = ReportUserIsTyping & {
+    userLogin?: string;
+};
+
+type UserIsLeavingRoomEvent = Record<string, boolean> & {
+    userLogin?: string;
+};
+
+type PingPongEvent = Record<string, string | number> & {
+    pingID: string;
+    pingTimestamp: number;
+};
+
+type PusherEventMap = {
+    [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
+    [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
+    [TYPE.PONG]: PingPongEvent;
+};
+
+type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
+    ? PusherEventMap[EventName]
+    : OnyxUpdatesFromServer);
+
+type EventCallbackError = {type?: ValueOf<typeof CONST.ERROR>; data: {code: number; message?: string}};
+
+type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
+
+type SocketEventCallback = (eventName: SocketEventName, data?: States | EventCallbackError) => void;
+
+type PusherEventName = LiteralUnion<DeepValueOf<typeof TYPE>, string>;
+
+let shouldForceOffline = false;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldForceOffline = !!network.shouldForceOffline;
+    },
+});
+
+let socket: Pusher | null;
+let pusherSocketID: string | undefined;
+const socketEventCallbacks: SocketEventCallback[] = [];
+
+let resolveInitPromise: () => void;
+let initPromise = new Promise<void>((resolve) => {
+    resolveInitPromise = resolve;
+});
+
+const eventsBoundToChannels = new Map<string, Map<PusherEventName, (eventData: EventData<string>) => void>>();
+
+/**
+ * Trigger each of the socket event callbacks with the event information
+ */
+function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallbackError | States) {
+    socketEventCallbacks.forEach((cb) => cb(eventName, data));
+}
+
+/**
+ * Initialize our pusher lib
+ * @returns resolves when Pusher has connected
+ */
+function init(args: Args): Promise<void> {
+    // eslint-disable-next-line @lwc/lwc/no-async-await
+    return new Promise<void>(async (resolve) => {
+        if (socket) {
+            resolve();
+            return;
+        }
+
+        socket = Pusher.getInstance();
+        await socket.init({
+            apiKey: args.appKey,
+            cluster: args.cluster,
+            onConnectionStateChange: (currentState: string, previousState: string) => {
+                if (currentState === CONST.PUSHER.STATE.CONNECTED) {
+                    socket?.getSocketId().then((id: string) => {
+                        pusherSocketID = id;
+                        callSocketEventCallbacks('connected');
+                        resolve();
+                    });
+                }
+                if (currentState === CONST.PUSHER.STATE.DISCONNECTED) {
+                    callSocketEventCallbacks('disconnected');
+                }
+                callSocketEventCallbacks('state_change', {previous: previousState, current: currentState});
+            },
+            onError: (message: string, code: number) => callSocketEventCallbacks('error', {data: {code, message}}),
+            onAuthorizer: async (channelName: string, socketId: string) => {
+                const res = await onAuthorizer(channelName, socketId);
+                return {
+                    auth: res.auth,
+                    shared_secret: res.shared_secret,
+                };
+            },
+        });
+        await socket.connect();
+    }).then(resolveInitPromise);
+}
+
+/**
+ * Returns a Pusher channel for a channel name
+ */
+function getChannel(channelName: string): PusherChannel | undefined {
+    if (!socket) {
+        return;
+    }
+
+    return socket.getChannel(channelName);
+}
+
+/**
+ * Binds an event callback to a channel + eventName
+ */
+function bindEventToChannel<EventName extends PusherEventName>(channel: string, eventName?: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
+    if (!eventName) {
+        return;
+    }
+
+    const chunkedDataEvents: Record<string, ChunkedDataEvents> = {};
+    const callback = (eventData: EventData<EventName>) => {
+        if (shouldForceOffline) {
+            Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
+            return;
+        }
+
+        let data: EventData<EventName>;
+        try {
+            data = isObject(eventData) ? eventData : (JSON.parse(eventData) as EventData<EventName>);
+        } catch (err) {
+            Log.alert('[Pusher] Unable to parse single JSON event data from Pusher', {error: err, eventData});
+            return;
+        }
+        if (data.id === undefined || data.chunk === undefined || data.final === undefined) {
+            eventCallback(data);
+            return;
+        }
+
+        // If we are chunking the requests, we need to construct a rolling list of all packets that have come through
+        // Pusher. If we've completed one of these full packets, we'll combine the data and act on the event that it's
+        // assigned to.
+
+        // If we haven't seen this eventID yet, initialize it into our rolling list of packets.
+        if (!chunkedDataEvents[data.id]) {
+            chunkedDataEvents[data.id] = {chunks: [], receivedFinal: false};
+        }
+
+        // Add it to the rolling list.
+        const chunkedEvent = chunkedDataEvents[data.id];
+        if (data.index !== undefined) {
+            chunkedEvent.chunks[data.index] = data.chunk;
+        }
+
+        // If this is the last packet, mark that we've hit the end.
+        if (data.final) {
+            chunkedEvent.receivedFinal = true;
+        }
+
+        // Only call the event callback if we've received the last packet and we don't have any holes in the complete
+        // packet.
+        if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === Object.keys(chunkedEvent.chunks).length) {
+            try {
+                eventCallback(JSON.parse(chunkedEvent.chunks.join('')) as EventData<EventName>);
+            } catch (err) {
+                Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher', {
+                    error: err,
+                    eventData: chunkedEvent.chunks.join(''),
+                });
+
+                // Using console.error is helpful here because it will print a usable stack trace to the console to debug where the error comes from
+                console.error(err);
+            }
+
+            delete chunkedDataEvents[data.id];
+        }
+    };
+
+    if (!eventsBoundToChannels.has(channel)) {
+        eventsBoundToChannels.set(channel, new Map());
+    }
+
+    eventsBoundToChannels.get(channel)?.set(eventName, callback);
+}
+
+/**
+ * Subscribe to a channel and an event
+ */
+function subscribe<EventName extends PusherEventName>(
+    channelName: string,
+    eventName?: EventName,
+    eventCallback: (data: EventData<EventName>) => void = () => {},
+    onResubscribe = () => {},
+): Promise<void> {
+    return initPromise.then(
+        () =>
+            new Promise((resolve, reject) => {
+                InteractionManager.runAfterInteractions(async () => {
+                    // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
+                    if (!socket) {
+                        throw new Error(`[Pusher] instance not found. Pusher.subscribe()
+            most likely has been called before Pusher.init()`);
+                    }
+
+                    Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
+                    const channel = getChannel(channelName);
+
+                    if (!channel) {
+                        await socket.subscribe({
+                            channelName,
+                            onEvent: (event) => {
+                                const callback = eventsBoundToChannels.get(event.channelName)?.get(event.eventName);
+                                callback?.(event.data);
+                            },
+                            onSubscriptionSucceeded: () => {
+                                bindEventToChannel(channelName, eventName, eventCallback);
+                                resolve();
+                                // When subscribing for the first time we register a success callback that can be
+                                // called multiple times when the subscription succeeds again in the future
+                                // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
+                                // not fire on the first subscription_succeeded event.
+                                onResubscribe();
+                            },
+                            onSubscriptionError: (name: string, message: string) => {
+                                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
+                                    channelName,
+                                    message,
+                                });
+                                reject(message);
+                            },
+                        });
+                    } else {
+                        bindEventToChannel(channelName, eventName, eventCallback);
+                        resolve();
+                    }
+                });
+            }),
+    );
+}
+
+/**
+ * Unsubscribe from a channel and optionally a specific event
+ */
+function unsubscribe(channelName: string, eventName: PusherEventName = '') {
+    const channel = getChannel(channelName);
+
+    if (!channel) {
+        Log.hmmm('[Pusher] Attempted to unsubscribe or unbind from a channel, but Pusher-JS has no knowledge of it', {channelName, eventName});
+        return;
+    }
+
+    if (eventName) {
+        Log.info('[Pusher] Unbinding event', false, {eventName, channelName});
+        eventsBoundToChannels.get(channelName)?.delete(eventName);
+        if (eventsBoundToChannels.get(channelName)?.size === 0) {
+            Log.info(`[Pusher] After unbinding ${eventName} from channel ${channelName}, no other events were bound to that channel. Unsubscribing...`, false);
+            eventsBoundToChannels.delete(channelName);
+            socket?.unsubscribe({channelName});
+        }
+    } else {
+        Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
+        eventsBoundToChannels.delete(channelName);
+        socket?.unsubscribe({channelName});
+    }
+}
+
+/**
+ * Are we already in the process of subscribing to this channel?
+ */
+function isAlreadySubscribing(channelName: string): boolean {
+    if (!socket) {
+        return false;
+    }
+
+    // const channel = getChannel(channelName);
+    // return channel ? channel.subscriptionPending : false;
+    return false;
+}
+
+/**
+ * Are we already subscribed to this channel?
+ */
+function isSubscribed(channelName: string): boolean {
+    if (!socket) {
+        return false;
+    }
+
+    const channel = getChannel(channelName);
+    return !!channel;
+}
+
+/**
+ * Sends an event over a specific event/channel in pusher.
+ */
+function sendEvent<EventName extends PusherEventName>(channelName: string, eventName: EventName, payload: EventData<EventName>) {
+    // Check to see if we are subscribed to this channel before sending the event. Sending client events over channels
+    // we are not subscribed too will throw errors and cause reconnection attempts. Subscriptions are not instant and
+    // can happen later than we expect.
+    if (!isSubscribed(channelName)) {
+        return;
+    }
+
+    if (shouldForceOffline) {
+        Log.info('[Pusher] Ignoring a Send event because shouldForceOffline = true');
+        return;
+    }
+
+    socket?.trigger({channelName, eventName, data: payload});
+}
+
+/**
+ * Register a method that will be triggered when a socket event happens (like disconnecting)
+ */
+function registerSocketEventCallback(cb: SocketEventCallback) {
+    socketEventCallbacks.push(cb);
+}
+
+/**
+ * A custom authorizer allows us to take a more fine-grained approach to
+ * authenticating Pusher. e.g. we can handle failed attempts to authorize
+ * with an expired authToken and retry the attempt.
+ */
+// function registerCustomAuthorizer(authorizer: ChannelAuthorizerGenerator) {
+//     customAuthorizer = authorizer;
+// }
+
+/**
+ * Disconnect from Pusher
+ */
+function disconnect() {
+    if (!socket) {
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
+        return;
+    }
+
+    socket.disconnect();
+    socket = null;
+    pusherSocketID = '';
+    eventsBoundToChannels.clear();
+    initPromise = new Promise((resolve) => {
+        resolveInitPromise = resolve;
+    });
+}
+
+/**
+ * Disconnect and Re-Connect Pusher
+ */
+function reconnect() {
+    if (!socket) {
+        Log.info('[Pusher] Unable to reconnect since Pusher instance does not yet exist.');
+        return;
+    }
+
+    Log.info('[Pusher] Reconnecting to Pusher');
+    socket.disconnect();
+    socket.connect();
+}
+
+function getPusherSocketID(): string | undefined {
+    return pusherSocketID;
+}
+
+export {
+    init,
+    subscribe,
+    unsubscribe,
+    getChannel,
+    isSubscribed,
+    isAlreadySubscribing,
+    sendEvent,
+    disconnect,
+    reconnect,
+    registerSocketEventCallback,
+    // registerCustomAuthorizer,
+    TYPE,
+    getPusherSocketID,
+};
+
+export type {EventCallbackError, States, UserIsTypingEvent, UserIsLeavingRoomEvent, PingPongEvent};
