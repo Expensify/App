@@ -258,7 +258,7 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         },
     ];
 
-    let parameters: SyncPolicyToQuickbooksDesktopParams | SyncPolicyToNSQSParams = {
+    const parameters: SyncPolicyToQuickbooksDesktopParams | SyncPolicyToNSQSParams = {
         policyID,
         idempotencyKey: policyID,
     };
@@ -267,10 +267,7 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         parameters.forceDataRefresh = forceDataRefresh;
     }
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NSQS) {
-        parameters = {
-            ...parameters,
-            netSuiteAccountID: getNSQSCompanyID(policy),
-        } as SyncPolicyToNSQSParams;
+        (parameters as SyncPolicyToNSQSParams).netSuiteAccountID = getNSQSCompanyID(policy) as string;
     }
 
     API.read(syncConnectionData.readCommand, parameters, {

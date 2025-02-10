@@ -997,8 +997,8 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return syncSuccessfulDate;
 }
 
-function getNSQSCompanyID(policy: Policy | undefined) {
-    return policy?.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
+function getNSQSCompanyID(policy: Policy) {
+    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
 }
 
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
