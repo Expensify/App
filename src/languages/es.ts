@@ -839,7 +839,7 @@ const translations = {
         scanReceipt: 'Escanear recibo',
         recordDistance: 'Crear gasto por desplazamiento',
         requestMoney: 'Crear gasto',
-        perDiem: 'Crear gasto por per diem',
+        perDiem: 'Crear viático',
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
