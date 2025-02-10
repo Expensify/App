@@ -4,12 +4,7 @@ import {Freeze} from 'react-freeze';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import getIsScreenBlurred from './getIsScreenBlurred';
 
-type FreezeWrapperProps = ChildrenProps & {
-    /** Prop to disable freeze */
-    keepVisible?: boolean;
-};
-
-function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
+function FreezeWrapper({children}: ChildrenProps) {
     const navigation = useNavigation();
     const currentRoute = useRoute();
 
@@ -24,8 +19,8 @@ function FreezeWrapper({keepVisible = false, children}: FreezeWrapperProps) {
     // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
     // and stuck in an infinite loop
     useLayoutEffect(() => {
-        setFreezed(isScreenBlurred && !keepVisible);
-    }, [isScreenBlurred, keepVisible]);
+        setFreezed(isScreenBlurred);
+    }, [isScreenBlurred]);
 
     return <Freeze freeze={freezed}>{children}</Freeze>;
 }
