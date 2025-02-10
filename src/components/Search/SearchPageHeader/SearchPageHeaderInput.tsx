@@ -37,8 +37,6 @@ import SearchTypeMenuPopover from './SearchTypeMenuPopover';
 // When counting absolute positioning, we need to account for borders
 const BORDER_WIDTH = 1;
 
-const ANIMATION_DURATION = 300;
-
 type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
     searchRouterListVisible?: boolean;
@@ -47,6 +45,7 @@ type SearchPageHeaderInputProps = {
 };
 
 function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRouterFocus, inputRightComponent}: SearchPageHeaderInputProps) {
+    const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
@@ -72,7 +71,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
     const {registerSearchPageInput} = useSearchRouterContext();
-    const animatedMargin = useSharedValue<number>(variables.searchRouterInputMargin);
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
     useEffect(() => {
@@ -106,26 +104,18 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
         if (searchRouterListVisible) {
             return;
         }
-        animatedMargin.set(withTiming(variables.searchRouterInputMargin, {duration: ANIMATION_DURATION}));
+        setShowPopupButton(true);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
 
-    // we're running this callback after animation is complete, otherwise animation would be laggy
-    const delayedFocusCallback = useCallback(() => {
+    const onFocus = useCallback(() => {
         onSearchRouterFocus?.();
         listRef.current?.updateAndScrollToFocusedIndex(0);
-    }, [onSearchRouterFocus]);
-
-    const onFocus = useCallback(() => {
-        animatedMargin.set(
-            withTiming(0, {duration: ANIMATION_DURATION}, () => {
-                runOnJS(delayedFocusCallback)();
-            }),
-        );
+        setShowPopupButton(false);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [delayedFocusCallback]);
+    }, []);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
@@ -231,12 +221,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
           }
         : undefined;
 
-    const inputWrapperStyle = useAnimatedStyle(() => {
-        return {
-            marginRight: animatedMargin.get(),
-        };
-    });
-
     if (displayNarrowHeader) {
         return (
             <View
@@ -245,7 +229,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
             >
                 <View style={[styles.appBG, styles.flex1]}>
                     <View style={[styles.flexRow, styles.mh5, styles.mb3, styles.alignItemsCenter, styles.justifyContentCenter, {height: variables.searchTopBarHeight}]}>
-                        <Animated.View style={[styles.flex1, styles.zIndex10, inputWrapperStyle]}>
+                        <Animated.View style={[styles.flex1, styles.zIndex10]}>
                             <SearchInputSelectionWrapper
                                 value={textInputValue}
                                 substitutionMap={autocompleteSubstitutions}
@@ -263,9 +247,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                                 ref={textInputRef}
                             />
                         </Animated.View>
-                        <View style={[styles.pAbsolute, {right: 0}]}>
-                            <SearchTypeMenuPopover queryJSON={queryJSON} />
-                        </View>
+                        {showPopupButton && (
+                            <View style={[styles.pl3]}>
+                                <SearchTypeMenuPopover queryJSON={queryJSON} />
+                            </View>
+                        )}
                     </View>
                     {!!searchRouterListVisible && (
                         <View style={[styles.flex1]}>

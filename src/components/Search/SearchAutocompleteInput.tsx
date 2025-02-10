@@ -4,7 +4,7 @@ import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} fro
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import Animated, {LinearTransition, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -192,7 +192,10 @@ function SearchAutocompleteInput(
 
     return (
         <View style={[outerWrapperStyle]}>
-            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, focusedAnimatedStyle]}>
+            <Animated.View
+                style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, focusedAnimatedStyle]}
+                layout={LinearTransition}
+            >
                 <View
                     style={styles.flex1}
                     fsClass={CONST.FULL_STORY.UNMASK}
@@ -239,7 +242,14 @@ function SearchAutocompleteInput(
                         selection={selection}
                     />
                 </View>
-                {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
+                {!!rightComponent && (
+                    <Animated.View
+                        style={styles.pr3}
+                        layout={LinearTransition}
+                    >
+                        {rightComponent}
+                    </Animated.View>
+                )}
             </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}
