@@ -167,6 +167,14 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
+
+            for (const command of CONST.COMPOSER_COMMANDS) {
+                const isCommandInText = text === command.command || text.startsWith(`${command.command} `);
+                if (isCommandInText && !command.disabled) {
+                    return Report.addActionComment(report.reportID, text, command);
+                }
+            }
+
             Report.addComment(report.reportID, text);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps

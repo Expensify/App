@@ -11,6 +11,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
+    AddActionCommandParams,
     AddCommentOrAttachementParams,
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
@@ -130,7 +131,7 @@ import {getNavatticURL} from '@libs/TourUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
+import type {ComposerCommand, OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -720,6 +721,83 @@ function addAttachment(reportID: string, file: FileObject, text = '') {
 /** Add a single comment to a report */
 function addComment(reportID: string, text: string) {
     addActions(reportID, text);
+}
+
+/** Add an action comment to a report */
+function addActionComment(reportID: string, text: string, command: ComposerCommand) {
+    const nowDate = Date.now();
+
+    const requestComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+    const requestCommentAction: OptimisticAddCommentReportAction = requestComment.reportAction;
+    if (requestCommentAction.originalMessage) {
+        requestCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
+    }
+    requestCommentAction.created = DateUtils.getDBTimeWithSkew(nowDate);
+
+    const answerComment = buildOptimisticAddCommentReportAction('Analyzing...', undefined, CONST.ACCOUNT_ID.CONCIERGE, undefined, undefined, reportID);
+    const answerCommentAction: OptimisticAddCommentReportAction = answerComment.reportAction;
+    if (answerCommentAction.originalMessage) {
+        answerCommentAction.originalMessage.whisperedTo = [currentUserAccountID];
+    }
+    answerCommentAction.created = DateUtils.getDBTimeWithSkew(nowDate + 100);
+
+    const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction> = {};
+    optimisticReportActions[requestCommentAction.reportActionID] = requestCommentAction;
+    optimisticReportActions[answerCommentAction.reportActionID] = answerCommentAction;
+
+    const parameters: AddActionCommandParams = {
+        reportID,
+        reportActionID: requestCommentAction.reportActionID,
+        answerReportActionID: answerCommentAction.reportActionID,
+        reportComment: requestComment.commentText,
+        actionType: command.action,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: optimisticReportActions as ReportActions,
+        },
+    ];
+
+    const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+
+    Object.entries(optimisticReportActions).forEach(([actionKey]) => {
+        successReportActions[actionKey] = {pendingAction: null, isOptimisticAction: null};
+    });
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: successReportActions,
+        },
+    ];
+
+    const failureReportActions: Record<string, OptimisticAddCommentReportAction> = {};
+
+    Object.entries(optimisticReportActions).forEach(([actionKey, actionData]) => {
+        failureReportActions[actionKey] = {
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            ...(actionData as OptimisticAddCommentReportAction),
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+        };
+    });
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: failureReportActions as ReportActions,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.ADD_ACTION_COMMENT, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function reportActionsExist(reportID: string): boolean {
@@ -4672,6 +4750,7 @@ export type {Video};
 export {
     addAttachment,
     addComment,
+    addActionComment,
     addPolicyReport,
     broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,

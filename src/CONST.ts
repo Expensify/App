@@ -6,7 +6,10 @@ import type {Dictionary} from 'lodash';
 import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
+import * as Expensicons from './components/Icon/Expensicons';
+import type {TranslationPaths} from './languages/types';
 import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
@@ -306,6 +309,60 @@ type OnboardingMessage = {
     /** Type of task described in a string format */
     type?: string;
 };
+
+type ComposerCommandAction = 'summarize' | 'export' | 'create' | 'insight';
+
+type ComposerCommand = {
+    /** Name of the command */
+    command: `/${ComposerCommandAction}`;
+
+    /** Action identifier that will be sent to the server */
+    action: ComposerCommandAction;
+
+    /** Icon to be displayed next to the command name */
+    icon: React.FC<SvgProps>;
+
+    /** Translation key for the description */
+    descriptionKey: TranslationPaths;
+
+    /** An example argument that will be included with the command */
+    exampleArgument?: TranslationPaths;
+
+    /** If the command is disabled */
+    disabled: boolean;
+};
+
+const COMPOSER_COMMANDS: ComposerCommand[] = [
+    {
+        command: '/summarize',
+        action: 'summarize',
+        icon: Expensicons.Document,
+        descriptionKey: 'composer.commands.summarize',
+        exampleArgument: 'composer.commands.summarizeExampleArgument',
+        disabled: false,
+    },
+    {
+        command: '/export',
+        action: 'export',
+        icon: Expensicons.Export,
+        descriptionKey: 'composer.commands.export',
+        disabled: true,
+    },
+    {
+        command: '/create',
+        action: 'create',
+        icon: Expensicons.ReceiptPlus,
+        descriptionKey: 'composer.commands.create',
+        disabled: true,
+    },
+    {
+        command: '/insight',
+        action: 'insight',
+        icon: Expensicons.PieChart,
+        descriptionKey: 'composer.commands.insight',
+        disabled: true,
+    },
+];
 
 const EMAIL_WITH_OPTIONAL_DOMAIN =
     /(?=((?=[\w'#%+-]+(?:\.[\w'#%+-]+)*@?)[\w.'#%+-]{1,64}(?:@(?:(?=[a-z\d]+(?:-+[a-z\d]+)*\.)(?:[a-z\d-]{1,63}\.)+[a-z]{2,63}))?(?= |_|\b))(?<end>.*))\S{3,254}(?=\k<end>$)/;
@@ -1731,7 +1788,7 @@ const CONST = {
         MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
         SUGGESTION_BOX_MAX_SAFE_DISTANCE: 10,
-        BIG_SCREEN_SUGGESTION_WIDTH: 300,
+        BIG_SCREEN_SUGGESTION_WIDTH: 370,
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
@@ -3216,6 +3273,8 @@ const CONST = {
         get ALL_EMOJIS() {
             return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
         },
+
+        STARTS_WITH_COMMAND: /^\s*<command>\/summarize<\/command>/,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
         ROUTES: {
@@ -6643,6 +6702,7 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    COMPOSER_COMMANDS,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -6667,6 +6727,8 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    ComposerCommandAction,
+    ComposerCommand,
 };
 
 export default CONST;

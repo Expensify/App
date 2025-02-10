@@ -229,6 +229,7 @@ const translations = {
         in: 'En',
         optional: 'Opcional',
         new: 'Nuevo',
+        coming: 'Próximamente',
         center: 'Centrar',
         search: 'Buscar',
         reports: 'Informes',
@@ -548,6 +549,13 @@ const translations = {
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `El comentario debe tener máximo ${formattedMaxLength} caracteres.`,
         taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `La longitud máxima del título de una tarea es de ${formattedMaxLength} caracteres.`,
+        commands: {
+            summarize: 'Resumir mensajes',
+            summarizeExampleArgument: 'Todos los mensajes de hace 3 días',
+            export: 'Exportar informe de gastos',
+            create: 'Crear gasto',
+            insight: 'Conocer tus gastos',
+        },
     },
     baseUpdateAppModal: {
         updateApp: 'Actualizar app',
@@ -662,6 +670,7 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Colapsar',
         expand: 'Expandir',
+        conciergeAI: 'Concierge AI',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al portapapeles',

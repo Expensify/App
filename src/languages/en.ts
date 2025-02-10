@@ -239,6 +239,7 @@ const translations = {
         in: 'In',
         optional: 'Optional',
         new: 'New',
+        coming: 'Coming',
         search: 'Search',
         reports: 'Reports',
         find: 'Find',
@@ -557,6 +558,13 @@ const translations = {
         problemGettingImageYouPasted: 'There was a problem getting the image you pasted',
         commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum comment length is ${formattedMaxLength} characters.`,
         taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `The maximum task title length is ${formattedMaxLength} characters.`,
+        commands: {
+            summarize: 'Summarize messages',
+            summarizeExampleArgument: 'All messages from 3 days ago',
+            export: 'Export expenses report',
+            create: 'Create expense',
+            insight: 'Learn about your spending',
+        },
     },
     baseUpdateAppModal: {
         updateApp: 'Update app',
@@ -670,6 +678,7 @@ const translations = {
         emoji: 'Emoji',
         collapse: 'Collapse',
         expand: 'Expand',
+        conciergeAI: 'Concierge AI',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to clipboard',

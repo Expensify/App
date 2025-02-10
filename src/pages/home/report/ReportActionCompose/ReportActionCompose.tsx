@@ -45,6 +45,7 @@ import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActio
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+import type {ComposerCommand} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -53,6 +54,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import ConciergeAIButton from './ConciergeAIButton';
 import SendButton from './SendButton';
 
 type SuggestionsRef = {
@@ -61,7 +63,7 @@ type SuggestionsRef = {
     triggerHotkeyActions: (event: KeyboardEvent) => boolean | undefined;
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
-    getSuggestions: () => Mention[] | Emoji[];
+    getSuggestions: () => Mention[] | Emoji[] | ComposerCommand[];
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
@@ -532,6 +534,15 @@ function ReportActionCompose({
                                     </>
                                 )}
                             </AttachmentModal>
+                            {isCommentEmpty && (
+                                <ConciergeAIButton
+                                    onPress={() => {
+                                        focus();
+                                        composerRef.current?.replaceSelectionWithText('/');
+                                        composerRef.current?.setSelection({start: 1, end: 1, positionX: 1, positionY: 0});
+                                    }}
+                                />
+                            )}
                             {canUseTouchScreen() && isMediumScreenWidth ? null : (
                                 <EmojiPickerButton
                                     isDisabled={isBlockedFromConcierge || disabled}
@@ -545,7 +556,9 @@ function ReportActionCompose({
                                         }
                                         focus();
                                     }}
-                                    onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
+                                    onEmojiSelected={(emojiCode: string) => {
+                                        composerRef.current?.replaceSelectionWithText(emojiCode);
+                                    }}
                                     emojiPickerID={report?.reportID}
                                     shiftVertical={emojiShiftVertical}
                                 />

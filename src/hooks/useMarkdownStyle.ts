@@ -76,6 +76,10 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
             },
+            command: {
+                color: theme.ourMentionText,
+                backgroundColor: theme.ourMentionBG,
+            },
             inlineImage: {
                 minWidth: variables.inlineImagePreviewMinSize,
                 minHeight: variables.inlineImagePreviewMinSize,

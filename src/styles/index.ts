@@ -305,6 +305,30 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
         },
 
+        autoCompleteCommandSuggestionContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            ...spacing.mh3,
+        },
+        commandSuggestions: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeMedium,
+            textAlign: 'center',
+        },
+        emojiCommandSuggestionsText: {
+            fontSize: variables.fontSizeMedium,
+            flex: 1,
+            ...wordBreak.breakWord,
+            ...spacing.pl3,
+            ...spacing.pr2,
+        },
+        actionCommandSuggestionsText: {
+            fontSize: variables.fontSizeMedium,
+            ...wordBreak.breakWord,
+            ...spacing.pl3,
+            ...spacing.pr2,
+        },
+
         mentionSuggestionsAvatarContainer: {
             width: 24,
             height: 24,
@@ -2330,6 +2354,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatItemEmojiButton: {
+            alignSelf: 'flex-end',
+            borderRadius: variables.buttonBorderRadius,
+            height: 40,
+            marginVertical: 3,
+            paddingHorizontal: 10,
+            justifyContent: 'center',
+        },
+
+        chatItemConciergeAIButton: {
             alignSelf: 'flex-end',
             borderRadius: variables.buttonBorderRadius,
             height: 40,

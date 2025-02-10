@@ -569,6 +569,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
         return false;
     }
 
+    // Do not group if the current action is a whisper one
+    if (isWhisperAction(currentAction)) {
+        return false;
+    }
+
     // Do not group if one of previous / current action is report preview and another one is not report preview
     if ((isReportPreviewAction(previousAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(previousAction))) {
         return false;
