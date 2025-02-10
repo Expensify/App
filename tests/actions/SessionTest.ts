@@ -4,20 +4,22 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
+// eslint-disable-next-line no-restricted-syntax
+import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import asyncOpenURL from '@libs/asyncOpenURL';
 import HttpUtils from '@libs/HttpUtils';
 import PushNotification from '@libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribePushNotification';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
+import {signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import {signOutAndRedirectToSignIn} from "@src/libs/actions/Session";
-import asyncOpenURL from "@libs/asyncOpenURL";
-import CONFIG from "@src/CONFIG";
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
@@ -253,11 +255,14 @@ describe('Session', () => {
                 }),
             );
 
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
         signOutAndRedirectToSignIn();
 
         await waitForBatchedUpdates();
 
         expect(asyncOpenURL).toHaveBeenCalledWith(Promise.resolve(), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+        expect(redirectToSignInSpy).toHaveBeenCalled();
         jest.clearAllMocks();
     });
 
@@ -273,11 +278,14 @@ describe('Session', () => {
                 }),
             );
 
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
         signOutAndRedirectToSignIn();
 
         await waitForBatchedUpdates();
 
         expect(asyncOpenURL).not.toHaveBeenCalled();
+        expect(redirectToSignInSpy).toHaveBeenCalled();
         jest.clearAllMocks();
     });
 });
