@@ -275,6 +275,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     routeName: ROUTES.SETTINGS_TROUBLESHOOT,
                 },
                 {
+                    translationKey: 'initialSettingsPage.storage',
+                    icon: Expensicons.Lightbulb,
+                    routeName: ROUTES.SETTINGS_STORAGE,
+                },
+                {
                     translationKey: 'sidebarScreen.saveTheWorld',
                     icon: Expensicons.Heart,
                     routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
