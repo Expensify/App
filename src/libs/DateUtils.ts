@@ -726,6 +726,15 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 };
 
 /**
+ * Checks if the input time is after the reference date
+ * param {Date} inputDate - The date to validate.
+ * returns {boolean} - Returns true if the input date is after the reference date, otherwise false.
+ */
+const isFutureDay = (inputDate: Date): boolean => {
+    return isAfter(startOfDay(inputDate), startOfDay(new Date()));
+};
+
+/**
  * Checks if the input time is at least one minute in the future compared to the reference time.
  * param {Date} inputTime - The time to validate.
  * param {Date} referenceTime - The time to compare against.
@@ -849,9 +858,9 @@ function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
  */
 function getFormattedTransportDate(date: Date): string {
     if (isThisYear(date)) {
-        return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+        return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'hh:mm a')}`;
     }
-    return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+    return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'hh:mm a')}`;
 }
 
 /**
@@ -987,6 +996,7 @@ const DateUtils = {
     isValidDateString,
     getFormattedDurationBetweenDates,
     getFormattedDuration,
+    isFutureDay,
     getFormattedDateRangeForPerDiem,
 };
 
