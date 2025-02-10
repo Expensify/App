@@ -67,7 +67,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    // TODO set this based on param from redirect or BE response
+    // TODO consider if this is needed
     const isSecondSigner = false;
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
