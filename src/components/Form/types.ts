@@ -11,7 +11,7 @@ import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountryPicker from '@components/CountryPicker';
 import type CountrySelector from '@components/CountrySelector';
 import type CurrencySelector from '@components/CurrencySelector';
-import type DatePicker from '@components/DatePicker';
+import type DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
 import type EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import type PercentageForm from '@components/PercentageForm';
 import type Picker from '@components/Picker';
@@ -57,7 +57,7 @@ type ValidInputs =
     | typeof StateSelector
     | typeof RoomNameInput
     | typeof ValuePicker
-    | typeof DatePicker
+    | typeof DateInputModalPicker
     | typeof RadioButtons
     | typeof AmountPicker
     | typeof TextPicker
