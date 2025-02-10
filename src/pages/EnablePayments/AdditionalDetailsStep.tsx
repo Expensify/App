@@ -30,7 +30,7 @@ import {
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-import * as Wallet from '@userActions/Wallet';
+import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
@@ -130,7 +130,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
             ssn: values.ssn ?? '',
         };
         // Attempt to set the personal details
-        Wallet.updatePersonalDetails(personalDetails);
+        updatePersonalDetails(personalDetails);
     };
 
     if (walletAdditionalDetails?.questions && walletAdditionalDetails.questions.length > 0) {
@@ -143,7 +143,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
             >
                 <HeaderWithBackButton
                     title={translate('additionalDetailsStep.headerTitle')}
-                    onBackButtonPress={() => Wallet.setAdditionalDetailsQuestions(null)}
+                    onBackButtonPress={() => setAdditionalDetailsQuestions(null)}
                 />
                 <IdologyQuestions
                     questions={walletAdditionalDetails.questions}
