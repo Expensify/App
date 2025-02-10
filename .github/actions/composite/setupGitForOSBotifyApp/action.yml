@@ -5,8 +5,8 @@ name: "Setup Git for OSBotify"
 description: "Setup Git for OSBotify"
 
 inputs:
-  GPG_PASSPHRASE:
-    description: "Passphrase used to decrypt GPG key"
+  OP_SERVICE_ACCOUNT_TOKEN:
+    description: "1Password service account token"
     required: true
   OS_BOTIFY_APP_ID:
     description: "Application ID for OS Botify"
@@ -24,28 +24,18 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Check if gpg encrypted private key is present
-      id: key_check
-      shell: bash
-      run: |
-        if [[ -f .github/workflows/OSBotify-private-key.asc.gpg ]]; then
-          echo "key_exists=true" >> "$GITHUB_OUTPUT"
-        fi
+    - name: Install 1Password CLI
+      uses: 1password/install-cli-action@v1
 
-    - name: Checkout
-      uses: actions/checkout@v4
-      if: steps.key_check.outputs.key_exists != 'true'
-      with:
-        sparse-checkout: |
-          .github
-
-    - name: Decrypt OSBotify GPG key
-      run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase=${{ inputs.GPG_PASSPHRASE }} --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
+    - name: Load files from 1Password
       shell: bash
+      env:
+        OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
+      run: op read "op://Mobile-Deploy-CI/OSBotify-private-key.asc/OSBotify-private-key.asc" --force --out-file ./OSBotify-private-key.asc
 
     - name: Import OSBotify GPG Key
       shell: bash
-      run: cd .github/workflows && gpg --import OSBotify-private-key.asc
+      run: gpg --import OSBotify-private-key.asc
 
     - name: Set up git for OSBotify
       shell: bash
@@ -54,11 +44,6 @@ runs:
         git config commit.gpgsign true
         git config user.name OSBotify
         git config user.email infra+osbotify@expensify.com
-
-    - name: Enable debug logs for git
-      shell: bash
-      if: runner.debug == '1'
-      run: echo "GIT_TRACE=true" >> "$GITHUB_ENV"
 
     - name: Sync clock
       shell: bash
