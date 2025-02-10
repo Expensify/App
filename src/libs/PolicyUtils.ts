@@ -32,7 +32,6 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {setHasSeenExpensifyCardPromotionBanner} from './actions/CompanyCards';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {getCurrentUserAccountID} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
@@ -1085,7 +1084,6 @@ function navigateToExpensifyCardPage(policyID: string) {
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
     });
-    setHasSeenExpensifyCardPromotionBanner();
 }
 
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {

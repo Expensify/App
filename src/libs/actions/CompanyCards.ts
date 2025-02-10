@@ -724,10 +724,6 @@ function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
 }
 
-function setHasSeenExpensifyCardPromotionBanner() {
-    Onyx.set(ONYXKEYS.NVP_SEEN_EXPENSIFY_CARD_PROMOTION, true);
-}
-
 export {
     setWorkspaceCompanyCardFeedName,
     deleteWorkspaceCompanyCardFeed,
@@ -745,5 +741,4 @@ export {
     clearAddNewCardFlow,
     setAssignCardStepAndData,
     clearAssignCardStepAndData,
-    setHasSeenExpensifyCardPromotionBanner,
 };
