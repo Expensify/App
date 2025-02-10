@@ -5,6 +5,6 @@ import type UseScrollEnabled from './types';
 const useScrollEnabled: UseScrollEnabled = () => {
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
-    return prevIsFocused && !isFocused ? false : true;
+    return !(prevIsFocused && !isFocused);
 };
 export default useScrollEnabled;
