@@ -19,10 +19,11 @@ export default function useNetworkWithOfflineStatus(): UseNetworkWithOfflineStat
     const lastOnlineAt = useRef(isOffline ? undefined : DateUtils.getLocalDateFromDatetime(preferredLocale));
 
     useEffect(() => {
+        // If the user has just gone offline (was online before but is now offline), update `lastOfflineAt` with the current local date/time.
         if (isOffline && !prevIsOffline) {
             lastOfflineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
         }
-
+        // If the user has just come back online (was offline before but is now online), update `lastOnlineAt` with the current local date/time.
         if (!isOffline && prevIsOffline) {
             lastOnlineAt.current = DateUtils.getLocalDateFromDatetime(preferredLocale);
         }
