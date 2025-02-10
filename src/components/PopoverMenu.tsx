@@ -5,7 +5,6 @@ import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as ScrollViewType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
