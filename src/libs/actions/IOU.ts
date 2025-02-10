@@ -7985,10 +7985,10 @@ function canApproveIOU(
     const hasOnlyPendingCardOrScanningTransactions =
         reportTransactions.length > 0 &&
         reportTransactions.every(
-            (t) =>
-                (isExpensifyCardTransaction(t) && isPending(t)) ||
-                (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) ||
-                (isScanRequestTransactionUtils(t) && isReceiptBeingScannedTransactionUtils(t)),
+            (transaction) =>
+                (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
+                (isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction)) ||
+                (isScanRequestTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction)),
         );
     if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
