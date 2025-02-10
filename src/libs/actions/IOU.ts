@@ -964,10 +964,25 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
 }
 
-/** Set the distance rate of a new  transaction */
-function setMoneyRequestDistanceRate(transactionID: string, rateID: string, policyID: string, isDraft: boolean) {
-    Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
+/**
+ * Set the distance rate of a transaction.
+ * Used when creating a new transaction or moving an existing one from Self DM
+ */
+function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: string, policy: OnyxEntry<OnyxTypes.Policy>, isDraft: boolean) {
+    if (policy) {
+        Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
+    }
+
+    const distanceRate = DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            customUnit: {
+                customUnitRateID,
+                ...(!!policy && {defaultP2PRate: null}),
+                ...(distanceRate && {distanceUnit: distanceRate.unit}),
+            },
+        },
+    });
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
@@ -9049,7 +9064,7 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     return participants;
 }
 
-function setMoneyRequestTaxRate(transactionID: string, taxCode: string) {
+function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxCode});
 }
 
