@@ -1,6 +1,5 @@
 import type {CommonActions, ParamListBase, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions, StackRouter} from '@react-navigation/native';
-import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
@@ -8,6 +7,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SplitNavigatorRouterOptions} from './types';
 import {getPreservedSplitNavigatorState} from './usePreserveSplitNavigatorState';
 
@@ -45,7 +45,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
         const copiedParams = pick(lastRoute?.params, paramsFromRoute);
 
         // We don't want to get an empty object as params because it breaks some navigation logic when comparing if routes are the same.
-        const params = isEmpty(copiedParams) ? undefined : copiedParams;
+        const params = isEmptyObject(copiedParams) ? undefined : copiedParams;
 
         // @ts-expect-error Updating read only property
         // noinspection JSConstantReassignment
