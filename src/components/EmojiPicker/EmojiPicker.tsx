@@ -201,8 +201,6 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             onModalHide={onModalHide.current}
             hideModalContentWhileAnimating
             shouldSetModalVisibility={false}
-            animationInTiming={1}
-            animationOutTiming={1}
             anchorPosition={{
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
@@ -221,6 +219,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             shoudSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+            shouldUseNewModal
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <View>
