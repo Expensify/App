@@ -22,7 +22,7 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
 }));
 jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({
-        routes: [{name: SCREENS.REPORT}],
+        routes: [{name: 'Report'}],
     }),
     getRootState: () => ({
         routes: [],
