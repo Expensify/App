@@ -31,7 +31,7 @@ function AddPersonalBankAccountPage() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const {canUseInternationalBankAccount} = usePermissions();
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const topmostFullScreenRoute = navigationRef.current?.getRootState().routes.findLast((route) => isFullScreenName(route.name));
+    const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
 
     const goBack = useCallback(() => {
         switch (topmostFullScreenRoute?.name) {
