@@ -76,6 +76,7 @@ let initPromise = new Promise<void>((resolve) => {
 });
 
 const eventsBoundToChannels = new Map<string, Map<PusherEventName, (eventData: EventData<string>) => void>>();
+const channels: Record<string, ValueOf<typeof CONST.PUSHER.CHANNEL_STATUS>> = {};
 
 /**
  * Trigger each of the socket event callbacks with the event information
@@ -224,9 +225,9 @@ function subscribe<EventName extends PusherEventName>(
                     }
 
                     Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
-                    const channel = getChannel(channelName);
 
-                    if (!channel) {
+                    if (!channels[channelName]) {
+                        channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBING;
                         await socket.subscribe({
                             channelName,
                             onEvent: (event) => {
@@ -234,6 +235,7 @@ function subscribe<EventName extends PusherEventName>(
                                 callback?.(event.data);
                             },
                             onSubscriptionSucceeded: () => {
+                                channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
                                 bindEventToChannel(channelName, eventName, eventCallback);
                                 resolve();
                                 // When subscribing for the first time we register a success callback that can be
@@ -243,6 +245,7 @@ function subscribe<EventName extends PusherEventName>(
                                 onResubscribe();
                             },
                             onSubscriptionError: (name: string, message: string) => {
+                                delete channels[channelName];
                                 Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                                     channelName,
                                     message,
@@ -281,6 +284,7 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
     } else {
         Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
         eventsBoundToChannels.delete(channelName);
+        delete channels[channelName];
         socket?.unsubscribe({channelName});
     }
 }
@@ -293,9 +297,7 @@ function isAlreadySubscribing(channelName: string): boolean {
         return false;
     }
 
-    // const channel = getChannel(channelName);
-    // return channel ? channel.subscriptionPending : false;
-    return false;
+    return channels[channelName] === CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBING;
 }
 
 /**

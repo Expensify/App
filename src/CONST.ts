@@ -1595,6 +1595,10 @@ const CONST = {
             DISCONNECTED: 'DISCONNECTED',
             RECONNECTING: 'RECONNECTING',
         },
+        CHANNEL_STATUS: {
+            SUBSCRIBING: 'SUBSCRIBING',
+            SUBSCRIBED: 'SUBSCRIBED',
+        },
     },
 
     EMOJI_SPACER: 'SPACER',
