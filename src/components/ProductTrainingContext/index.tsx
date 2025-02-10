@@ -182,6 +182,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         return (
             <View
                 fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
                 style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}
             >
                 <Icon

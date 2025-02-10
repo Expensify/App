@@ -61,6 +61,7 @@ function OnboardingWelcomeVideo() {
             <View
                 style={[styles.gap3, styles.pt1, styles.pl1]}
                 fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
             >
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View

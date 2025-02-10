@@ -21,6 +21,13 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 jest.mock('@pages/settings/InitialSettingsPage');
 jest.mock('@pages/settings/Profile/ProfilePage');
 jest.mock('@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar');
+// Mock Fullstory library dependency
+jest.mock('@libs/Fullstory', () => ({
+    default: {
+        consentAndIdentify: jest.fn(),
+    },
+    parseFSAttributes: jest.fn(),
+}));
 
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: ResponsiveLayoutResult = {
     shouldUseNarrowLayout: true,

@@ -293,6 +293,7 @@ function FeatureTrainingModal({
                     <View
                         style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), safeAreaPaddingBottomStyle]}
                         fsClass={CONST.FULL_STORY.UNMASK}
+                        testID={CONST.FULL_STORY.UNMASK}
                     >
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
                             {renderIllustration()}
