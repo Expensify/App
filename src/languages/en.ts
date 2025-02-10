@@ -1767,7 +1767,7 @@ const translations = {
         requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code.',
-            incorrectMagicCode: 'Incorrect magic code.',
+            incorrectMagicCode: 'Oops! Looks like the magic code you entered was incorrect. Please try again.',
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code.',
         },
     },
