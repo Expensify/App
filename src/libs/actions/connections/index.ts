@@ -279,11 +279,14 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
-    policyID: string,
+    policyID: string | undefined,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
 ) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
