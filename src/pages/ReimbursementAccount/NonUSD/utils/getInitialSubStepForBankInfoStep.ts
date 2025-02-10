@@ -12,7 +12,7 @@ function getInitialSubStepForBusinessInfoStep(data: SubStepValues<keyof Reimburs
     const hasAnyMissingBankAccountDetails = bankAccountDetailsFields?.some((field) => data?.[field.id as keyof ReimbursementAccountForm] === '');
     const hasAnyMissingAccountHolderDetails = accountHolderDetailsFields?.some((field) => data?.[field.id as keyof ReimbursementAccountForm] === '');
 
-    if (hasAnyMissingBankAccountDetails) {
+    if (corpayFields === undefined || hasAnyMissingBankAccountDetails) {
         return 0;
     }
 

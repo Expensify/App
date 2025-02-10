@@ -103,15 +103,16 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         >
             <>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>
-                {inputs}
-                {!inputs && (
-                    <View style={[styles.flexGrow1, styles.alignItemsCenter]}>
+                {corpayFields?.isLoading ? (
+                    <View style={[styles.flexGrow4, styles.alignItemsCenter]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             color={theme.spinner}
                             style={styles.flexGrow1}
                         />
                     </View>
+                ) : (
+                    inputs
                 )}
             </>
         </FormProvider>
