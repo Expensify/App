@@ -200,7 +200,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
 
     const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
-    const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(quickActionReport, reportNameValuePairs));
+    const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     const {environment} = useEnvironment();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const navatticURL = getNavatticURL(environment, introSelected?.choice);
@@ -242,7 +242,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             return '';
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
-            const name: string = getDisplayNameForParticipant(+(quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID), true) ?? '';
+            const accountID = quickActionAvatars.at(0)?.id ?? CONST.DEFAULT_NUMBER_ID;
+            const name = getDisplayNameForParticipant({accountID: Number(accountID), shouldUseShortForm: true}) ?? '';
             return translate('quickAction.paySomeone', {name});
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
@@ -386,36 +387,49 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
             if (!!iouType && !canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
                 return [];
             }
+            const onSelected = () => {
+                interceptAnonymousUser(() => {
+                    hideProductTrainingTooltip();
+                    navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
+                });
+            };
             return [
                 {
                     ...baseQuickAction,
                     icon: getQuickActionIcon(quickAction?.action),
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
-                    onSelected: () =>
-                        interceptAnonymousUser(() => {
-                            hideProductTrainingTooltip();
-                            navigateToQuickAction(isValidReport, `${quickActionReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, quickAction, selectOption);
-                        }),
+                    onSelected,
+                    onEducationTooltipPress: () => {
+                        hideCreateMenu();
+                        onSelected();
+                    },
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
             ];
         }
         if (!isEmptyObject(policyChatForActivePolicy)) {
+            const onSelected = () => {
+                interceptAnonymousUser(() => {
+                    selectOption(() => {
+                        hideProductTrainingTooltip();
+                        const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
+                        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
+                    }, true);
+                });
+            };
+
             return [
                 {
                     ...baseQuickAction,
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
-                    onSelected: () =>
-                        interceptAnonymousUser(() => {
-                            selectOption(() => {
-                                hideProductTrainingTooltip();
-                                const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
-                                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
-                            }, true);
-                        }),
+                    onSelected,
+                    onEducationTooltipPress: () => {
+                        hideCreateMenu();
+                        onSelected();
+                    },
                     shouldShowSubscriptRightAvatar: true,
                 },
             ];
@@ -424,22 +438,23 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
         return [];
     }, [
         translate,
-        quickActionAvatars,
-        isValidReport,
-        styles.popoverMenuItem.paddingVertical,
         styles.pt3,
         styles.pb2,
+        styles.popoverMenuItem.paddingVertical,
         styles.productTrainingTooltipWrapper,
+        quickActionAvatars,
         renderProductTrainingTooltip,
-        hideProductTrainingTooltip,
+        shouldShowProductTrainingTooltip,
         quickAction,
         policyChatForActivePolicy,
+        quickActionReport,
+        quickActionPolicy,
         quickActionTitle,
         hideQABSubtitle,
-        quickActionReport,
-        shouldShowProductTrainingTooltip,
+        hideProductTrainingTooltip,
+        isValidReport,
         selectOption,
-        quickActionPolicy,
+        hideCreateMenu,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
