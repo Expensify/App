@@ -33,9 +33,8 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-
-import {withRenderTrace} from '@libs/Performance';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import {getDisplayNameOrDefault, isPersonalDetailsEmpty} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
@@ -71,7 +70,6 @@ import {
     isTrackExpenseReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
-
 import shouldFetchReport from '@libs/shouldFetchReport';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -924,7 +922,5 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 ReportScreen.displayName = 'ReportScreen';
 
 const MemoizedReportScreen = memo(ReportScreen, (prevProps, nextProps) => lodashIsEqual(prevProps.route, nextProps.route));
-const WithCurrentReportID = withCurrentReportID(MemoizedReportScreen);
-
-export default withRenderTrace({id: CONST.PERFORMANCE.SCREEN_KEYS.REPORT_SCREEN})(WithCurrentReportID as React.ComponentType);
+export default Performance.withRenderTrace({id: CONST.PERFORMANCE.SCREEN_KEYS.REPORT_SCREEN})(MemoizedReportScreen);
 export type {ReportScreenProps, ReportScreenNavigationProps};
