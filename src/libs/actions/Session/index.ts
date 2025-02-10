@@ -24,6 +24,7 @@ import type {
 } from '@libs/API/parameters';
 import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
@@ -55,12 +56,11 @@ import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
+import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
-import asyncOpenURL from "@libs/asyncOpenURL";
 import clearCache from './clearCache';
 import updateSessionAuthTokens from './updateSessionAuthTokens';
-import type Response from "../../../types/onyx/Response";
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
@@ -230,7 +230,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 Navigation.resetToHome();
             }
             Navigation.navigate(ROUTES.SIGN_IN_MODAL);
-            Linking.getInitialURL().then(url => {
+            Linking.getInitialURL().then((url) => {
                 const reportID = getReportIDFromLink(url);
                 if (reportID) {
                     Onyx.merge(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID, reportID);
@@ -284,7 +284,6 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     if (isSupportal && !shouldStashSession && !hasStashedSession()) {
         Log.info('No stashed session found for supportal access, clearing the session');
     }
-
 
     // Wait for signOut (if called), then redirect and update Onyx.
     signOutPromise

@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import PushNotification from '@libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -220,7 +220,7 @@ describe('Session', () => {
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(1);
-        expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.LOG_OUT);
+        expect(getAllPersistedRequests().at(0)?.command).toBe(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
