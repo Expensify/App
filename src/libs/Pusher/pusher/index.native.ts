@@ -7,7 +7,7 @@ import type {LiteralUnion, ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import TYPE from '@libs/Pusher/EventType';
 import type {SocketEventName} from '@libs/Pusher/library/types';
-import {onAuthorizer} from '@userActions/Session';
+import {authenticatePusher} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
@@ -114,13 +114,7 @@ function init(args: Args): Promise<void> {
                 callSocketEventCallbacks('state_change', {previous: previousState, current: currentState});
             },
             onError: (message: string, code: number) => callSocketEventCallbacks('error', {data: {code, message}}),
-            onAuthorizer: async (channelName: string, socketId: string) => {
-                const res = await onAuthorizer(channelName, socketId);
-                return {
-                    auth: res.auth,
-                    shared_secret: res.shared_secret,
-                };
-            },
+            onAuthorizer: (channelName: string, socketId: string) => authenticatePusher(socketId, channelName),
         });
         await socket.connect();
     }).then(resolveInitPromise);

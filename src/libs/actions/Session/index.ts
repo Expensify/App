@@ -909,11 +909,11 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
 
     // We use makeRequestWithSideEffects here because we need to authorize to Pusher (an external service) each time a user connects to any channel.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params)
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params)
         .then((response) => {
             if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
-                callback(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
+                callback?.(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
 
                 // Attempt to refresh the authToken then reconnect to Pusher
                 reauthenticatePusher();
@@ -922,34 +922,25 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
 
             if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
-                callback(new Error(`Pusher failed to authenticate because code: ${response?.jsonCode} message: ${response?.message}`), {auth: ''});
+                callback?.(new Error(`Pusher failed to authenticate because code: ${response?.jsonCode} message: ${response?.message}`), {auth: ''});
                 return;
             }
 
             Log.info('[PusherAuthorizer] Pusher authenticated successfully', false, {channelName});
-            callback(null, response as ChannelAuthorizationData);
+            if (callback) {
+                callback(null, response as ChannelAuthorizationData);
+            } else {
+                return {
+                    auth: response.auth,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    shared_secret: response.shared_secret,
+                };
+            }
         })
         .catch((error: unknown) => {
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
-            callback(new Error('AuthenticatePusher request failed'), {auth: ''});
+            callback?.(new Error('AuthenticatePusher request failed'), {auth: ''});
         });
-}
-
-async function onAuthorizer(channelName: string, socketId: string) {
-    Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
-
-    const params: AuthenticatePusherParams = {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        socket_id: socketId,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        channel_name: channelName,
-        shouldRetry: false,
-        forceNetworkRequest: true,
-    };
-
-    const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params);
-
-    return response;
 }
 
 /**
@@ -1353,5 +1344,4 @@ export {
     validateUserAndGetAccessiblePolicies,
     isUserOnPrivateDomain,
     resetSMSDeliveryFailureStatus,
-    onAuthorizer,
 };
