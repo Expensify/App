@@ -170,7 +170,7 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
-type MovedFromSelfDMParams = {workspaceName?: string; reportName?: string};
+type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
 
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
@@ -257,6 +257,8 @@ type ViolationsOverLimitParams = {formattedLimit: string};
 type ViolationsPerDayLimitParams = {formattedLimit: string};
 
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
+
+type ViolationsCustomRulesParams = {message: string};
 
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
@@ -367,6 +369,8 @@ type IntegrationSyncFailedParams = {label: string; errorMessage: string};
 type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
+
+type LeftWorkspaceParams = {nameOrEmail: string};
 
 type RemoveMemberParams = {email: string; role: string};
 
@@ -605,6 +609,10 @@ type FlightLayoverParams = {
     layover: string;
 };
 
+type SubmitsToParams = {
+    name: string;
+};
+
 type SettlementDateParams = {
     settlementDate: string;
 };
@@ -707,7 +715,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MovedFromSelfDMParams,
+    MovedFromPersonalSpaceParams,
     SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -770,6 +778,7 @@ export type {
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
     ViolationsReceiptRequiredParams,
+    ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
@@ -801,6 +810,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,
     FiltersAmountBetweenParams,
@@ -822,6 +832,7 @@ export type {
     ChatWithAccountManagerParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    SubmitsToParams,
     SettlementDateParams,
     NeedCategoryForExportToIntegrationParams,
 };
