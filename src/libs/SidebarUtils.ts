@@ -33,6 +33,7 @@ import {
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogEmployeeLeftMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportAction,
@@ -537,8 +538,7 @@ function getOptionData({
                     : translate(preferredLocale, 'workspace.invite.removed');
             const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
             result.alternateText = formatReportLastMessageText(`${lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
-
-            const roomName = lastActionOriginalMessage?.roomName ?? '';
+            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]);
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -588,7 +588,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
             result.alternateText = getPolicyChangeLogDefaultTitleEnforcedMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
-            result.alternateText = translateLocal('workspace.invite.leftWorkspace');
+            result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
             result.alternateText = getCardIssuedMessage({reportAction: lastAction});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {

@@ -29,7 +29,7 @@ import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
 import {getEffectiveDisplayName, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
-import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {isOnHoldByTransactionID} from './TransactionUtils';
 import {getReportFieldAlternativeTextTranslationKey} from './WorkspaceReportFieldUtils';
@@ -1202,7 +1202,8 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
+// We pass getReportName as a param to avoid cyclic dependency.
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
 
@@ -1217,7 +1218,7 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     }
 
     if (isLeaveAction) {
-        verb = translateLocal('workspace.invite.leftWorkspace');
+        verb = getPolicyChangeLogEmployeeLeftMessage(reportAction);
     }
 
     const originalMessage = getOriginalMessage(reportAction);
@@ -1236,9 +1237,8 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        const roomName = originalMessage?.roomName;
-
-        if (roomName) {
+        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`]);
+        if (roomName && originalMessage) {
             const preposition = isInviteAction ? ` ${translateLocal('workspace.invite.to')} ` : ` ${translateLocal('workspace.invite.from')} `;
 
             if (originalMessage.reportID) {
@@ -1404,8 +1404,8 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     }
 }
 
-function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {
@@ -1433,11 +1433,6 @@ function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
         text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
-}
-
-function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
-    const messageElements = getMemberChangeMessageElements(reportAction);
-    return messageElements.map((element) => element.content).join('');
 }
 
 function getReportActionMessageFragments(action: ReportAction): Message[] {
@@ -1769,6 +1764,20 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     const newRole = typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : '';
     const oldRole = typeof originalMessage?.oldValue === 'string' ? originalMessage?.oldValue : '';
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+}
+
+function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
+    if (!isLeavePolicyAction(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const personalDetails = getPersonalDetailsByIDs({accountIDs: reportAction.actorAccountID ? [reportAction.actorAccountID] : [], currentUserAccountID: 0})?.at(0);
+    if (!!originalMessage && !originalMessage.email) {
+        originalMessage.email = personalDetails?.login;
+    }
+    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : originalMessage?.email ?? '';
+    const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
+    return translateLocal('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
 }
 
 function isPolicyChangeLogDeleteMemberMessage(
@@ -2214,7 +2223,6 @@ export {
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
-    getMemberChangeMessagePlainText,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
@@ -2301,6 +2309,7 @@ export {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogEmployeeLeftMessage,
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
