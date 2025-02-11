@@ -40,6 +40,7 @@ describe('actions/App', () => {
 
     test('lastFullReconnectTime - full reconnectApp', async () => {
         // When a full ReconnectApp runs
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         App.reconnectApp();
         App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
@@ -50,6 +51,7 @@ describe('actions/App', () => {
 
     test('lastFullReconnectTime - incremental reconnectApp', async () => {
         // When an incremental ReconnectApp runs
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         App.reconnectApp(123);
         App.confirmReadyToOpenApp();
         await waitForBatchedUpdates();
