@@ -10,12 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SubStepWithPolicy} from '../types';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 

@@ -12,10 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
+import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
-import type {SubStepWithPolicy} from '../../types';
 
 function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
     const styles = useThemeStyles();
