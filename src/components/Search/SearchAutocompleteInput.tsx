@@ -124,7 +124,7 @@ function SearchAutocompleteInput(
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    // we are handling focused/unfocused style on shared value instead of using state to avoid re-rendering. Otherwise layput animation in Animated.View will lag.
+    // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
     const focusedSharedValue = useSharedValue(false);
     const unfocusedStyle = useMemo(() => {
         const style: Partial<ViewStyle> = {};
