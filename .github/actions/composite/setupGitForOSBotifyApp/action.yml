@@ -31,7 +31,7 @@ runs:
       shell: bash
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
-      run: op read "op://Mobile-Deploy-CI/OSBotify-private-key.asc/OSBotify-private-key.asc" --force --out-file ./OSBotify-private-key.asc
+      run: op read "op://${{ vars.OP_VAULT }}/OSBotify-private-key.asc/OSBotify-private-key.asc" --force --out-file ./OSBotify-private-key.asc
 
     - name: Import OSBotify GPG Key
       shell: bash
