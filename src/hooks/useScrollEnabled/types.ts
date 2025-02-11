@@ -1,3 +1,3 @@
-type UseScrollEnabled = () => boolean | undefined;
+type UseScrollEnabled = (scrollEnabled?: boolean) => boolean | undefined;
 
 export default UseScrollEnabled;

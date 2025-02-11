@@ -5,8 +5,8 @@ import {ScrollView as RNScrollView} from 'react-native';
 import type {ScrollViewProps} from 'react-native';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 
-function ScrollView({children, scrollIndicatorInsets, ...props}: ScrollViewProps, ref: ForwardedRef<RNScrollView>) {
-    const scrollEnabled = useScrollEnabled();
+function ScrollView({children, scrollIndicatorInsets, scrollEnabled: RNScrollEnabled, ...props}: ScrollViewProps, ref: ForwardedRef<RNScrollView>) {
+    const scrollEnabled = useScrollEnabled(RNScrollEnabled);
 
     return (
         <RNScrollView

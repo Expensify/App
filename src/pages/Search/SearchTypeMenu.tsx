@@ -232,6 +232,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         <ScrollView
             onScroll={onScroll}
             ref={scrollViewRef}
+            scrollEnabled
         >
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                 {typeMenuItems.map((item, index) => {
