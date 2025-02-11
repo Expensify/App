@@ -66,4 +66,6 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     );
 }
 
+TopLevelBottomTabBar.displayName = 'TopLevelBottomTabBar';
+
 export default TopLevelBottomTabBar;
