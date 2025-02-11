@@ -397,7 +397,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                         danger
                     />
                     <ConfirmModal
-                        title={translate('workspace.common.leaveWorkspace')}
+                        title={translate('common.leave')}
                         isVisible={isLeaveModalOpen}
                         onConfirm={() => handleWorkspaceAction('leave')}
                         onCancel={() => setIsLeaveModalOpen(false)}

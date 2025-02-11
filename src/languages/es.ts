@@ -2738,9 +2738,8 @@ const translations = {
             submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
-            leaveWorkspace: 'Abandonar el espacio de trabajo',
             leaveConfirmation:
-                '¿Está seguro de que desea abandonar este espacio de trabajo? Una vez que salga, perderá el acceso a todos los datos y configuraciones asociados a este espacio de trabajo.',
+                '¿Estás seguro de que quieres salir de este espacio de trabajo? Una vez que salgas, perderás el acceso a todos los datos y configuraciones asociadas con este espacio de trabajo.',
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
