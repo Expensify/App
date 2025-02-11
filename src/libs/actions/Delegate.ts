@@ -66,6 +66,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.SESSION,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.HAS_LOADED_APP,
     ONYXKEYS.STASHED_CREDENTIALS,
 
     // We need to preserve the sidebar loaded state since we never unrender the sidebar when connecting as a delegate
@@ -156,7 +157,7 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-                    openApp().then(() => NativeModules.HybridAppModule.switchAccount(email, restrictedToken, policyID, String(previousAccountID)));
+                    openApp().then(() => NativeModules.HybridAppModule?.switchAccount(email, restrictedToken, policyID, String(previousAccountID)));
                 });
         })
         .catch((error) => {
@@ -238,7 +239,7 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
                     confirmReadyToOpenApp();
-                    openApp().then(() => NativeModules.HybridAppModule.switchAccount(requesterEmail, authToken, '', ''));
+                    openApp().then(() => NativeModules.HybridAppModule?.switchAccount(requesterEmail, authToken, '', ''));
                 });
         })
         .catch((error) => {

@@ -54,6 +54,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -300,7 +301,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function checkIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
+function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }
@@ -825,11 +826,20 @@ function clearSignInData() {
 }
 
 /**
- * Reset navigation state after logout
+ * Reset all current params of the Home route
  */
-function resetNavigationState() {
+function resetHomeRouteParams() {
     Navigation.isNavigationReady().then(() => {
-        navigationRef.resetRoot(navigationRef.getRootState());
+        const routes = navigationRef.current?.getState()?.routes;
+        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
+
+        const emptyParams: Record<string, undefined> = {};
+        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
+            emptyParams[paramKey] = undefined;
+        });
+
+        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     });
 }
 
@@ -848,7 +858,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
-    resetNavigationState();
+    resetHomeRouteParams();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
@@ -1289,7 +1299,7 @@ export {
     beginAppleSignIn,
     beginGoogleSignIn,
     setSupportAuthToken,
-    checkIfActionIsAllowed,
+    callFunctionIfActionIsAllowed,
     signIn,
     signInWithValidateCode,
     handleExitToNavigation,
