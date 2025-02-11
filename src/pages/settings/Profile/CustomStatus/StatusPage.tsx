@@ -23,7 +23,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
+import {clearCustomStatus, clearDraftCustomStatus, updateCustomStatus, updateDraftCustomStatus} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -102,12 +102,12 @@ function StatusPage() {
                 setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
                 return;
             }
-            User.updateCustomStatus({
+            updateCustomStatus({
                 text: statusText,
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            User.clearDraftCustomStatus();
+            clearDraftCustomStatus();
             navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
                 navigateBackToPreviousScreen();
             });
@@ -119,8 +119,8 @@ function StatusPage() {
         if (navigateBackToPreviousScreenTask.current) {
             return;
         }
-        User.clearCustomStatus();
-        User.updateDraftCustomStatus({
+        clearCustomStatus();
+        updateDraftCustomStatus({
             text: '',
             emojiCode: '',
             clearAfter: DateUtils.getEndOfToday(),
@@ -136,12 +136,12 @@ function StatusPage() {
 
     useEffect(() => {
         if (!currentUserEmojiCode && !currentUserClearAfter && !draftClearAfter) {
-            User.updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
+            updateDraftCustomStatus({clearAfter: DateUtils.getEndOfToday()});
         } else {
-            User.updateDraftCustomStatus({clearAfter: currentUserClearAfter});
+            updateDraftCustomStatus({clearAfter: currentUserClearAfter});
         }
 
-        return () => User.clearDraftCustomStatus();
+        return () => clearDraftCustomStatus();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
