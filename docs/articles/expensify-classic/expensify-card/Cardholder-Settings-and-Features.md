@@ -54,8 +54,6 @@ To add your Expensify Card to a digital wallet, follow the steps below:
   - **Restricted Country**: Transactions from restricted countries will be declined.
 
 {% include faq-begin.md %}
-## Can I use Smart Limits with a free Expensify account? 
-If you're on the Free plan, you won't have the option to use Smart Limits. Your card limit will simply reset at the end of each calendar month.
 
 ## I still haven't received my Expensify Card. What should I do? 
 For more information on why your card hasn't arrived, you can check out this resource on [Requesting a Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Card#what-if-i-havent-received-my-card-after-multiple-weeks).

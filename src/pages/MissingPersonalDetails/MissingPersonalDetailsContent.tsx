@@ -10,8 +10,9 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
-import {updatePersonalDetailsAndShipExpensifyCards} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
@@ -58,11 +59,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         screenIndex,
         moveTo,
         goToTheLastStep,
+        lastScreenIndex,
     } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             goToTheLastStep();
+            ref.current?.moveTo(lastScreenIndex);
+
             return;
         }
 
@@ -79,6 +83,8 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
             updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            Navigation.goBack();
         },
         [values],
     );
@@ -86,11 +92,20 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
             goToTheLastStep();
+            ref.current?.moveTo(lastScreenIndex);
             return;
         }
         ref.current?.moveNext();
         nextScreen();
-    }, [goToTheLastStep, isEditing, nextScreen]);
+    }, [goToTheLastStep, isEditing, nextScreen, lastScreenIndex]);
+
+    const handleMoveTo = useCallback(
+        (step: number) => {
+            ref.current?.moveTo(step);
+            moveTo(step);
+        },
+        [moveTo],
+    );
 
     return (
         <ScreenWrapper
@@ -112,7 +127,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             <SubStep
                 isEditing={isEditing}
                 onNext={handleNextScreen}
-                onMove={moveTo}
+                onMove={handleMoveTo}
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
             />

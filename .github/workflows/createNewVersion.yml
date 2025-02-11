@@ -23,36 +23,21 @@ on:
         value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
 
     secrets:
-      LARGE_SECRET_PASSPHRASE:
-        description: Passphrase used to decrypt GPG key
-        required: true
       SLACK_WEBHOOK:
         description: Webhook used to comment in slack
         required: true
       OS_BOTIFY_COMMIT_TOKEN:
         description: OSBotify personal access token, used to workaround committing to protected branch
         required: true
+      OP_SERVICE_ACCOUNT_TOKEN:
+        description: 1Password service account token
+        required: true
 
 jobs:
-  validateActor:
-    runs-on: ubuntu-latest
-    outputs:
-      HAS_WRITE_ACCESS: ${{ contains(fromJSON('["write", "admin"]'), steps.getUserPermissions.outputs.PERMISSION) }}
-    steps:
-      - name: Get user permissions
-        id: getUserPermissions
-        run: echo "PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
   createNewVersion:
     runs-on: macos-latest
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
-
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
-
     steps:
       - name: Run turnstyle
         uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
@@ -65,80 +50,40 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
+          submodules: true
           # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
           # This is a workaround to allow pushes to a protected branch
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Validate actor
+        uses: ./.github/actions/composite/validateActor
+        with:
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotify
         id: setupGitForOSBotify
         with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
-      - name: Generate version
+      - name: Generate new E/App version
         id: bumpVersion
         uses: ./.github/actions/javascript/bumpVersion
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
-      - name: Commit new version
+      - name: Update Mobile-Expensify submodule with the latest state of the Mobile-Expensify main branch
         run: |
-          git add \
-            ./package.json \
-            ./package-lock.json \
-            ./android/app/build.gradle \
-            ./ios/NewExpensify/Info.plist \
-            ./ios/NewExpensifyTests/Info.plist \
-            ./ios/NotificationServiceExtension/Info.plist
-          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
-
-      - name: Update main branch
-        run: git push origin main
-
-      - name: Announce failed workflow in Slack
-        if: ${{ failure() }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-
-  createNewHybridVersion:
-    runs-on: macos-latest
-    needs: [validateActor, createNewVersion]
-    if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
-    steps:
-      - name: Run turnstyle
-        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Check out `App` repo
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          submodules: true
-          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
-          # This is a workaround to allow pushes to a protected branch
-          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-      - name: Update submodule and checkout the main branch
-        run: |
-          git submodule update --init
           cd Mobile-Expensify
+          git fetch --depth=1 origin main
           git checkout main
-          git pull origin main
-
-      - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotify
-        id: setupGitForOSBotify
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          git reset --hard origin/main
 
       - name: Generate HybridApp version
         run: |
           cd Mobile-Expensify
+
           # Generate all flavors of the version
           SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
           BUILD_NUMBER=$(echo "$NEW_VERSION" | awk -F'-' '{print $2}')
@@ -167,9 +112,9 @@ jobs:
           # Update JS HybridApp Version
           sed -i .bak -E  "s/\"version\": \"([0-9\.]*)\"/\"version\": \"$FULL_APP_VERSION\"/" $JS_CONFIG_FILE
         env:
-          NEW_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
+          NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
-      - name: Commit new version
+      - name: Commit new Mobile-Expensify version
         run: |
           cd Mobile-Expensify
           git add \
@@ -178,16 +123,25 @@ jobs:
             ./iOS/Expensify/Expensify-Info.plist\
             ./iOS/SmartScanExtension/Info.plist \
             ./iOS/NotificationServiceExtension/Info.plist
-          git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-
-      - name: Update main branch on Mobile-Expensify and App
-        run: |
-          cd Mobile-Expensify
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
           git push origin main
-          cd ..
+
+      - name: Commit new E/App version
+        run: |
+          git add \
+            ./package.json \
+            ./package-lock.json \
+            ./android/app/build.gradle \
+            ./ios/NewExpensify/Info.plist \
+            ./ios/NewExpensifyTests/Info.plist \
+            ./ios/NotificationServiceExtension/Info.plist
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+
+      - name: Update Mobile-Expensify submodule in E/App
+        run: |
           git add Mobile-Expensify
-          git commit -m "Update Mobile-Expensify to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-          git push origin main  
+          git commit -m "Update Mobile-Expensify submodule version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+          git push origin main
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
