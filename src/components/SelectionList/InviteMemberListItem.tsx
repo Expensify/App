@@ -50,9 +50,13 @@ function InviteMemberListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
         !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && item.login === CONST.EMAIL.MANAGER_MCTEST,
     );
+    // console.log('!getIsUserSubmittedExpenseOrScannedReceipt()', !getIsUserSubmittedExpenseOrScannedReceipt());
+    // console.log('item.login', item.login);
+    // console.log('Permissions.canUseManagerMcTest(betas)', Permissions.canUseManagerMcTest(betas));
+    // console.log('InviteMemberListItem shouldShowProductTrainingTooltip', shouldShowProductTrainingTooltip);
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;

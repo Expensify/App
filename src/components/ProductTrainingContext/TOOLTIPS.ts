@@ -13,6 +13,7 @@ const {
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
+    SCAN_TEST_TOOLTIP_MANAGER,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -131,6 +132,17 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 900,
         shouldShow: () => true,
         shouldRenderActionButtons: true,
+    },
+    [SCAN_TEST_TOOLTIP_MANAGER]: {
+        content: [
+            {text: 'productTrainingTooltip.scanTestTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER),
+        name: SCAN_TEST_TOOLTIP_MANAGER,
+        priority: 900,
+        shouldShow: () => true,
     },
 };
 
