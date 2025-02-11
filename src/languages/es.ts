@@ -2738,6 +2738,8 @@ const translations = {
             submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
+            leaveConfirmation:
+                '¿Estás seguro de que quieres salir de este espacio de trabajo? Una vez que salgas, perderás el acceso a todos los datos y configuraciones asociadas con este espacio de trabajo.',
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
@@ -6379,6 +6381,8 @@ const translations = {
             part6: 'Ahora,',
             part7: ' envía tu gasto y',
             part8: ' ¡observa cómo ocurre la magia!',
+            tryItOut: 'Prueba esto',
+            noThanks: 'No, gracias',
         },
     },
     discardChangesConfirmation: {

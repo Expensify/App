@@ -2713,6 +2713,7 @@ const translations = {
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
+            leaveConfirmation: "Are you sure you want to leave this workspace? Once you leave, you'll lose access to all data and settings associated with this workspace.",
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -5860,6 +5861,8 @@ const translations = {
             part6: 'Now,',
             part7: ' submit your expense',
             part8: ' and watch the magic happen!',
+            tryItOut: 'Try it out',
+            noThanks: 'No thanks',
         },
     },
     discardChangesConfirmation: {
