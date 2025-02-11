@@ -3,8 +3,8 @@ import {InteractionManager, NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -47,7 +47,7 @@ function useOnboardingFlowRouter() {
             }
 
             if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
-                const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
+                const defaultCannedQuery = buildCannedSearchQuery();
                 const query = defaultCannedQuery;
                 Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
@@ -72,13 +72,13 @@ function useOnboardingFlowRouter() {
                 // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                    OnboardingFlow.startOnboardingFlow(isPrivateDomainAndHasAccesiblePolicies);
+                    startOnboardingFlow(isPrivateDomainAndHasAccesiblePolicies);
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
-                OnboardingFlow.startOnboardingFlow(isPrivateDomainAndHasAccesiblePolicies);
+                startOnboardingFlow(isPrivateDomainAndHasAccesiblePolicies);
             }
         });
     }, [

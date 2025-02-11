@@ -16,14 +16,14 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Onboarding from '@userActions/Onboarding';
-import * as PersonalDetails from '@userActions/PersonalDetails';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
+import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
+import {setDisplayName} from '@userActions/PersonalDetails';
+import {completeOnboarding as completeOnboardingAction} from '@userActions/Report';
+import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,7 +50,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isPrivateDomainAndHasAccesiblePolicies = !user?.isFromPublicDomain && !!user?.hasAccessibleDomainPolicies;
 
     useEffect(() => {
-        Welcome.setOnboardingErrorMessage('');
+        setOnboardingErrorMessage('');
     }, []);
 
     const completeOnboarding = useCallback(
@@ -59,7 +59,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            Report.completeOnboarding(
+            completeOnboardingAction(
                 onboardingPurposeSelected,
                 CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                 firstName,
@@ -68,8 +68,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 onboardingPolicyID,
             );
 
-            Welcome.setOnboardingAdminsChatReportID();
-            Welcome.setOnboardingPolicyID();
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
 
             navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID);
         },
@@ -98,9 +98,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             const firstName = values.firstName.trim();
             const lastName = values.lastName.trim();
 
-            PersonalDetails.setDisplayName(firstName, lastName);
-            Onboarding.clearPersonalDetailsDraft();
-            Onboarding.setPersonalDetails(firstName, lastName);
+            setDisplayName(firstName, lastName);
+            clearPersonalDetailsDraft();
+            setPersonalDetails(firstName, lastName);
 
             if (isPrivateDomainAndHasAccesiblePolicies && !onboardingPurposeSelected) {
                 Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(route.params?.backTo));
@@ -121,25 +121,25 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
         // First we validate the first name field
         if (values.firstName.replace(CONST.REGEX.ANY_SPACE, '').length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('onboarding.error.requiredFirstName'));
+            addErrorMessage(errors, 'firstName', translate('onboarding.error.requiredFirstName'));
         }
-        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+        if (!isValidDisplayName(values.firstName)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
         }
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
+        if (doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
         }
 
         // Then we validate the last name field
-        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+        if (!isValidDisplayName(values.lastName)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
         }
-        if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
+        if (doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
         }
 
         return errors;
