@@ -51,6 +51,12 @@ const expenseOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes;
     },
     {
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.DONE,
+        icon: Expensicons.Checkmark,
+        text: 'iou.done',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         status: CONST.SEARCH.STATUS.EXPENSE.PAID,
         icon: Expensicons.MoneyBag,
         text: 'iou.settledExpensify',
