@@ -17,11 +17,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as MemberAction from '@userActions/Policy/Member';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {isCurrentUserValidated} from '@libs/UserUtils';
+import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
+import {completeOnboarding} from '@userActions/Report';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,7 +42,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
-    const isValidated = UserUtils.isCurrentUserValidated(loginList);
+    const isValidated = isCurrentUserValidated(loginList);
 
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -50,18 +50,18 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
             if (policy.automaticJoiningEnabled) {
-                MemberAction.joinAccessiblePolicy(policy.policyID);
+                joinAccessiblePolicy(policy.policyID);
             } else {
-                MemberAction.askToJoinPolicy(policy.policyID);
+                askToJoinPolicy(policy.policyID);
             }
-            Report.completeOnboarding(
+            completeOnboarding(
                 CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 onboardingPersonalDetails?.firstName ?? '',
                 onboardingPersonalDetails?.lastName ?? '',
             );
-            Welcome.setOnboardingAdminsChatReportID();
-            Welcome.setOnboardingPolicyID(policy.policyID);
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID(policy.policyID);
 
             navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policy.automaticJoiningEnabled ? policy.policyID : undefined, activeWorkspaceID);
         },
@@ -89,7 +89,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 icons: [
                     {
                         id: policyInfo.policyID,
-                        source: ReportUtils.getDefaultWorkspaceAvatar(policyInfo.policyName),
+                        source: getDefaultWorkspaceAvatar(policyInfo.policyName),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policyInfo.policyName,
                         type: CONST.ICON_TYPE_WORKSPACE,
