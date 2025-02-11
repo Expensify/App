@@ -735,6 +735,20 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
     });
 
+    describe('getShareLogOptions', () => {
+        it('should not include read-only report', () => {
+            // Given a list of 11 report options with reportID of 10 is archived
+            // OPTIONS, defined above
+
+            // When getting the share log options
+            const results = OptionsListUtils.getShareLogOptions(OPTIONS, []);
+
+            // Then the report with reportID of 10 should not be included on the list
+            expect(results.recentReports.length).toBe(10);
+            expect(results.recentReports.find((report) => report.reportID === '10')).toBeUndefined();
+        });
+    });
+
     it('getMemberInviteOptions()', () => {
         // When we only pass personal details
         const results = OptionsListUtils.getMemberInviteOptions(OPTIONS.personalDetails, []);
