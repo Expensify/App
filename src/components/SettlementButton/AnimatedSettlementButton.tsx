@@ -1,6 +1,5 @@
-import React, {useCallback, useLayoutEffect, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+import React, {useEffect, useMemo} from 'react';
+import Animated, {Keyframe, runOnJS} from 'react-native-reanimated';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
@@ -33,134 +32,81 @@ function AnimatedSettlementButton({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const buttonScale = useSharedValue(1);
-    const buttonOpacity = useSharedValue(1);
-    const [isLoading, setIsLoading] = useState(false);
-    const [buttonWidth, setButtonWidth] = useState<number | null>(null);
-
-    const height = useSharedValue<number>(variables.componentSizeNormal);
-    const buttonMarginTop = useSharedValue<number>(styles.expenseAndReportPreviewTextButtonContainer.gap);
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
-    const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
-    const totalDelay = CONST.ANIMATION_PAID_DURATION + CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
+    const buttonDuration = CONST.ANIMATION_PAID_DURATION;
+    const marginTop = styles.expenseAndReportPreviewTextButtonContainer.gap;
+    const [canShow, setCanShow] = React.useState(true);
 
-    const containerStyles = useAnimatedStyle(() => ({
-        height: height.get(),
-        justifyContent: 'center',
-        overflow: 'hidden',
-        ...(shouldAddTopMargin && {marginTop: buttonMarginTop.get()}),
-    }));
+    const buttonAnimation = useMemo(
+        () =>
+            new Keyframe({
+                from: {
+                    opacity: 1,
+                    transform: [{scale: 1}],
+                },
+                to: {
+                    opacity: 0,
+                    transform: [{scale: 0}],
+                },
+            })
+                .duration(buttonDuration)
+                .withCallback(() => {
+                    'worklet';
 
-    const buttonStyles = useAnimatedStyle(() => ({
-        transform: [{scale: buttonScale.get()}],
-        opacity: buttonOpacity.get(),
-    }));
+                    runOnJS(onAnimationFinish)();
+                }),
+        [buttonDuration, onAnimationFinish],
+    );
 
-    const buttonDisabledStyle = isAnimationRunning
-        ? {
-              opacity: 1,
-              ...styles.cursorDefault,
-          }
-        : undefined;
+    const containerExitingAnimation = useMemo(
+        () =>
+            new Keyframe({
+                from: {
+                    height: variables.componentSizeNormal,
+                },
+                to: {
+                    height: 0,
+                },
+            }).duration(buttonDuration * 2),
+        [buttonDuration],
+    );
 
-    const resetAnimation = useCallback(() => {
-        buttonScale.set(1);
-        buttonOpacity.set(1);
-        height.set(variables.componentSizeNormal);
-        setIsLoading(false);
-        if (shouldAddTopMargin) {
-            buttonMarginTop.set(styles.expenseAndReportPreviewTextButtonContainer.gap);
-        }
-    }, [buttonScale, buttonOpacity, height, shouldAddTopMargin, buttonMarginTop, styles.expenseAndReportPreviewTextButtonContainer.gap]);
+    let icon;
+    if (isApprovedAnimationRunning) {
+        icon = Expensicons.ThumbsUp;
+    } else if (isPaidAnimationRunning) {
+        icon = Expensicons.Checkmark;
+    }
 
-    const handleFadeOutComplete = useCallback(() => {
-        onAnimationFinish();
-    }, [onAnimationFinish]);
-
-    useLayoutEffect(() => {
-        if (!isApprovedAnimationRunning && !isPaidAnimationRunning) {
-            resetAnimation();
+    useEffect(() => {
+        if (!isAnimationRunning) {
+            setCanShow(true);
             return;
         }
-
-        setIsLoading(true);
-
-        const spinnerTimer = setTimeout(() => {
-            setIsLoading(false);
-
-            buttonScale.set(withDelay(CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION})));
-            buttonOpacity.set(
-                withDelay(
-                    CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY,
-                    withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () => {
-                        runOnJS(handleFadeOutComplete)();
-                    }),
-                ),
-            );
-
-            if (shouldAddTopMargin) {
-                buttonMarginTop.set(
-                    withDelay(totalDelay, withTiming(willShowPaymentButton ? styles.expenseAndReportPreviewTextButtonContainer.gap : 0, {duration: CONST.ANIMATION_PAID_DURATION})),
-                );
-            }
-
-            if (!willShowPaymentButton) {
-                height.set(withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION})));
-            }
-
-            onLoadingEnd?.();
-        }, CONST.ANIMATION_LOADING_DURATION);
-
-        return () => {
-            clearTimeout(spinnerTimer);
-        };
-    }, [
-        isApprovedAnimationRunning,
-        isPaidAnimationRunning,
-        onAnimationFinish,
-        willShowPaymentButton,
-        resetAnimation,
-        buttonScale,
-        buttonOpacity,
-        buttonMarginTop,
-        height,
-        shouldAddTopMargin,
-        styles.expenseAndReportPreviewTextButtonContainer,
-        totalDelay,
-        handleFadeOutComplete,
-        onLoadingEnd,
-    ]);
-
-    const handleLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const newWidth = event.nativeEvent.layout.width;
-            if (newWidth !== buttonWidth) {
-                setButtonWidth(newWidth);
-            }
-        },
-        [buttonWidth],
-    );
+        const frame = setTimeout(() => setCanShow(false), CONST.ANIMATION_HIDE_DELAY);
+        return () => clearTimeout(frame);
+    }, [isAnimationRunning]);
 
     return (
         <Animated.View
-            style={[containerStyles, wrapperStyle, buttonStyles]}
-            onLayout={handleLayout}
+            exiting={isAnimationRunning ? containerExitingAnimation : undefined}
+            style={[shouldAddTopMargin && {marginTop}, {height: variables.componentSizeNormal}, styles.justifyContentCenter, styles.overflowHidden, wrapperStyle]}
         >
-            {isAnimationRunning ? (
-                <Button
-                    style={[styles.buttonMediumText, isLoading && {width: buttonWidth}]}
-                    text={isPaidAnimationRunning ? translate('iou.paymentComplete') : translate('iou.approved')}
-                    isLoading={isLoading}
-                    success
-                    icon={isLoading ? undefined : (isPaidAnimationRunning && Expensicons.Checkmark) || Expensicons.ThumbsUp}
-                />
-            ) : (
+            {isAnimationRunning && canShow && (
+                <Animated.View exiting={buttonAnimation}>
+                    <Button
+                        text={isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}
+                        success
+                        icon={icon}
+                    />
+                </Animated.View>
+            )}
+            {!isAnimationRunning && (
                 <SettlementButton
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
                     isDisabled={isAnimationRunning || isDisabled}
-                    disabledStyle={buttonDisabledStyle}
                 />
             )}
         </Animated.View>
