@@ -10,9 +10,9 @@ import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as IOU from '@userActions/IOU';
-import * as Report from '@userActions/Report';
+import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {deleteMoneyRequest, deleteTrackExpense} from '@userActions/IOU';
+import {deleteReportComment} from '@userActions/Report';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -33,11 +33,11 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
-    const reportIDRef = useRef('-1');
+    const reportIDRef = useRef<string>();
     const typeRef = useRef<ContextMenuType>();
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
-    const reportActionIDRef = useRef('-1');
-    const originalReportIDRef = useRef('-1');
+    const reportActionIDRef = useRef<string>();
+    const originalReportIDRef = useRef<string>();
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string>();
 
@@ -211,10 +211,10 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         }).then(() => {
             setDisabledActions(disabledOptions);
             typeRef.current = type;
-            reportIDRef.current = reportID ?? '-1';
-            reportActionIDRef.current = reportActionID ?? '-1';
+            reportIDRef.current = reportID;
+            reportActionIDRef.current = reportActionID;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            originalReportIDRef.current = originalReportID || '-1';
+            originalReportIDRef.current = originalReportID;
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -270,15 +270,15 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
-        if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-            const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-            if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-                IOU.deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID ?? '-1', reportAction);
+        if (isMoneyRequestAction(reportAction)) {
+            const originalMessage = getOriginalMessage(reportAction);
+            if (isTrackExpenseAction(reportAction)) {
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID, reportAction);
             } else {
-                IOU.deleteMoneyRequest(originalMessage?.IOUTransactionID ?? '-1', reportAction);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID, reportAction);
             }
         } else if (reportAction) {
-            Report.deleteReportComment(reportIDRef.current, reportAction);
+            deleteReportComment(reportIDRef.current, reportAction);
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
