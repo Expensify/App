@@ -492,6 +492,7 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        relaunch: 'Volver a lanzar',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -824,6 +825,7 @@ const translations = {
         locationAccessTitle: 'Permitir acceso a la ubicación',
         locationAccessMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
         locationErrorTitle: 'Permitir acceso a la ubicación',
+        locationRelaunchTitle: 'Vuelve a lanzar la aplicación',
         locationErrorMessage: 'El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que vayas.',
         allowLocationFromSetting: `El acceso a la ubicación nos ayuda a mantener tu zona horaria y moneda precisas dondequiera que estés. Por favor, permite el acceso a la ubicación en la configuración de permisos de tu dispositivo.`,
         cameraErrorMessage: 'Se ha producido un error al hacer una foto. Por favor, inténtalo de nuevo.',
@@ -835,6 +837,7 @@ const translations = {
         deleteReceipt: 'Eliminar recibo',
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
+        relaunchToTakeEffect: 'Vuelve a lanzar la aplicación para que los cambios surtan efecto.',
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',

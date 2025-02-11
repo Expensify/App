@@ -501,6 +501,7 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
+        relaunch: 'Relaunch',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -828,6 +829,7 @@ const translations = {
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
         locationAccessTitle: 'Allow location access',
+        locationRelaunchTitle: 'Relaunch now?',
         locationAccessMessage: 'Location access helps us keep your timezone and currency accurate wherever you go.',
         locationErrorTitle: 'Allow location access',
         locationErrorMessage: 'Location access helps us keep your timezone and currency accurate wherever you go.',
@@ -840,6 +842,7 @@ const translations = {
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
+        relaunchToTakeEffect: 'Please enable location access, then relaunch the app for changes to take effect',
     },
     quickAction: {
         scanReceipt: 'Scan receipt',

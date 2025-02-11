@@ -14,6 +14,8 @@ const ELECTRON_EVENTS = {
     DOWNLOAD_FAILED: 'download-started',
     DOWNLOAD_CANCELED: 'download-canceled',
     SILENT_UPDATE: 'silent-update',
+    OPEN_LOCATION_SETTING: 'openLocationSetting',
+    RELAUNCH_APP: 'relaunchApp',
 } as const;
 
 export default ELECTRON_EVENTS;

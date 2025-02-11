@@ -15,6 +15,7 @@ import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+import { exec } from 'child_process';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
@@ -310,7 +311,40 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
+                ipcMain.handle(ELECTRON_EVENTS.OPEN_LOCATION_SETTING, () => {
+                    return new Promise((resolve, reject) => {
+                        let command = '';
 
+                        switch (process.platform) {
+                            case 'darwin':
+                                command = 'open x-apple.systempreferences:com.apple.preference.security?Privacy_Location';
+                                break;
+                            case 'win32':
+                                command = 'start ms-settings:privacy-location';
+                                break;
+                            case 'linux':
+                                command = 'gnome-control-center';
+                                break;
+                            default:
+                                console.log('Platform not supported for location settings');
+                                resolve(undefined);
+                                return;
+                        }
+
+                        exec(command, (error) => {
+                            if (error) {
+                                console.error('Error opening location settings:', error);
+                                reject(error);
+                                return;
+                            }
+                            resolve(undefined);
+                        });
+                    });
+                });
+                ipcMain.handle(ELECTRON_EVENTS.RELAUNCH_APP, () => {
+                    app.relaunch();
+                    app.exit(0);
+                });
                 /*
                  * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
                  * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-
