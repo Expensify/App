@@ -22,7 +22,7 @@ function ValidateCodeActionForm({
     forwardedRef,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
-    const firstRenderRef = useRef(true);
+    const isInitialized = useRef(false);
     const isClosedRef = useRef(false);
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
@@ -31,14 +31,14 @@ function ValidateCodeActionForm({
 
     useEffect(
         () => () => {
-            firstRenderRef.current = true;
+            isInitialized.current = false;
             isClosedRef.current = true;
         },
         [],
     );
 
     useEffect(() => {
-        if (!firstRenderRef.current || hasMagicCodeBeenSent) {
+        if (hasMagicCodeBeenSent) {
             // eslint-disable-next-line rulesdir/prefer-early-return
             return () => {
                 // We need to run clearError in cleanup function to use as onClose function.
@@ -49,8 +49,10 @@ function ValidateCodeActionForm({
                 }
             };
         }
-        firstRenderRef.current = false;
-        sendValidateCode();
+        if (!isInitialized.current) {
+            isInitialized.current = true;
+            sendValidateCode();
+        }
         if (hasMagicCodeBeenSent) {
             InteractionManager.runAfterInteractions(() => {
                 setCanSendHasMagicCodeBeenSent(true);
