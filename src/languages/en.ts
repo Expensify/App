@@ -5860,6 +5860,8 @@ const translations = {
             part6: 'Now,',
             part7: ' submit your expense',
             part8: ' and watch the magic happen!',
+            tryItOut: 'Try it out',
+            noThanks: 'No thanks',
         },
     },
     discardChangesConfirmation: {
