@@ -27,6 +27,7 @@ type TooltipData = {
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
+    shouldRenderActionButtons?: boolean;
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
@@ -129,6 +130,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: SCAN_TEST_TOOLTIP,
         priority: 900,
         shouldShow: () => true,
+        shouldRenderActionButtons: true,
     },
 };
 

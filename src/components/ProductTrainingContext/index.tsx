@@ -1,6 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
@@ -175,35 +176,54 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const renderProductTrainingTooltip = useCallback(() => {
         const tooltip = TOOLTIPS[tooltipName];
         return (
-            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}>
-                <Icon
-                    src={Expensicons.Lightbulb}
-                    fill={theme.tooltipHighlightText}
-                    medium
-                />
-                <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
-                    {tooltip.content.map(({text, isBold}) => {
-                        const translatedText = translate(text);
-                        return (
-                            <Text
-                                key={text}
-                                style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
-                            >
-                                {translatedText}
-                            </Text>
-                        );
-                    })}
-                </Text>
+            <View>
+                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}>
+                    <Icon
+                        src={Expensicons.Lightbulb}
+                        fill={theme.tooltipHighlightText}
+                        medium
+                    />
+                    <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
+                        {tooltip.content.map(({text, isBold}) => {
+                            const translatedText = translate(text);
+                            return (
+                                <Text
+                                    key={text}
+                                    style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
+                                >
+                                    {translatedText}
+                                </Text>
+                            );
+                        })}
+                    </Text>
+                </View>
+                {!!tooltip?.shouldRenderActionButtons && (
+                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pb1]}>
+                        <Button
+                            success
+                            text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
+                            style={[styles.flex1, styles.ph1]}
+                        />
+                        <Button
+                            text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
+                            style={[styles.flex1, styles.ph1]}
+                        />
+                    </View>
+                )}
             </View>
         );
     }, [
         styles.alignItemsCenter,
+        styles.flex1,
         styles.flexRow,
         styles.flexWrap,
         styles.gap3,
+        styles.justifyContentBetween,
         styles.justifyContentCenter,
         styles.mw100,
         styles.p2,
+        styles.pb1,
+        styles.ph1,
         styles.productTrainingTooltipText,
         styles.textAlignCenter,
         styles.textBold,

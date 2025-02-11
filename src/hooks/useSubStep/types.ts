@@ -8,7 +8,7 @@ type SubStepProps = {
     onNext: (data?: unknown) => void;
 
     /** moves user to passed sub step */
-    onMove: (step: number) => void;
+    onMove: (step: number, turnOnEditMode?: boolean) => void;
 
     /** index of currently displayed sub step */
     screenIndex?: number;
