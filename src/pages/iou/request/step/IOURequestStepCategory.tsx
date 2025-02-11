@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViolations from '@hooks/useViolations';
 import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
@@ -50,6 +51,8 @@ function IOURequestStepCategory({
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportReal)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getIOURequestPolicyID(transaction, reportDraft)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+
     let reportID = '-1';
     if (action === CONST.IOU.ACTION.EDIT && reportReal) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -72,6 +75,7 @@ function IOURequestStepCategory({
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
     const currentTransaction = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionCategory = getTransactionDetails(currentTransaction)?.category;
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], false);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
@@ -85,7 +89,8 @@ function IOURequestStepCategory({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
+    const shouldShowNotFoundPage =
+        isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !getViolationsForField('category')?.length;
 
     const fetchData = () => {
         if ((!!policy && !!policyCategories) || !report?.policyID) {

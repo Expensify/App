@@ -11,6 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViolations from '@hooks/useViolations';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,6 +47,7 @@ function IOURequestStepDescription({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
         if (action === CONST.IOU.ACTION.EDIT) {
@@ -67,6 +69,7 @@ function IOURequestStepDescription({
     const currentDescription = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
     const descriptionRef = useRef(currentDescription);
     const isSavedRef = useRef(false);
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], false);
 
     /**
      * @returns - An object containing the errors for each inputID
@@ -131,7 +134,8 @@ function IOURequestStepDescription({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
+    const shouldShowNotFoundPage =
+        isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) && !getViolationsForField('comment')?.length;
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
     const getDescriptionHint = () => {
         return transaction?.category && policyCategories ? policyCategories[transaction?.category]?.commentHint ?? '' : '';

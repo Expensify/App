@@ -40,6 +40,7 @@ import {
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
@@ -177,7 +178,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report) && !readonly;
     const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction) && canUserPerformWriteAction;
-
     const canEditTaxFields = canEdit && !isDistanceRequest;
     const canEditAmount = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
     const canEditMerchant = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
@@ -420,6 +420,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         ...parentReportAction?.errors,
     };
 
+    const canEditDescription = canEdit || !StringUtils.isEmptyString(getErrorForField('comment'));
+    const canEditCategory = canEdit || !StringUtils.isEmptyString(getErrorForField('category'));
+
     const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
         const tagForDisplay = getTagForDisplay(updatedTransaction ?? transaction, index);
         const shouldShow = !!tagForDisplay || hasEnabledOptions(tags);
@@ -586,8 +589,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         description={translate('common.description')}
                         shouldParseTitle
                         title={updatedTransactionDescription ?? transactionDescription}
-                        interactive={canEdit}
-                        shouldShowRightIcon={canEdit}
+                        interactive={canEditDescription}
+                        shouldShowRightIcon={canEditDescription}
                         titleStyle={styles.flex1}
                         onPress={() => {
                             if (!transaction?.transactionID || !report?.reportID) {
@@ -664,8 +667,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
                             title={updatedTransaction?.category ?? transactionCategory}
-                            interactive={canEdit}
-                            shouldShowRightIcon={canEdit}
+                            interactive={canEditCategory}
+                            shouldShowRightIcon={canEditCategory}
                             titleStyle={styles.flex1}
                             onPress={() => {
                                 if (!transaction?.transactionID || !report?.reportID) {
