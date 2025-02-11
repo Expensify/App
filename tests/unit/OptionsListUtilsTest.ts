@@ -470,7 +470,6 @@ describe('OptionsListUtils', () => {
     };
 
     const reportNameValuePairs = {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: DateUtils.getDBTime(),
     };
 

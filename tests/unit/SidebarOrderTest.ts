@@ -851,7 +851,6 @@ describe('Sidebar', () => {
 
             const reportNameValuePairsCollectionDataSet: ReportNameValuePairsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report1.reportID}`]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: DateUtils.getDBTime(),
                 },
             };
@@ -1005,7 +1004,6 @@ describe('Sidebar', () => {
 
             const reportNameValuePairsCollectionDataSet: ReportNameValuePairsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report1.reportID}`]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: DateUtils.getDBTime(),
                 },
             };

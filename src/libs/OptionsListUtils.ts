@@ -782,7 +782,6 @@ function createOption(
     if (report) {
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         result.private_isArchived = getReportNameValuePairs(report.reportID)?.private_isArchived;
         result.isExpenseReport = isExpenseReport(report);
         result.isInvoiceRoom = isInvoiceRoom(report);
