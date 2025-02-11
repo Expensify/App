@@ -163,6 +163,7 @@ type PayeePersonalDetails = {
     login: string;
     accountID: number;
     keyForList: string;
+    isInteractive: boolean;
 };
 
 type SectionBase = {
@@ -1627,6 +1628,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
         login: personalDetail?.login ?? '',
         accountID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         keyForList: String(personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+        isInteractive: false,
     };
 }
 
