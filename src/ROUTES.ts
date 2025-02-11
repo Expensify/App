@@ -506,7 +506,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, participantsAutoAssigned?: boolean) =>
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, participantsAutoAssigned?: boolean) =>
             `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
@@ -692,7 +692,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string, reportID: string, backTo = '', action: IOUAction = 'create') =>
+        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string, backTo = '', action: IOUAction = 'create') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SPLIT_PAYER: {
@@ -1623,6 +1623,10 @@ const ROUTES = {
     RULES_BILLABLE_DEFAULT: {
         route: 'settings/workspaces/:policyID/rules/billable',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/billable` as const,
+    },
+    RULES_CUSTOM: {
+        route: 'settings/workspaces/:policyID/rules/custom',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/custom` as const,
     },
     // Referral program promotion
     REFERRAL_DETAILS_MODAL: {
