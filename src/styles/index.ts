@@ -440,6 +440,8 @@ const styles = (theme: ThemeColors) =>
         },
         textDoubleDecker: {
             fontSize: variables.fontSizeSmall,
+            opacity: 0.8,
+            fontWeight: FontUtils.fontWeight.bold,
         },
         textNormal: {
             fontSize: variables.fontSizeNormal,
