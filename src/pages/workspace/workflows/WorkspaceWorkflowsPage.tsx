@@ -3,6 +3,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
 import {Plus, Workflows} from '@components/Icon/Expensicons';
@@ -17,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceUpdateToUSDModal from '@hooks/useWorkspaceUpdateToUSDModal';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -39,7 +41,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import WorkspaceUpdateToUSDModal from '@pages/workspace/WorkspaceUpdateToUSDModal';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +66,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const policyApproverEmail = policy?.approver;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+    useWorkspaceUpdateToUSDModal(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
@@ -352,7 +354,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
-                    <WorkspaceUpdateToUSDModal
+                    <ConfirmModal
                         title={translate('workspace.bankAccount.workspaceCurrency')}
                         isVisible={isCurrencyModalOpen}
                         onConfirm={confirmCurrencyChangeAndHideModal}
@@ -360,7 +362,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
                         confirmText={translate('workspace.bankAccount.updateToUSD')}
                         cancelText={translate('common.cancel')}
-                        workspaceCurrency={policy?.outputCurrency}
                         danger
                     />
                 </View>

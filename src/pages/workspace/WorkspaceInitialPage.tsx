@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {
@@ -36,6 +37,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWorkspaceUpdateToUSDModal from '@hooks/useWorkspaceUpdateToUSDModal';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@libs/actions/Policy/Policy';
@@ -72,7 +74,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import WorkspaceUpdateToUSDModal from './WorkspaceUpdateToUSDModal';
 
 type WorkspaceMenuItem = {
     translationKey: TranslationPaths;
@@ -120,6 +121,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const workspaceAccountID = getWorkspaceAccountID(policy?.id);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+    useWorkspaceUpdateToUSDModal(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
@@ -513,7 +515,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         </View>
                     )}
                 </ScrollView>
-                <WorkspaceUpdateToUSDModal
+                <ConfirmModal
                     title={translate('workspace.bankAccount.workspaceCurrency')}
                     isVisible={isCurrencyModalOpen}
                     onConfirm={confirmCurrencyChangeAndHideModal}
@@ -521,7 +523,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
                     confirmText={translate('workspace.bankAccount.updateToUSD')}
                     cancelText={translate('common.cancel')}
-                    workspaceCurrency={policy?.outputCurrency}
                     danger
                 />
             </FullPageNotFoundView>
