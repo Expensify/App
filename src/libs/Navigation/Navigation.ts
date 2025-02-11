@@ -245,15 +245,15 @@ const defaultGoBackOptions: Required<GoBackOptions> = {
 
 /**
  * @private
- * Navigate to the given fallbackRoute taking into account whether it is possible to go back to this screen. Within one nested navigator, we can go back by any number
+ * Navigate to the given backToRoute taking into account whether it is possible to go back to this screen. Within one nested navigator, we can go back by any number
  * of screens, but if as a result of going back we would have to remove more than one screen from the rootState,
  * replace is performed so as not to lose the visited pages.
- * If fallbackRoute is not found in the state, replace is also called then.
+ * If backToRoute is not found in the state, replace is also called then.
  *
- * @param fallbackRoute - The route to go up.
+ * @param backToRoute - The route to go up.
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
  */
-function goUp(fallbackRoute: Route, options?: GoBackOptions) {
+function goUp(backToRoute: Route, options?: GoBackOptions) {
     if (!canNavigate('goUp') || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to go up. Can't navigate.`);
         return;
@@ -262,7 +262,7 @@ function goUp(fallbackRoute: Route, options?: GoBackOptions) {
     const compareParams = options?.compareParams ?? defaultGoBackOptions.compareParams;
 
     const rootState = navigationRef.current.getRootState();
-    const stateFromPath = getStateFromPath(fallbackRoute);
+    const stateFromPath = getStateFromPath(backToRoute);
 
     const action = getActionFromState(stateFromPath, linkingConfig.config);
 
@@ -278,11 +278,11 @@ function goUp(fallbackRoute: Route, options?: GoBackOptions) {
         return;
     }
 
-    const indexOfFallbackRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
-    const distanceToPop = targetState.routes.length - indexOfFallbackRoute - 1;
+    const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
+    const distanceToPop = targetState.routes.length - indexOfBackToRoute - 1;
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
-    if (indexOfFallbackRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
+    if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
         return;
@@ -301,10 +301,10 @@ function goUp(fallbackRoute: Route, options?: GoBackOptions) {
 }
 
 /**
- * @param fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
+ * @param backToRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param options - Optional configuration that affects navigation logic
  */
-function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
+function goBack(backToRoute?: Route, options?: GoBackOptions) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -317,8 +317,8 @@ function goBack(fallbackRoute?: Route, options?: GoBackOptions) {
         }
     }
 
-    if (fallbackRoute) {
-        goUp(fallbackRoute, options);
+    if (backToRoute) {
+        goUp(backToRoute, options);
         return;
     }
 
