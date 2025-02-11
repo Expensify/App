@@ -238,6 +238,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={Expensicons.RotateLeft}
                                     iconFill={theme.iconMenu}
+                                    // TODO add method for non USD accounts in next issue - https://github.com/Expensify/App/issues/50912
                                     onPress={requestResetFreePlanBankAccount}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.cardMenuItem, styles.mt4]}
