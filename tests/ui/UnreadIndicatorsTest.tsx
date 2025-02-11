@@ -8,6 +8,7 @@ import {AppState, DeviceEventEmitter} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {trackExpense} from '@libs/actions/IOU';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
@@ -23,6 +24,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
+import createRandomReport from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import {navigateToSidebarOption} from '../utils/TestHelper';
@@ -602,6 +605,54 @@ describe('Unread Indicators', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
             10: TestHelper.buildTestReportComment(DateUtils.getDBTime(), USER_B_ACCOUNT_ID, '10'),
         });
+
+        // Then the new line indicator shouldn't be displayed
+        const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        expect(unreadIndicator).toHaveLength(0);
+    });
+
+    it('Do not display the new line indicator when tracking an expense on self DM while offline', async () => {
+        // Given a self DM report and an offline network
+        await signInAndGetAppWithUnreadChat();
+        await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+        // Remove unnecessary report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
+
+        const selfDMReport = {
+            ...createRandomReport(2),
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastMessageText: 'test',
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+        await navigateToSidebarOption(0);
+
+        const fakeTransaction = {
+            ...createRandomTransaction(1),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            comment: 'description',
+        };
+
+        // When the user track an expense on the self DM
+        const participant = {login: USER_A_EMAIL, accountID: USER_A_ACCOUNT_ID};
+        trackExpense({
+            report: selfDMReport,
+            isDraftPolicy: true,
+            action: CONST.IOU.ACTION.CREATE,
+            participantParams: {
+                payeeEmail: participant.login,
+                payeeAccountID: participant.accountID,
+                participant,
+            },
+            transactionParams: {
+                amount: fakeTransaction.amount,
+                currency: fakeTransaction.currency,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            },
+        });
+        await waitForBatchedUpdates();
 
         // Then the new line indicator shouldn't be displayed
         const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
