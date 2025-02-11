@@ -1,21 +1,42 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
+import useLocalize from '@hooks/useLocalize';
+import * as LoginUtils from '@libs/LoginUtils';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SAMLSignInPageOnyxProps, SAMLSignInPageProps} from './types';
 
-function SAMLSignInPage({credentials}: SAMLSignInPageProps) {
+function SAMLSignInPage() {
+    const {translate} = useLocalize();
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+
     useEffect(() => {
-        window.location.replace(`${CONFIG.EXPENSIFY.SAML_URL}?email=${credentials?.login}&referer=${CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER}`);
-    }, [credentials?.login]);
+        // If we don't have a valid login to pass here, direct the user back to a clean sign in state to try again
+        if (!credentials?.login) {
+            LoginUtils.handleSAMLLoginError(translate('common.error.email'), true);
+            return;
+        }
+
+        const body = new FormData();
+        body.append('email', credentials.login);
+        body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
+
+        LoginUtils.postSAMLLogin(body)
+            .then((response) => {
+                if (!response || !response.url) {
+                    LoginUtils.handleSAMLLoginError(translate('common.error.login'), false);
+                    return;
+                }
+                window.location.replace(response.url);
+            })
+            .catch((error: Error) => {
+                LoginUtils.handleSAMLLoginError(error.message ?? translate('common.error.login'), false);
+            });
+    }, [credentials?.login, translate]);
 
     return <SAMLLoadingIndicator />;
 }
 
 SAMLSignInPage.displayName = 'SAMLSignInPage';
 
-export default withOnyx<SAMLSignInPageProps, SAMLSignInPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-})(SAMLSignInPage);
+export default SAMLSignInPage;
