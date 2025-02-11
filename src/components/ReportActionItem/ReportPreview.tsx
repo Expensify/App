@@ -249,7 +249,7 @@ function ReportPreview({
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, transactionViolations);
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
