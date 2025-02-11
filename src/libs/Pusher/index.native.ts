@@ -58,15 +58,14 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
  * @returns resolves when Pusher has connected
  */
 function init(args: Args): Promise<void> {
-    // eslint-disable-next-line @lwc/lwc/no-async-await
-    return new Promise<void>(async (resolve) => {
+    return new Promise<void>((resolve) => {
         if (socket) {
             resolve();
             return;
         }
 
         socket = Pusher.getInstance();
-        await socket.init({
+        socket.init({
             apiKey: args.appKey,
             cluster: args.cluster,
             onConnectionStateChange: (currentState: string, previousState: string) => {
@@ -85,7 +84,7 @@ function init(args: Args): Promise<void> {
             onError: (message: string) => callSocketEventCallbacks('error', {data: {message}}),
             onAuthorizer: (channelName: string, socketId: string) => authenticatePusher(socketId, channelName) as Promise<PusherAuthorizerResult>,
         });
-        await socket.connect();
+        socket.connect();
     }).then(resolveInitPromise);
 }
 
@@ -170,7 +169,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: string, 
         eventsBoundToChannels.set(channel, new Map());
     }
 
-    eventsBoundToChannels.get(channel)?.set(eventName, callback);
+    eventsBoundToChannels.get(channel)?.set(eventName, callback as (eventData: EventData<PusherEventName>) => void);
 }
 
 /**
@@ -185,7 +184,7 @@ function subscribe<EventName extends PusherEventName>(
     return initPromise.then(
         () =>
             new Promise((resolve, reject) => {
-                InteractionManager.runAfterInteractions(async () => {
+                InteractionManager.runAfterInteractions(() => {
                     // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
                     if (!socket) {
                         throw new Error(`[Pusher] instance not found. Pusher.subscribe()
@@ -196,7 +195,7 @@ function subscribe<EventName extends PusherEventName>(
 
                     if (!channels[channelName]) {
                         channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBING;
-                        await socket.subscribe({
+                        socket.subscribe({
                             channelName,
                             onEvent: (event) => {
                                 const callback = eventsBoundToChannels.get(event.channelName)?.get(event.eventName);
