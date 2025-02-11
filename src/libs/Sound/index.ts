@@ -10,21 +10,36 @@ function cacheSoundAssets() {
         return;
     }
 
-    caches.open('sound-assets').then((cache) => {
-        const soundFiles = Object.values(SOUNDS).map((sound) => `${config.prefix}${sound}.mp3`);
+    caches
+        .open('sound-assets')
+        .then((cache) => {
+            const soundFiles = Object.values(SOUNDS).map((sound) => `${config.prefix}${sound}.mp3`);
 
-        // Cache each sound file if it's not already cached.
-        const cachePromises = soundFiles.map((soundFile) => {
-            return cache.match(soundFile).then((response) => {
-                if (response) {
-                    return;
-                }
-                return cache.add(soundFile);
+            // Cache each sound file if it's not already cached.
+            const cachePromises = soundFiles.map((soundFile) => {
+                return cache.match(soundFile).then((response) => {
+                    if (response) {
+                        return;
+                    }
+                    // Wrap the cache.add in a try-catch to handle failed requests
+                    return fetch(soundFile)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return cache.put(soundFile, response);
+                        })
+                        .catch((error) => {
+                            Log.alert('[sound] Cache error:', {message: (error as Error).message});
+                        });
+                });
             });
-        });
 
-        return Promise.all(cachePromises);
-    });
+            return Promise.all(cachePromises);
+        })
+        .catch((error) => {
+            Log.alert('[sound] Cache open error:', {message: (error as Error).message});
+        });
 }
 
 const initializeAndPlaySound = (src: string) => {
@@ -39,6 +54,18 @@ const initializeAndPlaySound = (src: string) => {
         },
     });
     sound.play();
+};
+
+const playStreamSound = (stream: MediaStream) => {
+    if (getIsMuted()) {
+        return;
+    }
+
+    const audio = new Audio();
+    audio.srcObject = stream;
+    audio.play().catch((error) => {
+        Log.alert('[sound] Play error:', {message: (error as Error).message});
+    });
 };
 
 const playSound = (soundFile: ValueOf<typeof SOUNDS>) => {
@@ -90,5 +117,5 @@ function clearSoundAssetsCache() {
 // Cache sound assets on load
 cacheSoundAssets();
 
-export {SOUNDS, clearSoundAssetsCache};
+export {SOUNDS, clearSoundAssetsCache, playStreamSound};
 export default withMinimalExecutionTime(playSound, 300);

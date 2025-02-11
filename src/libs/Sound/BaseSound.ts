@@ -17,6 +17,7 @@ const SOUNDS = {
     SUCCESS: 'success',
     ATTENTION: 'attention',
     RECEIVE: 'receive',
+    REALTIME_STREAM: 'realtime_stream',
 } as const;
 
 const getIsMuted = () => isMuted;
