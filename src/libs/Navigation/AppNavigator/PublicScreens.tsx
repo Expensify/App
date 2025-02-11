@@ -1,5 +1,7 @@
 import React from 'react';
 import {NativeModules} from 'react-native';
+import TestToolsModal from '@components/TestToolsModal';
+import useDebugShortcut from '@hooks/useDebugShortcut';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
@@ -18,6 +20,8 @@ import defaultScreenOptions from './defaultScreenOptions';
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 function PublicScreens() {
+    useDebugShortcut();
+
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
             {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
@@ -59,6 +63,7 @@ function PublicScreens() {
                 name={SCREENS.SAML_SIGN_IN}
                 component={SAMLSignInPage}
             />
+            <TestToolsModal />
         </RootStack.Navigator>
     );
 }
