@@ -485,6 +485,10 @@ platform :ios do
       path: "./NewApp_AdHoc_Notification_Service.mobileprovision"
     )
 
+    install_provisioning_profile(
+      path: "./NewApp_AdHoc_Share_Extension.mobileprovision"
+    )
+
     build_app(
       workspace: "./ios/NewExpensify.xcworkspace",
       skip_profile_detection: true,
@@ -495,6 +499,7 @@ platform :ios do
         provisioningProfiles: {
           "com.expensify.chat.adhoc" => "(NewApp) AdHoc",
           "com.expensify.chat.adhoc.NotificationServiceExtension" => "(NewApp) AdHoc: Notification Service",
+          "com.expensify.chat.adhoc.ShareViewController" => "(NewApp) AdHoc: Share Extension",
         },
         manageAppVersionAndBuildNumber: false
       }
