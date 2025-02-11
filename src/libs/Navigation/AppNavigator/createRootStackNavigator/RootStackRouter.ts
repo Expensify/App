@@ -78,7 +78,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isPushAction(action)) {
                 if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    return GetStateForActionHandlers.handlePushReportAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                    return GetStateForActionHandlers.handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
                 }
 
                 if (action.payload.name === SCREENS.SEARCH.ROOT) {

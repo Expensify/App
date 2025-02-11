@@ -125,7 +125,7 @@ function handleSwitchPolicyID(
  * If a new ReportSplitNavigator is opened, it is necessary to check whether workspace is currently selected in the application.
  * If so, the id of the current policy has to be passed to the new ReportSplitNavigator.
  */
-function handlePushReportAction(
+function handlePushReportSplitAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
     configOptions: RouterConfigOptions,
@@ -251,7 +251,7 @@ function handleNavigatingToModalFromModal(
 export {
     handleOpenWorkspaceSplitAction,
     handleDismissModalAction,
-    handlePushReportAction,
+    handlePushReportSplitAction,
     handlePushSearchPageAction,
     handleSwitchPolicyID,
     handleNavigatingToModalFromModal,
