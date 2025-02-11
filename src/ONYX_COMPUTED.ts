@@ -1,4 +1,4 @@
-import {computeReports, findConciergeChatReportID} from './libs/actions/ComputedValues';
+import {computeReportsByPolicy, findConciergeChatReportID} from './libs/actions/ComputedValues';
 import ONYXKEYS from './ONYXKEYS';
 
 const ONYX_COMPUTED = {
@@ -7,10 +7,10 @@ const ONYX_COMPUTED = {
         dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
         compute: findConciergeChatReportID,
     },
-    REPORTS: {
-        cacheKey: 'computedReports',
-        dependencies: [ONYXKEYS.COLLECTION.REPORT],
-        compute: computeReports,
+    REPORTS_BY_POLICY: {
+        cacheKey: 'reportsByPolicy',
+        dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION],
+        compute: computeReportsByPolicy,
     },
 };
 

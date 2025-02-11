@@ -728,12 +728,6 @@ let isAnonymousUser = false;
 // Example case: when we need to get a report name of a thread which is dependent on a report action message.
 const parsedReportActionMessageCache: Record<string, string> = {};
 
-let conciergeChatReportID: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
-    callback: (value) => (conciergeChatReportID = value),
-});
-
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -922,6 +916,17 @@ Onyx.connect({
             return;
         }
         computedConciergeChatReportID = value as string;
+    },
+});
+
+let computedReportsByPolicy: Record<string, Report[]>;
+Onyx.connect({
+    key: ONYX_COMPUTED.REPORTS_BY_POLICY,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        computedReportsByPolicy = value;
     },
 });
 
@@ -6936,8 +6941,7 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     // - Are either open or submitted
     // - Belong to the same workspace
     // And if any have a violation, then it should have a RBR
-    const reports = Object.values(allReports ?? {}) as Report[];
-    const potentialReports = reports.filter((r) => r?.ownerAccountID === currentUserAccountID && (r?.stateNum ?? 0) <= 1 && r?.policyID === report.policyID);
+    const potentialReports = computedReportsByPolicy?.[report.policyID] ?? [];
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
