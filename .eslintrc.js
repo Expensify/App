@@ -152,7 +152,7 @@ module.exports = {
                 format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
                 // This filter excludes variables and properties that start with "private_" to make them valid.
                 //
-                // Examples:  
+                // Examples:
                 // - "private_a" → valid
                 // - "private_test" → valid
                 // - "private_" → not valid
