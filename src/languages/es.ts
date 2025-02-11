@@ -6379,6 +6379,8 @@ const translations = {
             part6: 'Ahora,',
             part7: ' envía tu gasto y',
             part8: ' ¡observa cómo ocurre la magia!',
+            tryItOut: 'Prueba esto',
+            noThanks: 'No, gracias',
         },
     },
     discardChangesConfirmation: {
