@@ -62,14 +62,21 @@ function PhoneNumberPage() {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
+            const phoneNumberValue = values[INPUT_IDS.PHONE_NUMBER];
 
-            if (!isRequiredFulfilled(values[INPUT_IDS.PHONE_NUMBER])) {
+            if (!isRequiredFulfilled(phoneNumberValue)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
                 return errors;
             }
 
-            const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(values[INPUT_IDS.PHONE_NUMBER]));
-            const parsedPhoneNumber = formatPhoneNumber(values[INPUT_IDS.PHONE_NUMBER]);
+            if (!CONST.PHONE_NUMBER_PATTERN.test(phoneNumberValue)) {
+                errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
+                return errors;
+            }
+
+            const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumberValue);
+            const phoneNumberWithCountryCode = appendCountryCode(sanitizedPhoneNumber);
+            const parsedPhoneNumber = formatPhoneNumber(phoneNumberValue);
 
             if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');

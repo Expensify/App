@@ -479,10 +479,11 @@ const CONST = {
     // Regex to read violation value from string given by backend
     VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
 
-    // Regex to match and remove all lowercase letters (a-z)
-    REMOVE_LOWERCASE_REGEX: /[a-z]/g,
-
+    // Removes non-digit/non-plus characters for phone sanitization.
     SANITIZE_PHONE_REGEX: /[^\d+]/g,
+
+    // Validates phone numbers allowing digits, '+', '-', '()', and '.'.
+    PHONE_NUMBER_PATTERN: /^[0-9+\-().]+$/,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
