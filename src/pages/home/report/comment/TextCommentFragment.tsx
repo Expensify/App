@@ -13,6 +13,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import ScrambleText from '@pages/settings/Preferences/test';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -57,7 +58,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const message = isEmpty(iouMessage) ? text : iouMessage;
+    let message = isEmpty(iouMessage) ? text : iouMessage;
 
     const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
 
@@ -103,13 +104,21 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
         );
     }
 
-    return (
-        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
-            <ZeroWidthView
-                text={text}
-                displayAsGroup={displayAsGroup}
-            />
-            {processedTextArray.length !== 0 && !containsOnlyEmojis ? (
+    console.log(`%%% message`, message);
+
+    // eslint-disable-next-line react/no-unstable-nested-components
+    function MessageContent() {
+        if (message === CONST.CONCIERGE_WOBLY_COMMENT) {
+            return (
+                <ScrambleText
+                    text={message}
+                    style={style}
+                />
+            );
+        }
+
+        if (processedTextArray.length !== 0 && !containsOnlyEmojis) {
+            return (
                 <TextWithEmojiFragment
                     message={message}
                     style={[
@@ -120,20 +129,32 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                         !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                     ]}
                 />
-            ) : (
-                <Text
-                    style={[
-                        containsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                        styles.ltr,
-                        style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
-                        styleAsMuted ? styles.colorMuted : undefined,
-                        !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
-                    ]}
-                >
-                    {convertToLTR(message ?? '')}
-                </Text>
-            )}
+            );
+        }
+
+        return (
+            <Text
+                style={[
+                    containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                    styles.ltr,
+                    style,
+                    styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                    styleAsMuted ? styles.colorMuted : undefined,
+                    !DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
+                ]}
+            >
+                {convertToLTR(message ?? '')}
+            </Text>
+        );
+    }
+
+    return (
+        <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
+            <ZeroWidthView
+                text={text}
+                displayAsGroup={displayAsGroup}
+            />
+            <MessageContent />
             {!!fragment?.isEdited && (
                 <>
                     <Text

@@ -734,7 +734,7 @@ function addActionComment(reportID: string, text: string, command: ComposerComma
     }
     requestCommentAction.created = DateUtils.getDBTimeWithSkew(nowDate);
 
-    const answerComment = buildOptimisticAddCommentReportAction('Analyzing...', undefined, CONST.ACCOUNT_ID.CONCIERGE, undefined, undefined, reportID);
+    const answerComment = buildOptimisticAddCommentReportAction(CONST.CONCIERGE_WOBLY_COMMENT, undefined, CONST.ACCOUNT_ID.CONCIERGE, undefined, undefined, reportID);
     const answerCommentAction: OptimisticAddCommentReportAction = answerComment.reportAction;
     if (answerCommentAction.originalMessage) {
         answerCommentAction.originalMessage.whisperedTo = [currentUserAccountID];

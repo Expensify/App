@@ -62,6 +62,12 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
     },
+
+    EXP_REVELATION: {
+        fontFamily: 'Revelation Regular',
+        fontStyle: 'normal',
+        fontWeight: fontWeight.normal,
+    },
 };
 
 export default fontFamily;

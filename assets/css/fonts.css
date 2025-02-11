@@ -69,6 +69,13 @@
 }
 
 @font-face {
+    font-family: Revelation Regular;
+    font-weight: 500;
+    font-style: normal;
+    src: url('/fonts/Font-Revelation-Regular.woff2') format('woff2'),  url('/fonts/Font-Revelation-Regular.woff') format('woff');
+}
+
+@font-face {
     font-family: Windows Segoe UI Emoji;
     src: url('/fonts/seguiemj.ttf');
 }
