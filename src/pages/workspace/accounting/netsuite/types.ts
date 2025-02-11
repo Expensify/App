@@ -78,4 +78,6 @@ type CustomListSelectorType = SelectorType & {
     id: string;
 };
 
-export type {MenuItem, DividerLineItem, ToggleItem, ExpenseRouteParams, CustomFieldSubStepWithPolicy, CustomListSelectorType};
+type SubStepWithPolicy = SubStepProps & {policyID: string | undefined};
+
+export type {MenuItem, DividerLineItem, ToggleItem, ExpenseRouteParams, CustomFieldSubStepWithPolicy, CustomListSelectorType, SubStepWithPolicy};
