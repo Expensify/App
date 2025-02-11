@@ -55,10 +55,7 @@ function TabSelectorItem({
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        shouldShowTestReceiptTooltip,
-    );
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, shouldShowTestReceiptTooltip);
 
     const content = () => {
         return (

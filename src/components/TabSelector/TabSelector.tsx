@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -66,10 +67,6 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
         }, CONST.ANIMATED_TRANSITION);
     }, [defaultAffectedAnimatedTabs, state.index]);
 
-    const shouldShowTestReceiptTooltip = (routeName: string, isActive: boolean) => {
-        return routeName === CONST.TAB_REQUEST.SCAN && isActive && !getIsUserSubmittedExpenseOrScannedReceipt(betas);
-    };
-
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
             <View style={styles.tabSelector}>
@@ -79,7 +76,8 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
                     const {icon, title} = getIconAndTitle(route.name, translate);
-
+                    const shouldShowTestReceiptTooltip =
+                        route.name === CONST.TAB_REQUEST.SCAN && isActive && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas);
                     const onPress = () => {
                         if (isActive) {
                             return;
@@ -112,7 +110,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                             backgroundColor={backgroundColor}
                             isActive={isActive}
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                            shouldShowTestReceiptTooltip={shouldShowTestReceiptTooltip(route.name, isActive)}
+                            shouldShowTestReceiptTooltip={shouldShowTestReceiptTooltip}
                         />
                     );
                 })}
@@ -122,7 +120,6 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
 }
 
 TabSelector.displayName = 'TabSelector';
-
 export default TabSelector;
 
 export type {TabSelectorProps};

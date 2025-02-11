@@ -1,18 +1,24 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import SelectCircle from '@components/SelectCircle';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
@@ -42,6 +48,11 @@ function InviteMemberListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && item.login === CONST.EMAIL.MANAGER_MCTEST,
+    );
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -104,28 +115,38 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 ]}
                             />
                         ))}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.text ?? '')}
-                                style={[
-                                    styles.optionDisplayName,
-                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                    item.isBold !== false && styles.sidebarLinkTextBold,
-                                    styles.pre,
-                                    item.alternateText ? styles.mb1 : null,
-                                ]}
-                            />
+                    <EducationalTooltip
+                        shouldRender={shouldShowProductTrainingTooltip}
+                        renderTooltipContent={renderProductTrainingTooltip}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        wrapperStyle={styles.productTrainingTooltipWrapper}
+                    >
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={Str.removeSMSDomain(item.text ?? '')}
+                                    style={[
+                                        styles.optionDisplayName,
+                                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                        item.isBold !== false && styles.sidebarLinkTextBold,
+                                        styles.pre,
+                                        item.alternateText ? styles.mb1 : null,
+                                    ]}
+                                />
+                            </View>
+                            {!!item.alternateText && (
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                />
+                            )}
                         </View>
-                        {!!item.alternateText && (
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.alternateText ?? '')}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
-                        )}
-                    </View>
+                    </EducationalTooltip>
                     {!!item.rightElement && item.rightElement}
                     {!!shouldShowCheckBox && (
                         <PressableWithFeedback
