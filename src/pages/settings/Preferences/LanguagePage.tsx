@@ -1,3 +1,4 @@
+import {background} from '@storybook/theming';
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,7 +10,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setLocaleAndNavigate} from '@userActions/App';
 import type {ListItem} from '@src/components/SelectionList/types';
 import CONST from '@src/CONST';
-import { background } from '@storybook/theming';
 
 type LanguageEntry = ListItem & {
     value: ValueOf<typeof CONST.LOCALES>;

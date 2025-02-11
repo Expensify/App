@@ -2129,7 +2129,7 @@ const translations = {
         },
         translateMessage: 'Перевести сообщения',
         viewOriginal: 'Показать оригинал',
-        showTranslation: 'Показать перевод',        
+        showTranslation: 'Показать перевод',
     },
     themePage: {
         theme: '\u0422\u0435\u043C\u0430',

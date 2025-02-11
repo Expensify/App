@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {makeRequestWithSideEffects} from '@libs/API';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
 import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
@@ -41,6 +42,8 @@ import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
+import Lottie from './Lottie';
+import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 
@@ -192,6 +195,8 @@ function AttachmentModal({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
+    const [isTranslating, setIsTranslating] = useState(false);
+
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
             ? {
@@ -201,6 +206,24 @@ function AttachmentModal({
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
+    const translateReceipt = () => {
+        setIsTranslating(true);
+        makeRequestWithSideEffects('Translate', {
+            type: 'receipt',
+            imageURLs: 'https://media-cdn.tripadvisor.com/media/photo-s/0b/be/e0/72/facture-repas.jpg',
+            targetLanguage: 'en',
+        }).then((response: any) => {
+            setSourceState(response.translatedImage);
+            setFile({
+                name: 'Base64Pic.png',
+                type: 'image/png',
+                uri: response.translatedImage,
+                size: 12345, // optional
+            });
+            setIsTranslating(false);
+        });
+    };
 
     const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
 
@@ -429,6 +452,13 @@ function AttachmentModal({
         }
 
         const menuItems = [];
+        menuItems.push({
+            icon: Expensicons.ArrowsLeftRight,
+            text: translate('common.translate'),
+            onSelected: () => {
+                translateReceipt();
+            },
+        });
         if (canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Camera,
@@ -538,6 +568,13 @@ function AttachmentModal({
                     />
                     <View style={styles.imageModalImageCenterContainer}>
                         {isLoading && <FullScreenLoadingIndicator />}
+                        {isTranslating && (
+                            <Lottie
+                                source={LottieAnimations.SpinningPyramid}
+                                loop
+                                autoPlay
+                            />
+                        )}
                         {shouldShowNotFoundPage && !isLoading && (
                             <BlockingView
                                 icon={Illustrations.ToddBehindCloud}
@@ -565,7 +602,8 @@ function AttachmentModal({
                             ) : (
                                 !!sourceForAttachmentView &&
                                 shouldLoadAttachment &&
-                                !isLoading && (
+                                !isLoading &&
+                                !isTranslating && (
                                     <AttachmentCarouselPagerContext.Provider value={context}>
                                         <AttachmentView
                                             containerStyles={[styles.mh5]}

@@ -1771,7 +1771,7 @@ const translations = {
             ko: {label: '한국어'},
             ch: {label: '中文'},
             ja: {label: '日本語'},
-            ro: {label: 'Română'}
+            ro: {label: 'Română'},
         },
         translateMessage: 'Nachrichten übersetzen',
         viewOriginal: 'Original anzeigen',

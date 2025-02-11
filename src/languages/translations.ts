@@ -10,9 +10,9 @@ import ko from './ko';
 import nl from './nl';
 import pl from './pl';
 import pt from './pt';
+import ro from './ro';
 import ru from './ru';
 import tr from './tr';
-import ro from './ro';
 import type {FlatTranslationsObject, TranslationDeepObject} from './types';
 
 /**
