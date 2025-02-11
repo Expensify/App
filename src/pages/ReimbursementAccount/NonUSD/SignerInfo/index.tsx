@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
-import getSignerAddressSubstepValue from '@pages/ReimbursementAccount/NonUSD/utils/getSignerAddressSubstepValue';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -71,14 +70,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const isSecondSigner = false;
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
-    const addressKey = isSecondSigner ? INPUT_KEYS.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS : INPUT_KEYS.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS;
-    const onyxValues = useMemo(
-        () => ({
-            ...getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount),
-            [addressKey]: getSignerAddressSubstepValue(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount, isSecondSigner),
-        }),
-        [addressKey, isSecondSigner, reimbursementAccount, reimbursementAccountDraft],
-    );
+    const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
