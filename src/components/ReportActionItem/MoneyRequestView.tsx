@@ -473,18 +473,18 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
 
     const dismissReceiptError = useCallback(() => {
+        if (!report?.reportID) {
+            return;
+        }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
                 navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                 return;
             }
             if (parentReportAction) {
-                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true);
+                cleanUpMoneyRequest(transaction?.transactionID ?? linkedTransactionID, parentReportAction, true, report.reportID);
                 return;
             }
-        }
-        if (!report?.reportID) {
-            return;
         }
         if (!transaction?.transactionID) {
             if (!linkedTransactionID) {

@@ -162,6 +162,7 @@ import {
     shouldShowBrokenConnectionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -6695,7 +6696,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, reportID: string) {
     const {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
@@ -6833,6 +6834,8 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
             },
         );
     }
+
+    clearAllRelatedReportActionErrors(reportID, reportAction);
 
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
