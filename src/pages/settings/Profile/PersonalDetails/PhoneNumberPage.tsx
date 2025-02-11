@@ -69,7 +69,7 @@ function PhoneNumberPage() {
                 return errors;
             }
 
-            if (!CONST.PHONE_NUMBER_PATTERN.test(phoneNumberValue)) {
+            if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumberValue) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumberValue)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
                 return errors;
             }
