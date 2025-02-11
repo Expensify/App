@@ -1,5 +1,5 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -17,11 +17,13 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
@@ -51,7 +53,8 @@ function WorkspaceTaxesPage({
         params: {policyID},
     },
 }: WorkspaceTaxesPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -61,7 +64,6 @@ function WorkspaceTaxesPage({
     const {selectionMode} = useMobileSelectionMode();
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    const isFocused = useIsFocused();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -86,12 +88,15 @@ function WorkspaceTaxesPage({
         }, [fetchTaxes]),
     );
 
-    useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedTaxesIDs([]);
-    }, [isFocused]);
+    const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
+    useCleanupSelectedOptions(cleanupSelectedOption);
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedTaxesIDs([]);
+        },
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
 
     const textForDefault = useCallback(
         (taxID: string, taxRate: TaxRate): string => {
@@ -208,6 +213,10 @@ function WorkspaceTaxesPage({
 
     const navigateToEditTaxRate = (taxRate: ListItem) => {
         if (!taxRate.keyForList) {
+            return;
+        }
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleTax(taxRate);
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxRate.keyForList));
