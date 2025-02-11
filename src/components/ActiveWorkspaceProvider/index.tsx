@@ -18,7 +18,7 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
         () => ({
             activeWorkspaceID,
 
-            // We are exporting setActiveWorkspace to speedup updating this value after changing activeWorkspaceID to avoid flickering of workspace avatar.
+            // We are exporting setActiveWorkspace to speed up updating this value after changing activeWorkspaceID to avoid flickering of workspace avatar.
             setActiveWorkspaceID,
         }),
         [activeWorkspaceID],

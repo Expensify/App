@@ -19,6 +19,10 @@ const loadSidebarScreen = () => require<ReactComponentModule>('@pages/home/sideb
 
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
+/**
+ * This SplitNavigator includes the HOME screen (<BaseSidebarScreen /> component) with a list of reports as a sidebar screen and the REPORT screen displayed as a central one.
+ * There can be multiple report screens in the stack with different report IDs.
+ */
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
