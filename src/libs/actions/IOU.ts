@@ -507,35 +507,6 @@ type StartSplitBilActionParams = {
     taxAmount: number;
 };
 
-type TrackExpense = {
-    report: OnyxTypes.Report;
-    amount?: number;
-    currency: string;
-    created: string;
-    merchant?: string;
-    payeeEmail: string | undefined;
-    payeeAccountID: number;
-    participant: Participant;
-    comment?: string;
-    isDraftPolicy?: boolean;
-    receipt?: Receipt;
-    category?: string;
-    tag?: string;
-    taxCode?: string;
-    taxAmount?: number;
-    billable?: boolean;
-    policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
-    gpsPoints?: GPSPoint;
-    validWaypoints?: WaypointCollection;
-    action?: IOUAction;
-    actionableWhisperReportActionID?: string;
-    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
-    linkedTrackedExpenseReportID?: string;
-    customUnitRateID?: string;
-};
-
 type ReplaceReceipt = {
     transactionID: string;
     file?: File;
