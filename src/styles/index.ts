@@ -2686,6 +2686,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.transparent,
         },
 
+        modalContainer: {height: '100%'},
+
+        modalAnimatedContainer: {width: '100%'},
+
+        modalContainerBox: {
+            zIndex: 2,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+
+        modalBackdrop: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'black',
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,
