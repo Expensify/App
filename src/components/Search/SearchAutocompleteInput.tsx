@@ -123,24 +123,21 @@ function SearchAutocompleteInput(
     const emailListSharedValue = useSharedValue(emailList);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+
+    // we are handling focused/unfocused style on shared value instead of using state to avoid re-rendering. Otherwise layput animation in Animated.View will lag.
     const focusedSharedValue = useSharedValue(false);
-
     const unfocusedStyle = useMemo(() => {
-        return Object.entries(wrapperFocusedStyle ?? {}).reduce<ViewStyle>((acc, styleValue) => {
-            const key = styleValue[0] as keyof ViewStyle;
-            if (!wrapperStyle || !wrapperStyle?.[key]) {
-                acc[key] = undefined;
-                return acc;
+        const style: Partial<ViewStyle> = {};
+        Object.keys(wrapperFocusedStyle ?? {}).forEach((styleKey) => {
+            if (!wrapperStyle || !wrapperStyle?.[styleKey as keyof ViewStyle]) {
+                style[styleKey as keyof ViewStyle] = undefined;
+                return;
             }
-            const acc2 = {
-                ...acc,
-                [key]: wrapperStyle[key],
-            };
-            return acc2;
-        }, {});
+            style[styleKey as keyof ViewStyle] = wrapperStyle[styleKey as keyof ViewStyle] as undefined;
+        });
+        return style;
     }, [wrapperFocusedStyle, wrapperStyle]);
-
-    const focusedAnimatedStyle = useAnimatedStyle(() => {
+    const wrapperAnimatedStyle = useAnimatedStyle(() => {
         return focusedSharedValue.get() ? wrapperFocusedStyle : unfocusedStyle;
     });
 
@@ -193,7 +190,7 @@ function SearchAutocompleteInput(
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View
-                style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, focusedAnimatedStyle]}
+                style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}
                 layout={LinearTransition}
             >
                 <View
