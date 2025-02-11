@@ -270,6 +270,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             onEntryTransitionEnd={() => validateCodeFormRef.current?.focus?.()}
             testID={ContactMethodDetailsPage.displayName}
             focusTrapSettings={{
