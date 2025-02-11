@@ -1,4 +1,4 @@
-import type {PusherChannel} from '@pusher/pusher-websocket-react-native';
+import type {PusherAuthorizerResult, PusherChannel} from '@pusher/pusher-websocket-react-native';
 import {Pusher} from '@pusher/pusher-websocket-react-native';
 import isObject from 'lodash/isObject';
 import {InteractionManager} from 'react-native';
@@ -43,7 +43,7 @@ let initPromise = new Promise<void>((resolve) => {
     resolveInitPromise = resolve;
 });
 
-const eventsBoundToChannels = new Map<string, Map<PusherEventName, (eventData: EventData<string>) => void>>();
+const eventsBoundToChannels = new Map<string, Map<PusherEventName, (eventData: EventData<PusherEventName>) => void>>();
 const channels: Record<string, ValueOf<typeof CONST.PUSHER.CHANNEL_STATUS>> = {};
 
 /**
@@ -82,8 +82,8 @@ function init(args: Args): Promise<void> {
                 }
                 callSocketEventCallbacks('state_change', {previous: previousState, current: currentState});
             },
-            onError: (message: string, code: number) => callSocketEventCallbacks('error', {data: {code, message}}),
-            onAuthorizer: (channelName: string, socketId: string) => authenticatePusher(socketId, channelName),
+            onError: (message: string) => callSocketEventCallbacks('error', {data: {message}}),
+            onAuthorizer: (channelName: string, socketId: string) => authenticatePusher(socketId, channelName) as Promise<PusherAuthorizerResult>,
         });
         await socket.connect();
     }).then(resolveInitPromise);
@@ -200,7 +200,7 @@ function subscribe<EventName extends PusherEventName>(
                             channelName,
                             onEvent: (event) => {
                                 const callback = eventsBoundToChannels.get(event.channelName)?.get(event.eventName);
-                                callback?.(event.data);
+                                callback?.(event.data as EventData<PusherEventName>);
                             },
                             onSubscriptionSucceeded: () => {
                                 channels[channelName] = CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
