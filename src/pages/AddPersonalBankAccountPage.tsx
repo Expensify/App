@@ -45,7 +45,7 @@ function AddPersonalBankAccountPage() {
                 Navigation.goBack();
                 break;
         }
-    }, [topmostFullScreenRoute]);
+    }, [topmostFullScreenRoute?.name]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
