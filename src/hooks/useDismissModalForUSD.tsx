@@ -10,8 +10,6 @@ function useDismissModalForUSD(isCurrencyModalOpen: boolean, setIsCurrencyModalO
 
         setIsCurrencyModalOpen(false);
     }, [workspaceCurrency, isCurrencyModalOpen, setIsCurrencyModalOpen]);
-
-    return [isCurrencyModalOpen, setIsCurrencyModalOpen];
 }
 
 export default useDismissModalForUSD;
