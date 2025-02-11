@@ -52,7 +52,7 @@ type BaseReportActionContextMenuProps = {
     /** The ID of the original report from which the given reportAction is first created. */
     // originalReportID is used in withOnyx to get the reportActions for the original report
     // eslint-disable-next-line react/no-unused-prop-types
-    originalReportID: string;
+    originalReportID: string | undefined;
 
     /**
      * If true, this component will be a small, row-oriented menu that displays icons but not text.
