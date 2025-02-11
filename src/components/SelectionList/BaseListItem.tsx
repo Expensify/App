@@ -33,6 +33,7 @@ function BaseListItem<TItem extends ListItem>({
     isFocused,
     shouldSyncFocus = true,
     shouldDisplayRBR = true,
+    shouldShowBlueBorderOnFocus = false,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
@@ -48,6 +49,7 @@ function BaseListItem<TItem extends ListItem>({
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
+        bind.onMouseLeave();
         e.stopPropagation();
         setMouseUp();
     };
@@ -95,7 +97,7 @@ function BaseListItem<TItem extends ListItem>({
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
                 style={[

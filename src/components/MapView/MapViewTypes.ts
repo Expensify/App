@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {Unit} from '@src/types/onyx/Policy';
 
 type MapViewProps = {
     // Public access token to be used to fetch map data from Mapbox.
@@ -22,6 +23,12 @@ type MapViewProps = {
     onMapReady?: () => void;
     // Whether the map is interactable or not
     interactive?: boolean;
+
+    // Distance displayed on the map in meters.
+    distanceInMeters?: number;
+
+    // Unit of measurement for distance
+    unit?: Unit;
 };
 
 type DirectionProps = {

@@ -417,7 +417,10 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
+    if (isPerDiemRequest) {
+        return false;
+    }
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
@@ -1122,7 +1125,7 @@ function getWorkspaceAccountID(policyID?: string) {
     return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
-function hasVBBA(policyID: string) {
+function hasVBBA(policyID: string | undefined) {
     const policy = getPolicy(policyID);
     return !!policy?.achAccount?.bankAccountID;
 }
@@ -1272,11 +1275,42 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
+/**
+ * Returns an array of user emails who are currently self-approving:
+ * i.e. user.submitsTo === their own email.
+ */
+function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
+    const defaultApprover = policy?.approver ?? policy?.owner;
+    if (!policy?.employeeList || !defaultApprover) {
+        return [];
+    }
+    return Object.keys(policy.employeeList).filter((email) => {
+        const employee = policy?.employeeList?.[email] ?? {};
+        return employee?.submitsTo === email && employee?.email !== defaultApprover;
+    });
+}
+
+/**
+ * Checks if the workspace has only one user and if there no approver for the policy.
+ * If so, we can't enable the "Prevent Self Approvals" feature.
+ */
+function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
+    if (!policy?.employeeList || !policy.approver) {
+        return false;
+    }
+
+    const employeeEmails = Object.keys(policy.employeeList);
+
+    return employeeEmails.length > 1;
+}
+
 export {
     canEditTaxRate,
+    canEnablePreventSelfApprovals,
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
+    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
