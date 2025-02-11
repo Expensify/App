@@ -65,6 +65,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
                 isEditing: false,
             });
+            return;
         }
 
         if (!selectedMember) {
