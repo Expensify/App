@@ -139,6 +139,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import TripSummary from './TripSummary';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -1072,6 +1073,11 @@ function PureReportActionItem({
             />
         );
     }
+
+    if (isTripPreview(action) && isThreadReportParentAction) {
+        return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
+    }
+
     if (isChronosOOOListAction(action)) {
         return (
             <ChronosOOOListActions
