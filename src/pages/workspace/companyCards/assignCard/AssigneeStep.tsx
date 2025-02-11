@@ -59,12 +59,19 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     };
 
     const submit = () => {
+        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
+        if (selectedMember === assignCard?.data?.email) {
+            CompanyCards.setAssignCardStepAndData({
+                currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
+                isEditing: false,
+            });
+        }
+
         if (!selectedMember) {
             setShouldShowError(true);
             return;
         }
 
-        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
         const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
         const data: Partial<AssignCardData> = {
