@@ -1675,7 +1675,6 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
-                areWorkflowsEnabled: true,
                 approver: sessionEmail,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -1760,6 +1759,9 @@ function buildPolicyData(
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     const enableAddApprovals = !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const approvalSettings = enableAddApprovals
+        ? {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC, areWorkflowsEnabled: true}
+        : {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, areWorkflowsEnabled: false};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1777,8 +1779,8 @@ function buildPolicyData(
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: enableAddApprovals ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 approver: sessionEmail,
+                ...approvalSettings,
                 harvesting: {
                     enabled: true,
                 },
@@ -1786,7 +1788,6 @@ function buildPolicyData(
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: true,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
@@ -2093,6 +2094,9 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         workspaceName,
     );
     const enableAddApprovals = !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const approvalSettings = enableAddApprovals
+        ? {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC, areWorkflowsEnabled: true}
+        : {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, areWorkflowsEnabled: false};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2110,7 +2114,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: enableAddApprovals ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                ...approvalSettings,
                 approver: sessionEmail,
                 harvesting: {
                     enabled: true,
@@ -2119,7 +2123,6 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: true,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
