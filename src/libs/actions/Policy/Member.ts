@@ -826,7 +826,6 @@ function joinAccessiblePolicy(policyID: string) {
 /**
  * Ask the policy admin to add member to the selected private domain workspace based on policyID
  */
-
 function askToJoinPolicy(policyID: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
