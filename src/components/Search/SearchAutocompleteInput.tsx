@@ -126,19 +126,8 @@ function SearchAutocompleteInput(
 
     // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
     const focusedSharedValue = useSharedValue(false);
-    const unfocusedStyle = useMemo(() => {
-        const style: Partial<ViewStyle> = {};
-        Object.keys(wrapperFocusedStyle ?? {}).forEach((styleKey) => {
-            if (!wrapperStyle || !wrapperStyle?.[styleKey as keyof ViewStyle]) {
-                style[styleKey as keyof ViewStyle] = undefined;
-                return;
-            }
-            style[styleKey as keyof ViewStyle] = wrapperStyle[styleKey as keyof ViewStyle] as undefined;
-        });
-        return style;
-    }, [wrapperFocusedStyle, wrapperStyle]);
     const wrapperAnimatedStyle = useAnimatedStyle(() => {
-        return focusedSharedValue.get() ? wrapperFocusedStyle : unfocusedStyle;
+        return focusedSharedValue.get() ? wrapperFocusedStyle : wrapperStyle ?? {};
     });
 
     useEffect(() => {
