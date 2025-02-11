@@ -10,7 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
@@ -32,7 +32,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
                 if (formValues[formInput]) {
                     return;
                 }
-                ErrorUtils.addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
+                addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
             });
             return errors;
         },
