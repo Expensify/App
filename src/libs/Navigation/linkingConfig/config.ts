@@ -55,6 +55,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             path: ROUTES.SETTINGS_TROUBLESHOOT,
             exact: true,
         },
+        [SCREENS.SETTINGS.STORAGE]: {
+            path: ROUTES.SETTINGS_STORAGE,
+            exact: true,
+        },
         [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
         [SCREENS.SEARCH.CENTRAL_PANE]: {
             path: ROUTES.SEARCH_CENTRAL_PANE.route,

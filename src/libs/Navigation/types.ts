@@ -66,6 +66,7 @@ type CentralPaneScreensParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
+    [SCREENS.SETTINGS.STORAGE]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
 
     [SCREENS.SEARCH.CENTRAL_PANE]: {

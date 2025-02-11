@@ -1322,6 +1322,7 @@ const translations = {
         accountSettings: 'Account settings',
         account: 'Account',
         general: 'General',
+        storage: 'Storage',
     },
     closeAccountPage: {
         closeAccount: 'Close account',
