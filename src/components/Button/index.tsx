@@ -277,6 +277,7 @@ function Button(
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
+                    !!secondLineText && styles.noPaddingBottom,
                     textStyles,
                     isHovered && textHoverStyles,
                     link && styles.link,

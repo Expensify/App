@@ -443,6 +443,9 @@ const styles = (theme: ThemeColors) =>
             opacity: 0.8,
             fontWeight: FontUtils.fontWeight.bold,
         },
+        noPaddingBottom: {
+            paddingBottom: 0,
+        },
         textNormal: {
             fontSize: variables.fontSizeNormal,
         },
