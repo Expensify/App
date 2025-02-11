@@ -7,9 +7,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -19,8 +19,8 @@ import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEm
 type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
-    const policyID = route.params.policyID ?? '-1';
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const policyID = route.params.policyID;
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -28,15 +28,15 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const fetchExpensifyCards = useCallback(() => {
-        Policy.openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
+        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
     }, [policyID, workspaceAccountID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
     useFocusEffect(fetchExpensifyCards);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && !cardsList));
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
     return (
         <AccessOrNotFoundWrapper
@@ -44,14 +44,14 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            {!!isLoading && (
+            {!!isLoading && !paymentBankAccountID && (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={styles.flex1}
                     color={theme.spinner}
                 />
             )}
-            {!!paymentBankAccountID && !isLoading && (
+            {!!paymentBankAccountID && (
                 <WorkspaceExpensifyCardListPage
                     cardsList={cardsList}
                     route={route}
