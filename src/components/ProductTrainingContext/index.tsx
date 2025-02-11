@@ -106,7 +106,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
                 isModalVisible
             ) {
-                console.log('here');
                 return false;
             }
 
