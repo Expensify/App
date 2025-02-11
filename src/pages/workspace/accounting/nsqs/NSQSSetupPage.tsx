@@ -41,7 +41,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
             return;
         }
 
-        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionName)));
+        Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionName)));
     }, [policyID]);
 
     const validate = useCallback(

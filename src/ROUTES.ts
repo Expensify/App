@@ -1142,16 +1142,13 @@ const ROUTES = {
             integrationToDisconnect?: ConnectionName,
             shouldDisconnectIntegrationBeforeConnecting?: boolean,
         ) => {
-            const searchParams = new URLSearchParams();
-
+            let queryParams = '';
             if (integrationToDisconnect) {
-                searchParams.append('integrationToDisconnect', integrationToDisconnect);
+                queryParams += `?integrationToDisconnect=${integrationToDisconnect}`;
+                if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
+                    queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
+                }
             }
-            if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
-                searchParams.append('shouldDisconnectIntegrationBeforeConnecting', shouldDisconnectIntegrationBeforeConnecting.toString());
-            }
-
-            const queryParams = searchParams.size ? `?${searchParams.toString()}` : '';
 
             return `settings/workspaces/${policyID}/accounting/${connection}/connection-selector${queryParams}` as const;
         },
