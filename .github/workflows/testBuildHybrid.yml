@@ -8,7 +8,7 @@ on:
         required: false
         default: ''
       OLD_DOT_PULL_REQUEST_NUMBER:
-        description: Old Dot Pull request number to build the app from. It will take precedence over MOBILE-EXPENSIFY from ND PR if both specified. 
+        description: Old Dot Pull request number to build the app from. It will take precedence over MOBILE-EXPENSIFY from ND PR description if both specified. 
         required: false
         default: ''
 
