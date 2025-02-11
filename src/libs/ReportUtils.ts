@@ -1062,8 +1062,7 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
     if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName)) {
         return noPolicyFound;
     }
-
-    const finalPolicy = policy ?? policies?.find((p) => p.id === report.policyID) ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    const finalPolicy = isEmptyObject(policy) ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : policy ?? policies?.find((p) => p.id === report.policyID);
 
     const parentReport = getRootParentReport({report, reports});
 
