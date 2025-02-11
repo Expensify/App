@@ -125,6 +125,7 @@ function IOURequestStepConfirmation({
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
     const [isConfirmed, setIsConfirmed] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(false);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -669,6 +670,7 @@ function IOURequestStepConfirmation({
     const isLoading = !!transaction?.originalCurrency;
 
     const onConfirm = (listOfParticipants: Participant[]) => {
+        setIsConfirming(true);
         setSelectedParticipantList(listOfParticipants);
 
         if (gpsRequired) {
@@ -684,6 +686,7 @@ function IOURequestStepConfirmation({
         }
 
         createTransaction(listOfParticipants);
+        setIsConfirming(false);
     };
 
     if (isLoadingTransaction) {
@@ -716,11 +719,15 @@ function IOURequestStepConfirmation({
                     <LocationPermissionModal
                         startPermissionFlow={startLocationPermissionFlow}
                         resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                        onGrant={() => createTransaction(selectedParticipantList, true)}
+                        onGrant={() => {
+                            createTransaction(selectedParticipantList, true)
+
+                        }}
                         onDeny={() => {
                             updateLastLocationPermissionPrompt();
                             createTransaction(selectedParticipantList, false);
                         }}
+                        onInitialGetLocationCompleted={() => setIsConfirming(false)}
                     />
                 )}
                 <MoneyRequestConfirmationList
@@ -751,6 +758,7 @@ function IOURequestStepConfirmation({
                     payeePersonalDetails={payeePersonalDetails}
                     shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                     isConfirmed={isConfirmed}
+                    isConfirming={isConfirming}
                 />
             </View>
         </ScreenWrapper>

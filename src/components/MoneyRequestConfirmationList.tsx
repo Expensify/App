@@ -168,6 +168,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
+
+    /** Whether the expense is confirming or not */
+    isConfirming?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
@@ -205,6 +208,7 @@ function MoneyRequestConfirmationList({
     shouldDisplayReceipt = false,
     shouldPlaySound = true,
     isConfirmed,
+    isConfirming,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -954,6 +958,7 @@ function MoneyRequestConfirmationList({
                 }}
                 enterKeyEventListenerPriority={1}
                 useKeyboardShortcuts
+                isLoading={isConfirming}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -963,6 +968,7 @@ function MoneyRequestConfirmationList({
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
                 useKeyboardShortcuts
+                isLoading={isConfirming}
             />
         );
 
