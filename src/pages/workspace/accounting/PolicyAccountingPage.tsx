@@ -158,7 +158,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policyID, connectedIntegration, startIntegrationFlow],
+        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
     );
 
     useFocusEffect(
