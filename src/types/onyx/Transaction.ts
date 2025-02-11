@@ -1,5 +1,5 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams, TrackExpense} from '@libs/actions/IOU';
+import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -132,7 +132,7 @@ type TransactionCustomUnit = {
         name: string;
 
         /** Custom unit rate */
-        rate?: number;
+        rate: number;
     }>;
 };
 
@@ -199,7 +199,7 @@ type ReceiptError = {
     action: string;
 
     /** Parameters required to retry the failed action */
-    retryParams: StartSplitBilActionParams | TrackExpense | RequestMoneyInformation | ReplaceReceipt;
+    retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */

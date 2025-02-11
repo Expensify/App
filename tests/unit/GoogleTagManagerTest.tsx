@@ -67,25 +67,28 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('workspace_created - categorizeTrackedExpense', () => {
-        // When we categorize a tracked expense with a draft policy
         trackExpense({
             report: {reportID: '123'},
-            amount: 1000,
-            currency: 'USD',
-            created: '2024-10-30',
-            merchant: 'merchant',
-            payeeEmail: undefined,
-            payeeAccountID: 0,
-            participant: {accountID},
-            comment: 'comment',
             isDraftPolicy: true,
-            category: 'category',
-            tag: 'tag',
-            taxCode: 'taxCode',
             action: CONST.IOU.ACTION.CATEGORIZE,
-            actionableWhisperReportActionID: 'actionableWhisperReportActionID',
-            linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
-            linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
+            participantParams: {
+                payeeEmail: undefined,
+                payeeAccountID: 0,
+                participant: {accountID},
+            },
+            transactionParams: {
+                amount: 1000,
+                currency: 'USD',
+                created: '2024-10-30',
+                merchant: 'merchant',
+                comment: 'comment',
+                category: 'category',
+                tag: 'tag',
+                taxCode: 'taxCode',
+                actionableWhisperReportActionID: 'actionableWhisperReportActionID',
+                linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
+                linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
+            },
         });
 
         // Then we publish a workspace_created event only once
