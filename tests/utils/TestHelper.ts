@@ -4,8 +4,8 @@ import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ConnectOptions} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
-import * as Localize from '@libs/Localize';
-import * as Pusher from '@libs/Pusher';
+import {translateLocal} from '@libs/Localize';
+import {init} from '@libs/Pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -47,7 +47,7 @@ function setupApp() {
 
         // Connect to Pusher
         PusherConnectionManager.init();
-        Pusher.init({
+        init({
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
@@ -330,7 +330,7 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
 }
 
 async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+    const hintText = translateLocal('accessibilityHints.navigatesToChat');
     const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
     if (!optionRow) {
         return;
