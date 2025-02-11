@@ -229,7 +229,7 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
-    const isCreateExpenseFlow = transaction?.isFromGlobalCreate && iouType === CONST.IOU.TYPE.CREATE && !isPerDiemRequest;
+    const isCreateExpenseFlow = transaction?.isFromGlobalCreate && !isPerDiemRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -797,7 +797,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction.reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, transactionID, transaction.reportID));
     };
 
     /**
