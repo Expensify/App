@@ -7,10 +7,15 @@ const {FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, ADDRESS, STREET, CITY, STATE,
 
 const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET, CITY, STATE, ZIP_CODE];
 
-function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>) {
+function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>, signerEmail: string) {
     const signerDetails: Record<string, string | FileObject[]> = {};
 
     signerDetailsFields.forEach((fieldName: string) => {
+        if (fieldName === EMAIL) {
+            signerDetails[fieldName] = signerEmail;
+            return;
+        }
+
         if (!reimbursementAccountDraft?.[fieldName]) {
             return;
         }

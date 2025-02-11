@@ -87,7 +87,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     }, [country]);
 
     const submit = useCallback(() => {
-        const {signerDetails} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft);
+        const {signerDetails} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '');
 
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
