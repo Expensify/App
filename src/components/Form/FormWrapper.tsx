@@ -1,8 +1,8 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
-import {Keyboard} from 'react-native';
+import {InteractionManager, Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
@@ -61,6 +61,7 @@ function FormWrapper({
     disablePressOnEnter = false,
     isSubmitDisabled = false,
     isLoading = false,
+    shouldScrollToEnd = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
@@ -70,6 +71,17 @@ function FormWrapper({
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
 
     const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
+
+    useEffect(() => {
+        if (!shouldScrollToEnd) {
+            return;
+        }
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                formRef.current?.scrollToEnd({animated: true});
+            });
+        });
+    }, [shouldScrollToEnd]);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};

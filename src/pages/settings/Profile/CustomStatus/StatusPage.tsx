@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -50,6 +51,7 @@ function StatusPage() {
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const defaultText = draftText || currentUserStatusText;
+    const {keyboardHeight} = useKeyboardState();
 
     const customClearAfter = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -158,6 +160,7 @@ function StatusPage() {
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom
             testID={HeaderPageLayout.displayName}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('statusPage.status')}
@@ -172,6 +175,7 @@ function StatusPage() {
                 onSubmit={updateStatus}
                 validate={validateForm}
                 enabledWhenOffline
+                shouldScrollToEnd={keyboardHeight !== 0}
             >
                 <View style={[styles.mh5, styles.mv1]}>
                     <Text style={[styles.textNormal, styles.mt2]}>{translate('statusPage.statusExplanation')}</Text>
