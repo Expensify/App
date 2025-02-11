@@ -1852,6 +1852,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             expenseRules?: ExpenseRule[];
         };
 
+        /** A set of custom rules defined with natural language */
+        customRules?: string;
+
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
