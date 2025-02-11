@@ -7,11 +7,11 @@ import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
+import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceUpdateToUSDModal from '@hooks/useWorkspaceUpdateToUSDModal';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
@@ -54,7 +54,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    useWorkspaceUpdateToUSDModal(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
+    useDismissModalForUSD(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);

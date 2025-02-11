@@ -12,13 +12,13 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceUpdateToUSDModal from '@hooks/useWorkspaceUpdateToUSDModal';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -66,7 +66,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const policyApproverEmail = policy?.approver;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    useWorkspaceUpdateToUSDModal(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
+    useDismissModalForUSD(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>

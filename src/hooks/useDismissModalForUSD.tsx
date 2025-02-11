@@ -2,7 +2,7 @@ import type {Dispatch, SetStateAction} from 'react';
 import {useEffect} from 'react';
 import CONST from '@src/CONST';
 
-function useWorkspaceUpdateToUSDModal(isCurrencyModalOpen: boolean, setIsCurrencyModalOpen: Dispatch<SetStateAction<boolean>>, workspaceCurrency: string | undefined) {
+function useDismissModalForUSD(isCurrencyModalOpen: boolean, setIsCurrencyModalOpen: Dispatch<SetStateAction<boolean>>, workspaceCurrency: string | undefined) {
     useEffect(() => {
         if (!isCurrencyModalOpen || workspaceCurrency !== CONST.CURRENCY.USD) {
             return;
@@ -14,4 +14,4 @@ function useWorkspaceUpdateToUSDModal(isCurrencyModalOpen: boolean, setIsCurrenc
     return [isCurrencyModalOpen, setIsCurrencyModalOpen];
 }
 
-export default useWorkspaceUpdateToUSDModal;
+export default useDismissModalForUSD;
