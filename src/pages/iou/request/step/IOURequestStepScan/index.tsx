@@ -43,6 +43,8 @@ import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import {setUserLocation} from '@libs/actions/UserLocation';
+
 import {
     replaceReceipt,
     requestMoney,
@@ -201,6 +203,26 @@ function IOURequestStepScan({
         // We only want to get the camera permission status when the component is mounted
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
+
+
+    useEffect(() => {
+        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+        if (gpsRequired) {
+
+            getCurrentPosition(
+                (successData) => {
+                    console.log("[wildebug] ~ index.tsx:214 ~ useEffect ~ successData:", successData)
+                    setUserLocation({longitude: successData.coords.latitude, latitude: successData.coords.longitude});
+                },
+                () => {},
+                {
+                    maximumAge: CONST.GPS.MAX_AGE,
+                    timeout: CONST.GPS.TIMEOUT,
+                },
+            );
+        }
+    }, [transaction?.amount, iouType, setUserLocation]);
+
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
@@ -831,13 +853,21 @@ function IOURequestStepScan({
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
-                        {startLocationPermissionFlow && !!fileResize && (
+                        {startLocationPermissionFlow && (
                             <LocationPermissionModal
                                 startPermissionFlow={startLocationPermissionFlow}
                                 resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                                onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
+                                onGrant={() => {
+                                    if(!fileResize || !fileSource) {
+                                        return;
+                                    }
+                                    navigateToConfirmationStep(fileResize, fileSource, true)
+                                }}
                                 onDeny={() => {
                                     updateLastLocationPermissionPrompt();
+                                    if(!fileResize || !fileSource) {
+                                        return;
+                                    }
                                     navigateToConfirmationStep(fileResize, fileSource, false);
                                 }}
                             />

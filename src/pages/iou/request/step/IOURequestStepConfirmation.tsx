@@ -81,6 +81,7 @@ function IOURequestStepConfirmation({
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportReal)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportDraft)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`);
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
@@ -560,6 +561,14 @@ function IOURequestStepConfirmation({
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
+                        if(userLocation)
+                        {
+                            trackExpense(selectedParticipants, trimmedComment, receiptFile, {
+                                lat: userLocation.latitude,
+                                long: userLocation.longitude,
+                            });
+                            return;
+                        }
                         getCurrentPosition(
                             (successData) => {
                                 trackExpense(selectedParticipants, trimmedComment, receiptFile, {
@@ -596,6 +605,15 @@ function IOURequestStepConfirmation({
             if (receiptFile && !!transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
+                    if(userLocation)
+                        {
+                            requestMoney(selectedParticipants, trimmedComment, receiptFile, {
+                                lat: userLocation.latitude,
+                                long: userLocation.longitude,
+                            });
+                            return;
+                        }
+
                     getCurrentPosition(
                         (successData) => {
                             requestMoney(selectedParticipants, trimmedComment, receiptFile, {
@@ -686,7 +704,7 @@ function IOURequestStepConfirmation({
     const isLoading = !!transaction?.originalCurrency;
 
     const onConfirm = (listOfParticipants: Participant[]) => {
-        // setIsConfirming(true);
+        setIsConfirming(true);
         setSelectedParticipantList(listOfParticipants);
 
         if (gpsRequired) {
@@ -702,7 +720,7 @@ function IOURequestStepConfirmation({
         }
 
         createTransaction(listOfParticipants);
-        // setIsConfirming(false);
+        setIsConfirming(false);
     };
 
     if (isLoadingTransaction) {

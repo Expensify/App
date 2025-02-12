@@ -946,7 +946,7 @@ function MoneyRequestConfirmationList({
                 }}
                 enterKeyEventListenerPriority={1}
                 useKeyboardShortcuts
-                isLoading={isConfirmed}
+                isLoading={isConfirmed || isConfirming}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -955,8 +955,8 @@ function MoneyRequestConfirmationList({
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
-                isLoading={isConfirmed}
                 useKeyboardShortcuts
+                isLoading={isConfirmed || isConfirming}
             />
         );
 
