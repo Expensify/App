@@ -278,6 +278,12 @@ type OriginalMessageChangeLog = {
 
     /** Name of connection */
     connectionName?: AllConnectionName;
+
+    /** Old auto-reporting frequency */
+    oldFrequency?: string;
+
+    /** New auto-reporting frequency */
+    newFrequency?: string;
 };
 
 /** Model of `join policy changelog` report action */

@@ -469,6 +469,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether the text input should be shown after list header */
     shouldShowTextInputAfterHeader?: boolean;
 
+    /** Whether the header message should be shown after list header */
+    shouldShowHeaderMessageAfterHeader?: boolean;
+
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom?: boolean;
 

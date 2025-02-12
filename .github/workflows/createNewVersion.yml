@@ -64,6 +64,7 @@ jobs:
         uses: ./.github/actions/composite/setupGitForOSBotify
         id: setupGitForOSBotify
         with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Generate new E/App version
