@@ -42,7 +42,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -187,7 +186,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     hasDraftComment={hasDraftComment}
-                    transactionViolations={transactionViolations}
                     onLayout={onLayoutItem}
                 />
             );
@@ -204,14 +202,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reportNameValuePairs,
             shouldDisableFocusOptions,
             transactions,
-            transactionViolations,
+            ,
             onLayoutItem,
         ],
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
-        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        () => [reportActions, reports, reportNameValuePairs, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        [reportActions, reports, reportNameValuePairs, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
     );
 
     const previousOptionMode = usePrevious(optionMode);

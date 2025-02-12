@@ -56,7 +56,6 @@ function ReportIDsContextProvider({
     const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}});
     const draftAmount = Object.keys(reportsDrafts ?? {}).length;
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -70,11 +69,10 @@ function ReportIDsContextProvider({
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID), [policies, activeWorkspaceID, accountID]);
 
     const getOrderedReportIDs = useCallback(
-        (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs),
+        (currentReportID?: string) => SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, activeWorkspaceID, policyMemberAccountIDs),
         // we need reports draft in deps array to reload the list when a draft is added or removed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, draftAmount, reportNameValuePairs],
+        [chatReports, betas, policies, priorityMode, activeWorkspaceID, policyMemberAccountIDs, draftAmount, reportNameValuePairs],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);

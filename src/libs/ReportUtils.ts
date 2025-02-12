@@ -919,14 +919,14 @@ Onyx.connect({
     },
 });
 
-let computedReportsByPolicy: Record<string, Report[]>;
+let computedReports;
 Onyx.connect({
-    key: ONYX_COMPUTED.REPORTS_BY_POLICY,
+    key: ONYX_COMPUTED.REPORTS,
     callback: (value) => {
         if (!value) {
             return;
         }
-        computedReportsByPolicy = value;
+        computedReports = value;
     },
 });
 
@@ -4345,6 +4345,8 @@ function buildReportNameFromParticipantNames({report, personalDetails}: {report:
         .join(', ');
 }
 
+function generateReportName(report: OnyxEntry<Report>) {}
+
 /**
  * Get the title for a report.
  */
@@ -6923,9 +6925,9 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | u
 }
 
 /**
- * Should we display a RBR on the LHN on this report due to violations?
+ * Checks if the report has any violations that should display a RBR
  */
-function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+function hasAnyViolationsToDisplayRBR(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     // We only show the RBR in the highest level, which is the workspace chat
     if (!report || !isPolicyExpenseChat(report)) {
         return false;
@@ -6941,10 +6943,22 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     // - Are either open or submitted
     // - Belong to the same workspace
     // And if any have a violation, then it should have a RBR
-    const potentialReports = computedReportsByPolicy?.[report.policyID] ?? [];
+    const reports = Object.values(allReports ?? {}) as Report[];
+    const potentialReports = reports.filter((r) => r?.ownerAccountID === currentUserAccountID && (r?.stateNum ?? 0) <= 1 && r?.policyID === report.policyID);
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
+}
+
+/**
+ * Should we display a RBR on the LHN on this report due to violations?
+ */
+function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return false;
+    }
+
+    return computedReports[report.reportID].hasAnyViolations;
 }
 
 /**
@@ -7072,7 +7086,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
     return allReportErrors;
 }
 
-function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveViolations: boolean, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveViolations: boolean) {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
     const allReportErrors = getAllReportErrors(report, reportActions) ?? {};
     const transactionReportActions = getAllReportActions(report.reportID);
@@ -7080,7 +7094,7 @@ function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveVio
     let doesTransactionThreadReportHasViolations = false;
     if (oneTransactionThreadReportID) {
         const transactionReport = getReport(oneTransactionThreadReportID, allReports);
-        doesTransactionThreadReportHasViolations = !!transactionReport && shouldDisplayViolationsRBRInLHN(transactionReport, transactionViolations);
+        doesTransactionThreadReportHasViolations = !!transactionReport && shouldDisplayViolationsRBRInLHN(transactionReport);
     }
     return (
         doesTransactionThreadReportHasViolations ||
@@ -9437,6 +9451,7 @@ export {
     shouldDisableThread,
     shouldDisplayThreadReplies,
     shouldDisplayViolationsRBRInLHN,
+    hasAnyViolationsToDisplayRBR,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,

@@ -28,7 +28,6 @@ function OptionRowLHNData({
     iouReportReportActions,
     transaction,
     lastReportActionTransaction,
-    transactionViolations,
     lastMessageTextFromReport,
     ...propsToForward
 }: OptionRowLHNDataProps) {
@@ -38,7 +37,7 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
+    const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport);
     const isReportSettled = isSettled(fullReport);
     const shouldDisplayReportViolations = !isReportSettled && isReportOwner(fullReport) && hasReportViolations(reportID);
 
@@ -54,7 +53,6 @@ function OptionRowLHNData({
             parentReportAction,
             hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
             lastMessageTextFromReport,
-            transactionViolations,
             invoiceReceiverPolicy,
         });
         // eslint-disable-next-line react-compiler/react-compiler
@@ -81,7 +79,6 @@ function OptionRowLHNData({
         parentReportAction,
         iouReportReportActions,
         transaction,
-        transactionViolations,
         receiptTransactions,
         invoiceReceiverPolicy,
         shouldDisplayReportViolations,

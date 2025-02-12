@@ -47,20 +47,6 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allTransactionViolations = {};
-            return;
-        }
-
-        allTransactionViolations = value;
-    },
-});
-
 /**
  * @param altReportActions Replaces (local) allReportActions used within (local) function getWorkspacesBrickRoads
  * @returns BrickRoad for the policy passed as a param and optionally actionsByReport (if passed)
@@ -72,7 +58,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
     if (!doesReportContainErrors) {
-        const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, allTransactionViolations);
+        const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report);
         const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(report.reportID);
         const hasViolations = shouldDisplayViolations || shouldDisplayReportViolations;
         if (hasViolations) {
@@ -83,7 +69,7 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
     if (oneTransactionThreadReportID && !doesReportContainErrors) {
         const oneTransactionThreadReport = reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
 
-        if (shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
+        if (shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport)) {
             doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
     }
