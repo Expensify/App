@@ -892,6 +892,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     });
 }
 
+let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
 function subscribeToPusherPong() {
@@ -910,6 +911,9 @@ function subscribeToPusherPong() {
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
 
         Timing.end(CONST.TIMING.PUSHER_PING_PONG);
+
+        // When any PONG event comes in, reset this flag so that checkforLatePongReplies will resume looking for missed PONGs
+        pongHasBeenMissed = false;
     });
 }
 
@@ -947,6 +951,11 @@ function pingPusher() {
 }
 
 function checkforLatePongReplies() {
+    if (pongHasBeenMissed) {
+        Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
+        return;
+    }
+
     Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
     const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
 
@@ -956,6 +965,7 @@ function checkforLatePongReplies() {
 
         // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
         lastPingSentTimestamp = Date.now();
+        pongHasBeenMissed = true;
     } else {
         Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
     }
