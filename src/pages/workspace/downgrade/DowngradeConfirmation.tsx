@@ -3,7 +3,7 @@ import ConfirmationPage from '@components/ConfirmationPage';
 import {MushroomTopHat} from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {hasOtherControlWorkspaces as hasOtherControlWorkspacesPolicyUtils} from '@libs/PolicyUtils';
 
 type Props = {
     onConfirmDowngrade: () => void;
@@ -13,7 +13,7 @@ type Props = {
 function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const hasOtherControlWorkspaces = PolicyUtils.hasOtherControlWorkspaces(policyID);
+    const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(policyID);
 
     return (
         <ConfirmationPage
