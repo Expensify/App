@@ -27,7 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
-import {getAll, save} from './PersistedRequests';
+import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
@@ -588,38 +588,42 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const isStateImported = isUsingImportedState;
     const shouldUseStagingServer = preservedShouldUseStagingServer;
     const sequentialQueue = getAll();
-    Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-        // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
-        if (isStateImported) {
-            setShouldForceOffline(false);
-        }
 
-        if (shouldNavigateToHomepage) {
-            Navigation.navigate(ROUTES.HOME);
-        }
-
-        if (preservedUserSession) {
-            Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
-            Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
-        }
-
-        if (shouldUseStagingServer) {
-            Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
-        }
-
-        // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
-        // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
-        // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
-        openApp().then(() => {
-            if (!sequentialQueue || isStateImported) {
-                return;
+    rollbackOngoingRequest();
+    Onyx.clear(KEYS_TO_PRESERVE)
+        .then(() => {
+            // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
+            if (isStateImported) {
+                setShouldForceOffline(false);
             }
 
-            sequentialQueue.forEach((request) => {
-                save(request);
+            if (shouldNavigateToHomepage) {
+                Navigation.navigate(ROUTES.HOME);
+            }
+
+            if (preservedUserSession) {
+                Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
+                Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
+            }
+
+            if (shouldUseStagingServer) {
+                Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
+            }
+        })
+        .then(() => {
+            // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
+            // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
+            // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
+            openApp().then(() => {
+                if (!sequentialQueue || isStateImported) {
+                    return;
+                }
+
+                sequentialQueue.forEach((request) => {
+                    save(request);
+                });
             });
         });
-    });
     clearSoundAssetsCache();
 }
 

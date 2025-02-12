@@ -24,7 +24,6 @@ function ChatListItem<TItem extends ListItem>({
     const reportActionItem = item as unknown as ReportActionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
-
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
