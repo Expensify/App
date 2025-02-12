@@ -170,7 +170,7 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
-type MovedFromSelfDMParams = {workspaceName?: string; reportName?: string};
+type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
 
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
@@ -257,6 +257,8 @@ type ViolationsOverLimitParams = {formattedLimit: string};
 type ViolationsPerDayLimitParams = {formattedLimit: string};
 
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
+
+type ViolationsCustomRulesParams = {message: string};
 
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
@@ -345,6 +347,11 @@ type ApprovalWorkflowErrorParams = {
 
 type ConnectionNameParams = {
     connectionName: AllConnectionName;
+};
+
+type UpdateAutoReportingFrequencyParams = {
+    oldFrequency: string;
+    newFrequency: string;
 };
 
 type LastSyncDateParams = {
@@ -711,7 +718,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MovedFromSelfDMParams,
+    MovedFromPersonalSpaceParams,
     SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -774,6 +781,7 @@ export type {
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
     ViolationsReceiptRequiredParams,
+    ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
@@ -807,6 +815,7 @@ export type {
     UpdateRoleParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
+    UpdateAutoReportingFrequencyParams,
     DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
