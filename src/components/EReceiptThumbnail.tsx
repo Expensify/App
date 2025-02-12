@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import Image from './Image';
+import ImageSVG from './ImageSVG';
 import Text from './Text';
 
 type IconSize = 'x-small' | 'small' | 'medium' | 'large';
@@ -82,11 +82,9 @@ function EReceiptThumbnail({transactionID, borderRadius, fileExtension, isReceip
                 borderRadius ? {borderRadius} : {},
             ]}
         >
-            <Image
-                source={backgroundImage}
-                style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}
-                resizeMode="cover"
-            />
+            <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
+                <ImageSVG src={backgroundImage} />
+            </View>
             <View style={[styles.alignItemsCenter, styles.ph8, styles.pt8, styles.pb8]}>
                 <View style={[StyleUtils.getWidthAndHeightStyle(receiptIconWidth, receiptIconHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon

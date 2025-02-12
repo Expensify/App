@@ -15,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import Image from './Image';
 import ImageSVG from './ImageSVG';
 import Text from './Text';
 
@@ -55,21 +54,19 @@ function EReceipt({transactionID}: EReceiptProps) {
     return (
         <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
             <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <Image
-                    source={backgroundImage}
-                    style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}
-                    resizeMode="cover"
-                />
+                <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
+                    <ImageSVG src={backgroundImage} />
+                </View>
                 <View style={styles.eReceiptContentContainer}>
                     <View style={styles.eReceiptBody}>
                         <ImageSVG
                             src={Expensicons.ReceiptBody}
-                            fill={theme.white}
+                            fill={theme.textColorfulBackground}
                             height={variables.eReceiptBodyHeight}
                         />
                     </View>
                     <View style={styles.eReceiptContentWrapper}>
-                        <View style={[StyleUtils.getBackgroundColorStyle(theme.white), styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <View
                                 style={[
                                     StyleUtils.getWidthAndHeightStyle(variables.eReceiptEmptyIconWidth, variables.eReceiptEmptyIconWidth),
