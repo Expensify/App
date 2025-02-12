@@ -1069,6 +1069,11 @@ describe('DebugUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID: '2',
+                },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,
                 },
