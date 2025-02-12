@@ -322,7 +322,6 @@
     "peggy": "^4.0.3",
     "portfinder": "^1.0.28",
     "prettier": "^2.8.8",
-    "pusher-js-mock": "^0.3.3",
     "react-compiler-healthcheck": "^19.0.0-beta-8a03594-20241020",
     "react-compiler-runtime": "^19.0.0-beta-8a03594-20241020",
     "react-is": "^18.3.1",
