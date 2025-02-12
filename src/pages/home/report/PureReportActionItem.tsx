@@ -56,6 +56,7 @@ import {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogUpdateAutoReportingFrequencyMessage,
     getRemovedConnectionMessage,
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
@@ -366,11 +367,12 @@ function PureReportActionItem({
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
-    const textInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
+    const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
+    const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -410,7 +412,6 @@ function PureReportActionItem({
         }
         clearAllRelatedReportActionErrors(reportID, action);
     };
-
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
@@ -443,7 +444,7 @@ function PureReportActionItem({
             return;
         }
 
-        focusComposerWithDelay(textInputRef.current)(true);
+        focusComposerWithDelay(composerTextInputRef.current)(true);
     }, [prevDraftMessage, draftMessage]);
 
     useEffect(() => {
@@ -877,6 +878,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogChangeRoleMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDeleteMemberMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
+            children = <ReportActionItemBasicMessage message={getPolicyChangeLogUpdateAutoReportingFrequencyMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
         } else if (
@@ -952,7 +955,7 @@ function PureReportActionItem({
                                     reportID={reportID}
                                     policyID={report?.policyID}
                                     index={index}
-                                    ref={textInputRef}
+                                    ref={composerTextInputRef}
                                     shouldDisableEmojiPicker={
                                         (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
                                     }
@@ -1010,9 +1013,10 @@ function PureReportActionItem({
                             childReportID={`${action.childReportID}`}
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
-                            isHovered={hovered}
+                            isHovered={hovered || isContextMenuActive}
                             icons={getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
                             onSecondaryInteraction={showPopover}
+                            isActive={isReportActionActive && !isContextMenuActive}
                         />
                     </View>
                 )}
@@ -1044,7 +1048,8 @@ function PureReportActionItem({
                     shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                     report={report}
                     iouReport={iouReport}
-                    isHovered={hovered}
+                    isHovered={hovered || isContextMenuActive}
+                    isActive={isReportActionActive && !isContextMenuActive}
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
                     }
@@ -1130,6 +1135,12 @@ function PureReportActionItem({
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
                 shouldFreezeCapture={isPaymentMethodPopoverActive}
+                onHoverIn={() => {
+                    setIsReportActionActive(false);
+                }}
+                onHoverOut={() => {
+                    setIsReportActionActive(!!isReportActionLinked);
+                }}
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
