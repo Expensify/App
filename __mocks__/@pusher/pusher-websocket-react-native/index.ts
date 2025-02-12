@@ -3,6 +3,7 @@ import {EventEmitter} from 'events';
 import CONST from '@src/CONST';
 
 type OnSubscriptionSucceeded = () => void;
+
 type OnEvent = (event: PusherEvent) => void;
 
 type ChannelCallbacks = {
@@ -10,23 +11,35 @@ type ChannelCallbacks = {
     onEvent: OnEvent;
 };
 
-class MockPusher extends EventEmitter {
-    static instance: MockPusher | null = null;
+type InitProps = {
+    onConnectionStateChange: (currentState: string, previousState: string) => void;
+};
+
+type SubscribeProps = {
+    channelName: string;
+    onEvent: OnEvent;
+    onSubscriptionSucceeded: OnSubscriptionSucceeded;
+};
+
+type UnsubscribeProps = {channelName: string};
+
+class MockedPusher extends EventEmitter {
+    static instance: MockedPusher | null = null;
 
     channels = new Map<string, ChannelCallbacks>();
 
     socketId = 'mock-socket-id';
 
-    connectionState = 'DISCONNECTED';
+    connectionState: string = CONST.PUSHER.STATE.DISCONNECTED;
 
     static getInstance() {
-        if (!MockPusher.instance) {
-            MockPusher.instance = new MockPusher();
+        if (!MockedPusher.instance) {
+            MockedPusher.instance = new MockedPusher();
         }
-        return MockPusher.instance;
+        return MockedPusher.instance;
     }
 
-    init({onConnectionStateChange}: {onConnectionStateChange: (currentState: string, previousState: string) => void}) {
+    init({onConnectionStateChange}: InitProps) {
         onConnectionStateChange(CONST.PUSHER.STATE.CONNECTED, CONST.PUSHER.STATE.DISCONNECTED);
         return Promise.resolve();
     }
@@ -41,7 +54,7 @@ class MockPusher extends EventEmitter {
         return Promise.resolve();
     }
 
-    subscribe({channelName, onEvent, onSubscriptionSucceeded}: {channelName: string; onEvent: OnEvent; onSubscriptionSucceeded: OnSubscriptionSucceeded}) {
+    subscribe({channelName, onEvent, onSubscriptionSucceeded}: SubscribeProps) {
         if (!this.channels.has(channelName)) {
             this.channels.set(channelName, {onEvent, onSubscriptionSucceeded});
             onSubscriptionSucceeded();
@@ -49,12 +62,11 @@ class MockPusher extends EventEmitter {
         return Promise.resolve();
     }
 
-    unsubscribe({channelName}: {channelName: string}) {
+    unsubscribe({channelName}: UnsubscribeProps) {
         this.channels.delete(channelName);
     }
 
     trigger({channelName, eventName, data}: PusherEvent) {
-        this.channels.get(channelName)?.onSubscriptionSucceeded();
         this.channels.get(channelName)?.onEvent({channelName, eventName, data: JSON.stringify(data)});
     }
 
@@ -62,11 +74,10 @@ class MockPusher extends EventEmitter {
         return this.channels.get(channelName);
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await,@lwc/lwc/no-async-await
-    async getSocketId() {
-        return this.socketId;
+    getSocketId() {
+        return Promise.resolve(this.socketId);
     }
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {MockPusher as Pusher};
+export {MockedPusher as Pusher};

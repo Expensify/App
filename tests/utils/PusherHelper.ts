@@ -1,10 +1,8 @@
 import {init, sendEvent, TYPE, unsubscribe} from '@libs/Pusher';
-import * as Pusher from '@libs/Pusher';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
-import asMutable from '@src/types/utils/asMutable';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
 
@@ -13,8 +11,8 @@ function setup() {
     // channel already in a subscribed state. These methods are normally used to prevent
     // duplicated subscriptions, but we don't need them for this test so forcing them to
     // return false will make the testing less complex.
-    asMutable(Pusher).isSubscribed = jest.fn().mockReturnValue(false);
-    asMutable(Pusher).isAlreadySubscribing = jest.fn().mockReturnValue(false);
+    jest.spyOn(require('@libs/Pusher'), 'isSubscribed').mockReturnValue(false);
+    jest.spyOn(require('@libs/Pusher'), 'isAlreadySubscribing').mockReturnValue(false);
 
     // Connect to Pusher
     PusherConnectionManager.init();
