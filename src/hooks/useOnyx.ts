@@ -60,7 +60,7 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
         return (data: OnyxValue<OnyxKey> | undefined) => selectorProp(shouldUseSnapshot ? getKeyData(data as SearchResults, key) : data);
     }, [selectorProp, shouldUseSnapshot, key]);
 
-    const onyxOptions = {...optionsWithoutSelector, selector};
+    const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector, allowDynamicKey: true};
     const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${hashKey}` as OnyxKey) : key;
 
     const originalResult = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
