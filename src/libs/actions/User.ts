@@ -971,7 +971,8 @@ function checkforLatePongReplies() {
     }
 }
 
-let pingPongStarted = false;
+let pingPusherIntervalID: ReturnType<typeof setInterval>;
+let checkforLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
 function initializePusherPingPong() {
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
@@ -979,26 +980,29 @@ function initializePusherPingPong() {
         return;
     }
 
-    // Ignore any additional calls to initialize the ping pong if it's already been started
-    if (pingPongStarted) {
-        return;
-    }
-    pingPongStarted = true;
-
     Log.info(`[Pusher PINGPONG] Starting Pusher PING PONG and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
 
     // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
     // so there could be a little delay before the client is actually listening to this event.
     subscribeToPusherPong();
 
+    // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
+    if (pingPusherIntervalID) {
+        clearInterval(pingPusherIntervalID);
+    }
+
     // Send a ping to pusher on a regular interval
-    setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
+    pingPusherIntervalID = setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
 
     // Delay the start of this by double the length of PING_INTERVAL_LENGTH_IN_SECONDS to give a chance for the first
     // events to be sent and received
     setTimeout(() => {
+        // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
+        if (checkforLatePongRepliesIntervalID) {
+            clearInterval(checkforLatePongRepliesIntervalID);
+        }
         // Check for any missing pong events on a regular interval
-        setInterval(checkforLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
+        checkforLatePongRepliesIntervalID = setInterval(checkforLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
     }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 
