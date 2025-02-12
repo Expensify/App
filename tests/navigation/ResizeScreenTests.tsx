@@ -29,18 +29,6 @@ jest.mock('@libs/Fullstory', () => ({
     parseFSAttributes: jest.fn(),
 }));
 
-const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: ResponsiveLayoutResult = {
-    shouldUseNarrowLayout: true,
-    isSmallScreenWidth: true,
-    isInNarrowPaneModal: false,
-    isExtraSmallScreenHeight: false,
-    isMediumScreenWidth: false,
-    isLargeScreenWidth: false,
-    isExtraSmallScreenWidth: false,
-    isSmallScreen: false,
-    onboardingIsMediumOrLargerScreenWidth: false,
-};
-
 const INITIAL_STATE = {
     index: 0,
     routes: [
