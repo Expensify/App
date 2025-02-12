@@ -4577,7 +4577,8 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        const submitToAccountID = getSubmitToAccountID(getPolicy(report?.policyID), report);
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const submitToAccountID = getSubmitToAccountID(policy, report);
         const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
         const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 

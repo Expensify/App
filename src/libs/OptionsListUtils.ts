@@ -40,7 +40,7 @@ import Parser from './Parser';
 import Performance from './Performance';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getSubmitToAccountID} from './PolicyUtils';
+import {canSendInvoiceFromWorkspace} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -884,10 +884,7 @@ function getReportOption(participant: Participant): OptionData {
         option.alternateText = translateLocal('workspace.common.workspace');
 
         if (report?.policyID) {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            const submitToAccountID = getSubmitToAccountID(policy, report);
-            const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
-            const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
+            const subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
             if (subtitle) {
                 option.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
