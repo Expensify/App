@@ -12,7 +12,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -40,7 +39,6 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    const {canUseCategoryAndTagApprovers} = usePermissions();
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const isQuickSettingsFlow = !!backTo;
     const tagApprover = PolicyUtils.getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
@@ -176,7 +174,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         />
                     </OfflineWithFeedback>
 
-                    {!!policy?.areRulesEnabled && !!canUseCategoryAndTagApprovers && !isMultiLevelTags && (
+                    {!!policy?.areRulesEnabled && !isMultiLevelTags && (
                         <>
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
