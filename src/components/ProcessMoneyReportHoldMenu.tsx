@@ -11,6 +11,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
+import {useSearchContext} from './Search/SearchContext';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
@@ -60,6 +61,8 @@ function ProcessMoneyReportHoldMenu({
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
+    const {currentSearchHash, isAllStatus} = useSearchContext();
+    const hash = isAllStatus ? undefined : currentSearchHash;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -69,7 +72,7 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            IOU.approveMoneyRequest(moneyRequestReport, full);
+            IOU.approveMoneyRequest(moneyRequestReport, full, hash);
             if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
             }
@@ -77,7 +80,7 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
+            IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full, hash);
         }
         onClose();
     };

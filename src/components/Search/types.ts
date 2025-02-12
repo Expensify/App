@@ -61,9 +61,10 @@ type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus
 
 type SearchContext = {
     currentSearchHash: number;
+    isAllStatus: boolean;
     selectedTransactions: SelectedTransactions;
     selectedReports: SelectedReports[];
-    setCurrentSearchHash: (hash: number) => void;
+    setCurrentSearchHash: (hash: number, status: string | string[]) => void;
     setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
     clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
     shouldTurnOffSelectionMode: boolean;

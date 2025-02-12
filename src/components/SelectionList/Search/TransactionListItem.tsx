@@ -29,7 +29,7 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, isAllStatus} = useSearchContext();
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -78,7 +78,7 @@ function TransactionListItem<TItem extends ListItem>({
                 item={transactionItem}
                 showTooltip={showTooltip}
                 onButtonPress={() => {
-                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
+                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item), isAllStatus);
                 }}
                 onCheckboxPress={() => onCheckboxPress?.(item)}
                 isDisabled={!!isDisabled}

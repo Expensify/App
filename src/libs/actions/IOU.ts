@@ -4158,6 +4158,60 @@ function updateMoneyRequestDistanceRate(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
 }
 
+function createSearchOnyxData(hash: number, reportID: string | undefined, iouTransactionID?: string) {
+    const transactionIDList = getReportTransactions(reportID).map((transaction) => transaction.transactionID);
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: iouTransactionID
+                    ? {
+                          [`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`]: {isActionLoading: true},
+                      }
+                    : {
+                          [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {isActionLoading: true},
+                      },
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: iouTransactionID
+                    ? {
+                          [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+                      }
+                    : {
+                          [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+                          ...(Object.fromEntries(
+                              (transactionIDList ?? []).map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null]),
+                          ) as Partial<SearchTransaction>),
+                      },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: iouTransactionID
+                    ? {}
+                    : {
+                          [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                              errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                              isActionLoading: false,
+                          },
+                      },
+            },
+        },
+    ];
+    return {optimisticData, successData, failureData};
+}
+
 const getConvertTrackedExpenseInformation = (
     transactionID: string | undefined,
     actionableWhisperReportActionID: string | undefined,
@@ -6741,7 +6795,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false, hash?: number) {
     if (!transactionID) {
         return;
     }
@@ -7050,6 +7104,13 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
                 hasOutstandingChildRequest: true,
             },
         });
+    }
+
+    if (hash) {
+        const searchOnyxData = createSearchOnyxData(hash, iouReport?.reportID, transactionID);
+        optimisticData.push(...searchOnyxData.optimisticData);
+        successData.push(...searchOnyxData.successData);
+        failureData.push(...searchOnyxData.failureData);
     }
 
     const parameters: DeleteMoneyRequestParams = {
@@ -7710,6 +7771,7 @@ function getPayMoneyRequestParams(
     paymentMethodType: PaymentMethodType,
     full: boolean,
     payAsBusiness?: boolean,
+    hash?: number,
 ): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     const activePolicy = getPolicy(activePolicyID);
@@ -7972,6 +8034,13 @@ function getPayMoneyRequestParams(
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
+    if (hash) {
+        const searchOnyxData = createSearchOnyxData(hash, iouReport?.reportID);
+        optimisticData.push(...searchOnyxData.optimisticData);
+        successData.push(...searchOnyxData.successData);
+        failureData.push(...searchOnyxData.failureData);
+    }
+
     return {
         params: {
             iouReportID: iouReport?.reportID,
@@ -8222,9 +8291,10 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     const approvalChain = getApprovalChain(getPolicy(expenseReport.policyID), expenseReport);
 
-    const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
-    const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
-    const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
+    const predictedReportApproved = isLastApprover(approvalChain);
+    const predictedNextStatus = predictedReportApproved ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const predictedNextState = predictedReportApproved ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const managerID = predictedReportApproved ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
 
     const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
@@ -8357,40 +8427,11 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
-    if (hash) {
-        const transactions = getReportTransactions(expenseReport.reportID);
-        const transactionIDs = transactions.map((t) => t.transactionID);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: {isActionLoading: true}
-                },
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: null,
-                    ...(Object.fromEntries((transactionIDs ?? []).map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null])) as Partial<SearchTransaction>),
-                },
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: {
-                        errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'), 
-                        isActionLoading: false,
-                    }
-                },
-            },
-        });
+    if (hash && predictedReportApproved) {
+        const searchOnyxData = createSearchOnyxData(hash, expenseReport.reportID);
+        optimisticData.push(...searchOnyxData.optimisticData);
+        successData.push(...searchOnyxData.successData);
+        failureData.push(...searchOnyxData.failureData);
     }
 
     const parameters: ApproveMoneyRequestParams = {
@@ -8518,7 +8559,7 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function submitReport(expenseReport: OnyxTypes.Report) {
+function submitReport(expenseReport: OnyxTypes.Report, hash?: number) {
     if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
@@ -8640,6 +8681,13 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                 iouReportID: expenseReport.reportID,
             },
         });
+    }
+
+    if (hash) {
+        const searchOnyxData = createSearchOnyxData(hash, expenseReport.reportID);
+        optimisticData.push(...searchOnyxData.optimisticData);
+        successData.push(...searchOnyxData.successData);
+        failureData.push(...searchOnyxData.failureData);
     }
 
     const parameters: SubmitReportParams = {
@@ -8837,7 +8885,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         true,
     );
 }
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true, hash?: number) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -8847,7 +8895,7 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     completePaymentOnboarding(paymentSelected);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full, undefined, hash);
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.

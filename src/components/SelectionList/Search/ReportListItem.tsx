@@ -71,7 +71,7 @@ function ReportListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, isAllStatus} = useSearchContext();
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -96,7 +96,7 @@ function ReportListItem<TItem extends ListItem>({
     ];
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
+        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item), isAllStatus);
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {

@@ -52,7 +52,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, isAllStatus} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -134,7 +134,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                     const reportIDList = !selectedReports.length
                         ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
                         : selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                    approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
+                    approveMoneyRequestOnSearch(hash, reportIDList, isAllStatus, transactionIDList);
                 },
             });
         }
@@ -191,7 +191,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
                               }))
                     ) as PaymentData[];
 
-                    payMoneyRequestOnSearch(hash, paymentData, transactionIDList);
+                    payMoneyRequestOnSearch(hash, paymentData, isAllStatus, transactionIDList);
                 },
             });
         }
