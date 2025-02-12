@@ -21,34 +21,28 @@ function ValidateCodeActionForm({
     forwardedRef,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
-    const isInitialized = useRef(false);
-    const isClosedRef = useRef(false);
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
-    useEffect(
-        () => () => {
-            isInitialized.current = false;
-            isClosedRef.current = true;
-        },
-        [],
-    );
+    const isUnmounted = useRef(false);
 
     useEffect(() => {
-        if (!isInitialized.current) {
-            isInitialized.current = true;
-            sendValidateCode();
-        }
-        // eslint-disable-next-line rulesdir/prefer-early-return
+        sendValidateCode();
+
         return () => {
-            // We need to run clearError in cleanup function to use as onClose function.
-            // As 'useEffect cleanup function' runs whenever a dependency is called, we need to put clearError() in the if condition.
-            // So clearError() will not run when the form is unmounted.
-            if (isClosedRef.current) {
-                clearError();
-            }
+            isUnmounted.current = true;
         };
-    }, [sendValidateCode, clearError]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (!isUnmounted.current) {
+                return;
+            }
+            clearError();
+        };
+    }, [clearError]);
 
     return (
         <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
