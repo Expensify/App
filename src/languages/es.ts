@@ -3850,6 +3850,10 @@ const translations = {
                 noAccountsFound: 'No se han encontrado cuentas',
                 defaultCard: 'Tarjeta predeterminada',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
+                expensifyCardBannerTitle: 'Obtén la Tarjeta Expensify',
+                expensifyCardBannerSubtitle:
+                    'Disfruta de una devolución en cada compra en Estados Unidos, hasta un 50% de descuento en tu factura de Expensify, tarjetas virtuales ilimitadas y mucho más.',
+                expensifyCardBannerLearnMoreButton: 'Más información',
             },
             workflows: {
                 title: 'Flujos de trabajo',
