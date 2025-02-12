@@ -97,7 +97,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         if (isEmptyObject(policy)) {
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, route.params.backTo), true);
+        Navigation.goBack(route.params.backTo);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isOnyxLoading]);
 
@@ -110,10 +110,12 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
         if ((route.params?.backTo as string)?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
-
             return;
         }
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+        });
     };
 
     /** Opens privacy url as an external link */
@@ -183,7 +185,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, route.params.backTo))}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
