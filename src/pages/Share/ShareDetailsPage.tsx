@@ -84,7 +84,7 @@ function ShareDetailsPage({
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
-                Navigation.navigate(routeToNavigate, CONST.NAVIGATION.TYPE.UP);
+                Navigation.navigate(routeToNavigate);
             },
             () => {},
         );
