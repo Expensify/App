@@ -967,7 +967,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         option.alternateText = unknownUserDetails.login;
         option.participantsList = [{...unknownUserDetails, displayName: unknownUserDetails.login, accountID: unknownUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID}];
     } else if (report?.ownerAccountID !== 0 || !option.text) {
-        option.text = getPolicyName(report);
+        option.text = getPolicyName({report});
         option.alternateText = translateLocal('workspace.common.workspace');
     }
     option.isDisabled = true;
