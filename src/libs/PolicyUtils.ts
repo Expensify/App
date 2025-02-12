@@ -56,6 +56,7 @@ type ConnectionWithLastSyncData = {
 
 let allPolicies: OnyxCollection<Policy>;
 let activePolicyId: OnyxEntry<string>;
+let isLoadingReportData = true;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -66,6 +67,12 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyId = value),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
+    callback: (value) => (isLoadingReportData = value ?? false),
 });
 
 /**
@@ -997,6 +1004,10 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return syncSuccessfulDate;
 }
 
+function getNSQSCompanyID(policy: Policy) {
+    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
+}
+
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
     if (!currentEntityID) {
@@ -1194,6 +1205,17 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
         return false;
     }
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+}
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
+    const policy = getPolicy(policyID);
+
+    if (!policy) {
+        return false;
+    }
+
+    return !isPolicyAccessible(policy) && !isLoadingReportData;
 }
 
 function hasOtherControlWorkspaces(currentPolicyID: string) {
@@ -1395,6 +1417,7 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
+    getNSQSCompanyID,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
@@ -1437,6 +1460,7 @@ export {
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
+    shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
