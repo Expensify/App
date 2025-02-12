@@ -176,6 +176,7 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdateAutoReportingFrequencyParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdateRoleParams,
@@ -2527,15 +2528,12 @@ const translations = {
         toLearnMore: ' to learn more.',
         termsAndConditions: {
             header: 'Before we continue...',
-            title: 'Please read the Terms & Conditions for travel',
-            subtitle: 'To enable travel on your workspace you must agree to our ',
+            title: 'Terms & conditions',
+            subtitle: 'Please agree to the Expensify Travel ',
             termsconditions: 'terms & conditions',
             travelTermsAndConditions: 'terms & conditions',
-            helpDocIntro: 'Check out this ',
-            helpDocOutro: 'for more information or reach out to Concierge or your Account Manager.',
-            helpDoc: 'Help Doc',
-            agree: 'I agree to the travel ',
-            error: 'You must accept the Terms & Conditions for travel to continue',
+            agree: 'I agree to the ',
+            error: 'You must agree to the Expensify Travel terms & conditions to continue',
         },
         flight: 'Flight',
         flightDetails: {
@@ -2710,10 +2708,20 @@ const translations = {
                         return 'Member';
                 }
             },
+            frequency: {
+                manual: 'Manually',
+                instant: 'Instant',
+                immediate: 'Daily',
+                trip: 'By trip',
+                weekly: 'Weekly',
+                semimonthly: 'Twice a month',
+                monthly: 'Monthly',
+            },
             planType: 'Plan type',
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
+            leaveConfirmation: "Are you sure you want to leave this workspace? Once you leave, you'll lose access to all data and settings associated with this workspace.",
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -5084,6 +5092,8 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role === 'member' || role === 'user' ? 'member' : 'admin'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                updateAutoReportingFrequency: ({oldFrequency, newFrequency}: UpdateAutoReportingFrequencyParams) =>
+                    `updated the submission frequency to "${newFrequency}" (previously "${oldFrequency}")`,
             },
         },
     },
@@ -5863,6 +5873,8 @@ const translations = {
             part6: 'Now,',
             part7: ' submit your expense',
             part8: ' and watch the magic happen!',
+            tryItOut: 'Try it out',
+            noThanks: 'No thanks',
         },
     },
     discardChangesConfirmation: {
