@@ -951,6 +951,11 @@ function pingPusher() {
 }
 
 function checkforLatePongReplies() {
+    if (isOffline()) {
+        Log.info('[Pusher PINGPONG] Skipping checkforLatePongReplies because the client is offline');
+        return;
+    }
+
     if (pongHasBeenMissed) {
         Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
         return;
