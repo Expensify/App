@@ -18,7 +18,15 @@ import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, getTagApproverRule, getTagList, getWorkflowApprovalsUnavailable, hasAccountingConnections, isControlPolicy, isMultiLevelTags} from '@libs/PolicyUtils';
+import {
+    getCleanedTagName,
+    getTagApproverRule,
+    getTagList,
+    getWorkflowApprovalsUnavailable,
+    hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    isControlPolicy,
+    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -37,7 +45,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {translate} = useLocalize();
     const policyTag = useMemo(() => getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
-    const policyHasAccountingConnections = hasAccountingConnections(policy);
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const isQuickSettingsFlow = !!backTo;
     const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
@@ -103,9 +111,9 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-    const policyHasMultiLevelTags = isMultiLevelTags(policyTags);
+    const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
 
-    const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !policyHasMultiLevelTags;
+    const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
@@ -164,16 +172,15 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
                         <MenuItemWithTopDescription
-                            title={currentPolicyTag['GL Code']}
                             description={translate(`workspace.tags.glCode`)}
                             onPress={navigateToEditGlCode}
-                            iconRight={policyHasAccountingConnections ? Expensicons.Lock : undefined}
-                            interactive={!policyHasAccountingConnections}
+                            iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
+                            interactive={!hasAccountingConnections}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
 
-                    {!!policy?.areRulesEnabled && !policyHasMultiLevelTags && (
+                    {!!policy?.areRulesEnabled && !isMultiLevelTags && (
                         <>
                             <View style={[styles.mh5, styles.mv3, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.tags.tagRules')}</Text>
