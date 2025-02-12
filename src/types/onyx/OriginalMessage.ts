@@ -398,12 +398,6 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Old role of user or old value of the category/tag field */
     oldValue?: boolean | string;
-
-    /** Old auto-reporting frequency */
-    oldFrequency?: string;
-
-    /** New auto-reporting frequency */
-    newFrequency?: string;
 };
 
 /** Model of `join policy changelog` report action */
