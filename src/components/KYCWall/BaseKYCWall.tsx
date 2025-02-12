@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {kycWallRef} from '@userActions/PaymentMethods';
-import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
+import {createWorkspaceFromIOUPayment, moveIOUToExistingPolicy} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +44,7 @@ function KYCWall({
     shouldListenForResize = false,
     source,
     shouldShowPersonalBankAccountOption = false,
+    policy,
 }: KYCWallProps) {
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
@@ -109,6 +110,15 @@ function KYCWall({
                 Navigation.navigate(addDebitCardRoute);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
                 if (iouReport && isIOUReport(iouReport)) {
+                    if (policy) {
+                        console.log('getuDebug: ', 'moveIOUToExistingPolicy');
+                        const workspaceChat = moveIOUToExistingPolicy(policy, iouReport);
+                        if (workspaceChat && workspaceChat.reportID && workspaceChat.reportActionID) {
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChat.reportID, workspaceChat.reportActionID));
+                        }
+
+                        return;
+                    }
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
                     completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
@@ -133,7 +143,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => {
+        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType, paymentMethod?: PaymentMethod) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -169,6 +179,12 @@ function KYCWall({
 
                 const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
                 const position = getAnchorPosition(clickedElementLocation);
+
+                if (paymentMethod) {
+                    setShouldShowAddPaymentMenu(false);
+                    selectPaymentMethod(paymentMethod);
+                    return;
+                }
 
                 setPositionAddPaymentMenu(position);
                 setShouldShowAddPaymentMenu(true);
