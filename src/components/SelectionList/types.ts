@@ -200,6 +200,9 @@ type ListItem = {
 
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
+
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -318,6 +321,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     shouldPreventEnterKeySubmit?: boolean;
+    shouldShowBlueBorderOnFocus?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
