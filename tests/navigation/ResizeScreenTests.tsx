@@ -21,7 +21,6 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/settings/InitialSettingsPage');
 jest.mock('@pages/settings/Profile/ProfilePage');
-jest.mock('@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/BottomTabBar');
 // Mock Fullstory library dependency
 jest.mock('@libs/Fullstory', () => ({
     default: {
