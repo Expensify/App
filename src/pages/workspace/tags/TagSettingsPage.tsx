@@ -18,20 +18,11 @@ import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {
-    getCleanedTagName,
-    getTagApproverRule,
-    getTagList,
-    getWorkflowApprovalsUnavailable,
-    hasAccountingConnections,
-    isControlPolicy,
-    isMultiLevelTags,
-} from '@libs/PolicyUtils';
+import {getCleanedTagName, getTagApproverRule, getTagList, getWorkflowApprovalsUnavailable, hasAccountingConnections, isControlPolicy, isMultiLevelTags} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
-import {clearPolicyTagErrors, deletePolicyTags} from '@userActions/Policy/Tag';
+import {clearPolicyTagErrors, deletePolicyTags, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -90,8 +81,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     policyID,
                     CONST.UPGRADE_FEATURE_INTRO_MAPPING.glCodes.alias,
                     isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policy?.id ?? '', orderWeight, tagName, backTo)
-                        : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? '', orderWeight, tagName),
+                        ? ROUTES.SETTINGS_TAG_GL_CODE.getRoute(policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`, orderWeight, tagName, backTo)
+                        : ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(policy?.id ?? `${CONST.DEFAULT_NUMBER_ID}`, orderWeight, tagName),
                 ),
             );
             return;
