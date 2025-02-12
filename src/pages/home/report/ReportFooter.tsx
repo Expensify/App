@@ -168,6 +168,14 @@ function ReportFooter({
                 return;
             }
             Report.addComment(report.reportID, text);
+            if (ReportUtils.isSelfDM(report)) {
+                // We want to try the regex only if it is self DM to not waste resources
+                const matches = text.match(CONST.REGEX.QUESTION);
+                const questionString = matches && matches[1];
+                if (questionString) {
+                    Report.explainFeature(questionString, report);
+                }
+            }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
