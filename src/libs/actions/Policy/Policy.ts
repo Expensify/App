@@ -3821,6 +3821,8 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
  * @param prohibitedExpenses
  */
 function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: ProhibitedExpenses) {
+    const policy = getPolicy(policyID);
+    const originalProhibitedExpenses = policy?.prohibitedExpenses;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3849,7 +3851,7 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: Prohi
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    prohibitedExpenses,
+                    prohibitedExpenses: originalProhibitedExpenses,
                     pendingFields: {prohibitedExpenses: null},
                     errorFields: {prohibitedExpenses: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
