@@ -11,18 +11,32 @@ on:
         description: Old Dot Pull request number to build the app from. It will take precedence over MOBILE-EXPENSIFY from ND PR description if both specified.
         required: false
         default: ''
-
+  workflow_call:
+    inputs:
+      APP_REF:
+        description: Git ref to checkout in App
+        type: string
+        required: true
+    
+    outputs:
+      ANDROID_LINK:
+        value: ${{ jobs.androidHybrid.outputs.S3_APK_PATH }}
+      IOS_LINK:
+        value: ${{ jobs.iosHybrid.outputs.IOS_PATH }}
+    
 jobs:
   prep:
     runs-on: ubuntu-latest
     steps:
       - name: Validate that user is an Expensify employee
+        if: github.event_name == 'workflow_dispatch'
         uses: ./.github/actions/composite/validateActor
         with:
           REQUIRE_APP_DEPLOYER: false
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Validate input
+        if: github.event_name == 'workflow_dispatch'
         run: |
           if [[ -z "${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" && -z "${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}" ]]; then
             echo "Invalid input. You have to pass at least one PR number"
@@ -39,6 +53,12 @@ jobs:
         id: getHeadRef
         run: |
           set -e
+
+          if [[ "${{ github.event_name }}" == "workflow_call "]]; then
+            echo "REF=${{ github.event.inputs.APP_REF }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi 
+
           if [[ -z "${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" ]]; then
             echo "REF=" >> "$GITHUB_OUTPUT"
           else
@@ -245,6 +265,8 @@ jobs:
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
     runs-on: macos-15-xlarge
+    outputs:
+      IOS_PATH: ${{ steps.export-ios-path.outputs.IOS_PATH }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -338,35 +360,26 @@ jobs:
           S3_BUCKET: ad-hoc-expensify-cash
           S3_REGION: us-east-1
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios
-          path: ./ios_paths.json
+      - name: Export iOS path
+        id: export-ios-path
+        run: |
+          content_ios="$(cat ./ios_paths.json)"
+          content_ios="${content_ios//'%'/'%25'}"
+          content_ios="${content_ios//$'\n'/'%0A'}"
+          content_ios="${content_ios//$'\r'/'%0D'}"
+          ios_path=$(echo "$content_ios" | jq -r '.html_path')
+          echo "IOS_PATH=$ios_path" >> "$GITHUB_OUTPUT"
 
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
+    if: github.event_name == 'workflow_dispatch'
     needs: [getNewDotRef, androidHybrid, iosHybrid]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.getNewDotRef.outputs.REF }}
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-
-      - name: Read JSONs with iOS paths
-        id: get_ios_path
-        if: ${{ needs.iosHybrid.result == 'success' }}
-        run: |
-          content_ios="$(cat ./ios/ios_paths.json)"
-          content_ios="${content_ios//'%'/'%25'}"
-          content_ios="${content_ios//$'\n'/'%0A'}"
-          content_ios="${content_ios//$'\r'/'%0D'}"
-          ios_path=$(echo "$content_ios" | jq -r '.html_path')
-          echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
 
       - name: Publish links to apps for download
         uses: ./.github/actions/javascript/postTestBuildComment
@@ -376,4 +389,4 @@ jobs:
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
-          IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.IOS_PATH }}
