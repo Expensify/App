@@ -21,6 +21,7 @@ import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
+    getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     updateAdvancedFilters,
@@ -34,6 +35,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {LastPaymentMethodType} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
@@ -143,9 +145,19 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
+                ? selectedReports.every(
+                      (report) =>
+                          report.action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                          report.policyID &&
+                          ((!!lastPaymentMethods[report.policyID] && typeof lastPaymentMethods[report.policyID] === 'string') ||
+                              !!(lastPaymentMethods[report.policyID] as LastPaymentMethodType)?.lastUsed),
+                  )
                 : selectedTransactionsKeys.every(
-                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
+                      (id) =>
+                          selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                          selectedTransactions[id].policyID &&
+                          ((!!lastPaymentMethods[selectedTransactions[id].policyID] && typeof lastPaymentMethods[selectedTransactions[id].policyID] === 'string') ||
+                              !!(lastPaymentMethods[selectedTransactions[id].policyID] as LastPaymentMethodType).lastUsed),
                   ));
 
         if (shouldShowPayOption) {
@@ -166,7 +178,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
                     for (const item of items) {
                         const policyID = item.policyID;
-                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+                        const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, lastPaymentMethods);
 
                         if (!lastPolicyPaymentMethod) {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
@@ -183,11 +195,15 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
                     const paymentData = (
                         selectedReports.length
-                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[`${report.policyID}`]}))
+                            ? selectedReports.map((report) => ({
+                                  reportID: report.reportID,
+                                  amount: report.total,
+                                  paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                              }))
                             : Object.values(selectedTransactions).map((transaction) => ({
                                   reportID: transaction.reportID,
                                   amount: transaction.amount,
-                                  paymentType: lastPaymentMethods[transaction.policyID],
+                                  paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
                               }))
                     ) as PaymentData[];
 
