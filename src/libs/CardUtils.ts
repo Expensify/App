@@ -100,13 +100,12 @@ function isCardHiddenFromSearch(card: Card) {
 
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
     const feedCards: CardList = {};
-    Object.keys(cardList).forEach((cardKey) => {
-        const card = cardList[cardKey];
-        if (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card)) {
+    Object.values(cardList).forEach((card) => {
+        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
             return;
         }
 
-        feedCards[cardKey] = card;
+        feedCards[card.cardID] = card;
     });
 
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {

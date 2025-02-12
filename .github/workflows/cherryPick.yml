@@ -8,25 +8,7 @@ on:
         required: true
 
 jobs:
-  validateActor:
-    runs-on: ubuntu-latest
-    outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
-    steps:
-      - name: Check if user is deployer
-        id: isDeployer
-        run: |
-          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
-            echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
   createNewVersion:
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
 
@@ -45,6 +27,7 @@ jobs:
         id: setupGitForOSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
