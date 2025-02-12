@@ -2481,6 +2481,8 @@ const translations = {
         sendReminder: 'Send a reminder',
         chooseFile: 'Choose file',
         weAreWaiting: "We're waiting for others to verify their identities as directors or senior officers of the business.",
+        occupation: 'Occupation',
+        whatsYourOccupation: "What's your occupation?",
     },
     agreementsStep: {
         agreements: 'Agreements',

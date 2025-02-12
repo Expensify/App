@@ -2506,6 +2506,9 @@ const translations = {
         sendReminder: 'Enviar un recordatorio',
         chooseFile: 'Seleccionar archivo',
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
+        // TODO: translate it:
+        occupation: 'Occupation',
+        whatsYourOccupation: "What's your occupation?",
     },
     agreementsStep: {
         agreements: 'Acuerdos',

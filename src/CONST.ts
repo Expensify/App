@@ -722,6 +722,7 @@ const CONST = {
                 HANG_TIGHT: 4,
             },
             SIGNER_INFO_DATA: {
+                PREFIX: 'director',
                 FULL_NAME: 'signerFullName',
                 DATE_OF_BIRTH: 'signerDateOfBirth',
                 JOB_TITLE: 'signerJobTitle',
@@ -732,6 +733,9 @@ const CONST = {
                 STATE: 'signer_state',
                 ZIP_CODE: 'signer_zipCode',
                 COUNTRY: 'signer_nationality',
+                DIRECTOR_OCCUPATION: 'occupation',
+                DIRECTOR_FULL_NAME: 'fullName',
+                DIRECTOR_JOB_TITLE: 'jobTitle',
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
