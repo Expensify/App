@@ -9,11 +9,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,11 +38,13 @@ import {
     isPolicyExpenseChat,
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {SearchReportAction} from '@src/types/onyx/SearchResults';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
@@ -72,6 +76,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being actived */
     isActive?: boolean;
+
+    /** Callback to be called on onPress */
+    onPress?: () => void;
 };
 
 const showUserDetails = (accountID: number | undefined) => {
@@ -96,6 +103,7 @@ function ReportActionItemSingle({
     iouReport,
     isHovered = false,
     isActive = false,
+    onPress = undefined,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -120,6 +128,7 @@ function ReportActionItemSingle({
     const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
+    const {isOnSearch} = useSearchState();
 
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
@@ -280,8 +289,10 @@ function ReportActionItemSingle({
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
-    return (
-        <View style={[styles.chatItem, wrapperStyle]}>
+    const actionWrapper = (content: React.ReactNode) => <View style={[styles.chatItem, wrapperStyle]}>{content}</View>;
+
+    const reportActionContent = (
+        <>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
@@ -334,7 +345,29 @@ function ReportActionItemSingle({
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
-        </View>
+        </>
+    );
+
+    if (!isOnSearch) {
+        return actionWrapper(reportActionContent);
+    }
+
+    return actionWrapper(
+        <View style={styles.webViewStyles.tagStyles.ol}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
+                <TextLink
+                    fontSize={variables.fontSizeSmall}
+                    onPress={() => {
+                        onPress?.();
+                    }}
+                    numberOfLines={1}
+                >
+                    {(action as SearchReportAction).reportName}
+                </TextLink>
+            </View>
+            <View style={styles.flexRow}>{reportActionContent}</View>
+        </View>,
     );
 }
 
