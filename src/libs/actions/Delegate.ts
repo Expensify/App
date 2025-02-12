@@ -546,10 +546,9 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                         delegate.email === email
                             ? {
                                   ...delegate,
-                                  role,
+                                  isLoading: true,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                                  isLoading: true,
                               }
                             : delegate,
                     ),
@@ -574,9 +573,9 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                             ? {
                                   ...delegate,
                                   role,
+                                  isLoading: false,
                                   pendingAction: null,
                                   pendingFields: {role: null},
-                                  isLoading: false,
                               }
                             : delegate,
                     ),

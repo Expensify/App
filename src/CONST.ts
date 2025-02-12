@@ -7,6 +7,7 @@ import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import type ResponsiveLayoutResult from './hooks/useResponsiveLayout/types';
 import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
@@ -4816,13 +4817,15 @@ const CONST = {
     SF_COORDINATES: [-122.4194, 37.7749],
 
     NAVIGATION: {
-        TYPE: {
-            UP: 'UP',
-        },
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+
+            /** These action types are custom for RootNavigator */
+            SWITCH_POLICY_ID: 'SWITCH_POLICY_ID',
+            DISMISS_MODAL: 'DISMISS_MODAL',
+            OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
         },
     },
     TIME_PERIOD: {
@@ -6631,6 +6634,22 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
     },
     SMART_BANNER_HEIGHT: 152,
+
+    NAVIGATION_TESTS: {
+        DEFAULT_PARENT_ROUTE: {key: 'parentRouteKey', name: 'ParentNavigator'},
+        DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: {
+            shouldUseNarrowLayout: true,
+            isSmallScreenWidth: true,
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: false,
+            onboardingIsMediumOrLargerScreenWidth: false,
+        } as ResponsiveLayoutResult,
+    },
+
     TRAVEL: {
         DEFAULT_DOMAIN: 'domain',
         PROVISIONING: {
