@@ -13,7 +13,7 @@ import type {
     ViewStyle,
 } from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import type {SearchRouterItem} from '@components/Search/SearchRouter/SearchRouterList';
+import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -200,6 +200,9 @@ type ListItem = {
 
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
+
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -318,6 +321,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     shouldPreventEnterKeySubmit?: boolean;
+    shouldShowBlueBorderOnFocus?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;

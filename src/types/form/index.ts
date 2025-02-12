@@ -70,6 +70,7 @@ export type {SageIntactCredentialsForm} from './SageIntactCredentialsForm';
 export type {NetSuiteCustomFieldForm} from './NetSuiteCustomFieldForm';
 export type {NetSuiteTokenInputForm} from './NetSuiteTokenInputForm';
 export type {NetSuiteCustomFormIDForm} from './NetSuiteCustomFormIDForm';
+export type {NSQSOAuth2Form} from './NSQSOAuth2Form';
 export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';
@@ -81,6 +82,7 @@ export type {RulesAutoPayReportsUnderModalForm} from './RulesAutoPayReportsUnder
 export type {RulesRequiredReceiptAmountForm} from './RulesRequiredReceiptAmountForm';
 export type {RulesMaxExpenseAmountForm} from './RulesMaxExpenseAmountForm';
 export type {RulesMaxExpenseAgeForm} from './RulesMaxExpenseAgeForm';
+export type {RulesCustomForm} from './RulesCustomForm';
 export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDescriptionHintForm';
 export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName';

@@ -1,9 +1,9 @@
 import {NavigationContainer} from '@react-navigation/native';
 import {render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import * as IOU from '@libs/actions/IOU';
-import * as PaymentMethods from '@libs/actions/PaymentMethods';
-import * as Policy from '@libs/actions/Policy/Policy';
+import {trackExpense} from '@libs/actions/IOU';
+import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
+import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
 import CONST from '@src/CONST';
@@ -55,11 +55,11 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        Policy.createWorkspace();
+        createWorkspace();
         await waitForBatchedUpdates();
-        Policy.createWorkspace();
+        createWorkspace();
         await waitForBatchedUpdates();
-        Policy.createWorkspace();
+        createWorkspace();
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
@@ -67,34 +67,29 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('workspace_created - categorizeTrackedExpense', () => {
-        // When we categorize a tracked expense with a draft policy
-        IOU.trackExpense(
-            {reportID: '123'},
-            1000,
-            'USD',
-            '2024-10-30',
-            'merchant',
-            undefined,
-            0,
-            {accountID},
-            'comment',
-            true,
-            undefined,
-            'category',
-            'tag',
-            'taxCode',
-            0,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            CONST.IOU.ACTION.CATEGORIZE,
-            'actionableWhisperReportActionID',
-            {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
-            'linkedTrackedExpenseReportID',
-        );
+        trackExpense({
+            report: {reportID: '123'},
+            isDraftPolicy: true,
+            action: CONST.IOU.ACTION.CATEGORIZE,
+            participantParams: {
+                payeeEmail: undefined,
+                payeeAccountID: 0,
+                participant: {accountID},
+            },
+            transactionParams: {
+                amount: 1000,
+                currency: 'USD',
+                created: '2024-10-30',
+                merchant: 'merchant',
+                comment: 'comment',
+                category: 'category',
+                tag: 'tag',
+                taxCode: 'taxCode',
+                actionableWhisperReportActionID: 'actionableWhisperReportActionID',
+                linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
+                linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
+            },
+        });
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
@@ -103,7 +98,7 @@ describe('GoogleTagManagerTest', () => {
 
     test('paid_adoption - addPaymentCard', () => {
         // When we add a payment card
-        PaymentMethods.addPaymentCard(accountID, {
+        addPaymentCard(accountID, {
             expirationDate: '2077-10-30',
             addressZipCode: 'addressZipCode',
             cardNumber: 'cardNumber',
@@ -118,7 +113,7 @@ describe('GoogleTagManagerTest', () => {
 
     test('paid_adoption - addSubscriptionPaymentCard', () => {
         // When we add a payment card
-        PaymentMethods.addSubscriptionPaymentCard(accountID, {
+        addSubscriptionPaymentCard(accountID, {
             cardNumber: 'cardNumber',
             cardYear: 'cardYear',
             cardMonth: 'cardMonth',
