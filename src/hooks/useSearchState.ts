@@ -4,6 +4,12 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
+type SearchRouteParams = {
+    q?: string;
+    type?: string;
+    hashKey?: number;
+};
+
 type SearchStateResult = {
     isOnSearch: boolean;
     hashKey?: number;
@@ -15,9 +21,8 @@ type SearchStateResult = {
  */
 const useSearchState = (): SearchStateResult => {
     // We are using these contexts directly instead of useRoute, because those will throw an error if used outside a navigator.
-    // const route = useContext(NavigationRouteContext) as PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
     const route = useContext(NavigationRouteContext);
-    const {q, type, hashKey: hashKeyFromRoute} = (route?.params as {q?: string; type?: string; hashKey?: number}) ?? {q: undefined, type: undefined, hashKey: undefined};
+    const { q, type, hashKey: hashKeyFromRoute } = (route?.params as SearchRouteParams) ?? {};
 
     return useMemo(() => {
         const isSearchAttachmentModal = route?.name === SCREENS.ATTACHMENTS && type === CONST.ATTACHMENT_TYPE.SEARCH;
@@ -26,10 +31,11 @@ const useSearchState = (): SearchStateResult => {
             return {isOnSearch: false, hashKey: undefined};
         }
 
+
         const queryJSON = q ? buildSearchQueryJSON(q) : ({} as {hash?: number});
         // for attachment modal the hashKey is passed through route params, fallback to it if not found in queryJSON
         const hashKey = queryJSON?.hash ? queryJSON.hash : hashKeyFromRoute ?? undefined;
-        const isOnSearch = ((route?.name === SCREENS.SEARCH.CENTRAL_PANE || route?.name === SCREENS.SEARCH.BOTTOM_TAB) && !!hashKey) || isSearchAttachmentModal;
+        const isOnSearch = (route?.name === SCREENS.SEARCH.ROOT && !!hashKey) || isSearchAttachmentModal;
 
         return {hashKey, isOnSearch};
     }, [q, type, route, hashKeyFromRoute]);
