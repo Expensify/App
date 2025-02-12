@@ -6944,12 +6944,15 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     if (!isCurrentUserSubmitter(report.reportID)) {
         return false;
     }
+    if (!report.policyID || !reportsByPolicyID) {
+        return false;
+    }
 
     // If any report has a violation, then it should have a RBR
-    const potentialReports = report.policyID ? reportsByPolicyID[report.policyID] : [];
-    return potentialReports.some(
-        (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
-    );
+    const potentialReports = reportsByPolicyID[report.policyID] ?? [];
+    return potentialReports.some((potentialReport) => {
+        return hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations);
+    });
 }
 
 /**
