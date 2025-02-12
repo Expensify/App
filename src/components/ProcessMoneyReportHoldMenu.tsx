@@ -2,9 +2,9 @@ import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {approveMoneyRequest, payMoneyRequest} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -72,15 +72,15 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            IOU.approveMoneyRequest(moneyRequestReport, full, hash);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
+            approveMoneyRequest(moneyRequestReport, full, hash);
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId(), moneyRequestReport?.reportID)) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID));
             }
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full, hash);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, full, hash);
         }
         onClose();
     };

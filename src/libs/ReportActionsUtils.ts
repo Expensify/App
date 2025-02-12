@@ -1578,7 +1578,7 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
 /**
  * Check if the linked transaction is on hold
  */
-function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
+function isLinkedTransactionHeld(reportActionID: string | undefined, reportID: string | undefined): boolean {
     const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
     return linkedTransactionID ? isOnHoldByTransactionID(linkedTransactionID) : false;
 }
