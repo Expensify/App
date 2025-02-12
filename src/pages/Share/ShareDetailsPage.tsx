@@ -58,6 +58,14 @@ function ShareDetailsPage({
         if (!currentAttachment) {
             return;
         }
+
+        if (isTextShared) {
+            addComment(report.reportID, message);
+            const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
+            Navigation.navigate(routeToNavigate);
+            return;
+        }
+
         readFileAsync(
             currentAttachment.content,
             getFileName(currentAttachment.content),
@@ -75,11 +83,7 @@ function ShareDetailsPage({
                     );
                 }
                 if (report.reportID) {
-                    if (isTextShared) {
-                        addComment(report.reportID, message);
-                    } else {
-                        addAttachment(report.reportID, file, message);
-                    }
+                    addAttachment(report.reportID, file, message);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
