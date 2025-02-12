@@ -369,7 +369,7 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
-type IntegrationSyncFailedParams = {label: string; errorMessage: string, linkText?: string, linkURL?: string};
+type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string};
 
 type AddEmployeeParams = {email: string; role: string};
 
