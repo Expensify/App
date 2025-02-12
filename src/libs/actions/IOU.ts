@@ -3290,7 +3290,7 @@ function calculateDiffAmount(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     updatedTransaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction>,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
-): number {
+): number | null {
     if (!iouReport) {
         return 0;
     }
@@ -3301,17 +3301,12 @@ function calculateDiffAmount(
     const currentAmount = getAmount(transaction, isExpenseReportLocal);
     const updatedAmount = getAmount(updatedTransaction, isExpenseReportLocal);
 
-    if (updatedCurrency === iouReport?.currency && currentCurrency !== iouReport?.currency) {
-        // Add the diff to the total if we change the currency from a different currency to the currency of the IOU report
-        return updatedAmount;
-    }
-
-    if (updatedCurrency === iouReport?.currency && updatedAmount !== currentAmount) {
-        // Calculate the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
+    if (updatedCurrency === iouReport.currency && currentCurrency === iouReport.currency) {
+        // Calculate the diff between the updated amount and the current amount if the currency of the updated and current transactions have the same currency as the report
         return updatedAmount - currentAmount;
     }
 
-    return 0;
+    return null;
 }
 
 /**
@@ -3451,7 +3446,10 @@ function getUpdateMoneyRequestParams(
     }
 
     // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-    const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+    const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+    // If calculatedDiffAmount is null it means we cannot calculate the new iou report total from front-end due to currency differences.
+    const isTotalIndeterministic = calculatedDiffAmount === null;
+    const diff = calculatedDiffAmount ?? 0;
 
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
     if (!iouReport) {
@@ -3489,7 +3487,7 @@ function getUpdateMoneyRequestParams(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedMoneyRequestReport,
+            value: {...updatedMoneyRequestReport, ...(isTotalIndeterministic && {pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3500,7 +3498,7 @@ function getUpdateMoneyRequestParams(
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-        value: {pendingAction: null},
+        value: {pendingAction: null, ...(isTotalIndeterministic && {pendingFields: {total: null}})},
     });
 
     // Optimistically modify the transaction and the transaction thread
@@ -3631,7 +3629,7 @@ function getUpdateMoneyRequestParams(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: iouReport,
+            value: {...iouReport, ...(isTotalIndeterministic && {pendingFields: {total: null}})},
         });
     }
 
