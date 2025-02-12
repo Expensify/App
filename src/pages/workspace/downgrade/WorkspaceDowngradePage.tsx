@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,22 +56,24 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                     }
                 }}
             />
-            {isDowngraded && !!policyID && (
-                <DowngradeConfirmation
-                    onConfirmDowngrade={() => {
-                        Navigation.dismissModal();
-                    }}
-                    policyID={policyID}
-                />
-            )}
-            {!isDowngraded && (
-                <DowngradeIntro
-                    policyID={policyID}
-                    onDowngrade={downgradeToTeam}
-                    buttonDisabled={isOffline}
-                    loading={policy?.isPendingDowngrade}
-                />
-            )}
+            <ScrollView style={styles.flexGrow1}>
+                {isDowngraded && !!policyID && (
+                    <DowngradeConfirmation
+                        onConfirmDowngrade={() => {
+                            Navigation.dismissModal();
+                        }}
+                        policyID={policyID}
+                    />
+                )}
+                {!isDowngraded && (
+                    <DowngradeIntro
+                        policyID={policyID}
+                        onDowngrade={downgradeToTeam}
+                        buttonDisabled={isOffline}
+                        loading={policy?.isPendingDowngrade}
+                    />
+                )}
+            </ScrollView>
         </ScreenWrapper>
     );
 }

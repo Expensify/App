@@ -3,6 +3,7 @@ import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -184,21 +185,23 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }}
             />
-            {!!policy && isUpgraded && (
-                <UpgradeConfirmation
-                    onConfirmUpgrade={goBack}
-                    policyName={policy.name}
-                />
-            )}
-            {!isUpgraded && (
-                <UpgradeIntro
-                    policyID={policyID}
-                    feature={feature}
-                    onUpgrade={upgradeToCorporate}
-                    buttonDisabled={isOffline}
-                    loading={policy?.isPendingUpgrade}
-                />
-            )}
+            <ScrollView style={styles.flexGrow1}>
+                {!!policy && isUpgraded && (
+                    <UpgradeConfirmation
+                        onConfirmUpgrade={goBack}
+                        policyName={policy.name}
+                    />
+                )}
+                {!isUpgraded && (
+                    <UpgradeIntro
+                        policyID={policyID}
+                        feature={feature}
+                        onUpgrade={upgradeToCorporate}
+                        buttonDisabled={isOffline}
+                        loading={policy?.isPendingUpgrade}
+                    />
+                )}
+            </ScrollView>
         </ScreenWrapper>
     );
 }
