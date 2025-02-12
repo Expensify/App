@@ -153,6 +153,7 @@ import {
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
+    isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
     wasActionTakenByCurrentUser,
@@ -8419,6 +8420,11 @@ function getAllAncestorReportActions(report: Report | null | undefined, currentU
         const parentReportAction = getReportAction(parentReportID, parentReportActionID);
 
         if (!parentReport || !parentReportAction || (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction)) {
+            break;
+        }
+
+        // For threads, we don't want to display trip summary
+        if (isTripPreview(parentReportAction) && allAncestors.length > 0) {
             break;
         }
 

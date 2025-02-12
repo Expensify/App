@@ -111,7 +111,7 @@ function ReportActionItemParentAction({
             {allAncestors.map((ancestor) => {
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
                 const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
-                const isTripRoomReport = isTripPreview(ancestor.reportAction);
+                const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
 
                 return (
                     <OfflineWithFeedback
@@ -122,7 +122,7 @@ function ReportActionItemParentAction({
                         errorRowStyles={[styles.ml10, styles.mr2]}
                         onClose={() => navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                     >
-                        {!isTripRoomReport && (
+                        {shouldDisplayThreadDivider && (
                             <ThreadDivider
                                 ancestor={ancestor}
                                 isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
