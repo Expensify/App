@@ -270,10 +270,16 @@ type OriginalMessageChangeLog = {
     /** When was it last modified */
     lastModified?: string;
 
-    /** New role of user or new value of the category/tag field */
+    /** New role of user or new value of the category/tag field
+     * The user role will be of type string and category/tag value (enabled/disable)
+     * will be of type boolean.
+     */
     newValue?: boolean | string;
 
-    /** Old role of user or old value of the category/tag field */
+    /** Old role of user or old value (enabled/disable) of the category/tag field.
+     * The user role will be of type string and category/tag value (enabled/disable)
+     * will be of type boolean.
+     */
     oldValue?: boolean | string;
 
     /** Name of connection */
