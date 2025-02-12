@@ -21,12 +21,17 @@ import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
-import {getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {clearCategoryErrors, deleteWorkspaceCategories, setPolicyCategoryDescriptionRequired, setWorkspaceCategoryDescriptionHint, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
+import {
+    clearCategoryErrors,
+    deleteWorkspaceCategories,
+    setPolicyCategoryDescriptionRequired,
+    setWorkspaceCategoryDescriptionHint,
+    setWorkspaceCategoryEnabled,
+} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
