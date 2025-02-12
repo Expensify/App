@@ -3,11 +3,11 @@ name: Build and deploy hybrid apps for testing
 on:
   workflow_dispatch:
     inputs:
-      PULL_REQUEST_NUMBER:
+      APP_PULL_REQUEST_NUMBER:
         description: Pull Request number for correct placement of apps
         required: false
         default: ''
-      OLD_DOT_PULL_REQUEST_NUMBER:
+      HYBRIDAPP_PULL_REQUEST_NUMBER:
         description: Old Dot Pull request number to build the app from. It will take precedence over MOBILE-EXPENSIFY from ND PR if both specified. 
         required: false
         default: ''
@@ -24,7 +24,7 @@ jobs:
 
       - name: Validate input
         run: |
-          if [[ -z "${{ github.event.inputs.PULL_REQUEST_NUMBER }}" && -z "${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }}" ]]; then
+          if [[ -z "${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" && -z "${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}" ]]; then
             echo "Invalid input. You have to pass at least one PR number"
             exit 1
           fi
@@ -39,10 +39,10 @@ jobs:
         id: getHeadRef
         run: |
           set -e
-          if [[ -z "${{ github.event.inputs.PULL_REQUEST_NUMBER }}" ]]; then
+          if [[ -z "${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" ]]; then
             echo "REF=" >> "$GITHUB_OUTPUT"
           else
-            echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} -R Expensify/App --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+            echo "REF=$(gh pr view ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }} -R Expensify/App --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -60,12 +60,12 @@ jobs:
           github-token: ${{ github.token }}
           result-encoding: string
           script: |
-            if (!'${{ github.event.inputs.PULL_REQUEST_NUMBER }}') return '';
+            if (!'${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}') return '';
 
             const pullRequest = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: '${{ github.event.inputs.PULL_REQUEST_NUMBER }}',
+              pull_number: '${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}',
             });
             
             const body = pullRequest.data.body;
@@ -87,10 +87,10 @@ jobs:
           id: getHeadRef
           run: |
             set -e
-            if [[ -z "${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }}" && -z "${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}" ]]; then
+            if [[ -z "${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}" && -z "${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}" ]]; then
               echo "REF=" >> "$GITHUB_OUTPUT"
             else
-              echo "REF=$(gh pr view ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+              echo "REF=$(gh pr view ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
             fi
           env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -101,7 +101,7 @@ jobs:
     needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     steps:
       - name: Add build start comment to ND PR
-        if: ${{ github.event.inputs.PULL_REQUEST_NUMBER != ''}}
+        if: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER != ''}}
         uses: actions/github-script@v7
         with:
           github-token: ${{ github.token }}
@@ -110,12 +110,12 @@ jobs:
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: ${{ github.event.inputs.PULL_REQUEST_NUMBER }},
+              issue_number: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }},
               body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
             });
 
       - name: Add build start comment to ND PR
-        if: ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER != '' || needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
+        if: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER != '' || needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ github.token }}
@@ -124,7 +124,7 @@ jobs:
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: 'Mobile-Expensify',
-              issue_number: ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }},
+              issue_number: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }},
               body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
             });
 
@@ -173,7 +173,7 @@ jobs:
         run: |
             cp .env.staging .env.adhoc
             sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-            echo "PULL_REQUEST_NUMBER=${{ inputs.pull_request_number }}" >> .env.adhoc
+            echo "PULL_REQUEST_NUMBER=${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" >> .env.adhoc
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -279,7 +279,7 @@ jobs:
         run: |
           cp .env.staging .env.adhoc
           sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+          echo "PULL_REQUEST_NUMBER=${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}" >> .env.adhoc
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1.204.0
@@ -371,7 +371,7 @@ jobs:
       - name: Publish links to apps for download
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
-          PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          PR_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
