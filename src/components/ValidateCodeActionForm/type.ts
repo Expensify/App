@@ -3,9 +3,6 @@ import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/V
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ValidateCodeActionFormProps = {
-    /** Wheter code is validated */
-    isValidated: boolean;
-
     /** Primary description of the modal */
     descriptionPrimary: string;
 

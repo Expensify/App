@@ -329,7 +329,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {isValidateCodeFormVisible && !loginData.validatedDate && !!loginData && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                        isValidated={!!loginData.validatedDate}
                         validatePendingAction={loginData.pendingFields?.validateCodeSent}
                         handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
                         validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}

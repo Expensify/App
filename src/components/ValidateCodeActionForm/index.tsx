@@ -9,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionFormProps} from './type';
 
 function ValidateCodeActionForm({
-    isValidated,
     descriptionPrimary,
     descriptionSecondary,
     validatePendingAction,
@@ -36,22 +35,19 @@ function ValidateCodeActionForm({
     );
 
     useEffect(() => {
-        if (hasMagicCodeBeenSent) {
-            // eslint-disable-next-line rulesdir/prefer-early-return
-            return () => {
-                // We need to run clearError in cleanup function to use as onClose function.
-                // As 'useEffect cleanup function' runs when even the component is unmounted, we need to put clearError() in the if condition.
-                // So clearError() will not run when the form is unmounted.
-                if (isClosedRef.current && !isValidated) {
-                    clearError();
-                }
-            };
-        }
         if (!isInitialized.current) {
             isInitialized.current = true;
             sendValidateCode();
         }
-    }, [isValidated, sendValidateCode, hasMagicCodeBeenSent, clearError]);
+        return () => {
+            // We need to run clearError in cleanup function to use as onClose function.
+            // As 'useEffect cleanup function' runs whenever a dependency is called, we need to put clearError() in the if condition.
+            // So clearError() will not run when the form is unmounted.
+            if (isClosedRef.current) {
+                clearError();
+            }
+        };
+    }, [sendValidateCode, clearError]);
 
     return (
         <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
