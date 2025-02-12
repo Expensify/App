@@ -4585,7 +4585,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 
     const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
     if (trackReport?.key) {
-        Navigation.isNavigationReady().then(() => Navigation.removeScreenByKey(trackReport.key));
+        Navigation.removeScreenByKey(trackReport.key);
     }
 
     if (activeReportID) {

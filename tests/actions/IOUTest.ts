@@ -79,7 +79,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
-    getPreviousTrackReport: jest.fn(),
+    getReportRouteByID: jest.fn(),
 }));
 
 jest.mock('@src/libs/Navigation/navigationRef', () => ({

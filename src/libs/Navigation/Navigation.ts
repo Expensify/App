@@ -453,11 +453,13 @@ function removeScreenByKey(key: string) {
     const state = navigationRef.getRootState();
     const routes = state.routes.filter((item) => item.key !== key);
 
-    navigationRef.current?.dispatch(() => {
-        return CommonActions.reset({
-            ...state,
-            routes,
-            index: routes.length < state.routes.length ? state.index - 1 : state.index,
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch(() => {
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
         });
     });
 }
