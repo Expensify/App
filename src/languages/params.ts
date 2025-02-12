@@ -620,6 +620,10 @@ type SettlementDateParams = {
     settlementDate: string;
 };
 
+type PolicyExpenseChatNameParams = {
+    displayName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -838,4 +842,5 @@ export type {
     FlightLayoverParams,
     SubmitsToParams,
     SettlementDateParams,
+    PolicyExpenseChatNameParams,
 };

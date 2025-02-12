@@ -2420,12 +2420,14 @@ function getDisplayNameForParticipant({
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
     personalDetailsData = allPersonalDetails,
+    shouldRemoveDomain = false,
 }: {
     accountID?: number;
     shouldUseShortForm?: boolean;
     shouldFallbackToHidden?: boolean;
     shouldAddCurrentUserPostfix?: boolean;
     personalDetailsData?: Partial<PersonalDetailsList>;
+    shouldRemoveDomain?: boolean;
 }): string {
     if (!accountID) {
         return '';
@@ -2456,7 +2458,11 @@ function getDisplayNameForParticipant({
     // For selfDM, we display the user's displayName followed by '(you)' as a postfix
     const shouldAddPostfix = shouldAddCurrentUserPostfix && accountID === currentUserAccountID;
 
-    const longName = getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
+    let longName = getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden, shouldAddPostfix);
+
+    if (shouldRemoveDomain && longName === formattedLogin) {
+        longName = longName.split('@').at(0) ?? '';
+    }
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     if (shouldFallbackToHidden && longName === hiddenTranslation) {
@@ -3225,12 +3231,7 @@ function getPolicyExpenseChatName({
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID}) || login || report?.reportName;
-
-    // If the policy expense chat is owned by this user, use the name of the policy as the report name.
-    if (report?.isOwnPolicyExpenseChat) {
-        return getPolicyName({report, policy, policies, reports});
-    }
+    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login || report?.reportName;
 
     let policyExpenseChatRole = 'user';
 
@@ -3249,8 +3250,7 @@ function getPolicyExpenseChatName({
         }
     }
 
-    // If user can see this report and they are not its owner, they must be an admin and the report name should be the name of the policy member
-    return reportOwnerDisplayName;
+    return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''});
 }
 
 function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined {
@@ -4585,7 +4585,8 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
             return translateLocal('workspace.common.workspace');
         }
 
-        return translateLocal('iou.submitsTo', {name: subtitle ?? ''});
+        const policyName = getPolicyName({report});
+        return `${policyName} ${CONST.DOT_SEPARATOR} ${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
     }
     if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';

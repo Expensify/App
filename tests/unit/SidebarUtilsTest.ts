@@ -7,6 +7,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReport from '../utils/collections/reports';
 
 describe('SidebarUtils', () => {
     beforeAll(() =>
@@ -332,6 +335,59 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getOptionData', () => {
+        it('the alternative text of policy expense chat should contain the policy name with dot prefix if it has some actions', () => {
+            const preferredLocale = 'en';
+            const policy = createRandomPolicy(1);
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy.id,
+                policyName: policy.name,
+            };
+            const reportNameValuePairs = {};
+            const optionData = SidebarUtils.getOptionData({
+                report,
+                reportNameValuePairs,
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale,
+                policy,
+                parentReportAction: undefined,
+                hasViolations: false,
+                lastMessageTextFromReport: 'test message',
+            });
+            expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
+        });
+        it('the alternative text of child report of policy expense chat should not contain the policy name with dot prefix if it has some actions', async () => {
+            const preferredLocale = 'en';
+            const policy = createRandomPolicy(1);
+            const parentReportAction = createRandomReportAction(1);
+            const report: Report = {
+                ...createRandomReport(2),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy.id,
+                policyName: policy.name,
+                parentReportActionID: parentReportAction.reportActionID,
+                parentReportID: '1',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const reportNameValuePairs = {};
+            const optionData = SidebarUtils.getOptionData({
+                report,
+                reportNameValuePairs,
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale,
+                policy,
+                parentReportAction: undefined,
+                hasViolations: false,
+                lastMessageTextFromReport: 'test message',
+            });
+            expect(optionData?.alternateText).toBe(`test message`);
         });
     });
 });

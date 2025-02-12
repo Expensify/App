@@ -121,6 +121,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PolicyExpenseChatNameParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -2747,6 +2748,7 @@ const translations = {
             viewTransactions: 'Ver transacciones',
             leaveConfirmation:
                 '¿Estás seguro de que quieres salir de este espacio de trabajo? Una vez que salgas, perderás el acceso a todos los datos y configuraciones asociadas con este espacio de trabajo.',
+            policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s gasto`,
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',

@@ -122,6 +122,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PolicyExpenseChatNameParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -2721,6 +2722,7 @@ const translations = {
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             leaveConfirmation: "Are you sure you want to leave this workspace? Once you leave, you'll lose access to all data and settings associated with this workspace.",
+            policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expense`,
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
