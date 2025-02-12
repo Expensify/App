@@ -139,9 +139,7 @@ type BeneficialOwnersStepExtraProps = {
     beneficialOwnerKeys?: string[];
 };
 
-type SignerInfoStepExtraProps = {
-    [key: string]: string;
-};
+type SignerInfoStepExtraProps = Record<string, string>;
 
 type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;
 
