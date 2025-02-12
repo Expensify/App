@@ -1,3 +1,4 @@
+import {exec} from 'child_process';
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
 import contextMenu from 'electron-context-menu';
@@ -15,7 +16,6 @@ import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
-import { exec } from 'child_process';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 

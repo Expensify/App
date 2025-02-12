@@ -58,6 +58,8 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { RESULTS, type PermissionStatus } from 'react-native-permissions';
+
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
@@ -684,7 +686,7 @@ function IOURequestStepConfirmation({
     const isLoading = !!transaction?.originalCurrency;
 
     const onConfirm = (listOfParticipants: Participant[]) => {
-        setIsConfirming(true);
+        // setIsConfirming(true);
         setSelectedParticipantList(listOfParticipants);
 
         if (gpsRequired) {
@@ -700,7 +702,7 @@ function IOURequestStepConfirmation({
         }
 
         createTransaction(listOfParticipants);
-        setIsConfirming(false);
+        // setIsConfirming(false);
     };
 
     if (isLoadingTransaction) {
@@ -741,7 +743,9 @@ function IOURequestStepConfirmation({
                             updateLastLocationPermissionPrompt();
                             createTransaction(selectedParticipantList, false);
                         }}
-                        onInitialGetLocationCompleted={() => setIsConfirming(false)}
+                        onInitialGetLocationCompleted={(status: PermissionStatus) => {
+                            setIsConfirmed(status === RESULTS.GRANTED || status === RESULTS.LIMITED);
+                        }}
                     />
                 )}
                 <MoneyRequestConfirmationList

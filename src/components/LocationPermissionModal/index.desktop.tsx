@@ -27,7 +27,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         }
 
         getLocationPermission().then((status) => {
-            onInitialGetLocationCompleted?.();
+            onInitialGetLocationCompleted?.(status);
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
             }
