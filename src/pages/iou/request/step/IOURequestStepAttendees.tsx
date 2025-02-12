@@ -9,6 +9,7 @@ import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actio
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -40,8 +41,8 @@ function IOURequestStepAttendees({
     policyCategories,
 }: IOURequestStepAttendeesProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`);
-    const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(transaction));
+    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || -1}`);
+    const [attendees, setAttendees] = useState<Attendee[]>(() => TransactionUtils.getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
@@ -51,7 +52,7 @@ function IOURequestStepAttendees({
             return;
         }
         if (!lodashIsEqual(previousAttendees, attendees)) {
-            setMoneyRequestAttendees(transactionID, attendees, !isEditing);
+            IOU.setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
                 updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined);
             }

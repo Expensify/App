@@ -32,21 +32,20 @@ function TransactionDuplicateReview() {
     const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = getLinkedTransactionID(reportAction, report?.reportID) ?? undefined;
     const transactionViolations = useTransactionViolations(transactionID);
-
     const duplicateTransactionIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
     );
-    const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : [...duplicateTransactionIDs];
+    const transactionIDs = [transactionID, ...duplicateTransactionIDs];
 
-    const transactions = transactionIDs.map((item) => getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
+    const transactions = transactionIDs.map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
 
     const keepAll = () => {
-        dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails);
+        Transaction.dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails);
         Navigation.goBack();
     };
 
-    const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
+    const hasSettledOrApprovedTransaction = transactions.some((transaction) => ReportUtils.isSettled(transaction?.reportID) || ReportUtils.isReportIDApproved(transaction?.reportID));
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>

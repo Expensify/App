@@ -919,10 +919,8 @@ function isDuplicate(transactionID: string | undefined, checkDismissed = false):
     const duplicateViolation = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
-
-    const hasDuplicatedViolation = !!duplicateViolation;
     if (!checkDismissed) {
-        return !!duplicateViolation;
+        return hasDuplicatedViolation;
     }
 
     const didDismissedViolation = isViolationDismissed(transaction, duplicateViolation);
@@ -1003,9 +1001,6 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
-    if (!transactionID) {
-        return false;
-    }
     const transaction = getTransaction(transactionID);
     if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
         return false;
@@ -1030,7 +1025,11 @@ function hasWarningTypeViolation(transactionID: string | undefined, transactionV
 /**
  * Calculates tax amount from the given expense amount and tax percentage
  */
-function calculateTaxAmount(percentage: string, amount: number, currency: string) {
+function calculateTaxAmount(percentage: string | undefined, amount: number, currency: string) {
+    if (!percentage) {
+        return 0;
+    }
+
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
     const taxAmount = (amount - amount / divisor) / 100;
     const decimals = getCurrencyDecimals(currency);
@@ -1489,7 +1488,6 @@ export {
     getFormattedPostedDate,
     getCategoryTaxCodeAndAmount,
     isPerDiemRequest,
-    isViolationDismissed,
 };
 
 export type {TransactionChanges};

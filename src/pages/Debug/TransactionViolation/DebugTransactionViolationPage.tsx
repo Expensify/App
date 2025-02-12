@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -7,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import Debug from '@libs/actions/Debug';
 import DebugUtils from '@libs/DebugUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
@@ -85,7 +86,7 @@ function DebugTransactionViolationPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={canUseTouchScreen()}
+            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
             testID={DebugTransactionViolationPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (

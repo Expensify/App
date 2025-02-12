@@ -252,7 +252,6 @@ function ReportPreview({
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
     const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, allTransactionViolations);
-
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on

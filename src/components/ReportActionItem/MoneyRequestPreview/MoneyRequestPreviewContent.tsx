@@ -118,6 +118,7 @@ function MoneyRequestPreviewContent({
     });
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
+
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -152,6 +153,7 @@ function MoneyRequestPreviewContent({
     const hasViolations = hasViolationTransactionUtils(transaction, violations, true);
     const hasNoticeTypeViolations = hasNoticeTypeViolationTransactionUtils(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
     const hasWarningTypeViolations = hasWarningTypeViolationTransactionUtils(transaction?.transactionID, violations, true);
+
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
@@ -167,8 +169,11 @@ function MoneyRequestPreviewContent({
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicates = useMemo(
-        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
-        [transactionViolations],
+        () =>
+            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            )?.data?.duplicates ?? [],
+        [transaction?.transactionID, transactionViolations],
     );
 
     // Remove settled transactions from duplicates
@@ -241,13 +246,14 @@ function MoneyRequestPreviewContent({
         }
 
         if (shouldShowRBR && transaction) {
+            const violations = getTransactionViolations(transaction.transactionID, transactionViolations);
             if (shouldShowHoldMessage) {
                 return `${message} ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
-            const firstViolation = transactionViolations?.at(0);
+            const firstViolation = violations?.at(0);
             if (firstViolation) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate);
-                const violationsCount = transactionViolations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
+                const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
@@ -287,7 +293,7 @@ function MoneyRequestPreviewContent({
         if (shouldShowBrokenConnectionViolation(transaction ? [transaction.transactionID] : [], iouReport, policy, violations)) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
-        if (hasPendingUI(transaction, transactionViolations)) {
+        if (hasPendingUI(transaction, getTransactionViolations(transaction?.transactionID, transactionViolations))) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
