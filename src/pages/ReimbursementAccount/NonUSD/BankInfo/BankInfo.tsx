@@ -16,7 +16,6 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AccountHolderDetails from './subSteps/AccountHolderDetails';
 import BankAccountDetails from './subSteps/BankAccountDetails';
 import Confirmation from './subSteps/Confirmation';
-import UploadStatement from './subSteps/UploadStatement';
 import type {BankInfoSubStepProps} from './types';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
@@ -67,8 +66,7 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
         getCorpayBankAccountFields(country, currency);
     }, [country, currency]);
 
-    const bodyContent: Array<ComponentType<BankInfoSubStepProps>> =
-        currency !== CONST.CURRENCY.AUD ? [BankAccountDetails, AccountHolderDetails, Confirmation] : [BankAccountDetails, AccountHolderDetails, UploadStatement, Confirmation];
+    const bodyContent: Array<ComponentType<BankInfoSubStepProps>> = [BankAccountDetails, AccountHolderDetails, Confirmation];
 
     const {
         componentToRender: SubStep,

@@ -90,7 +90,6 @@ const INPUT_IDS = {
             BANK_ADDRESS_LINE_1: 'bankAddressLine1',
             BANK_COUNTRY: 'bankCountry',
             BANK_CURRENCY: 'bankCurrency',
-            BANK_STATEMENT: 'bankStatement',
             COMPANY_NAME: 'companyName',
             COMPANY_STREET: 'companyStreetAddress',
             COMPANY_CITY: 'companyCity',
@@ -273,9 +272,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Bank address line 1 */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_ADDRESS_LINE_1]: string;
-
-    /** Bank statement file */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
 
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
