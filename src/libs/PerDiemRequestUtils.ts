@@ -110,15 +110,18 @@ function getDestinationListSections({
 
     if (searchValue) {
         const searchDestinations: Destination[] = [];
+        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
 
         sortedDestinations.forEach((destination) => {
-            if (!destination.name.toLowerCase().includes(searchValue.toLowerCase())) {
-                return;
+            const destinationNameTokens = destination.name.trim().toLowerCase().split(/\s+/);
+            const isMatch = searchTokens.every((searchToken) => destinationNameTokens.some((destinationToken) => destinationToken.includes(searchToken)));
+
+            if (isMatch) {
+                searchDestinations.push({
+                    ...destination,
+                    isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
+                });
             }
-            searchDestinations.push({
-                ...destination,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
-            });
         });
 
         const data = getDestinationOptionTree(searchDestinations);

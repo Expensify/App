@@ -99,9 +99,19 @@ function getTaxRatesSection({
     }
 
     if (searchValue) {
-        const enabledSearchTaxRates = enabledTaxRatesWithoutSelectedOptions.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchValue.toLowerCase()));
-        const selectedSearchTags = selectedTaxRateWithDisabledState.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchValue.toLowerCase()));
-        const taxesForSearch = [...selectedSearchTags, ...enabledSearchTaxRates];
+        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
+
+        const enabledSearchTaxRates = enabledTaxRatesWithoutSelectedOptions.filter((taxRate) => {
+            const taxTokens = taxRate.modifiedName?.toLowerCase().split(/\s+/) ?? [];
+            return searchTokens.every((searchToken) => taxTokens.some((taxToken) => taxToken.includes(searchToken)));
+        });
+
+        const selectedSearchTaxRates = selectedTaxRateWithDisabledState.filter((taxRate) => {
+            const taxTokens = taxRate.modifiedName?.toLowerCase().split(/\s+/) ?? [];
+            return searchTokens.every((searchToken) => taxTokens.some((taxToken) => taxToken.includes(searchToken)));
+        });
+
+        const taxesForSearch = [...selectedSearchTaxRates, ...enabledSearchTaxRates];
 
         policyRatesSections.push({
             // "Search" section

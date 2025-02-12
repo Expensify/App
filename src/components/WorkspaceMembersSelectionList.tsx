@@ -75,9 +75,12 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         const filteredApprovers =
             debouncedSearchTerm !== ''
                 ? approvers.filter((option) => {
-                      const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                      const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                      return isPartOfSearchTerm;
+                      const searchTokens = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).split(/\s+/);
+                      const textTokens = option.text?.toLowerCase().split(/\s+/) || [];
+                      const loginTokens = option.login?.toLowerCase().split(/\s+/) || [];
+                      return searchTokens.every(
+                          (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || loginTokens.some((loginToken) => loginToken.includes(searchToken)),
+                      );
                   })
                 : approvers;
 

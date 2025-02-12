@@ -126,15 +126,18 @@ function getCategoryListSections({
     if (searchValue) {
         const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
         const searchCategories: Category[] = [];
+        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
 
         categoriesForSearch.forEach((category) => {
-            if (!category.name.toLowerCase().includes(searchValue.toLowerCase())) {
-                return;
+            const categoryNameTokens = category.name.trim().toLowerCase().split(/\s+/);
+            const isMatch = searchTokens.every((searchToken) => categoryNameTokens.some((categoryToken) => categoryToken.includes(searchToken)));
+
+            if (isMatch) {
+                searchCategories.push({
+                    ...category,
+                    isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+                });
             }
-            searchCategories.push({
-                ...category,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
-            });
         });
 
         const data = getCategoryOptionTree(searchCategories, true);

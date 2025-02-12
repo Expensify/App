@@ -110,9 +110,15 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
+            const searchTokens = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm).split(/\s+/);
+
             const filteredOptions = [...formattedPolicyAdmins, ...formattedAuthorizedPayer].filter((option) => {
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
-                return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
+                const textTokens = option.text?.toLowerCase().split(/\s+/) ?? [];
+                const loginTokens = option.login?.toLowerCase().split(/\s+/) ?? [];
+
+                return searchTokens.every(
+                    (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || loginTokens.some((loginToken) => loginToken.includes(searchToken)),
+                );
             });
             return [
                 {

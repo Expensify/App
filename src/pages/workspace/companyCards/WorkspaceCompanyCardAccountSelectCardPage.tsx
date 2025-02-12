@@ -43,7 +43,11 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const searchedListOptions = useMemo(() => {
-        return exportMenuItem?.data.filter((option) => option.value.toLowerCase().includes(searchText));
+        const searchTokens = searchText.trim().toLowerCase().split(/\s+/);
+        return exportMenuItem?.data.filter((option) => {
+            const optionTokens = option.value.toLowerCase().split(/\s+/);
+            return searchTokens.every((searchToken) => optionTokens.some((optionToken) => optionToken.includes(searchToken)));
+        });
     }, [exportMenuItem?.data, searchText]);
 
     const listEmptyContent = useMemo(

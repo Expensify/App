@@ -45,7 +45,11 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                             searchText: value,
                         } satisfies ListItem),
                 )
-                .filter(({searchText}) => searchText.toLowerCase().includes(searchValue.toLowerCase())),
+                .filter(({searchText}) => {
+                    const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
+                    const textTokens = searchText.trim().toLowerCase().split(/\s+/);
+                    return searchTokens.every((searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)));
+                }),
         [fieldName, fieldValue, formType, searchValue],
     );
     const selectedOptionKey = useMemo(() => sections.filter((option) => option.searchText === fieldValue).at(0)?.keyForList, [sections, fieldValue]);

@@ -36,7 +36,12 @@ function getReportFieldOptionsSection({
     let indexOffset = 0;
 
     if (searchValue) {
-        const searchOptions = options.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
+        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
+
+        const searchOptions = options.filter((option) => {
+            const optionTokens = option.trim().toLowerCase().split(/\s+/);
+            return searchTokens.every((searchToken) => optionTokens.some((optionToken) => optionToken.includes(searchToken)));
+        });
 
         reportFieldOptionsSections.push({
             // "Search" section

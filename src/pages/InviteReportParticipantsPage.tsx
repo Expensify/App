@@ -112,8 +112,12 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = inviteOptions.personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
-                const processedSearchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(processedSearchValue) || !!option.login?.toLowerCase().includes(processedSearchValue);
+                const searchTokens = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).split(/\s+/);
+                const textTokens = option.text?.toLowerCase().split(/\s+/) ?? [];
+                const loginTokens = option.login?.toLowerCase().split(/\s+/) ?? [];
+                const isPartOfSearchTerm = searchTokens.every(
+                    (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || loginTokens.some((loginToken) => loginToken.includes(searchToken)),
+                );
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }

@@ -8,6 +8,7 @@ describe('CategoryOptionListUtils', () => {
         const search = 'Food';
         const emptySearch = '';
         const wrongSearch = 'bla bla';
+        const employeeSearch = 'Employee Office';
         const recentlyUsedCategories = ['Taxi', 'Restaurant'];
         const selectedOptions: CategoryOptionsListUtils.Category[] = [
             {
@@ -56,12 +57,31 @@ describe('CategoryOptionListUtils', () => {
                 origin: '',
                 pendingAction: undefined,
             },
+            'Employee Meals Office': {
+                enabled: true,
+                name: 'Employee Meals Office',
+                unencodedName: 'Employee Meals Office',
+                areCommentsRequired: false,
+                'GL Code': '',
+                externalID: '',
+                origin: '',
+                pendingAction: undefined,
+            },
         };
         const smallResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: false,
                 data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
                     {
                         text: 'Food',
                         keyForList: 'Food',
@@ -90,7 +110,7 @@ describe('CategoryOptionListUtils', () => {
                         pendingAction: 'delete',
                     },
                 ],
-                indexOffset: 3,
+                indexOffset: 4,
             },
         ];
         const smallSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
@@ -460,6 +480,25 @@ describe('CategoryOptionListUtils', () => {
             },
         ];
 
+        const employeeSearchResultList: CategoryOptionsListUtils.CategoryTreeSection[] = [
+            {
+                title: '',
+                shouldShow: true,
+                indexOffset: 1,
+                data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                ],
+            },
+        ];
+
         const smallResult = CategoryOptionsListUtils.getCategoryListSections({
             searchValue: emptySearch,
             categories: smallCategoriesList,
@@ -471,6 +510,9 @@ describe('CategoryOptionListUtils', () => {
 
         const smallWrongSearchResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: wrongSearch, categories: smallCategoriesList});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
+
+        const employeeSearchResult = CategoryOptionsListUtils.getCategoryListSections({searchValue: employeeSearch, categories: smallCategoriesList});
+        expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
 
         const largeResult = CategoryOptionsListUtils.getCategoryListSections({
             searchValue: emptySearch,

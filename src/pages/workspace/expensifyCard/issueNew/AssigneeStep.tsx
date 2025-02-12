@@ -115,7 +115,14 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         }
 
         const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
-        const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
+        const filteredOptions = membersDetails.filter((option) => {
+            const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
+            const textTokens = option.text?.toLowerCase().split(/\s+/) ?? [];
+            const alternateTextTokens = option.alternateText?.toLowerCase().split(/\s+/) ?? [];
+            return searchTokens.every(
+                (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || alternateTextTokens.some((altToken) => altToken.includes(searchToken)),
+            );
+        });
 
         return [
             {

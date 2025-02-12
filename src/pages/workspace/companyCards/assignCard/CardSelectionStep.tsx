@@ -99,7 +99,11 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     }));
 
     const searchedListOptions = useMemo(() => {
-        return cardListOptions.filter((option) => option.text.toLowerCase().includes(searchText));
+        const searchTokens = searchText.trim().toLowerCase().split(/\s+/);
+        return cardListOptions.filter((option) => {
+            const optionTokens = option.text.toLowerCase().split(/\s+/);
+            return searchTokens.every((searchToken) => optionTokens.some((optionToken) => optionToken.includes(searchToken)));
+        });
     }, [searchText, cardListOptions]);
 
     return (

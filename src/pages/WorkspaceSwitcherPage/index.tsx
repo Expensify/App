@@ -123,13 +123,20 @@ function WorkspaceSwitcherPage() {
             }));
     }, [policies, isOffline, currentUserLogin, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);
 
-    const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
-        () =>
-            usersWorkspaces
-                .filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID)),
-        [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID],
-    );
+    const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(() => {
+        if (!debouncedSearchTerm) {
+            return usersWorkspaces;
+        }
+
+        const searchTokens = debouncedSearchTerm.trim().toLowerCase().split(/\s+/);
+
+        return usersWorkspaces
+            .filter((policy) => {
+                const policyTokens = policy.text?.toLowerCase().split(/\s+/) || [];
+                return searchTokens.every((searchToken) => policyTokens.some((policyToken) => policyToken.includes(searchToken)));
+            })
+            .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID));
+    }, [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID]);
 
     const sections = useMemo(() => {
         const options: Array<SectionListDataType<WorkspaceListItem>> = [

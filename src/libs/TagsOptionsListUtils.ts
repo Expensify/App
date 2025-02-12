@@ -84,8 +84,18 @@ function getTagListSections({
     }
 
     if (searchValue) {
-        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchValue.toLowerCase()));
-        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchValue.toLowerCase()));
+        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
+
+        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((tag) => {
+            const tagTokens = PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).split(/\s+/);
+            return searchTokens.every((searchToken) => tagTokens.some((tagToken) => tagToken.includes(searchToken)));
+        });
+
+        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => {
+            const tagTokens = PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).split(/\s+/);
+            return searchTokens.every((searchToken) => tagTokens.some((tagToken) => tagToken.includes(searchToken)));
+        });
+
         const tagsForSearch = [...selectedSearchTags, ...enabledSearchTags];
 
         tagSections.push({
