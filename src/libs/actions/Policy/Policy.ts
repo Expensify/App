@@ -67,7 +67,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {translateLocal} from '@libs/Localize';
+import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -1600,7 +1600,8 @@ function generateDefaultWorkspaceName(email = ''): string {
 
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
-    const workspaceRegex = new RegExp(`(?:${escapedName}'s Workspace|Espacio de trabajo)\\s*(\\d+)?\\s*(?:de ${escapedName})?$`, 'i');
+    const workspaceTranslations = CONST.LANGUAGES.map((lang) => translate(lang, 'workspace.common.workspace')).join('|');
+    const workspaceRegex = new RegExp(`(?:${escapedName}'s ${workspaceTranslations})\\s*(\\d+)?\\s*(?:de ${escapedName})?$`, 'i');
 
     const workspaceNumbers = Object.values(allPolicies)
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
