@@ -3,6 +3,7 @@ import {useContext, useMemo} from 'react';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+import { SearchQueryJSON } from '@components/Search/types';
 
 type SearchRouteParams = {
     q?: string;
@@ -31,8 +32,7 @@ const useSearchState = (): SearchStateResult => {
             return {isOnSearch: false, hashKey: undefined};
         }
 
-
-        const queryJSON = q ? buildSearchQueryJSON(q) : ({} as {hash?: number});
+        const queryJSON = q ? buildSearchQueryJSON(q) : ({} as Partial<SearchQueryJSON>);
         // for attachment modal the hashKey is passed through route params, fallback to it if not found in queryJSON
         const hashKey = queryJSON?.hash ? queryJSON.hash : hashKeyFromRoute ?? undefined;
         const isOnSearch = (route?.name === SCREENS.SEARCH.ROOT && !!hashKey) || isSearchAttachmentModal;
