@@ -1,12 +1,12 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
-
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
@@ -56,6 +56,16 @@ const missingTagViolation = {
 const tagOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+};
+
+const smartScanFailedViolation = {
+    name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    type: CONST.VIOLATION_TYPES.WARNING,
+};
+
+const duplicatedTransactionViolation = {
+    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    type: CONST.VIOLATION_TYPES.WARNING,
 };
 
 describe('getViolationsOnyxData', () => {
@@ -500,4 +510,3 @@ describe('getViolations', () => {
         expect(hasWarningTypeViolationRes).toBeFalsy();
     });
 });
-
