@@ -45,7 +45,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
         >
-            <View style={[styles.mv1, styles.mh5]}>
+            <View style={[styles.m5]}>
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
                         <Header
