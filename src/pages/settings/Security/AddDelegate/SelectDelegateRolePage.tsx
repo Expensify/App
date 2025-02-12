@@ -38,7 +38,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
                     title={translate('delegate.accessLevel')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ADD_DELEGATE)}
+                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_ADD_DELEGATE)}
                 />
                 <SelectionList
                     isAlternateTextMultilineSupported
@@ -59,6 +59,9 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                         </Text>
                     }
                     onSelectRow={(option) => {
+                        Navigation.setParams({
+                            role: option.value,
+                        });
                         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
                     }}
                     sections={[{data: roleOptions}]}

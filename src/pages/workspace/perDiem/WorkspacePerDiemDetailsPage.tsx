@@ -89,13 +89,13 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                     >
                         <MenuItemWithTopDescription
                             title={selectedRate?.name}
-                            description={translate('workspace.perDiem.destination')}
+                            description={translate('common.destination')}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_DESTINATION.getRoute(policyID, rateID, subRateID))}
                             shouldShowRightIcon
                         />
                         <MenuItemWithTopDescription
                             title={selectedSubRate?.name}
-                            description={translate('workspace.perDiem.subrate')}
+                            description={translate('common.subrate')}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_EDIT_SUBRATE.getRoute(policyID, rateID, subRateID))}
                             shouldShowRightIcon
                         />

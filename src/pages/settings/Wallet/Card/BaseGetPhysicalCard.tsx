@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {GetPhysicalCardForm} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -60,6 +61,9 @@ type BaseGetPhysicalCardProps = {
 
     /** Callback executed when validating get physical card form data */
     onValidate?: OnValidate;
+
+    /** In case we want to prioritize a backTo route(eg. navigating from GetPhysicalCardConfirm to GetPhysicalCardAddress) instead of the default ROUTES.SETTINGS_WALLET_DOMAINCARD */
+    backTo?: Route;
 };
 
 function DefaultRenderContent({onSubmit, submitButtonText, children, onValidate}: RenderContentProps) {
@@ -89,6 +93,7 @@ function BaseGetPhysicalCard({
     submitButtonText,
     title,
     onValidate = () => ({}),
+    backTo,
 }: BaseGetPhysicalCardProps) {
     const styles = useThemeStyles();
     const isRouteSet = useRef(false);
@@ -168,23 +173,26 @@ function BaseGetPhysicalCard({
         (validateCode: string) => {
             setCurrentCardID(cardToBeIssued?.cardID.toString());
             const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues, privatePersonalDetails);
-            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? -1, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
+            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? CONST.DEFAULT_NUMBER_ID, session?.authToken ?? '', updatedPrivatePersonalDetails, validateCode);
         },
         [cardToBeIssued?.cardID, draftValues, session?.authToken, privatePersonalDetails],
     );
 
     const handleBackButtonPress = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         if (currentCardID) {
             Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(currentCardID));
             return;
         }
         Navigation.goBack();
-    }, [currentCardID]);
+    }, [backTo, currentCardID]);
 
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicator={false}
             testID={BaseGetPhysicalCard.displayName}
         >
             <HeaderWithBackButton

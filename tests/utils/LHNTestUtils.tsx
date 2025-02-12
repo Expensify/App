@@ -6,8 +6,8 @@ import React from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
-import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
+import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import DateUtils from '@libs/DateUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -38,6 +38,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
+        useNavigationState: () => true,
         useRoute: jest.fn(),
         useFocusEffect: jest.fn(),
         useIsFocused: () => true,

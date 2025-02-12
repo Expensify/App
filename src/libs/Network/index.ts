@@ -3,18 +3,18 @@ import CONST from '@src/CONST';
 import type {Request} from '@src/types/onyx';
 import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
-import * as MainQueue from './MainQueue';
-import * as SequentialQueue from './SequentialQueue';
+import {process as processMainQueue, push as pushToMainQueue} from './MainQueue';
+import {flush as flushSequentialQueue} from './SequentialQueue';
 
 // React Native uses a number for the timer id, but Web/NodeJS uses a Timeout object
 let processQueueInterval: NodeJS.Timeout | number;
 
 // We must wait until the ActiveClientManager is ready so that we ensure only the "leader" tab processes any persisted requests
 ActiveClientManager.isReady().then(() => {
-    SequentialQueue.flush();
+    flushSequentialQueue();
 
     // Start main queue and process once every n ms delay
-    processQueueInterval = setInterval(MainQueue.process, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+    processQueueInterval = setInterval(processMainQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 });
 
 /**
@@ -54,7 +54,7 @@ function post(command: string, data: Record<string, unknown> = {}, type = CONST.
         request.reject = reject;
 
         // Add the request to a queue of actions to perform
-        MainQueue.push(request);
+        pushToMainQueue(request);
 
         // This check is mainly used to prevent API commands from triggering calls to MainQueue.process() from inside the context of a previous
         // call to MainQueue.process() e.g. calling a Log command without this would cause the requests in mainQueue to double process
@@ -65,7 +65,7 @@ function post(command: string, data: Record<string, unknown> = {}, type = CONST.
         }
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
-        MainQueue.process();
+        processMainQueue();
     });
 }
 
