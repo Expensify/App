@@ -34,6 +34,7 @@ import {
     getPolicyChangeLogEmployeeLeftMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogUpdateAutoReportingFrequencyMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportAction,
@@ -605,6 +606,8 @@ function getOptionData({
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
             result.alternateText = getRemovedConnectionMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
+            result.alternateText = getPolicyChangeLogUpdateAutoReportingFrequencyMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0

@@ -377,6 +377,11 @@ type ConnectionNameParams = {
     connectionName: AllConnectionName;
 };
 
+type UpdateAutoReportingFrequencyParams = {
+    oldFrequency: string;
+    newFrequency: string;
+};
+
 type LastSyncDateParams = {
     connectionName: string;
     formattedDate: string;
@@ -838,6 +843,7 @@ export type {
     UpdateRoleParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
+    UpdateAutoReportingFrequencyParams,
     DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
