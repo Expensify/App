@@ -3724,7 +3724,7 @@ const translations = {
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben clasificar todos los gastos',
             needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) =>
-                `Las categorías se importan desde ${connectionName} y se requiere una categoría para que los gastos se exporten correctamente a ${connectionName}.`,
+                `Todos los gastos deben estar categorizados para poder exportar a ${connectionName}.`,
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
