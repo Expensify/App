@@ -1,9 +1,9 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
@@ -136,11 +136,24 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
-    const isScreenFocused = useIsFocused();
+    const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const task = InteractionManager.runAfterInteractions(() => {
+                setIsScreenTransitionEnded(true);
+            });
+
+            return () => {
+                task.cancel();
+                setIsScreenTransitionEnded(false);
+            };
+        }, []),
+    );
 
     const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSAPCE_CHAT_CREATE,
-        shouldShowEducationalTooltip && isScreenFocused,
+        shouldShowEducationalTooltip && isScreenTransitionEnded,
     );
 
     /**
@@ -467,7 +480,7 @@ function ReportActionCompose({
                                             reportParticipantIDs={reportParticipantIDs}
                                             isComposerFullSize={isComposerFullSize}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={!!disabled}
+                                            disabled={disabled}
                                             setMenuVisibility={setMenuVisibility}
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
@@ -505,7 +518,7 @@ function ReportActionCompose({
                                             displayFileInModal={displayFileInModal}
                                             onCleared={submitForm}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={!!disabled}
+                                            disabled={disabled}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
