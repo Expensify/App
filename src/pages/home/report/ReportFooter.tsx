@@ -59,12 +59,6 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur: () => void;
-
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus: boolean;
-
-    /** A method to update showSoftInputOnFocus */
-    setShowSoftInputOnFocus: (value: boolean) => void;
 };
 
 function ReportFooter({
@@ -75,10 +69,8 @@ function ReportFooter({
     policy,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
-    showSoftInputOnFocus,
     onComposerBlur,
     onComposerFocus,
-    setShowSoftInputOnFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -228,8 +220,6 @@ function ReportFooter({
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                             shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
-                            showSoftInputOnFocus={showSoftInputOnFocus}
-                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                             didHideComposerInput={didHideComposerInput}
                         />
                     </SwipeableView>
@@ -249,7 +239,6 @@ export default memo(
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        prevProps.showSoftInputOnFocus === nextProps.showSoftInputOnFocus &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
