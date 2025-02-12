@@ -305,6 +305,7 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         selectedReports,
         translate,
         hash,
+        isAllStatus,
         lastPaymentMethods,
         status,
         queryJSON,
