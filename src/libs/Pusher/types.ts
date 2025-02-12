@@ -79,6 +79,7 @@ type PusherModule = {
     registerSocketEventCallback: (cb: SocketEventCallback) => void;
     registerCustomAuthorizer?: (authorizer: ChannelAuthorizerGenerator) => void;
     getPusherSocketID: () => string | undefined;
+    TYPE: typeof TYPE;
 };
 
 export default PusherModule;

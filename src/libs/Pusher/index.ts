@@ -11,16 +11,14 @@ import type {
     ChunkedDataEvents,
     EventCallbackError,
     EventData,
-    PingPongEvent,
     PusherEventName,
     PusherSubscribtionErrorData,
     PusherWithAuthParams,
     SocketEventCallback,
     SocketEventName,
     States,
-    UserIsLeavingRoomEvent,
-    UserIsTypingEvent,
 } from './types';
+import type PusherModule from './types';
 
 let shouldForceOffline = false;
 Onyx.connect({
@@ -380,7 +378,7 @@ if (window) {
     window.getPusherInstance = () => socket;
 }
 
-export {
+const WebPusher: PusherModule = {
     init,
     subscribe,
     unsubscribe,
@@ -396,4 +394,4 @@ export {
     getPusherSocketID,
 };
 
-export type {EventCallbackError, States, UserIsTypingEvent, UserIsLeavingRoomEvent, PingPongEvent};
+export default WebPusher;

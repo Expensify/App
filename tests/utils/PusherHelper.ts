@@ -1,4 +1,4 @@
-import {init, sendEvent, TYPE, unsubscribe} from '@libs/Pusher';
+import Pusher from '@libs/Pusher';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import PusherConnectionManager from '@src/libs/PusherConnectionManager';
@@ -11,12 +11,12 @@ function setup() {
     // channel already in a subscribed state. These methods are normally used to prevent
     // duplicated subscriptions, but we don't need them for this test so forcing them to
     // return false will make the testing less complex.
-    jest.spyOn(require('@libs/Pusher'), 'isSubscribed').mockReturnValue(false);
-    jest.spyOn(require('@libs/Pusher'), 'isAlreadySubscribing').mockReturnValue(false);
+    jest.spyOn(Pusher, 'isSubscribed').mockReturnValue(false);
+    jest.spyOn(Pusher, 'isAlreadySubscribing').mockReturnValue(false);
 
     // Connect to Pusher
     PusherConnectionManager.init();
-    init({
+    Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
@@ -29,13 +29,13 @@ function setup() {
 }
 
 function emitOnyxUpdate(args: OnyxServerUpdate[]) {
-    sendEvent(CHANNEL_NAME, TYPE.MULTIPLE_EVENTS, {
+    Pusher.sendEvent(CHANNEL_NAME, Pusher.TYPE.MULTIPLE_EVENTS, {
         type: 'pusher',
         lastUpdateID: 0,
         previousUpdateID: 0,
         updates: [
             {
-                eventType: TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+                eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
                 data: args,
             },
         ],
@@ -45,7 +45,7 @@ function emitOnyxUpdate(args: OnyxServerUpdate[]) {
 function teardown() {
     // Unsubscribe from account channel after each test since we subscribe in the function
     // subscribeToUserEvents and we don't want duplicate event subscriptions.
-    unsubscribe(CHANNEL_NAME);
+    Pusher.unsubscribe(CHANNEL_NAME);
 }
 
 export default {

@@ -9,19 +9,8 @@ import {authenticatePusher} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TYPE from './EventType';
-import type {
-    Args,
-    ChunkedDataEvents,
-    EventCallbackError,
-    EventData,
-    PingPongEvent,
-    PusherEventName,
-    SocketEventCallback,
-    SocketEventName,
-    States,
-    UserIsLeavingRoomEvent,
-    UserIsTypingEvent,
-} from './types';
+import type {Args, ChunkedDataEvents, EventCallbackError, EventData, PusherEventName, SocketEventCallback, SocketEventName, States} from './types';
+import type PusherModule from './types';
 
 let shouldForceOffline = false;
 Onyx.connect({
@@ -349,6 +338,19 @@ if (window) {
     window.getPusherInstance = () => socket;
 }
 
-export {init, subscribe, unsubscribe, getChannel, isSubscribed, isAlreadySubscribing, sendEvent, disconnect, reconnect, registerSocketEventCallback, TYPE, getPusherSocketID};
+const MobilePusher: PusherModule = {
+    init,
+    subscribe,
+    unsubscribe,
+    getChannel,
+    isSubscribed,
+    isAlreadySubscribing,
+    sendEvent,
+    disconnect,
+    reconnect,
+    registerSocketEventCallback,
+    TYPE,
+    getPusherSocketID,
+};
 
-export type {EventCallbackError, States, UserIsTypingEvent, UserIsLeavingRoomEvent, PingPongEvent};
+export default MobilePusher;

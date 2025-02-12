@@ -36,7 +36,7 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
-import * as Pusher from '@libs/Pusher';
+import Pusher from '@libs/Pusher';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
