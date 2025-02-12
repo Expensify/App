@@ -275,8 +275,7 @@ function isSubscribed(channelName: string): boolean {
         return false;
     }
 
-    const channel = getChannel(channelName);
-    return !!channel;
+    return channels[channelName] === CONST.PUSHER.CHANNEL_STATUS.SUBSCRIBED;
 }
 
 /**
@@ -339,6 +338,14 @@ function reconnect() {
 
 function getPusherSocketID(): string | undefined {
     return pusherSocketID;
+}
+
+if (window) {
+    /**
+     * Pusher socket for debugging purposes
+     */
+    // @ts-expect-error type mismatch to be fixed
+    window.getPusherInstance = () => socket;
 }
 
 export {init, subscribe, unsubscribe, getChannel, isSubscribed, isAlreadySubscribing, sendEvent, disconnect, reconnect, registerSocketEventCallback, TYPE, getPusherSocketID};
