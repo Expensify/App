@@ -174,7 +174,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         };
     }, [tooltipName, registerTooltip, unregisterTooltip, shouldShow]);
 
-    // Parse Fullstory attributes on initial render
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
     useLayoutEffect(parseFSAttributes, []);
 
     const renderProductTrainingTooltip = useCallback(() => {
