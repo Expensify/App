@@ -1,5 +1,7 @@
 import React, {useEffect, useMemo} from 'react';
 import Animated, {Keyframe, runOnJS} from 'react-native-reanimated';
+import {useAnimatedStyle} from 'react-native-reanimated';
+import {useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
@@ -32,9 +34,16 @@ function AnimatedSettlementButton({
 
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
     const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBSUP_DURATION;
-    const marginTop = styles.expenseAndReportPreviewTextButtonContainer.gap;
-    const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
+    const buttonMarginTop = useSharedValue<number>(styles.expenseAndReportPreviewTextButtonContainer.gap);
     const [canShow, setCanShow] = React.useState(true);
+    const height = useSharedValue<number>(variables.componentSizeNormal);
+
+    const containerStyles = useAnimatedStyle(() => ({
+        height: height.get(),
+        justifyContent: 'center',
+        overflow: 'hidden',
+        ...(shouldAddTopMargin && {marginTop: buttonMarginTop.get()}),
+    }));
 
     const buttonAnimation = useMemo(
         () =>
@@ -88,8 +97,8 @@ function AnimatedSettlementButton({
 
     return (
         <Animated.View
-            exiting={isAnimationRunning && !willShowPaymentButton ? containerExitingAnimation : undefined}
-            style={[shouldAddTopMargin && {marginTop}, {height: variables.componentSizeNormal}, styles.justifyContentCenter, styles.overflowHidden, wrapperStyle]}
+            exiting={isAnimationRunning ? containerExitingAnimation : undefined}
+            style={[containerStyles, wrapperStyle]}
         >
             {isAnimationRunning && canShow && (
                 <Animated.View exiting={buttonAnimation}>
