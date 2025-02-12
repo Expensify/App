@@ -120,7 +120,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
     return (
         <ScreenWrapper
             testID={SearchPageNarrow.displayName}
-            style={styles.pv0}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
