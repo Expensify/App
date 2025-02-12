@@ -104,6 +104,10 @@ const usePinchGesture = ({
         .enabled(pinchEnabled)
         // The first argument is not used, but must be defined
         .onTouchesDown((_evt, state) => {
+            // react-compiler optimization unintentionally make all the callbacks run on the JS thread.
+            // Adding the worklet directive here will make all the callbacks run on UI thread back.
+            'worklet';
+
             // We don't want to activate pinch gesture when we are swiping in the pager
             if (!shouldDisableTransformationGestures.get()) {
                 return;
