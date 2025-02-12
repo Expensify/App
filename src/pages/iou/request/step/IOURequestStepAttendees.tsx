@@ -5,11 +5,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {updateMoneyRequestAttendees} from '@libs/actions/IOU';
+import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -52,7 +51,7 @@ function IOURequestStepAttendees({
             return;
         }
         if (!lodashIsEqual(previousAttendees, attendees)) {
-            IOU.setMoneyRequestAttendees(transactionID, attendees, !isEditing);
+            setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
                 updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined);
             }
