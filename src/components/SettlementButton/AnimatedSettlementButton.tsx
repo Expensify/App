@@ -12,7 +12,6 @@ import type SettlementButtonProps from './types';
 type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
-    onLoadingEnd?: () => void;
     isApprovedAnimationRunning: boolean;
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
@@ -22,7 +21,6 @@ function AnimatedSettlementButton({
     isPaidAnimationRunning,
     isApprovedAnimationRunning,
     onAnimationFinish,
-    onLoadingEnd,
     shouldAddTopMargin = false,
     isDisabled,
     canIOUBePaid,
@@ -33,8 +31,9 @@ function AnimatedSettlementButton({
     const {translate} = useLocalize();
 
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
-    const buttonDuration = CONST.ANIMATION_PAID_DURATION;
+    const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBSUP_DURATION;
     const marginTop = styles.expenseAndReportPreviewTextButtonContainer.gap;
+    const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
     const [canShow, setCanShow] = React.useState(true);
 
     const buttonAnimation = useMemo(
@@ -67,7 +66,7 @@ function AnimatedSettlementButton({
                 to: {
                     height: 0,
                 },
-            }).duration(buttonDuration * 2),
+            }).duration(buttonDuration),
         [buttonDuration],
     );
 
@@ -89,7 +88,7 @@ function AnimatedSettlementButton({
 
     return (
         <Animated.View
-            exiting={isAnimationRunning ? containerExitingAnimation : undefined}
+            exiting={isAnimationRunning && !willShowPaymentButton ? containerExitingAnimation : undefined}
             style={[shouldAddTopMargin && {marginTop}, {height: variables.componentSizeNormal}, styles.justifyContentCenter, styles.overflowHidden, wrapperStyle]}
         >
             {isAnimationRunning && canShow && (
