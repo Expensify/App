@@ -104,7 +104,7 @@ function WorkspaceTaxesPage({
         () =>
             canSelectMultiple && policy
                 ? Object.keys(policy?.taxRates?.taxes ?? {})?.filter(
-                      (key) => (policy?.taxRates?.taxes ?? {})?.[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && PolicyUtils.canEditTaxRate(policy, key),
+                      (key) => (policy?.taxRates?.taxes ?? {})?.[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && canEditTaxRatePolicyUtils(policy, key),
                   )
                 : [],
         [policy, canSelectMultiple],
