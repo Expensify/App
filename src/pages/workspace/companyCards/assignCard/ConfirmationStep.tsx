@@ -36,13 +36,22 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
 
     const data = assignCard?.data;
     const cardholderName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
-
+    const parts = backTo?.split('/');
+    const membersIndex = parts?.indexOf('members') ?? -1;
+    const workspaceMemberAccountID = parts?.[membersIndex + 1] ?? '';
+    const cardholderAccountID = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.accountID.toString() ?? '';
     const submit = () => {
         if (!policyID) {
             return;
         }
         CompanyCards.assignWorkspaceCompanyCard(policyID, data);
-        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+
+        if (backTo) {
+            Navigation.navigate(workspaceMemberAccountID === cardholderAccountID ? backTo : ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        }
+
         CompanyCards.clearAssignCardStepAndData();
     };
 
