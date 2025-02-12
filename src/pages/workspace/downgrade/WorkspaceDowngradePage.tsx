@@ -56,10 +56,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                     }
                 }}
             />
-            <ScrollView
-                style={styles.flexGrow1}
-                contentContainerStyle={styles.h100}
-            >
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {isDowngraded && !!policyID && (
                     <DowngradeConfirmation
                         onConfirmDowngrade={() => {

@@ -185,10 +185,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                     }
                 }}
             />
-            <ScrollView
-                style={styles.flexGrow1}
-                contentContainerStyle={styles.h100}
-            >
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!policy && isUpgraded && (
                     <UpgradeConfirmation
                         onConfirmUpgrade={goBack}
