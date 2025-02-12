@@ -75,7 +75,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import type {OnboardingPurpose} from '@src/CONST';
@@ -643,7 +643,10 @@ function clearPolicyErrorField(policyID: string | undefined, fieldName: string) 
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
-function clearQBOErrorField(policyID: string, fieldName: string) {
+function clearQBOErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
@@ -687,6 +690,10 @@ function clearSageIntacctErrorField(policyID: string, fieldName: string) {
 
 function clearNetSuiteAutoSyncErrorField(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {config: {errorFields: {autoSync: null}}}}});
+}
+
+function clearNSQSErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuiteQuickStart: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
@@ -788,7 +795,7 @@ function leaveWorkspace(policyID?: string) {
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     workspaceChats.forEach((report) => {
-        const parentReport = ReportUtils.getRootParentReport(report);
+        const parentReport = ReportUtils.getRootParentReport({report});
         const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
 
         if (ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isReportOwner(reportToCheckOwner)) {
@@ -1308,6 +1315,7 @@ function updateGeneralSettings(policyID: string | undefined, name: string, curre
                 outputCurrency: currency,
                 ...(customUnitID && {
                     customUnits: {
+                        ...policy.customUnits,
                         [customUnitID]: {
                             ...distanceUnit,
                             rates: optimisticRates,
@@ -3862,6 +3870,63 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
 }
 
 /**
+ * Call the API to set the custom rules for the given policy
+ * @param policyID - id of the policy to set the max expense age
+ * @param customRules - the custom rules description in natural language
+ */
+function updateCustomRules(policyID: string, customRules: string) {
+    const policy = getPolicy(policyID);
+    const originalCustomRules = policy?.customRules;
+    const parsedCustomRules = ReportUtils.getParsedComment(customRules);
+    if (parsedCustomRules === originalCustomRules) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customRules: parsedCustomRules,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        // TODO
+                        // maxExpenseAge: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customRules: originalCustomRules,
+                    // TODO
+                    // pendingFields: {maxExpenseAge: null},
+                    // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        description: parsedCustomRules,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_CUSTOM_RULES, parameters, onyxData);
+}
+
+/**
  * Call the API to enable or disable the billable mode for the given policy
  * @param policyID - id of the policy to enable or disable the bilable mode
  * @param defaultBillable - whether the billable mode is enabled in the given policy
@@ -4856,6 +4921,7 @@ export {
     updateWorkspaceDescription,
     setWorkspacePayer,
     setWorkspaceReimbursement,
+    clearNSQSErrorField,
     openPolicyWorkflowsPage,
     enableCompanyCards,
     enablePolicyConnections,
@@ -4909,6 +4975,7 @@ export {
     setPolicyMaxExpenseAmountNoReceipt,
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
+    updateCustomRules,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
