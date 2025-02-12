@@ -2509,6 +2509,7 @@ const translations = {
         // TODO: translate it:
         occupation: 'Occupation',
         whatsYourOccupation: "What's your occupation?",
+        proofOfDirectors: 'Proof of directors',
     },
     agreementsStep: {
         agreements: 'Acuerdos',

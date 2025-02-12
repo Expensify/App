@@ -30,7 +30,7 @@ import type {FileObject} from '@components/AttachmentModal';
 type SaveCorpayOnboardingDirectorInformationParams = {
     inputs: string;
     directorIDs?: string;
-    proofOfDirectors?: FileObject[];
+    proofOfDirectors?: FileObject;
     bankAccountID: number;
 };
 

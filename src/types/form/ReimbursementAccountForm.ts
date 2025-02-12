@@ -99,21 +99,11 @@ const INPUT_IDS = {
             SIGNER_JOB_TITLE: 'signerJobTitle',
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
-            SECOND_SIGNER_FULL_NAME: 'secondSignerFullName',
-            SECOND_SIGNER_DATE_OF_BIRTH: 'secondSignerDateOfBirth',
-            SECOND_SIGNER_JOB_TITLE: 'secondSignerJobTitle',
-            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
-            SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'secondSignerCompleteResidentialAddress',
-            SIGNER_PROOF_OF_DIRECTOR: 'signerProofOfDirector',
-            SIGNER_COPY_OF_ID: 'signerCopyOfID',
-            SIGNER_ADDRESS_PROOF: 'signerAddressProof',
-            SIGNER_TAX_ID: 'signerTaxID',
-            SIGNER_PDS_AND_FSG: 'signerPDSAndFSG',
-            SECOND_SIGNER_PROOF_OF_DIRECTOR: 'secondSignerProofOfDirector',
-            SECOND_SIGNER_COPY_OF_ID: 'secondSignerCopyOfID',
-            SECOND_SIGNER_ADDRESS_PROOF: 'secondSignerAddressProof',
-            SECOND_SIGNER_TAX_ID: 'secondSignerTaxID',
-            SECOND_SIGNER_PDS_AND_FSG: 'secondSignerPDSAndFSG',
+            SIGNER_PROOF_OF_DIRECTORS: 'proofOfDirectors',
+            SIGNER_ADDRESS_PROOF: 'addressProof',
+            SIGNER_COPY_OF_ID: 'copyOfID',
+            SIGNER_CODICE_FISCALE: 'codiceFiscaleTaxID',
+            SIGNER_PRD_AND_SFG: 'PRDAndFSG',
             PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
             AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
             CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
@@ -139,7 +129,7 @@ type BeneficialOwnersStepExtraProps = {
     beneficialOwnerKeys?: string[];
 };
 
-type SignerInfoStepExtraProps = Record<string, string>;
+type SignerInfoStepExtraProps = Record<string, string | FileObject[]>;
 
 type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;
 
@@ -318,50 +308,20 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Signer complete residential address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
 
-    /** Second signer full name */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME]: string;
-
-    /** Second signer date of birth */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH]: string;
-
-    /** Second signer job title */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE]: string;
-
-    /** Second signer email */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
-
-    /** Second signer complete residential address */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
-
-    /** Signer proof of director */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTOR]: FileObject[];
-
     /** Signer copy of ID */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID]: FileObject[];
 
     /** Signer address proof */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF]: FileObject[];
 
-    /** Signer tax ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_TAX_ID]: string;
+    /** Signer proof of directors */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTORS]: FileObject[];
 
-    /** Signer PDS and FSG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PDS_AND_FSG]: string;
+    /** Signer PRD and SFG */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PRD_AND_SFG]: FileObject[];
 
-    /** Second signer proof of director */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_PROOF_OF_DIRECTOR]: FileObject[];
-
-    /** Second signer copy of ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COPY_OF_ID]: FileObject[];
-
-    /** Second signer address proof */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_ADDRESS_PROOF]: FileObject[];
-
-    /** Second signer tax ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_TAX_ID]: string;
-
-    /** Second signer PDS and FSG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_PDS_AND_FSG]: string;
+    /** Signer Codice Fiscale TAX ID */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_CODICE_FISCALE]: FileObject[];
 
     /** Provide truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;

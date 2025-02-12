@@ -22,6 +22,7 @@ import JobTitle from './substeps/JobTitle';
 import Name from './substeps/Name';
 import Occupation from './substeps/Occupation';
 import UploadDocuments from './substeps/UploadDocuments';
+import {FileObject} from '@components/AttachmentModal';
 
 type SignerInfoProps = {
     /** Handles back button press */
@@ -47,15 +48,11 @@ const INPUT_KEYS = {
     SIGNER_JOB_TITLE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_JOB_TITLE,
     SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL,
     SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
-    SECOND_SIGNER_FULL_NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME,
-    SECOND_SIGNER_DATE_OF_BIRTH: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH,
-    SECOND_SIGNER_JOB_TITLE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE,
-    SECOND_SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL,
-    SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
     SIGNER_COPY_OF_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID,
     SIGNER_ADDRESS_PROOF: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF,
     // SIGNER_CODICE_PROOF: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_CODICE_PROOF,
-    SIGNER_PDS_AND_FSG: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PDS_AND_FSG,
+    SIGNER_PDS_AND_FSG: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PRD_AND_SFG,
+    SIGNER_PROOF_OF_DIRECTORS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTORS,
 };
 
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
@@ -90,7 +87,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     }, [country]);
 
     const submit = useCallback(() => {
-        const {signerDetails} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorID);
+        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorID);
 
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
@@ -100,7 +97,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 inputs: JSON.stringify(signerDetails),
                 bankAccountID,
                 directorIDs: `${directorID}`,
-                proofOfDirectors: onyxValues[INPUT_KEYS.SIGNER_COPY_OF_ID],
+                proofOfDirectors: signerFiles[INPUT_KEYS.SIGNER_PROOF_OF_DIRECTORS] as FileObject,
             });
             onSubmit();
         }

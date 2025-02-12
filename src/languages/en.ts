@@ -2483,6 +2483,7 @@ const translations = {
         weAreWaiting: "We're waiting for others to verify their identities as directors or senior officers of the business.",
         occupation: 'Occupation',
         whatsYourOccupation: "What's your occupation?",
+        proofOfDirectors: 'Proof of directors',
     },
     agreementsStep: {
         agreements: 'Agreements',

@@ -3,12 +3,33 @@ import type {FileObject} from '@components/AttachmentModal';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 
-const {PREFIX, FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, ADDRESS, STREET, CITY, STATE, ZIP_CODE, DIRECTOR_OCCUPATION, DIRECTOR_FULL_NAME, DIRECTOR_JOB_TITLE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {
+    PREFIX,
+    FULL_NAME,
+    EMAIL,
+    JOB_TITLE,
+    DATE_OF_BIRTH,
+    ADDRESS,
+    STREET,
+    CITY,
+    STATE,
+    ZIP_CODE,
+    DIRECTOR_OCCUPATION,
+    DIRECTOR_FULL_NAME,
+    DIRECTOR_JOB_TITLE,
+    PROOF_OF_DIRECTORS,
+    ADDRESS_PROOF,
+    COPY_OF_ID,
+    CODICE_FISCALE,
+    PRD_AND_SFG,
+} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET, CITY, STATE, ZIP_CODE, DIRECTOR_OCCUPATION, DIRECTOR_FULL_NAME, DIRECTOR_JOB_TITLE];
+const signerFilesFields = [PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, PRD_AND_SFG];
 
 function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>, signerEmail: string, directorID: string) {
     const signerDetails: Record<string, string | FileObject[]> = {};
+    const signerFiles: Record<string, string | FileObject> = {};
 
     signerDetailsFields.forEach((fieldName: string) => {
         if (fieldName === EMAIL) {
@@ -47,7 +68,17 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
         signerDetails[fieldName] = reimbursementAccountDraft?.[fieldName];
     });
 
-    return {signerDetails};
+    signerFilesFields.forEach((fieldName) => {
+        const key = `signer_${fieldName}`;
+
+        if (!reimbursementAccountDraft?.[key]) {
+            return;
+        }
+
+        signerFiles[fieldName] = reimbursementAccountDraft?.[key][0];
+    });
+
+    return {signerDetails, signerFiles};
 }
 
 export default getSignerDetailsAndSignerFilesForSignerInfo;
