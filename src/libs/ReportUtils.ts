@@ -3231,7 +3231,7 @@ function getPolicyExpenseChatName({
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login || report?.reportName;
+    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login;
 
     let policyExpenseChatRole = 'user';
 
@@ -3250,7 +3250,10 @@ function getPolicyExpenseChatName({
         }
     }
 
-    return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName ?? ''});
+    if (reportOwnerDisplayName) {
+        return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName});
+    }
+    return report?.reportName;
 }
 
 function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined {

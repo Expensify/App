@@ -362,7 +362,7 @@ describe('SidebarUtils', () => {
             });
             expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
         });
-        it('the alternative text of child report of policy expense chat should not contain the policy name with dot prefix if it has some actions', async () => {
+        it('the alternative text of child report of policy expense chat should not contain the policy name with dot prefix if it has some actions', () => {
             const preferredLocale = 'en';
             const policy = createRandomPolicy(1);
             const parentReportAction = createRandomReportAction(1);
