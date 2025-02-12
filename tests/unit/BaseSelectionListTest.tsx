@@ -47,7 +47,7 @@ describe('BaseSelectionList', () => {
 
     it('should not trigger item press if screen is not focused', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(false);
-        render(<BaseListItemRenderer sections={mockSections} />);
+        render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledTimes(0);
     });
