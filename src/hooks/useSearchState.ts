@@ -1,9 +1,9 @@
 import {NavigationRouteContext} from '@react-navigation/native';
 import {useContext, useMemo} from 'react';
+import type {SearchQueryJSON} from '@components/Search/types';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import { SearchQueryJSON } from '@components/Search/types';
 
 type SearchRouteParams = {
     q?: string;
@@ -23,7 +23,7 @@ type SearchStateResult = {
 const useSearchState = (): SearchStateResult => {
     // We are using these contexts directly instead of useRoute, because those will throw an error if used outside a navigator.
     const route = useContext(NavigationRouteContext);
-    const { q, type, hashKey: hashKeyFromRoute } = (route?.params as SearchRouteParams) ?? {};
+    const {q, type, hashKey: hashKeyFromRoute} = (route?.params as SearchRouteParams) ?? {};
 
     return useMemo(() => {
         const isSearchAttachmentModal = route?.name === SCREENS.ATTACHMENTS && type === CONST.ATTACHMENT_TYPE.SEARCH;

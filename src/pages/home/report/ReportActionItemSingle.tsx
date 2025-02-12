@@ -289,8 +289,6 @@ function ReportActionItemSingle({
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
-    const actionWrapper = (content: React.ReactNode) => <View style={[styles.chatItem, wrapperStyle]}>{content}</View>;
-
     const reportActionContent = (
         <>
             <PressableWithoutFeedback
@@ -349,25 +347,27 @@ function ReportActionItemSingle({
     );
 
     if (!isOnSearch) {
-        return actionWrapper(reportActionContent);
+        return <View style={[styles.chatItem, wrapperStyle]}>{reportActionContent}</View>;
     }
 
-    return actionWrapper(
-        <View style={styles.webViewStyles.tagStyles.ol}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
-                <TextLink
-                    fontSize={variables.fontSizeSmall}
-                    onPress={() => {
-                        onPress?.();
-                    }}
-                    numberOfLines={1}
-                >
-                    {(action as SearchReportAction).reportName}
-                </TextLink>
+    return (
+        <View style={[styles.selectionListPressableItemWrapper, styles.mh0, wrapperStyle]}>
+            <View style={styles.webViewStyles.tagStyles.ol}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                    <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
+                    <TextLink
+                        fontSize={variables.fontSizeSmall}
+                        onPress={() => {
+                            onPress?.();
+                        }}
+                        numberOfLines={1}
+                    >
+                        {(action as SearchReportAction).reportName}
+                    </TextLink>
+                </View>
+                <View style={styles.flexRow}>{reportActionContent}</View>
             </View>
-            <View style={styles.flexRow}>{reportActionContent}</View>
-        </View>,
+        </View>
     );
 }
 
