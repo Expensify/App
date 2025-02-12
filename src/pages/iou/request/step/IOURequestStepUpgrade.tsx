@@ -44,7 +44,10 @@ function IOURequestStepUpgrade({
                     Navigation.goBack();
                 }}
             />
-            <ScrollView style={styles.flexGrow1}>
+            <ScrollView
+                style={styles.flexGrow1}
+                contentContainerStyle={styles.h100}
+            >
                 {!!isUpgraded && (
                     <UpgradeConfirmation
                         onConfirmUpgrade={() => {
