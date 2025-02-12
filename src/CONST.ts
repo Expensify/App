@@ -6634,6 +6634,7 @@ const CONST = {
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
         SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
+        SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
     },
     SMART_BANNER_HEIGHT: 152,
     TRAVEL: {

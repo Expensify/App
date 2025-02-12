@@ -89,6 +89,7 @@ function TabSelectorItem({
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
             renderTooltipContent={renderProductTrainingTooltip}
+            shouldHideOnNavigate
             anchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,

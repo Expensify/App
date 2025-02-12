@@ -53,10 +53,6 @@ function InviteMemberListItem<TItem extends ListItem>({
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
         !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && item.login === CONST.EMAIL.MANAGER_MCTEST,
     );
-    // console.log('!getIsUserSubmittedExpenseOrScannedReceipt()', !getIsUserSubmittedExpenseOrScannedReceipt());
-    // console.log('item.login', item.login);
-    // console.log('Permissions.canUseManagerMcTest(betas)', Permissions.canUseManagerMcTest(betas));
-    // console.log('InviteMemberListItem shouldShowProductTrainingTooltip', shouldShowProductTrainingTooltip);
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -106,6 +102,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     }}
+                    shouldHideOnNavigate
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>

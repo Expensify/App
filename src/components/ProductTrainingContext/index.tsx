@@ -104,6 +104,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
+                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
                 isModalVisible
             ) {
                 return false;
@@ -239,7 +240,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     ]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
-        console.log('shouldShowProductTrainingTooltip useProductTrainingContext', tooltipName, shouldRenderTooltip(tooltipName));
         return shouldShow && shouldRenderTooltip(tooltipName);
     }, [shouldRenderTooltip, tooltipName, shouldShow]);
     const hideProductTrainingTooltip = useCallback(() => {

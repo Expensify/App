@@ -5859,7 +5859,7 @@ const translations = {
             part5: ' to try it out!',
             part6: 'Now,',
             part7: ' submit your expense',
-            part8: ' and watch the magic happen!',
+            part8: ' and watch the\nmagic happen!',
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
