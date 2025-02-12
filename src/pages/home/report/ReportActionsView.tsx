@@ -4,11 +4,18 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import EmptyStateComponent from '@components/EmptyStateComponent';
+import * as Illustrations from '@components/Icon/Illustrations';
+import LoadingBar from '@components/LoadingBar';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {getNewerActions, getOlderActions, openReport, updateLoadingInitialReportAction} from '@libs/actions/Report';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {getNewerActions, getOlderActions, updateLoadingInitialReportAction} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -27,9 +34,7 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
-import {didUserLogInDuringSession} from '@libs/SessionUtils';
-import shouldFetchReport from '@libs/shouldFetchReport';
+import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport} from '@libs/ReportUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,15 +61,6 @@ type ReportActionsViewProps = {
     /** The report actions are loading more data */
     isLoadingOlderReportActions?: boolean;
 
-    /** There an error when loading older report actions */
-    hasLoadingOlderReportActionsError?: boolean;
-
-    /** The report actions are loading newer data */
-    isLoadingNewerReportActions?: boolean;
-
-    /** There an error when loading newer report actions */
-    hasLoadingNewerReportActionsError?: boolean;
-
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
@@ -84,22 +80,19 @@ function ReportActionsView({
     reportActions: allReportActions = [],
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
-    hasLoadingOlderReportActionsError = false,
-    isLoadingNewerReportActions = false,
-    hasLoadingNewerReportActionsError = false,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
         selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report), true),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
@@ -108,22 +101,13 @@ function ReportActionsView({
     const didLoadNewerChats = useRef(false);
     const {isOffline} = useNetwork();
 
-    const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
-    const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-    const openReportIfNecessary = () => {
-        if (!shouldFetchReport(report, reportMetadata?.isOptimisticReport)) {
-            return;
-        }
-
-        openReport(reportID, reportActionID);
-    };
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -250,22 +234,6 @@ function ReportActionsView({
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
     useEffect(() => {
-        const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
-        if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
-            openReportIfNecessary();
-        }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [session, report]);
-
-    useEffect(() => {
-        const prevShouldUseNarrowLayout = prevShouldUseNarrowLayoutRef.current;
-        // If the view is expanded from mobile to desktop layout
-        // we update the new marker position, mark the report as read, and fetch new report actions
-        const didScreenSizeIncrease = prevShouldUseNarrowLayout && !shouldUseNarrowLayout;
-        const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
-        if (didReportBecomeVisible) {
-            openReportIfNecessary();
-        }
         // update ref with current state
         prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -282,14 +250,7 @@ function ReportActionsView({
     const loadOlderChats = useCallback(
         (force = false) => {
             // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
-            if (
-                !force &&
-                (!!network.isOffline ||
-                    isLoadingOlderReportActions ||
-                    // If there was an error only try again once on initial mount.
-                    (didLoadOlderChats.current && hasLoadingOlderReportActionsError) ||
-                    isLoadingInitialReportActions)
-            ) {
+            if (!force && (isOffline || isLoadingInitialReportActions)) {
                 return;
             }
 
@@ -313,17 +274,7 @@ function ReportActionsView({
                 getOlderActions(reportID, oldestReportAction.reportActionID);
             }
         },
-        [
-            network.isOffline,
-            isLoadingOlderReportActions,
-            isLoadingInitialReportActions,
-            oldestReportAction,
-            reportID,
-            reportActionIDMap,
-            transactionThreadReport,
-            hasLoadingOlderReportActionsError,
-            hasOlderActions,
-        ],
+        [isOffline, isLoadingInitialReportActions, oldestReportAction, reportID, reportActionIDMap, transactionThreadReport, hasOlderActions],
     );
 
     const loadNewerChats = useCallback(
@@ -333,13 +284,12 @@ function ReportActionsView({
                 (!reportActionID ||
                     !isFocused ||
                     !newestReportAction ||
-                    isLoadingInitialReportActions ||
-                    isLoadingNewerReportActions ||
+                    !!isLoadingInitialReportActions ||
                     !hasNewerActions ||
                     isOffline ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
-                    (didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
+                    didLoadNewerChats.current ||
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
@@ -360,19 +310,7 @@ function ReportActionsView({
                 getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [
-            reportActionID,
-            isFocused,
-            newestReportAction,
-            isLoadingInitialReportActions,
-            isLoadingNewerReportActions,
-            hasNewerActions,
-            isOffline,
-            hasLoadingNewerReportActionsError,
-            transactionThreadReport,
-            reportActionIDMap,
-            reportID,
-        ],
+        [reportActionID, isFocused, newestReportAction, isLoadingInitialReportActions, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
     );
 
     /**
@@ -420,15 +358,28 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    // Comments have not loaded at all yet do nothing
-    if (!reportActions.length) {
-        return null;
+    if ((!visibleReportActions.length && !isLoadingInitialReportActions && !isOffline) || (!visibleReportActions.length && isOffline)) {
+        return (
+            <EmptyStateComponent
+                SkeletonComponent={SearchRowSkeleton}
+                title={translate('report.noActivityYet')}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                headerMedia={Illustrations.EmptyState}
+                headerStyles={styles.emptyFolderDarkBG}
+                headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
+            />
+        );
+    }
+
+    if (!visibleReportActions.length && isLoadingInitialReportActions) {
+        return <ReportActionsSkeletonView />;
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
+            <LoadingBar shouldShow={(!!isLoadingInitialReportActions && !isOffline) || isLoadingOlderReportActions} />
             <ReportActionsList
                 report={report}
                 transactionThreadReport={transactionThreadReport}
@@ -440,11 +391,6 @@ function ReportActionsView({
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
-                isLoadingInitialReportActions={isLoadingInitialReportActions}
-                isLoadingOlderReportActions={isLoadingOlderReportActions}
-                hasLoadingOlderReportActionsError={hasLoadingOlderReportActionsError}
-                isLoadingNewerReportActions={isLoadingNewerReportActions}
-                hasLoadingNewerReportActionsError={hasLoadingNewerReportActionsError}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
@@ -471,18 +417,6 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
     }
 
     if (oldProps.isLoadingOlderReportActions !== newProps.isLoadingOlderReportActions) {
-        return false;
-    }
-
-    if (oldProps.isLoadingNewerReportActions !== newProps.isLoadingNewerReportActions) {
-        return false;
-    }
-
-    if (oldProps.hasLoadingOlderReportActionsError !== newProps.hasLoadingOlderReportActionsError) {
-        return false;
-    }
-
-    if (oldProps.hasLoadingNewerReportActionsError !== newProps.hasLoadingNewerReportActionsError) {
         return false;
     }
 

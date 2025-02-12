@@ -25,6 +25,7 @@ function TextBlock({color, textStyles, text}: TextBlockProps) {
             {words.map((word) => (
                 <Text
                     color={color}
+                    key={word}
                     style={textStyles}
                 >
                     {word}
