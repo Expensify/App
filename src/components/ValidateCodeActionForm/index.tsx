@@ -39,6 +39,7 @@ function ValidateCodeActionForm({
             isInitialized.current = true;
             sendValidateCode();
         }
+        // eslint-disable-next-line rulesdir/prefer-early-return
         return () => {
             // We need to run clearError in cleanup function to use as onClose function.
             // As 'useEffect cleanup function' runs whenever a dependency is called, we need to put clearError() in the if condition.
