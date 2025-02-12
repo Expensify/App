@@ -4,8 +4,8 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import createResponsiveStackNavigator from '@navigation/AppNavigator/createResponsiveStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceUpgradePage from '@pages/workspace/upgrade/WorkspaceUpgradePage';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,18 +18,18 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
-const RootStack = createResponsiveStackNavigator<SettingsNavigatorParamList>();
+const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.UPGRADE, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.UPGRADE]) => {
     return render(
         <NavigationContainer>
-            <RootStack.Navigator initialRouteName={initialRouteName}>
-                <RootStack.Screen
+            <Stack.Navigator initialRouteName={initialRouteName}>
+                <Stack.Screen
                     name={SCREENS.WORKSPACE.UPGRADE}
                     component={WorkspaceUpgradePage}
                     initialParams={initialParams}
                 />
-            </RootStack.Navigator>
+            </Stack.Navigator>
         </NavigationContainer>,
     );
 };
