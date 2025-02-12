@@ -28,12 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {OnEmojiSelected} from '@libs/actions/EmojiPickerAction';
-import {isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
-import {inputFocusChange} from '@libs/actions/InputFocus';
-import {areAllModalsHidden} from '@libs/actions/Modal';
-import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@libs/actions/Report';
-import {isMobileSafari} from '@libs/Browser';
+import {isMobileSafari, isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
@@ -53,6 +48,11 @@ import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollP
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
+import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
+import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
+import {inputFocusChange} from '@userActions/InputFocus';
+import {areAllModalsHidden} from '@userActions/Modal';
+import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -651,7 +651,8 @@ function ComposerWithSuggestions(
     const prevIsFocused = usePrevious(isFocused);
 
     useEffect(() => {
-        if (modal?.isVisible && !prevIsModalVisible) {
+        const isModalVisible = modal?.isVisible;
+        if (isModalVisible && !prevIsModalVisible) {
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
@@ -659,6 +660,7 @@ function ComposerWithSuggestions(
         // We want to blur the input immediately when a screen is out of focus.
         if (!isFocused) {
             textInputRef.current?.blur();
+            return;
         }
 
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
@@ -668,8 +670,7 @@ function ComposerWithSuggestions(
             !(
                 (willBlurTextInputOnTapOutside || (shouldAutoFocus && canFocusInputOnScreenFocus())) &&
                 !isNextModalWillOpenRef.current &&
-                !modal?.isVisible &&
-                isFocused &&
+                !isModalVisible &&
                 (!!prevIsModalVisible || !prevIsFocused)
             )
         ) {
@@ -788,9 +789,16 @@ function ComposerWithSuggestions(
         [measureParentContainer, cursorPositionValue, selection],
     );
 
+    const isTouchEndedRef = useRef(false);
+
     return (
         <>
-            <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
+            <View
+                style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}
+                onTouchEndCapture={() => {
+                    isTouchEndedRef.current = true;
+                }}
+            >
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={!!shouldAutoFocus}
@@ -831,8 +839,14 @@ function ComposerWithSuggestions(
                         if (showSoftInputOnFocus) {
                             return;
                         }
-                        if (isMobileSafari()) {
+                        if (isMobileWebKit()) {
+                            isTouchEndedRef.current = false;
+                            // In iOS browsers, open the keyboard after a timeout, or it will close briefly.
                             setTimeout(() => {
+                                if (!isTouchEndedRef.current) {
+                                    // Don't open the keyboard on long press so the callout menu can show.
+                                    return;
+                                }
                                 setShowSoftInputOnFocus(true);
                             }, CONST.ANIMATED_TRANSITION);
                             return;

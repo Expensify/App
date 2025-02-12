@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -143,7 +144,8 @@ function Composer(
             onPaste={pasteFile}
             onClear={onClear}
             showSoftInputOnFocus={showSoftInputOnFocus}
-            contextMenuHidden={contextMenuHidden}
+            // Prevent the context menu from showing when tapping the composer to focus it on iOS.
+            contextMenuHidden={getPlatform() === CONST.PLATFORM.IOS ? contextMenuHidden : false}
         />
     );
 }

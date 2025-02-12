@@ -1,6 +1,8 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SearchAutocompleteResult} from '@components/Search/types';
+import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
@@ -133,26 +135,81 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
     return newQuery;
 }
 
+function filterOutRangesWithCorrectValue(
+    range: SearchAutocompleteQueryRange,
+    userDisplayName: string,
+    substitutionMap: SubstitutionMap,
+    userLogins: SharedValue<string[]>,
+    currencyList: SharedValue<string[]>,
+    categoryList: SharedValue<string[]>,
+    tagList: SharedValue<string[]>,
+) {
+    'worklet';
+
+    const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
+    const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
+    const statusList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP}) as string[];
+
+    switch (range.key) {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined;
+
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value);
+
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+            return currencyList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
+            return typeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
+            return expenseTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
+            return statusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
+            return categoryList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
+            return tagList.get().includes(range.value);
+        default:
+            return true;
+    }
+}
+
 /**
  * Parses input string using the autocomplete parser and returns array of
  * markdown ranges that can be used by RNMarkdownTextInput.
  * It is simpler version of search parser that can be run on UI.
  */
-function parseForLiveMarkdown(input: string, userLogins: string[], userDisplayName: string) {
+function parseForLiveMarkdown(
+    input: string,
+    userDisplayName: string,
+    map: SubstitutionMap,
+    userLogins: SharedValue<string[]>,
+    currencyList: SharedValue<string[]>,
+    categoryList: SharedValue<string[]>,
+    tagList: SharedValue<string[]>,
+) {
     'worklet';
 
     const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
     const ranges = parsedAutocomplete.ranges;
+    return ranges
+        .filter((range) => filterOutRangesWithCorrectValue(range, userDisplayName, map, userLogins, currencyList, categoryList, tagList))
+        .map((range) => {
+            let type = 'mention-user';
 
-    return ranges.map((range) => {
-        let type = 'mention-user';
+            if (range.key === CONST.SEARCH.SYNTAX_RANGE_NAME) {
+                type = CONST.SEARCH.SYNTAX_RANGE_NAME;
+            }
 
-        if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.includes(range.value) || range.value === userDisplayName)) {
-            type = 'mention-here';
-        }
+            if ((range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO || CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) && (userLogins.get().includes(range.value) || range.value === userDisplayName)) {
+                type = 'mention-here';
+            }
 
-        return {...range, type};
-    }) as MarkdownRange[];
+            return {...range, type};
+        }) as MarkdownRange[];
 }
 
 export {
