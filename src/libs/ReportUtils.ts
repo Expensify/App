@@ -3290,8 +3290,7 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(report?.policyID, {[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`]: policy});
-    const disabledForInvoice = isInvoiceReport(report) && isNewDotInvoice(report?.chatReportID);
-    if (disabledForInvoice) {
+    if (isInvoiceReport(report)) {
         return true;
     }
     return isTitleField ? !reportField?.deletable : !isAdmin && (isReportSettled || isReportClosed);
