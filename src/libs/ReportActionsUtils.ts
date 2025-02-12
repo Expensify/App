@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Locale, OnyxInputOrEntry, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Locale, OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -1850,13 +1850,11 @@ function getCardIssuedMessage({
     shouldRenderHTML = false,
     policyID = '-1',
     shouldDisplayLinkToCard = false,
-    personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
     policyID?: string;
     shouldDisplayLinkToCard?: boolean;
-    personalDetails?: Partial<PersonalDetailsList>;
 }) {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
@@ -1870,13 +1868,8 @@ function getCardIssuedMessage({
 
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const assigneeDetails = getPersonalDetailsByIDs({
-        accountIDs: [assigneeAccountID],
-        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-        personalDetailsParam: personalDetails,
-    }).at(0);
     const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
-    const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
+    const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
     const expensifyCardLink =
         shouldRenderHTML && shouldDisplayLinkToCard
