@@ -461,7 +461,7 @@ function ReportActionsList({
                 setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
-                if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
+                if (!isFromCurrentUser || !isReportTopmostSplitNavigator()) {
                     return;
                 }
                 if (!hasNewestReportActionRef.current) {
