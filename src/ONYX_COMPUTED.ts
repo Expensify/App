@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import {computeReportsByPolicy, findConciergeChatReportID} from './libs/actions/ComputedValues';
-import {getReportName, hasAnyViolationsToDisplayRBR} from './libs/ReportUtils';
+import {hasAnyViolationsToDisplayRBR} from './libs/ReportUtils';
 import ONYXKEYS from './ONYXKEYS';
 import type {TransactionViolation} from './types/onyx';
 
@@ -24,11 +24,9 @@ const ONYX_COMPUTED = {
                     return acc;
                 }
 
-                const reportName = getReportName(report);
                 const hasAnyViolations = hasAnyViolationsToDisplayRBR(report, transactionViolations);
 
                 acc[report.reportID] = {
-                    reportName,
                     hasAnyViolations,
                 };
                 return acc;
