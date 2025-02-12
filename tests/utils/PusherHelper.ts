@@ -22,7 +22,10 @@ function setup() {
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     });
 
-    window.getPusherInstance()?.connection?.emit('connected');
+    const pusher = window.getPusherInstance();
+    if (pusher && 'connection' in pusher) {
+        pusher.connection?.emit('connected');
+    }
 }
 
 function emitOnyxUpdate(args: OnyxServerUpdate[]) {

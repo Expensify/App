@@ -1,5 +1,4 @@
 import type {PusherEvent} from '@pusher/pusher-websocket-react-native';
-import {EventEmitter} from 'events';
 import CONST from '@src/CONST';
 
 type OnSubscriptionSucceeded = () => void;
@@ -23,7 +22,7 @@ type SubscribeProps = {
 
 type UnsubscribeProps = {channelName: string};
 
-class MockedPusher extends EventEmitter {
+class MockedPusher {
     static instance: MockedPusher | null = null;
 
     channels = new Map<string, ChannelCallbacks>();
@@ -51,6 +50,7 @@ class MockedPusher extends EventEmitter {
 
     disconnect() {
         this.connectionState = CONST.PUSHER.STATE.DISCONNECTED;
+        this.channels.clear();
         return Promise.resolve();
     }
 

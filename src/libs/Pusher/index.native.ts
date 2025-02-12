@@ -44,7 +44,7 @@ let initPromise = new Promise<void>((resolve) => {
 });
 
 const eventsBoundToChannels = new Map<string, Map<PusherEventName, (eventData: EventData<PusherEventName>) => void>>();
-const channels: Record<string, ValueOf<typeof CONST.PUSHER.CHANNEL_STATUS>> = {};
+let channels: Record<string, ValueOf<typeof CONST.PUSHER.CHANNEL_STATUS>> = {};
 
 /**
  * Trigger each of the socket event callbacks with the event information
@@ -246,6 +246,7 @@ function unsubscribe(channelName: string, eventName: PusherEventName = '') {
         if (eventsBoundToChannels.get(channelName)?.size === 0) {
             Log.info(`[Pusher] After unbinding ${eventName} from channel ${channelName}, no other events were bound to that channel. Unsubscribing...`, false);
             eventsBoundToChannels.delete(channelName);
+            delete channels[channelName];
             socket?.unsubscribe({channelName});
         }
     } else {
@@ -316,6 +317,7 @@ function disconnect() {
     socket.disconnect();
     socket = null;
     pusherSocketID = '';
+    channels = {};
     eventsBoundToChannels.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
@@ -344,7 +346,6 @@ if (window) {
     /**
      * Pusher socket for debugging purposes
      */
-    // @ts-expect-error type mismatch to be fixed
     window.getPusherInstance = () => socket;
 }
 
