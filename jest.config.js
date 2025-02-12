@@ -5,7 +5,6 @@ module.exports = {
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,
         `<rootDir>/tests/unit/**/*.${testFileExtension}`,
         `<rootDir>/tests/actions/**/*.${testFileExtension}`,
-        `<rootDir>/tests/navigation/**/*.${testFileExtension}`,
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {

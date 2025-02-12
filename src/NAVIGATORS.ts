@@ -4,6 +4,7 @@
  * */
 export default {
     CENTRAL_PANE_NAVIGATOR: 'CentralPaneNavigator',
+    BOTTOM_TAB_NAVIGATOR: 'BottomTabNavigator',
     LEFT_MODAL_NAVIGATOR: 'LeftModalNavigator',
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
@@ -11,7 +12,5 @@ export default {
     WELCOME_VIDEO_MODAL_NAVIGATOR: 'WelcomeVideoModalNavigator',
     EXPLANATION_MODAL_NAVIGATOR: 'ExplanationModalNavigator',
     MIGRATED_USER_MODAL_NAVIGATOR: 'MigratedUserModalNavigator',
-    REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
-    SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',
-    WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
+    FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
 } as const;

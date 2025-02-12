@@ -637,12 +637,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
         },
         {
             text: translateLocal('common.delete'),
-            onSelected: () => {
-                if (isMobileMenu && closeMenu) {
-                    closeMenu();
-                }
-                showDeleteModal(hash);
-            },
+            onSelected: () => showDeleteModal(hash),
             icon: Expensicons.Trashcan,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,

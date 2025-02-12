@@ -6,12 +6,12 @@ import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
+import ActiveWorkspaceContextProvider from './components/ActiveWorkspaceProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
-import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
@@ -36,6 +36,7 @@ import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
@@ -89,6 +90,8 @@ function App({url}: AppProps) {
                                 EnvironmentProvider,
                                 CustomStatusBarAndBackgroundContextProvider,
                                 ActiveElementRoleProvider,
+                                ActiveWorkspaceContextProvider,
+                                ReportIDsContextProvider,
                                 PlaybackContextProvider,
                                 FullScreenContextProvider,
                                 VolumeContextProvider,
@@ -98,7 +101,6 @@ function App({url}: AppProps) {
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
                                 InputBlurContextProvider,
-                                FullScreenBlockingViewContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {goBackFromPrivateNotes, goBackToDetailsPage} from '@libs/ReportUtils';
+import {goBackFromPrivateNotes, navigateToDetailsPage} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
@@ -93,10 +93,8 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-
-        const hasNewNoteBeenAdded = !originalNote && editedNote;
-        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
-            goBackToDetailsPage(report, backTo);
+        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
+            navigateToDetailsPage(report, backTo);
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }

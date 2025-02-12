@@ -152,7 +152,7 @@ const ROUTES = {
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
-        getRoute: (login: string, role?: string, backTo?: string) => getUrlWithBackToParam(`settings/security/delegate/${encodeURIComponent(login)}/role/${role}`, backTo),
+        getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
     },
     SETTINGS_UPDATE_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/update-role/:currentRole',
@@ -195,15 +195,15 @@ const ROUTES = {
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
         route: 'settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/name`, backTo),
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/name` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
         route: 'settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/phone`, backTo),
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/phone` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
         route: 'settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/address`, backTo),
+        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/address` as const,
     },
     SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
         route: 'settings/wallet/card/:domain/get-physical/confirm',
@@ -1250,7 +1250,7 @@ const ROUTES = {
     },
     WORKSPACE_EDIT_TAGS: {
         route: 'settings/workspaces/:policyID/tags/:orderWeight/edit',
-        getRoute: (policyID: string, orderWeight: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const, backTo),
+        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const,
     },
     WORKSPACE_TAG_EDIT: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/edit',

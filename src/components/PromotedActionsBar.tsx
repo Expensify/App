@@ -5,13 +5,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
 import {translateLocal} from '@libs/Localize';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
@@ -90,9 +92,10 @@ const PromotedActions = {
             if (!isTextHold) {
                 Navigation.goBack();
             }
-            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
+            const targetedReportID = reportID ?? reportAction?.childReportID;
+            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 
-            if (!isSearchTopmostFullScreenRoute() && isTextHold) {
+            if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
                 changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
                 return;
             }

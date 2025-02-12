@@ -367,7 +367,7 @@ function PureReportActionItem({
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
-    const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
+    const textInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
@@ -444,7 +444,7 @@ function PureReportActionItem({
             return;
         }
 
-        focusComposerWithDelay(composerTextInputRef.current)(true);
+        focusComposerWithDelay(textInputRef.current)(true);
     }, [prevDraftMessage, draftMessage]);
 
     useEffect(() => {
@@ -955,7 +955,7 @@ function PureReportActionItem({
                                     reportID={reportID}
                                     policyID={report?.policyID}
                                     index={index}
-                                    ref={composerTextInputRef}
+                                    ref={textInputRef}
                                     shouldDisableEmojiPicker={
                                         (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
                                     }

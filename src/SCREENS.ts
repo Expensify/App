@@ -36,7 +36,7 @@ const SCREENS = {
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
     },
     SEARCH: {
-        ROOT: 'Search_Root',
+        CENTRAL_PANE: 'Search_Central_Pane',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
@@ -61,6 +61,7 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        BOTTOM_TAB: 'Search_Bottom_Tab',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',

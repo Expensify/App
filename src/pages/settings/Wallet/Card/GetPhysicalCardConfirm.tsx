@@ -9,21 +9,22 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
 const goToGetPhysicalCardName = (domain: string) => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain, Navigation.getActiveRoute()));
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.getRoute(domain), CONST.NAVIGATION.ACTION_TYPE.PUSH);
 };
 
 const goToGetPhysicalCardPhone = (domain: string) => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain, Navigation.getActiveRoute()));
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.getRoute(domain), CONST.NAVIGATION.ACTION_TYPE.PUSH);
 };
 
 const goToGetPhysicalCardAddress = (domain: string) => {
-    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.getRoute(domain), CONST.NAVIGATION.ACTION_TYPE.PUSH);
 };
 
 type GetPhysicalCardConfirmProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM>;

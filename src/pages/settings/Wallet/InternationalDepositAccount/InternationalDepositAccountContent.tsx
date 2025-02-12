@@ -4,15 +4,13 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubStep from '@hooks/useSubStep';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -68,21 +66,21 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
     const skippedSteps = getSkippedSteps(skipAccountTypeStep, skipAccountHolderInformationStep);
 
-    const topmostFullScreenRoute = useRootNavigationState((state) => state.routes.findLast((route) => isFullScreenName(route.name)));
+    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
 
     const goBack = useCallback(() => {
-        switch (topmostFullScreenRoute?.name) {
-            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        switch (topMostCentralPane?.name) {
+            case SCREENS.SETTINGS.WALLET.ROOT:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
                 break;
-            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
+            case SCREENS.REPORT:
                 Navigation.closeRHPFlow();
                 break;
             default:
                 Navigation.goBack();
                 break;
         }
-    }, [topmostFullScreenRoute?.name]);
+    }, [topMostCentralPane]);
 
     const handleFinishStep = useCallback(() => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);

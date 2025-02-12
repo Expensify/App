@@ -25,7 +25,7 @@ type GetPhysicalCardPhoneProps = PlatformStackScreenProps<SettingsNavigatorParam
 
 function GetPhysicalCardPhone({
     route: {
-        params: {domain, backTo},
+        params: {domain},
     },
 }: GetPhysicalCardPhoneProps) {
     const {translate} = useLocalize();
@@ -57,7 +57,6 @@ function GetPhysicalCardPhone({
             submitButtonText={translate('getPhysicalCard.next')}
             title={translate('getPhysicalCard.header')}
             onValidate={onValidate}
-            backTo={backTo}
         >
             <View style={styles.mh5}>
                 <InputWrapper

@@ -1,8 +1,8 @@
 import type {LinkingOptions} from '@react-navigation/native';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 
-const prefixes: LinkingOptions<RootNavigatorParamList>['prefixes'] = [
+const prefixes: LinkingOptions<RootStackParamList>['prefixes'] = [
     'app://-/',
     'new-expensify://',
     'https://www.expensify.cash',

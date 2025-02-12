@@ -10,8 +10,8 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as Localize from '@libs/Localize';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import createResponsiveStackNavigator from '@navigation/AppNavigator/createResponsiveStackNavigator';
+import type {FullScreenNavigatorParamList} from '@navigation/types';
 import WorkspaceCategoriesPage from '@pages/workspace/categories/WorkspaceCategoriesPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,20 +22,20 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
-const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
+const RootStack = createResponsiveStackNavigator<FullScreenNavigatorParamList>();
 
-const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.CATEGORIES]) => {
+const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initialParams: FullScreenNavigatorParamList[typeof SCREENS.WORKSPACE.CATEGORIES]) => {
     return render(
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
-                    <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
+                    <RootStack.Navigator initialRouteName={initialRouteName}>
+                        <RootStack.Screen
                             name={SCREENS.WORKSPACE.CATEGORIES}
                             component={WorkspaceCategoriesPage}
                             initialParams={initialParams}
                         />
-                    </Stack.Navigator>
+                    </RootStack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,

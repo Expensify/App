@@ -1,8 +1,8 @@
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import type {RootStackParamList} from '@libs/Navigation/types';
 
 declare global {
     namespace ReactNavigation {
         // eslint-disable-next-line
-        interface RootParamList extends RootNavigatorParamList {}
+        interface RootParamList extends RootStackParamList {}
     }
 }
