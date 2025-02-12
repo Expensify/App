@@ -21,7 +21,7 @@ export default function useDeleteSavedSearch() {
         setIsDeleteModalVisible(false);
         SearchActions.clearAdvancedFilters();
         Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+            ROUTES.SEARCH_ROOT.getRoute({
                 query: SearchQueryUtils.buildCannedSearchQuery(),
             }),
         );

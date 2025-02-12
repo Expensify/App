@@ -660,7 +660,12 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
         },
         {
             text: translateLocal('common.delete'),
-            onSelected: () => showDeleteModal(hash),
+            onSelected: () => {
+                if (isMobileMenu && closeMenu) {
+                    closeMenu();
+                }
+                showDeleteModal(hash);
+            },
             icon: Expensicons.Trashcan,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
@@ -685,7 +690,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             icon: Expensicons.Receipt,
             getRoute: (policyID?: string) => {
                 const query = buildCannedSearchQuery({policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
             },
         },
         {
@@ -694,7 +699,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             icon: Expensicons.ChatBubbles,
             getRoute: (policyID?: string) => {
                 const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
             },
         },
     ];
@@ -706,7 +711,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             icon: Expensicons.InvoiceGeneric,
             getRoute: (policyID?: string) => {
                 const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
             },
         });
     }
@@ -717,7 +722,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
         icon: Expensicons.Suitcase,
         getRoute: (policyID?: string) => {
             const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
-            return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            return ROUTES.SEARCH_ROOT.getRoute({query});
         },
     });
 
@@ -734,7 +739,7 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
         focused: Number(key) === hash,
         onPress: () => {
             clearAllFilters();
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
         },
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,

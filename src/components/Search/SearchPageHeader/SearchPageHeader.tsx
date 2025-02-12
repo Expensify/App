@@ -39,11 +39,11 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; searchRouterListVisible?: boolean; onSearchRouterFocus?: () => void};
+type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; searchName?: string; searchRouterListVisible?: boolean; onSearchRouterFocus?: () => void};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFocus}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, onSearchRouterFocus}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -412,6 +412,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, onSearchRouterFoc
                 searchRouterListVisible={searchRouterListVisible}
                 onSearchRouterFocus={onSearchRouterFocus}
                 queryJSON={queryJSON}
+                searchName={searchName}
                 inputRightComponent={InputRightComponent}
             />
             <ConfirmModal

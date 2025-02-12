@@ -48,7 +48,7 @@ function useOnboardingFlowRouter() {
             if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
                 const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
                 const query = defaultCannedQuery;
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
                 return;
             }

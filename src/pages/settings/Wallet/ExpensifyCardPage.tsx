@@ -279,7 +279,7 @@ function ExpensifyCardPage({
                             style={styles.mt3}
                             onPress={() => {
                                 Navigation.navigate(
-                                    ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                    ROUTES.SEARCH_ROOT.getRoute({
                                         query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
                                     }),
                                 );

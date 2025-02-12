@@ -8,7 +8,6 @@ import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -19,14 +18,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
@@ -38,9 +35,10 @@ type SavedSearchMenuItem = MenuItemWithLink & {
 
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
+    searchName?: string;
 };
 
-function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -74,10 +72,6 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     }, []);
 
     const typeMenuItems = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
-    const activeCentralPaneRoute = useActiveCentralPaneRoute();
-    const searchParams = activeCentralPaneRoute?.params as AuthScreensParamList[typeof SCREENS.SEARCH.CENTRAL_PANE];
-    const isSearchNameModified = searchParams?.name === searchParams?.q;
-    const searchName = isSearchNameModified ? undefined : searchParams?.name;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards));
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === queryJSON.type) : -1;

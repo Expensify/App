@@ -41,10 +41,11 @@ type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
     searchRouterListVisible?: boolean;
     onSearchRouterFocus?: () => void;
+    searchName?: string;
     inputRightComponent: React.ReactNode;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRouterFocus, inputRightComponent}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
@@ -145,7 +146,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
 
             if (updatedQuery !== originalInputQuery) {
                 clearAllFilters();
@@ -249,7 +250,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                         </Animated.View>
                         {showPopupButton && (
                             <View style={[styles.pl3]}>
-                                <SearchTypeMenuPopover queryJSON={queryJSON} />
+                                <SearchTypeMenuPopover
+                                    queryJSON={queryJSON}
+                                    searchName={searchName}
+                                />
                             </View>
                         )}
                     </View>

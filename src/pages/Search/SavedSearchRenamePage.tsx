@@ -27,7 +27,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
         SearchActions.clearAdvancedFilters();
         Navigation.dismissModal();
         Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+            ROUTES.SEARCH_ROOT.getRoute({
                 query: q,
                 name: newName?.trim(),
             }),
