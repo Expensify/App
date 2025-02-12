@@ -75,7 +75,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import type {OnboardingPurpose} from '@src/CONST';
@@ -346,6 +346,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                     oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name,
                     policyName: '',
                 }),
+                isPinned: false,
             },
         });
 
@@ -417,6 +418,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             value: {
                 oldPolicyName,
                 policyName: report?.policyName,
+                isPinned: report?.isPinned,
             },
         });
         failureData.push({
