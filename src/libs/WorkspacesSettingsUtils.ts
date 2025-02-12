@@ -5,7 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report, ReportActions} from '@src/types/onyx';
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -78,14 +78,8 @@ const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
 
-    // To determine if the report requires attention from the current user, we need to load the parent report action
-    let itemParentReportAction: OnyxEntry<ReportAction>;
-    if (report.parentReportID) {
-        const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
-        itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : undefined;
-    }
     const reportOption = {...report, isUnread: isUnread(report), isUnreadWithMention: isUnreadWithMention(report)};
-    const shouldShowGreenDotIndicator = requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
+    const shouldShowGreenDotIndicator = requiresAttentionFromCurrentUser(reportOption);
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 };
 

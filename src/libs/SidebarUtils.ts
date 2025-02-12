@@ -222,7 +222,7 @@ function getOrderedReportIDs(
             isSystemChat ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             report.isPinned ||
-            requiresAttentionFromCurrentUser(report, parentReportAction);
+            requiresAttentionFromCurrentUser(report);
         if (isHidden && !shouldOverrideHidden) {
             return;
         }
@@ -270,9 +270,8 @@ function getOrderedReportIDs(
         };
 
         const isPinned = report?.isPinned ?? false;
-        const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-        if (isPinned || requiresAttentionFromCurrentUser(report, reportAction)) {
+        if (isPinned || requiresAttentionFromCurrentUser(report)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);

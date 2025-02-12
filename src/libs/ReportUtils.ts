@@ -924,6 +924,7 @@ let computedReports;
 Onyx.connect({
     key: ONYX_COMPUTED.REPORTS,
     callback: (value) => {
+        console.log({value});
         if (!value) {
             return;
         }
@@ -3167,8 +3168,12 @@ function getReasonAndReportActionThatRequiresAttention(
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
-function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction?: OnyxEntry<ReportAction>) {
-    return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, parentReportAction);
+function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData) {
+    if (!optionOrReport) {
+        return false;
+    }
+
+    return computedReports[optionOrReport.reportID].requiresAttentionFromCurrentUser;
 }
 
 /**

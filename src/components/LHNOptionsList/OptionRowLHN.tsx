@@ -117,7 +117,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     }
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+    const shouldShowGreenDotIndicator = !hasBrickError && requiresAttentionFromCurrentUser(optionItem);
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];

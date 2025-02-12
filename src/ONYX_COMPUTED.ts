@@ -1,6 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
+import {getReportAction} from '@libs/ReportActionsUtils';
 import {computeReportsByPolicy, findConciergeChatReportID} from './libs/actions/ComputedValues';
-import {hasAnyViolationsToDisplayRBR} from './libs/ReportUtils';
+import {getReasonAndReportActionThatRequiresAttention, hasAnyViolationsToDisplayRBR, requiresAttentionFromCurrentUser} from './libs/ReportUtils';
 import ONYXKEYS from './ONYXKEYS';
 import type {TransactionViolation} from './types/onyx';
 
@@ -25,9 +26,12 @@ const ONYX_COMPUTED = {
                 }
 
                 const hasAnyViolations = hasAnyViolationsToDisplayRBR(report, transactionViolations);
+                const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+                const reasonAndReportActionThatRequiresAttention = getReasonAndReportActionThatRequiresAttention(report, parentReportAction);
 
                 acc[report.reportID] = {
                     hasAnyViolations,
+                    requiresAttentionFromCurrentUser: !!reasonAndReportActionThatRequiresAttention,
                 };
                 return acc;
             }, {} as Record<string, Report>);
