@@ -20,6 +20,7 @@ import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
 import JobTitle from './substeps/JobTitle';
 import Name from './substeps/Name';
+import Occupation from './substeps/Occupation';
 import UploadDocuments from './substeps/UploadDocuments';
 
 type SignerInfoProps = {
@@ -30,13 +31,13 @@ type SignerInfoProps = {
     onSubmit: () => void;
 };
 
-type SignerDetailsFormProps = SubStepProps & {isSecondSigner: boolean};
+type SignerDetailsFormProps = SubStepProps & {isSecondSigner: boolean; directorID: string};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
 const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
 const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
+const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, Occupation, DateOfBirth, Address, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
 const userIsOwnerCadBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [UploadDocuments, Confirmation];
 
@@ -60,6 +61,8 @@ const INPUT_KEYS = {
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
 
+    // TODO: change it to be state value (might change if there is more directors)
+    const directorID = 'currentUser';
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -87,7 +90,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     }, [country]);
 
     const submit = useCallback(() => {
-        const {signerDetails} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '');
+        const {signerDetails} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorID);
 
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
@@ -96,7 +99,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             BankAccounts.saveCorpayOnboardingDirectorInformation({
                 inputs: JSON.stringify(signerDetails),
                 bankAccountID,
-                directorIDs: 'currentUser',
+                directorIDs: `${directorID}`,
                 proofOfDirectors: onyxValues[INPUT_KEYS.SIGNER_COPY_OF_ID],
             });
             onSubmit();
@@ -193,6 +196,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                     onNext={nextScreen}
                     onMove={moveTo}
                     isSecondSigner={isSecondSigner}
+                    directorID={directorID}
                 />
             )}
 
