@@ -70,7 +70,7 @@ function PhoneNumberPage() {
             }
 
             if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumberValue) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumberValue)) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
+                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
                 return errors;
             }
 
@@ -79,7 +79,7 @@ function PhoneNumberPage() {
             const parsedPhoneNumber = formatPhoneNumber(phoneNumberValue);
 
             if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode)) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('bankAccount.error.phoneNumber');
+                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
             }
 
             if (validateLoginError && Object.keys(errors).length > 0) {
