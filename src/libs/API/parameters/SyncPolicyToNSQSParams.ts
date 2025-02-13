@@ -1,5 +1,6 @@
 type SyncPolicyToNSQSParams = {
     policyID: string;
+    netSuiteAccountID: string;
     idempotencyKey: string;
 };
 
