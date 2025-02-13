@@ -26,6 +26,7 @@ import type {
     BillingBannerDisputePendingParams,
     BillingBannerInsufficientFundsParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -948,6 +949,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
         payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
             formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
+        businessBankAccount: ({formattedAmount, last4Digits}: BusinessBankAccountParams) => `Paid ${formattedAmount} with bank account ${last4Digits}.`,
         nextStep: 'Next steps',
         finished: 'Finished',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,

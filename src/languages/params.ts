@@ -124,6 +124,11 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type BusinessBankAccountParams = {
+    formattedAmount: string;
+    last4Digits: string;
+};
+
 type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
@@ -832,4 +837,5 @@ export type {
     FlightLayoverParams,
     SubmitsToParams,
     SettlementDateParams,
+    BusinessBankAccountParams
 };

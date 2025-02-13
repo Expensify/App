@@ -12,6 +12,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import SettlementButton from '@components/SettlementButton';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
@@ -31,6 +34,9 @@ type ActionCellProps = {
     isChildListItem?: boolean;
     parentAction?: string;
     isLoading?: boolean;
+    policyID?: string;
+    currency?: string;
+    bankAccountRoute?: Route;
 };
 
 function ActionCell({
@@ -41,6 +47,9 @@ function ActionCell({
     isChildListItem = false,
     parentAction = '',
     isLoading = false,
+    policyID = '-1',
+    currency = CONST.CURRENCY.USD,
+    bankAccountRoute = ROUTES.BANK_ACCOUNT as Route,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -91,6 +100,22 @@ function ActionCell({
                 iconHoverFill={theme.dangerHover}
             />
         ) : null;
+    }
+
+    if (action === CONST.SEARCH.ACTION_TYPES.PAY && !!policyID) {
+        return (
+            <SettlementButton
+                shouldUseShortForm
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                currency={currency}
+                policyID={policyID}
+                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                addBankAccountRoute={bankAccountRoute}
+                onPress={goToItem}
+                style={[styles.w100]}
+                shouldShowPersonalBankAccountOption={policyID === '-1'}
+            />
+        );
     }
 
     return (
