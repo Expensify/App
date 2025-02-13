@@ -206,7 +206,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           shouldShowRightIcon: tenants.length > 1,
                           shouldShowDescriptionOnTop: true,
                           onPress: () => {
-                              if (!policyID || !currentXeroOrganization || tenants.length < 2) {
+                              if (!policyID || !currentXeroOrganization?.id || tenants.length < 2) {
                                   return;
                               }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization.id));
