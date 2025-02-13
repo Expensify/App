@@ -4,6 +4,8 @@ import type en from './en';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
+    AddedOrDeletedPolicyReportFieldParams,
+    AddedPolicyCustomUnitRateParams,
     AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -103,7 +105,7 @@ import type {
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
-    MovedFromSelfDMParams,
+    MovedFromPersonalSpaceParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -174,6 +176,18 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyDescriptionParams,
+    UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFrequencyParams,
+    UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReportFieldDefaultValueParams,
+    UpdatedPolicyTagFieldParams,
+    UpdatedPolicyTagNameParams,
+    UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdateRoleParams,
@@ -183,6 +197,7 @@ import type {
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
+    ViolationsCustomRulesParams,
     ViolationsInvoiceMarkupParams,
     ViolationsMaxAgeParams,
     ViolationsMissingTagParams,
@@ -993,8 +1008,8 @@ const translations = {
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
-        movedFromSelfDM: ({workspaceName, reportName}: MovedFromSelfDMParams) => `movió el gasto desde su propio mensaje directo a ${workspaceName ?? `un chat con ${reportName}`}`,
-        movedToSelfDM: 'movió el gasto a su propio mensaje directo',
+        movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
+        movedToPersonalSpace: 'movió el gasto a su espacio personal',
         tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
@@ -1548,6 +1563,7 @@ const translations = {
         },
         frequencyDescription: 'Elige la frecuencia de presentación automática de gastos, o preséntalos manualmente',
         frequencies: {
+            instant: 'Instante',
             weekly: 'Semanal',
             monthly: 'Mensual',
             twiceAMonth: 'Dos veces al mes',
@@ -2390,6 +2406,21 @@ const translations = {
         selectCountry: 'Seleccionar país',
         findCountry: 'Buscar país',
         address: 'Dirección',
+        chooseFile: 'Elige archivo',
+        uploadDocuments: 'Sube documentación adicional',
+        pleaseUpload:
+            'Por favor, sube la documentación adicional a continuación para ayudarnos a verificar tu identidad como propietario directo o indirecto del 25% o más de la entidad empresarial.',
+        acceptedFiles: 'Formatos de archivo aceptados: PDF, PNG, JPEG. El tamaño total del archivo para cada sección no puede superar los 5 MB.',
+        proofOfBeneficialOwner: 'Prueba del propietario beneficiario',
+        proofOfBeneficialOwnerDescription:
+            'Por favor, proporciona una declaración firmada y un organigrama de un contador público, notario o abogado que verifique la propiedad del 25% o más del negocio. Debe estar fechado dentro de los últimos tres meses e incluir el número de licencia del firmante.',
+        copyOfID: 'Copia de la identificación del propietario beneficiario',
+        copyOfIDDescription: 'Ejemplos: Pasaporte, licencia de conducir, etc.',
+        proofOfAddress: 'Prueba de la dirección del propietario beneficiario',
+        proofOfAddressDescription: 'Ejemplos: Factura de servicios, contrato de alquiler, etc.',
+        codiceFiscale: 'Codice fiscale/ID fiscal',
+        codiceFiscaleDescription:
+            'Por favor, sube un video de una visita al sitio o una llamada grabada con el oficial firmante. El oficial debe proporcionar: nombre completo, fecha de nacimiento, nombre de la empresa, número de registro, número de código fiscal, dirección registrada, naturaleza del negocio y propósito de la cuenta.',
     },
     validationStep: {
         headerTitle: 'Validar cuenta bancaria',
@@ -2533,15 +2564,12 @@ const translations = {
         toLearnMore: ' para obtener más información.',
         termsAndConditions: {
             header: 'Antes de continuar...',
-            title: 'Por favor, lee los Términos y condiciones para reservar viajes',
-            subtitle: 'Para permitir la opción de reservar viajes en tu espacio de trabajo debe aceptar nuestros ',
+            title: 'Términos y condiciones de Expensify Travel',
+            subtitle: 'Por favor, acepta los ',
             termsconditions: 'términos y condiciones',
-            travelTermsAndConditions: 'términos y condiciones de viaje',
-            helpDocIntro: 'Consulta este ',
-            helpDocOutro: 'para obtener más información o comunícate con Concierge o tu gestor de cuentas.',
-            helpDoc: 'documento de ayuda',
+            travelTermsAndConditions: 'términos y condiciones',
             agree: 'Acepto los ',
-            error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
+            error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
         },
         flight: 'Vuelo',
         flightDetails: {
@@ -2715,6 +2743,15 @@ const translations = {
                     default:
                         return 'Miembro';
                 }
+            },
+            frequency: {
+                manual: 'Manualmente',
+                instant: 'Instantáneo',
+                immediate: 'Diaria',
+                trip: 'Por viaje',
+                weekly: 'Semanal',
+                semimonthly: 'Dos veces al mes',
+                monthly: 'Mensual',
             },
             planType: 'Tipo de plan',
             submitExpense: 'Envía tus gastos a continuación:',
@@ -3823,6 +3860,10 @@ const translations = {
                 noAccountsFound: 'No se han encontrado cuentas',
                 defaultCard: 'Tarjeta predeterminada',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
+                expensifyCardBannerTitle: 'Obtén la Tarjeta Expensify',
+                expensifyCardBannerSubtitle:
+                    'Disfruta de una devolución en cada compra en Estados Unidos, hasta un 50% de descuento en tu factura de Expensify, tarjetas virtuales ilimitadas y mucho más.',
+                expensifyCardBannerLearnMoreButton: 'Más información',
             },
             workflows: {
                 title: 'Flujos de trabajo',
@@ -4756,6 +4797,11 @@ const translations = {
                 goTo: 'Ve a',
                 andEnableWorkflows: 'y habilita los flujos de trabajo, luego añade aprobaciones para desbloquear esta función.',
             },
+            customRules: {
+                title: 'Reglas personalizadas',
+                subtitle: 'Descripción',
+                description: 'Introduzca reglas personalizadas para los informes de gastos',
+            },
         },
     },
     getAssistancePage: {
@@ -4813,7 +4859,49 @@ const translations = {
             public_announce: 'Anuncio Público',
         },
     },
+    workspaceApprovalModes: {
+        submitAndClose: 'Enviar y Cerrar',
+        submitAndApprove: 'Enviar y Aprobar',
+        advanced: 'AVANZADO',
+        dynamictExternal: 'DINÁMICO_EXTERNO',
+        smartReport: 'INFORME_INTELIGENTE',
+        billcom: 'BILLCOM',
+    },
     workspaceActions: {
+        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
+        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
+        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renombró la categoría "${oldName}" a "${newName}`,
+        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
+        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
+        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
+        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+            if (oldValue) {
+                return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} a "${newValue}" (previamente "${oldValue}")`;
+            }
+            return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
+        },
+        addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
+        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
+            `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
+        deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
+        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+            `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
+        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `cambió el monto máximo de gasto requerido sin recibo a ${newValue} (previamente ${oldValue})`,
+        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `cambió el monto máximo de gasto para violaciones a ${newValue} (previamente ${oldValue})`,
+        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `actualizó "Antigüedad máxima de gastos (días)" a "${newValue}" (previamente "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
+        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `actualizó "Volver a facturar gastos a clientes" a "${newValue}" (previamente "${oldValue}")`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
+        updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
+            !oldDescription
+                ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
+                : `actualizó la descripción de este espacio de trabajo a "${newDescription}" (previamente "${oldDescription}")`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `actualizó el nombre de este espacio de trabajo a "${newName}" (previamente "${oldName}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
@@ -4829,6 +4917,10 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `actualizó la moneda predeterminada a ${newCurrency} (previamente ${oldCurrency})`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
+            `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `actualizó el modo de aprobación a "${newValue}" (previamente "${oldValue}")`,
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
     },
@@ -5839,6 +5931,7 @@ const translations = {
             }
             return message;
         },
+        customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
@@ -6355,6 +6448,8 @@ const translations = {
             part6: 'Ahora,',
             part7: ' envía tu gasto y',
             part8: ' ¡observa cómo ocurre la magia!',
+            tryItOut: 'Prueba esto',
+            noThanks: 'No, gracias',
         },
     },
     discardChangesConfirmation: {
