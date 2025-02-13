@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import type {MutableRefObject} from 'react';
 import React from 'react';
-import {InteractionManager} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -32,6 +31,7 @@ import {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogUpdateAutoReportingFrequencyMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
     getReportActionMessageText,
@@ -78,6 +78,7 @@ import {
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallyForwardedMessage,
     getReportAutomaticallySubmittedMessage,
+    getReportName,
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
@@ -102,6 +103,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Download as DownloadOnyx, OnyxInputOrEntry, ReportAction, ReportActionReactions, Report as ReportType, Transaction, User} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
@@ -119,8 +121,10 @@ function setClipboardMessage(content: string | undefined) {
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(Parser.htmlToMarkdown(content));
     } else {
-        const markdownText = Parser.htmlToMarkdown(content);
-        Clipboard.setHtml(content, markdownText);
+        const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
+        const isAnchorTag = anchorRegex.test(content);
+        const plainText = isAnchorTag ? Parser.htmlToMarkdown(content) : Parser.htmlToText(content);
+        Clipboard.setHtml(content, plainText);
     }
 }
 
@@ -259,12 +263,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             const originalReportID = getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
-                    InteractionManager.runAfterInteractions(() => {
-                        // Normally the focus callback of the main composer doesn't focus when willBlurTextInputOnTapOutside
-                        // is false, so we need to pass true here to override this condition.
-                        ReportActionComposeFocusManager.focus(true);
+                    KeyboardUtils.dismiss().then(() => {
+                        navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
                     });
-                    navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
                 });
                 return;
             }
@@ -477,7 +478,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const taskPreviewMessage = getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
-                    const logMessage = getMemberChangeMessageFragment(reportAction).html ?? '';
+                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(reportAction)));
@@ -544,6 +545,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getPolicyChangeLogChangeRoleMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
+                    setClipboardMessage(getPolicyChangeLogUpdateAutoReportingFrequencyMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
                     setClipboardMessage(getDeletedTransactionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
