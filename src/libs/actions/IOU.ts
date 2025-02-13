@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
+import isEqual from 'lodash/isEqual';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -4288,6 +4289,23 @@ function convertTrackedExpenseToRequest(
     optimisticData?.push(...moveTransactionOptimisticData);
     successData?.push(...moveTransactionSuccessData);
     failureData?.push(...moveTransactionFailureData);
+
+    // It's possible that the client doesn't have all reports loaded,
+    // and so a new money request report preview action may have been created optimistically which will need to be removed by the backend.
+    // In that case, it's necessary to remove the update from success data which clears the pending action of the report preview.
+    // Otherwise, it will be applied after the removal of the action and reintroduce it as an empty object, resulting in the action not getting cleared from the UI.
+    // The backend will handle clearing the pending action for this API command.
+    const pendingActionUpdateToRemove = {
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
+        onyxMethod: Onyx.METHOD.MERGE,
+        value: {
+            [reportPreviewReportActionID]: {pendingAction: null},
+        },
+    };
+    successData?.splice(
+        successData?.findIndex((item) => isEqual(item, pendingActionUpdateToRemove)),
+        1,
+    );
 
     if (workspaceParams) {
         const params = {
