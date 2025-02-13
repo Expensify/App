@@ -483,11 +483,11 @@ const CONST = {
     // Removes non-digit/non-plus characters for phone sanitization.
     SANITIZE_PHONE_REGEX: /[^\d+]/g,
 
-    // Validates phone numbers allowing digits, '+', '-', '()', and '.'.
-    ACCEPTED_PHONE_CHARACTER_REGEX: /^[0-9+\-().]+$/,
+    // Validates phone numbers with digits, '+', '-', '()', '.', and spaces
+    ACCEPTED_PHONE_CHARACTER_REGEX: /^[0-9+\-().\s]+$/,
 
-    // Prevents consecutive special characters like '--', '..', '((', '))'.
-    REPEATED_SPECIAL_CHAR_PATTERN: /([-().])\1+/,
+    // Prevents consecutive special characters or spaces like '--', '..', '((', '))', or '  '.
+    REPEATED_SPECIAL_CHAR_PATTERN: /([-\s().])\1+/,
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
