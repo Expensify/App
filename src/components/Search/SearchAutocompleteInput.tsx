@@ -70,6 +70,15 @@ type SearchAutocompleteInputProps = {
     substitutionMap: SubstitutionMap;
 } & Pick<TextInputProps, 'caretHidden' | 'autoFocus' | 'selection'>;
 
+const textInputMarkdownStyle = {
+    mentionUser: {
+        borderRadius: variables.componentBorderRadiusSmall,
+    },
+    mentionHere: {
+        borderRadius: variables.componentBorderRadiusSmall,
+    },
+};
+
 function SearchAutocompleteInput(
     {
         value,
@@ -167,18 +176,6 @@ function SearchAutocompleteInput(
 
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
-
-    const textInputMarkdownStyle = useMemo(
-        () => ({
-            mentionUser: {
-                borderRadius: variables.componentBorderRadiusSmall,
-            },
-            mentionHere: {
-                borderRadius: variables.componentBorderRadiusSmall,
-            },
-        }),
-        [],
-    );
 
     return (
         <View style={[outerWrapperStyle]}>
