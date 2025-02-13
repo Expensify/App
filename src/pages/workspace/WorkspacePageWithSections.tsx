@@ -21,6 +21,7 @@ import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPoli
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -175,8 +176,8 @@ function WorkspacePageWithSections({
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onLinkPress={Navigation.goBackToHome}
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen
