@@ -124,7 +124,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         ],
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
-        priority: 800,
+        priority: 900,
         shouldShow: () => true,
         shouldRenderActionButtons: true,
     },
@@ -147,7 +147,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         ],
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_CONFIRMATION),
         name: SCAN_TEST_CONFIRMATION,
-        priority: 900,
+        priority: 1100,
         shouldShow: () => true,
     },
 };

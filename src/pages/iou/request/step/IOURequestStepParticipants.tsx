@@ -166,7 +166,7 @@ function IOURequestStepParticipants({
                     Navigation.navigate(route);
                 });
             } else {
-                Navigation.navigate(route);
+                Navigation.navigate(route, {forceReplace: true});
             }
         },
         [isAndroidNative, isMobileSafari],
