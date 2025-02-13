@@ -15,9 +15,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
+import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import ConfirmModal from './ConfirmModal';
 
 type BookTravelButtonProps = {
     text: string;
@@ -118,16 +118,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 large
             />
             <ConfirmModal
-                                        title={translate('closeAccountPage.closeAccountWarning')}
-                                        onConfirm={() => {}}
-                                        onCancel={() => {}}
-                                        isVisible={true}
-                                        prompt={translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                                        confirmText={translate('common.yesContinue')}
-                                        cancelText={translate('common.cancel')}
-                                        shouldDisableConfirmButtonWhenOffline
-                                        shouldShowCancelButton
-                                    />
+                title={translate('travel.maintenance.title')}
+                onConfirm={() => {}}
+                isVisible={true}
+                prompt={translate('travel.maintenance.message')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
         </>
     );
 }

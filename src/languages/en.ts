@@ -2624,6 +2624,10 @@ const translations = {
             title: 'Get started with Expensify Travel',
             message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
         },
+        maintenance: {
+            title: 'Expensify Travel is getting an upgrade! 🚀',
+            message: `It'll be unavailable February 23-24, but back and better than ever after that. If you need help with a current trip, please call +1 866-296-7768. Thanks!`,
+        },
     },
     workspace: {
         common: {
