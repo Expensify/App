@@ -39,6 +39,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const primaryLogin = account?.primaryLogin;
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const [isMaintenanceModalVisible, setMaintenanceModalVisibility] = useState(false);
 
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
@@ -117,14 +118,16 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 success
                 large
             />
-            <ConfirmModal
-                title={translate('travel.maintenance.title')}
-                onConfirm={() => {}}
-                isVisible={true}
-                prompt={translate('travel.maintenance.message')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
+            {!!isMaintenanceModalVisible && (
+                <ConfirmModal
+                    title={translate('travel.maintenance.title')}
+                    onConfirm={() => setMaintenanceModalVisibility(false)}
+                    isVisible={true}
+                    prompt={translate('travel.maintenance.message')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+            )}
         </>
     );
 }
