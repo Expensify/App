@@ -87,6 +87,7 @@ function BaseTextInput(
     const theme = useTheme();
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const mergedMarkdownStyles = {...markdownStyle, ...inputProps.markdownStyle};
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -391,7 +392,7 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
-                                markdownStyle={markdownStyle}
+                                markdownStyle={mergedMarkdownStyles}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>

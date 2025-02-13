@@ -168,6 +168,18 @@ function SearchAutocompleteInput(
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    const textInputMarkdownStyle = useMemo(
+        () => ({
+            mentionUser: {
+                borderRadius: variables.componentBorderRadiusSmall,
+            },
+            mentionHere: {
+                borderRadius: variables.componentBorderRadiusSmall,
+            },
+        }),
+        [],
+    );
+
     return (
         <View style={[outerWrapperStyle]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
@@ -192,6 +204,7 @@ function SearchAutocompleteInput(
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
                         disabled={disabled}
+                        markdownStyle={textInputMarkdownStyle}
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
