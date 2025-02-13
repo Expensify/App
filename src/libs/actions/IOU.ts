@@ -9506,9 +9506,9 @@ function navigateToStartStepIfScanFileCannotBeRead(
     readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-/** Save the preferred payment method for a policy */
-function savePreferredPaymentMethod(policyID: string, paymentMethod: string, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
-    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: type ? {[type]: paymentMethod} : paymentMethod});
+/** Save the preferred payment method for a policy or report */
+function savePreferredPaymentMethod(id: string, paymentMethod: string, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[id]: type ? {[type]: paymentMethod} : paymentMethod});
 }
 
 /** Get report policy id of IOU request */
