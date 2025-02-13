@@ -5,6 +5,8 @@ import type {Country} from '@src/CONST';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
+    AddedOrDeletedPolicyReportFieldParams,
+    AddedPolicyCustomUnitRateParams,
     AddEmployeeParams,
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -176,7 +178,18 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
-    UpdateAutoReportingFrequencyParams,
+    UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyDescriptionParams,
+    UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyFrequencyParams,
+    UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReportFieldDefaultValueParams,
+    UpdatedPolicyTagFieldParams,
+    UpdatedPolicyTagNameParams,
+    UpdatedPolicyTagParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdateRoleParams,
@@ -1552,6 +1565,7 @@ const translations = {
         },
         frequencyDescription: 'Choose how often you’d like expenses to submit automatically, or make it manual',
         frequencies: {
+            instant: 'Instant',
             weekly: 'Weekly',
             monthly: 'Monthly',
             twiceAMonth: 'Twice a month',
@@ -2721,7 +2735,6 @@ const translations = {
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
-            leaveConfirmation: "Are you sure you want to leave this workspace? Once you leave, you'll lose access to all data and settings associated with this workspace.",
         },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
@@ -2850,6 +2863,7 @@ const translations = {
             itemsDescription: 'Choose how to handle QuickBooks Desktop items in Expensify.',
         },
         qbo: {
+            connectedTo: 'Connected to',
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
             classes: 'Classes',
             locations: 'Locations',
@@ -3805,6 +3819,9 @@ const translations = {
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
+                expensifyCardBannerTitle: 'Get the Expensify Card',
+                expensifyCardBannerSubtitle: 'Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more.',
+                expensifyCardBannerLearnMoreButton: 'Learn more',
             },
             workflows: {
                 title: 'Workflows',
@@ -4794,8 +4811,48 @@ const translations = {
             public_announce: 'Public Announce',
         },
     },
+    workspaceApprovalModes: {
+        submitAndClose: 'Submit and Close',
+        submitAndApprove: 'Submit and Approve',
+        advanced: 'ADVANCED',
+        dynamictExternal: 'DYNAMIC_EXTERNAL',
+        smartReport: 'SMARTREPORT',
+        billcom: 'BILLCOM',
+    },
     workspaceActions: {
+        addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
+        deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
+        updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
+        setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
+        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
+        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
+        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
+        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `removed the tag "${tagName}" from the list "${tagListName}"`,
+        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+            if (oldValue) {
+                return `updated the tag "${tagName}" on the list "${tagListName}" by changing the ${updatedField} to "${newValue}" (previously "${oldValue}")`;
+            }
+            return `updated the tag "${tagName}" on the list "${tagListName}" by adding a ${updatedField} of "${newValue}"`;
+        },
+        addCustomUnitRate: ({customUnitName, rateName}: AddedPolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
+        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
+        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
+        deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `removed ${fieldType} Report Field "${fieldName}"`,
+        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+            `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
+        updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `changed the maximum receipt required expense amount to ${newValue} (previously ${oldValue})`,
+        updateMaxExpenseAmount: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `changed the maximum expense amount for violations to ${newValue} (previously ${oldValue})`,
+        updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `updated "Max expense age (days)" to "${newValue}" (previously "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
+        updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
+        updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
+        updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
+            !oldDescription
+                ? `set the description of this workspace to "${newDescription}"`
+                : `updated the description of this workspace to "${newDescription}" (previously "${oldDescription}")`,
         removedFromApprovalWorkflow: ({submittersNames}: RemovedFromApprovalWorkflowParams) => {
             let joinedNames = '';
             if (submittersNames.length === 1) {
@@ -4810,6 +4867,10 @@ const translations = {
                 other: `removed you from ${joinedNames}'s approval workflows and workspace chats. Previously submitted reports will remain available for approval in your Inbox.`,
             };
         },
+        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `updated the default currency to ${newCurrency} (previously ${oldCurrency})`,
+        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
+            `updated the auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `updated the approval mode to "${newValue}" (previously "${oldValue}")`,
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
     },
@@ -5090,8 +5151,6 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role === 'member' || role === 'user' ? 'member' : 'admin'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
-                updateAutoReportingFrequency: ({oldFrequency, newFrequency}: UpdateAutoReportingFrequencyParams) =>
-                    `updated the submission frequency to "${newFrequency}" (previously "${oldFrequency}")`,
             },
         },
     },
