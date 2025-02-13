@@ -10,6 +10,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToFrontendAmountAsString, getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,7 +18,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PerDiem from '@userActions/Policy/PerDiem';
+import {deleteWorkspacePerDiemRates} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +39,10 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const customUnit = getPerDiemCustomUnit(policy);
 
     const selectedRate = customUnit?.rates?.[rateID];
-    const selectedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
+    const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
+    const previousFetchedSubRate = usePrevious(fetchedSubRate);
+
+    const selectedSubRate = fetchedSubRate ?? previousFetchedSubRate;
 
     const amountValue = selectedSubRate?.rate ? convertToFrontendAmountAsString(Number(selectedSubRate.rate)) : undefined;
     const currencyValue = selectedRate?.currency ? `${selectedRate.currency} - ${getCurrencySymbol(selectedRate.currency)}` : undefined;
@@ -46,7 +50,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const FullPageBlockingView = isEmptyObject(selectedSubRate) ? FullPageOfflineBlockingView : View;
 
     const handleDeletePerDiemRate = () => {
-        PerDiem.deleteWorkspacePerDiemRates(policyID, customUnit, [
+        deleteWorkspacePerDiemRates(policyID, customUnit, [
             {
                 destination: selectedRate?.name ?? '',
                 subRateName: selectedSubRate?.name ?? '',
