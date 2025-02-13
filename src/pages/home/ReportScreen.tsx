@@ -28,6 +28,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -71,7 +72,7 @@ import {
 } from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import {isNumeric} from '@libs/ValidationUtils';
-import type {AuthScreensParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     clearDeleteTransactionNavigateBackUrl,
@@ -96,7 +97,7 @@ import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
-type ReportScreenNavigationProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
+type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
 
 type ReportScreenProps = CurrentReportIDContextValue & ReportScreenNavigationProps;
 
@@ -138,6 +139,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
+    const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
     const {canUseDefaultRooms} = usePermissions();
@@ -313,6 +315,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     useEffect(() => {
+        if (!prevIsFocused || isFocused) {
+            return;
+        }
+        hideEmojiPicker(true);
+    }, [prevIsFocused, isFocused]);
+
+    useEffect(() => {
         if (!report?.reportID || shouldHideReport) {
             wasReportAccessibleRef.current = false;
             return;
@@ -325,7 +334,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.dismissModal();
             return;
         }
-        Navigation.goBack(undefined, false, true);
+        Navigation.goBack(undefined, {shouldPopToTop: true});
     }, [isInNarrowPaneModal]);
 
     let headerView = (
@@ -385,7 +394,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         () => !!linkedAction && !shouldReportActionBeVisible(linkedAction, linkedAction.reportActionID, canUserPerformWriteAction(report)),
         [linkedAction, report],
     );
+
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
+
+    // eslint-disable-next-line react-compiler/react-compiler
+    const lastReportActionIDFromRoute = usePrevious(!firstRenderRef.current ? reportActionIDFromRoute : undefined);
+
+    const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
+
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
         [currentUserAccountID, linkedAction],
@@ -415,11 +431,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         (!!deleteTransactionNavigateBackUrl && getReportIDFromLink(deleteTransactionNavigateBackUrl) === report?.reportID) ||
         (!reportMetadata.isOptimisticReport && isLoading);
 
-    const isLinkedActionBecomesDeleted = prevIsLinkedActionDeleted !== undefined && !prevIsLinkedActionDeleted && isLinkedActionDeleted;
-
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !isLinkedActionBecomesDeleted) ||
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isNavigatingToDeletedAction) ||
         (shouldShowSkeleton &&
             !reportMetadata.isLoadingInitialReportActions &&
             !!reportActionIDFromRoute &&
@@ -431,43 +445,48 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const currentReportIDFormRoute = route.params?.reportID;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo((): boolean => {
-        if (shouldShowNotFoundLinkedAction) {
-            return true;
-        }
+    const shouldShowNotFoundPage = useMemo(
+        (): boolean => {
+            if (shouldShowNotFoundLinkedAction) {
+                return true;
+            }
 
-        // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
-        if (isLoadingApp !== false) {
-            return false;
-        }
+            // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
+            if (isLoadingApp !== false) {
+                return false;
+            }
 
-        // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
-        // showing the Not Found page
-        if (finishedLoadingApp) {
-            return false;
-        }
+            // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
+            // showing the Not Found page
+            if (finishedLoadingApp) {
+                return false;
+            }
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
             // eslint-disable-next-line react-compiler/react-compiler
-            return true;
-        }
+            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+                // eslint-disable-next-line react-compiler/react-compiler
+                return true;
+            }
 
-        if (shouldHideReport) {
-            return true;
-        }
-        return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-    }, [
-        shouldShowNotFoundLinkedAction,
-        isLoadingApp,
-        finishedLoadingApp,
-        reportID,
-        isOptimisticDelete,
-        reportMetadata?.isLoadingInitialReportActions,
-        userLeavingStatus,
-        shouldHideReport,
-        currentReportIDFormRoute,
-    ]);
+            if (shouldHideReport) {
+                return true;
+            }
+            return !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [
+            firstRender,
+            shouldShowNotFoundLinkedAction,
+            isLoadingApp,
+            finishedLoadingApp,
+            reportID,
+            isOptimisticDelete,
+            reportMetadata?.isLoadingInitialReportActions,
+            userLeavingStatus,
+            shouldHideReport,
+            currentReportIDFormRoute,
+        ],
+    );
 
     const fetchReport = useCallback(() => {
         openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -512,7 +531,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        if (!shouldFetchReport(report, reportMetadata)) {
+        if (!shouldFetchReport(report, reportMetadata.isOptimisticReport)) {
             return;
         }
         // When creating an optimistic report that already exists, we need to skip openReport
@@ -523,7 +542,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         fetchReport();
-    }, [reportIDFromRoute, isLoadingApp, report, reportMetadata, fetchReport]);
+    }, [reportIDFromRoute, isLoadingApp, report, fetchReport, reportMetadata.isOptimisticReport]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -600,6 +619,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // We don't want this effect to run on the first render.
         if (firstRenderRef.current) {
             firstRenderRef.current = false;
+            setFirstRender(false);
             return;
         }
 
@@ -628,7 +648,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP(true);
-                Navigation.goBack(undefined, false, true);
+                Navigation.goBack(undefined, {shouldPopToTop: true});
             }
             if (prevReport?.parentReportID) {
                 // Prevent navigation to the IOU/Expense Report if it is pending deletion.
@@ -728,13 +748,23 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [fetchReport]);
 
     useEffect(() => {
-        // If the linked action is previously available but now deleted,
-        // remove the reportActionID from the params to not link to the deleted action.
-        if (!isLinkedActionBecomesDeleted) {
+        // Only handle deletion cases when there's a deleted action
+        if (!isLinkedActionDeleted) {
+            setIsNavigatingToDeletedAction(false);
             return;
         }
-        Navigation.setParams({reportActionID: ''});
-    }, [isLinkedActionBecomesDeleted]);
+
+        // we want to do this destinguish between normal navigation and delete behavior
+        if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
+            setIsNavigatingToDeletedAction(true);
+            return;
+        }
+
+        // Clear params when Action gets deleted while heighlighted
+        if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
+            Navigation.setParams({reportActionID: ''});
+        }
+    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedAction]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".
@@ -761,13 +791,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isSingleInvoiceReport = isInvoiceReport(report) && isMostRecentReportIOU && isSingleIOUReportAction;
     const shouldShowMostRecentReportAction =
         !!mostRecentReportAction &&
+        shouldReportActionBeVisible(mostRecentReportAction, mostRecentReportAction.reportActionID, canUserPerformWriteAction(report)) &&
         !isSingleExpenseReport &&
         !isSingleInvoiceReport &&
         !isActionOfType(mostRecentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) &&
         !isDeletedAction(mostRecentReportAction);
 
     const lastRoute = usePrevious(route);
-    const lastReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
 
     const onComposerFocus = useCallback(() => setIsComposerFocus(true), []);
     const onComposerBlur = useCallback(() => setIsComposerFocus(false), []);
@@ -792,6 +822,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey={shouldShowNotFoundLinkedAction ? '' : 'notFound.noAccess'}
+                        subtitleStyle={[styles.textSupporting]}
+                        shouldDisplaySearchRouter
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
                         shouldShowLink={shouldShowNotFoundLinkedAction}

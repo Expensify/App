@@ -11502,6 +11502,7 @@ GithubUtils_1.default.octokit.pulls
     .then(({ data: PR }) => {
     if (!(0, EmptyObject_1.isEmptyObject)(PR)) {
         console.log(`Found matching pull request: ${PR.html_url}`);
+        console.log(`Pull request details: ${JSON.stringify(PR)}}`);
         core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
         core.setOutput('HEAD_COMMIT_SHA', PR.head?.sha);
         core.setOutput('IS_MERGED', PR.merged);
@@ -11592,8 +11593,8 @@ exports.getStringInput = getStringInput;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
+    APP_REPO: process.env.GITHUB_REPOSITORY.split('/').at(1) ?? '',
 };
 const CONST = {
     ...GIT_CONST,
@@ -11882,7 +11883,7 @@ class GithubUtils {
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n`;
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';

@@ -162,7 +162,7 @@ function ExpensifyCardPage({
         <ScreenWrapper testID={ExpensifyCardPage.displayName}>
             <HeaderWithBackButton
                 title={pageTitle}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET)}
             />
             <ScrollView>
                 <View style={[styles.flex1, styles.mb9, styles.mt9]}>
