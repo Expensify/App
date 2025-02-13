@@ -1,8 +1,10 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,25 +40,24 @@ function TaxExemptActions() {
         [translate],
     );
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (shouldUseNarrowLayout) {
-            return;
-        }
-        threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-            setThreeDotsMenuPosition({
-                horizontal: x + width,
-                vertical: y + height,
-            });
-        });
-    }, [shouldUseNarrowLayout]);
-
     return (
         <View
             ref={threeDotsMenuContainerRef}
             style={[styles.mtn2, styles.pAbsolute, styles.rn3]}
+            onLayout={(e: LayoutChangeEvent) => {
+                if (shouldUseNarrowLayout) {
+                    return;
+                }
+                const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
+                target?.measureInWindow((x, y, width) => {
+                    setThreeDotsMenuPosition({
+                        horizontal: x + width,
+                        vertical: y,
+                    });
+                });
+            }}
         >
             <ThreeDotsMenu
-                onIconPress={calculateAndSetThreeDotsMenuPosition}
                 menuItems={overflowMenu}
                 anchorPosition={threeDotsMenuPosition}
                 anchorAlignment={anchorAlignment}
