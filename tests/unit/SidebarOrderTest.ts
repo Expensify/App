@@ -1,3 +1,4 @@
+import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {addComment} from '@libs/actions/Report';
@@ -16,9 +17,15 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@libs/Permissions');
 jest.mock('@components/Icon/Expensicons');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
-jest.mock('@src/hooks/useIsCurrentRouteHome');
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
+    useNavigationState: () => true,
+    useIsFocused: () => true,
+    useRoute: () => ({name: 'Home'}),
+    useNavigation: () => undefined,
+    useFocusEffect: () => undefined,
+}));
 
 describe('Sidebar', () => {
     beforeAll(() =>
@@ -851,7 +858,6 @@ describe('Sidebar', () => {
 
             const reportNameValuePairsCollectionDataSet: ReportNameValuePairsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report1.reportID}`]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: DateUtils.getDBTime(),
                 },
             };
@@ -1005,7 +1011,6 @@ describe('Sidebar', () => {
 
             const reportNameValuePairsCollectionDataSet: ReportNameValuePairsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report1.reportID}`]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: DateUtils.getDBTime(),
                 },
             };
