@@ -5,6 +5,10 @@ import {ScrollView as RNScrollView} from 'react-native';
 import type {ScrollViewProps} from 'react-native';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 
+/**
+ * If the ScrollView is used inside the sidebar of a SPLIT_TO_SIDEBAR, we must set scrollEnabled to true
+ * Because scrollEnabled depends on useIsFocused, and isFocused always returns false in the sidebar of a SPLIT_TO_SIDEBAR.
+ */
 function ScrollView({children, scrollIndicatorInsets, scrollEnabled: RNScrollEnabled, ...props}: ScrollViewProps, ref: ForwardedRef<RNScrollView>) {
     const scrollEnabled = useScrollEnabled(RNScrollEnabled);
 

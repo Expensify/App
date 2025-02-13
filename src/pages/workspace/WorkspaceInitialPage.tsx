@@ -454,7 +454,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                     style={styles.headerBarDesktopHeight}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn]}>
+                <ScrollView
+                    contentContainerStyle={[styles.flexColumn]}
+                    scrollEnabled
+                >
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}
