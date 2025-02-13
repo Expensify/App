@@ -823,6 +823,16 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 ### finishReleaseCycle
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
+### testBuild
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
+
+### testBuildHybrid
+The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+- A PR number from the App repository for testing New Dot (ND) changes.
+- A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
+
+Both PR numbers can be entered simultaneously if the changes from both repositories need to be combined and tested. Additionally, contributors can explicitly link related PRs from the Mobile-Expensify repository in the App repository PR description if required. Guidance on linking PRs can be found [in PR template](https://github.com/Expensify/App/blob/main/.github/PULL_REQUEST_TEMPLATE.md?plain=1#L25-L30)
+
 ## Local production builds
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 
