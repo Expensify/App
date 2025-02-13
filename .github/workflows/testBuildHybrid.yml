@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       APP_PULL_REQUEST_NUMBER:
-        description: Pull Request number for correct placement of apps
+        description: Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
         required: false
         default: ''
       HYBRIDAPP_PULL_REQUEST_NUMBER:
-        description: Old Dot Pull request number to build the app from. It will take precedence over MOBILE-EXPENSIFY from ND PR description if both specified.
+        description: Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both specified. If nothing is specified defaults to Mobile-Expensify's main
         required: false
         default: ''
 
@@ -130,7 +130,7 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    needs: [getNewDotRef, getOldDotRef]
+    needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     runs-on: ubuntu-latest-xl
     outputs:
       S3_APK_PATH: ${{ steps.exportAndroidS3Path.outputs.S3_APK_PATH }}
@@ -147,6 +147,9 @@ jobs:
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}"]]; then
+            echo "Building from Mobile-Expensify main branch"
+          fi
 
       - name: Checkout Old Dot to author specified branch or commit
         if: ${{ needs.getOldDotRef.outputs.OLD_DOT_REF != '' }}
@@ -154,6 +157,7 @@ jobs:
           cd Mobile-Expensify
           git fetch origin ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
           git checkout ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
+          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -241,7 +245,7 @@ jobs:
 
   iosHybrid:
     name: Build and deploy iOS for testing
-    needs: [getNewDotRef, getOldDotRef]
+    needs: [getNewDotRef, getOldDotPR, getOldDotRef]
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
     runs-on: macos-15-xlarge
@@ -258,6 +262,9 @@ jobs:
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}"]]; then
+            echo "Building from Mobile-Expensify main branch"
+          fi
 
       - name: Checkout Old Dot to author specified branch or commit
         if: ${{ needs.getOldDotRef.outputs.OLD_DOT_REF != '' }}
@@ -265,6 +272,7 @@ jobs:
           cd Mobile-Expensify
           git fetch origin ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
           git checkout ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
+          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
