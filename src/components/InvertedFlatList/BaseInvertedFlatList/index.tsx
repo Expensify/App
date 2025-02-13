@@ -131,8 +131,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         ) as RNFlatList;
     });
 
-    console.log('maintainVisibleContentPosition: ', maintainVisibleContentPosition);
-
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
