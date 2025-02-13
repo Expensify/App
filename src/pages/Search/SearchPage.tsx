@@ -53,6 +53,7 @@ function SearchPage({route}: SearchPageProps) {
                 <SearchPageNarrow
                     queryJSON={queryJSON}
                     policyID={policyID}
+                    shouldBeGroupedByReports={groupBy === 'reports'}
                     searchName={searchName}
                 />
             </FreezeWrapper>

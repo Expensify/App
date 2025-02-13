@@ -455,7 +455,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     };
 
     const toggleAllTransactions = () => {
-        const areItemsOfReportType = status !== CONST.SEARCH.STATUS.EXPENSE.ALL;
+        const areItemsOfReportType = shouldBeGroupedByReports;
         const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
@@ -480,7 +480,6 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && sortableSearchStatuses.includes(status);
-
     return (
         <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
             ref={handleSelectionListScroll(sortedSelectedData)}
@@ -503,7 +502,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                 )
             }
             isSelected={(item) =>
-                status !== CONST.SEARCH.STATUS.EXPENSE.ALL && isReportListItemType(item)
+                (status !== CONST.SEARCH.STATUS.EXPENSE.ALL || shouldBeGroupedByReports) && isReportListItemType(item)
                     ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
                     : !!item.isSelected
             }

@@ -85,21 +85,21 @@ function SearchTypeMenu({queryJSON, searchName, shouldBeGroupedByReports}: Searc
             },
         },
         {
-            title: translate('common.chats'),
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: Expensicons.ChatBubbles,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
-            },
-        },
-        {
             title: translate('common.expenseReports'),
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Receipt,
             getRoute: (policyID?: string) => {
                 const query = buildCannedSearchQuery({policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query, groupBy: 'reports'});
+            },
+        },
+        {
+            title: translate('common.chats'),
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
             },
         },
     ];

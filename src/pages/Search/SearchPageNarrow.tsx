@@ -33,9 +33,10 @@ type SearchPageBottomTabProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
     searchName?: string;
+    shouldBeGroupedByReports?: boolean;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTabProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName, shouldBeGroupedByReports}: SearchPageBottomTabProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -130,6 +131,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                         <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
                             <SearchTypeMenu
                                 queryJSON={queryJSON}
+                                shouldBeGroupedByReports={shouldBeGroupedByReports}
                                 searchName={searchName}
                             />
                             <SearchStatusBar
@@ -148,6 +150,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                     queryJSON={queryJSON}
                     onSearchListScroll={scrollHandler}
                     onContentSizeChange={onContentSizeChange}
+                    shouldBeGroupedByReports={shouldBeGroupedByReports}
                     contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
                 />
             </View>
