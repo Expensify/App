@@ -29,6 +29,7 @@ type TooltipData = {
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
     isModalTooltip: boolean;
+    shouldRenderActionButtons?: boolean;
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
@@ -140,6 +141,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 900,
         shouldShow: () => false,
         isModalTooltip: false,
+        shouldRenderActionButtons: true,
     },
     [WORKSPACE_EXPENSE_SUBMIT]: {
         content: [

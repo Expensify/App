@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
+    DismissedProductTraining,
     Login,
     OnyxInputOrEntry,
     PersonalDetails,
@@ -38,9 +39,10 @@ import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
+import Permissions from './Permissions';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace} from './PolicyUtils';
+import {canSendInvoiceFromWorkspace, getSubmitToAccountID} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -163,6 +165,7 @@ type PayeePersonalDetails = {
     login: string;
     accountID: number;
     keyForList: string;
+    isInteractive: boolean;
 };
 
 type SectionBase = {
@@ -194,6 +197,7 @@ type GetValidReportsConfig = {
     includeMoneyRequests?: boolean;
     includeInvoiceRooms?: boolean;
     includeDomainEmail?: boolean;
+    includeReadOnly?: boolean;
     loginsToExclude?: Record<string, boolean>;
     shouldSeparateWorkspaceChat?: boolean;
     shouldSeparateSelfDMChat?: boolean;
@@ -211,6 +215,7 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
     excludeHiddenReports?: boolean;
+    canShowManagerMcTest?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
@@ -404,6 +409,12 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
+    callback: (value) => (nvpDismissedProductTraining = value),
 });
 
 /**
@@ -781,7 +792,6 @@ function createOption(
     if (report) {
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         result.private_isArchived = getReportNameValuePairs(report.reportID)?.private_isArchived;
         result.isExpenseReport = isExpenseReport(report);
         result.isInvoiceRoom = isInvoiceRoom(report);
@@ -811,7 +821,7 @@ function createOption(
         result.tooltipText = getReportParticipantsTitle(visibleParticipantAccountIDs);
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
-        subtitle = getChatRoomSubtitle(report);
+        subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
         const lastActorDetails = report.lastActorAccountID ? personalDetailMap[report.lastActorAccountID] : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
@@ -882,6 +892,17 @@ function getReportOption(participant: Participant): OptionData {
     } else {
         option.text = getPolicyName({report});
         option.alternateText = translateLocal('workspace.common.workspace');
+
+        if (report?.policyID) {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            const submitToAccountID = getSubmitToAccountID(policy, report);
+            const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+            const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
+
+            if (subtitle) {
+                option.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
+            }
+        }
     }
     option.isDisabled = isDraftReport(participant.reportID);
     option.selected = participant.selected;
@@ -1262,6 +1283,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
+        includeReadOnly = true,
         transactionViolations = {},
         includeSelfDM = false,
         includeInvoiceRooms = false,
@@ -1334,6 +1356,10 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         }
 
         if (isMoneyRequestReport && !includeMoneyRequests) {
+            continue;
+        }
+
+        if (!canUserPerformWriteAction(report) && !includeReadOnly) {
             continue;
         }
 
@@ -1427,6 +1453,13 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 }
 
 /**
+ * Whether user submitted already an expense or scanned receipt
+ */
+function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
+    return !!nvpDismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
+}
+
+/**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
 function getValidOptions(
@@ -1440,6 +1473,7 @@ function getValidOptions(
         shouldSeparateSelfDMChat = false,
         shouldSeparateWorkspaceChat = false,
         excludeHiddenReports = false,
+        canShowManagerMcTest = false,
         ...config
     }: GetOptionsConfig = {},
 ): Options {
@@ -1447,6 +1481,8 @@ function getValidOptions(
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
+        // Exclude Manager McTest if user submitted expense or scanned receipt and when selection is made from Create or Submit flow
+        [CONST.EMAIL.MANAGER_MCTEST]: !(Permissions.canUseManagerMcTest(config.betas) && !getIsUserSubmittedExpenseOrScannedReceipt() && canShowManagerMcTest),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1586,6 +1622,7 @@ function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
         includeOwnedWorkspaceChats: true,
         includeSelfDM: true,
         includeThreads: true,
+        includeReadOnly: false,
     });
 }
 
@@ -1609,6 +1646,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
         login: personalDetail?.login ?? '',
         accountID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         keyForList: String(personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+        isInteractive: false,
     };
 }
 
@@ -2073,7 +2111,15 @@ function filterAndOrderOptions(options: Options, searchInputValue: string, confi
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);
 
     // on staging server, in specific cases (see issue) BE returns duplicated personalDetails entries
-    orderedOptions.personalDetails = orderedOptions.personalDetails.filter((detail, index, array) => array.findIndex((i) => i.login === detail.login) === index);
+    const uniqueLogins = new Set<string>();
+    orderedOptions.personalDetails = orderedOptions.personalDetails.filter((detail) => {
+        const login = detail.login ?? '';
+        if (uniqueLogins.has(login)) {
+            return false;
+        }
+        uniqueLogins.add(login);
+        return true;
+    });
 
     return {
         ...filterResult,
