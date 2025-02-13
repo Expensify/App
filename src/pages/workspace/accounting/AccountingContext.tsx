@@ -120,13 +120,13 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
         return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key)?.setupConnectionFlow;
     };
 
-    const shouldShowConfirmationModal = activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && activeIntegration?.integrationToDisconnect;
+    const shouldShowConfirmationModal = !!activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && !!activeIntegration?.integrationToDisconnect;
 
     return (
         <AccountingContext.Provider value={accountingContext}>
             {children}
             {!shouldShowConfirmationModal && renderActiveIntegration()}
-            {!!shouldShowConfirmationModal && !!activeIntegration?.integrationToDisconnect && (
+            {shouldShowConfirmationModal && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         if (!activeIntegration?.integrationToDisconnect) {
