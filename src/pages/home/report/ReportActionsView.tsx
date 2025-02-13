@@ -429,10 +429,7 @@ function ReportActionsView({
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
 
     // We want to disable auto scroll when we are loading more actions, cause it cause issues when scrolling up
-    const isLoading = isLoadingInitialReportActions || isLoadingOlderReportActions;
-    console.log('shouldEnableAutoScroll: ', shouldEnableAutoScroll);
-    console.log('isLoading: ', isLoading);
-    console.log('didLoadOlderChats.current: ', didLoadOlderChats.current);
+    const isLoading = isLoadingInitialReportActions || isLoadingOlderReportActions || isLoadingNewerReportActions;
     return (
         <>
             <ReportActionsList
