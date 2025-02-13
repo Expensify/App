@@ -24,6 +24,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -34,7 +35,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {openExternalLink} from '@userActions/Link';
@@ -105,7 +106,7 @@ function generateSingleSubRateData(customUnitRates: Rate[], rateID: string, subR
     };
 }
 
-type WorkspacePerDiemPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
@@ -288,6 +289,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
         setSelectedPerDiem([]);
     }, [setSelectedPerDiem, selectionMode?.isEnabled]);
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedPerDiem([]);
+        },
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
 
     const hasVisibleSubRates = subRatesList.some((subRate) => subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
