@@ -340,6 +340,56 @@ describe('SidebarUtils', () => {
     });
 
     describe('getOptionsData', () => {
+        it('the alternative text of policy expense chat should contain the policy name with dot prefix if it has some actions', () => {
+            const preferredLocale = 'en';
+            const policy = createRandomPolicy(1);
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy.id,
+                policyName: policy.name,
+            };
+            const reportNameValuePairs = {};
+            const optionData = SidebarUtils.getOptionData({
+                report,
+                reportNameValuePairs,
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale,
+                policy,
+                parentReportAction: undefined,
+                hasViolations: false,
+                lastMessageTextFromReport: 'test message',
+            });
+            expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
+        });
+        it('the alternative text of child report of policy expense chat should not contain the policy name with dot prefix if it has some actions', () => {
+            const preferredLocale = 'en';
+            const policy = createRandomPolicy(1);
+            const parentReportAction = createRandomReportAction(1);
+            const report: Report = {
+                ...createRandomReport(2),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy.id,
+                policyName: policy.name,
+                parentReportActionID: parentReportAction.reportActionID,
+                parentReportID: '1',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const reportNameValuePairs = {};
+            const optionData = SidebarUtils.getOptionData({
+                report,
+                reportNameValuePairs,
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale,
+                policy,
+                parentReportAction: undefined,
+                hasViolations: false,
+                lastMessageTextFromReport: 'test message',
+            });
+            expect(optionData?.alternateText).toBe(`test message`);
+        });
         it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
             // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
             const report: Report = {
@@ -393,56 +443,6 @@ describe('SidebarUtils', () => {
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
             expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
-        });
-        it('the alternative text of policy expense chat should contain the policy name with dot prefix if it has some actions', () => {
-            const preferredLocale = 'en';
-            const policy = createRandomPolicy(1);
-            const report: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                policyID: policy.id,
-                policyName: policy.name,
-            };
-            const reportNameValuePairs = {};
-            const optionData = SidebarUtils.getOptionData({
-                report,
-                reportNameValuePairs,
-                reportActions: {},
-                personalDetails: {},
-                preferredLocale,
-                policy,
-                parentReportAction: undefined,
-                hasViolations: false,
-                lastMessageTextFromReport: 'test message',
-            });
-            expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
-        });
-        it('the alternative text of child report of policy expense chat should not contain the policy name with dot prefix if it has some actions', () => {
-            const preferredLocale = 'en';
-            const policy = createRandomPolicy(1);
-            const parentReportAction = createRandomReportAction(1);
-            const report: Report = {
-                ...createRandomReport(2),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                policyID: policy.id,
-                policyName: policy.name,
-                parentReportActionID: parentReportAction.reportActionID,
-                parentReportID: '1',
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const reportNameValuePairs = {};
-            const optionData = SidebarUtils.getOptionData({
-                report,
-                reportNameValuePairs,
-                reportActions: {},
-                personalDetails: {},
-                preferredLocale,
-                policy,
-                parentReportAction: undefined,
-                hasViolations: false,
-                lastMessageTextFromReport: 'test message',
-            });
-            expect(optionData?.alternateText).toBe(`test message`);
         });
     });
 });
