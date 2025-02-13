@@ -457,6 +457,15 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+        '1003': {
+            accountID: 1003,
+            displayName: 'Manager McTest',
+            login: CONST.EMAIL.MANAGER_MCTEST,
+            reportID: '',
+        },
+    };
     const policyID = 'ABC123';
 
     const POLICY: Policy = {
@@ -487,6 +496,7 @@ describe('OptionsListUtils', () => {
                 },
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
                 [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
+                [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
             },
         });
         Onyx.registerLogger(() => {});
@@ -498,6 +508,7 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
+    let OPTIONS_WITH_MANAGER_MCTEST: OptionsListUtils.OptionList;
 
     beforeEach(() => {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
@@ -506,6 +517,7 @@ describe('OptionsListUtils', () => {
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
         OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_MANAGER_MCTEST = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST);
     });
 
     it('getSearchOptions()', () => {
@@ -621,6 +633,32 @@ describe('OptionsListUtils', () => {
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+
+        // Test for check if Manager McTest is correctly included or excluded from the results
+        let options = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+            {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+        );
+        expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+
+        // Manager McTest shouldn't be included to recipients when its not an IOU action
+        options = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+            {includeP2P: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+        );
+
+        expect(options.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+
+        return waitForBatchedUpdates()
+            .then(() => Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: new Date() as unknown as string}))
+            .then(() => {
+                // Manager McTest shouldn't be included to recipients when the user has already submitted an expense
+                const optionsWhenUserAlreadySubmittedExpense = OptionsListUtils.getValidOptions(
+                    {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                    {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                );
+                expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+            });
     });
 
     it('getValidOptions() for group Chat', () => {
