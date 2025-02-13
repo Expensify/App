@@ -2721,7 +2721,8 @@ const translations = {
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
-            policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expense`,
+            policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
+        },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
             amount: 'Amount',

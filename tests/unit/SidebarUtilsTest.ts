@@ -8,10 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
-<<<<<<< HEAD
 import createRandomPolicy from '../utils/collections/policies';
-=======
->>>>>>> main
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 
