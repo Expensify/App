@@ -48,7 +48,7 @@ const ROUTES = {
             if (name) {
                 baseQuery += `&name=${name}`;
             }
-            return baseQuery;
+            return baseQuery as const;
         },
     },
     SEARCH_SAVED_SEARCH_RENAME: {
