@@ -63,7 +63,7 @@ function FullPageNotFoundView({
     onBackButtonPress = () => Navigation.goBack(),
     shouldShowLink = true,
     shouldShowBackButton = true,
-    onLinkPress = () => Navigation.dismissModal(),
+    onLinkPress = () => Navigation.goBackToHome(),
     shouldForceFullScreen = false,
     subtitleStyle,
     shouldDisplaySearchRouter,
