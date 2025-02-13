@@ -88,6 +88,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
+            // This needs to be 1 to avoid using loading views as anchors.
             minIndexForVisible: 1,
         };
 
@@ -129,6 +130,8 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             },
         ) as RNFlatList;
     });
+
+    console.log('maintainVisibleContentPosition: ', maintainVisibleContentPosition);
 
     return (
         <FlatList
