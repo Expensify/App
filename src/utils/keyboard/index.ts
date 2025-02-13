@@ -1,5 +1,4 @@
-import {Keyboard, TextInput} from 'react-native';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
+import {Keyboard} from 'react-native';
 
 let isVisible = false;
 
