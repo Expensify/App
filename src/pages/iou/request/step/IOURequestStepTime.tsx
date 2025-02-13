@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +18,7 @@ import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestTimeForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -26,7 +27,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TIME> & {
+type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TIME | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT> & {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -37,6 +38,7 @@ type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
 function IOURequestStepTime({
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
+        name,
     },
     transaction,
     report,
@@ -49,8 +51,14 @@ function IOURequestStepTime({
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
+    const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
 
     const navigateBack = () => {
+        if (isEditPage) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
+            return;
+        }
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -78,7 +86,7 @@ function IOURequestStepTime({
 
         setMoneyRequestDateAttribute(transactionID, newStart, newEnd);
 
-        if (backTo) {
+        if (isEditPage) {
             navigateBack();
         } else {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
