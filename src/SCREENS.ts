@@ -439,7 +439,7 @@ const SCREENS = {
             NSQS_EXPORT: 'Policy_Accounting_NSQS_Export',
             NSQS_EXPORT_PREFERRED_EXPORTER: 'Policy_Accounting_NSQS_Export_Preferred_Exporter',
             NSQS_EXPORT_DATE: 'Policy_Accounting_NSQS_Export_Date',
-            NSQS_EXPORT_PAYMENT_ACCOUNT: 'Policy_Accounting_NSQS_EXPORT_PAYMENT_ACCOUNT',
+            NSQS_EXPORT_PAYMENT_ACCOUNT: 'Policy_Accounting_NSQS_Export_Payment_Account',
             NSQS_ADVANCED: 'Policy_Accounting_NSQS_Advanced',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
