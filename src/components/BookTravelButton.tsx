@@ -128,16 +128,15 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 success
                 large
             />
-            {!!isMaintenanceModalVisible && (
-                <ConfirmModal
-                    title={translate('travel.maintenance.title')}
-                    onConfirm={() => setMaintenanceModalVisibility(false)}
-                    isVisible={true}
-                    prompt={translate('travel.maintenance.message')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-            )}
+            <ConfirmModal
+                title={translate('travel.maintenance.title')}
+                onConfirm={() => setMaintenanceModalVisibility(false)}
+                onCancel={() => setMaintenanceModalVisibility(false)}
+                isVisible={isMaintenanceModalVisible}
+                prompt={translate('travel.maintenance.message')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
         </>
     );
 }
