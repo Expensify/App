@@ -2511,6 +2511,8 @@ const translations = {
         occupation: 'Occupation',
         whatsYourOccupation: "What's your occupation?",
         proofOfDirectors: 'Proof of directors',
+        codiceFiscale: 'Codice fiscale',
+        PRDandSFD: 'PRD and SFD',
     },
     agreementsStep: {
         agreements: 'Acuerdos',
