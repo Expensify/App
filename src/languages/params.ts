@@ -293,6 +293,34 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 
+type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
+
+type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
+
+type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
+
+type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
+
+type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
+
+type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName: string; tagListName: string; updatedField: string};
+
+type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
+
+type AddedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+
+type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
+
+type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
+
+type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
+
+type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
+
+type UpdatedPolicyFieldWithValueParam = {value: boolean};
+
+type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
+
 type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
@@ -347,11 +375,6 @@ type ApprovalWorkflowErrorParams = {
 
 type ConnectionNameParams = {
     connectionName: AllConnectionName;
-};
-
-type UpdateAutoReportingFrequencyParams = {
-    oldFrequency: string;
-    newFrequency: string;
 };
 
 type LastSyncDateParams = {
@@ -815,7 +838,6 @@ export type {
     UpdateRoleParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
-    UpdateAutoReportingFrequencyParams,
     DateParams,
     FiltersAmountBetweenParams,
     StatementPageTitleParams,
@@ -834,8 +856,22 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyFrequencyParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    AddedOrDeletedPolicyReportFieldParams,
+    AddedPolicyCustomUnitRateParams,
+    UpdatedPolicyTagParams,
+    UpdatedPolicyTagNameParams,
+    UpdatedPolicyTagFieldParams,
+    UpdatedPolicyReportFieldDefaultValueParams,
     SubmitsToParams,
     SettlementDateParams,
 };
