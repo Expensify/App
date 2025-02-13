@@ -70,8 +70,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias:
-                        Navigation.dismissModal();
-                        return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                        return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
                     default: {
                         Navigation.goBack();
                         if (route.params.backTo) {
@@ -83,11 +82,9 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                Navigation.dismissModal();
-                return Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
-                Navigation.dismissModal();
-                return route.params.backTo ? Navigation.navigate(route.params.backTo) : Navigation.goBack();
+                return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
     }, [feature, policyID, route.params?.backTo, route.params?.featureName]);
 
@@ -128,18 +125,18 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         break;
                     }
                     default: {
-                        Policy.enablePolicyReportFields(policyID, true, true);
+                        Policy.enablePolicyReportFields(policyID, true, false);
                     }
                 }
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                Policy.enablePolicyRules(policyID, true, true);
+                Policy.enablePolicyRules(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-                Policy.enableCompanyCards(policyID, true, true);
+                Policy.enableCompanyCards(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                PerDiem.enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, true);
+                PerDiem.enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             default:
         }

@@ -1,15 +1,14 @@
 import type {LinkingOptions} from '@react-navigation/native';
-import type {RootStackParamList} from '@navigation/types';
+import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
+import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
+import type {RootNavigatorParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import type {RouteConfig} from './createNormalizedConfigs';
-import createNormalizedConfigs from './createNormalizedConfigs';
 
 // Moved to a separate file to avoid cyclic dependencies.
-const config: LinkingOptions<RootStackParamList>['config'] = {
-    initialRouteName: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
+const config: LinkingOptions<RootNavigatorParamList>['config'] = {
     screens: {
         // Main Routes
         [SCREENS.VALIDATE_LOGIN]: ROUTES.VALIDATE_LOGIN,
@@ -30,48 +29,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
-        [SCREENS.SETTINGS.PROFILE.ROOT]: {
-            path: ROUTES.SETTINGS_PROFILE,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-            path: ROUTES.SETTINGS_PREFERENCES,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.SECURITY]: {
-            path: ROUTES.SETTINGS_SECURITY,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.WALLET.ROOT]: {
-            path: ROUTES.SETTINGS_WALLET,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.ABOUT]: {
-            path: ROUTES.SETTINGS_ABOUT,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.TROUBLESHOOT]: {
-            path: ROUTES.SETTINGS_TROUBLESHOOT,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-        [SCREENS.SEARCH.CENTRAL_PANE]: {
+        [SCREENS.SEARCH.ROOT]: {
             path: ROUTES.SEARCH_CENTRAL_PANE.route,
-        },
-        [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-        [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
-
-        // Sidebar
-        [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
-            path: ROUTES.ROOT,
-            initialRouteName: SCREENS.HOME,
-            screens: {
-                [SCREENS.HOME]: ROUTES.HOME,
-                [SCREENS.SETTINGS.ROOT]: {
-                    path: ROUTES.SETTINGS,
-                },
-            },
         },
 
         [SCREENS.NOT_FOUND]: '*',
@@ -194,6 +153,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
                             path: ROUTES.SETTINGS_REPORT_FRAUD.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
+                            path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
@@ -330,12 +293,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                            },
-                        },
-                        [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.route,
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
                             },
@@ -562,6 +519,39 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ACCOUNTING_METHOD]: {
                             path: ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_SETUP]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_SETUP.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS_DISPLAYED_AS]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS_DISPLAYED_AS.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PREFERRED_EXPORTER]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PREFERRED_EXPORTER.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_DATE.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.route,
+                        },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.route},
@@ -587,6 +577,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {path: ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {path: ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {path: ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },
@@ -973,6 +964,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_CUSTOM]: {
+                            path: ROUTES.RULES_CUSTOM.route,
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_IMPORT.route,
@@ -1382,6 +1376,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
+                        [SCREENS.TRAVEL.UPGRADE]: ROUTES.TRAVEL_UPGRADE,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,
                         [SCREENS.TRAVEL.TRIP_DETAILS]: {
@@ -1532,7 +1527,56 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
+            path: ROUTES.ROOT,
+            screens: {
+                [SCREENS.HOME]: {
+                    path: ROUTES.HOME,
+                    exact: true,
+                },
+                [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+            },
+        },
+
+        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
+                [SCREENS.SETTINGS.WORKSPACES]: {
+                    path: ROUTES.SETTINGS_WORKSPACES,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                    path: ROUTES.SETTINGS_PROFILE,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.SECURITY]: {
+                    path: ROUTES.SETTINGS_SECURITY,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.WALLET.ROOT]: {
+                    path: ROUTES.SETTINGS_WALLET,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.ABOUT]: {
+                    path: ROUTES.SETTINGS_ABOUT,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.TROUBLESHOOT]: {
+                    path: ROUTES.SETTINGS_TROUBLESHOOT,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
+                [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                    path: ROUTES.SETTINGS_PREFERENCES,
+                    // exact: true,
+                },
+            },
+        },
+
+        [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
+            // The path given as initialRouteName does not have route params.
+            // initialRouteName is not defined in this split navigator because in this case the initial route requires a policyID defined in its route params.
             screens: {
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,
