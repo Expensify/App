@@ -27,6 +27,7 @@ export default function handleFileRetry(message: ReceiptError, file: File, dismi
             dismissError();
             const trackExpenseParams = {...retryParams} as IOU.CreateTrackExpenseParams;
             trackExpenseParams.transactionParams.receipt = file;
+            trackExpenseParams.isRetry = true;
             IOU.trackExpense(trackExpenseParams);
             break;
         }
