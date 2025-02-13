@@ -284,7 +284,7 @@ function sendEvent<EventName extends PusherEventName>(channelName: string, event
         return;
     }
 
-    socket?.trigger({channelName, eventName, data: payload});
+    socket?.trigger({channelName, eventName, data: JSON.stringify(payload)});
 }
 
 /**

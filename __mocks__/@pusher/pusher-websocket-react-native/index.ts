@@ -67,7 +67,7 @@ class MockedPusher {
     }
 
     trigger({channelName, eventName, data}: PusherEvent) {
-        this.channels.get(channelName)?.onEvent({channelName, eventName, data: JSON.stringify(data)});
+        this.channels.get(channelName)?.onEvent({channelName, eventName, data: data as Record<string, unknown>});
     }
 
     getChannel(channelName: string) {
