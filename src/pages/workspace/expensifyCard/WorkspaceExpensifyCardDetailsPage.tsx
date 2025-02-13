@@ -33,10 +33,13 @@ import {deactivateCard as deactivateCard_1, openCardDetailsPage} from '@userActi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS>;
+type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS
+>;
 
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
@@ -53,6 +56,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
+    const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
     const card = cardsList?.[cardID];
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
@@ -140,7 +144,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                     description={translate('workspace.expensifyCard.cardLimit')}
                                     title={formattedLimit}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID))}
+                                    onPress={() =>
+                                        Navigation.navigate(
+                                            isWorkspaceCardRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID),
+                                        )
+                                    }
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
@@ -148,7 +156,13 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                     description={translate('workspace.card.issueNewCard.limitType')}
                                     title={translationForLimitType ? translate(translationForLimitType) : ''}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID))}
+                                    onPress={() =>
+                                        Navigation.navigate(
+                                            isWorkspaceCardRhp
+                                                ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID)
+                                                : ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID),
+                                        )
+                                    }
                                 />
                             </OfflineWithFeedback>
                             <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}>
@@ -156,7 +170,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                     description={translate('workspace.card.issueNewCard.cardName')}
                                     title={card?.nameValuePairs?.cardTitle}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID))}
+                                    onPress={() =>
+                                        Navigation.navigate(
+                                            isWorkspaceCardRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_NAME.getRoute(policyID, cardID),
+                                        )
+                                    }
                                 />
                             </OfflineWithFeedback>
                             <MenuItem
