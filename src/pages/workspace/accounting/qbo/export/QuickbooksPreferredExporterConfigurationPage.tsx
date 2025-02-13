@@ -54,9 +54,9 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== qboConfig?.export?.exporter) {
-                QuickbooksOnline.updateQuickbooksOnlinePreferredExporter(policyID, {exporter: row.value}, {exporter: qboConfig?.export.exporter ?? ''});
+                QuickbooksOnline.updateQuickbooksOnlinePreferredExporter(policyID, {exporter: row.value}, {exporter: qboConfig?.export?.exporter ?? ''});
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
         },
         [qboConfig?.export, policyID],
     );
