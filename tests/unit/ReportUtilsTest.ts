@@ -398,7 +398,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: true,
                             ownerAccountID: 1,
                         }),
-                    ).toBe(`Ragnar Lothbrok's expense`);
+                    ).toBe(`Ragnar Lothbrok's expenses`);
                 });
 
                 test('as admin', () => {
@@ -410,7 +410,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: false,
                             ownerAccountID: 1,
                         }),
-                    ).toBe(`Ragnar Lothbrok's expense`);
+                    ).toBe(`Ragnar Lothbrok's expenses`);
                 });
             });
 
@@ -435,10 +435,10 @@ describe('ReportUtils', () => {
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expense (archived)`);
+                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gasto (archivado)`),
+                        expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
                     );
                 });
 
@@ -448,10 +448,10 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expense (archived)`);
+                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gasto (archivado)`),
+                        expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
                     );
                 });
             });
