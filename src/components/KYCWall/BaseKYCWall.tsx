@@ -111,14 +111,9 @@ function KYCWall({
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
                 if (iouReport && isIOUReport(iouReport)) {
                     if (policy) {
-                        console.log('getuDebug: ', 'moveIOUToExistingPolicy');
-                        const workspaceChat = moveIOUToExistingPolicy(policy, iouReport);
-                        if (workspaceChat && workspaceChat.reportID && workspaceChat.reportActionID) {
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChat.reportID, workspaceChat.reportActionID));
-                        }
-
                         return;
                     }
+
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
                     completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
@@ -127,7 +122,6 @@ function KYCWall({
 
                     // Navigate to the bank account set up flow for this specific policy
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
-
                     return;
                 }
                 Navigation.navigate(addBankAccountRoute);

@@ -5,6 +5,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate}
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
@@ -9502,7 +9503,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
 }
 
 /** Save the preferred payment method for a policy */
-function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType | PaymentMethod, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: type ? {[type]: paymentMethod} : paymentMethod});
 }
 

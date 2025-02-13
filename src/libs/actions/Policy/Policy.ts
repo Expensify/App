@@ -2804,7 +2804,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
  * @param iouReport - The IOU report to be moved
  * @returns The workspace chat report ID where the IOU was moved to
  */
-function moveIOUToExistingPolicy(policy: Policy, iouReport: OnyxEntry<Report>): string | undefined {
+function moveIOUToExistingPolicy(policy: Policy, iouReport: OnyxEntry<Report>): {reportID: string | undefined; reportActionID: string | undefined} | undefined {
     const policyID = policy.id;
     const employeeAccountID = iouReport?.ownerAccountID;
     const oldPersonalPolicyID = iouReport?.policyID;
@@ -2814,21 +2814,43 @@ function moveIOUToExistingPolicy(policy: Policy, iouReport: OnyxEntry<Report>): 
         return;
     }
 
-    const employeeWorkspaceChat = ReportUtils.getWorkspaceChats(policyID, [employeeAccountID])?.at(0);
-    // let newEmployeeWorkspaceChat;
-
-    // if(!employeeWorkspaceChat || employeeWorkspaceChat.ownerAccountID !== employeeAccountID) {
-    //     const employeeEmail = allPersonalDetails?.[employeeAccountID]?.login ?? '';
-    //     newEmployeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
-    // }
+    const employeeEmail = allPersonalDetails?.[employeeAccountID]?.login ?? '';
+    let employeeWorkspaceChatReportID = ReportUtils.getWorkspaceChats(policyID, [employeeAccountID])?.at(0)?.reportID;
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
+    // Create the workspace chat for the employee whose IOU is being paid, if the employee doesn't have the workspace chat yet
+    if (!employeeWorkspaceChatReportID) {
+        // Add the user to the policy
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                employeeList: {
+                    ...(iouReport.ownerAccountID
+                        ? {
+                              [iouReport.ownerAccountID]: {
+                                  role: CONST.POLICY.ROLE.USER,
+                                  errors: {},
+                              },
+                          }
+                        : {}),
+                },
+            },
+        });
+
+        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[employeeEmail]: employeeAccountID}, true);
+        optimisticData.push(...employeeWorkspaceChat.onyxOptimisticData);
+        failureData.push(...employeeWorkspaceChat.onyxFailureData);
+        successData.push(...employeeWorkspaceChat.onyxSuccessData);
+        employeeWorkspaceChatReportID = employeeWorkspaceChat.reportCreationData[employeeEmail].reportID;
+    }
+
     const expenseReport = {
         ...iouReport,
-        chatReportID: employeeWorkspaceChat?.reportID,
+        chatReportID: employeeWorkspaceChatReportID,
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
         total: -(iouReport?.total ?? 0),
@@ -2848,11 +2870,8 @@ function moveIOUToExistingPolicy(policy: Policy, iouReport: OnyxEntry<Report>): 
 
     const oldChatReportID = iouReport.chatReportID;
 
-    // reverse expense report transaction amount?
-    // The expense report transactions need to have the amount reversed to negative values
+    // Reverse expense report transaction amount
     const reportTransactions = ReportUtils.getReportTransactions(iouReportID);
-
-    // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
     reportTransactions.forEach((transaction) => {
@@ -2909,8 +2928,33 @@ function moveIOUToExistingPolicy(policy: Policy, iouReport: OnyxEntry<Report>): 
         },
     });
 
+    if (reportPreview?.reportActionID) {
+        // Update the created timestamp of the report preview action to be after the workspace chat created timestamp.
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${employeeWorkspaceChatReportID}`,
+            value: {
+                [reportPreview.reportActionID]: {
+                    ...reportPreview,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            text: ReportUtils.getReportPreviewMessage(expenseReport, null, false, false, policy),
+                        },
+                    ],
+                    created: DateUtils.getDBTime(),
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${employeeWorkspaceChatReportID}`,
+            value: {[reportPreview.reportActionID]: null},
+        });
+    }
+
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, employeeWorkspaceChat?.reportID ?? '', iouReportID ?? '', policy.name);
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, employeeWorkspaceChatReportID ?? '', iouReportID ?? '', policy.name);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
@@ -2935,8 +2979,7 @@ function moveIOUToExistingPolicy(policy: Policy, iouReport: OnyxEntry<Report>): 
     });
 
     API.write(WRITE_COMMANDS.MOVE_IOU_TO_EXISTING_WORKSPACE, {policyID, iouReportID}, {optimisticData, successData, failureData});
-
-    return employeeWorkspaceChat?.reportID;
+    return {reportID: employeeWorkspaceChatReportID, reportActionID: reportPreview?.reportActionID};
 }
 
 function enablePolicyConnections(policyID: string, enabled: boolean) {
