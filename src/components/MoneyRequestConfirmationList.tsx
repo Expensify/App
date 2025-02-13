@@ -34,7 +34,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {isDraftReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -238,6 +237,7 @@ function MoneyRequestConfirmationList({
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
+    const isCreateExpenseFlow = transaction?.isFromGlobalCreate && !isPerDiemRequest;
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -346,18 +346,6 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory;
-
-    const shouldDisableParticipant = (participant: Participant): boolean => {
-        if (isDraftReport(participant.reportID)) {
-            return true;
-        }
-
-        if (!participant.isInvoiceRoom && !participant.isPolicyExpenseChat && !participant.isSelfDM && isOptimisticPersonalDetail(participant.accountID ?? CONST.DEFAULT_NUMBER_ID)) {
-            return true;
-        }
-
-        return false;
-    };
 
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -604,7 +592,7 @@ function MoneyRequestConfirmationList({
                 return {
                     ...participantOption,
                     isSelected: false,
-                    isInteractive: !shouldDisableParticipant(participantOption),
+                    isInteractive: false,
                     rightElement: (
                         <View style={[styles.flexWrap, styles.pl2]}>
                             <Text style={[styles.textLabel]}>{amount ? convertToDisplayString(amount, iouCurrencyCode) : ''}</Text>
@@ -621,7 +609,7 @@ function MoneyRequestConfirmationList({
             ...participantOption,
             tabIndex: -1,
             isSelected: false,
-            isInteractive: !shouldDisableParticipant(participantOption),
+            isInteractive: false,
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
@@ -727,8 +715,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: transaction?.isFromGlobalCreate,
-                shouldShowRightIcon: transaction?.isFromGlobalCreate,
+                isInteractive: isCreateExpenseFlow,
+                shouldShowRightIcon: isCreateExpenseFlow,
             }));
             options.push({
                 title: translate('common.to'),
@@ -738,7 +726,7 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, transaction?.isFromGlobalCreate]);
+    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID) {
@@ -813,11 +801,11 @@ function MoneyRequestConfirmationList({
      * Navigate to the participant step
      */
     const navigateToParticipantPage = () => {
-        if (!transaction?.isFromGlobalCreate) {
+        if (!isCreateExpenseFlow) {
             return;
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, transactionID, transaction.reportID));
     };
 
     /**
@@ -829,7 +817,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
             if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy)) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute()));
                 return;
             }
 
