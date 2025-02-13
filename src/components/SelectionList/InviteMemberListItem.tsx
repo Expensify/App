@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
+import {getIsUserSubmittedExpenseOrScannedReceipt, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +51,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && item.login === CONST.EMAIL.MANAGER_MCTEST,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isSelectedManagerMcTest(item.login),
     );
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
