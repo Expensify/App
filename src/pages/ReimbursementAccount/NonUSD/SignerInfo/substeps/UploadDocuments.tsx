@@ -12,12 +12,12 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
-import * as FormActions from '@userActions/FormActions';
+import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import { setDraftValues } from "@userActions/FormActions";
 
 type UploadDocumentsProps = SubStepProps;
 
@@ -31,6 +31,12 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const policyID = reimbursementAccount?.achData?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const currency = policy?.outputCurrency ?? '';
+    const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
     const defaultValues = {
         [`signer_${COPY_OF_ID}`]: reimbursementAccount?.achData?.additionalData?.corpay?.[SIGNER_COPY_OF_ID] ?? reimbursementAccountDraft?.[`signer_${COPY_OF_ID}`] ?? [],
@@ -80,54 +86,66 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('signerInfoStep.uploadID')}</Text>
-                <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.id')}</Text>
-                <InputWrapper
-                    InputComponent={UploadFile}
-                    buttonText={translate('signerInfoStep.chooseFile')}
-                    uploadedFiles={uploadedIDs}
-                    onUpload={(files) => {
-                        handleSelectFile(files, uploadedIDs, `signer_${COPY_OF_ID}`, setUploadedID);
-                    }}
-                    onRemove={(fileName) => {
-                        handleRemoveFile(fileName, uploadedIDs, `signer_${COPY_OF_ID}`, setUploadedID);
-                    }}
-                    acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                    value={uploadedIDs}
-                    inputID={`signer_${COPY_OF_ID}`}
-                    setError={setError}
-                />
-                <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.proofOf')}</Text>
-                <InputWrapper
-                    InputComponent={UploadFile}
-                    buttonText={translate('signerInfoStep.chooseFile')}
-                    uploadedFiles={uploadedProofsOfAddress}
-                    onUpload={(files) => {
-                        handleSelectFile(files, uploadedProofsOfAddress, `signer_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
-                    }}
-                    onRemove={(fileName) => {
-                        handleRemoveFile(fileName, uploadedProofsOfAddress, `signer_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
-                    }}
-                    acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                    value={uploadedProofsOfAddress}
-                    inputID={`signer_${ADDRESS_PROOF}`}
-                    setError={setError}
-                />
-                <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.proofOfDirectors')}</Text>
-                <InputWrapper
-                    InputComponent={UploadFile}
-                    buttonText={translate('signerInfoStep.chooseFile')}
-                    uploadedFiles={uploadedProofsOfDirectors}
-                    onUpload={(files) => {
-                        handleSelectFile(files, uploadedProofsOfDirectors, `signer_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
-                    }}
-                    onRemove={(fileName) => {
-                        handleRemoveFile(fileName, uploadedProofsOfDirectors, `signer_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
-                    }}
-                    acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                    value={uploadedProofsOfDirectors}
-                    inputID={`signer_${PROOF_OF_DIRECTORS}`}
-                    setError={setError}
-                />
+                {isDocumentNeededStatus.isCopyOfIDNeeded && (
+                    <View>
+                        <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.id')}</Text>
+                        <InputWrapper
+                            InputComponent={UploadFile}
+                            buttonText={translate('signerInfoStep.chooseFile')}
+                            uploadedFiles={uploadedIDs}
+                            onUpload={(files) => {
+                                handleSelectFile(files, uploadedIDs, `signer_${COPY_OF_ID}`, setUploadedID);
+                            }}
+                            onRemove={(fileName) => {
+                                handleRemoveFile(fileName, uploadedIDs, `signer_${COPY_OF_ID}`, setUploadedID);
+                            }}
+                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                            value={uploadedIDs}
+                            inputID={`signer_${COPY_OF_ID}`}
+                            setError={setError}
+                        />
+                    </View>
+                )}
+                {isDocumentNeededStatus.isAddressProofNeeded && (
+                    <View>
+                        <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.proofOf')}</Text>
+                        <InputWrapper
+                            InputComponent={UploadFile}
+                            buttonText={translate('signerInfoStep.chooseFile')}
+                            uploadedFiles={uploadedProofsOfAddress}
+                            onUpload={(files) => {
+                                handleSelectFile(files, uploadedProofsOfAddress, `signer_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
+                            }}
+                            onRemove={(fileName) => {
+                                handleRemoveFile(fileName, uploadedProofsOfAddress, `signer_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
+                            }}
+                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                            value={uploadedProofsOfAddress}
+                            inputID={`signer_${ADDRESS_PROOF}`}
+                            setError={setError}
+                        />
+                    </View>
+                )}
+                {isDocumentNeededStatus.isProofOfDirecorsNeeded && (
+                    <View>
+                        <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.proofOfDirectors')}</Text>
+                        <InputWrapper
+                            InputComponent={UploadFile}
+                            buttonText={translate('signerInfoStep.chooseFile')}
+                            uploadedFiles={uploadedProofsOfDirectors}
+                            onUpload={(files) => {
+                                handleSelectFile(files, uploadedProofsOfDirectors, `signer_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
+                            }}
+                            onRemove={(fileName) => {
+                                handleRemoveFile(fileName, uploadedProofsOfDirectors, `signer_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
+                            }}
+                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                            value={uploadedProofsOfDirectors}
+                            inputID={`signer_${PROOF_OF_DIRECTORS}`}
+                            setError={setError}
+                        />
+                    </View>
+                )}
                 <WhyLink containerStyles={[styles.mt6]} />
             </View>
         </FormProvider>

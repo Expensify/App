@@ -95,13 +95,13 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             BankAccounts.saveCorpayOnboardingDirectorInformation({
                 inputs: JSON.stringify(signerDetails),
+                ...signerFiles,
                 bankAccountID,
                 directorIDs: `${directorID}`,
-                proofOfDirectors: signerFiles[INPUT_KEYS.SIGNER_PROOF_OF_DIRECTORS] as FileObject,
             });
             onSubmit();
         }
-    }, [bankAccountID, currency, onSubmit, onyxValues, reimbursementAccountDraft]);
+    }, [account?.primaryLogin, bankAccountID, currency, onSubmit, reimbursementAccountDraft]);
 
     const handleNextSubStep = useCallback(
         (value: boolean) => {
