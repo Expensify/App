@@ -52,13 +52,13 @@ const expenseOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes;
     {
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         status: CONST.SEARCH.STATUS.EXPENSE.DONE,
-        icon: Expensicons.Checkmark,
+        icon: Expensicons.Checkbox,
         text: 'iou.done',
     },
     {
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         status: CONST.SEARCH.STATUS.EXPENSE.PAID,
-        icon: Expensicons.MoneyBag,
+        icon: Expensicons.Checkmark,
         text: 'iou.settledExpensify',
     },
 ];
@@ -79,7 +79,7 @@ const invoiceOptions: Array<{type: SearchDataTypes; status: InvoiceSearchStatus;
     {
         type: CONST.SEARCH.DATA_TYPES.INVOICE,
         status: CONST.SEARCH.STATUS.INVOICE.PAID,
-        icon: Expensicons.MoneyBag,
+        icon: Expensicons.Checkmark,
         text: 'iou.settledExpensify',
     },
 ];
