@@ -566,6 +566,20 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
+        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
+            // On natives we can use absolute positioning.
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            paddingBottom: bottomSafeAreaOffset,
+            bottom: 0,
+
+            // There is a missing border right on the wide layout
+            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
+            borderColor: theme.border,
+        }),
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -1580,6 +1594,19 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             flexWrap: 'wrap',
             ...wordBreak.breakWord,
+        },
+
+        searchSplitContainer: {
+            flex: 1,
+            flexDirection: 'row',
+        },
+
+        searchSidebar: {
+            width: variables.sideBarWidth,
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderColor: theme.border,
         },
 
         // Sidebar Styles
@@ -3999,6 +4026,19 @@ const styles = (theme: ThemeColors) =>
         textReactionSenders: {
             color: theme.tooltipPrimaryText,
             ...wordBreak.breakWord,
+        },
+
+        distanceLabelWrapper: {
+            backgroundColor: colors.green500,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        distanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.productLight100,
         },
 
         productTrainingTooltipWrapper: {
