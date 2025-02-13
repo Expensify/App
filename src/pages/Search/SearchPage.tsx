@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
-import CONST from '@src/CONST'
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
@@ -45,7 +45,7 @@ function SearchPage({route}: SearchPageProps) {
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
 
-    const shouldBeGroupedByReports = groupBy === CONST.SEARCH.GROUPED_BY.REPORTS
+    const shouldBeGroupedByReports = groupBy === CONST.SEARCH.GROUPED_BY.REPORTS;
 
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
