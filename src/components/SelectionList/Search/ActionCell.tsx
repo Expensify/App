@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,10 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
-import SettlementButton from '@components/SettlementButton';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',

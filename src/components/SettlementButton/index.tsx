@@ -28,8 +28,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
@@ -155,8 +155,6 @@ function SettlementButton({
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
         }
 
-        console.log(hasMultiplePolicies, hasSinglePolicy, policyID, activeAdminPolicies, 'hasMultiplePolicies, hasSinglePolicy');
-
         if (hasMultiplePolicies || hasSinglePolicy) {
             activeAdminPolicies.forEach((policy) => {
                 const policyName = policy?.name;
@@ -165,10 +163,10 @@ function SettlementButton({
                     icon: Expensicons.Building,
                     value: policy.id,
                     onSelected: () => {
-                        moveIOUToExistingPolicy(policy, iouReport);
+                        // moveIOUToExistingPolicy(policy, iouReport);
                         savePreferredPaymentMethodIOU(iouReport?.reportID ?? '', policy.id, 'lastUsed');
                         // Navigate to the bank account set up flow for this specific policy
-                        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy.id));
+                        // Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy.id));
                     },
                     shouldUpdateSelectedIndex: true,
                 });
@@ -307,8 +305,8 @@ function SettlementButton({
         if (shouldUseShortForm) {
             return translate('iou.pay');
         }
-        
-        if (isInvoiceReport || !hasPreferredPaymentMethod) {
+
+        if (isInvoiceReport || !hasPreferredPaymentMethod || lastPaymentPolicy) {
             return translate('iou.settlePayment', {formattedAmount});
         }
 
@@ -357,12 +355,11 @@ function SettlementButton({
                     isDisabled={isDisabled}
                     isLoading={isLoading}
                     defaultSelectedIndex={lastPaymentPolicy ? paymentButtonOptions.findIndex((option) => option.value === lastPaymentPolicy.id) : 0}
-                    onPress={(event, iouPaymentType) =>{
-                        (Object.values(CONST.PAYMENT_METHODS).includes(iouPaymentType as PaymentMethod) || lastPaymentPolicy)
-                        ? selectPaymentMethod(event, triggerKYCFlow, iouPaymentType as PaymentMethod)
-                        : selectPaymentType(event, iouPaymentType as PaymentMethodType, triggerKYCFlow)   
-                    }
-                    }
+                    onPress={(event, iouPaymentType) => {
+                        Object.values(CONST.PAYMENT_METHODS).includes(iouPaymentType as PaymentMethod) || lastPaymentPolicy
+                            ? selectPaymentMethod(event, triggerKYCFlow, iouPaymentType as PaymentMethod)
+                            : selectPaymentType(event, iouPaymentType as PaymentMethodType, triggerKYCFlow);
+                    }}
                     secondLineText={getSecondLineText()}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}

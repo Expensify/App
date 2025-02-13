@@ -837,5 +837,5 @@ export type {
     FlightLayoverParams,
     SubmitsToParams,
     SettlementDateParams,
-    BusinessBankAccountParams
+    BusinessBankAccountParams,
 };
