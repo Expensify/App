@@ -82,8 +82,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
             updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
-            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack();
         },
         [values],
     );
