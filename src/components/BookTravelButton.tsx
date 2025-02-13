@@ -50,6 +50,8 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
     const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
+    const hideMaintenanceModal = () => setMaintenanceModalVisibility(false);
+
     const bookATrip = useCallback(() => {
         setErrorMessage('');
 
@@ -130,8 +132,8 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             />
             <ConfirmModal
                 title={translate('travel.maintenance.title')}
-                onConfirm={() => setMaintenanceModalVisibility(false)}
-                onCancel={() => setMaintenanceModalVisibility(false)}
+                onConfirm={hideMaintenanceModal}
+                onCancel={hideMaintenanceModal}
                 isVisible={isMaintenanceModalVisible}
                 prompt={translate('travel.maintenance.message')}
                 confirmText={translate('common.buttonConfirm')}
