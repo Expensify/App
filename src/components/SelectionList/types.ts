@@ -200,6 +200,9 @@ type ListItem = {
 
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
+
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -318,6 +321,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     shouldPreventEnterKeySubmit?: boolean;
+    shouldShowBlueBorderOnFocus?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
@@ -464,6 +468,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether the text input should be shown after list header */
     shouldShowTextInputAfterHeader?: boolean;
+
+    /** Whether the header message should be shown after list header */
+    shouldShowHeaderMessageAfterHeader?: boolean;
 
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom?: boolean;
@@ -655,6 +662,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Initial number of items to render */
     initialNumToRender?: number;
+
+    /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
+    isScreenFocused?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
