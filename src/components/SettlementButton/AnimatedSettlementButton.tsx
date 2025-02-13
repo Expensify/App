@@ -1,5 +1,5 @@
-import React, {useEffect, useMemo} from 'react';
-import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
@@ -32,9 +32,11 @@ function AnimatedSettlementButton({
 
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
     const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBSUP_DURATION;
-    const buttonMarginTop = useSharedValue<number>(styles.expenseAndReportPreviewTextButtonContainer.gap);
-    const [canShow, setCanShow] = React.useState(true);
+    const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
+    const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
+    const buttonMarginTop = useSharedValue<number>(gap);
     const height = useSharedValue<number>(variables.componentSizeNormal);
+    const [canShow, setCanShow] = React.useState(true);
 
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),
@@ -42,6 +44,20 @@ function AnimatedSettlementButton({
         overflow: 'hidden',
         ...(shouldAddTopMargin && {marginTop: buttonMarginTop.get()}),
     }));
+
+    const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
+    const stretchOutY = useCallback(() => {
+        'worklet';
+
+        if (shouldAddTopMargin) {
+            buttonMarginTop.set(withTiming(willShowPaymentButton ? gap : 0, {duration: buttonDuration}));
+        }
+        if (willShowPaymentButton) {
+            runOnJS(onAnimationFinish)();
+            return;
+        }
+        height.set(withTiming(0, {duration: buttonDuration}, () => runOnJS(onAnimationFinish)()));
+    }, [buttonDuration, buttonMarginTop, gap, height, onAnimationFinish, shouldAddTopMargin, willShowPaymentButton]);
 
     const buttonAnimation = useMemo(
         () =>
@@ -55,26 +71,10 @@ function AnimatedSettlementButton({
                     transform: [{scale: 0}],
                 },
             })
+                .delay(buttonDelay)
                 .duration(buttonDuration)
-                .withCallback(() => {
-                    'worklet';
-
-                    runOnJS(onAnimationFinish)();
-                }),
-        [buttonDuration, onAnimationFinish],
-    );
-
-    const containerExitingAnimation = useMemo(
-        () =>
-            new Keyframe({
-                from: {
-                    height: variables.componentSizeNormal,
-                },
-                to: {
-                    height: 0,
-                },
-            }).duration(buttonDuration),
-        [buttonDuration],
+                .withCallback(stretchOutY),
+        [buttonDelay, buttonDuration, stretchOutY],
     );
 
     let icon;
@@ -87,17 +87,16 @@ function AnimatedSettlementButton({
     useEffect(() => {
         if (!isAnimationRunning) {
             setCanShow(true);
+            height.set(variables.componentSizeNormal);
+            buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
             return;
         }
-        const frame = setTimeout(() => setCanShow(false), CONST.ANIMATION_HIDE_DELAY);
-        return () => clearTimeout(frame);
-    }, [isAnimationRunning]);
+        const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY);
+        return () => clearTimeout(timer);
+    }, [buttonMarginTop, gap, height, isAnimationRunning, shouldAddTopMargin]);
 
     return (
-        <Animated.View
-            exiting={isAnimationRunning ? containerExitingAnimation : undefined}
-            style={[containerStyles, wrapperStyle]}
-        >
+        <Animated.View style={[containerStyles, wrapperStyle]}>
             {isAnimationRunning && canShow && (
                 <Animated.View exiting={buttonAnimation}>
                     <Button
