@@ -19,6 +19,7 @@ import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -66,7 +67,6 @@ import {
     isReportOwner,
     isSettled,
     isTripRoom as isTripRoomReportUtils,
-    reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -143,12 +143,9 @@ function ReportPreview({
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (_transactions) => reportTransactionsSelector(_transactions, iouReportID),
-    });
+    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const lastTransaction = transactions?.at(0);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
@@ -230,17 +227,16 @@ function ReportPreview({
     const hasErrors =
         (hasMissingSmartscanFields && !iouSettled) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolations(iouReportID, allTransactionViolations, true) ||
-        hasNoticeTypeViolations(iouReportID, allTransactionViolations, true) ||
-        hasWarningTypeViolations(iouReportID, allTransactionViolations, true) ||
+        hasViolations(iouReportID, violations, true) ||
+        hasNoticeTypeViolations(iouReportID, violations, true) ||
+        hasWarningTypeViolations(iouReportID, violations, true) ||
         (isReportOwner(iouReport) && hasReportViolations(iouReportID)) ||
         hasActionsWithErrors(iouReportID);
     const lastThreeTransactions = transactions?.slice(-3) ?? [];
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
-    const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
-    const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy, allTransactionViolations);
+    const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy, violations);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
     const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
 
@@ -251,7 +247,7 @@ function ReportPreview({
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, allTransactionViolations);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on

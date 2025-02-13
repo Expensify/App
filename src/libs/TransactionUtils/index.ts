@@ -792,10 +792,18 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  */
 function hasBrokenConnectionViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     const violations = getTransactionViolations(transactionID, transactionViolations);
-    return !!violations?.find(
-        (violation) =>
-            violation.name === CONST.VIOLATIONS.RTER &&
-            (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530),
+    // return !!violations?.find(
+    //     (violation) =>
+    //         violation.name === CONST.VIOLATIONS.RTER &&
+    //         (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530),
+    // );
+    return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
+}
+
+function isBrokenConnectionViolation(violation: TransactionViolation) {
+    return (
+        violation.name === CONST.VIOLATIONS.RTER &&
+        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530)
     );
 }
 
@@ -803,17 +811,31 @@ function hasBrokenConnectionViolation(transactionID: string | undefined, transac
  * Check if user should see broken connection violation warning.
  */
 function shouldShowBrokenConnectionViolation(
-    transactionIDList: string[] | undefined,
+    transactionOrIDList: Transaction | string[] | undefined,
     report: OnyxEntry<Report> | SearchReport,
     policy: OnyxEntry<Policy> | SearchPolicy,
-    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]> | undefined,
 ): boolean {
-    const transactionsWithBrokenConnectionViolation = transactionIDList?.map((transactionID) => hasBrokenConnectionViolation(transactionID, transactionViolations)) ?? [];
-    return (
-        transactionsWithBrokenConnectionViolation.length > 0 &&
-        transactionsWithBrokenConnectionViolation?.some((value) => value === true) &&
-        (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)))
-    );
+    if (!transactionOrIDList) {
+        return false;
+    }
+    let violations: TransactionViolation[];
+    if (Array.isArray(transactionOrIDList)) {
+        if (Array.isArray(transactionViolations)) {
+            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
+            throw new Error('Invalid argument combination. If a transactionIDList is passed in, then an OnyxCollection of violations is expected');
+        }
+        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[id] ?? []);
+    } else {
+        if (!Array.isArray(transactionViolations)) {
+            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
+            throw new Error('Invalid argument combination. If a single transaction is passed in, then an array of violations for that transaction is expected');
+        }
+        violations = transactionViolations;
+    }
+
+    const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
+    return brokenConnectionViolations.length > 0 && (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)));
 }
 
 /**
@@ -961,18 +983,27 @@ function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: Tr
     return transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail] === `${currentUserAccountID}`;
 }
 
-/**
- * Checks if any violations for the provided transaction are of type 'violation'
- */
-function hasViolation(transaction: Transaction | undefined, transactionViolations: OnyxCollection<TransactionViolations>, showInReview?: boolean): boolean {
+function doesTransactionSupportViolations(transaction: Transaction | undefined): transaction is Transaction {
     if (!transaction) {
         return false;
     }
     if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
         return false;
     }
-    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.some(
-        (violation: TransactionViolation) =>
+    return true;
+}
+
+/**
+ * Checks if any violations for the provided transaction are of type 'violation'
+ */
+function hasViolation(transaction: Transaction | undefined, transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+    if (!doesTransactionSupportViolations(transaction)) {
+        return false;
+    }
+    const violations = Array.isArray(transactionViolations) ? transactionViolations : transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID];
+
+    return !!violations?.some(
+        (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
             !isViolationDismissed(transaction, violation),
@@ -982,15 +1013,14 @@ function hasViolation(transaction: Transaction | undefined, transactionViolation
 /**
  * Checks if any violations for the provided transaction are of type 'notice'
  */
-function hasNoticeTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+function hasNoticeTypeViolation(transactionID: string | undefined, transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
     const transaction = getTransaction(transactionID);
-    if (!transaction) {
+    if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
-    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
-        return false;
-    }
-    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
+    const violations = Array.isArray(transactionViolations) ? transactionViolations : transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
+
+    return !!violations?.some(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
@@ -1001,12 +1031,12 @@ function hasNoticeTypeViolation(transactionID: string | undefined, transactionVi
 /**
  * Checks if any violations for the provided transaction are of type 'warning'
  */
-function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
+function hasWarningTypeViolation(transactionID: string | undefined, transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>, showInReview?: boolean): boolean {
     const transaction = getTransaction(transactionID);
-    if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
+    if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
-    const violations = transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
+    const violations = Array.isArray(transactionViolations) ? transactionViolations : transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
     const warningTypeViolations =
         violations?.filter(
             (violation: TransactionViolation) =>
@@ -1490,6 +1520,7 @@ export {
     getCategoryTaxCodeAndAmount,
     isPerDiemRequest,
     isViolationDismissed,
+    isBrokenConnectionViolation,
 };
 
 export type {TransactionChanges};
