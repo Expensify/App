@@ -30,7 +30,7 @@ type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
 >;
 
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
-    const {policyID, cardID} = route.params;
+    const {policyID, cardID, backTo} = route.params;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
@@ -53,10 +53,13 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE;
 
-    const goBack = useCallback(
-        () => Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)),
-        [isWorkspaceRhp, policyID, cardID],
-    );
+    const goBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+    }, [backTo, isWorkspaceRhp, policyID, cardID]);
 
     const fetchCardLimitTypeData = useCallback(() => {
         Policy.openPolicyEditCardLimitTypePage(policyID, Number(cardID));

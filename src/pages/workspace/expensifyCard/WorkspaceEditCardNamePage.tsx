@@ -26,7 +26,7 @@ import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 type WorkspaceEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME>;
 
 function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
-    const {policyID, cardID} = route.params;
+    const {policyID, cardID, backTo} = route.params;
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
@@ -38,10 +38,13 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
 
     const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME;
 
-    const goBack = useCallback(
-        () => Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)),
-        [isWorkspaceRhp, policyID, cardID],
-    );
+    const goBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+    }, [backTo, isWorkspaceRhp, policyID, cardID]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
         Card.updateExpensifyCardTitle(workspaceAccountID, Number(cardID), values[INPUT_IDS.NAME], card?.nameValuePairs?.cardTitle);

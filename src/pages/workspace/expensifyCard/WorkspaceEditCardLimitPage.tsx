@@ -32,7 +32,7 @@ type WorkspaceEditCardLimitPageProps = PlatformStackScreenProps<
 >;
 
 function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
-    const {policyID, cardID} = route.params;
+    const {policyID, cardID, backTo} = route.params;
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
@@ -64,10 +64,13 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT;
 
-    const goBack = useCallback(
-        () => Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)),
-        [isWorkspaceRhp, policyID, cardID],
-    );
+    const goBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+    }, [backTo, isWorkspaceRhp, policyID, cardID]);
 
     const updateCardLimit = (newLimit: number) => {
         const newAvailableSpend = getNewAvailableSpend(newLimit);
