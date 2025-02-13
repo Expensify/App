@@ -2611,6 +2611,14 @@ const CONST = {
             SMARTREPORT: 'SMARTREPORT',
             BILLCOM: 'BILLCOM',
         },
+        APPROVAL_MODE_TRANSLATION_KEYS: {
+            OPTIONAL: 'submitAndClose',
+            BASIC: 'submitAndApprove',
+            ADVANCED: 'advanced',
+            DYNAMICEXTERNAL: 'dynamictExternal',
+            SMARTREPORT: 'smartReport',
+            BILLCOM: 'billcom',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
@@ -2686,6 +2694,10 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
+        },
+        EXPENSE_REPORT_RULES: {
+            PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         CONNECTIONS: {
             NAME: {

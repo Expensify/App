@@ -997,6 +997,10 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return syncSuccessfulDate;
 }
 
+function getNSQSCompanyID(policy: Policy) {
+    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
+}
+
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
     if (!currentEntityID) {
@@ -1078,6 +1082,12 @@ function goBackWhenEnableFeature(policyID: string) {
     setTimeout(() => {
         Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+}
+
+function navigateToExpensifyCardPage(policyID: string) {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+    });
 }
 
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
@@ -1389,6 +1399,7 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
+    getNSQSCompanyID,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
@@ -1399,6 +1410,7 @@ export {
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     goBackWhenEnableFeature,
+    navigateToExpensifyCardPage,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,

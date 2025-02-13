@@ -33,6 +33,13 @@ const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: ResponsiveLayoutResult = {
     isSmallScreen: false,
     onboardingIsMediumOrLargerScreenWidth: false,
 };
+// Mock Fullstory library dependency
+jest.mock('@libs/Fullstory', () => ({
+    default: {
+        consentAndIdentify: jest.fn(),
+    },
+    parseFSAttributes: jest.fn(),
+}));
 
 const INITIAL_STATE = {
     routes: [

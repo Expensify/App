@@ -20,7 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft} from '@libs/actions/Policy/Member';
-import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, leaveWorkspace, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
+import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -49,7 +49,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const illustrations = useThemeIllustrations();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
-    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
 
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -157,23 +156,16 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const handleWorkspaceAction = useCallback(
-        (action: 'delete' | 'leave') => {
-            if (!policy?.id || !policyName) {
-                return;
-            }
+    const confirmDeleteAndHideModal = useCallback(() => {
+        if (!policy?.id || !policyName) {
+            return;
+        }
 
-            if (action === 'delete') {
-                deleteWorkspace(policy.id, policyName);
-                setIsDeleteModalOpen(false);
-            } else {
-                leaveWorkspace(policy.id);
-            }
+        deleteWorkspace(policy.id, policyName);
+        setIsDeleteModalOpen(false);
 
-            if (activeWorkspaceID !== policy?.id) {
-                return;
-            }
-
+        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
+        if (activeWorkspaceID === policy.id) {
             setActiveWorkspaceID(undefined);
             Navigation.dismissModal();
             const rootState = navigationRef.current?.getRootState() as State<RootStackParamList>;
@@ -182,9 +174,8 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                 Navigation.setParams({policyID: undefined}, topmostBottomTabRoute?.key);
             }
             goBackFromInvalidPolicy();
-        },
-        [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID],
-    );
+        }
+    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -231,7 +222,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 styles.sectionMenuItemTopDescription,
                             ]}
                             editIconStyle={styles.smallEditIconWorkspace}
-                            isUsingDefaultAvatar={!policy?.avatarURL}
+                            isUsingDefaultAvatar={!policy?.avatarURL ?? false}
                             onImageSelected={(file) => {
                                 if (!policy?.id) {
                                     return;
@@ -375,34 +366,14 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 )}
                             </View>
                         )}
-                        {!(isPolicyAdmin || isOwner) && (
-                            <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
-                                <Button
-                                    accessibilityLabel={translate('common.leave')}
-                                    text={translate('common.leave')}
-                                    onPress={() => setIsLeaveModalOpen(true)}
-                                    icon={Expensicons.Exit}
-                                />
-                            </View>
-                        )}
                     </Section>
                     <ConfirmModal
                         title={translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
-                        onConfirm={() => handleWorkspaceAction('delete')}
+                        onConfirm={confirmDeleteAndHideModal}
                         onCancel={() => setIsDeleteModalOpen(false)}
                         prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                         confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <ConfirmModal
-                        title={translate('common.leave')}
-                        isVisible={isLeaveModalOpen}
-                        onConfirm={() => handleWorkspaceAction('leave')}
-                        onCancel={() => setIsLeaveModalOpen(false)}
-                        prompt={translate('workspace.common.leaveConfirmation')}
-                        confirmText={translate('common.leave')}
                         cancelText={translate('common.cancel')}
                         danger
                     />
