@@ -167,7 +167,7 @@ jobs:
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
-          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}"]]; then
+          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}" ]]; then
             echo "Building from Mobile-Expensify main branch"
           fi
 
@@ -284,7 +284,7 @@ jobs:
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
-          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}"]]; then
+          if [[ -z "${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}" ]]; then
             echo "Building from Mobile-Expensify main branch"
           fi
 
