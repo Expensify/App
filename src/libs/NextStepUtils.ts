@@ -101,10 +101,13 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
     const shouldShowFixMessage = hasViolations && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-    const ownerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID});
-    const policyOwnerPersonalDetails = getPersonalDetailsByIDs({accountIDs: [policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID], currentUserAccountID, shouldChangeUserDisplayName: true});
-    const policyOwnerDisplayName =
-        policyOwnerPersonalDetails.at(0)?.displayName ?? policyOwnerPersonalDetails.at(0)?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
+    const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
+        accountIDs: [policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
+        currentUserAccountID,
+        shouldChangeUserDisplayName: true,
+    });
+    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
+    const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
     const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
@@ -126,7 +129,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                       text: 'an admin',
                   }
                 : {
-                      text: policyOwnerDisplayName,
+                      text: shouldShowFixMessage ? ownerDisplayName : policyOwnerDisplayName,
                       type: 'strong',
                   },
             {
