@@ -3451,13 +3451,13 @@ const translations = {
                 expense: 'Expense',
                 reimbursableExpenses: 'Export reimbursable expenses as',
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as',
+                defaultPaymentAccount: 'NSQS default',
+                paymentAccount: 'Payment account',
+                paymentAccountDescription:
+                    'Choose the account that transactions will be approved against in NSQS. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
             },
             advanced: {
                 autoSyncDescription: 'Sync NSQS and Expensify automatically, every day. Export finalized report in realtime',
-                defaultApprovalAccount: 'NSQS default',
-                approvalAccount: 'A/P approval account',
-                approvalAccountDescription:
-                    'Choose the account that transactions will be approved against in NSQS. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
             },
         },
         intacct: {
