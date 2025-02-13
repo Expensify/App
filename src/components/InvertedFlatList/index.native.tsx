@@ -12,6 +12,7 @@ function BaseInvertedFlatListWithRef<T>(props: BaseInvertedFlatListProps<T>, ref
             {...props}
             ref={ref}
             CellRendererComponent={CellRendererComponent}
+            // shouldEnableAutoScrollToTopThreshold={false}
             /**
              * To achieve absolute positioning and handle overflows for list items, the property must be disabled
              * for Android native builds.

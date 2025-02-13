@@ -762,6 +762,8 @@ function ReportActionsList({
 
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
 
+    const isAutoScrollToTopThresholdEnabled = shouldEnableAutoScrollToTopThreshold && scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD;
+
     return (
         <>
             <FloatingMessageCounter
@@ -796,7 +798,8 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
+                    // shouldEnableAutoScrollToTopThreshold={false}
+                    shouldEnableAutoScrollToTopThreshold={isAutoScrollToTopThresholdEnabled}
                     initialScrollKey={reportActionID}
                 />
             </View>

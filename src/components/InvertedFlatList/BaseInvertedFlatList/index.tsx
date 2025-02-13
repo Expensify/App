@@ -3,6 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
+import getPlatform from '@libs/getPlatform';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import RenderTaskQueue from './RenderTaskQueue';
 
@@ -87,12 +88,17 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
-            // This needs to be 1 to avoid using loading views as anchors.
             minIndexForVisible: 1,
         };
 
         if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
             config.autoscrollToTopThreshold = AUTOSCROLL_TO_TOP_THRESHOLD;
+            return config;
+        }
+
+        // When autoscrollToTopThreshold is not set on iOS, we want to set maintainVisibleContentPosition to undefined casue it was causing issues when scrolling up
+        if (getPlatform() === 'ios') {
+            return undefined;
         }
 
         return config;
