@@ -18,10 +18,6 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
-function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
-}
-
 function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
@@ -58,7 +54,6 @@ export default {
     canUseLinkPreviews,
     canUseSpotnanaTravel,
     canUseNetSuiteUSATax,
-    canUseCategoryAndTagApprovers,
     canUsePerDiem,
     canUseMergeAccounts,
     canUseManagerMcTest,
