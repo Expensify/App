@@ -1136,22 +1136,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
-        getRoute: (
-            policyID: string,
-            connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>,
-            integrationToDisconnect?: ConnectionName,
-            shouldDisconnectIntegrationBeforeConnecting?: boolean,
-        ) => {
-            let queryParams = '';
-            if (integrationToDisconnect) {
-                queryParams += `?integrationToDisconnect=${integrationToDisconnect}`;
-                if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
-                    queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
-                }
-            }
-
-            return `settings/workspaces/${policyID}/accounting/${connection}/connection-selector${queryParams}` as const;
-        },
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/connection-selector` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',

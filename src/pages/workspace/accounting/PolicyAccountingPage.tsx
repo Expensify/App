@@ -470,14 +470,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             onPress={() => {
                                 const shouldDisconnect = true;
                                 if (shouldUseMultiConnectionSelector) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(
-                                            policyID,
-                                            getRouteParamForConnection(designatedDisplayConnection),
-                                            connectedIntegration,
-                                            shouldDisconnect,
-                                        ),
-                                    );
+                                    Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)));
                                     return;
                                 }
                                 startIntegrationFlow({

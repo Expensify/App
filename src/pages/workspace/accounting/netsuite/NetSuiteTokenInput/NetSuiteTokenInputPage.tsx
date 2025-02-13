@@ -50,7 +50,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                     return;
                 }
 
-                Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionName)));
+                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(multiConnectionName)));
                 return;
             }
             Navigation.goBack();
