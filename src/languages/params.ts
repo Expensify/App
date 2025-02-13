@@ -538,6 +538,11 @@ type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
 };
 
+type DemotedFromWorkspaceParams = {
+    policyName: string;
+    oldRole: string;
+};
+
 type IntegrationExportParams = {
     integration: string;
     type?: string;
@@ -654,6 +659,7 @@ export type {
     ConnectionParams,
     IntegrationExportParams,
     RemovedFromApprovalWorkflowParams,
+    DemotedFromWorkspaceParams,
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,

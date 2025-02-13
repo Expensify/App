@@ -61,6 +61,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DeleteTransactionParams,
+    DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -2889,6 +2890,7 @@ const translations = {
             itemsDescription: 'Elige cómo gestionar los elementos de QuickBooks Desktop en Expensify.',
         },
         qbo: {
+            connectedTo: 'Conectado a',
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
             classes: 'Clases',
             locations: 'Lugares',
@@ -4919,6 +4921,8 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
+        demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
+            `cambió tu rol en ${policyName} de ${oldRole} a miembro. Te eliminamos de todos los chats del espacio de trabajo, excepto el suyo.`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `actualizó la moneda predeterminada a ${newCurrency} (previamente ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
             `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
