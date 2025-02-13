@@ -7,6 +7,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -18,7 +19,6 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import DateUtils from '@libs/DateUtils';
 
 type BookTravelButtonProps = {
     text: string;
@@ -52,8 +52,8 @@ function BookTravelButton({text}: BookTravelButtonProps) {
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');
-        
-        if(DateUtils.isCurrentTimeWithinRange(SPOTNANA_BLACKOUT_PERIOD_START, SPOTNANA_BLACKOUT_PERIOD_END)) {
+
+        if (DateUtils.isCurrentTimeWithinRange(SPOTNANA_BLACKOUT_PERIOD_START, SPOTNANA_BLACKOUT_PERIOD_END)) {
             setMaintenanceModalVisibility(true);
             return;
         }

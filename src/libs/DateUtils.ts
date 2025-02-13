@@ -947,7 +947,7 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
  * Checks if the current time falls within the specified time range.
  */
 const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean => {
-    const now  = Date.now();
+    const now = Date.now();
     return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
 };
 
