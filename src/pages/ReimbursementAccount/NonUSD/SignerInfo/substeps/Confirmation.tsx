@@ -3,46 +3,33 @@ import {useOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import getAddressValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getAddressValuesForSignerInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import getAddressValuesForSignerInfo from "@pages/ReimbursementAccount/NonUSD/utils/getAddressValuesForSignerInfo";
 
-type ConfirmationProps = SubStepProps & {isSecondSigner: boolean};
+type ConfirmationProps = SubStepProps;
 
 const SINGER_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {
-    SIGNER_FULL_NAME,
-    SECOND_SIGNER_FULL_NAME,
-    SIGNER_JOB_TITLE,
-    SECOND_SIGNER_JOB_TITLE,
-    SIGNER_DATE_OF_BIRTH,
-    SECOND_SIGNER_DATE_OF_BIRTH,
-    SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
-    SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
-    SIGNER_COPY_OF_ID,
-    SECOND_SIGNER_COPY_OF_ID,
-    SIGNER_ADDRESS_PROOF,
-    SECOND_SIGNER_ADDRESS_PROOF,
-    OWNS_MORE_THAN_25_PERCENT,
-} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {SIGNER_FULL_NAME, SIGNER_JOB_TITLE, SIGNER_DATE_OF_BIRTH, SIGNER_COMPLETE_RESIDENTIAL_ADDRESS, SIGNER_COPY_OF_ID, SIGNER_ADDRESS_PROOF, OWNS_MORE_THAN_25_PERCENT} =
+    INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
-function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationProps) {
+function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const addressPrefix = isSecondSigner ? SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS : SIGNER_COMPLETE_RESIDENTIAL_ADDRESS;
+    const addressPrefix = SIGNER_COMPLETE_RESIDENTIAL_ADDRESS;
     const values = useMemo(() => getSubstepValues(SINGER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const addressValues = useMemo(() => getAddressValuesForSignerInfo(addressPrefix, reimbursementAccountDraft), [addressPrefix, reimbursementAccountDraft]);
 
-    const IDs = values[isSecondSigner ? SECOND_SIGNER_COPY_OF_ID : SIGNER_COPY_OF_ID];
-    const proofs = values[isSecondSigner ? SECOND_SIGNER_ADDRESS_PROOF : SIGNER_ADDRESS_PROOF];
+    const IDs = values[SIGNER_COPY_OF_ID];
+    const proofs = values[SIGNER_ADDRESS_PROOF];
 
     const summaryItems = [
         {
-            title: values[isSecondSigner ? SECOND_SIGNER_JOB_TITLE : SIGNER_JOB_TITLE],
+            title: values[SIGNER_JOB_TITLE],
             description: translate('signerInfoStep.jobTitle'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -69,7 +56,7 @@ function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationP
 
     if (!isUserOwner) {
         summaryItems.unshift({
-            title: `${values[isSecondSigner ? SECOND_SIGNER_FULL_NAME : SIGNER_FULL_NAME]}`,
+            title: `${values[SIGNER_FULL_NAME]}`,
             description: translate('signerInfoStep.legalName'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -78,7 +65,7 @@ function Confirmation({onNext, onMove, isEditing, isSecondSigner}: ConfirmationP
         });
 
         summaryItems.splice(2, 0, {
-            title: values[isSecondSigner ? SECOND_SIGNER_DATE_OF_BIRTH : SIGNER_DATE_OF_BIRTH],
+            title: values[SIGNER_DATE_OF_BIRTH],
             description: translate('common.dob'),
             shouldShowRightIcon: true,
             onPress: () => {
