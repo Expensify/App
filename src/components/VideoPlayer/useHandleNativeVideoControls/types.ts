@@ -1,5 +1,5 @@
 import type {MutableRefObject} from 'react';
-import type {VideoWithOnFullScreenUpdate} from '../types';
+import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 
 type UseHandleNativeVideoControlParams = {
     videoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
