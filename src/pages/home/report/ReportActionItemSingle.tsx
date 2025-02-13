@@ -118,7 +118,8 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
-    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
+    const icons = getIcons(iouReport ?? null, personalDetails) || [];
+    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report) && icons.length > 1;
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
 
@@ -185,24 +186,41 @@ function ReportActionItemSingle({
     } else {
         secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
-    const icon = {
-        source: avatarSource ?? FallbackAvatar,
-        type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
-        name: primaryDisplayName ?? '',
-        id: avatarId,
-    };
+
+    const icon = useMemo(
+        () => ({
+            source: avatarSource ?? FallbackAvatar,
+            type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
+            name: primaryDisplayName ?? '',
+            id: avatarId,
+        }),
+        [avatarSource, isWorkspaceActor, primaryDisplayName, avatarId],
+    );
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const personArray = displayName
-        ? [
-              {
-                  type: 'TEXT',
-                  text: displayName,
-              },
-          ]
-        : action?.person;
+    const personArray = useMemo(() => {
+        const baseArray = displayName
+            ? [
+                  {
+                      type: 'TEXT',
+                      text: displayName,
+                  },
+              ]
+            : [action?.person?.at(0)].filter(Boolean) ?? [];
+
+        if (displayAllActors && secondaryAvatar?.name) {
+            return [
+                ...baseArray,
+                {
+                    type: 'TEXT',
+                    text: secondaryAvatar?.name ?? '',
+                },
+            ];
+        }
+        return baseArray;
+    }, [displayName, action?.person, displayAllActors, secondaryAvatar?.name]);
 
     const reportID = report?.reportID;
     const iouReportID = iouReport?.reportID;
@@ -276,6 +294,77 @@ function ReportActionItemSingle({
             </UserDetailsTooltip>
         );
     };
+
+    const getHeading = useCallback(() => {
+        return () => {
+            if (displayAllActors && personArray.length === 2 && isReportPreviewAction) {
+                return (
+                    <View style={[styles.flex1, styles.flexRow, styles.overflowHidden]}>
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${0}`}
+                            accountID={Number(icon.id) ?? -1}
+                            fragment={{...personArray.at(0), type: 'TEXT', text: displayName ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={icon}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.chatItemMessageHeaderSender, styles.pre]}
+                        >
+                            {` & `}
+                        </Text>
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            key={`person-${action?.reportActionID}-${1}`}
+                            accountID={parseInt(`${secondaryAvatar?.id ?? -1}`, 10)}
+                            fragment={{...personArray.at(1), type: 'TEXT', text: secondaryAvatar.name ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={secondaryAvatar}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                    </View>
+                );
+            }
+            return (
+                <View>
+                    {personArray.map((fragment, index) => (
+                        <ReportActionItemFragment
+                            style={[styles.flex1]}
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`person-${action?.reportActionID}-${index}`}
+                            accountID={actorAccountID ?? -1}
+                            fragment={{...fragment, type: fragment?.type ?? '', text: fragment?.text ?? ''}}
+                            delegateAccountID={action?.delegateAccountID}
+                            isSingleLine
+                            actorIcon={icon}
+                            moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                        />
+                    ))}
+                </View>
+            );
+        };
+    }, [
+        displayAllActors,
+        secondaryAvatar,
+        isReportPreviewAction,
+        personArray,
+        styles.flexRow,
+        styles.flexShrink0,
+        styles.flexShrink1,
+        styles.flex1,
+        styles.chatItemMessageHeaderSender,
+        styles.pre,
+        styles.overflowHidden,
+        action,
+        actorAccountID,
+        displayName,
+        icon,
+    ]);
+
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
@@ -306,18 +395,7 @@ function ReportActionItemSingle({
                             accessibilityLabel={actorHint}
                             role={CONST.ROLE.BUTTON}
                         >
-                            {personArray?.map((fragment, index) => (
-                                <ReportActionItemFragment
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
-                                    fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                                    delegateAccountID={action?.delegateAccountID}
-                                    isSingleLine
-                                    actorIcon={icon}
-                                    moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
-                                />
-                            ))}
+                            {getHeading()}
                         </PressableWithoutFeedback>
                         {!!hasEmojiStatus && (
                             <Tooltip text={statusTooltipText}>
