@@ -146,12 +146,11 @@ Note: You can only add corporate cards on a Control plan.
 To add your corporate card:
 
    <li>Click <b>Settings</b>.</li>
-   <li>Click  <b>Workspaces</b> and select your workspace 
-   <li>Click <b> More Features </b>.</li>
-   <li>Enable <b> Corporate Cards </b>.</li> 
-   [Corporate Cards will now be viewable on the left-hand menu] 
-   <li>Click <b>Corporate Cards</b> 
-   <li>Click <b>Add Cards</b> and follow the prompts 
+   <li>Click <b>Workspaces</b> and select your workspace</li>
+   <li>Click <b>More Features </b>.</li>
+   <li>Enable <b>Corporate Cards</b>. Corporate Cards will now be viewable on the left-hand menu</li> 
+   <li>Click <b>Corporate Cards</b></li>
+   <li>Click <b>Add Cards</b> and follow the prompts</li>
 
 # 5. Add categories
 
