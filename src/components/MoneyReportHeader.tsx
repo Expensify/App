@@ -150,7 +150,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = transactions?.map((t) => t.transactionID) ?? [];
+    // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs);
+    // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy) && !!transactionThreadReportID;
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
