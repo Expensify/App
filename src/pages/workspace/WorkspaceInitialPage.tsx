@@ -120,8 +120,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const workspaceAccountID = getWorkspaceAccountID(policy?.id);
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    useDismissModalForUSD(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
@@ -182,7 +181,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         updateGeneralSettings(policyID, policyName, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
         navigateToBankAccountRoute(policyID);
-    }, [policyID, policyName]);
+    }, [policyID, policyName, setIsCurrencyModalOpen]);
 
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);

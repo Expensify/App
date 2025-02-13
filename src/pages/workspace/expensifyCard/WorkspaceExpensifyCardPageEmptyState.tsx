@@ -53,8 +53,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    useDismissModalForUSD(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -79,7 +78,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         updatePolicyGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
         startFlow();
-    }, [policy, startFlow]);
+    }, [policy, startFlow, setIsCurrencyModalOpen]);
 
     return (
         <WorkspacePageWithSections

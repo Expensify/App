@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
@@ -65,8 +65,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
 
     const policyApproverEmail = policy?.approver;
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    useDismissModalForUSD(isCurrencyModalOpen, setIsCurrencyModalOpen, policy?.outputCurrency);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
@@ -98,7 +97,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID]);
+    }, [policy, route.params.policyID, setIsCurrencyModalOpen]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
@@ -309,6 +308,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateApprovalMode,
         isDevelopment,
         isDebugModeEnabled,
+        setIsCurrencyModalOpen,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
