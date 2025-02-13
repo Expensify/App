@@ -466,7 +466,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
 
     /** Configuration of the export */
-    export?: {
+    export: {
         /** E-mail of the exporter */
         exporter: string;
     };
