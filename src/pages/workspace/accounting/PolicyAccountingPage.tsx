@@ -102,7 +102,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
@@ -230,7 +230,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
                           brickRoadIndicator: policy?.connections?.netsuite?.options?.config?.errorFields?.subsidiary ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress: () => {
-                              if (!(netSuiteSubsidiaryList?.length > 1)) {
+                              if (!policyID || netSuiteSubsidiaryList.length < 2) {
                                   return;
                               }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
@@ -250,7 +250,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           pendingAction: policy?.connections?.intacct?.config?.pendingFields?.entity,
                           brickRoadIndicator: policy?.connections?.intacct?.config?.errorFields?.entity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress: () => {
-                              if (!sageIntacctEntityList.length) {
+                              if (!policyID || !sageIntacctEntityList.length) {
                                   return;
                               }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
@@ -262,6 +262,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
+        if (!policyID) {
+            return [];
+        }
+
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations
                 .map((integration) => {
@@ -289,7 +293,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         rightComponent: (
                             <Button
                                 onPress={() => {
-                                    if (shouldUseMultiConnectionSelector) {
+                                    if (policyID && shouldUseMultiConnectionSelector) {
                                         Navigation.navigate(
                                             ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)),
                                         );
@@ -319,7 +323,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
+        const integrationData = policyID ? getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax) : undefined;
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         const configurationOptions = [
@@ -436,6 +440,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
+        if (!policyID) {
+            return;
+        }
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return;
         }
@@ -579,6 +586,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         {translate('workspace.accounting.errorODIntegration')}
                                         <TextLink
                                             onPress={() => {
+                                                if (!policyID) {
+                                                    return;
+                                                }
+
                                                 // Go to Expensify Classic.
                                                 openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
                                             }}
@@ -593,6 +604,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     <Text>
                                         <TextLink
                                             onPress={() => {
+                                                if (!policyID) {
+                                                    return;
+                                                }
+
                                                 // Go to Expensify Classic.
                                                 openOldDotLink(CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL(policyID));
                                             }}
@@ -637,7 +652,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title={translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration})}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
-                        if (connectedIntegration) {
+                        if (policyID && connectedIntegration) {
                             removePolicyConnection(policyID, connectedIntegration);
                         }
                         setIsDisconnectModalOpen(false);
