@@ -1,13 +1,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
+<<<<<<< HEAD
 import createRandomPolicy from '../utils/collections/policies';
+=======
+>>>>>>> main
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 
@@ -338,7 +342,61 @@ describe('SidebarUtils', () => {
         });
     });
 
-    describe('getOptionData', () => {
+    describe('getOptionsData', () => {
+        it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
+            // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: 'policyAdmins',
+                lastMessageHtml: 'removed 0 user',
+                lastMessageText: 'removed 0 user',
+                lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                participants: {
+                    '18921695': {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '<muted-text>removed <mention-user accountID=19010378></mention-user> from <a href="https://dev.new.expensify.com:8082/r/5345362886584843" target="_blank">#r1</a></muted-text>',
+                        text: 'removed  from #r1',
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM,
+                actorAccountID: 18921695,
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f50',
+                    },
+                ],
+                originalMessage: undefined,
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportActions,
+                reportNameValuePairs: {},
+                hasViolations: false,
+                personalDetails: {},
+                policy: undefined,
+                parentReportAction: undefined,
+                preferredLocale: CONST.LOCALES.EN,
+            });
+
+            // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
+            expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
+        });
         it('the alternative text of policy expense chat should contain the policy name with dot prefix if it has some actions', () => {
             const preferredLocale = 'en';
             const policy = createRandomPolicy(1);

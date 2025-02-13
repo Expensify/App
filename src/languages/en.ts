@@ -2721,9 +2721,7 @@ const translations = {
             submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
-            leaveConfirmation: "Are you sure you want to leave this workspace? Once you leave, you'll lose access to all data and settings associated with this workspace.",
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expense`,
-        },
         perDiem: {
             subtitle: 'Set per diem rates to control daily employee spend. ',
             amount: 'Amount',
@@ -3806,6 +3804,9 @@ const translations = {
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
+                expensifyCardBannerTitle: 'Get the Expensify Card',
+                expensifyCardBannerSubtitle: 'Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more.',
+                expensifyCardBannerLearnMoreButton: 'Learn more',
             },
             workflows: {
                 title: 'Workflows',
