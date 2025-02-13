@@ -627,6 +627,26 @@ describe('Unread Indicators', () => {
             lastMessageText: 'test',
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {
+            1: {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                automatic: false,
+                created: DateUtils.getDBTime(),
+                reportActionID: '1',
+                message: [
+                    {
+                        style: 'strong',
+                        text: '__FAKE__',
+                        type: 'TEXT',
+                    },
+                    {
+                        style: 'normal',
+                        text: 'created this report',
+                        type: 'TEXT',
+                    },
+                ],
+            },
+        });
 
         await navigateToSidebarOption(0);
 
