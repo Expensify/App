@@ -497,11 +497,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 /**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
-function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof type, typeof status> {
+function getListItem(type: SearchDataTypes, status: SearchStatus, shouldBeGroupedByReports = false): ListItemType<typeof type, typeof status> {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
-    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldBeGroupedByReports) {
         return TransactionListItem;
     }
     return ReportListItem;
@@ -510,11 +510,11 @@ function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<
 /**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
-function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], shouldBeGroupedByReports = false) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
-    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldBeGroupedByReports) {
         return getTransactionsSections(data, metadata);
     }
     return getReportSections(data, metadata);
@@ -523,11 +523,18 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
 /**
  * Sorts sections of data based on a specified column and sort order for displaying sorted results.
  */
-function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof type, typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedSections(
+    type: SearchDataTypes,
+    status: SearchStatus,
+    data: ListItemDataType<typeof type, typeof status>,
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+    shouldBeGroupedByReports = false,
+) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
-    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldBeGroupedByReports) {
         return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
     }
     return getSortedReportData(data as ReportListItemType[]);

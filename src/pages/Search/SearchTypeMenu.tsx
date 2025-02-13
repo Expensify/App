@@ -40,6 +40,7 @@ import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
+    shouldBeGroupedByReports?: boolean;
     searchName?: string;
 };
 
@@ -50,7 +51,7 @@ type SearchTypeMenuItem = {
     getRoute: (policyID?: string) => Route;
 };
 
-function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON, searchName, shouldBeGroupedByReports}: SearchTypeMenuProps) {
     const {type, hash} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -90,6 +91,15 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             getRoute: (policyID?: string) => {
                 const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
+            },
+        },
+        {
+            title: translate('common.expenseReports'),
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Receipt,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query, groupBy: 'reports'});
             },
         },
     ];
@@ -212,7 +222,14 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     );
 
     const isCannedQuery = isCannedSearchQuery(queryJSON);
-    const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
+    const activeItemIndex = isCannedQuery
+        ? typeMenuItems.findIndex((item) => {
+              if (shouldBeGroupedByReports) {
+                  return item.title === translate('common.expenseReports');
+              }
+              return item.type === type;
+          })
+        : -1;
 
     if (shouldUseNarrowLayout) {
         const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards));

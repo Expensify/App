@@ -32,7 +32,7 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
-    const {q, name} = route.params;
+    const {q, name, groupBy} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
         const parsedQuery = buildSearchQueryJSON(q);
@@ -81,6 +81,7 @@ function SearchPage({route}: SearchPageProps) {
                                     <SearchTypeMenu
                                         queryJSON={queryJSON}
                                         searchName={searchName}
+                                        shouldBeGroupedByReports={groupBy === 'reports'}
                                     />
                                 </View>
                             ) : (
@@ -104,6 +105,7 @@ function SearchPage({route}: SearchPageProps) {
                             <Search
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
+                                shouldBeGroupedByReports={groupBy === 'reports'}
                             />
                         </ScreenWrapper>
                     </View>
