@@ -174,6 +174,7 @@ import type {
     UnapproveWithIntegrationWarningParams,
     UnshareParams,
     UntilTimeParams,
+    UpdateAutoReportingFrequencyParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdateRoleParams,
@@ -2555,15 +2556,12 @@ const translations = {
         toLearnMore: ' para obtener más información.',
         termsAndConditions: {
             header: 'Antes de continuar...',
-            title: 'Por favor, lee los Términos y condiciones para reservar viajes',
-            subtitle: 'Para permitir la opción de reservar viajes en tu espacio de trabajo debe aceptar nuestros ',
+            title: 'Términos y condiciones de Expensify Travel',
+            subtitle: 'Por favor, acepta los ',
             termsconditions: 'términos y condiciones',
-            travelTermsAndConditions: 'términos y condiciones de viaje',
-            helpDocIntro: 'Consulta este ',
-            helpDocOutro: 'para obtener más información o comunícate con Concierge o tu gestor de cuentas.',
-            helpDoc: 'documento de ayuda',
+            travelTermsAndConditions: 'términos y condiciones',
             agree: 'Acepto los ',
-            error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
+            error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
         },
         flight: 'Vuelo',
         flightDetails: {
@@ -2737,6 +2735,15 @@ const translations = {
                     default:
                         return 'Miembro';
                 }
+            },
+            frequency: {
+                manual: 'Manualmente',
+                instant: 'Instantáneo',
+                immediate: 'Diaria',
+                trip: 'Por viaje',
+                weekly: 'Semanal',
+                semimonthly: 'Dos veces al mes',
+                monthly: 'Mensual',
             },
             planType: 'Tipo de plan',
             submitExpense: 'Envía tus gastos a continuación:',
@@ -3845,6 +3852,10 @@ const translations = {
                 noAccountsFound: 'No se han encontrado cuentas',
                 defaultCard: 'Tarjeta predeterminada',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
+                expensifyCardBannerTitle: 'Obtén la Tarjeta Expensify',
+                expensifyCardBannerSubtitle:
+                    'Disfruta de una devolución en cada compra en Estados Unidos, hasta un 50% de descuento en tu factura de Expensify, tarjetas virtuales ilimitadas y mucho más.',
+                expensifyCardBannerLearnMoreButton: 'Más información',
             },
             workflows: {
                 title: 'Flujos de trabajo',
@@ -5137,6 +5148,8 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                updateAutoReportingFrequency: ({oldFrequency, newFrequency}: UpdateAutoReportingFrequencyParams) =>
+                    `actualizó la frecuencia de envíos a "${newFrequency}" (previamente "${oldFrequency}")`,
             },
         },
     },
