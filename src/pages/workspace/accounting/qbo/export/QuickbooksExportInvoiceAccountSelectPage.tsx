@@ -46,7 +46,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
             if (row.value.id !== qboConfig?.receivableAccount?.id) {
                 QuickbooksOnline.updateQuickbooksOnlineReceivableAccount(policyID, row.value, qboConfig?.receivableAccount);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
         },
         [qboConfig?.receivableAccount, policyID],
     );
