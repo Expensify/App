@@ -40,9 +40,7 @@ const ROUTES = {
     SEARCH_CENTRAL_PANE: {
         route: 'search',
         getRoute: ({query, name, groupBy}: {query: SearchQueryString; name?: string; groupBy?: string}) => {
-            const baseQuery = `search?q=${encodeURIComponent(query)}`;
-
-            return (baseQuery + (groupBy ? `&groupBy=${groupBy}` : '') + (name ? `&name=${name}` : '')) as const;
+            return `search?q=${encodeURIComponent(query)}${groupBy ? `&groupBy=${groupBy}` : ''}${name ? `&name=${name}` : ''}` as const;
         },
     },
     SEARCH_SAVED_SEARCH_RENAME: {
