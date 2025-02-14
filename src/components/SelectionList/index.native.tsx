@@ -10,7 +10,7 @@ function SelectionList<TItem extends ListItem>(props: BaseSelectionListProps<TIt
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            onScrollBeginDrag={() => Keyboard.dismiss()}
+            onScrollBeginDrag={Keyboard.dismiss}
         />
     );
 }
