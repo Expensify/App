@@ -149,6 +149,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Wheater is a nested button inside other button, since nesting buttons isn't valid html */
     isNested?: boolean;
+
+    /** The text displays under the first line */
+    secondLineText?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -251,6 +254,7 @@ function Button(
         isContentCentered = false,
         isPressOnEnterActive,
         isNested = false,
+        secondLineText = '',
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -265,7 +269,7 @@ function Button(
             return rest.children;
         }
 
-        const textComponent = (
+        const primaryText = (
             <Text
                 numberOfLines={1}
                 style={[
@@ -278,6 +282,7 @@ function Button(
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
+                    !!secondLineText && styles.noPaddingBottom,
                     textStyles,
                     isHovered && textHoverStyles,
                     link && styles.link,
@@ -289,6 +294,15 @@ function Button(
             >
                 {text}
             </Text>
+        );
+
+        const textComponent = secondLineText ? (
+            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1]}>
+                {primaryText}
+                <Text style={[isLoading && styles.opacity0, styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker]}>{secondLineText}</Text>
+            </View>
+        ) : (
+            primaryText
         );
 
         const defaultFill = success || danger ? theme.textLight : theme.icon;
