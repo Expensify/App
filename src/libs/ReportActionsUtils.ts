@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {toLocaleOrdinal} from '@libs/LocaleDigitUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,6 +17,7 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -61,6 +63,17 @@ Onyx.connect({
             return;
         }
         allReportActions = actions;
+    },
+});
+
+let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        preferredLocale = value;
     },
 });
 
@@ -2006,7 +2019,24 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
             newValue,
         });
     }
-
+    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET) {
+        const getMonthToDisplay = (month: string | number) => {
+            if (month === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                return translateLocal('workflowsPage.frequencies.lastDayOfMonth');
+            }
+            if (month === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                return translateLocal('workflowsPage.frequencies.lastBusinessDayOfMonth');
+            }
+            if (typeof month === 'number') {
+                return toLocaleOrdinal(preferredLocale, month, false);
+            }
+            return '';
+        };
+        return translateLocal('workspaceActions.updateMonthlyOffset', {
+            newValue: getMonthToDisplay(newValue),
+            oldValue: getMonthToDisplay(oldValue),
+        });
+    }
     return getReportActionText(action);
 }
 
