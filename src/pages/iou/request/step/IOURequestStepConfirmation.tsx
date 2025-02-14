@@ -218,13 +218,24 @@ function IOURequestStepConfirmation({
         }
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
-        if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
+        if ((!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') || transaction?.isFromGlobalCreate) {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action), {compareParams: false});
             return;
         }
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [action, isPerDiemRequest, transaction?.participantsAutoAssigned, transaction?.reportID, participantsAutoAssignedFromRoute, requestType, iouType, transactionID, reportID]);
+    }, [
+        action,
+        isPerDiemRequest,
+        transaction?.participantsAutoAssigned,
+        transaction?.isFromGlobalCreate,
+        transaction?.reportID,
+        participantsAutoAssignedFromRoute,
+        requestType,
+        iouType,
+        transactionID,
+        reportID,
+    ]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
