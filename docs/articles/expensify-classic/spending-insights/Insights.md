@@ -27,7 +27,7 @@ The Insights dashboard in Expensify provides a real-time overview of company spe
 
 ---
 
-# Create a Custom Export Report for Expenses
+## Create a Custom Export Report for Expenses
 
 1. Go to **Settings > Account > Preferences > CSV Export Formats**.
 2. Build a report using these [expense-level formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates#expense-level).
