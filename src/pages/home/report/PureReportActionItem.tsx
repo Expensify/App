@@ -1119,7 +1119,7 @@ function PureReportActionItem({
         );
     }
 
-    if (isTripPreview(action)) {
+    if (isTripPreview(action) && isThreadReportParentAction) {
         return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
     }
 
