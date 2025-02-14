@@ -4242,8 +4242,10 @@ type AddTrackedExpenseToPolicyParam = {
 } & ConvertTrackedWorkspaceParams;
 
 type ConvertTrackedExpenseToRequestParams = {
-    payerAccountID: number;
-    payerEmail: string;
+    payerParams: {
+        accountID: number;
+        email: string;
+    };
     transactionParams: {
         transactionID: string;
         actionableWhisperReportActionID: string | undefined;
@@ -4255,18 +4257,18 @@ type ConvertTrackedExpenseToRequestParams = {
         merchant: string;
         created: string;
         attendees?: Attendee[];
+        transactionThreadReportID: string;
     };
-    chat: {
+    chatParams: {
         reportID: string;
         createdReportActionID: string | undefined;
         reportPreviewReportActionID: string;
     };
-    iou: {
+    iouParams: {
         reportID: string;
         createdReportActionID: string | undefined;
-        iouReportActionID: string;
+        reportActionID: string;
     };
-    transactionThreadReportID: string;
     onyxData: OnyxData;
     workspaceParams?: ConvertTrackedWorkspaceParams;
 };
@@ -4276,9 +4278,21 @@ function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, o
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
-    const {payerAccountID, payerEmail, transactionParams, chat, iou, transactionThreadReportID, onyxData, workspaceParams} = convertTrackedExpenseParams;
-    const {transactionID, actionableWhisperReportActionID, linkedTrackedExpenseReportAction, linkedTrackedExpenseReportID, amount, currency, comment, merchant, created, attendees} =
-        transactionParams;
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams} = convertTrackedExpenseParams;
+    const {accountID: payerAccountID, email: payerEmail} = payerParams;
+    const {
+        transactionID,
+        actionableWhisperReportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        amount,
+        currency,
+        comment,
+        merchant,
+        created,
+        attendees,
+        transactionThreadReportID,
+    } = transactionParams;
     const {optimisticData, successData, failureData} = onyxData;
 
     const {
@@ -4289,7 +4303,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     } = getConvertTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
-        iou.reportID,
+        iouParams.reportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -4310,11 +4324,11 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             reimbursable: true,
             transactionID,
             actionableWhisperReportActionID,
-            moneyRequestReportID: iou.reportID,
-            moneyRequestCreatedReportActionID: iou.createdReportActionID,
-            moneyRequestPreviewReportActionID: iou.iouReportActionID,
+            moneyRequestReportID: iouParams.reportID,
+            moneyRequestCreatedReportActionID: iouParams.createdReportActionID,
+            moneyRequestPreviewReportActionID: iouParams.reportActionID,
             modifiedExpenseReportActionID,
-            reportPreviewReportActionID: chat.reportPreviewReportActionID,
+            reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
             ...workspaceParams,
         };
 
@@ -4331,16 +4345,16 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         merchant,
         payerAccountID,
         payerEmail,
-        chatReportID: chat.reportID,
+        chatReportID: chatParams.reportID,
         transactionID,
         actionableWhisperReportActionID,
-        createdChatReportActionID: chat.createdReportActionID,
-        moneyRequestReportID: iou.reportID,
-        moneyRequestCreatedReportActionID: iou.createdReportActionID,
-        moneyRequestPreviewReportActionID: iou.iouReportActionID,
+        createdChatReportActionID: chatParams.createdReportActionID,
+        moneyRequestReportID: iouParams.reportID,
+        moneyRequestCreatedReportActionID: iouParams.createdReportActionID,
+        moneyRequestPreviewReportActionID: iouParams.reportActionID,
         transactionThreadReportID,
         modifiedExpenseReportActionID,
-        reportPreviewReportActionID: chat.reportPreviewReportActionID,
+        reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
     };
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
@@ -4532,8 +4546,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                       }
                     : undefined;
             convertTrackedExpenseToRequest({
-                payerAccountID,
-                payerEmail,
+                payerParams: {
+                    accountID: payerAccountID,
+                    email: payerEmail,
+                },
                 transactionParams: {
                     amount,
                     currency,
@@ -4545,18 +4561,18 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                     actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID,
+                    transactionThreadReportID,
                 },
-                chat: {
+                chatParams: {
                     reportID: chatReport.reportID,
                     createdReportActionID: createdChatReportActionID,
                     reportPreviewReportActionID: reportPreviewAction.reportActionID,
                 },
-                iou: {
+                iouParams: {
                     reportID: iouReport.reportID,
                     createdReportActionID: createdIOUReportActionID,
-                    iouReportActionID: iouAction.reportActionID,
+                    reportActionID: iouAction.reportActionID,
                 },
-                transactionThreadReportID,
                 onyxData,
                 workspaceParams,
             });
