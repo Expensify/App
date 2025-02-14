@@ -22,10 +22,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft} from '@libs/actions/Policy/Member';
 import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList, RootStackParamList, State} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -34,21 +34,21 @@ import {getFullSizeAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkspaceProfilePageProps = WithPolicyProps & PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
+type WorkspaceProfilePageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
 function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -167,12 +167,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policy.id) {
             setActiveWorkspaceID(undefined);
-            Navigation.dismissModal();
-            const rootState = navigationRef.current?.getRootState() as State<RootStackParamList>;
-            const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
-            if (topmostBottomTabRoute?.name === SCREENS.SETTINGS.ROOT) {
-                Navigation.setParams({policyID: undefined}, topmostBottomTabRoute?.key);
-            }
+            resetPolicyIDInNavigationState();
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
