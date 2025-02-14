@@ -1,5 +1,5 @@
 type DeleteMoneyRequestParams = {
-    transactionID: string;
+    transactionID: string | undefined;
     reportActionID: string;
 };
 

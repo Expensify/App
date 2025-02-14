@@ -16,9 +16,9 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
-import useIsCurrentRouteHome from '@hooks/useIsCurrentRouteHome';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +30,7 @@ import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {
     isAdminRoom,
-    isChatUsedForOnboarding,
+    isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
     isConciergeChatReport,
     isGroupChat,
     isOneOnOneChat,
@@ -43,6 +43,7 @@ import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
@@ -55,29 +56,28 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
     const session = useSession();
     const shouldShowWokspaceChatTooltip = isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
-    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) : isConciergeChatReport(report);
-    const isActiveRouteHome = useIsCurrentRouteHome();
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, introSelected?.choice);
+    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
+
+    const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     const {tooltipToRender, shouldShowTooltip} = useMemo(() => {
         const tooltip = shouldShowGetStartedTooltip ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
         const shouldShowTooltips = shouldShowWokspaceChatTooltip || shouldShowGetStartedTooltip;
-        const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isActiveRouteHome : isActiveRouteHome;
+        const shouldTooltipBeVisible = shouldUseNarrowLayout ? isScreenFocused && isReportsSplitNavigatorLast : isReportsSplitNavigatorLast && !isFullscreenVisible;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return {tooltipToRender: tooltip, shouldShowTooltip: shouldShowTooltips && shouldTooltipBeVisible};
-    }, [shouldShowGetStartedTooltip, shouldShowWokspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isActiveRouteHome]);
+    }, [shouldShowGetStartedTooltip, shouldShowWokspaceChatTooltip, isScreenFocused, shouldUseNarrowLayout, isReportsSplitNavigatorLast, isFullscreenVisible]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
-
-    // During the onboarding flow, the introSelected NVP is not yet available.
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -167,6 +167,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
 
+    const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        Performance.markStart(CONST.TIMING.OPEN_REPORT);
+        Timing.start(CONST.TIMING.OPEN_REPORT);
+
+        event?.preventDefault();
+        // Enable Composer to focus on clicking the same chat after opening the context menu.
+        ReportActionComposeFocusManager.focus();
+        hideProductTrainingTooltip();
+        onSelectRow(optionItem, popoverAnchor);
+    };
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -185,22 +196,14 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 shiftHorizontal={shouldShowWokspaceChatTooltip ? variables.workspaceLHNtooltipShiftHorizontal : variables.gbrTooltipShiftHorizontal}
                 shiftVertical={shouldShowWokspaceChatTooltip ? 0 : variables.composerTooltipShiftVertical}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
+                onTooltipPress={onOptionPress}
             >
                 <View>
                     <Hoverable>
                         {(hovered) => (
                             <PressableWithSecondaryInteraction
                                 ref={popoverAnchor}
-                                onPress={(event) => {
-                                    Performance.markStart(CONST.TIMING.OPEN_REPORT);
-                                    Timing.start(CONST.TIMING.OPEN_REPORT);
-
-                                    event?.preventDefault();
-                                    // Enable Composer to focus on clicking the same chat after opening the context menu.
-                                    ReportActionComposeFocusManager.focus();
-                                    hideProductTrainingTooltip();
-                                    onSelectRow(optionItem, popoverAnchor);
-                                }}
+                                onPress={onOptionPress}
                                 onMouseDown={(event) => {
                                     // Allow composer blur on right click
                                     if (!event) {
@@ -280,7 +283,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                         isSystemChat(report)
                                                     }
                                                 />
-                                                {isChatUsedForOnboarding(report, onboardingPurposeSelected) && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
+                                                {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]} />}
                                                 {isStatusVisible && (
                                                     <Tooltip
                                                         text={statusContent}

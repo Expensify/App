@@ -6,14 +6,15 @@ import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
-import ActiveWorkspaceContextProvider from './components/ActiveWorkspaceProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
+import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
+import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
@@ -35,15 +36,15 @@ import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
-import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
+/** Values passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
 type AppProps = {
-    /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
+    /** URL containing all necessary data to run React Native app (e.g. login data) */
     url?: Route;
 };
 
@@ -80,7 +81,6 @@ function App({url}: AppProps) {
                                 SafeArea,
                                 LocaleContextProvider,
                                 HTMLEngineProvider,
-                                KeyboardStateProvider,
                                 PopoverContextProvider,
                                 CurrentReportIDContextProvider,
                                 ScrollOffsetContextProvider,
@@ -89,15 +89,16 @@ function App({url}: AppProps) {
                                 EnvironmentProvider,
                                 CustomStatusBarAndBackgroundContextProvider,
                                 ActiveElementRoleProvider,
-                                ActiveWorkspaceContextProvider,
-                                ReportIDsContextProvider,
                                 PlaybackContextProvider,
                                 FullScreenContextProvider,
                                 VolumeContextProvider,
                                 VideoPopoverMenuContextProvider,
                                 KeyboardProvider,
+                                KeyboardStateProvider,
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
+                                InputBlurContextProvider,
+                                FullScreenBlockingViewContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />

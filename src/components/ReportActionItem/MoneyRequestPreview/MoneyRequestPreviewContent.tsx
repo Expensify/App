@@ -103,9 +103,9 @@ function MoneyRequestPreviewContent({
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
 
     const policy = usePolicy(iouReport?.policyID);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
@@ -154,7 +154,7 @@ function MoneyRequestPreviewContent({
     const isFetchingWaypointsFromServer = isFetchingWaypointsFromServerTransactionUtils(transaction);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const isSettled = isSettledReportUtils(iouReport?.reportID);
-    const isApproved = isReportApproved(iouReport);
+    const isApproved = isReportApproved({report: iouReport});
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
 
@@ -265,9 +265,9 @@ function MoneyRequestPreviewContent({
                 }
                 return message;
             }
-        } else if (hasNoticeTypeViolations && transaction && !isReportApproved(iouReport) && !isSettledReportUtils(iouReport?.reportID)) {
+        } else if (hasNoticeTypeViolations && transaction && !isReportApproved({report: iouReport}) && !isSettledReportUtils(iouReport?.reportID)) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
-        } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved(iouReport) && !isSettledReportUtils(iouReport?.reportID) && !isPartialHold) {
+        } else if (isPaidGroupPolicyExpenseReport(iouReport) && isReportApproved({report: iouReport}) && !isSettledReportUtils(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
@@ -536,7 +536,7 @@ function MoneyRequestPreviewContent({
                 styles.moneyRequestPreviewBox,
                 containerStyles,
                 shouldDisableOnPress && styles.cursorDefault,
-                (isSettled || isReportApproved(iouReport)) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
+                (isSettled || isReportApproved({report: iouReport})) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
             ]}
         >
             {childContainer}

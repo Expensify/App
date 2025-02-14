@@ -33,7 +33,7 @@ function buildSubstitutionsMap(
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
-    const searchAutocompleteQueryRanges = parsedQuery.ranges;
+    const searchAutocompleteQueryRanges = parsedQuery.ranges.filter((range) => range.key !== CONST.SEARCH.SYNTAX_RANGE_NAME);
 
     if (searchAutocompleteQueryRanges.length === 0) {
         return {};
@@ -60,7 +60,8 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
         ) {
             const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList);
 

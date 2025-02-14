@@ -21,7 +21,7 @@ import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
-import {getAllTaxRates, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
@@ -207,7 +207,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.IN],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
@@ -306,7 +306,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         const filterArray = filters[nonDateFilterKey] ?? [];
         return filterArray
             .sort(sortOptionsWithEmptyValue)
-            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : value))
+            .map((value) => (value === CONST.SEARCH.EMPTY_VALUE ? translate('search.noTag') : getCleanedTagName(value)))
             .join(', ');
     }
 
@@ -376,7 +376,7 @@ function AdvancedSearchFilters() {
     const policyID = searchAdvancedFilters.policyID;
     const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList, true), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
@@ -426,11 +426,11 @@ function AdvancedSearchFilters() {
 
     const applyFiltersAndNavigate = () => {
         clearAllFilters();
-        Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: queryString,
             }),
+            {forceReplace: true},
         );
     };
 

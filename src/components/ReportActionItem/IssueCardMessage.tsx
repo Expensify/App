@@ -43,7 +43,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
 
     return (
         <>
-            <RenderHTML html={`<muted-text>${getCardIssuedMessage(action, true, policyID, card)}</muted-text>`} />
+            <RenderHTML html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, policyID, card})}</muted-text>`} />
             {shouldShowAddMissingDetailsButton && (
                 <Button
                     onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}

@@ -9,6 +9,7 @@ import {
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
+    canEditWriteCapability,
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
@@ -23,6 +24,7 @@ import {
     getReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    isAllowedToApproveExpenseReport,
     isChatUsedForOnboarding,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
@@ -326,50 +328,58 @@ describe('ReportUtils', () => {
         });
 
         describe('Default Policy Room', () => {
+            afterEach(async () => {
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+            });
+
             const baseAdminsRoom = {
                 reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: '#admins',
             };
 
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
             test('Active', () => {
                 expect(getReportName(baseAdminsRoom)).toBe('#admins');
             });
 
-            test('Archived', () => {
-                const archivedAdminsRoom = {
-                    ...baseAdminsRoom,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
-                };
+            test('Archived', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
+                expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
 
         describe('User-Created Policy Room', () => {
+            afterEach(async () => {
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+            });
+
             const baseUserCreatedRoom = {
                 reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 reportName: '#VikingsChat',
             };
 
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
             test('Active', () => {
                 expect(getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
             });
 
-            test('Archived', () => {
+            test('Archived', async () => {
                 const archivedPolicyRoom = {
                     ...baseUserCreatedRoom,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: DateUtils.getDBTime(),
                 };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
                 expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
@@ -411,24 +421,26 @@ describe('ReportUtils', () => {
                     ownerAccountID: 1,
                     policyID: policy.id,
                     oldPolicyName: policy.name,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                };
+
+                const reportNameValuePairs = {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                test('as member', () => {
+                test('as member', async () => {
                     const memberArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: true,
                     };
+
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
                     expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
 
                     return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
                 });
 
-                test('as admin', () => {
+                test('as admin', async () => {
                     const adminArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: false,
@@ -663,6 +675,16 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
+            it('its trip room', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+                };
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
+
             it('its paid Expense report', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
@@ -810,6 +832,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
 
@@ -840,6 +863,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
 
@@ -911,6 +935,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
         });
@@ -926,6 +951,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY)).toBe(true);
+                expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
 
             it("it is user's own policy expense chat", () => {
@@ -940,6 +966,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
         });
     });
@@ -1170,11 +1197,10 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
 
             // Get the quick action detail
@@ -1504,11 +1530,10 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
             const currentReportId = '3';
             const isInFocusMode = false;
@@ -1533,11 +1558,10 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
             const currentReportId = '3';
             const isInFocusMode = true;
@@ -1757,6 +1781,67 @@ describe('ReportUtils', () => {
             expect(getWorkspaceNameUpdatedMessage(action as ReportAction)).toEqual(
                 'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
             );
+        });
+    });
+
+    describe('isAllowedToApproveExpenseReport', () => {
+        it('should return true if the rule feature is disabled even preventSelfApproval is true', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: false,
+                preventSelfApproval: true,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+        it('should return false if preventSelfApproval is true and the manager is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: true,
+                preventSelfApproval: true,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
+        });
+        it('should return true if preventSelfApproval is false', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: true,
+                preventSelfApproval: false,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+    });
+
+    describe('canEditWriteCapability', () => {
+        it('should return false for workspace chat', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
         });
     });
 
