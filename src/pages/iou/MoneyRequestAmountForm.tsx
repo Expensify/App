@@ -277,50 +277,61 @@ function MoneyRequestAmountForm(
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
-            <View
-                id={AMOUNT_VIEW_ID}
-                onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
-                style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-            >
-                <MoneyRequestAmountInput
-                    amount={absoluteAmount}
-                    autoGrowExtraSpace={variables.w80}
-                    currency={currency}
-                    isCurrencyPressable={false}
-                    onCurrencyButtonPress={onCurrencyButtonPress}
-                    onAmountChange={() => {
-                        if (!formError) {
-                            return;
-                        }
-                        setFormError('');
-                    }}
-                    shouldUpdateSelection={shouldUpdateSelection}
-                    ref={(ref) => {
-                        if (typeof forwardedRef === 'function') {
-                            forwardedRef(ref);
-                        } else if (forwardedRef?.current) {
-                            // eslint-disable-next-line no-param-reassign
-                            forwardedRef.current = ref;
-                        }
-                        textInput.current = ref;
-                    }}
-                    shouldKeepUserInput={shouldKeepUserInput}
-                    moneyRequestAmountInputRef={moneyRequestAmountInput}
-                    inputStyle={[styles.iouAmountTextInput]}
-                    containerStyle={[styles.iouAmountTextInputContainer]}
-                    isNegative={isNegative}
-                />
-                {!!formError && (
-                    <FormHelpMessage
-                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
-                        isError
-                        message={formError}
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View
+                    id={AMOUNT_VIEW_ID}
+                    onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
+                    style={[styles.moneyRequestAmountContainer, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                >
+                    <MoneyRequestAmountInput
+                        amount={absoluteAmount}
+                        autoGrowExtraSpace={variables.w80}
+                        currency={currency}
+                        isCurrencyPressable={false}
+                        onCurrencyButtonPress={onCurrencyButtonPress}
+                        onAmountChange={() => {
+                            if (!formError) {
+                                return;
+                            }
+                            setFormError('');
+                        }}
+                        shouldUpdateSelection={shouldUpdateSelection}
+                        ref={(ref) => {
+                            if (typeof forwardedRef === 'function') {
+                                forwardedRef(ref);
+                            } else if (forwardedRef?.current) {
+                                // eslint-disable-next-line no-param-reassign
+                                forwardedRef.current = ref;
+                            }
+                            textInput.current = ref;
+                        }}
+                        shouldKeepUserInput={shouldKeepUserInput}
+                        moneyRequestAmountInputRef={moneyRequestAmountInput}
+                        inputStyle={[styles.iouAmountTextInput]}
+                        containerStyle={[styles.iouAmountTextInputContainer]}
+                        isNegative={isNegative}
+                    />
+                    {!!formError && (
+                        <FormHelpMessage
+                            style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
+                            isError
+                            message={formError}
+                        />
+                    )}
+                </View>
+                {isCurrencyPressable && !canUseTouchScreen && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={Expensicons.DownArrow}
+                        onPress={onCurrencyButtonPress}
+                        text={currency}
                     />
                 )}
             </View>
             <View>
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
-                    {isCurrencyPressable && (
+                    {isCurrencyPressable && canUseTouchScreen && (
                         <Button
                             shouldShowRightIcon
                             small
@@ -329,7 +340,7 @@ function MoneyRequestAmountForm(
                             text={currency}
                         />
                     )}
-                    {allowFlippingCurrency && (
+                    {allowFlippingCurrency && canUseTouchScreen && (
                         <Button
                             shouldShowRightIcon
                             small
