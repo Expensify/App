@@ -18,6 +18,7 @@ import type SymmetricDifference from '@src/types/utils/SymmetricDifference';
  *    For example, if your dependencies are `['report_', 'account'], then compute will receive a [OnyxCollection<Report>, OnyxEntry<Account>]
  */
 type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
+    key: Key;
     dependencies: Deps;
     compute: (args: {
         -readonly [Index in keyof Deps]: GetOnyxTypeForKey<Deps[Index]>;
@@ -50,6 +51,7 @@ function createOnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVE
  */
 const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: createOnyxDerivedValueConfig({
+        key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
         dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
         compute: ([reports, conciergeChatReportID]) => {
             if (!reports) {
