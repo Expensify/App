@@ -64,7 +64,7 @@ function getHeaderContent(type: SearchDataTypes, shouldBeGroupedByReports = fals
             return {icon: Illustrations.CommentBubblesBlue, titleText: 'common.chats'};
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
             if (shouldBeGroupedByReports) {
-                return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenseReports'};
+                return {icon: Illustrations.ReportReceipt, titleText: 'common.expenseReports'};
             }
             return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
         }
@@ -217,7 +217,7 @@ function SearchPageHeaderInput({queryJSON, children, shouldBeGroupedByReports}: 
     );
 
     if (isCannedQuery) {
-        const headerIcon = getHeaderContent(type).icon;
+        const headerIcon = getHeaderContent(type, shouldBeGroupedByReports).icon;
 
         return (
             <View
