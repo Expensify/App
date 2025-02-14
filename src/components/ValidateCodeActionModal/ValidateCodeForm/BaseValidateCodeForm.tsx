@@ -100,6 +100,7 @@ function BaseValidateCodeForm({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const clearInputTimeout = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const latestActionVerifiedError = getLatestErrorField(validateCodeAction, 'actionVerified');
@@ -150,12 +151,27 @@ function BaseValidateCodeForm({
         }, []),
     );
 
-    useEffect(() => {
-        if (!hasMagicCodeBeenSent) {
-            return;
-        }
-        inputValidateCodeRef.current?.clear();
-    }, [hasMagicCodeBeenSent]);
+    useFocusEffect(
+        useCallback(() => {
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            if (clearInputTimeout.current) {
+                clearTimeout(clearInputTimeout.current);
+            }
+            if (hasMagicCodeBeenSent) {
+                clearInputTimeout.current = setTimeout(() => {
+                    inputValidateCodeRef.current?.clear();
+                }, CONST.ANIMATED_TRANSITION);
+            }
+            return () => {
+                if (!clearInputTimeout.current) {
+                    return;
+                }
+                clearTimeout(clearInputTimeout.current);
+            };
+        }, [hasMagicCodeBeenSent]),
+    );
 
     useEffect(() => {
         if (timeRemaining > 0) {
