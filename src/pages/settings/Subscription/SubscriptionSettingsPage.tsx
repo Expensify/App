@@ -10,11 +10,11 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as Subscription from '@userActions/Subscription';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
@@ -33,7 +33,7 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     const subscriptionPlan = useSubscriptionPlan();
 
     useEffect(() => {
-        Subscription.openSubscriptionPage();
+        openSubscriptionPage();
     }, []);
     const [isAppLoading] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
