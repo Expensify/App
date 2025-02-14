@@ -30,7 +30,7 @@ function SuccessPage() {
                     Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(), true);
 
                     // if (backTo) {
-                    //     Navigation.navigate(backTo);
+                    //     Navigation.goBack(backTo);
                     // }
 
                     // if (forwardTo) {

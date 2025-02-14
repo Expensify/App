@@ -204,7 +204,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
-                ...FontUtils.fontFamily.platform.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
@@ -434,7 +434,15 @@ const styles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
         },
-
+        textDoubleDecker: {
+            fontSize: variables.fontSizeSmall,
+            opacity: 0.8,
+            fontWeight: FontUtils.fontWeight.bold,
+            lineHeight: 12,
+        },
+        noPaddingBottom: {
+            paddingBottom: 0,
+        },
         textNormal: {
             fontSize: variables.fontSizeNormal,
         },
@@ -561,6 +569,20 @@ const styles = (theme: ThemeColors) =>
         borderRadiusComponentLarge: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
+
+        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
+            // On natives we can use absolute positioning.
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            paddingBottom: bottomSafeAreaOffset,
+            bottom: 0,
+
+            // There is a missing border right on the wide layout
+            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
+            borderColor: theme.border,
+        }),
 
         bottomTabBarContainer: {
             flexDirection: 'row',
@@ -1578,6 +1600,19 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        searchSplitContainer: {
+            flex: 1,
+            flexDirection: 'row',
+        },
+
+        searchSidebar: {
+            width: variables.sideBarWidth,
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        },
+
         // Sidebar Styles
         sidebar: {
             backgroundColor: theme.sidebar,
@@ -2082,7 +2117,7 @@ const styles = (theme: ThemeColors) =>
         chatItemRight: {
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: 0,
+            flexBasis: 'auto',
             position: 'relative',
         },
 
@@ -2106,6 +2141,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: variables.fontSizeSmall,
             paddingTop: 2,
+        },
+
+        chatItemMessageHeaderPolicy: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
         },
 
         chatItemMessage: {
@@ -3050,8 +3090,6 @@ const styles = (theme: ThemeColors) =>
         sectionDividerLine: {
             height: 1,
             backgroundColor: theme.border,
-            ...spacing.mh5,
-            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -3671,13 +3709,13 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 8,
         },
 
-        searchRouterInputResults: {
+        searchAutocompleteInputResults: {
             backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
 
-        searchRouterInputResultsFocused: {
+        searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
             backgroundColor: theme.appBG,
@@ -3982,6 +4020,19 @@ const styles = (theme: ThemeColors) =>
         textReactionSenders: {
             color: theme.tooltipPrimaryText,
             ...wordBreak.breakWord,
+        },
+
+        distanceLabelWrapper: {
+            backgroundColor: colors.green500,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        distanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.productLight100,
         },
 
         productTrainingTooltipWrapper: {
