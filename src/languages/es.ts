@@ -61,6 +61,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DeleteTransactionParams,
+    DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -286,6 +287,7 @@ const translations = {
         continue: 'Continuar',
         firstName: 'Nombre',
         lastName: 'Apellidos',
+        scanning: 'Escaneando',
         phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -894,6 +896,7 @@ const translations = {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        pendingMatch: 'Pendiente de coincidencia',
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
@@ -2889,6 +2892,7 @@ const translations = {
             itemsDescription: 'Elige cómo gestionar los elementos de QuickBooks Desktop en Expensify.',
         },
         qbo: {
+            connectedTo: 'Conectado a',
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
             classes: 'Clases',
             locations: 'Lugares',
@@ -4919,6 +4923,8 @@ const translations = {
                 other: `te eliminó de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${joinedNames}. Los informes enviados anteriormente seguirán estando disponibles para su aprobación en tu bandeja de entrada.`,
             };
         },
+        demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
+            `cambió tu rol en ${policyName} de ${oldRole} a miembro. Te eliminamos de todos los chats del espacio de trabajo, excepto el suyo.`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `actualizó la moneda predeterminada a ${newCurrency} (previamente ${oldCurrency})`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
             `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
@@ -5179,7 +5185,8 @@ const translations = {
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,
                 },
-                integrationsMessage: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo exportar este informe a ${label} ("${errorMessage}")`,
+                integrationsMessage: ({label, errorMessage, linkText, linkURL}: IntegrationSyncFailedParams) =>
+                    `no se pudo exportar este informe a ${label} ("${errorMessage} ${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó un recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
@@ -5196,13 +5203,10 @@ const translations = {
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'}`,
-                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
-                    `actualizó el rol ${email} a ${newRole === 'miembro' || newRole === 'user' ? 'miembro' : 'administrador'} (previamente ${
-                        currentRole === 'miembro' || currentRole === 'user' ? 'miembro' : 'administrador'
-                    })`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role}`,
+                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
-                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'} ${email}`,
+                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
