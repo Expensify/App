@@ -96,6 +96,7 @@ type MoneyRequestAmountInputProps = {
     /** Whether the amount is negative */
     isNegative?: boolean;
 
+    /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
