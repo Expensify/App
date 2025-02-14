@@ -41,14 +41,7 @@ import {
     isActionOfType,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import {
-    buildOptimisticInvoiceReport,
-    buildOptimisticIOUReport,
-    buildOptimisticIOUReportAction,
-    buildTransactionThread,
-    createDraftTransactionAndNavigateToParticipantSelector,
-    isIOUReport,
-} from '@libs/ReportUtils';
+import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -58,7 +51,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -4014,15 +4007,6 @@ describe('actions/IOU', () => {
 
             const invoiceReceiver = convertedInvoiceChat?.invoiceReceiver as unknown as {type: string; policyID: string; accountID: number};
 
-            const iouReport = buildOptimisticInvoiceReport(
-                convertedInvoiceChat.reportID,
-                policy?.id,
-                invoiceReceiver?.accountID,
-                '',
-                transaction?.amount ?? 100,
-                transaction?.currency ?? 'USD',
-            );
-
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${convertedInvoiceChat?.reportID}`, convertedInvoiceChat ?? {});
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {id: invoiceReceiver.policyID, role: CONST.POLICY.ROLE.ADMIN});
@@ -4045,18 +4029,6 @@ describe('actions/IOU', () => {
             );
 
             writeSpy.mockRestore();
-
-            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy, [], false, undefined, undefined, false)).toBe(true);
-            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy, [], false, undefined, undefined, true)).toBe(true);
-            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy, [], true, undefined, undefined, false)).toBe(true);
-            expect(canIOUBePaid(iouReport, convertedInvoiceChat, policy, [], true, undefined, undefined, true)).toBe(true);
-
-            const archivedChatReport = {...convertedInvoiceChat, private_isArchived: true} as unknown as Report;
-
-            expect(canIOUBePaid(iouReport, archivedChatReport, policy, [], false, undefined, undefined, false)).toBe(false);
-            expect(canIOUBePaid(iouReport, archivedChatReport, policy, [], false, undefined, undefined, true)).toBe(false);
-            expect(canIOUBePaid(iouReport, archivedChatReport, policy, [], true, undefined, undefined, false)).toBe(false);
-            expect(canIOUBePaid(iouReport, archivedChatReport, policy, [], true, undefined, undefined, true)).toBe(false);
         });
 
         it('should not clear transaction pending action when send invoice fails', async () => {
@@ -4083,6 +4055,27 @@ describe('actions/IOU', () => {
                     },
                 });
             });
+        });
+    });
+
+    describe('canIOUBePaid', () => {
+        it('For invoices from archived workspaces', async () => {
+            const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+
+            const chatReportRNVP: ReportNameValuePairs = {private_isArchived: DateUtils.getDBTime()};
+
+            const invoiceReceiver = chatReport?.invoiceReceiver as unknown as {type: string; policyID: string; accountID: number};
+
+            const iouReport = {...createRandomReport(1), type: CONST.REPORT.TYPE.INVOICE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver.policyID}`, {id: invoiceReceiver.policyID, role: CONST.POLICY.ROLE.ADMIN});
+
+            expect(canIOUBePaid(iouReport, chatReport, policy, [], true)).toBe(true);
+            expect(canIOUBePaid(iouReport, chatReport, policy, [], false)).toBe(true);
+
+            // When the invoice is archived
+            expect(canIOUBePaid(iouReport, chatReport, policy, [], true, chatReportRNVP)).toBe(false);
+            expect(canIOUBePaid(iouReport, chatReport, policy, [], false, chatReportRNVP)).toBe(false);
         });
     });
 
