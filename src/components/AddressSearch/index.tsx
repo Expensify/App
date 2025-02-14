@@ -56,7 +56,7 @@ function AddressSearch(
         errorText = '',
         hint = '',
         inputID,
-        isLimitedToUSA = false,
+        limitSearchesToCountry,
         label,
         maxInputLength,
         onFocus,
@@ -100,10 +100,10 @@ function AddressSearch(
         () => ({
             language: preferredLocale,
             types: resultTypes,
-            components: isLimitedToUSA ? 'country:us' : undefined,
+            components: limitSearchesToCountry ? `country:${limitSearchesToCountry.toLocaleLowerCase()}` : undefined,
             ...(locationBias && {locationbias: locationBias}),
         }),
-        [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
+        [preferredLocale, resultTypes, limitSearchesToCountry, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {

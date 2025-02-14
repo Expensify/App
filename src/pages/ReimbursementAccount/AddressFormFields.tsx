@@ -53,6 +53,9 @@ type AddressFormProps = {
 
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
+
+    /** Indicates if country can be changed by user */
+    shouldAllowCountryChange?: boolean;
 };
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
@@ -79,6 +82,7 @@ function AddressFormFields({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     onCountryChange,
+    shouldAllowCountryChange = true,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -108,7 +112,7 @@ function AddressFormFields({
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                     renamedInputKeys={inputKeys}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                    isLimitedToUSA={!shouldDisplayCountrySelector}
+                    limitSearchesToCountry={shouldAllowCountryChange ? undefined : defaultValues?.country}
                     onCountryChange={handleCountryChange}
                 />
             </View>
@@ -170,6 +174,7 @@ function AddressFormFields({
                         defaultValue={defaultValues?.country}
                         onValueChange={handleCountryChange}
                         stateInputIDToReset={inputKeys.state ?? 'stateInput'}
+                        shouldAllowChange={shouldAllowCountryChange}
                     />
                 </View>
             )}

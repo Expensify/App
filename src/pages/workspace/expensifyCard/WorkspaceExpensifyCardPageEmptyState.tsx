@@ -19,7 +19,7 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {isCurrencySupportedForDirectReimbursement, updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
+import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -101,7 +101,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             setIsNoDelegateAccessMenuVisible(true);
                             return;
                         }
-                        if (!isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                        if (!(policy?.outputCurrency === CONST.CURRENCY.USD)) {
                             setIsCurrencyModalOpen(true);
                             return;
                         }

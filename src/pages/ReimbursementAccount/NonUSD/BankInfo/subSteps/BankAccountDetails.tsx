@@ -32,7 +32,10 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         return acc;
     }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
 
-    const defaultValues = getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount);
+    const defaultValues = useMemo(
+        () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
+        [reimbursementAccount, reimbursementAccountDraft, subStepKeys],
+    );
 
     const fieldIds = bankAccountDetailsFields?.map((field) => field.id);
 
