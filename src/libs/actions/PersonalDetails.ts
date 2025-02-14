@@ -142,9 +142,9 @@ function updateLegalName(legalFirstName: string, legalLastName: string) {
                         firstName: legalFirstName,
                         lastName: legalLastName,
                     }),
+                    firstName: legalFirstName,
+                    lastName: legalLastName,
                 },
-                firstName: legalFirstName,
-                lastName: legalLastName,
             },
         });
     }
