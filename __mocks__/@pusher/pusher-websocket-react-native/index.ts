@@ -20,7 +20,9 @@ type SubscribeProps = {
     onSubscriptionSucceeded: OnSubscriptionSucceeded;
 };
 
-type UnsubscribeProps = {channelName: string};
+type UnsubscribeProps = {
+    channelName: string;
+};
 
 class MockedPusher {
     static instance: MockedPusher | null = null;
