@@ -449,7 +449,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    onBackButtonPress={() => {
+                        if (route.params.backTo) {
+                            Navigation.navigate(route.params.backTo);
+                            return;
+                        }
+                        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
+                    }}
                     policyAvatar={policyAvatar}
                     style={styles.headerBarDesktopHeight}
                 />

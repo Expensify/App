@@ -1581,6 +1581,7 @@ type SettingsSplitNavigatorParamList = {
 type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
