@@ -30,11 +30,11 @@ describe('WorkspacesSettingsUtils', () => {
             const transactions = mockData.transactions;
 
             await Onyx.multiSet({
+                session,
                 ...(reports as ReportCollectionDataSet),
                 ...(reportActions as OnyxCollection<ReportActions>),
                 ...(transactionViolations as OnyxCollection<TransactionViolations>),
                 ...(transactions as OnyxCollection<Transaction>),
-                session,
             });
 
             await waitForBatchedUpdates();

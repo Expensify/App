@@ -21,12 +21,15 @@ import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitForm';
 
 type ConfirmationWarningTranslationPaths = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
 
-type WorkspaceEditCardLimitPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT>;
+type WorkspaceEditCardLimitPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT
+>;
 
 function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const {policyID, cardID} = route.params;
@@ -59,7 +62,12 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         return newLimit - currentSpend;
     };
 
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)), [policyID, cardID]);
+    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT;
+
+    const goBack = useCallback(
+        () => Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)),
+        [isWorkspaceRhp, policyID, cardID],
+    );
 
     const updateCardLimit = (newLimit: number) => {
         const newAvailableSpend = getNewAvailableSpend(newLimit);

@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -45,7 +45,7 @@ type AddressFormProps = {
     onAddressChanged?: (value: unknown, key: unknown) => void;
 
     /** Callback which is executed when the user submits his address changes */
-    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
+    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
 
     /** Whether or not should the form data should be saved as draft */
     shouldSaveDraft?: boolean;
@@ -54,7 +54,7 @@ type AddressFormProps = {
     submitButtonText?: string;
 
     /** A unique Onyx key identifying the form */
-    formID: typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
+    formID: typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM;
 };
 
 function AddressForm({
@@ -87,7 +87,7 @@ function AddressForm({
      */
 
     const validator = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM | typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>): Errors => {
             const errors: Errors & {
                 zipPostCode?: string | string[];
             } = {};
@@ -101,7 +101,7 @@ function AddressForm({
             // Add "Field required" errors if any required field is empty
             requiredFields.forEach((fieldKey) => {
                 const fieldValue = values[fieldKey] ?? '';
-                if (ValidationUtils.isRequiredFulfilled(fieldValue)) {
+                if (isRequiredFulfilled(fieldValue)) {
                     return;
                 }
 
@@ -138,7 +138,7 @@ function AddressForm({
 
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
-                    if (ValidationUtils.isRequiredFulfilled(values.zipPostCode?.trim())) {
+                    if (isRequiredFulfilled(values.zipPostCode?.trim())) {
                         errors.zipPostCode = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
                     } else {
                         errors.zipPostCode = translate('common.error.fieldRequired');

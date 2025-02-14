@@ -992,7 +992,11 @@ function hasWarningTypeViolation(transactionID: string | undefined, transactionV
 /**
  * Calculates tax amount from the given expense amount and tax percentage
  */
-function calculateTaxAmount(percentage: string, amount: number, currency: string) {
+function calculateTaxAmount(percentage: string | undefined, amount: number, currency: string) {
+    if (!percentage) {
+        return 0;
+    }
+
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
     const taxAmount = (amount - amount / divisor) / 100;
     const decimals = getCurrencyDecimals(currency);
