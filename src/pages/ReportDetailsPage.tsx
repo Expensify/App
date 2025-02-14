@@ -104,6 +104,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {isCardTransaction as isCardTransactionTransactionUtils, isExpensifyCardTransaction} from '@libs/TransactionUtils';
 import {
     cancelPayment as cancelPaymentAction,
     deleteMoneyRequest,
@@ -302,7 +303,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
+    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
+
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${policy?.workspaceAccountID}`);
+
+    const isCompanyCardTransaction = !isExpensifyCardTransaction(transaction) && isCardTransaction;
+    const bank = transaction?.bank as ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
+    const liabilityType = cardFeeds?.settings?.companyCards?.[bank]?.liabilityType;
+    const isAllowToDeleteTransaction = !isCompanyCardTransaction || (isCompanyCardTransaction && liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW);
+    const shouldShowDeleteButton = isCompanyCardTransaction ? isAllowToDeleteTransaction : shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil({report}) && !isSubmitAndClose(policy);
 
@@ -379,8 +390,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && isPayer && isSettled && isExpenseReportUtil(moneyRequestReport);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
 
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
