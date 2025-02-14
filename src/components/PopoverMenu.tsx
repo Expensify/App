@@ -138,14 +138,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
     if (shouldUseScrollView) {
-        return (
-            <ScrollView
-                contentContainerStyle={contentContainerStyle}
-                scrollEnabled
-            >
-                {children}
-            </ScrollView>
-        );
+        return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
     // eslint-disable-next-line react/jsx-no-useless-fragment
     return <>{children}</>;
