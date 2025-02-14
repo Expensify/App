@@ -6036,12 +6036,11 @@ function buildOptimisticChatReport(
         return reportParticipants;
     }, {} as Participants);
     const currentTime = DateUtils.getDBTime();
-    const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     const optimisticChatReport: OptimisticChatReport = {
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
-        isPinned: isNewlyCreatedWorkspaceChat,
+        isPinned: false,
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: undefined,
