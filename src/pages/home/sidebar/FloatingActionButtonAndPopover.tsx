@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -460,12 +460,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         {
             icon: Expensicons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
-            onSelected: () =>
-                interceptAnonymousUser(() => {
-                    InteractionManager.runAfterInteractions(() => {
-                        Navigation.setNavigationActionToMicrotaskQueue(startNewChat);
-                    });
-                }),
+            onSelected: () => interceptAnonymousUser(startNewChat),
         },
         ...(canSendInvoice
             ? [
