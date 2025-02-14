@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
-import type {RefObject} from 'react';
+import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
