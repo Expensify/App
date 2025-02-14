@@ -119,8 +119,10 @@ In addition to inviting employees, this feature enables a custom set of approval
 ## I notice that company card expenses export to NetSuite right away when I approve a report, but reimbursable expenses don’t, why is that?
 
 When Auto Sync is enabled and you reimburse employees through Expensify, we help to automatically send finalized expenses to NetSuite. The timing of the export depends on the type of expense it is. 
-        - **If you reimburse members through Expensify:** Reimbursing an expense report will trigger auto-export to NetSuite. When the expense report is exported to NetSuite, a corresponding bill payment will also be created in NetSuite.
-        - **If you reimburse members outside of Expensify:** Expense reports will be exported to NetSuite at the time of final approval. After you mark the report as paid in NetSuite, the reimbursed status will be synced back to Expensify the next time the integration syncs.
+
+- **If you reimburse members through Expensify:** Reimbursing an expense report will trigger auto-export to NetSuite. When the expense report is exported to NetSuite, a corresponding bill payment will also be created in NetSuite.
+
+- **If you reimburse members outside of Expensify:** Expense reports will be exported to NetSuite at the time of final approval. After you mark the report as paid in NetSuite, the reimbursed status will be synced back to Expensify the next time the integration syncs.
 
 ## How do I configure my default corporate cards in NetSuite?
 
@@ -157,6 +159,6 @@ Auto-sync will only export newly approved reports to NetSuite. Reports that were
 
 When using multi-currency features with NetSuite, remember these points:
 
-**Employee/Vendor currency:** The currency set for a NetSuite vendor or employee record must match the subsidiary currency for whichever subsidiary you export that user's reports to. A currency mismatch will cause export errors.
-**Bank Account Currency:** When synchronizing bill payments, your bank account’s currency must match the subsidiary’s currency. Failure to do so will result in an “Invalid Account” error.
+ - **Employee/Vendor currency:** The currency set for a NetSuite vendor or employee record must match the subsidiary currency for whichever subsidiary you export that user's reports to. A currency mismatch will cause export errors.
+ - **Bank Account Currency:** When synchronizing bill payments, your bank account’s currency must match the subsidiary’s currency. Failure to do so will result in an “Invalid Account” error.
 {% include faq-end.md %}
