@@ -382,7 +382,6 @@ const CONST = {
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
-    ANIMATION_HIDE_DELAY: 200,
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
     ANIMATION_THUMBSUP_DURATION: 250,
     ANIMATION_THUMBSUP_DELAY: 200,
