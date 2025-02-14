@@ -766,8 +766,14 @@ type SettingsNavigatorParamList = {
         backTo?: Routes;
         forwardTo?: string;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY]: undefined;
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH.SUCCESS]: undefined;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH.SUCCESS]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH.DISABLED]: undefined;
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH.DISABLE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
