@@ -34,7 +34,6 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
-
         if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
             errors.securityCode = translate('addPaymentCardPage.error.securityCode');
         }
