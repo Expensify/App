@@ -479,7 +479,7 @@ function BaseVideoPlayer({
                                             isLooping={isLooping}
                                             onReadyForDisplay={(e) => {
                                                 if (isCurrentlyURLSet && !isUploading) {
-                                                    // playVideo();
+                                                    playVideo();
                                                 }
                                                 onVideoLoaded?.(e);
                                                 if (shouldUseNewRate) {
