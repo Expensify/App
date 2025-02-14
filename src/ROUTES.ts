@@ -193,22 +193,6 @@ const ROUTES = {
         route: 'settings/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
     },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
-        route: 'settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/name`, backTo),
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
-        route: 'settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/phone`, backTo),
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
-        route: 'settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${domain}/get-physical/address`, backTo),
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
-        route: 'settings/wallet/card/:domain/get-physical/confirm',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/confirm` as const,
-    },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
@@ -1743,7 +1727,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_ORGANIZATION: {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
-        getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+        getRoute: (policyID: string | undefined, currentOrganizationID: string | undefined) => {
+            if (!policyID || !currentOrganizationID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ORGANIZATION route');
+            }
+            return `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
@@ -1837,7 +1826,12 @@ const ROUTES = {
     MISSING_PERSONAL_DETAILS: 'missing-personal-details',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR route');
+            }
+            return `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/existing-connections',
@@ -2043,7 +2037,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/entity',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY route');
+            }
+            return `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
