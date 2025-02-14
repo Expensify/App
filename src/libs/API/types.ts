@@ -87,7 +87,6 @@ const WRITE_COMMANDS = {
     VERIFY_IDENTITY: 'VerifyIdentity',
     ACCEPT_WALLET_TERMS: 'AcceptWalletTerms',
     ANSWER_QUESTIONS_FOR_WALLET: 'AnswerQuestionsForWallet',
-    REQUEST_PHYSICAL_EXPENSIFY_CARD: 'RequestPhysicalExpensifyCard',
     LOG_OUT: 'LogOut',
     REQUEST_ACCOUNT_VALIDATION_LINK: 'RequestAccountValidationLink',
     REQUEST_NEW_VALIDATE_CODE: 'RequestNewValidateCode',
@@ -533,7 +532,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.VERIFY_IDENTITY]: Parameters.VerifyIdentityParams;
     [WRITE_COMMANDS.ACCEPT_WALLET_TERMS]: Parameters.AcceptWalletTermsParams;
     [WRITE_COMMANDS.ANSWER_QUESTIONS_FOR_WALLET]: Parameters.AnswerQuestionsForWalletParams;
-    [WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD]: Parameters.RequestPhysicalExpensifyCardParams;
     [WRITE_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
     [WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK]: Parameters.RequestAccountValidationLinkParams;
     [WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE]: Parameters.RequestNewValidateCodeParams;
