@@ -35,6 +35,9 @@ jobs:
     outputs:
       REF: ${{ steps.getHeadRef.outputs.REF }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Check if pull request number is correct
         id: getHeadRef
         run: |
@@ -114,11 +117,11 @@ jobs:
               body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
             });
 
-      - name: Add build start comment to ND PR
+      - name: Add build start comment to OD PR
         if: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER != '' || needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
         uses: actions/github-script@v7
         with:
-          github-token: ${{ github.token }}
+          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
           script: |
             const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             github.rest.issues.createComment({
