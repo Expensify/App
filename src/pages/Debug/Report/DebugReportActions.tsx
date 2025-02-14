@@ -47,7 +47,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 style={[styles.pb3, styles.ph3]}
             />
             <SelectionList
-                sections={[{title: `Total Amount: ${searchedReportActions.length}`, data: searchedReportActions}]} // TODO: add translation for the Total Amount: text
+                sections={[{data: searchedReportActions}]}
                 listItemTitleStyles={styles.fontWeightNormal}
                 textInputValue={searchValue}
                 textInputLabel={translate('common.search')}
