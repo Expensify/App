@@ -216,13 +216,22 @@ function IOURequestStepConfirmation({
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
             return;
         }
-        // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
-        // back to the participants step
-        if ((!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') || transaction?.isFromGlobalCreate) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action), {compareParams: false});
+
+        if (transaction?.isFromGlobalCreate) {
+            // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
+            if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action), {compareParams: false});
+                return;
+            }
+
+            // If the participant was auto-assigned, we need to keep the reportID that is already on the stack.
+            // This will allow the user to edit the participant field after going back and forward.
+            Navigation.goBack();
             return;
         }
+
+        // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
     }, [
         action,
