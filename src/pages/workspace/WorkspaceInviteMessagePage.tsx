@@ -39,10 +39,10 @@ import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
-import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberRoleSelectionModal';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {ListItemType} from './WorkspaceMemberRoleSelectionModal';
+import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberRoleSelectionModal';
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &

@@ -32,6 +32,7 @@ import {setSelfTourViewed} from '@libs/actions/Welcome';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
@@ -463,6 +464,80 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
     const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
+    const menuItems = [
+        ...expenseMenuItems,
+        {
+            icon: Expensicons.ChatBubble,
+            text: translate('sidebarScreen.fabNewChat'),
+            onSelected: () => interceptAnonymousUser(startNewChat),
+        },
+        ...(canSendInvoice
+            ? [
+                  {
+                      icon: Expensicons.InvoiceGeneric,
+                      text: translate('workspace.invoices.sendInvoice'),
+                      shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
+                      onSelected: () =>
+                          interceptAnonymousUser(() => {
+                              if (shouldRedirectToExpensifyClassic) {
+                                  setModalVisible(true);
+                                  return;
+                              }
+
+                              startMoneyRequest(
+                                  CONST.IOU.TYPE.INVOICE,
+                                  // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                  // for all of the routes in the creation flow.
+                                  generateReportID(),
+                              );
+                          }),
+                  },
+              ]
+            : []),
+        ...(canUseSpotnanaTravel
+            ? [
+                  {
+                      icon: Expensicons.Suitcase,
+                      text: translate('travel.bookTravel'),
+                      onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
+                  },
+              ]
+            : []),
+        ...(!hasSeenTour
+            ? [
+                  {
+                      icon: Expensicons.Binoculars,
+                      iconStyles: styles.popoverIconCircle,
+                      iconFill: theme.icon,
+                      text: translate('tour.takeATwoMinuteTour'),
+                      description: translate('tour.exploreExpensify'),
+                      onSelected: () => {
+                          openExternalLink(navatticURL);
+                          setSelfTourViewed(isAnonymousUser());
+                          if (viewTourTaskReport && canModifyTask && canActionTask) {
+                              completeTask(viewTourTaskReport);
+                          }
+                      },
+                  },
+              ]
+            : []),
+        ...(!isLoading && shouldShowNewWorkspaceButton
+            ? [
+                  {
+                      displayInDefaultIconColor: true,
+                      contentFit: 'contain' as ImageContentFit,
+                      icon: Expensicons.NewWorkspace,
+                      iconWidth: variables.w46,
+                      iconHeight: variables.h40,
+                      text: translate('workspace.new.newWorkspace'),
+                      description: translate('workspace.new.getTheExpensifyCardAndMore'),
+                      onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
+                  },
+              ]
+            : []),
+        ...quickActionMenuItems,
+    ];
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
@@ -471,79 +546,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu}: Fl
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
-                menuItems={[
-                    ...expenseMenuItems,
-                    {
-                        icon: Expensicons.ChatBubble,
-                        text: translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(startNewChat),
-                    },
-                    ...(canSendInvoice
-                        ? [
-                              {
-                                  icon: Expensicons.InvoiceGeneric,
-                                  text: translate('workspace.invoices.sendInvoice'),
-                                  shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
-                                  onSelected: () =>
-                                      interceptAnonymousUser(() => {
-                                          if (shouldRedirectToExpensifyClassic) {
-                                              setModalVisible(true);
-                                              return;
-                                          }
-
-                                          startMoneyRequest(
-                                              CONST.IOU.TYPE.INVOICE,
-                                              // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                              // for all of the routes in the creation flow.
-                                              generateReportID(),
-                                          );
-                                      }),
-                              },
-                          ]
-                        : []),
-                    ...(canUseSpotnanaTravel
-                        ? [
-                              {
-                                  icon: Expensicons.Suitcase,
-                                  text: translate('travel.bookTravel'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
-                              },
-                          ]
-                        : []),
-                    ...(!hasSeenTour
-                        ? [
-                              {
-                                  icon: Expensicons.Binoculars,
-                                  iconStyles: styles.popoverIconCircle,
-                                  iconFill: theme.icon,
-                                  text: translate('tour.takeATwoMinuteTour'),
-                                  description: translate('tour.exploreExpensify'),
-                                  onSelected: () => {
-                                      openExternalLink(navatticURL);
-                                      setSelfTourViewed(isAnonymousUser());
-                                      if (viewTourTaskReport && canModifyTask && canActionTask) {
-                                          completeTask(viewTourTaskReport);
-                                      }
-                                  },
-                              },
-                          ]
-                        : []),
-                    ...(!isLoading && shouldShowNewWorkspaceButton
-                        ? [
-                              {
-                                  displayInDefaultIconColor: true,
-                                  contentFit: 'contain' as ImageContentFit,
-                                  icon: Expensicons.NewWorkspace,
-                                  iconWidth: variables.w46,
-                                  iconHeight: variables.h40,
-                                  text: translate('workspace.new.newWorkspace'),
-                                  description: translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
-                              },
-                          ]
-                        : []),
-                    ...quickActionMenuItems,
-                ]}
+                menuItems={menuItems.map((item) => {
+                    return {
+                        ...item,
+                        onSelected: () => {
+                            if (!item.onSelected) {
+                                return;
+                            }
+                            navigateAfterInteraction(item.onSelected);
+                        },
+                    };
+                })}
                 withoutOverlay
                 anchorRef={fabRef}
             />
