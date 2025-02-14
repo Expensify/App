@@ -11,6 +11,8 @@ import {isThread} from './ReportUtils';
  *  - a unique key,
  *  - a tuple of Onyx keys to subscribe to (dependencies),
  *  - a compute function that derives a value from the dependent Onyx values.
+ *    The compute function receives a single argument that's a tuple of the onyx values for the declared dependencies.
+ *    For example, if your dependencies are `['report_', 'account'], then compute will receive a [OnyxCollection<Report>, OnyxEntry<Account>]
  */
 type OnyxDerivedValueConfig<Key extends string, Deps extends NonEmptyTuple<OnyxKey>> = {
     key: Key;
