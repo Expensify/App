@@ -126,7 +126,7 @@ function BaseSelectionList<TItem extends ListItem>(
         initialNumToRender = 12,
         listItemTitleContainerStyles,
         maxToRenderPerBatch: maxToRenderPerBatchProp,
-        defaultItemHeight,
+        defaultItemHeight = 0,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -147,14 +147,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
-    const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
-
-    const renderRef = useRef(0);
-    useEffect(() => {
-        renderRef.current += 1;
-        console.log('BaseSelectionList.3.0', renderRef.current);
-    });
-
+    const [itemHeights, setItemHeights] = useState<Map<string, number>>(new Map());
     const itemHeightsRef = useRef(new Map<string, number>());
     const onItemLayout = useCallback((event: LayoutChangeEvent, itemKey: string | null | undefined) => {
         if (!itemKey) {
@@ -176,6 +169,9 @@ function BaseSelectionList<TItem extends ListItem>(
 
         sections.forEach((section) => {
             section.data.forEach((item) => {
+                if (!item.keyForList) {
+                    return;
+                }
                 newItemHeights.set(item.keyForList, defaultItemHeight);
             });
         });
@@ -216,9 +212,9 @@ function BaseSelectionList<TItem extends ListItem>(
         const sectionHeaderHeightCache = new Map();
         const getSectionHeaderHeight = (section: SectionListDataType<TItem>) => {
             if (sectionHeaderHeightCache.has(section)) {
-                return sectionHeaderHeightCache.get(section);
+                return sectionHeaderHeightCache.get(section) as number;
             }
-            const height = section.title || section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
+            const height = section.title ?? section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
             sectionHeaderHeightCache.set(section, height);
             return height;
         };
@@ -251,9 +247,10 @@ function BaseSelectionList<TItem extends ListItem>(
                 disabledIndex++;
 
                 // Cache item height
-                const itemHeight = itemHeights[item.keyForList] || getItemHeight(item);
-                itemLayouts.push({length: itemHeight, offset});
-                offset += itemHeight;
+                // Account for the height of the item in getItemLayout
+                const fullItemHeight = item?.keyForList && itemHeights.get(item.keyForList) ? itemHeights.get(item.keyForList) : getItemHeight(item);
+                itemLayouts.push({length: fullItemHeight ?? 0, offset});
+                offset += fullItemHeight ?? 0;
 
                 if (item.isSelected) {
                     selectedOptions.push(item);
@@ -334,9 +331,9 @@ function BaseSelectionList<TItem extends ListItem>(
             // the top of the viewable area at all times by adjusting the viewOffset.
             if (shouldKeepFocusedItemAtTopOfViewableArea) {
                 const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
-                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights[firstPreviousItem.keyForList] : 0;
+                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights.get(firstPreviousItem.keyForList) ?? 0 : 0;
                 const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
-                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights[secondPreviousItem.keyForList] : 0;
+                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights.get(secondPreviousItem.keyForList) ?? 0 : 0;
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
@@ -938,9 +935,6 @@ function BaseSelectionList<TItem extends ListItem>(
         }
         return listHeaderContent;
     }, [shouldShowTextInput, shouldShowTextInputAfterHeader, listHeaderContent, renderInput]);
-    useEffect(() => {
-        console.log('slicedSections.1.0');
-    }, [slicedSections]);
 
     // TODO: test _every_ component that uses SelectionList
     return (
