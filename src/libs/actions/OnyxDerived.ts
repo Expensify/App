@@ -82,53 +82,57 @@ function getOnyxValues<Keys extends readonly OnyxKey[]>(keys: Keys): Promise<{[I
     return Promise.all(keys.map((key) => OnyxUtils.get(key))) as Promise<{[Index in keyof Keys]: GetOnyxTypeForKey<Keys[Index]>}>;
 }
 
-for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
-    // Create an array to hold the current values for each dependency.
-    // We cast its type to match the tuple expected by config.compute.
-    let dependencyValues = new Array(dependencies.length) as Parameters<typeof compute>[0];
+function init() {
+    for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
+        // Create an array to hold the current values for each dependency.
+        // We cast its type to match the tuple expected by config.compute.
+        let dependencyValues = new Array(dependencies.length) as Parameters<typeof compute>[0];
 
-    OnyxUtils.get(key).then((storedDerivedValue) => {
-        let derivedValue = storedDerivedValue;
-        if (!derivedValue) {
-            getOnyxValues(dependencies).then((values) => {
-                dependencyValues = values;
-                derivedValue = compute(values);
-                Onyx.set(key, derivedValue ?? null);
-            });
-        }
-
-        const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
-            dependencyValues[i] = value;
-        };
-
-        const recomputeDerivedValue = () => {
-            const newDerivedValue = compute(dependencyValues);
-            if (newDerivedValue !== derivedValue) {
-                derivedValue = newDerivedValue;
-                Onyx.set(key, derivedValue ?? null);
-            }
-        };
-
-        for (let i = 0; i < dependencies.length; i++) {
-            const dependencyOnyxKey = dependencies[i];
-            if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
-                Onyx.connect({
-                    key: dependencyOnyxKey,
-                    waitForCollectionCallback: true,
-                    callback: (value) => {
-                        setDependencyValue(i, value);
-                        recomputeDerivedValue();
-                    },
-                });
-            } else {
-                Onyx.connect({
-                    key: dependencyOnyxKey,
-                    callback: (value) => {
-                        setDependencyValue(i, value);
-                        recomputeDerivedValue();
-                    },
+        OnyxUtils.get(key).then((storedDerivedValue) => {
+            let derivedValue = storedDerivedValue;
+            if (!derivedValue) {
+                getOnyxValues(dependencies).then((values) => {
+                    dependencyValues = values;
+                    derivedValue = compute(values);
+                    Onyx.set(key, derivedValue ?? null);
                 });
             }
-        }
-    });
+
+            const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
+                dependencyValues[i] = value;
+            };
+
+            const recomputeDerivedValue = () => {
+                const newDerivedValue = compute(dependencyValues);
+                if (newDerivedValue !== derivedValue) {
+                    derivedValue = newDerivedValue;
+                    Onyx.set(key, derivedValue ?? null);
+                }
+            };
+
+            for (let i = 0; i < dependencies.length; i++) {
+                const dependencyOnyxKey = dependencies[i];
+                if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
+                    Onyx.connect({
+                        key: dependencyOnyxKey,
+                        waitForCollectionCallback: true,
+                        callback: (value) => {
+                            setDependencyValue(i, value);
+                            recomputeDerivedValue();
+                        },
+                    });
+                } else {
+                    Onyx.connect({
+                        key: dependencyOnyxKey,
+                        callback: (value) => {
+                            setDependencyValue(i, value);
+                            recomputeDerivedValue();
+                        },
+                    });
+                }
+            }
+        });
+    }
 }
+
+export default init;

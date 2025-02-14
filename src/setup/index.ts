@@ -1,5 +1,6 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
 import CONST from '@src/CONST';
@@ -44,6 +45,8 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
+
+    initOnyxDerivedValues();
 
     setDeviceID();
 
