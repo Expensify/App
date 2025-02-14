@@ -184,10 +184,10 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read "op://Mobile-Deploy-CI/NewApp_AdHoc/NewApp_AdHoc.mobileprovision" --force --out-file ./NewApp_AdHoc.mobileprovision
-          op read "op://Mobile-Deploy-CI/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
-          op read "op://Mobile-Deploy-CI/NewApp_AdHoc_Share_Extension.mobileprovision/NewApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./NewApp_AdHoc_Share_Extension.mobileprovision
-          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc/NewApp_AdHoc.mobileprovision" --force --out-file ./NewApp_AdHoc.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Share_Extension/NewApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./NewApp_AdHoc_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -239,8 +239,8 @@ jobs:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DESKTOP_CERTIFICATE_BASE64: "op://Mobile-Deploy-CI/Desktop Certificates.p12/CSC_LINK"
-          DESKTOP_CERTIFICATE_PASSWORD: "op://Mobile-Deploy-CI/Desktop Certificates.p12/CSC_KEY_PASSWORD"
+          DESKTOP_CERTIFICATE_BASE64: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_LINK"
+          DESKTOP_CERTIFICATE_PASSWORD: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_KEY_PASSWORD"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
