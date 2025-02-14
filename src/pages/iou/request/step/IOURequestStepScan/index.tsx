@@ -212,7 +212,7 @@ function IOURequestStepScan({
             getCurrentPosition(
                 (successData) => {
                     console.log("[wildebug] ~ index.tsx:214 ~ useEffect ~ successData:", successData)
-                    setUserLocation({longitude: successData.coords.latitude, latitude: successData.coords.longitude});
+                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
                 },
                 () => {},
                 {
