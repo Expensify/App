@@ -16,7 +16,6 @@ describe('TabSelectorItem Component', () => {
     const title = 'Test Tab';
 
     beforeEach(() => {
-        // wrapOnyxWithWaitForBatchedUpdates(Onyx);
         jest.clearAllMocks();
     });
 
