@@ -521,6 +521,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     const renderSectionHeader = useCallback(
+      // eslint-disable-next-line react/no-unused-prop-types
         ({section}: {section: SectionListDataType<TItem>}) => {
             if (section.CustomSectionHeader) {
                 return <section.CustomSectionHeader section={section} />;
@@ -605,7 +606,7 @@ function BaseSelectionList<TItem extends ListItem>(
             const normalizedIndex = index + (section?.indexOffset ?? 0);
             const isDisabled = !!section.isDisabled || item.isDisabled;
             const isItemFocused = (!isDisabled || item.isSelected) && focusedIndex === normalizedIndex;
-            const isItemHighlighted = itemsToHighlight?.has(item.keyForList ?? '') || false;
+            const isItemHighlighted = itemsToHighlight?.has(item.keyForList ?? '') ?? false;
             return (
                 <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
                     <BaseSelectionListItemRenderer
@@ -688,6 +689,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
+                            // eslint-disable-next-line no-param-reassign
                             textInputRef.current = element as RNTextInput;
                         }
                     }}
@@ -942,7 +944,7 @@ function BaseSelectionList<TItem extends ListItem>(
             );
         }
         return listHeaderContent;
-    }, [shouldShowTextInput, shouldShowTextInputAfterHeader, listHeaderContent, renderInput]);
+    }, [shouldShowTextInput, shouldShowTextInputAfterHeader, listHeaderContent, renderInput, shouldShowHeaderMessageAfterHeader, headerMessageContent]);
 
     // TODO: test _every_ component that uses SelectionList
     return (
