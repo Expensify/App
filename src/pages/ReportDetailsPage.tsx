@@ -581,11 +581,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         return;
                     }
                     const activeRoute = Navigation.getActiveRoute();
-                    if (isSmallScreenWidth) {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, activeRoute));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID, activeRoute));
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, activeRoute));
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
@@ -664,7 +660,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isOffline,
         transactionIDList,
         unapproveExpenseReportOrShowModal,
-        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
