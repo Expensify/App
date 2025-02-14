@@ -18,7 +18,7 @@ function DisabledPage() {
         <PageWrapper
             stepName={DisabledPage.displayName}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
-            onBackButtonPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY, true)}
+            onBackButtonPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
         >
             <BlockingView
                 icon={Illustrations.LockOpen}
@@ -32,7 +32,7 @@ function DisabledPage() {
                     success
                     large
                     text={translate('common.buttonConfirm')}
-                    onPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY, true)}
+                    onPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
                 />
             </FixedFooter>
         </PageWrapper>

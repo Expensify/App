@@ -164,7 +164,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                             if (!account?.codesAreCopied) {
                                 return setError(translate('twoFactorAuth.errorStepCodes'));
                             }
-                            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY);
+                            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY.getRoute(route.params?.backTo, route.params?.forwardTo));
                         }}
                     />
                 </FixedFooter>

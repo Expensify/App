@@ -1,14 +1,22 @@
 import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
+import {openLink} from '@userActions/Link';
 import {clearTwoFactorAuthData} from '@userActions/TwoFactorAuthActions';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import PageWrapper from './PageWrapper';
 
-function SuccessPage() {
+type SuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH.SUCCESS>;
+
+function SuccessPage({route}: SuccessPageProps) {
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
 
     return (
         <PageWrapper
@@ -27,15 +35,11 @@ function SuccessPage() {
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
                     clearTwoFactorAuthData();
-                    Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(), true);
+                    Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
 
-                    // if (backTo) {
-                    //     Navigation.goBack(backTo);
-                    // }
-
-                    // if (forwardTo) {
-                    //     openLink(forwardTo, environmentURL);
-                    // }
+                    if (route.params?.forwardTo) {
+                        openLink(route.params.forwardTo, environmentURL);
+                    }
                 }}
             />
         </PageWrapper>

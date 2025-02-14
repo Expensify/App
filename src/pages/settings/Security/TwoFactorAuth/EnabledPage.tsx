@@ -34,7 +34,7 @@ function EnabledPage() {
             stepName={EnabledPage.displayName}
             title={translate('twoFactorAuth.headerTitle')}
             shouldEnableKeyboardAvoidingView={false}
-            onBackButtonPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY, true)}
+            onBackButtonPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
         >
             <ScrollView>
                 <Section

@@ -48,8 +48,8 @@ function VerifyPage({route}: VerifyPageProps) {
         if (!account?.requiresTwoFactorAuth) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute());
-    }, [account?.requiresTwoFactorAuth]);
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute(route.params?.backTo, route.params?.forwardTo));
+    }, [account?.requiresTwoFactorAuth, route.params?.backTo, route.params?.forwardTo]);
 
     /**
      * Splits the two-factor auth secret key in 4 chunks
@@ -70,6 +70,8 @@ function VerifyPage({route}: VerifyPageProps) {
         return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
+    console.log(`%%% contactMethod`, contactMethod);
+
     return (
         <PageWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -80,7 +82,7 @@ function VerifyPage({route}: VerifyPageProps) {
                 text: translate('twoFactorAuth.stepVerify'),
                 total: 3,
             }}
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())}
+            onBackButtonPress={Navigation.goBack}
         >
             <ScrollView
                 keyboardShouldPersistTaps="handled"
