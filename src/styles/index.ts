@@ -1661,6 +1661,11 @@ const styles = (theme: ThemeColors) =>
             width: variables.sidebarAvatarSize,
         },
 
+        topBarWrapper: {
+            ...sizing.w100,
+            marginBottom: 1,
+        },
+
         selectedAvatarBorder: {
             padding: 1,
             borderWidth: 2,
