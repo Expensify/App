@@ -17,6 +17,7 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
+
 export default function useEReceipt(transactionID: string | undefined, fileExtension?: string, isReceiptThumbnail?: boolean) {
     const StyleUtils = useStyleUtils();
 
