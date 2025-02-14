@@ -778,6 +778,21 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
+const userReportsOpenOrSubmittedByPolicyId: Record<string, Report[] | undefined> = {};
+function checkIfReportIsOpenOrSubmittedByPolicyId(report: OnyxEntry<Report>) {
+    if (!report?.policyID) {
+        return;
+    }
+
+    const policyReports = userReportsOpenOrSubmittedByPolicyId[report.policyID] ?? [];
+    if (report.ownerAccountID === currentUserAccountID && (report.stateNum ?? 0) <= 1) {
+        policyReports.push(report);
+    } else {
+        userReportsOpenOrSubmittedByPolicyId[report.policyID] = policyReports.filter((r) => r.reportID !== report.reportID);
+    }
+    userReportsOpenOrSubmittedByPolicyId[report.policyID] = policyReports;
+}
+
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -799,6 +814,7 @@ Onyx.connect({
                 return;
             }
             handleReportChanged(report);
+            checkIfReportIsOpenOrSubmittedByPolicyId(report);
         });
     },
 });
@@ -6928,13 +6944,20 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         return false;
     }
 
+    if (!report.policyID) {
+        return false;
+    }
+
     // Get all potential reports, which are the ones that are:
     // - Owned by the same user
     // - Are either open or submitted
     // - Belong to the same workspace
     // And if any have a violation, then it should have a RBR
-    const reports = Object.values(allReports ?? {}) as Report[];
-    const potentialReports = reports.filter((r) => r?.ownerAccountID === currentUserAccountID && (r?.stateNum ?? 0) <= 1 && r?.policyID === report.policyID);
+    const potentialReports = userReportsOpenOrSubmittedByPolicyId[report.policyID];
+    if (!potentialReports) {
+        return false;
+    }
+
     return potentialReports.some(
         (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
     );
