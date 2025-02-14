@@ -19,7 +19,7 @@ The Insights dashboard in Expensify provides a real-time overview of company spe
 
 ---
 
-# Export Your Insights Data  
+## Export Your Insights Data  
 
 1. Click **View Raw Data** next to the dataset you want to export.
 2. Select individual expenses or use the **Select All** checkbox.
