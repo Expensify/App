@@ -1,20 +1,18 @@
-/* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
-import {useSyncExternalStore} from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
-import {isThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {GetOnyxTypeForKey, OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isThread} from './ReportUtils';
 
 /**
- * A computed value configuration describes:
+ * A derived value configuration describes:
  *  - a unique key,
  *  - a tuple of Onyx keys to subscribe to (dependencies),
  *  - a compute function that derives a value from the dependent Onyx values.
  */
-type OnyxComputedValueConfig<Key extends string, Deps extends NonEmptyTuple<OnyxKey>> = {
+type OnyxDerivedValueConfig<Key extends string, Deps extends NonEmptyTuple<OnyxKey>> = {
     key: Key;
     dependencies: Deps;
     compute: (args: {
@@ -23,29 +21,29 @@ type OnyxComputedValueConfig<Key extends string, Deps extends NonEmptyTuple<Onyx
 };
 
 /**
- * Helper function to create a computed value config. This function is just here to help TypeScript infer Deps, so instead of writing this:
+ * Helper function to create a derived value config. This function is just here to help TypeScript infer Deps, so instead of writing this:
  *
- * const conciergeChatReportIDConfig: OnyxComputedValueConfig<typeof ONYXKEYS.COLLECTION.REPORT, typeof ONYXKEYS.CONCIERGE_REPORT_ID> = {
+ * const conciergeChatReportIDConfig: OnyxDerivedValueConfig<typeof ONYXKEYS.COLLECTION.REPORT, typeof ONYXKEYS.CONCIERGE_REPORT_ID> = {
  *     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
  *     ...
  * };
  *
  * We can just write this:
  *
- * const conciergeChatReportIDConfig = createOnyxComputedValueConfig({
+ * const conciergeChatReportIDConfig = createOnyxDerivedValueConfig({
  *     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID]
  * })
  */
-function createOnyxComputedValueConfig<Key extends string, Deps extends NonEmptyTuple<OnyxKey>>(config: OnyxComputedValueConfig<Key, Deps>): OnyxComputedValueConfig<Key, Deps> {
+function createOnyxDerivedValueConfig<Key extends string, Deps extends NonEmptyTuple<OnyxKey>>(config: OnyxDerivedValueConfig<Key, Deps>): OnyxDerivedValueConfig<Key, Deps> {
     return config;
 }
 
 /**
- * Global map of computed configs.
- * This object holds our computed value configurations.
+ * Global map of derived configs.
+ * This object holds our derived value configurations.
  */
-const ONYX_COMPUTED_VALUES = {
-    CONCIERGE_CHAT_REPORT_ID: createOnyxComputedValueConfig({
+const ONYX_DERIVED_VALUES = {
+    CONCIERGE_CHAT_REPORT_ID: createOnyxDerivedValueConfig({
         key: 'conciergeChatReportID',
         dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
         compute: ([reports, conciergeChatReportID]) => {
@@ -72,62 +70,62 @@ const ONYX_COMPUTED_VALUES = {
 } as const;
 
 /**
- * Interface for a computed value store.
+ * Interface for a derived value store.
  *
- * A computed value store holds the current computed value and a subscribe function.
- * When any dependency updates, the store recalculates the computed value and notifies its subscribers.
+ * A derived value store holds the current derived value and a subscribe function.
+ * When any dependency updates, the store recalculates the derived value and notifies its subscribers.
  */
-type ComputedValueStore<T> = {
+type DerivedValueStore<T> = {
     currentValue: T;
     subscribe: (cb: () => void) => () => void;
 };
 
 /**
- * Get the union of all computed config keys from our ONYX_COMPUTED_VALUES map.
+ * Get the union of all derived config keys from our ONYX_DERIVED_VALUES map.
  */
-type ComputedValueStoreKey = ValueOf<typeof ONYX_COMPUTED_VALUES>['key'];
+type DerivedValueStoreKey = ValueOf<typeof ONYX_DERIVED_VALUES>['key'];
 
 /**
- * This type maps each config key (from ONYX_COMPUTED_VALUES)
- * to a ComputedValueStore whose currentValue type is the return type of that config's compute function.
+ * This type maps each config key (from ONYX_DERIVED_VALUES)
+ * to a DerivedValueStore whose currentValue type is the return type of that config's compute function.
  */
-type ComputedValueStoreMap = {
-    [K in ComputedValueStoreKey]: ComputedValueStore<
+type DerivedValueStoreMap = {
+    [K in DerivedValueStoreKey]: DerivedValueStore<
         ReturnType<
-            // Extract from the union of computed configs the one with key K, then get its compute function.
-            Extract<ValueOf<typeof ONYX_COMPUTED_VALUES>, {key: K}>['compute']
+            // Extract from the union of derived configs the one with key K, then get its compute function.
+            Extract<ValueOf<typeof ONYX_DERIVED_VALUES>, {key: K}>['compute']
         >
     >;
 };
 
 /**
- * Global object holding our computed value stores.
+ * Global object holding our derived value stores.
  * We use a Partial so that we can lazily create each store when needed.
  */
-const computedValueStores: Partial<ComputedValueStoreMap> = {};
+const derivedValueStores: Partial<DerivedValueStoreMap> = {};
 
 /**
- * Creates a new computed value store for a given config.
+ * Creates a new derived value store for a given config.
  *
  * For each dependency key in the config, we create an array (currentOnyxValues)
  * that will hold the latest Onyx values. Then we call Onyx.connect for each dependency,
  * updating the corresponding entry in currentOnyxValues whenever the value changes.
- * After each update, we recalculate the computed value using the config.compute function.
+ * After each update, we recalculate the derived value using the config.compute function.
  */
-function createComputedValueStore(config: ValueOf<typeof ONYX_COMPUTED_VALUES>): ComputedValueStore<ReturnType<typeof config.compute>> {
+function createDerivedValueStore(config: ValueOf<typeof ONYX_DERIVED_VALUES>): DerivedValueStore<ReturnType<typeof config.compute>> {
     // Create an array to hold the current values for each dependency.
     // We cast its type to match the tuple expected by config.compute.
     const currentOnyxValues = new Array(config.dependencies.length) as Parameters<typeof config.compute>[0];
-    let computedValue = config.compute(currentOnyxValues);
+    let derivedValue = config.compute(currentOnyxValues);
 
     const subscribers = new Set<() => void>();
 
-    // Function to re-calculate the computed value and notify subscribers if it changes.
+    // Function to re-calculate the derived value and notify subscribers if it changes.
     function recomputeValue() {
-        const newComputedValue = config.compute(currentOnyxValues);
-        // If the computed value has changed, notify all subscribers.
-        if (newComputedValue !== computedValue) {
-            computedValue = newComputedValue;
+        const newDerivedValue = config.compute(currentOnyxValues);
+        // If the derived value has changed, notify all subscribers.
+        if (newDerivedValue !== derivedValue) {
+            derivedValue = newDerivedValue;
             for (const subscriber of subscribers) {
                 subscriber();
             }
@@ -156,7 +154,7 @@ function createComputedValueStore(config: ValueOf<typeof ONYX_COMPUTED_VALUES>):
 
     return {
         get currentValue() {
-            return computedValue;
+            return derivedValue;
         },
         subscribe(cb: () => void) {
             subscribers.add(cb);
@@ -173,31 +171,27 @@ function createComputedValueStore(config: ValueOf<typeof ONYX_COMPUTED_VALUES>):
 }
 
 /**
- * Retrieves (or creates if necessary) the computed value store for the given config.
+ * Retrieves (or creates if necessary) the derived value store for the given config.
  *
- * We use the config's literal key to index into our global computedValueStores object.
+ * We use the config's literal key to index into our global derivedValueStores object.
  * If a store for that key doesn't exist yet, we create it.
  */
-function getComputedValueStore(config: ValueOf<typeof ONYX_COMPUTED_VALUES>) {
-    let store = computedValueStores[config.key];
+function getDerivedValueStore(config: ValueOf<typeof ONYX_DERIVED_VALUES>) {
+    let store = derivedValueStores[config.key];
     if (!store) {
-        store = createComputedValueStore(config);
-        computedValueStores[config.key] = store;
+        store = createDerivedValueStore(config);
+        derivedValueStores[config.key] = store;
     }
     return store;
 }
 
-/**
- * Hook that subscribes to a computed Onyx value.
- *
- * Pass in one of the computed configs from ONYX_COMPUTED_VALUES.
- * This hook uses React's useSyncExternalStore to subscribe to the computed store,
- * so that your component re-renders only when the computed value changes.
- */
-function useComputedOnyxValue(config: ValueOf<typeof ONYX_COMPUTED_VALUES>): ReturnType<typeof config.compute> {
-    const store = getComputedValueStore(config);
-    return useSyncExternalStore(store.subscribe, () => store.currentValue);
+function get(config: ValueOf<typeof ONYX_DERIVED_VALUES>) {
+    const store = getDerivedValueStore(config);
+    return store.currentValue;
 }
 
-export {ONYX_COMPUTED_VALUES};
-export default useComputedOnyxValue;
+export {ONYX_DERIVED_VALUES};
+export default {
+    get,
+    getDerivedValueStore,
+};
