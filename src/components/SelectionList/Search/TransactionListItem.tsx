@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
@@ -30,21 +30,27 @@ function TransactionListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash} = useSearchContext();
 
-    const listItemPressableStyle = [
-        styles.selectionListPressableItemWrapper,
-        styles.pv3,
-        styles.ph3,
-        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
-        styles.bgTransparent,
-        item.isSelected && styles.activeComponentBG,
-        styles.mh0,
-    ];
+    const listItemPressableStyle = useMemo(
+        () => [
+            styles.selectionListPressableItemWrapper,
+            styles.pv3,
+            styles.ph3,
+            // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+            styles.bgTransparent,
+            item.isSelected && styles.activeComponentBG,
+            styles.mh0,
+        ],
+        [styles, item.isSelected],
+    );
 
-    const listItemWrapperStyle = [
-        styles.flex1,
-        styles.userSelectNone,
-        isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
-    ];
+    const listItemWrapperStyle = useMemo(
+        () => [
+            styles.flex1,
+            styles.userSelectNone,
+            isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
+        ],
+        [styles, isLargeScreenWidth],
+    );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -52,6 +58,10 @@ function TransactionListItem<TItem extends ListItem>({
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
     });
+
+    const handleRowSelection = useCallback(() => onSelectRow(item), [onSelectRow, item]);
+    const handleCheckboxPress = useCallback(() => onCheckboxPress?.(item), [onCheckboxPress, item]);
+    const handleActionPress = useCallback(() => handleActionButtonPress(currentSearchHash, transactionItem, handleRowSelection), [currentSearchHash, transactionItem, handleRowSelection]);
 
     return (
         <BaseListItem
@@ -63,11 +73,11 @@ function TransactionListItem<TItem extends ListItem>({
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
-            onSelectRow={onSelectRow}
+            onSelectRow={handleRowSelection}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
-            onLongPressRow={onLongPressRow}
+            onLongPressRow={onLongPressRow as ((item: ListItem) => void) | undefined}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
@@ -75,10 +85,8 @@ function TransactionListItem<TItem extends ListItem>({
             <TransactionListItemRow
                 item={transactionItem}
                 showTooltip={showTooltip}
-                onButtonPress={() => {
-                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
-                }}
-                onCheckboxPress={() => onCheckboxPress?.(item)}
+                onButtonPress={handleActionPress}
+                onCheckboxPress={handleCheckboxPress}
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
                 isButtonSelected={item.isSelected}
@@ -91,4 +99,4 @@ function TransactionListItem<TItem extends ListItem>({
 
 TransactionListItem.displayName = 'TransactionListItem';
 
-export default TransactionListItem;
+export default React.memo(TransactionListItem);
