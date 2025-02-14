@@ -7,7 +7,6 @@ export type {EditTaskForm} from './EditTaskForm';
 export type {ExitSurveyReasonForm} from './ExitSurveyReasonForm';
 export type {ExitSurveyResponseForm} from './ExitSurveyResponseForm';
 export type {FeedbackSurveyForm} from './FeedbackSurveyForm';
-export type {GetPhysicalCardForm} from './GetPhysicalCardForm';
 export type {HomeAddressForm} from './HomeAddressForm';
 export type {IKnowTeacherForm} from './IKnowTeacherForm';
 export type {IntroSchoolPrincipalForm} from './IntroSchoolPrincipalForm';
@@ -82,6 +81,7 @@ export type {RulesAutoPayReportsUnderModalForm} from './RulesAutoPayReportsUnder
 export type {RulesRequiredReceiptAmountForm} from './RulesRequiredReceiptAmountForm';
 export type {RulesMaxExpenseAmountForm} from './RulesMaxExpenseAmountForm';
 export type {RulesMaxExpenseAgeForm} from './RulesMaxExpenseAgeForm';
+export type {RulesCustomForm} from './RulesCustomForm';
 export type {WorkspaceCategoryDescriptionHintForm} from './WorkspaceCategoryDescriptionHintForm';
 export type {WorkspaceCategoryFlagAmountsOverForm} from './WorkspaceCategoryFlagAmountsOverForm';
 export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName';
