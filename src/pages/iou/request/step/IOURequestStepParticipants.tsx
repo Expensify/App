@@ -42,7 +42,7 @@ type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof 
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID, action},
+        params: {iouType, reportID, transactionID, action, backTo},
     },
     transaction,
 }: IOURequestStepParticipantsProps) {
@@ -206,8 +206,12 @@ function IOURequestStepParticipants({
     }, [action, participants, iouType, transaction, transactionID, reportID, handleNavigation]);
 
     const navigateBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
         navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
-    }, [iouRequestType, iouType, transactionID, reportID, action]);
+    }, [backTo, iouRequestType, iouType, transactionID, reportID, action]);
 
     useEffect(() => {
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
