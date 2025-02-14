@@ -17,7 +17,7 @@ import type SymmetricDifference from '@src/types/utils/SymmetricDifference';
  *    The compute function receives a single argument that's a tuple of the onyx values for the declared dependencies.
  *    For example, if your dependencies are `['report_', 'account'], then compute will receive a [OnyxCollection<Report>, OnyxEntry<Account>]
  */
-type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<OnyxKey>> = {
+type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
     dependencies: Deps;
     compute: (args: {
         -readonly [Index in keyof Deps]: GetOnyxTypeForKey<Deps[Index]>;
@@ -38,7 +38,7 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
  *     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID]
  * })
  */
-function createOnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<OnyxKey>>(
+function createOnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>>(
     config: OnyxDerivedValueConfig<Key, Deps>,
 ): OnyxDerivedValueConfig<Key, Deps> {
     return config;
