@@ -10,7 +10,7 @@ The Insights dashboard in Expensify provides a real-time overview of company spe
 
 ---
 
-# Review Your Insights Data
+## Review Your Insights Data
 
 1. Navigate to your [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}) in the left-hand menu.
 2. Select a date range (default is the current month).
