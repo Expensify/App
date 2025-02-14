@@ -13,7 +13,6 @@ import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 /*
  * This is a "utility page", that does this:
@@ -53,7 +52,7 @@ function ConciergePage() {
                     Report.navigateToConciergeChat(true, () => !isUnmounted.current);
                 });
             } else {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate();
             }
         }, [session, isLoadingReportData, route.params, viewTourTaskReport]),
     );

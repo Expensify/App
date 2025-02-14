@@ -33,7 +33,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
         }
 
         // Dismiss modal on successful magic code verification
-        Navigation.goBack(ROUTES.SETTINGS_SECURITY);
+        Navigation.navigate(ROUTES.SETTINGS_SECURITY);
     }, [login, currentDelegate, role, addDelegateErrors]);
 
     const onBackButtonPress = () => {

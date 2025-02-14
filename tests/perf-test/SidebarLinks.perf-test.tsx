@@ -10,7 +10,8 @@ import wrapInAct from '../utils/wrapInActHelper';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
+jest.mock('@src/hooks/useIsCurrentRouteHome');
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
@@ -21,12 +22,8 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
 }));
 jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     getState: () => ({
-        routes: [{name: 'Report'}],
-    }),
-    getRootState: () => ({
         routes: [],
     }),
-    addListener: () => () => {},
 }));
 jest.mock('@components/Icon/Expensicons');
 

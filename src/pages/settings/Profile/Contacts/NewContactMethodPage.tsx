@@ -70,7 +70,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
             return;
         }
 
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.route);
         User.clearUnvalidatedNewContactMethodAction();
     }, [pendingContactAction?.actionVerified]);
 

@@ -47,7 +47,7 @@ import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumbe
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
@@ -67,7 +67,7 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
-    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert

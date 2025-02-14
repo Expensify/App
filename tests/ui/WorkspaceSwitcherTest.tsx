@@ -26,8 +26,6 @@ jest.mock('@react-navigation/native', () => {
         triggerTransitionEnd: jest.fn(),
     };
 });
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
-
 TestHelper.setupApp();
 
 async function signInAndGetApp(): Promise<void> {

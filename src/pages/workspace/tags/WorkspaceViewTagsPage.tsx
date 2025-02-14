@@ -269,7 +269,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAGS_EDIT.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, backTo)
-                : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, Navigation.getActiveRoute()),
+                : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0),
         );
     };
 

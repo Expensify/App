@@ -47,7 +47,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
                 if (isVisibleAction) {
                     // Pop the chat report screen before navigating to the linked report action.
-                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID), true);
                 }
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}

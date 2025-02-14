@@ -1,9 +1,10 @@
 import {InteractionManager} from 'react-native';
 import Navigation from '@libs/Navigation/Navigation';
 
-function switchPolicyAfterInteractions(newPolicyID: string | undefined) {
+function switchPolicyAfterInteractions(newPolicyID: string | undefined, setActiveWorkspaceID: () => void) {
     InteractionManager.runAfterInteractions(() => {
-        Navigation.switchPolicyID(newPolicyID);
+        setActiveWorkspaceID();
+        Navigation.navigateWithSwitchPolicyID({policyID: newPolicyID});
     });
 }
 

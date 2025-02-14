@@ -647,8 +647,7 @@ function ComposerWithSuggestions(
     const prevIsFocused = usePrevious(isFocused);
 
     useEffect(() => {
-        const isModalVisible = modal?.isVisible;
-        if (isModalVisible && !prevIsModalVisible) {
+        if (modal?.isVisible && !prevIsModalVisible) {
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
@@ -656,7 +655,6 @@ function ComposerWithSuggestions(
         // We want to blur the input immediately when a screen is out of focus.
         if (!isFocused) {
             textInputRef.current?.blur();
-            return;
         }
 
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
@@ -666,7 +664,8 @@ function ComposerWithSuggestions(
             !(
                 (willBlurTextInputOnTapOutside || (shouldAutoFocus && canFocusInputOnScreenFocus())) &&
                 !isNextModalWillOpenRef.current &&
-                !isModalVisible &&
+                !modal?.isVisible &&
+                isFocused &&
                 (!!prevIsModalVisible || !prevIsFocused)
             )
         ) {

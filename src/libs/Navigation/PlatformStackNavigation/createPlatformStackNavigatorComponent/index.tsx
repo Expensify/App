@@ -19,24 +19,13 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
     const createRouter = options?.createRouter ?? StackRouter;
-    const useCustomState = options?.useCustomState ?? (() => undefined);
+    const useCustomState = options?.useCustomState ?? (() => ({stateToRender: undefined, searchRoute: undefined}));
     const defaultScreenOptions = options?.defaultScreenOptions;
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
 
-    function PlatformNavigator({
-        id,
-        initialRouteName,
-        screenOptions,
-        screenListeners,
-        children,
-        sidebarScreen,
-        defaultCentralScreen,
-        parentRoute,
-        persistentScreens,
-        ...props
-    }: PlatformStackNavigatorProps<ParamListBase>) {
+    function PlatformNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
         const {
             navigation,
             state: originalState,
@@ -58,10 +47,6 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 defaultScreenOptions,
                 screenListeners,
                 initialRouteName,
-                defaultCentralScreen,
-                sidebarScreen,
-                parentRoute,
-                persistentScreens,
             } as PlatformNavigationBuilderOptions<PlatformStackNavigationOptions, StackNavigationEventMap, ParamListBase, RouterOptions>,
             convertToWebNavigationOptions,
         );
@@ -72,33 +57,23 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                 navigation,
                 descriptors,
                 displayName,
-                parentRoute,
             }),
-            [originalState, navigation, descriptors, parentRoute],
+            [originalState, navigation, descriptors],
         );
 
-        const stateToRender = useCustomState(customCodeProps);
+        const {stateToRender, searchRoute} = useCustomState(customCodeProps);
         const state = useMemo(() => stateToRender ?? originalState, [originalState, stateToRender]);
         const customCodePropsWithCustomState = useMemo<CustomCodeProps<StackNavigationOptions, StackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
             () => ({
                 ...customCodeProps,
                 state,
+                searchRoute,
             }),
-            [customCodeProps, state],
+            [customCodeProps, state, searchRoute],
         );
+
         // Executes custom effects defined in "useCustomEffects" navigator option.
         useCustomEffects(customCodePropsWithCustomState);
-
-        const mappedState = useMemo(() => {
-            return {
-                ...state,
-                routes: state.routes.map((route) => {
-                    // eslint-disable-next-line rulesdir/no-negated-variables
-                    const dontDetachScreen = persistentScreens?.includes(route.name) ? {dontDetachScreen: true} : {};
-                    return {...route, ...dontDetachScreen};
-                }),
-            };
-        }, [persistentScreens, state]);
 
         const Content = useMemo(
             () => (
@@ -106,7 +81,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     <StackView
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        state={mappedState}
+                        state={state}
                         descriptors={descriptors}
                         navigation={navigation}
                     />
@@ -117,7 +92,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, descriptors, mappedState, navigation, props],
+            [NavigationContent, customCodePropsWithCustomState, descriptors, navigation, props, state],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading

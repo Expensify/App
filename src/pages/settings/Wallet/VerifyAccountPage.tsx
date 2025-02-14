@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
@@ -62,7 +63,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
         setIsValidateCodeActionModalVisible(false);
 
         if (navigateForwardTo) {
-            Navigation.navigate(navigateForwardTo, {forceReplace: true});
+            Navigation.navigate(navigateForwardTo, CONST.NAVIGATION.TYPE.UP);
         } else {
             Navigation.goBack(backTo);
         }

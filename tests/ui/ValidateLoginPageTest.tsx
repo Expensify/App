@@ -2,14 +2,14 @@ import {NavigationContainer} from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import createResponsiveStackNavigator from '@libs/Navigation/AppNavigator/createResponsiveStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import ValidateLoginPage from '@pages/ValidateLoginPage/index.website';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
+const RootStack = createResponsiveStackNavigator<PublicScreensParamList>();
 
 const renderPage = (initialParams: PublicScreensParamList[typeof SCREENS.VALIDATE_LOGIN]) => {
     return render(

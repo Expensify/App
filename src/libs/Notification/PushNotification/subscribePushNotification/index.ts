@@ -1,18 +1,22 @@
 import {NativeModules} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportActionPushNotificationData} from '@libs/Notification/PushNotification/NotificationType';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
+import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type {OnyxUpdatesFromServer, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from '..';
 
 let lastVisitedPath: string | undefined;
@@ -23,6 +27,15 @@ Onyx.connect({
             return;
         }
         lastVisitedPath = value;
+    },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
     },
 });
 
@@ -99,6 +112,9 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
     Log.info('[PushNotification] Navigating to report', false, {reportID, reportActionID});
 
     const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+    const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
     Navigation.waitForProtectedRoutes().then(() => {
         // The attachment modal remains open when navigating to the report so we need to close it
@@ -114,7 +130,10 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID});
+                if (!reportBelongsToWorkspace) {
+                    Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
+                }
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);

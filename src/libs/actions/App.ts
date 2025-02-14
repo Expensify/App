@@ -411,7 +411,6 @@ function endSignOnTransition() {
  * @param [policyID] Optional, Policy id.
  * @param [currency] Optional, selected currency for the workspace
  * @param [file], avatar file for workspace
- * @param [routeToNavigateAfterCreate], Optional, route to navigate after creating a workspace
  */
 function createWorkspaceWithPolicyDraftAndNavigateToIt(
     policyOwnerEmail = '',
@@ -422,19 +421,18 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(
     policyID = '',
     currency?: string,
     file?: File,
-    routeToNavigateAfterCreate?: Route,
 ) {
     const policyIDWithDefault = policyID || generatePolicyID();
     createDraftInitialWorkspace(policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file);
+
     Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
             }
-            const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
             savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file);
-            Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo));
         })
         .then(endSignOnTransition);
 }

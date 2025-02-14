@@ -66,13 +66,9 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             if (value !== defaultVendor) {
                 updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             }
-            Navigation.goBack(
-                isReimbursable
-                    ? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)
-                    : ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID),
-            );
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },
-        [defaultVendor, isReimbursable, policyID, settingName],
+        [defaultVendor, policyID, settingName],
     );
 
     const listEmptyContent = useMemo(

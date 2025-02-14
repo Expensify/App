@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -71,15 +70,13 @@ function IOURequestStartPage({
     );
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            if (transaction?.reportID === reportID || isLoadingSelectedTab) {
-                return;
-            }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
-        }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]),
-    );
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
+    useEffect(() => {
+        if (transaction?.reportID === reportID || isLoadingSelectedTab) {
+            return;
+        }
+        initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
+    }, [transaction, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();

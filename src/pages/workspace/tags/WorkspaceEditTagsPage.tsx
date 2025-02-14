@@ -50,19 +50,16 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         [translate, policyTags, route.params.orderWeight],
     );
 
-    const goBackToTagsSettings = useCallback(
-        () => Navigation.goBack(isQuickSettingsFlow ? backTo : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID)),
-        [isQuickSettingsFlow, backTo, route.params.policyID],
-    );
-
     const updateTaglistName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
                 Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
-            goBackToTagsSettings();
+            Navigation.goBack(
+                isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+            );
         },
-        [taglistName, goBackToTagsSettings, route.params.policyID, route.params.orderWeight, policyTags],
+        [policyTags, route.params.orderWeight, route.params.policyID, taglistName, isQuickSettingsFlow, backTo],
     );
 
     return (
@@ -78,7 +75,11 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate(`workspace.tags.customTagName`)}
-                    onBackButtonPress={goBackToTagsSettings}
+                    onBackButtonPress={() =>
+                        Navigation.goBack(
+                            isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(route?.params?.policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+                        )
+                    }
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}

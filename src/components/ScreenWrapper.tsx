@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
@@ -41,9 +41,6 @@ type ScreenWrapperChildrenProps = {
 type ScreenWrapperProps = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
     children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
-
-    /** Content to display under the offline indicator */
-    bottomContent?: ReactNode;
 
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
@@ -101,7 +98,7 @@ type ScreenWrapperProps = {
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>;
+    navigation?: PlatformStackNavigationProp<RootStackParamList> | PlatformStackNavigationProp<AuthScreensParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -140,7 +137,6 @@ function ScreenWrapper(
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
         focusTrapSettings,
-        bottomContent,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -151,7 +147,7 @@ function ScreenWrapper(
      * so in other places where ScreenWrapper is used, we need to
      * fallback to useNavigation.
      */
-    const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
+    const navigationFallback = useNavigation<PlatformStackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
@@ -262,23 +258,22 @@ function ScreenWrapper(
     }, []);
 
     const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
-    const paddingTopStyle: StyleProp<ViewStyle> = {};
-    const paddingBottomStyle: StyleProp<ViewStyle> = {};
+    const paddingStyle: StyleProp<ViewStyle> = {};
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     if (includePaddingTop) {
-        paddingTopStyle.paddingTop = paddingTop;
+        paddingStyle.paddingTop = paddingTop;
     }
     if (includePaddingTop && ignoreInsetsConsumption) {
-        paddingTopStyle.paddingTop = unmodifiedPaddings.top;
+        paddingStyle.paddingTop = unmodifiedPaddings.top;
     }
 
     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
     if (includeSafeAreaPaddingBottom) {
-        paddingBottomStyle.paddingBottom = paddingBottom;
+        paddingStyle.paddingBottom = paddingBottom;
     }
     if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
-        paddingBottomStyle.paddingBottom = unmodifiedPaddings.bottom;
+        paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
@@ -298,7 +293,7 @@ function ScreenWrapper(
             >
                 <View
                     fsClass="fs-unmask"
-                    style={[styles.flex1, paddingTopStyle, style]}
+                    style={[styles.flex1, paddingStyle, style]}
                     // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
                     {...keyboardDismissPanResponder.panHandlers}
                 >
@@ -352,7 +347,6 @@ function ScreenWrapper(
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
                 </View>
-                <View style={paddingBottomStyle}>{bottomContent}</View>
             </View>
         </FocusTrapForScreens>
     );

@@ -40,7 +40,7 @@ function SuccessStep({backTo, forwardTo}: SuccessStepParams) {
                     TwoFactorAuthActions.clearTwoFactorAuthData();
                     setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
                     if (backTo) {
-                        Navigation.goBack(backTo);
+                        Navigation.navigate(backTo);
                     }
                     if (forwardTo) {
                         Link.openLink(forwardTo, environmentURL);
