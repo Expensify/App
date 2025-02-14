@@ -31,6 +31,7 @@ import {canActionTask as canActionTaskUtils, canModifyTask as canModifyTaskUtils
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, canSendInvoice as canSendInvoicePolicyUtils, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -46,7 +47,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction/index.ios';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -460,11 +460,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         {
             icon: Expensicons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
-            onSelected: () => interceptAnonymousUser(() => {
-            InteractionManager.runAfterInteractions(() => {
-                    Navigation.setNavigationActionToMicrotaskQueue(startNewChat);
-                });
-            }),
+            onSelected: () =>
+                interceptAnonymousUser(() => {
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.setNavigationActionToMicrotaskQueue(startNewChat);
+                    });
+                }),
         },
         ...(canSendInvoice
             ? [
