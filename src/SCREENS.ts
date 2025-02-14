@@ -36,7 +36,7 @@ const SCREENS = {
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
     },
     SEARCH: {
-        CENTRAL_PANE: 'Search_Central_Pane',
+        ROOT: 'Search_Root',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
@@ -61,7 +61,6 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
-        BOTTOM_TAB: 'Search_Bottom_Tab',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -113,12 +112,6 @@ const SCREENS = {
         WALLET: {
             ROOT: 'Settings_Wallet',
             DOMAIN_CARD: 'Settings_Wallet_DomainCard',
-            CARD_GET_PHYSICAL: {
-                NAME: 'Settings_Card_Get_Physical_Name',
-                PHONE: 'Settings_Card_Get_Physical_Phone',
-                ADDRESS: 'Settings_Card_Get_Physical_Address',
-                CONFIRM: 'Settings_Card_Get_Physical_Confirm',
-            },
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
@@ -150,7 +143,6 @@ const SCREENS = {
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
-            UPDATE_DELEGATE_ROLE_MAGIC_CODE: 'Settings_Delegate_Update_Magic_Code',
         },
     },
     SAVE_THE_WORLD: {
@@ -583,6 +575,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
+        RULES_CUSTOM: 'Rules_Custom',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',

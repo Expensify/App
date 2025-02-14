@@ -18,10 +18,6 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
-function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
-}
-
 function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
@@ -49,15 +45,19 @@ function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
 }
 
+function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseSpotnanaTravel,
     canUseNetSuiteUSATax,
-    canUseCategoryAndTagApprovers,
     canUsePerDiem,
     canUseMergeAccounts,
     canUseManagerMcTest,
     canUseInternationalBankAccount,
     canUseNSQS,
+    canUseCustomRules,
 };
