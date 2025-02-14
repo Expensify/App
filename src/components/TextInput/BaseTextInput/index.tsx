@@ -83,13 +83,11 @@ function BaseTextInput(
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
-    const {markdownStyle: propsMarkdownStyle} = inputProps;
-
     const theme = useTheme();
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const {hasError = false, markdownStyle: propsMarkdownStyle} = inputProps;
     const mergedMarkdownStyle = useMemo(() => ({...markdownStyle, ...propsMarkdownStyle}), [markdownStyle, propsMarkdownStyle]);
-    const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
