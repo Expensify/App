@@ -12,10 +12,10 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getTagList, hasAccountingConnections} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Tag from '@userActions/Policy/Tag';
+import {setPolicyTagGLCode} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,23 +28,22 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const policy = usePolicy(route.params.policyID);
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const tagName = route.params.tagName;
     const orderWeight = route.params.orderWeight;
-    const {tags} = PolicyUtils.getTagList(policyTags, orderWeight);
+    const {tags} = getTagList(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
     const isQuickSettingsFlow = !!backTo;
 
     const goBack = useCallback(() => {
         Navigation.goBack(
-            isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName, backTo)
-                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, orderWeight, tagName),
+            isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName),
         );
-    }, [orderWeight, route.params.policyID, tagName, isQuickSettingsFlow, backTo]);
+    }, [orderWeight, policyID, tagName, isQuickSettingsFlow, backTo]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -64,19 +63,19 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
-                Tag.setPolicyTagGLCode(route.params.policyID, tagName, orderWeight, newGLCode);
+                setPolicyTagGLCode(policyID, tagName, orderWeight, newGLCode);
             }
             goBack();
         },
-        [glCode, route.params.policyID, tagName, orderWeight, goBack],
+        [glCode, policyID, tagName, orderWeight, goBack],
     );
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-            shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
+            shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom

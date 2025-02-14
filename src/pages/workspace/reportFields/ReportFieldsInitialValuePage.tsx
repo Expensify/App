@@ -10,19 +10,19 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
+import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils} from '@libs/PolicyUtils';
+import {getReportFieldKey} from '@libs/ReportUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {getReportFieldInitialValue} from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import {updateReportFieldInitialValue} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
-import * as ValidationUtils from '@src/libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
@@ -40,16 +40,16 @@ function ReportFieldsInitialValuePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    const reportField = policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null;
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const reportField = policy?.fieldList?.[getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
-    const currentInitialValue = WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField);
+    const currentInitialValue = getReportFieldInitialValue(reportField);
     const [initialValue, setInitialValue] = useState(currentInitialValue);
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (currentInitialValue !== values.initialValue) {
-                ReportField.updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
+                updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
             }
             Navigation.goBack();
         },
@@ -57,7 +57,7 @@ function ReportFieldsInitialValuePage({
     );
 
     const submitListValueUpdate = (value: string) => {
-        ReportField.updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value);
+        updateReportFieldInitialValue(policyID, reportFieldID, currentInitialValue === value ? '' : value);
         Navigation.goBack();
     };
 
@@ -73,7 +73,7 @@ function ReportFieldsInitialValuePage({
                 });
             }
 
-            if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(formInitialValue)) {
+            if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !isRequiredFulfilled(formInitialValue)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
             }
 

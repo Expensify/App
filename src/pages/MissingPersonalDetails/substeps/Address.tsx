@@ -12,7 +12,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {CountryZipRegex, CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -43,7 +43,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
             const addressRequiredFields = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.CITY, INPUT_IDS.COUNTRY, INPUT_IDS.STATE] as const;
             addressRequiredFields.forEach((fieldKey) => {
                 const fieldValue = values[fieldKey] ?? '';
-                if (ValidationUtils.isRequiredFulfilled(fieldValue)) {
+                if (isRequiredFulfilled(fieldValue)) {
                     return;
                 }
                 errors[fieldKey] = translate('common.error.fieldRequired');
@@ -78,7 +78,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
             const countryZipFormat = countryRegexDetails?.samples ?? '';
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim().toUpperCase())) {
-                    if (ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.ZIP_POST_CODE]?.trim())) {
+                    if (isRequiredFulfilled(values[INPUT_IDS.ZIP_POST_CODE]?.trim())) {
                         errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
                     } else {
                         errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');

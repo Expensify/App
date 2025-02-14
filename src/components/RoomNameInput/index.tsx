@@ -4,7 +4,7 @@ import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native'
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {Selection} from '@libs/ComposerUtils';
-import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
+import {modifyRoomName} from '@libs/RoomNameInputUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
@@ -21,7 +21,7 @@ function RoomNameInput(
      */
     const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
         const roomName = event.nativeEvent.text;
-        const modifiedRoomName = RoomNameInputUtils.modifyRoomName(roomName);
+        const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);
 
         // if custom component has onInputChange, use it to trigger changes (Form input)

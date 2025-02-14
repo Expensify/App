@@ -9,7 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {renamePolicyCategory} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -19,7 +19,8 @@ import CategoryForm from './CategoryForm';
 type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>;
 
 function EditCategoryPage({route}: EditCategoryPageProps) {
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`);
+    const policyID = route.params.policyID;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
@@ -49,20 +50,20 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             const newCategoryName = values.categoryName.trim();
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
-                Category.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
+                renamePolicyCategory(policyID, {oldName: currentCategoryName, newName: values.categoryName});
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.goBack(
                     isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName, backTo)
-                        : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName),
+                        ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, currentCategoryName, backTo)
+                        : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, currentCategoryName),
                     {compareParams: false},
                 );
             });
         },
-        [isQuickSettingsFlow, currentCategoryName, route.params.categoryName, route.params.policyID, backTo],
+        [isQuickSettingsFlow, currentCategoryName, policyID, backTo],
     );
 
     return (

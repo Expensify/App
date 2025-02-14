@@ -51,10 +51,10 @@ function TextSelectorModal({
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM> = {};
-            const formValue = values[rest.inputID ?? ''];
+            const formValue = values[rest.inputID];
 
             if (formValue.length > maxLength) {
-                errors[rest.inputID ?? ''] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
+                errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
             }
 
             return errors;
@@ -118,24 +118,22 @@ function TextSelectorModal({
                     validate={validate}
                     onSubmit={(data) => {
                         Keyboard.dismiss();
-                        onValueSelected?.(data[rest.inputID ?? ''] ?? '');
+                        onValueSelected?.(data[rest.inputID] ?? '');
                     }}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                 >
                     <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
-                    {!!rest.inputID && (
-                        <InputWrapper
-                            ref={inputCallbackRef}
-                            InputComponent={TextInput}
-                            value={currentValue}
-                            onValueChange={(changedValue) => setValue(changedValue.toString())}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...rest}
-                            inputID={rest.inputID}
-                        />
-                    )}
+                    <InputWrapper
+                        ref={inputCallbackRef}
+                        InputComponent={TextInput}
+                        value={currentValue}
+                        onValueChange={(changedValue) => setValue(changedValue.toString())}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...rest}
+                        inputID={rest.inputID}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </Modal>

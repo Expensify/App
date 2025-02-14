@@ -21,7 +21,7 @@ import StatusBar from '@libs/StatusBar';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as ExitSurvey from '@userActions/ExitSurvey';
+import {saveResponse} from '@userActions/ExitSurvey';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -61,7 +61,7 @@ function ExitSurveyResponsePage({route, navigation}: ExitSurveyResponsePageProps
     }, [backTo, isOffline, navigation]);
 
     const submitForm = useCallback(() => {
-        ExitSurvey.saveResponse(draftResponse);
+        saveResponse(draftResponse);
         Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.getRoute(ROUTES.SETTINGS_EXIT_SURVEY_RESPONSE.route));
     }, [draftResponse]);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);

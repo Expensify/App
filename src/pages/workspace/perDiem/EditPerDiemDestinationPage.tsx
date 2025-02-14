@@ -16,7 +16,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PerDiem from '@userActions/Policy/PerDiem';
+import {editPerDiemRateDestination} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,7 +59,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
             const newDestination = values.destination.trim();
             if (newDestination !== selectedRate?.name) {
-                PerDiem.editPerDiemRateDestination(policyID, rateID, customUnit, newDestination);
+                editPerDiemRateDestination(policyID, rateID, customUnit, newDestination);
             }
             Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
         },
