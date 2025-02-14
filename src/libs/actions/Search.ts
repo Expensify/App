@@ -92,14 +92,7 @@ function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMet
 }
 
 function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
-    let lastPolicyPaymentMethod = null;
-    if (item.policyID) {
-        if (typeof lastPaymentMethod?.[item.policyID] === 'string') {
-            lastPolicyPaymentMethod = lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
-        } else {
-            lastPolicyPaymentMethod = (lastPaymentMethod?.[item.policyID] as LastPaymentMethodType)?.lastUsed as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
-        }
-    }
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
     if (!lastPolicyPaymentMethod) {
         goToItem();
