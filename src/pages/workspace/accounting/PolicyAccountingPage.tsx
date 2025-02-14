@@ -104,7 +104,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
@@ -276,7 +276,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
-        if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
+        if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
             return accountingIntegrations
                 .map((integration) => {
                     const integrationData = getAccountingIntegrationData(integration, policyID, translate);
@@ -329,7 +329,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 .filter(Boolean) as MenuItemData[];
         }
 
-        if (!connectedIntegration) {
+        if (!connectedIntegration || !policyID) {
             return [];
         }
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
@@ -453,7 +453,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
-        if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
+        if ((isEmptyObject(policy?.connections) && !isSyncInProgress) || !policyID) {
             return;
         }
         const otherIntegrations = accountingIntegrations.filter(
@@ -594,7 +594,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         />
                                     </OfflineWithFeedback>
                                 ))}
-                            {hasUnsupportedNDIntegration && hasSyncError && (
+                            {hasUnsupportedNDIntegration && hasSyncError && !!policyID && (
                                 <FormHelpMessage
                                     isError
                                     style={styles.menuItemError}
@@ -612,7 +612,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     </Text>
                                 </FormHelpMessage>
                             )}
-                            {hasUnsupportedNDIntegration && !hasSyncError && (
+                            {hasUnsupportedNDIntegration && !hasSyncError && !!policyID && (
                                 <FormHelpMessage shouldShowRedDotIndicator={false}>
                                     <Text>
                                         <TextLink
@@ -661,7 +661,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title={translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration})}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
-                        if (connectedIntegration) {
+                        if (connectedIntegration && policyID) {
                             removePolicyConnection(policyID, connectedIntegration);
                         }
                         setIsDisconnectModalOpen(false);

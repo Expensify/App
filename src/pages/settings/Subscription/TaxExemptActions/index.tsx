@@ -9,8 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AnchorPosition} from '@styles/index';
-import * as Report from '@userActions/Report';
-import * as Subscription from '@userActions/Subscription';
+import {navigateToConciergeChat} from '@userActions/Report';
+import {requestTaxExempt} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 
 const anchorAlignment = {
@@ -32,8 +32,8 @@ function TaxExemptActions() {
                 numberOfLinesTitle: 2,
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
-                    Subscription.requestTaxExempt();
-                    Report.navigateToConciergeChat();
+                    requestTaxExempt();
+                    navigateToConciergeChat();
                 },
             },
         ],

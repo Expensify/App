@@ -1743,7 +1743,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_ORGANIZATION: {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
-        getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+        getRoute: (policyID: string | undefined, currentOrganizationID: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ORGANIZATION route');
+            }
+            return `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
@@ -1837,7 +1842,12 @@ const ROUTES = {
     MISSING_PERSONAL_DETAILS: 'missing-personal-details',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR route');
+            }
+            return `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/existing-connections',
@@ -2043,7 +2053,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/entity',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY route');
+            }
+            return `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
