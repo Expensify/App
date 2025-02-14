@@ -1,3 +1,4 @@
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingCompanySize} from './CONST';
@@ -1088,9 +1089,28 @@ type OnyxCollectionKey = keyof OnyxCollectionValuesMapping;
 type OnyxFormKey = keyof OnyxFormValuesMapping;
 type OnyxFormDraftKey = keyof OnyxFormDraftValuesMapping;
 type OnyxValueKey = keyof OnyxValuesMapping;
-
 type OnyxKey = OnyxValueKey | OnyxCollectionKey | OnyxFormKey | OnyxFormDraftKey;
 type OnyxPagesKey = typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES;
+
+type GetOnyxTypeForKey<K extends OnyxKey> =
+    // Forms (and draft forms) behave like value keys
+    K extends OnyxFormKey
+        ? OnyxEntry<OnyxFormValuesMapping[K]>
+        : K extends OnyxFormDraftKey
+        ? OnyxEntry<OnyxFormDraftValuesMapping[K]>
+        : // Plain non-collection values
+        K extends OnyxValueKey
+        ? OnyxEntry<OnyxValuesMapping[K]>
+        : // Exactly matching a collection key returns a collection
+        K extends OnyxCollectionKey
+        ? OnyxCollection<OnyxCollectionValuesMapping[K]>
+        : // Otherwise, if K is a string that starts with one of the collection keys,
+        // return an entry for that collection’s value type.
+        K extends string
+        ? {
+              [X in OnyxCollectionKey]: K extends `${X}${string}` ? OnyxEntry<OnyxCollectionValuesMapping[X]> : never;
+          }[OnyxCollectionKey]
+        : never;
 
 type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: ${Exclude<AllOnyxKeys, OnyxKey>}`;
 /** If this type errors, it means that the `OnyxKey` type is missing some keys. */
@@ -1098,4 +1118,4 @@ type MissingOnyxKeysError = `Error: Types don't match, OnyxKey type is missing: 
 type AssertOnyxKeys = AssertTypesEqual<AllOnyxKeys, OnyxKey, MissingOnyxKeysError>;
 
 export default ONYXKEYS;
-export type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxFormDraftKey, OnyxFormKey, OnyxFormValuesMapping, OnyxKey, OnyxPagesKey, OnyxValueKey, OnyxValues};
+export type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxFormDraftKey, OnyxFormKey, OnyxFormValuesMapping, OnyxKey, OnyxPagesKey, OnyxValueKey, OnyxValues, GetOnyxTypeForKey};
