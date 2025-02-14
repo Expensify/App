@@ -70,8 +70,6 @@ function VerifyPage({route}: VerifyPageProps) {
         return `otpauth://totp/Expensify:${contactMethod}?secret=${account?.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
-    console.log(`%%% contactMethod`, contactMethod);
-
     return (
         <PageWrapper
             shouldEnableKeyboardAvoidingView={false}
