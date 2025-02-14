@@ -4466,10 +4466,9 @@ function getReportNameInternal({
             const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
             return formatReportLastMessageText(modifiedMessage);
         }
-        if (isTripRoom(report)) {
+        if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
             return report?.reportName ?? '';
         }
-
         if (isCardIssuedAction(parentReportAction)) {
             return getCardIssuedMessage({reportAction: parentReportAction, personalDetails});
         }
