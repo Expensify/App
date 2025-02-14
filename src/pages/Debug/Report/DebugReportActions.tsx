@@ -1,9 +1,10 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +20,7 @@ type DebugReportActionsProps = {
 function DebugReportActions({reportID}: DebugReportActionsProps) {
     const {translate, datetimeToCalendarTime} = useLocalize();
     const styles = useThemeStyles();
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report);
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -29,13 +30,16 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
     const searchedReportActions = useMemo(() => {
         return (sortedAllReportActions ?? [])
-            .filter((reportAction) => reportAction.reportActionID.includes(searchValue) || getReportActionMessageText(reportAction).toLowerCase().includes(searchValue.toLowerCase()))
+            .filter(
+                (reportAction) =>
+                    reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionMessageText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
+            )
             .map((reportAction) => ({
                 reportActionID: reportAction.reportActionID,
                 text: getReportActionMessageText(reportAction),
                 alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
             }));
-    }, [sortedAllReportActions, searchValue, datetimeToCalendarTime]);
+    }, [sortedAllReportActions, debouncedSearchValue, datetimeToCalendarTime]);
 
     return (
         <ScrollView style={styles.mv3}>
