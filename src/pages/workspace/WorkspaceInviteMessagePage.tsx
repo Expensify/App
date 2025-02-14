@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import type {ValueOf} from 'type-fest';
@@ -114,7 +114,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.dismissModal();
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+            });
         });
     };
 
