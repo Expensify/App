@@ -260,7 +260,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY]: {
-                            path: ROUTES.SETTINGS_2FA_VERIFY,
+                            path: ROUTES.SETTINGS_2FA_VERIFY.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TWO_FACTOR_AUTH.SUCCESS]: {
