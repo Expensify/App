@@ -95,6 +95,8 @@ type MoneyRequestAmountInputProps = {
 
     /** Whether the amount is negative */
     isNegative?: boolean;
+
+    toggleNegative?: () => void;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
@@ -133,6 +135,7 @@ function MoneyRequestAmountInput(
         autoGrowExtraSpace,
         contentWidth,
         isNegative = false,
+        toggleNegative,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -163,6 +166,10 @@ function MoneyRequestAmountInput(
      */
     const setNewAmount = useCallback(
         (newAmount: string) => {
+            if (newAmount.startsWith('-') && toggleNegative) {
+                toggleNegative();
+            }
+
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
@@ -191,7 +198,7 @@ function MoneyRequestAmountInput(
                 return strippedAmount;
             });
         },
-        [decimals, onAmountChange],
+        [decimals, onAmountChange, toggleNegative],
     );
 
     useImperativeHandle(moneyRequestAmountInputRef, () => ({
