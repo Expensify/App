@@ -399,6 +399,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     shouldUseUserSkeletonView?: boolean;
 
+    /** Default item height */
+    defaultItemHeight?: number;
+
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 
