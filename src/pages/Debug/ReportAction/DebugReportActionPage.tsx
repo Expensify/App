@@ -73,15 +73,7 @@ function DebugReportActionPage({
 
     const DebugJSONTab = useCallback(() => <DebugJSON data={reportAction ?? {}} />, [reportAction]);
 
-    const DebugReportActionPreviewTab = useCallback(
-        () => (
-            <DebugReportActionPreview
-                reportAction={reportAction}
-                reportID={reportID}
-            />
-        ),
-        [reportAction, reportID],
-    );
+    const DebugReportActionPreviewTab = useCallback(() => <DebugReportActionPreview reportAction={reportAction} />, [reportAction]);
 
     const routes = useMemo<DebugTabNavigatorRoutes>(
         () => [
