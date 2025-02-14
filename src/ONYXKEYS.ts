@@ -672,8 +672,6 @@ const ONYXKEYS = {
         REPORT_PHYSICAL_CARD_FORM_DRAFT: 'requestPhysicalCardFormDraft',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
-        GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
-        GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
         REPORT_FIELDS_EDIT_FORM: 'reportFieldsEditForm',
         REPORT_FIELDS_EDIT_FORM_DRAFT: 'reportFieldsEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
@@ -815,7 +813,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM]: FormTypes.IntroSchoolPrincipalForm;
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD]: FormTypes.ReportVirtualCardFraudForm;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: FormTypes.ReportPhysicalCardForm;
-    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: FormTypes.GetPhysicalCardForm;
     [ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM]: FormTypes.ReportFieldsEditForm;
     [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: FormTypes.ReimbursementAccountForm;
     [ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM]: FormTypes.PersonalBankAccountForm;
