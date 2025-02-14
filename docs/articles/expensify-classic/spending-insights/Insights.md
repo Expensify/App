@@ -34,7 +34,7 @@ The Insights dashboard in Expensify provides a real-time overview of company spe
 
 ---
 
-# Create a Custom Export Report for Your Workspace
+## Create a Custom Export Report for Your Workspace
 
 1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Export Formats**.
 2. Build a report using these [report-level formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates#report-level).
