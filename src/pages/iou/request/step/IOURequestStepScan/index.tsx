@@ -43,7 +43,7 @@ import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {setUserLocation} from '@libs/actions/UserLocation';
+import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 
 import {
     replaceReceipt,
@@ -208,7 +208,7 @@ function IOURequestStepScan({
     useEffect(() => {
         const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
         if (gpsRequired) {
-
+            clearUserLocation();
             getCurrentPosition(
                 (successData) => {
                     console.log("[wildebug] ~ index.tsx:214 ~ useEffect ~ successData:", successData)
@@ -537,7 +537,7 @@ function IOURequestStepScan({
                     updateScanAndNavigate(file, source);
                     return;
                 }
-                if (shouldSkipConfirmation) {
+                // if (shouldSkipConfirmation) {
                     setFileResize(file);
                     setFileSource(source);
                     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
@@ -549,7 +549,7 @@ function IOURequestStepScan({
                             return;
                         }
                     }
-                }
+                // }
                 navigateToConfirmationStep(file, source, false);
             });
         });
