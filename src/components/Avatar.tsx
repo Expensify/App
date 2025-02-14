@@ -110,6 +110,7 @@ function Avatar({
                         source={{uri: avatarSource}}
                         style={imageStyle}
                         onError={() => setImageError(true)}
+                        cachePolicy="memory-disk"
                     />
                 </View>
             ) : (
