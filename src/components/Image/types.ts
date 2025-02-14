@@ -1,4 +1,4 @@
-import type {ImageSource} from 'expo-image';
+import type {ImageProps as ExpoImageProps, ImageSource} from 'expo-image';
 import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -14,7 +14,7 @@ type ImageOnLoadEvent = {
     };
 };
 
-type BaseImageProps = {
+type BaseImageProps = Pick<ExpoImageProps, 'cachePolicy'> & {
     /** The static asset or URI source of the image */
     source: ExpoImageSource | Omit<ImageURISource, 'cache'> | ImageRequireSource | undefined;
 
@@ -25,35 +25,36 @@ type BaseImageProps = {
     style?: StyleProp<ImageStyle>;
 };
 
-type ImageOwnProps = BaseImageProps & {
-    /** Should an auth token be included in the image request */
-    isAuthTokenRequired?: boolean;
+type ImageOwnProps = BaseImageProps &
+    Pick<ExpoImageProps, 'cachePolicy'> & {
+        /** Should an auth token be included in the image request */
+        isAuthTokenRequired?: boolean;
 
-    /** How should the image fit within its container */
-    resizeMode?: ImageResizeMode;
+        /** How should the image fit within its container */
+        resizeMode?: ImageResizeMode;
 
-    /** Event for when the image begins loading */
-    onLoadStart?: () => void;
+        /** Event for when the image begins loading */
+        onLoadStart?: () => void;
 
-    /** Event for when the image finishes loading */
-    onLoadEnd?: () => void;
+        /** Event for when the image finishes loading */
+        onLoadEnd?: () => void;
 
-    /** Error handler */
-    onError?: () => void;
+        /** Error handler */
+        onError?: () => void;
 
-    /** Progress events while the image is downloading */
-    onProgress?: () => void;
+        /** Progress events while the image is downloading */
+        onProgress?: () => void;
 
-    /** The object position of image */
-    objectPosition?: ImageObjectPosition;
+        /** The object position of image */
+        objectPosition?: ImageObjectPosition;
 
-    /**
-     *  Called when the image should wait for a valid session to reload
-     *  At the moment this function is called, the image is not in cache anymore
-     *  cf https://github.com/Expensify/App/issues/51888
-     */
-    waitForSession?: () => void;
-};
+        /**
+         *  Called when the image should wait for a valid session to reload
+         *  At the moment this function is called, the image is not in cache anymore
+         *  cf https://github.com/Expensify/App/issues/51888
+         */
+        waitForSession?: () => void;
+    };
 
 type ImageProps = ImageOwnProps;
 
