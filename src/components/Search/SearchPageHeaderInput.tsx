@@ -46,6 +46,7 @@ const BORDER_WIDTH = 1;
 type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
     children: React.ReactNode;
+    shouldBeGroupedByReports?: boolean;
 };
 
 type HeaderContent = {
@@ -53,7 +54,7 @@ type HeaderContent = {
     titleText: TranslationPaths;
 };
 
-function getHeaderContent(type: SearchDataTypes): HeaderContent {
+function getHeaderContent(type: SearchDataTypes, shouldBeGroupedByReports = false): HeaderContent {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return {icon: Illustrations.EnvelopeReceipt, titleText: 'workspace.common.invoices'};
@@ -61,13 +62,18 @@ function getHeaderContent(type: SearchDataTypes): HeaderContent {
             return {icon: Illustrations.Luggage, titleText: 'travel.trips'};
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return {icon: Illustrations.CommentBubblesBlue, titleText: 'common.chats'};
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        case CONST.SEARCH.DATA_TYPES.EXPENSE: {
+            if (shouldBeGroupedByReports) {
+                return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenseReports'};
+            }
+            return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
+        }
         default:
             return {icon: Illustrations.MoneyReceipts, titleText: 'common.expenses'};
     }
 }
 
-function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, children, shouldBeGroupedByReports}: SearchPageHeaderInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const personalDetails = usePersonalDetails();
@@ -80,7 +86,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
-    const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
+    const headerText = isCannedQuery ? translate(getHeaderContent(type, shouldBeGroupedByReports).titleText) : '';
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(queryText);

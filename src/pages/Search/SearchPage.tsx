@@ -104,7 +104,10 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <SearchPageHeader queryJSON={queryJSON} />
+                            <SearchPageHeader
+                                queryJSON={queryJSON}
+                                shouldBeGroupedByReports={shouldBeGroupedByReports}
+                            />
                             <SearchStatusBar queryJSON={queryJSON} />
                             <Search
                                 key={queryJSON.hash}

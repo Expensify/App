@@ -39,11 +39,14 @@ import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 import type {PaymentData, SearchQueryJSON} from './types';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
+type SearchPageHeaderProps = {
+    queryJSON: SearchQueryJSON;
+    shouldBeGroupedByReports?: boolean;
+};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, shouldBeGroupedByReports}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -371,7 +374,10 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
 
     return (
         <>
-            <SearchPageHeaderInput queryJSON={queryJSON}>
+            <SearchPageHeaderInput
+                queryJSON={queryJSON}
+                shouldBeGroupedByReports={shouldBeGroupedByReports}
+            >
                 {headerButtonsOptions.length > 0 ? (
                     <ButtonWithDropdownMenu
                         onPress={() => null}
