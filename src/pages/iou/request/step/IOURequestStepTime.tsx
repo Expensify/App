@@ -13,6 +13,7 @@ import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getActivePolicies, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,6 +45,8 @@ function IOURequestStepTime({
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, report)}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
@@ -51,6 +54,12 @@ function IOURequestStepTime({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
+
+    const perDiemCustomUnits = getActivePolicies(allPolicies, session?.email)
+        .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
+        .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled);
+
+    const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
 
     const navigateBack = () => {
         if (isEditPage) {
@@ -64,8 +73,13 @@ function IOURequestStepTime({
         }
 
         if (transaction?.isFromGlobalCreate) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
-            return;
+            if (moreThanOnePerDiemExist) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
+                return;
+            }
+
+            // If there is only one per diem policy, we can't override the reportID that is already on the stack to make sure we go back to the right screen.
+            Navigation.goBack();
         }
 
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(action, iouType, transactionID, reportID));
