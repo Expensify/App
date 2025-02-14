@@ -10,14 +10,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {updateExpensifyCardLimit} from '@libs/actions/Card';
+import {convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,7 +37,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const card = cardsList?.[cardID];
@@ -77,7 +77,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
         setIsConfirmModalVisible(false);
 
-        Card.updateExpensifyCardLimit(workspaceAccountID, Number(cardID), newLimit, newAvailableSpend, card?.nameValuePairs?.unapprovedExpenseLimit, card?.availableSpend);
+        updateExpensifyCardLimit(workspaceAccountID, Number(cardID), newLimit, newAvailableSpend, card?.nameValuePairs?.unapprovedExpenseLimit, card?.availableSpend);
 
         goBack();
     };
@@ -96,7 +96,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
 
             // We only want integers to be sent as the limit
             if (!Number(values.limit)) {
@@ -143,7 +143,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                         <>
                             <InputWrapper
                                 InputComponent={AmountForm}
-                                defaultValue={CurrencyUtils.convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD, false)}
+                                defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD, false)}
                                 isCurrencyPressable={false}
                                 inputID={INPUT_IDS.LIMIT}
                                 ref={inputCallbackRef}
@@ -153,7 +153,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                                 isVisible={isConfirmModalVisible}
                                 onConfirm={() => updateCardLimit(Number(inputValues[INPUT_IDS.LIMIT]) * 100)}
                                 onCancel={() => setIsConfirmModalVisible(false)}
-                                prompt={translate(getPromptTextKey, {limit: CurrencyUtils.convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, CONST.CURRENCY.USD)})}
+                                prompt={translate(getPromptTextKey, {limit: convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, CONST.CURRENCY.USD)})}
                                 confirmText={translate('workspace.expensifyCard.changeLimit')}
                                 cancelText={translate('common.cancel')}
                                 danger
