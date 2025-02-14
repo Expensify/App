@@ -87,7 +87,7 @@ function SearchTypeMenu({queryJSON, searchName, shouldBeGroupedByReports}: Searc
         {
             title: translate('common.expenseReports'),
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Receipt,
+            icon: Expensicons.Document,
             getRoute: (policyID?: string) => {
                 const query = buildCannedSearchQuery({policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query, groupBy: 'reports'});
