@@ -1139,4 +1139,5 @@ export type {
     OnyxValues,
     OnyxDerivedKey,
     GetOnyxTypeForKey,
+    OnyxDerivedValuesMapping,
 };

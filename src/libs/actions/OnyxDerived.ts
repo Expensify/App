@@ -1,10 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import type {NonEmptyTuple} from 'type-fest';
+import type {NonEmptyTuple, ValueOf} from 'type-fest';
 import {isThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {GetOnyxTypeForKey, OnyxKey} from '@src/ONYXKEYS';
+import type {GetOnyxTypeForKey, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -15,11 +15,11 @@ import ObjectUtils from '@src/types/utils/ObjectUtils';
  *    The compute function receives a single argument that's a tuple of the onyx values for the declared dependencies.
  *    For example, if your dependencies are `['report_', 'account'], then compute will receive a [OnyxCollection<Report>, OnyxEntry<Account>]
  */
-type OnyxDerivedValueConfig<Val, Deps extends NonEmptyTuple<OnyxKey>> = {
+type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<OnyxKey>> = {
     dependencies: Deps;
     compute: (args: {
         -readonly [Index in keyof Deps]: GetOnyxTypeForKey<Deps[Index]>;
-    }) => Val;
+    }) => OnyxEntry<OnyxDerivedValuesMapping[Key]>;
 };
 
 /**
@@ -36,7 +36,9 @@ type OnyxDerivedValueConfig<Val, Deps extends NonEmptyTuple<OnyxKey>> = {
  *     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID]
  * })
  */
-function createOnyxDerivedValueConfig<Val, Deps extends NonEmptyTuple<OnyxKey>>(config: OnyxDerivedValueConfig<Val, Deps>): OnyxDerivedValueConfig<Val, Deps> {
+function createOnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<OnyxKey>>(
+    config: OnyxDerivedValueConfig<Key, Deps>,
+): OnyxDerivedValueConfig<Key, Deps> {
     return config;
 }
 
@@ -47,9 +49,9 @@ function createOnyxDerivedValueConfig<Val, Deps extends NonEmptyTuple<OnyxKey>>(
 const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: createOnyxDerivedValueConfig({
         dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
-        compute: ([reports, conciergeChatReportID]): OnyxEntry<string> | null => {
+        compute: ([reports, conciergeChatReportID]) => {
             if (!reports) {
-                return null;
+                return undefined;
             }
 
             const conciergeReport = Object.values(reports).find((report) => {
@@ -65,11 +67,17 @@ const ONYX_DERIVED_VALUES = {
                 return participantAccountIDs.has(CONST.ACCOUNT_ID.CONCIERGE.toString()) || report?.reportID === conciergeChatReportID;
             });
 
-            return conciergeReport?.reportID ?? null;
+            return conciergeReport?.reportID;
         },
     }),
 } as const;
 
+/**
+ * This helper exists to map an array of Onyx keys such as `['report_', 'conciergeReportID']`
+ * to the values for those keys (correctly typed) such as `[OnyxCollection<Report>, OnyxEntry<string>]`
+ *
+ * Note: just using .map, you'd end up with `Array<OnyxCollection<Report>|OnyxEntry<string>>`, which is not what we want. This preserves the order of the keys provided.
+ */
 function getOnyxValues<Keys extends readonly OnyxKey[]>(keys: Keys): Promise<{[Index in keyof Keys]: GetOnyxTypeForKey<Keys[Index]>}> {
     return Promise.all(keys.map((key) => OnyxUtils.get(key))) as Promise<{[Index in keyof Keys]: GetOnyxTypeForKey<Keys[Index]>}>;
 }
@@ -79,46 +87,48 @@ for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIV
     // We cast its type to match the tuple expected by config.compute.
     let dependencyValues = new Array(dependencies.length) as Parameters<typeof compute>[0];
 
-    let derivedValue: ReturnType<typeof compute> = await OnyxUtils.get(key);
-    if (!derivedValue) {
-        getOnyxValues(dependencies).then((values) => {
-            dependencyValues = values;
-            derivedValue = compute(values);
-            Onyx.set(key, derivedValue ?? null);
-        });
-    }
-
-    const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
-        dependencyValues[i] = value;
-    };
-
-    const recomputeDerivedValue = () => {
-        const newDerivedValue = compute(dependencyValues);
-        if (newDerivedValue !== derivedValue) {
-            derivedValue = newDerivedValue;
-            Onyx.set(key, derivedValue ?? null);
-        }
-    };
-
-    for (let i = 0; i < dependencies.length; i++) {
-        const dependencyOnyxKey = dependencies[i];
-        if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
-            Onyx.connect({
-                key: dependencyOnyxKey,
-                waitForCollectionCallback: true,
-                callback: (value) => {
-                    setDependencyValue(i, value);
-                    recomputeDerivedValue();
-                },
-            });
-        } else {
-            Onyx.connect({
-                key: dependencyOnyxKey,
-                callback: (value) => {
-                    setDependencyValue(i, value);
-                    recomputeDerivedValue();
-                },
+    OnyxUtils.get(key).then((storedDerivedValue) => {
+        let derivedValue = storedDerivedValue;
+        if (!derivedValue) {
+            getOnyxValues(dependencies).then((values) => {
+                dependencyValues = values;
+                derivedValue = compute(values);
+                Onyx.set(key, derivedValue ?? null);
             });
         }
-    }
+
+        const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
+            dependencyValues[i] = value;
+        };
+
+        const recomputeDerivedValue = () => {
+            const newDerivedValue = compute(dependencyValues);
+            if (newDerivedValue !== derivedValue) {
+                derivedValue = newDerivedValue;
+                Onyx.set(key, derivedValue ?? null);
+            }
+        };
+
+        for (let i = 0; i < dependencies.length; i++) {
+            const dependencyOnyxKey = dependencies[i];
+            if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
+                Onyx.connect({
+                    key: dependencyOnyxKey,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        setDependencyValue(i, value);
+                        recomputeDerivedValue();
+                    },
+                });
+            } else {
+                Onyx.connect({
+                    key: dependencyOnyxKey,
+                    callback: (value) => {
+                        setDependencyValue(i, value);
+                        recomputeDerivedValue();
+                    },
+                });
+            }
+        }
+    });
 }
