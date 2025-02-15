@@ -270,6 +270,7 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const adminRoomID = '1';
             const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
             const adminAccountID = 1234;
             const adminEmail = 'admin@example.com';
             const auditorAccountID = 1235;
@@ -286,7 +287,7 @@ describe('actions/PolicyMember', () => {
                 policyID,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 participants: {
-                    1: {notificationPreference: 'always'},
+                    [ownerAccountID]: {notificationPreference: 'always'},
                 },
             });
 
@@ -319,6 +320,8 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const adminRoomID = '1';
             const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
             const adminAccountID = 1234;
             const adminEmail = 'admin@example.com';
             const auditorAccountID = 1235;
@@ -335,7 +338,7 @@ describe('actions/PolicyMember', () => {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
                 employeeList: {
-                    'owner@gmail.com': {role: CONST.POLICY.ROLE.ADMIN},
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
                     [auditorEmail]: {role: CONST.POLICY.ROLE.AUDITOR},
                     [userEmail]: {role: CONST.POLICY.ROLE.USER},
@@ -346,7 +349,7 @@ describe('actions/PolicyMember', () => {
                 policyID,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 participants: {
-                    1: {notificationPreference: 'always'},
+                    [ownerAccountID]: {notificationPreference: 'always'},
                     [adminAccountID]: {notificationPreference: 'always'},
                     [auditorAccountID]: {notificationPreference: 'always'},
                     [userAccountID]: {notificationPreference: 'always'},
