@@ -388,6 +388,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 preferredLocale: CONST.LOCALES.EN,
+                oneTransactionThreadReport: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
