@@ -359,8 +359,8 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then only the admin and auditor should be pending removed from the #admins room
-            const adminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
+            // Then only the admin and auditor should be removed from the #admins room
+            const optimisticAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
                     callback: (reportMetadata) => {
@@ -369,12 +369,25 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            expect(adminRoomMetadata?.pendingChatMembers?.length).toBe(2);
-            expect(adminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(adminAccountID))?.pendingAction).toBe(
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.length).toBe(2);
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(adminAccountID))?.pendingAction).toBe(
                 CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
-            expect(adminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(auditorAccountID))).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(auditorAccountID))?.pendingAction).toBe(
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
             await mockFetch?.resume?.();
+
+            const successAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
+                    callback: (reportMetadata) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportMetadata);
+                    },
+                });
+            });
+            expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
     });
 });
