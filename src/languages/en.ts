@@ -3453,8 +3453,7 @@ const translations = {
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as',
                 defaultPaymentAccount: 'NSQS default',
                 paymentAccount: 'Payment account',
-                paymentAccountDescription:
-                    'Choose the account that transactions will be approved against in NSQS. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
+                paymentAccountDescription: 'Choose the account that will be used as the payment account for transactions NSQS.',
             },
             advanced: {
                 autoSyncDescription: 'Sync NSQS and Expensify automatically, every day. Export finalized report in realtime',

@@ -3493,8 +3493,7 @@ const translations = {
                 nonReimbursableExpenses: 'Exportar gastos no reembolsables como',
                 defaultPaymentAccount: 'Preferencia predeterminada de NSQS',
                 paymentAccount: 'Cuenta de pago',
-                paymentAccountDescription:
-                    'Elija la cuenta con la que se aprobarán las transacciones en NSQS. Si está sincronizando informes reembolsados, esta es también la cuenta con la que se crearán los pagos de facturas.',
+                paymentAccountDescription: 'Elige la cuenta que se utilizará como cuenta de pago para las transacciones NSQS.',
             },
             advanced: {
                 autoSyncDescription: 'Sincroniza NSQS y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
