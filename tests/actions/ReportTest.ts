@@ -6,8 +6,6 @@ import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import type * as EmojiUtils from '@libs/EmojiUtils';
-import {hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
 import HttpUtils from '@libs/HttpUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -41,16 +39,6 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
         didScreenTransitionEnd: true,
     }),
 }));
-
-jest.mock('@libs/EmojiUtils', () => {
-    const originalModule = jest.requireActual<typeof EmojiUtils>('@libs/EmojiUtils');
-    return {
-        ...originalModule,
-        hasAccountIDEmojiReacted: jest.fn(),
-    };
-});
-
-const mockedHasAccountIDEmojiReacted = hasAccountIDEmojiReacted as jest.MockedFunction<typeof hasAccountIDEmojiReacted>;
 
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
@@ -1149,7 +1137,10 @@ describe('actions/Report', () => {
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        mockedHasAccountIDEmojiReacted.mockReturnValueOnce(true);
+        jest.doMock('@libs/Emojiutils', () => ({
+            ...jest.requireActual('@libs/Emojiutils'),
+            hasAccountIDEmojiReacted: jest.fn(() => true),
+        }));
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
@@ -1244,7 +1235,10 @@ describe('actions/Report', () => {
 
     it('should send DeleteComment request and remove any Reactions accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        mockedHasAccountIDEmojiReacted.mockReturnValueOnce(true);
+        jest.doMock('@libs/Emojiutils', () => ({
+            ...jest.requireActual('@libs/Emojiutils'),
+            hasAccountIDEmojiReacted: jest.fn(() => true),
+        }));
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
