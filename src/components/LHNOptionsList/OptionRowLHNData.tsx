@@ -17,6 +17,7 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isFocused = false,
     fullReport,
+    oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
     personalDetails = {},
@@ -46,6 +47,7 @@ function OptionRowLHNData({
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            oneTransactionThreadReport,
             reportNameValuePairs,
             reportActions,
             personalDetails,
@@ -72,6 +74,7 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
+        oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,
         reportActions,

@@ -45,7 +45,7 @@ function WorkspaceSwitcherPage() {
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
-    const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports), [reports]);
+    const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports, reportActions), [reports, reportActions]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const getIndicatorTypeForPolicy = useCallback(
@@ -70,6 +70,7 @@ function WorkspaceSwitcherPage() {
     const hasUnreadData = useCallback(
         // TO DO: Implement checking if policy has some unread data
         (policyId?: string) => {
+            if (policyId === 'C7B093DAE947CCA2') console.log(unreadStatusesForPolicies[policyId]);
             if (policyId) {
                 return unreadStatusesForPolicies[policyId];
             }
