@@ -41,9 +41,14 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     }),
 }));
 
-jest.mock('@libs/EmojiUtils', () => ({
-    hasAccountIDEmojiReacted: jest.fn(),
-}));
+jest.mock('@libs/EmojiUtils', () => {
+    const originalModule = jest.requireActual<Report>('@src/libs/actions/Report');
+    return {
+        ...originalModule,
+        hasAccountIDEmojiReacted: jest.fn(),
+    };
+});
+
 const mockedHasAccountIDEmojiReacted = hasAccountIDEmojiReacted as jest.MockedFunction<typeof hasAccountIDEmojiReacted>;
 
 const originalXHR = HttpUtils.xhr;
