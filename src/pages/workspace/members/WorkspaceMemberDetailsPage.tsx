@@ -149,7 +149,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const removeUser = useCallback(() => {
         removeMembers([accountID], policyID);
         const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
-        if (previousEmployeesCount - 1 === 1 && policy?.preventSelfApproval) {
+        const remainingEmployeeCount = previousEmployeesCount - 1;
+        if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
             // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
             setPolicyPreventSelfApproval(route.params.policyID, false);
         }
