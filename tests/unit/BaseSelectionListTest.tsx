@@ -1,3 +1,4 @@
+import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {SectionList} from 'react-native';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
@@ -45,8 +46,17 @@ describe('BaseSelectionList', () => {
         );
     }
 
-    it('should handle item press correctly', () => {
+    it('should not trigger item press if screen is not focused', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(false);
         render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
+        fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
+        expect(onSelectRowMock).toHaveBeenCalledTimes(0);
+    });
+
+    it('should handle item press correctly', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        render(<BaseListItemRenderer sections={[{data: mockSections}]} />);
+
         fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`));
         expect(onSelectRowMock).toHaveBeenCalledWith({
             ...mockSections.at(1),
@@ -55,6 +65,7 @@ describe('BaseSelectionList', () => {
     });
 
     it('should update focused item when sections are updated from BE', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
         const updatedMockSections = mockSections.map((section) => ({
             ...section,
             isSelected: section.keyForList === '2',
