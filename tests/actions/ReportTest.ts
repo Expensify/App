@@ -6,6 +6,7 @@ import type {Mock} from 'jest-mock';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import type * as EmojiUtils from '@libs/EmojiUtils';
 import {hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
 import HttpUtils from '@libs/HttpUtils';
 import CONST from '@src/CONST';
@@ -42,7 +43,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 }));
 
 jest.mock('@libs/EmojiUtils', () => {
-    const originalModule = jest.requireActual<Report>('@src/libs/actions/Report');
+    const originalModule = jest.requireActual<typeof EmojiUtils>('@libs/EmojiUtils');
     return {
         ...originalModule,
         hasAccountIDEmojiReacted: jest.fn(),
