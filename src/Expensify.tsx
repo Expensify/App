@@ -17,6 +17,7 @@ import * as CONFIG from './CONFIG';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
 import {updateLastRoute} from './libs/actions/App';
+import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -236,6 +237,16 @@ function Expensify() {
         }
         setCrashlyticsUserId(session?.accountID ?? -1);
     }, [isAuthenticated, session?.accountID]);
+
+    useEffect(() => {
+        if (!account?.delegatedAccess?.delegate) {
+            return;
+        }
+        if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
+            return;
+        }
+        disconnect();
+    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
