@@ -70,7 +70,6 @@ function WorkspaceSwitcherPage() {
     const hasUnreadData = useCallback(
         // TO DO: Implement checking if policy has some unread data
         (policyId?: string) => {
-            if (policyId === 'C7B093DAE947CCA2') console.log(unreadStatusesForPolicies[policyId]);
             if (policyId) {
                 return unreadStatusesForPolicies[policyId];
             }

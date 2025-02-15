@@ -28,7 +28,7 @@ Onyx.connect({
     },
 });
 
-function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string) {
+function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string | undefined) {
     return Object.values(reports ?? {}).filter((report) => {
         const notificationPreference = ReportUtils.getReportNotificationPreference(report);
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
@@ -37,7 +37,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
             ReportUtils.isUnread(report, oneTransactionThreadReport) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
-                currentReportId: currentReportID ?? '-1',
+                currentReportId: currentReportID,
                 betas: [],
                 policies: {},
                 doesReportHaveViolations: false,
@@ -61,7 +61,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
 const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator, {maxArgs: 1});
 
 const triggerUnreadUpdate = debounce(() => {
-    const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() ?? '-1' : '-1';
+    const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
 
     // We want to keep notification count consistent with what can be accessed from the LHN list
     const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID);

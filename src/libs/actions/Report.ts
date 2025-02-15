@@ -1457,7 +1457,6 @@ function markCommentAsUnread(reportID: string | undefined, reportActionCreated: 
         },
     ];
 
-    console.log('mark as unread', lastReadTime, actionCreationTime);
     const parameters: MarkAsUnreadParams = {
         reportID,
         lastReadTime,

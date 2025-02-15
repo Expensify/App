@@ -2,9 +2,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
-import * as ReportActionFile from './actions/Report';
+import {readNewestAction} from './actions/Report';
 import {getOneTransactionThreadReportID} from './ReportActionsUtils';
-import * as ReportUtils from './ReportUtils';
+import {isUnread} from './ReportUtils';
 
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -30,12 +30,12 @@ export default function markAllPolicyReportsAsRead(policyID: string) {
         const report = allReports?.[key];
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report?.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        if (report?.policyID !== policyID || !ReportUtils.isUnread(report, oneTransactionThreadReport)) {
+        if (report?.policyID !== policyID || !isUnread(report, oneTransactionThreadReport)) {
             return;
         }
 
         setTimeout(() => {
-            ReportActionFile.readNewestAction(report?.reportID);
+            readNewestAction(report?.reportID);
         }, delay);
 
         delay += 1000;
