@@ -1137,8 +1137,9 @@ describe('actions/Report', () => {
 
     it('should not send DeleteComment request and remove any Reactions accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        jest.doMock('@libs/Emojiutils', () => ({
-            ...jest.requireActual('@libs/Emojiutils'),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        jest.doMock('@libs/EmojiUtils', () => ({
+            ...jest.requireActual('@libs/EmojiUtils'),
             hasAccountIDEmojiReacted: jest.fn(() => true),
         }));
         const TEST_USER_ACCOUNT_ID = 1;
@@ -1235,8 +1236,9 @@ describe('actions/Report', () => {
 
     it('should send DeleteComment request and remove any Reactions accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
-        jest.doMock('@libs/Emojiutils', () => ({
-            ...jest.requireActual('@libs/Emojiutils'),
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        jest.doMock('@libs/EmojiUtils', () => ({
+            ...jest.requireActual('@libs/EmojiUtils'),
             hasAccountIDEmojiReacted: jest.fn(() => true),
         }));
         const TEST_USER_ACCOUNT_ID = 1;
