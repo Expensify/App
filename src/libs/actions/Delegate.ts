@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -671,6 +671,10 @@ function restoreDelegateSession(authenticateResponse: Response) {
     });
 }
 
+function openSecuritySettingsPage() {
+    API.read(READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE, null);
+}
+
 export {
     connect,
     disconnect,
@@ -685,5 +689,6 @@ export {
     clearDelegateRolePendingAction,
     updateDelegateRole,
     removeDelegate,
+    openSecuritySettingsPage,
     KEYS_TO_PRESERVE_DELEGATE_ACCESS,
 };
