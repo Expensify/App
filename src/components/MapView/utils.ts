@@ -1,7 +1,7 @@
 import type {LngLat} from 'react-map-gl';
 import type {Coordinate} from './MapViewTypes';
 
-function getBounds(waypoints: Array<[number, number]>, directionCoordinates: undefined | Array<[number, number]>): {southWest: [number, number]; northEast: [number, number]} {
+function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Coordinate[]): {southWest: Coordinate; northEast: Coordinate} {
     const lngs = waypoints.map((waypoint) => waypoint[0]);
     const lats = waypoints.map((waypoint) => waypoint[1]);
     if (directionCoordinates) {
@@ -18,7 +18,7 @@ function getBounds(waypoints: Array<[number, number]>, directionCoordinates: und
 /**
  * Calculates the distance between two points on the Earth's surface given their latitude and longitude coordinates.
  */
-function haversineDistance(coordinate1: number[], coordinate2: number[]) {
+function haversineDistance(coordinate1: Coordinate, coordinate2: Coordinate) {
     // Radius of the Earth in meters
     const R = 6371e3;
     const lat1 = ((coordinate1.at(0) ?? 0) * Math.PI) / 180;
@@ -36,7 +36,7 @@ function haversineDistance(coordinate1: number[], coordinate2: number[]) {
     return R * angularDistance;
 }
 
-function areSameCoordinate(coordinate1: number[], coordinate2: number[]) {
+function areSameCoordinate(coordinate1: Coordinate, coordinate2: Coordinate) {
     return haversineDistance(coordinate1, coordinate2) < 20;
 }
 
@@ -105,7 +105,7 @@ function closestPointOnSegment(point: LngLat, startPoint: Coordinate, endPoint: 
     return {lng: closestX, lat: closestY};
 }
 
-function getBoundsCenter(bounds: {southWest: [number, number]; northEast: [number, number]}) {
+function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate}) {
     const {
         southWest: [south, west],
         northEast: [north, east],
