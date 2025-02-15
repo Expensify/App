@@ -46,7 +46,7 @@ describe('useFastSearchFromOptions', () => {
         expect(personalDetails).toEqual([expect.objectContaining({text: 'Ahmed Gaber'})]);
         expect(recentReports).toEqual([{text: 'Ahmed Gaber (Report)'}]);
     });
-    it('should return reports/personalDetails with non-lating characters', () => {
+    it('should return reports/personalDetails with non-latin characters', () => {
         const options = {
             currentUserOption: null,
             userToInvite: null,
