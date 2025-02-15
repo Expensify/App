@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -41,7 +41,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want to run the hook only once to escape unexpected feed change
-    const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), []);
+    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
     const feedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const companyFeeds = getCompanyFeeds(cardFeeds);
