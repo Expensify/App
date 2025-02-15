@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import FastSearch from '@libs/FastSearch';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import StringUtils from '@libs/StringUtils';
 
 type AllOrSelectiveOptions = OptionsListUtils.ReportAndPersonalDetailOptions | OptionsListUtils.Options;
 
@@ -40,7 +41,7 @@ function useFastSearchFromOptions(
                 data: options.personalDetails,
                 toSearchableString: (option) => {
                     const displayName = option.participantsList?.[0]?.displayName ?? '';
-                    return [option.login ?? '', option.login !== displayName ? displayName : ''].join();
+                    return StringUtils.sanitizeString([option.login ?? '', option.login !== displayName ? displayName : ''].join());
                 },
                 uniqueId: (option) => option.login,
             },
@@ -59,13 +60,13 @@ function useFastSearchFromOptions(
                         }
                     }
 
-                    return searchStringForTree.join();
+                    return StringUtils.sanitizeString(searchStringForTree.join());
                 },
             },
         ]);
 
         function search(searchInput: string): AllOrSelectiveOptions {
-            const searchWords = searchInput.split(' ').sort(); // asc sorted
+            const searchWords = StringUtils.sanitizeString(searchInput).split(' ').sort(); // asc sorted
             const longestSearchWord = searchWords.at(searchWords.length - 1); // longest word is the last element
             if (!longestSearchWord) {
                 return emptyResult;
