@@ -91,7 +91,7 @@ function BaseVideoPlayer({
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerElementRef = useRef(false);
     const canUseTouchScreen = canUseTouchScreenLib();
-    const isCurrentlyURLSet = currentlyPlayingURL === url && reportID === currentlyPlayingURLReportID;
+    const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
@@ -314,7 +314,9 @@ function BaseVideoPlayer({
             if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
                 return;
             }
-            currentVideoPlayerRef.current = null;
+            currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false, positionMillis: 0}).then(() => {
+                currentVideoPlayerRef.current = null;
+            });
         },
         [currentVideoPlayerRef, shouldUseSharedVideoElement],
     );

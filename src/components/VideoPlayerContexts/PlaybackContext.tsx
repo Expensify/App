@@ -1,10 +1,11 @@
+import type {NavigationState} from '@react-navigation/native';
 import type {AVPlaybackStatus, AVPlaybackStatusToSet} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
-import useCurrentReportID from '@hooks/useCurrentReportID';
 import usePrevious from '@hooks/usePrevious';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
@@ -17,7 +18,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [sharedElement, setSharedElement] = useState<View | HTMLDivElement | null>(null);
     const [originalParent, setOriginalParent] = useState<View | HTMLDivElement | null>(null);
     const currentVideoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
-    const {currentReportID} = useCurrentReportID() ?? {};
+    const [currentReportID, setCurrentReportID] = useState<string | undefined>();
     const prevCurrentReportID = usePrevious(currentReportID);
     const videoResumeTryNumberRef = useRef<number>(0);
     const playVideoPromiseRef = useRef<Promise<AVPlaybackStatus>>();
@@ -48,6 +49,22 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const unloadVideo = useCallback(() => {
         currentVideoPlayerRef.current?.unloadAsync?.();
     }, [currentVideoPlayerRef]);
+
+    /**
+     * This function is used to update the currentReportID
+     * @param state root navigation state
+     */
+    const updateCurrentPlayingReportID = useCallback(
+        (state: NavigationState) => {
+            if (!isReportTopmostSplitNavigator()) {
+                setCurrentReportID(undefined);
+                return;
+            }
+            const reportID = Navigation.getTopmostReportId(state);
+            setCurrentReportID(reportID);
+        },
+        [setCurrentReportID],
+    );
 
     const updateCurrentlyPlayingURL = useCallback(
         (url: string | null) => {
@@ -133,6 +150,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             videoResumeTryNumberRef,
+            updateCurrentPlayingReportID,
         }),
         [
             updateCurrentlyPlayingURL,
@@ -145,6 +163,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             setCurrentlyPlayingURL,
+            updateCurrentPlayingReportID,
         ],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
