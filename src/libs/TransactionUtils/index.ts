@@ -792,11 +792,6 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  */
 function hasBrokenConnectionViolation(transactionID: string | undefined, transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
     const violations = getTransactionViolations(transactionID, transactionViolations);
-    // return !!violations?.find(
-    //     (violation) =>
-    //         violation.name === CONST.VIOLATIONS.RTER &&
-    //         (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530),
-    // );
     return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
 }
 

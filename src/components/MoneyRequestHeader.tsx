@@ -10,18 +10,18 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import Navigation from '@libs/Navigation/Navigation';
-import {isInstantSubmitEnabled, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isCurrentUserSubmitter, isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
+import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasReceipt,
-    isBrokenConnectionViolation,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
+    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
@@ -83,9 +83,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
-    const hasBrokenConnectionViolation = !!transactionViolations.find((violation) => isBrokenConnectionViolation(violation));
-    const shouldShowBrokenConnectionViolation =
-        hasBrokenConnectionViolation && (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)));
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transaction, report, policy, transactionViolations);
     const shouldShowMarkAsCashButton = hasPendingRTERViolation || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID)));
 
     const markAsCash = useCallback(() => {
