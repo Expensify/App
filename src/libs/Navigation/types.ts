@@ -129,29 +129,6 @@ type SettingsNavigatorParamList = {
         /** cardID of selected card */
         cardID: string;
     };
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
-        /** domain of selected card */
-        domain: string;
-        backTo?: Routes;
-    };
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
-        /** domain of selected card */
-        domain: string;
-        backTo?: Routes;
-    };
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
-        /** Currently selected country */
-        country: string;
-        /** domain of selected card */
-        domain: string;
-        backTo?: Routes;
-    };
-    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
-        /** Currently selected country */
-        country: string;
-        /** domain of selected card */
-        domain: string;
-    };
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
@@ -901,14 +878,17 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
@@ -918,14 +898,17 @@ type SettingsNavigatorParamList = {
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
         policyID: string;

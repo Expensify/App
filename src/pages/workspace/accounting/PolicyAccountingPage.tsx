@@ -1,5 +1,6 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -21,6 +22,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -209,7 +211,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               if (!policyID || !currentXeroOrganization?.id || tenants.length < 2) {
                                   return;
                               }
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization.id));
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id));
                           },
                           pendingAction: settingsPendingAction([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.pendingFields),
                           brickRoadIndicator: areSettingsInErrorFields([CONST.XERO_CONFIG.TENANT_ID], policy?.connections?.xero?.config?.errorFields)
@@ -256,17 +258,25 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.getRoute(policyID));
                           },
                       };
+            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                return !policy?.connections?.quickbooksOnline?.config?.companyName
+                    ? {}
+                    : {
+                          description: translate('workspace.qbo.connectedTo'),
+                          title: policy?.connections?.quickbooksOnline?.config?.companyName,
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: false,
+                      };
+
             default:
                 return undefined;
         }
     }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
-        if (!policyID) {
-            return [];
-        }
-
-        if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
+        if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
             return accountingIntegrations
                 .map((integration) => {
                     const integrationData = getAccountingIntegrationData(integration, policyID, translate);
@@ -319,7 +329,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 .filter(Boolean) as MenuItemData[];
         }
 
-        if (!connectedIntegration) {
+        if (!connectedIntegration || !policyID) {
             return [];
         }
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
@@ -391,16 +401,19 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         color={theme.spinner}
                     />
                 ) : (
-                    <View ref={threeDotsMenuContainerRef}>
-                        <ThreeDotsMenu
-                            onIconPress={() => {
-                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                    setThreeDotsMenuPosition({
-                                        horizontal: x + width,
-                                        vertical: y + height,
-                                    });
+                    <View
+                        ref={threeDotsMenuContainerRef}
+                        onLayout={(e: LayoutChangeEvent) => {
+                            const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
+                            target?.measureInWindow((x, y, width) => {
+                                setThreeDotsMenuPosition({
+                                    horizontal: x + width,
+                                    vertical: y,
                                 });
-                            }}
+                            });
+                        }}
+                    >
+                        <ThreeDotsMenu
                             menuItems={overflowMenu}
                             anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
@@ -440,10 +453,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
-        if (!policyID) {
-            return;
-        }
-        if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
+        if ((isEmptyObject(policy?.connections) && !isSyncInProgress) || !policyID) {
             return;
         }
         const otherIntegrations = accountingIntegrations.filter(
@@ -577,7 +587,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         />
                                     </OfflineWithFeedback>
                                 ))}
-                            {hasUnsupportedNDIntegration && hasSyncError && (
+                            {hasUnsupportedNDIntegration && hasSyncError && !!policyID && (
                                 <FormHelpMessage
                                     isError
                                     style={styles.menuItemError}
@@ -599,7 +609,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     </Text>
                                 </FormHelpMessage>
                             )}
-                            {hasUnsupportedNDIntegration && !hasSyncError && (
+                            {hasUnsupportedNDIntegration && !hasSyncError && !!policyID && (
                                 <FormHelpMessage shouldShowRedDotIndicator={false}>
                                     <Text>
                                         <TextLink
@@ -652,7 +662,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title={translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration})}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
-                        if (policyID && connectedIntegration) {
+                        if (connectedIntegration && policyID) {
                             removePolicyConnection(policyID, connectedIntegration);
                         }
                         setIsDisconnectModalOpen(false);
