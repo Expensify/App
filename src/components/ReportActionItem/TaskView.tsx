@@ -109,12 +109,6 @@ function TaskView({report}: TaskViewProps) {
                                             disabled={!canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
-                                            {/* <Text
-                                                numberOfLines={3}
-                                                style={styles.taskTitleMenuItem}
-                                            >
-                                                {taskTitle}
-                                            </Text> */}
                                             <View style={styles.renderHTMLTitle}>
                                                 <RenderHTML html={taskTitle} />
                                             </View>
