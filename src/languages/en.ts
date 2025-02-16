@@ -1395,9 +1395,6 @@ const translations = {
         mergeFailureSmartScannerAccount: (email: string) => `You can’t merge ${email} into other accounts. Please merge other accounts into it instead.`,
         mergeFailureInvoicedAccount: (email: string) =>
             `You can’t merge ${email} into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.`,
-        requestValidationCodeForAccountMerge: {
-            genericError: '',
-        },
     },
     passwordPage: {
         changePassword: 'Change password',

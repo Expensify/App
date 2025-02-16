@@ -96,3 +96,5 @@ function ConfirmationPage({
 ConfirmationPage.displayName = 'ConfirmationPage';
 
 export default ConfirmationPage;
+
+export type {ConfirmationPageProps};

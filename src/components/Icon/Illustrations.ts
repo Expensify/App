@@ -150,6 +150,7 @@ import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import RunningTurtle from '@assets/images/running-turtle.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
@@ -275,6 +276,7 @@ export {
     Filters,
     MagnifyingGlassMoney,
     Rules,
+    RunningTurtle,
     CompanyCardsEmptyState,
     AmexCompanyCards,
     MasterCardCompanyCards,

@@ -1394,9 +1394,6 @@ const translations = {
         mergeFailureSmartScannerAccount: (email: string) => `No puedes fusionar ${email} en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.`,
         mergeFailureInvoicedAccount: (email: string) =>
             `No puedes fusionar ${email} en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.`,
-        requestValidationCodeForAccountMerge: {
-            genericError: '',
-        },
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',

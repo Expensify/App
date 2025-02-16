@@ -4789,12 +4789,12 @@ const CONST = {
         GETCODE: 'GETCODE',
     },
     MERGE_ACCOUNT_RESULTS: {
-        PENDING: 'PENDING',
-        SUCCESS: 'SUCCESS',
-        ERR_PRIMARY_LOGIN: 'ERR_PRIMARY_LOGIN',
-        ERR_2FA: 'ERR_2FA',
-        ERR_NO_EXIST: 'ERR_NO_EXIST',
-        ERR_SMART_SCANNER: 'ERR_SMART_SCANNER',
+        PENDING: 'pending',
+        SUCCESS: 'success',
+        ERR_PRIMARY_LOGIN: 'err_primary_login',
+        ERR_2FA: 'err_2fa',
+        ERR_NO_EXIST: 'err_no_exist',
+        ERR_SMART_SCANNER: 'err_smart_scanner',
     },
     DELEGATE_ROLE: {
         ALL: 'all',

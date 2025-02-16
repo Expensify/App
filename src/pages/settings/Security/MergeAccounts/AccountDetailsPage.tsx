@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
@@ -14,6 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -21,7 +21,9 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as MergeAccounts from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 function AccountDetailsPage() {
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
@@ -30,31 +32,42 @@ function AccountDetailsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM>) => {
-        const errors: Record<ValueOf<typeof INPUT_IDS>, string | undefined> = {
-            [INPUT_IDS.PHONE_OR_EMAIL]: undefined,
-            [INPUT_IDS.CONSENT]: undefined,
-        };
+    useEffect(() => {
+        if (mergeAccountData?.getValidateCodeForAccountMerge?.isLoading) {
+            return;
+        }
+
+        if (mergeAccountData?.getValidateCodeForAccountMerge?.validateCodeSent) {
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(mergeAccountData?.email ?? ''));
+        }
+
+        if (mergeAccountData?.getValidateCodeForAccountMerge?.errors) {
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(mergeAccountData?.email ?? '', 'error'));
+        }
+    }, [mergeAccountData]);
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM>): Errors => {
+        const errors = {};
 
         const login = values[INPUT_IDS.PHONE_OR_EMAIL];
 
         if (!login) {
-            errors[INPUT_IDS.PHONE_OR_EMAIL] = translate('common.pleaseEnterEmailOrPhoneNumber');
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.pleaseEnterEmailOrPhoneNumber'));
         } else {
             const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
             if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
                 if (ValidationUtils.isNumericWithSpecialChars(login)) {
-                    errors[INPUT_IDS.PHONE_OR_EMAIL] = translate('common.error.phoneNumber');
+                    ErrorUtils.addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.phoneNumber'));
                 } else {
-                    errors[INPUT_IDS.PHONE_OR_EMAIL] = translate('loginForm.error.invalidFormatEmailLogin');
+                    ErrorUtils.addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('loginForm.error.invalidFormatEmailLogin'));
                 }
             }
         }
 
-        if (values[INPUT_IDS.CONSENT] === undefined) {
-            errors[INPUT_IDS.CONSENT] = translate('common.error.fieldRequired');
+        if (!values[INPUT_IDS.CONSENT]) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.CONSENT, translate('common.error.fieldRequired'));
         }
         return errors;
     };
@@ -71,7 +84,9 @@ function AccountDetailsPage() {
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
-                    onSubmit={(values) => MergeAccounts.requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL])}
+                    onSubmit={(values) => {
+                        MergeAccounts.requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
+                    }}
                     submitButtonText={translate('common.next')}
                     style={[styles.flexGrow1, styles.mh5]}
                     shouldTrimValues
@@ -92,6 +107,7 @@ function AccountDetailsPage() {
                             autoCorrect={false}
                         />
                         <InputWrapper
+                            style={[styles.mt6]}
                             InputComponent={CheckboxWithLabel}
                             inputID={INPUT_IDS.CONSENT}
                             label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}

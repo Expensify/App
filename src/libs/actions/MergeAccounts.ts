@@ -3,7 +3,6 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetValidateCodeForAccountMergeParams, MergeWithValidateCodeParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Session from '@src/types/onyx/Session';
 
@@ -58,8 +57,6 @@ function requestValidationCodeForAccountMerge(email: string) {
                     getValidateCodeForAccountMerge: {
                         isLoading: false,
                         validateCodeSent: false,
-                        // Todo: This is a generic error message. Backend should replace it with a more specific error message.
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('mergeAccountsPage.requestValidationCodeForAccountMerge.genericError'),
                     },
                 },
             },
@@ -129,8 +126,6 @@ function mergeWithValidateCode(email: string, validateCode: string) {
                     mergeWithValidateCode: {
                         isLoading: false,
                         accountMerged: false,
-                        // Todo: This is a generic error message. Backend should replace it with a more specific error message.
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('mergeAccountsPage.requestValidationCodeForAccountMerge.genericError'),
                     },
                 },
             },
