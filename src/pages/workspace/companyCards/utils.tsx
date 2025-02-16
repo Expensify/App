@@ -199,7 +199,6 @@ function getExportMenuItem(
                             isSelected: isDefaultTitle ? name === defaultCard : selectedPayableAccount?.id === id,
                         };
                     });
-                    title = companyCard?.nameValuePairs?.netsuite_export_payable_account ?? data.find((exportPayable) => exportPayable.isSelected)?.text;
                     exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT;
                     break;
                 }
