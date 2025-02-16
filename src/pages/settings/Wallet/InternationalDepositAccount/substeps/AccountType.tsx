@@ -64,6 +64,7 @@ function AccountType({isEditing, onNext, fieldsMap}: CustomSubStepProps) {
                 label={fieldData.label}
                 items={options}
                 shouldSaveDraft={!isEditing}
+                shouldShowModal={false}
             />
         </FormProvider>
     );

@@ -1,12 +1,11 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {ValueSelectorModalProps} from './types';
+import ValueSelectionList from './ValueSelectionList';
 
 function ValueSelectorModal({
     items = [],
@@ -20,11 +19,6 @@ function ValueSelectorModal({
     shouldEnableKeyboardAvoidingView = true,
 }: ValueSelectorModalProps) {
     const styles = useThemeStyles();
-
-    const sections = useMemo(
-        () => [{data: items.map((item) => ({value: item.value, alternateText: item.description, text: item.label ?? '', isSelected: item === selectedItem, keyForList: item.value ?? ''}))}],
-        [items, selectedItem],
-    );
 
     return (
         <Modal
@@ -47,13 +41,11 @@ function ValueSelectorModal({
                     title={label}
                     onBackButtonPress={onClose}
                 />
-                <SelectionList
-                    sections={sections}
-                    onSelectRow={(item) => onItemSelected?.(item)}
-                    initiallyFocusedOptionKey={selectedItem?.value}
-                    shouldStopPropagation
+                <ValueSelectionList
+                    items={items}
+                    selectedItem={selectedItem}
+                    onItemSelected={onItemSelected}
                     shouldShowTooltips={shouldShowTooltips}
-                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>
