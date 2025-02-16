@@ -19,7 +19,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import {getCommentLength, getParsedComment, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import variables from '@styles/variables';
@@ -40,10 +41,13 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
-            if (!title) {
+            const parsedTitle = getParsedComment(title);
+            const parsedTitleLength = getCommentLength(parsedTitle);
+
+            if (!parsedTitle) {
                 addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
-            } else if (title.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: parsedTitleLength, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
             }
 
             return errors;
@@ -53,7 +57,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.title !== report?.reportName && !isEmptyObject(report)) {
+            if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '') && !isEmptyObject(report)) {
                 // Set the title of the report in the store and then call EditTask API
                 // to update the title of the report on the server
                 editTask(report, {title: values.title});
@@ -84,48 +88,45 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
             shouldEnableMaxHeight
             testID={TaskTitlePage.displayName}
         >
-            {({didScreenTransitionEnd}) => (
-                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                    <HeaderWithBackButton
-                        title={translate('task.task')}
-                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
-                    />
-                    <FormProvider
-                        style={[styles.flexGrow1, styles.ph5]}
-                        formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
-                        validate={validate}
-                        onSubmit={submit}
-                        submitButtonText={translate('common.save')}
-                        enabledWhenOffline
-                    >
-                        <View style={[styles.mb4]}>
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                role={CONST.ROLE.PRESENTATION}
-                                inputID={INPUT_IDS.TITLE}
-                                name={INPUT_IDS.TITLE}
-                                label={translate('task.title')}
-                                accessibilityLabel={translate('task.title')}
-                                // defaultValue={report?.reportName ?? ''}
-                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
-                                ref={(element: AnimatedTextInputRef) => {
-                                    if (!element) {
-                                        return;
-                                    }
-                                    if (!inputRef.current && didScreenTransitionEnd) {
-                                        element.focus();
-                                    }
-                                    inputRef.current = element;
-                                }}
-                                autoGrowHeight
-                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                shouldSubmitForm
-                                type="markdown"
-                            />
-                        </View>
-                    </FormProvider>
-                </FullPageNotFoundView>
-            )}
+            <FullPageNotFoundView shouldShow={isTaskNonEditable}>
+                <HeaderWithBackButton
+                    title={translate('task.task')}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                />
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
+                    validate={validate}
+                    onSubmit={submit}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={[styles.mb4]}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.TITLE}
+                            name={INPUT_IDS.TITLE}
+                            label={translate('task.title')}
+                            accessibilityLabel={translate('task.title')}
+                            defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
+                            ref={(element: AnimatedTextInputRef) => {
+                                if (!element) {
+                                    return;
+                                }
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(inputRef.current);
+                                }
+                                inputRef.current = element;
+                            }}
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            shouldSubmitForm={false}
+                            type="markdown"
+                        />
+                    </View>
+                </FormProvider>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

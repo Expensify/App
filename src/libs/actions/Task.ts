@@ -114,7 +114,7 @@ function clearOutTaskInfo(skipConfirmation = false) {
  * 3b. The TaskReportAction on the assignee chat report
  */
 function createTaskAndNavigate(
-    parentReportID: string,
+    parentReportID: string | undefined,
     title: string,
     description: string,
     assigneeEmail: string,
@@ -123,6 +123,9 @@ function createTaskAndNavigate(
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     isCreatedUsingMarkdown = false,
 ) {
+    if (!parentReportID) {
+        return;
+    }
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
@@ -320,7 +323,8 @@ function createTaskAndNavigate(
         parentReportID,
         taskReportID: optimisticTaskReport.reportID,
         createdTaskReportActionID: optimisticTaskCreatedAction.reportActionID,
-        title: optimisticTaskReport.reportName,
+        // title: optimisticTaskReport.reportName,
+        htmlTitle: optimisticTaskReport.reportName,
         description: optimisticTaskReport.description,
         assignee: assigneeEmail,
         assigneeAccountID,
@@ -542,7 +546,8 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    const reportName = (title ?? report?.reportName)?.trim();
+    // const reportName = (title ?? report?.reportName)?.trim();
+    const reportName = title ? ReportUtils.getParsedComment(title)?.trim() : report?.reportName ?? '';
     const parsedTitle = ReportUtils.getParsedComment(reportName ?? '');
 
     // Description can be unset, so we default to an empty string if so
@@ -608,7 +613,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
     const parameters: EditTaskParams = {
         taskReportID: report.reportID,
-        title: parsedTitle,
+        htmlTitle: reportName,
         description: reportDescription,
         editedTaskReportActionID: editTaskReportAction.reportActionID,
     };

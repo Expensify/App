@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -26,6 +25,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
 import {getTaskTitleFromReport} from '@libs/TaskUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -74,7 +74,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const isTaskCompleted = !isEmptyObject(taskReport)
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-    const taskTitle = Str.htmlEncode(getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
+    const taskTitle = Parser.htmlToText(getTaskTitleFromReport(taskReport, action?.childReportName ?? ''));
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const taskOwnerAccountID = taskReport?.ownerAccountID ?? action?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAssignee = taskAssigneeAccountID > 0;
