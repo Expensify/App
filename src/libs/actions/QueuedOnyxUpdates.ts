@@ -25,13 +25,14 @@ function queueOnyxUpdates(updates: OnyxUpdate[]): Promise<void> {
 }
 
 function flushQueue(): Promise<void> {
-    if (!currentAccountID && !CONFIG.IS_TEST_ENV) {
+    if (!currentAccountID && !CONFIG.IS_TEST_ENV && !CONFIG.E2E_TESTING) {
         const preservedKeys: OnyxKey[] = [
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
             ONYXKEYS.NVP_PREFERRED_LOCALE,
             ONYXKEYS.SESSION,
             ONYXKEYS.IS_LOADING_APP,
+            ONYXKEYS.HAS_LOADED_APP,
             ONYXKEYS.CREDENTIALS,
             ONYXKEYS.IS_SIDEBAR_LOADED,
             ONYXKEYS.ACCOUNT,

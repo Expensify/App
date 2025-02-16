@@ -22,6 +22,13 @@ $
 PROPOSAL:
 
 
+<!--- 
+If you want to trigger adhoc build of hybrid app from specific Mobile-Expensify PR please link it like this:
+
+MOBILE-EXPENSIFY: https://github.com/Expensify/Mobile-Expensify/pull/<PR-number>
+
+--->
+
 ### Tests
 <!---
 Add a numbered list of manual tests you performed that validates your changes work on all platforms, and that there are no regressions present.

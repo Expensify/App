@@ -9,15 +9,17 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
-import Navigation from '@libs/Navigation/Navigation';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {addPersonalBankAccount, clearPersonalBankAccount, validatePlaidSelection} from '@userActions/BankAccounts';
+import {continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 function AddPersonalBankAccountPage() {
@@ -27,31 +29,35 @@ function AddPersonalBankAccountPage() {
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const {canUseInternationalBankAccount} = usePermissions();
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
-    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
+    const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
 
     const goBack = useCallback(() => {
-        switch (topMostCentralPane?.name) {
-            case SCREENS.SETTINGS.WALLET.ROOT:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+        switch (topmostFullScreenRoute?.name) {
+            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET);
                 break;
-            case SCREENS.REPORT:
+            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
                 Navigation.closeRHPFlow();
                 break;
             default:
                 Navigation.goBack();
                 break;
         }
-    }, [topMostCentralPane]);
+    }, [topmostFullScreenRoute?.name]);
 
     const submitBankAccountForm = useCallback(() => {
         const bankAccounts = plaidData?.bankAccounts ?? [];
+        const policyID = personalBankAccount?.policyID;
+        const source = personalBankAccount?.source;
+
         const selectedPlaidBankAccount = bankAccounts.find((bankAccount) => bankAccount.plaidAccountID === selectedPlaidAccountId);
 
         if (selectedPlaidBankAccount) {
-            BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
+            addPersonalBankAccount(selectedPlaidBankAccount, policyID, source);
         }
-    }, [plaidData, selectedPlaidAccountId]);
+    }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
@@ -61,7 +67,7 @@ function AddPersonalBankAccountPage() {
             if (exitReportID) {
                 Navigation.dismissModal(exitReportID);
             } else if (shouldContinue && onSuccessFallbackRoute) {
-                PaymentMethods.continueSetup(onSuccessFallbackRoute);
+                continueSetup(onSuccessFallbackRoute);
             } else {
                 goBack();
             }
@@ -69,7 +75,7 @@ function AddPersonalBankAccountPage() {
         [personalBankAccount, goBack],
     );
 
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
+    useEffect(() => clearPersonalBankAccount, []);
 
     return (
         <ScreenWrapper
@@ -82,7 +88,7 @@ function AddPersonalBankAccountPage() {
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                     <HeaderWithBackButton
                         title={translate('bankAccount.addBankAccount')}
-                        onBackButtonPress={exitFlow}
+                        onBackButtonPress={shouldShowSuccess ? exitFlow : Navigation.goBack}
                     />
                     {shouldShowSuccess ? (
                         <ConfirmationPage
@@ -99,7 +105,7 @@ function AddPersonalBankAccountPage() {
                             submitButtonText={translate('common.saveAndContinue')}
                             scrollContextEnabled
                             onSubmit={submitBankAccountForm}
-                            validate={BankAccounts.validatePlaidSelection}
+                            validate={validatePlaidSelection}
                             style={[styles.mh5, styles.flex1]}
                         >
                             <InputWrapper
@@ -109,7 +115,7 @@ function AddPersonalBankAccountPage() {
                                 text={translate('walletPage.chooseAccountBody')}
                                 plaidData={plaidData}
                                 isDisplayedInWalletFlow
-                                onExitPlaid={goBack}
+                                onExitPlaid={canUseInternationalBankAccount ? Navigation.goBack : goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={selectedPlaidAccountId}
                             />

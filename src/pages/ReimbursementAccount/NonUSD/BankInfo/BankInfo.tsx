@@ -5,10 +5,11 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import AccountHolderDetails from './substeps/AccountHolderDetails';
 import BankAccountDetails from './substeps/BankAccountDetails';
 import Confirmation from './substeps/Confirmation';
@@ -37,11 +38,27 @@ function BankInfo({onBackButtonPress, onSubmit}: BankInfoProps) {
     const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
 
     const submit = () => {
-        onSubmit();
+        const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
+
+        createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm, policyID);
     };
 
     useEffect(() => {
-        BankAccounts.getCorpayBankAccountFields(country, currency);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess) {
+            onSubmit();
+            clearReimbursementAccountBankCreation();
+        }
+
+        return () => clearReimbursementAccountBankCreation();
+    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+
+    useEffect(() => {
+        getCorpayBankAccountFields(country, currency);
     }, [country, currency]);
 
     const bodyContent: Array<ComponentType<BankInfoSubStepProps>> =

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import CONST from '@src/CONST';
@@ -34,6 +34,9 @@ type PushRowWithModalProps = {
 
     /** The ID of the input that should be reset when the value changes */
     stateInputIDToReset?: string;
+
+    /**  Callback to call when the picker modal is dismissed */
+    onBlur?: () => void;
 };
 
 function PushRowWithModal({
@@ -47,10 +50,14 @@ function PushRowWithModal({
     errorText,
     onInputChange = () => {},
     stateInputIDToReset,
+    onBlur = () => {},
 }: PushRowWithModalProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
-
+    const shouldBlurOnCloseRef = useRef(true);
     const handleModalClose = () => {
+        if (shouldBlurOnCloseRef.current) {
+            onBlur?.();
+        }
         setIsModalVisible(false);
     };
 
@@ -60,7 +67,7 @@ function PushRowWithModal({
 
     const handleOptionChange = (optionValue: string) => {
         onInputChange(optionValue);
-
+        shouldBlurOnCloseRef.current = false;
         if (stateInputIDToReset) {
             onInputChange('', stateInputIDToReset);
         }

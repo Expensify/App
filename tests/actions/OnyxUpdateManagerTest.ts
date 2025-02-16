@@ -15,12 +15,13 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import createOnyxMockUpdate from '../utils/createOnyxMockUpdate';
+import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
 
-jest.mock('@libs/actions/App');
-jest.mock('@libs/actions/OnyxUpdateManager/utils');
-jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates', () => {
-    const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
+jest.mock('@userActions/OnyxUpdates');
+jest.mock('@userActions/App');
+jest.mock('@userActions/OnyxUpdateManager/utils');
+jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates', () => {
+    const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@userActions/OnyxUpdateManager/utils/applyUpdates');
 
     return {
         applyUpdates: jest.fn((updates: DeferredUpdatesDictionary) => ApplyUpdatesImplementation.applyUpdates(updates)),
@@ -53,14 +54,14 @@ const exampleReportAction = {
 
 const initialData = {report1: exampleReportAction, report2: exampleReportAction, report3: exampleReportAction} as unknown as OnyxTypes.ReportActions;
 
-const mockUpdate1 = createOnyxMockUpdate(1, [
+const mockUpdate1 = OnyxUpdateMockUtils.createUpdate(1, [
     {
         onyxMethod: OnyxUtils.METHOD.SET,
         key: ONYX_KEY,
         value: initialData,
     },
 ]);
-const mockUpdate2 = createOnyxMockUpdate(2, [
+const mockUpdate2 = OnyxUpdateMockUtils.createUpdate(2, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
@@ -79,7 +80,7 @@ const report2PersonDiff = {
 const report3AvatarDiff: Partial<OnyxTypes.ReportAction> = {
     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_5.png',
 };
-const mockUpdate3 = createOnyxMockUpdate(3, [
+const mockUpdate3 = OnyxUpdateMockUtils.createUpdate(3, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
@@ -89,7 +90,7 @@ const mockUpdate3 = createOnyxMockUpdate(3, [
         },
     },
 ]);
-const mockUpdate4 = createOnyxMockUpdate(4, [
+const mockUpdate4 = OnyxUpdateMockUtils.createUpdate(4, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
@@ -106,7 +107,7 @@ const report4 = {
     ...exampleReportAction,
     automatic: true,
 } satisfies Partial<OnyxTypes.ReportAction>;
-const mockUpdate5 = createOnyxMockUpdate(5, [
+const mockUpdate5 = OnyxUpdateMockUtils.createUpdate(5, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
@@ -135,7 +136,7 @@ describe('actions/OnyxUpdateManager', () => {
         await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
         await Onyx.set(ONYX_KEY, initialData);
 
-        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = undefined;
+        OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
         OnyxUpdateManagerExports.resetDeferralLogicVariables();
     });
@@ -194,7 +195,7 @@ describe('actions/OnyxUpdateManager', () => {
             finishFirstCall = resolve;
         });
 
-        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = () => {
+        OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = () => {
             // After the first GetMissingOnyxUpdates call has been resolved,
             // we have to set the mocked results of for the second call.
             App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate3, mockUpdate4];
@@ -261,7 +262,7 @@ describe('actions/OnyxUpdateManager', () => {
         };
 
         let firstCallFinished = false;
-        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = () => {
+        OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = () => {
             if (firstCallFinished) {
                 assertAfterSecondGetMissingOnyxUpdates();
                 return Promise.resolve();

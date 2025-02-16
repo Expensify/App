@@ -20,10 +20,11 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import shouldReplayVideo from './shouldReplayVideo';
 import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
+import useHandleNativeVideoControls from './useHandleNativeVideoControls';
 import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -86,12 +87,17 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
-    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    useHandleNativeVideoControls({
+        videoPlayerRef,
+        isOffline,
+        isLocalFile: isUploading,
+    });
+    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
@@ -163,6 +169,7 @@ function BaseVideoPlayer({
             }
             setIsPopoverVisible(true);
         });
+        setPopoverMenuSource(url);
         if (!event || !('nativeEvent' in event)) {
             return;
         }
@@ -342,8 +349,21 @@ function BaseVideoPlayer({
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef]);
 
+    // Call bindFunctions() through the refs to avoid adding it to the dependency array of the DOM mutation effect, as doing so would change the DOM when the functions update.
+    const bindFunctionsRef = useRef<(() => void) | null>(null);
+    const shouldBindFunctionsRef = useRef(false);
+
+    useEffect(() => {
+        bindFunctionsRef.current = bindFunctions;
+        if (shouldBindFunctionsRef.current) {
+            bindFunctions();
+        }
+    }, [bindFunctions]);
+
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
+        shouldBindFunctionsRef.current = false;
+
         if (url !== currentlyPlayingURL || !sharedElement || isFullScreenRef.current) {
             return;
         }
@@ -360,7 +380,8 @@ function BaseVideoPlayer({
         videoPlayerRef.current = currentVideoPlayerRef.current;
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
             newParentRef.appendChild(sharedElement as HTMLDivElement);
-            bindFunctions();
+            bindFunctionsRef.current?.();
+            shouldBindFunctionsRef.current = true;
         }
         return () => {
             if (!originalParent || !('appendChild' in originalParent)) {
@@ -373,7 +394,7 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
