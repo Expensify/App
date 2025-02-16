@@ -8,8 +8,8 @@ import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 
 type AnchorRendererProps = CustomRendererProps<TBlock> & {
@@ -27,8 +27,8 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const displayName = tNodeChild && 'data' in tNodeChild && typeof tNodeChild.data === 'string' ? tNodeChild.data : '';
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const parentStyle = tnode.parent?.styles?.nativeTextRet ?? {};
-    const internalNewExpensifyPath = Link.getInternalNewExpensifyPath(attrHref);
-    const internalExpensifyPath = Link.getInternalExpensifyPath(attrHref);
+    const internalNewExpensifyPath = getInternalNewExpensifyPath(attrHref);
+    const internalExpensifyPath = getInternalExpensifyPath(attrHref);
     const isVideo = attrHref && Str.isVideo(attrHref);
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
 
@@ -44,7 +44,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         return (
             <Text
                 style={[styles.link, isChildOfTaskTitle && {fontFamily: undefined, fontSize: undefined}]}
-                onPress={() => Link.openLink(attrHref, environmentURL, isAttachment)}
+                onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
             >
                 <TNodeChildrenRenderer tnode={tnode} />
@@ -75,7 +75,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             style={[style, parentStyle, textDecorationLineStyle, styles.textUnderlinePositionUnder, styles.textDecorationSkipInkNone]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
-            onPress={internalNewExpensifyPath || internalExpensifyPath ? () => Link.openLink(attrHref, environmentURL, isAttachment) : undefined}
+            onPress={internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment) : undefined}
             linkHasImage={linkHasImage}
         >
             <TNodeChildrenRenderer

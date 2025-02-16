@@ -13,16 +13,16 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {canModifyTask as canModifyTaskTaskUtils, editTask} from '@libs/actions/Task';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import variables from '@styles/variables';
-import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -41,9 +41,9 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
             if (!title) {
-                ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
+                addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
             } else if (title.length > CONST.DESCRIPTION_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
             return errors;
@@ -56,7 +56,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
             if (values.title !== report?.reportName && !isEmptyObject(report)) {
                 // Set the title of the report in the store and then call EditTask API
                 // to update the title of the report on the server
-                Task.editTask(report, {title: values.title});
+                editTask(report, {title: values.title});
             }
 
             Navigation.dismissModal(report?.reportID);
@@ -64,16 +64,16 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         [report],
     );
 
-    if (!ReportUtils.isTaskReport(report)) {
+    if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal(report?.reportID);
         });
     }
 
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
-    const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
+    const isOpen = isOpenTaskReport(report);
+    const canModifyTask = canModifyTaskTaskUtils(report, currentUserPersonalDetails.accountID);
+    const isTaskNonEditable = isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
         <ScreenWrapper
@@ -120,7 +120,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 autoGrowHeight
                                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                 shouldSubmitForm
-                                isMarkdownEnabled
+                                type="markdown"
                             />
                         </View>
                     </FormProvider>
