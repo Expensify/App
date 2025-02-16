@@ -5045,6 +5045,7 @@ const translations = {
             card: {
                 expensify: 'Expensify',
                 individualCards: 'Tarjetas individuales',
+                closedCards: 'Tarjetas cerradas',
                 cardFeeds: 'Flujos de tarjetas',
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Todo ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
