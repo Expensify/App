@@ -40,7 +40,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             if ('durationMillis' in status && status.durationMillis === status.positionMillis) {
                 newStatus.positionMillis = 0;
             }
-            playVideoPromiseRef.current = currentVideoPlayerRef.current?.setStatusAsync(newStatus);
+            playVideoPromiseRef.current = currentVideoPlayerRef.current?.setStatusAsync(newStatus).catch(() => {});
         });
     }, [currentVideoPlayerRef]);
 
