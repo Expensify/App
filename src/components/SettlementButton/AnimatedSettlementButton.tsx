@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import Animated, {FadeOut, Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
