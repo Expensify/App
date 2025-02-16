@@ -37,13 +37,14 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
-    if (!HTMLEngineUtils.isChildOfComment(tnode)) {
+    if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
         return (
             <Text
-                style={[styles.link, isChildOfTaskTitle && {fontFamily: undefined, fontSize: undefined}]}
+                // style={[styles.link, isChildOfTaskTitle && {fontFamily: undefined, fontSize: undefined}]}
+                style={styles.link}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
             >
@@ -72,7 +73,14 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={[style, parentStyle, textDecorationLineStyle, styles.textUnderlinePositionUnder, styles.textDecorationSkipInkNone]}
+            style={[
+                style,
+                parentStyle,
+                textDecorationLineStyle,
+                styles.textUnderlinePositionUnder,
+                styles.textDecorationSkipInkNone,
+                isChildOfTaskTitle && {fontFamily: undefined, fontSize: undefined},
+            ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment) : undefined}

@@ -34,7 +34,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             'task-title': HTMLElementModel.fromCustomModel({
                 tagName: 'task-title',
-                contentModel: HTMLContentModel.textual,
+                contentModel: HTMLContentModel.block,
                 mixedUAStyles: {...styles.taskTitleMenuItem},
             }),
             'alert-text': HTMLElementModel.fromCustomModel({
