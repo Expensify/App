@@ -17,7 +17,19 @@ import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 /*
  * This is a default anchor component for regular links.
  */
-function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style, onPress, linkHasImage, ...rest}: BaseAnchorForCommentsOnlyProps) {
+function BaseAnchorForCommentsOnly({
+    onPressIn,
+    onPressOut,
+    href = '',
+    rel = '',
+    target = '',
+    children = null,
+    style,
+    onPress,
+    linkHasImage,
+    wrapperStyle,
+    ...rest
+}: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
@@ -62,6 +74,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             onPressOut={onPressOut}
             role={CONST.ROLE.LINK}
             accessibilityLabel={href}
+            wrapperStyle={wrapperStyle}
         >
             <Tooltip text={linkHref}>
                 <Text
