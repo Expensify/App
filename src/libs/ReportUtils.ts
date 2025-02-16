@@ -4556,6 +4556,23 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
     return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true});
 }
 
+function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
+    if ((!isDefaultRoom(report) && !isPolicyExpenseChat(report)) || isThread(report)) {
+        return '';
+    }
+
+    const filteredPolicies = Object.values(allPolicies ?? {}).filter((policy) => shouldShowPolicy(policy, false, currentUserEmail));
+    if (filteredPolicies.length < 2) {
+        return '';
+    }
+
+    const policyName = getPolicyName({report});
+    if (!policyName) {
+        return '';
+    }
+    return `${policyName} ${CONST.DOT_SEPARATOR} `;
+}
+
 /**
  * Get either the policyName or domainName the chat is tied to
  */
@@ -4588,8 +4605,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
             return translateLocal('workspace.common.workspace');
         }
 
-        const policyName = getPolicyName({report});
-        return `${policyName} ${CONST.DOT_SEPARATOR} ${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
+        return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
     }
     if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';
@@ -9485,6 +9501,7 @@ export {
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
     prepareOnboardingOnyxData,
+    getReportSubtitlePrefix,
 };
 
 export type {

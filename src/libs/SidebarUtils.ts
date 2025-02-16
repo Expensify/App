@@ -65,6 +65,7 @@ import {
     getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
+    getReportSubtitlePrefix,
     getWorkspaceNameUpdatedMessage,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
@@ -511,8 +512,7 @@ function getOptionData({
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
-        const policyName = getPolicyName({report, policy});
-        const prefix = result.isPolicyExpenseChat && !result.isThread ? `${policyName} ${CONST.DOT_SEPARATOR} ` : '';
+        const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
             result.alternateText = getRenamedAction(lastAction);
