@@ -191,9 +191,7 @@ describe('ReportAttachments', () => {
         const screen = renderPage(SCREENS.ATTACHMENTS, params);
 
         await waitForBatchedUpdates();
-        const bezita = screen.queryByText('Hmm...');
-        console.log('caimin', bezita);
         // Then the blocking view or not here page should not appear.
-        expect(bezita).toBeNull();
+        expect(screen.queryByText('Hmm...')).toBeNull();
     });
 });
