@@ -1661,11 +1661,6 @@ const styles = (theme: ThemeColors) =>
             width: variables.sidebarAvatarSize,
         },
 
-        topBarWrapper: {
-            ...sizing.w100,
-            marginBottom: 1,
-        },
-
         selectedAvatarBorder: {
             padding: 1,
             borderWidth: 2,
@@ -5424,7 +5419,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             backgroundColor: theme.transparent,
             overflow: 'hidden',
-            marginBottom: -1,
+            position: 'absolute',
+            bottom: -1,
         },
 
         progressBar: {
