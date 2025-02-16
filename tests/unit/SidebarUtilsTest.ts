@@ -5,12 +5,13 @@ import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('SidebarUtils', () => {
     beforeAll(() =>
@@ -395,18 +396,30 @@ describe('SidebarUtils', () => {
             expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
         });
         describe('Alternative text', () => {
+            afterEach(async () => {
+                Onyx.clear();
+                await waitForBatchedUpdates();
+            });
             it('The text should not contain the policy name at prefix if the report is not related to a workspace', async () => {
                 const preferredLocale = 'en';
-                const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
                 const report: Report = {
                     ...createRandomReport(1),
+                    chatType: undefined,
                     policyID: CONST.POLICY.ID_FAKE,
                 };
                 const reportNameValuePairs = {};
 
-                await Onyx.clear();
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, createRandomPolicy(2, CONST.POLICY.TYPE.TEAM));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                });
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
@@ -424,7 +437,11 @@ describe('SidebarUtils', () => {
             });
             it('The text should not contain the policy name at prefix if we only have a workspace', async () => {
                 const preferredLocale = 'en';
-                const policy = createRandomPolicy(1);
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
                 const report: Report = {
                     ...createRandomReport(2),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -434,7 +451,6 @@ describe('SidebarUtils', () => {
                 };
                 const reportNameValuePairs = {};
 
-                await Onyx.clear();
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
                 const optionData = SidebarUtils.getOptionData({
@@ -453,7 +469,11 @@ describe('SidebarUtils', () => {
             });
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
                 const preferredLocale = 'en';
-                const policy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
                 const report: Report = {
                     ...createRandomReport(3),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -462,9 +482,12 @@ describe('SidebarUtils', () => {
                 };
                 const reportNameValuePairs = {};
 
-                await Onyx.clear();
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, createRandomPolicy(2, CONST.POLICY.TYPE.TEAM));
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                });
 
                 const optionData = SidebarUtils.getOptionData({
                     report,
