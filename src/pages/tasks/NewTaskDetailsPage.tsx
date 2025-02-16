@@ -109,6 +109,8 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         onValueChange={setTaskTitle}
                         autoCorrect={false}
                         type="markdown"
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
                 </View>
                 <View style={styles.mb5}>

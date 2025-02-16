@@ -7,8 +7,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 function TaskTitleRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
 
+    const isFirstNodeNameH1 = tnode?.children?.at(0)?.domNode?.name === 'h1';
+
     return (
-        <Text style={[styles.taskTitleMenuItem]}>
+        <Text style={[styles.taskTitleMenuItem, isFirstNodeNameH1 && {marginTop: -8}]}>
             <TNodeChildrenRenderer tnode={tnode} />
         </Text>
     );

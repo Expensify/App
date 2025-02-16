@@ -4260,6 +4260,11 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        taskTitleBold: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_BOLD.fontWeight,
+        },
+
         taskDescriptionMenuItem: {
             maxWidth: '100%',
             ...wordBreak.breakWord,

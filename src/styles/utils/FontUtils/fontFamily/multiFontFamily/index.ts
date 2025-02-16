@@ -61,6 +61,11 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'normal',
         fontWeight: fontWeight.medium,
     },
+    EXP_NEW_KANSAS_BOLD: {
+        fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji',
+        fontStyle: 'normal',
+        fontWeight: fontWeight.bold,
+    },
     EXP_NEW_KANSAS_MEDIUM_ITALIC: {
         fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji',
         fontStyle: 'italic',
