@@ -131,7 +131,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 }
 
 /**
- * Build optimistic data for adding members to the announcement room
+ * Build optimistic data for adding members to the announcement/admins room
  */
 function buildRoomMembersOnyxData(
     roomType: typeof CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE | typeof CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
@@ -233,7 +233,7 @@ function updateImportSpreadsheetData(membersLength: number): OnyxData {
 }
 
 /**
- * Build optimistic data for removing users from the announcement room
+ * Build optimistic data for removing users from the announcement/admins room
  */
 function removeOptimisticRoomMembers(
     roomType: typeof CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE | typeof CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
