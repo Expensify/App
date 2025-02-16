@@ -470,7 +470,7 @@ describe('SidebarUtils', () => {
             it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
                 const preferredLocale = 'en';
                 const policy: Policy = {
-                    ...createRandomPolicy(1),
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     role: CONST.POLICY.ROLE.ADMIN,
                     pendingAction: null,
                 };
