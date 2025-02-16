@@ -71,13 +71,12 @@ import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getMerchant,
-    getTransactionViolations,
-    hasPendingUI,
     isCardTransaction,
     isPartialMerchant,
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -238,7 +237,7 @@ function ReportPreview({
     const lastTransaction = transactions?.at(0);
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
-    const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, getTransactionViolations(lastTransaction?.transactionID));
+    const showRTERViolationMessage = shouldShowRTERViolationMessage(transactions);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy);
     let formattedMerchant = numberOfRequests === 1 ? getMerchant(lastTransaction) : null;
     const formattedDescription = numberOfRequests === 1 ? getDescription(lastTransaction) : null;
@@ -250,7 +249,7 @@ function ReportPreview({
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, transactionViolations);
 
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
@@ -331,7 +330,7 @@ function ReportPreview({
             return convertToDisplayString(totalDisplaySpend, iouReport?.currency);
         }
         if (isScanning) {
-            return translate('iou.receiptScanning', {count: numberOfScanningReceipts});
+            return translate('iou.receiptStatusTitle');
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
             return translate('iou.fieldPending');
@@ -367,7 +366,13 @@ function ReportPreview({
 
     const previewMessage = useMemo(() => {
         if (isScanning) {
-            return translate('common.receipt');
+            return totalDisplaySpend ? `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('common.scanning')}` : `${translate('common.receipt')}`;
+        }
+        if (numberOfPendingRequests === 1 && numberOfRequests === 1) {
+            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+        }
+        if (showRTERViolationMessage) {
+            return `${translate('common.receipt')} ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
         }
 
         let payerOrApproverName;
@@ -392,6 +397,9 @@ function ReportPreview({
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
         isScanning,
+        numberOfPendingRequests,
+        numberOfRequests,
+        showRTERViolationMessage,
         isPolicyExpenseChat,
         isTripRoom,
         isInvoiceRoom,
@@ -400,6 +408,7 @@ function ReportPreview({
         iouReport?.isWaitingOnBankAccount,
         hasNonReimbursableTransactions,
         translate,
+        totalDisplaySpend,
         chatReport,
         policy,
         invoiceReceiverPolicy,
@@ -425,8 +434,6 @@ function ReportPreview({
     const shouldShowSingleRequestMerchantOrDescription =
         numberOfRequests === 1 && (!!formattedMerchant || !!formattedDescription) && !(hasOnlyTransactionsWithPendingRoutes && !totalDisplaySpend);
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
-    const shouldShowScanningSubtitle = (numberOfScanningReceipts === 1 && numberOfRequests === 1) || (numberOfScanningReceipts >= 1 && Number(nonHeldAmount) === 0);
-    const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
     const isPayAtEndExpense = isPayAtEndExpenseReport(iouReportID, transactions);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: getArchiveReason});
@@ -444,17 +451,8 @@ function ReportPreview({
                 };
             }
         }
-        if (shouldShowScanningSubtitle) {
-            return {shouldShow: true, messageIcon: Expensicons.ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
-        }
-        if (shouldShowPendingSubtitle) {
-            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
-        }
         if (shouldShowBrokenConnectionViolation) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
-        }
-        if (showRTERViolationMessage) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};
     };
