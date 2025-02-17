@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
+import { GestureResponderEvent } from 'react-native-modal';
 
 function BaseListItem<TItem extends ListItem>({
     item,
@@ -69,7 +70,7 @@ function BaseListItem<TItem extends ListItem>({
     }, [canSelectMultiple, rightHandSideComponent, item, isFocused]);
 
     const handlePress = useCallback(
-        (e?: React.MouseEvent | React.KeyboardEvent) => {
+        (e?: KeyboardEvent | GestureResponderEvent) => {
             if (isMouseDownOnInput) {
                 e?.stopPropagation(); // Preventing the click action
                 return;
