@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -438,13 +437,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         openPolicyMoreFeaturesPage(route.params.policyID);
     }, [route.params.policyID]);
 
-    useNetwork({onReconnect: fetchFeatures});
+    useEffect(() => {
+        fetchFeatures();
+    }, [fetchFeatures]);
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchFeatures();
-        }, [fetchFeatures]),
-    );
+    useNetwork({onReconnect: fetchFeatures});
 
     return (
         <AccessOrNotFoundWrapper

@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -82,11 +81,9 @@ function WorkspaceTaxesPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchTaxes});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchTaxes();
-        }, [fetchTaxes]),
-    );
+    useEffect(() => {
+        fetchTaxes();
+    }, [fetchTaxes]);
 
     const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);

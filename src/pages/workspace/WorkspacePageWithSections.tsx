@@ -1,6 +1,6 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -146,11 +146,9 @@ function WorkspacePageWithSections({
         firstRender.current = false;
     }, []);
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchData(policyID, shouldSkipVBBACall);
-        }, [policyID, shouldSkipVBBACall]),
-    );
+    useEffect(() => {
+        fetchData(policyID, shouldSkipVBBACall);
+    }, [policyID, shouldSkipVBBACall]);
 
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
     const isPendingDelete = isPendingDeletePolicy(policy);

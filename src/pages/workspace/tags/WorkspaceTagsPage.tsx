@@ -1,6 +1,5 @@
-import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -93,7 +92,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
-    useFocusEffect(fetchTags);
+    useEffect(() => {
+        fetchTags();
+    }, [fetchTags]);
 
     const cleanupSelectedOption = useCallback(() => setSelectedTags({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);

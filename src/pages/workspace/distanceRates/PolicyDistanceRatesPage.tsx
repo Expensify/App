@@ -1,5 +1,5 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -96,11 +96,9 @@ function PolicyDistanceRatesPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchDistanceRates();
-        }, [fetchDistanceRates]),
-    );
+    useEffect(() => {
+        fetchDistanceRates();
+    }, [fetchDistanceRates]);
 
     useEffect(() => {
         if (isFocused) {

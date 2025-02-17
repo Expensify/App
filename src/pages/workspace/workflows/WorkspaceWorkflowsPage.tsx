@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
@@ -38,10 +37,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
-import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
+import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -94,13 +93,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
-    useFocusEffect(
-        useCallback(() => {
-            InteractionManager.runAfterInteractions(() => {
-                fetchData();
-            });
-        }, [fetchData]),
-    );
+    useEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            fetchData();
+        });
+    }, [fetchData]);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
