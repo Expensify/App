@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -57,14 +57,14 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields);
 
             const valuesToValidate = values[dobInputID as keyof FormOnyxValues<TFormID>] as string;
             if (valuesToValidate) {
-                if (!ValidationUtils.isValidPastDate(valuesToValidate) || !ValidationUtils.meetsMaximumAgeRequirement(valuesToValidate)) {
+                if (!isValidPastDate(valuesToValidate) || !meetsMaximumAgeRequirement(valuesToValidate)) {
                     // @ts-expect-error type mismatch to be fixed
                     errors[dobInputID] = translate('bankAccount.error.dob');
-                } else if (!ValidationUtils.meetsMinimumAgeRequirement(valuesToValidate)) {
+                } else if (!meetsMinimumAgeRequirement(valuesToValidate)) {
                     // @ts-expect-error type mismatch to be fixed
                     errors[dobInputID] = translate('bankAccount.error.age');
                 }
@@ -83,6 +83,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.mb0]}
+            enabledWhenOffline
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{formTitle}</Text>
             <InputWrapper
