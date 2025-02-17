@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -25,7 +25,10 @@ function TestToolsModal() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
+    // Check if the user is authenticated to show the debug console as Right Modal is not visible for unauthenticated users
+    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     return (
         <Modal
             isVisible={!!isTestToolsModalOpen}
@@ -41,7 +44,7 @@ function TestToolsModal() {
                 </Text>
                 <ProfilingToolMenu />
                 <ClientSideLoggingToolMenu />
-                {!!shouldStoreLogs && (
+                {!!shouldStoreLogs && isAuthenticated && (
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
                         <Button
                             small
