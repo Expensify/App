@@ -58,7 +58,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         } else {
             setPolicyPreventSelfApproval(policyID, true);
         }
-    }    
+    }
 
     const {currentApprovalWorkflows, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
         if (!policy || !personalDetails) {
