@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -39,8 +38,7 @@ function WorkspaceSwitcherPage() {
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
-    const isFocused = useIsFocused();
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -84,17 +82,14 @@ function WorkspaceSwitcherPage() {
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
-            if (!isFocused) {
-                return;
-            }
             const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
 
             Navigation.goBack();
             // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
             // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
-            switchPolicyAfterInteractions(newPolicyID, () => setActiveWorkspaceID(newPolicyID));
+            switchPolicyAfterInteractions(newPolicyID);
         },
-        [activeWorkspaceID, setActiveWorkspaceID, isFocused],
+        [activeWorkspaceID],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {

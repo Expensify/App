@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -19,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -36,7 +37,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
 
 type SelectionListApprover = {
     text: string;
@@ -64,6 +65,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const defaultApprover = policy?.approver ?? policy?.owner;
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+    const rhpRoutes = useNavigationState((state) => state.routes);
 
     useEffect(() => {
         const currentApprover = approvalWorkflow?.approvers[approverIndex];
@@ -177,9 +179,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
         } else {
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+            // If in the navigation state we have a RHP page to which we can return, then we call Navigation.goBack without any parameters
+            const backTo = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+            Navigation.goBack(backTo);
         }
-    }, [approvalWorkflow?.action, firstApprover, approverIndex, personalDetails, employeeList, route.params.policyID, selectedApproverEmail]);
+    }, [selectedApproverEmail, approvalWorkflow?.action, employeeList, personalDetails, approverIndex, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -205,12 +209,12 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
             Workflow.clearApprovalWorkflowApprovers();
         } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+            backTo = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
         } else {
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
         Navigation.goBack(backTo);
-    }, [isInitialCreationFlow, route.params.policyID, approvalWorkflow?.action, firstApprover]);
+    }, [isInitialCreationFlow, approvalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const toggleApprover = (approver: SelectionListApprover) => {
         if (selectedApproverEmail === approver.login) {

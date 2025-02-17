@@ -165,6 +165,7 @@ type PayeePersonalDetails = {
     login: string;
     accountID: number;
     keyForList: string;
+    isInteractive: boolean;
 };
 
 type SectionBase = {
@@ -791,7 +792,6 @@ function createOption(
     if (report) {
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         result.private_isArchived = getReportNameValuePairs(report.reportID)?.private_isArchived;
         result.isExpenseReport = isExpenseReport(report);
         result.isInvoiceRoom = isInvoiceRoom(report);
@@ -1646,6 +1646,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
         login: personalDetail?.login ?? '',
         accountID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         keyForList: String(personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+        isInteractive: false,
     };
 }
 
