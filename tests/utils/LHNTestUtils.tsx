@@ -64,6 +64,7 @@ const fakePersonalDetails: PersonalDetailsList = {
         displayName: 'Email Two',
         avatar: 'none',
         firstName: 'Two',
+        pronouns: '__predefined_sheHerHers',
     },
     3: {
         accountID: 3,
