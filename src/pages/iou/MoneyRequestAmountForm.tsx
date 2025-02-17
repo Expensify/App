@@ -279,6 +279,10 @@ function MoneyRequestAmountForm(
         setIsNegative((prevIsNegative) => !prevIsNegative);
     }, []);
 
+    const clearNegative = useCallback(() => {
+        setIsNegative(false);
+    }, []);
+
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
@@ -314,6 +318,7 @@ function MoneyRequestAmountForm(
                         inputStyle={[styles.iouAmountTextInput]}
                         containerStyle={[styles.iouAmountTextInputContainer]}
                         toggleNegative={toggleNegative}
+                        clearNegative={clearNegative}
                         isNegative={isNegative}
                     />
                     {!!formError && (

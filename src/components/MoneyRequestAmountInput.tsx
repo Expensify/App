@@ -98,6 +98,9 @@ type MoneyRequestAmountInputProps = {
 
     /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
+
+    /** Function to clear the negative amount */
+    clearNegative?: () => void;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
@@ -137,6 +140,7 @@ function MoneyRequestAmountInput(
         contentWidth,
         isNegative = false,
         toggleNegative,
+        clearNegative,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -259,6 +263,11 @@ function MoneyRequestAmountInput(
      */
     const textInputKeyPress = ({nativeEvent}: NativeSyntheticEvent<KeyboardEvent>) => {
         const key = nativeEvent?.key.toLowerCase();
+
+        if (!textInput.current?.value && key === 'backspace' && isNegative) {
+            clearNegative?.();
+        }
+
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessiblity keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
