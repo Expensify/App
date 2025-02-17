@@ -130,6 +130,7 @@ const baseCodeTagStyles = (theme: ThemeColors) =>
         borderRadius: 5,
         borderColor: theme.border,
         backgroundColor: theme.textBackground,
+        // backgroundColor: theme.activeComponentBG, // If we want it more highlighted
     } satisfies ViewStyle & MixedStyleDeclaration);
 
 const headlineFont = {
@@ -205,11 +206,11 @@ const webViewStyles = (theme: ThemeColors) =>
 
             code: {
                 ...baseCodeTagStyles(theme),
-                ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 // Font size is determined by getCodeFontSize function in `StyleUtils.js`
+                ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
             },
 
             img: {

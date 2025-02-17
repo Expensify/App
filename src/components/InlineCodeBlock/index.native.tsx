@@ -1,5 +1,6 @@
 import React from 'react';
 import type {TDefaultRendererProps} from 'react-native-render-html';
+import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
@@ -29,12 +30,13 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
         >
-            <WrappedText
+            <Text style={[boxModelStyle, textStyle]}>{data}</Text>
+            {/* <WrappedText
                 textStyles={textStyle}
                 wordStyles={[boxModelStyle, styles.codeWordStyle]}
             >
                 {data}
-            </WrappedText>
+            </WrappedText> */}
         </TDefaultRenderer>
     );
 }
