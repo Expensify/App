@@ -303,6 +303,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
+                        shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                     />
                 </View>
             </View>
