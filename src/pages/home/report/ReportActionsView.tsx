@@ -6,7 +6,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Illustrations from '@components/Icon/Illustrations';
-import LoadingBar from '@components/LoadingBar';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -58,9 +57,6 @@ type ReportActionsViewProps = {
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
 
-    /** The report actions are loading more data */
-    isLoadingOlderReportActions?: boolean;
-
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
@@ -78,8 +74,7 @@ function ReportActionsView({
     report,
     parentReportAction,
     reportActions: allReportActions = [],
-    isLoadingInitialReportActions = false,
-    isLoadingOlderReportActions = false,
+    isLoadingInitialReportActions,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
@@ -358,7 +353,7 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((!visibleReportActions.length && !isLoadingInitialReportActions && !isOffline) || (!visibleReportActions.length && isOffline)) {
+    if ((visibleReportActions.length === 0 && !isLoadingInitialReportActions && !isOffline) || (visibleReportActions.length === 0 && isOffline)) {
         return (
             <EmptyStateComponent
                 SkeletonComponent={SearchRowSkeleton}
@@ -379,7 +374,6 @@ function ReportActionsView({
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
-            <LoadingBar shouldShow={(!!isLoadingInitialReportActions && !isOffline) || isLoadingOlderReportActions} />
             <ReportActionsList
                 report={report}
                 transactionThreadReport={transactionThreadReport}
@@ -413,10 +407,6 @@ function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActions
     }
 
     if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
-        return false;
-    }
-
-    if (oldProps.isLoadingOlderReportActions !== newProps.isLoadingOlderReportActions) {
         return false;
     }
 
