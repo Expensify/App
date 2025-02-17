@@ -18,6 +18,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -145,14 +146,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         }
 
         const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
-        const filteredOptions = membersDetails.filter((option) => {
-            const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
-            const textTokens = option.text?.toLowerCase().split(/\s+/) ?? [];
-            const alternateTextTokens = option.alternateText?.toLowerCase().split(/\s+/) ?? [];
-            return searchTokens.every(
-                (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || alternateTextTokens.some((altToken) => altToken.includes(searchToken)),
-            );
-        });
+        const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? ''], false);
 
         return [
             {

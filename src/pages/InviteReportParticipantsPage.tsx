@@ -24,6 +24,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -109,16 +110,10 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
         if (debouncedSearchTerm !== '') {
-            filterSelectedOptions = selectedOptions.filter((option) => {
+            filterSelectedOptions = tokenizedSearch(selectedOptions, debouncedSearchTerm, (option) => [option.text ?? '', option.login ?? '']).filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = inviteOptions.personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
-                const searchTokens = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).split(/\s+/);
-                const textTokens = option.text?.toLowerCase().split(/\s+/) ?? [];
-                const loginTokens = option.login?.toLowerCase().split(/\s+/) ?? [];
-                const isPartOfSearchTerm = searchTokens.every(
-                    (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || loginTokens.some((loginToken) => loginToken.includes(searchToken)),
-                );
-                return isPartOfSearchTerm || isOptionInPersonalDetails;
+                return isOptionInPersonalDetails;
             });
         }
         const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => OptionsListUtils.formatMemberForList(selectedOption));

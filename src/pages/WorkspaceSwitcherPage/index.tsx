@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
@@ -124,18 +125,9 @@ function WorkspaceSwitcherPage() {
     }, [policies, isOffline, currentUserLogin, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(() => {
-        if (!debouncedSearchTerm) {
-            return usersWorkspaces;
-        }
-
-        const searchTokens = debouncedSearchTerm.trim().toLowerCase().split(/\s+/);
-
-        return usersWorkspaces
-            .filter((policy) => {
-                const policyTokens = policy.text?.toLowerCase().split(/\s+/) || [];
-                return searchTokens.every((searchToken) => policyTokens.some((policyToken) => policyToken.includes(searchToken)));
-            })
-            .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID));
+        return tokenizedSearch(usersWorkspaces, debouncedSearchTerm, (policy) => [policy.text ?? ''], false).sort((policy1, policy2) =>
+            sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID),
+        );
     }, [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID]);
 
     const sections = useMemo(() => {
@@ -192,5 +184,7 @@ function WorkspaceSwitcherPage() {
 }
 
 WorkspaceSwitcherPage.displayName = 'WorkspaceSwitcherPage';
+
+export type {WorkspaceListItem};
 
 export default WorkspaceSwitcherPage;

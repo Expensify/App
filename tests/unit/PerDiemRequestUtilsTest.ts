@@ -1,5 +1,6 @@
-import {DestinationTreeSection, getDestinationListSections} from '@libs/PerDiemRequestUtils';
-import {Rate} from '@src/types/onyx/Policy';
+import type {DestinationTreeSection} from '@libs/PerDiemRequestUtils';
+import {getDestinationListSections} from '@libs/PerDiemRequestUtils';
+import type {Rate} from '@src/types/onyx/Policy';
 
 describe('PerDiemRequestUtils', () => {
     it('getDestinationListSections()', () => {
@@ -42,7 +43,7 @@ describe('PerDiemRequestUtils', () => {
         ];
 
         const tokenizeSearchResult = getDestinationListSections({
-            destinations: destinations,
+            destinations,
             searchValue: tokenizeSearch,
         });
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);

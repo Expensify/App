@@ -22,6 +22,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -117,14 +118,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         const filteredMembers =
             debouncedSearchTerm !== ''
-                ? members.filter((option) => {
-                      const searchTokens = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).split(/\s+/);
-                      const textTokens = option.text?.toLowerCase().split(/\s+/) || [];
-                      const loginTokens = option.login?.toLowerCase().split(/\s+/) || [];
-                      return searchTokens.every(
-                          (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || loginTokens.some((loginToken) => loginToken.includes(searchToken)),
-                      );
-                  })
+                ? tokenizedSearch(members, OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? ''], false)
                 : members;
 
         return [

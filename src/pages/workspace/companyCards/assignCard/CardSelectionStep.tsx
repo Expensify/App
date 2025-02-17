@@ -17,6 +17,7 @@ import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,11 +100,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     }));
 
     const searchedListOptions = useMemo(() => {
-        const searchTokens = searchText.trim().toLowerCase().split(/\s+/);
-        return cardListOptions.filter((option) => {
-            const optionTokens = option.text.toLowerCase().split(/\s+/);
-            return searchTokens.every((searchToken) => optionTokens.some((optionToken) => optionToken.includes(searchToken)));
-        });
+        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text], false);
     }, [searchText, cardListOptions]);
 
     return (

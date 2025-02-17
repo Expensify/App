@@ -281,6 +281,6 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     };
 }
 
-export type {Destination};
+export type {Destination, DestinationTreeSection};
 
 export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeForDisplay, getTimeDifferenceIntervals};

@@ -39,7 +39,7 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
                 pendingAction: 'delete',
             },
-            'Employee Meals Office': {
+            EmployeeMealsOffice: {
                 enabled: true,
                 name: 'Employee Meals Office',
                 accountID: undefined,

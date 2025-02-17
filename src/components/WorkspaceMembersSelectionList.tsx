@@ -7,6 +7,7 @@ import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionSt
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Badge from './Badge';
@@ -72,17 +73,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             approvers.push(...availableApprovers);
         }
 
-        const filteredApprovers =
-            debouncedSearchTerm !== ''
-                ? approvers.filter((option) => {
-                      const searchTokens = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).split(/\s+/);
-                      const textTokens = option.text?.toLowerCase().split(/\s+/) || [];
-                      const loginTokens = option.login?.toLowerCase().split(/\s+/) || [];
-                      return searchTokens.every(
-                          (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || loginTokens.some((loginToken) => loginToken.includes(searchToken)),
-                      );
-                  })
-                : approvers;
+        const filteredApprovers = tokenizedSearch(approvers, debouncedSearchTerm, (approver) => [approver.text ?? '', approver.login ?? '']);
 
         return [
             {
@@ -114,5 +105,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
         />
     );
 }
+
+export type {SelectionListApprover};
 
 export default WorkspaceMembersSelectionList;

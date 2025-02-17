@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -43,11 +44,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const isXeroConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const searchedListOptions = useMemo(() => {
-        const searchTokens = searchText.trim().toLowerCase().split(/\s+/);
-        return exportMenuItem?.data.filter((option) => {
-            const optionTokens = option.value.toLowerCase().split(/\s+/);
-            return searchTokens.every((searchToken) => optionTokens.some((optionToken) => optionToken.includes(searchToken)));
-        });
+        return tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.value], false);
     }, [exportMenuItem?.data, searchText]);
 
     const listEmptyContent = useMemo(

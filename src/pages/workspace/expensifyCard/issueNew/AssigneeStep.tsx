@@ -15,6 +15,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import {clearIssueNewCardFlow, getCardDefaultName, setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
@@ -115,14 +116,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         }
 
         const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
-        const filteredOptions = membersDetails.filter((option) => {
-            const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
-            const textTokens = option.text?.toLowerCase().split(/\s+/) ?? [];
-            const alternateTextTokens = option.alternateText?.toLowerCase().split(/\s+/) ?? [];
-            return searchTokens.every(
-                (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || alternateTextTokens.some((altToken) => altToken.includes(searchToken)),
-            );
-        });
+        const filteredOptions = tokenizedSearch(membersDetails, searchValue, (option) => [option.text ?? '', option.alternateText ?? ''], false);
 
         return [
             {

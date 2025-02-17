@@ -18,6 +18,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -110,16 +111,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
-            const searchTokens = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm).split(/\s+/);
+            const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
+            const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? ''], false);
 
-            const filteredOptions = [...formattedPolicyAdmins, ...formattedAuthorizedPayer].filter((option) => {
-                const textTokens = option.text?.toLowerCase().split(/\s+/) ?? [];
-                const loginTokens = option.login?.toLowerCase().split(/\s+/) ?? [];
-
-                return searchTokens.every(
-                    (searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)) || loginTokens.some((loginToken) => loginToken.includes(searchToken)),
-                );
-            });
             return [
                 {
                     title: undefined,
