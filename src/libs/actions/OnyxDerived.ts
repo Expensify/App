@@ -105,7 +105,9 @@ function init() {
 
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
-            if (!derivedValue) {
+            if (derivedValue) {
+                Log.info(`Derived value ${derivedValue} for ${key} restored from disk`);
+            } else {
                 getOnyxValues(dependencies).then((values) => {
                     dependencyValues = values;
                     derivedValue = compute(values);
