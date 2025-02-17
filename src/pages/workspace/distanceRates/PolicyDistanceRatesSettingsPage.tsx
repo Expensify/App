@@ -15,7 +15,6 @@ import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -153,12 +152,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     <View style={[styles.mh5]}>
                                         <Text style={styles.colorMuted}>
                                             {translate('workspace.distanceRates.taxFeatureNotEnabledMessage')}
-                                            <TextLink
-                                                onPress={() => {
-                                                    Navigation.dismissModal();
-                                                    navigateAfterInteraction(() => Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
-                                                }}
-                                            >
+                                            <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}>
                                                 {translate('workspace.common.moreFeatures')}
                                             </TextLink>
                                             {translate('workspace.distanceRates.changePromptMessage')}
