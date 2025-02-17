@@ -34,6 +34,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -219,10 +220,11 @@ const policy: Policy = {
     isPolicyExpenseChatEnabled: false,
 };
 
-Onyx.init({keys: ONYXKEYS});
-
 describe('ReportUtils', () => {
     beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
