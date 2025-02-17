@@ -68,7 +68,11 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
-        clearPolicyDistanceRatesErrorFields(policyID, customUnit?.customUnitID ?? '', {...errorFields, [fieldName]: null});
+        if (!customUnit?.customUnitID) {
+            return;
+        }
+
+        clearPolicyDistanceRatesErrorFields(policyID, customUnit.customUnitID, {...errorFields, [fieldName]: null});
     };
 
     const onToggleTrackTax = (isOn: boolean) => {
