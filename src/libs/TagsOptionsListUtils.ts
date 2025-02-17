@@ -7,6 +7,7 @@ import * as Localize from './Localize';
 import type {Option} from './OptionsListUtils';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as PolicyUtils from './PolicyUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 type SelectedTagOption = {
     name: string;
@@ -84,19 +85,10 @@ function getTagListSections({
     }
 
     if (searchValue) {
-        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
-
-        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((tag) => {
-            const tagTokens = PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).split(/\s+/);
-            return searchTokens.every((searchToken) => tagTokens.some((tagToken) => tagToken.includes(searchToken)));
-        });
-
-        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => {
-            const tagTokens = PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).split(/\s+/);
-            return searchTokens.every((searchToken) => tagTokens.some((tagToken) => tagToken.includes(searchToken)));
-        });
-
-        const tagsForSearch = [...selectedSearchTags, ...enabledSearchTags];
+        const tagsForSearch = [
+            ...tokenizedSearch(selectedTagsWithDisabledState, searchValue, (tag) => [PolicyUtils.getCleanedTagName(tag.name)]),
+            ...tokenizedSearch(enabledTagsWithoutSelectedOptions, searchValue, (tag) => [PolicyUtils.getCleanedTagName(tag.name)]),
+        ];
 
         tagSections.push({
             // "Search" section

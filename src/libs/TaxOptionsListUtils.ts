@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import tokenizedSearch from './tokenizedSearch';
 import * as TransactionUtils from './TransactionUtils';
 
 type TaxRatesOption = {
@@ -99,19 +100,10 @@ function getTaxRatesSection({
     }
 
     if (searchValue) {
-        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
-
-        const enabledSearchTaxRates = enabledTaxRatesWithoutSelectedOptions.filter((taxRate) => {
-            const taxTokens = taxRate.modifiedName?.toLowerCase().split(/\s+/) ?? [];
-            return searchTokens.every((searchToken) => taxTokens.some((taxToken) => taxToken.includes(searchToken)));
-        });
-
-        const selectedSearchTaxRates = selectedTaxRateWithDisabledState.filter((taxRate) => {
-            const taxTokens = taxRate.modifiedName?.toLowerCase().split(/\s+/) ?? [];
-            return searchTokens.every((searchToken) => taxTokens.some((taxToken) => taxToken.includes(searchToken)));
-        });
-
-        const taxesForSearch = [...selectedSearchTaxRates, ...enabledSearchTaxRates];
+        const taxesForSearch = [
+            ...tokenizedSearch(selectedTaxRateWithDisabledState, searchValue, (taxRate) => [taxRate.modifiedName ?? '']),
+            ...tokenizedSearch(enabledTaxRatesWithoutSelectedOptions, searchValue, (taxRate) => [taxRate.modifiedName ?? '']),
+        ];
 
         policyRatesSections.push({
             // "Search" section

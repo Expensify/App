@@ -10,6 +10,7 @@ import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import {getPolicy} from './PolicyUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -109,20 +110,10 @@ function getDestinationListSections({
     const destinationSections: DestinationTreeSection[] = [];
 
     if (searchValue) {
-        const searchDestinations: Destination[] = [];
-        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
-
-        sortedDestinations.forEach((destination) => {
-            const destinationNameTokens = destination.name.trim().toLowerCase().split(/\s+/);
-            const isMatch = searchTokens.every((searchToken) => destinationNameTokens.some((destinationToken) => destinationToken.includes(searchToken)));
-
-            if (isMatch) {
-                searchDestinations.push({
-                    ...destination,
-                    isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
-                });
-            }
-        });
+        const searchDestinations: Destination[] = tokenizedSearch(sortedDestinations, searchValue, (destination) => [destination.name]).map((destination) => ({
+            ...destination,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
+        }));
 
         const data = getDestinationOptionTree(searchDestinations);
         destinationSections.push({

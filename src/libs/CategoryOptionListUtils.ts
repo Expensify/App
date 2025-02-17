@@ -8,6 +8,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import * as Localize from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 type CategoryTreeSection = SectionBase & {
     data: OptionTree[];
@@ -125,20 +126,11 @@ function getCategoryListSections({
 
     if (searchValue) {
         const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
-        const searchCategories: Category[] = [];
-        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
 
-        categoriesForSearch.forEach((category) => {
-            const categoryNameTokens = category.name.trim().toLowerCase().split(/\s+/);
-            const isMatch = searchTokens.every((searchToken) => categoryNameTokens.some((categoryToken) => categoryToken.includes(searchToken)));
-
-            if (isMatch) {
-                searchCategories.push({
-                    ...category,
-                    isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
-                });
-            }
-        });
+        const searchCategories: Category[] = tokenizedSearch(categoriesForSearch, searchValue, (category) => [category.name]).map((category) => ({
+            ...category,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.name === category.name),
+        }));
 
         const data = getCategoryOptionTree(searchCategories, true);
         categorySections.push({

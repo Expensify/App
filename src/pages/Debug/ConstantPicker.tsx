@@ -4,6 +4,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {DebugForms} from './const';
 import {DETAILS_CONSTANT_FIELDS} from './const';
 
@@ -46,9 +47,7 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                         } satisfies ListItem),
                 )
                 .filter(({searchText}) => {
-                    const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
-                    const textTokens = searchText.trim().toLowerCase().split(/\s+/);
-                    return searchTokens.every((searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)));
+                    return tokenizedSearch([{searchText}], searchValue, (item) => [item.searchText]).length > 0;
                 }),
         [fieldName, fieldValue, formType, searchValue],
     );

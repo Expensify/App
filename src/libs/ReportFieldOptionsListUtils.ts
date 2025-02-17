@@ -1,6 +1,7 @@
 import * as Localize from './Localize';
 import type {Option} from './OptionsListUtils';
 import type * as ReportUtils from './ReportUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Transforms the provided report field options into option objects.
@@ -36,12 +37,7 @@ function getReportFieldOptionsSection({
     let indexOffset = 0;
 
     if (searchValue) {
-        const searchTokens = searchValue.trim().toLowerCase().split(/\s+/);
-
-        const searchOptions = options.filter((option) => {
-            const optionTokens = option.trim().toLowerCase().split(/\s+/);
-            return searchTokens.every((searchToken) => optionTokens.some((optionToken) => optionToken.includes(searchToken)));
-        });
+        const searchOptions = tokenizedSearch(options, searchValue, (option) => [option]);
 
         reportFieldOptionsSections.push({
             // "Search" section
