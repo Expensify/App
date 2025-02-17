@@ -140,11 +140,12 @@ function ReportActionItemMessageEdit({action, draftMessage, reportID, policyID, 
     useEffect(
         // Remove focus callback on unmount to avoid stale callbacks
         () => {
+            const ref = textInputRef.current;
             if (textInputRef.current) {
-                ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
+                ReportActionComposeFocusManager.editComposerRef.current = ref;
             }
             return () => {
-                if (ReportActionComposeFocusManager.editComposerRef.current !== textInputRef.current) {
+                if (ReportActionComposeFocusManager.editComposerRef.current !== ref) {
                     return;
                 }
                 ReportActionComposeFocusManager.clear(true);
