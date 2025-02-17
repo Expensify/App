@@ -4,20 +4,20 @@ description: Configure the Import, Export, and Advanced settings for Expensify's
 order: 2
 ---
 
-# Best Practices Using NetSuite
+# Best practices using NetSuite
 
 Using Expensify with NetSuite brings a seamless, efficient approach to managing expenses. With automatic syncing, expense reports flow directly into NetSuite, reducing manual entry and errors while giving real-time visibility into spending. This integration speeds up approvals, simplifies reimbursements, and provides clear insights for smarter budgeting and compliance. Together, Expensify and NetSuite make expense management faster, more accurate, and stress-free.
 
-# Accessing the NetSuite Configuration Settings
+# Accessing the NetSuite configuration settings
 
 NetSuite is connected at the workspace level, and each workspace can have a unique configuration that dictates how the connection functions. To access the connection settings:
 
-1. Click your profile image or icon in the bottom left menu.
+1. Click Settings the bottom left menu.
 2. Scroll down and click **Workspaces** in the left menu.
 3. Select the workspace you want to access settings for.
 4. Click **Accounting** in the left menu.
 
-# Step 1: Configure Import Settings
+# Step 1: Configure import settings
 
 The following steps help you determine how data will be imported from NetSuite to Expensify.
 
@@ -42,7 +42,7 @@ The following steps help you determine how data will be imported from NetSuite t
 When you’re done configuring the settings, or anytime you make changes in the future, sync the NetSuite connection. This will ensure changes are saved and updated across both systems.
 {% include end-info.html %}
 
-# Step 2: Configure Export Settings
+# Step 2: Configure export settings
 
 The following steps help you determine how data will be exported from Expensify to NetSuite.
 
@@ -72,7 +72,7 @@ The following steps help you determine how data will be exported from Expensify 
     - _Export to next open period_: When this feature is enabled and you try exporting an expense report to a closed NetSuite period, we will automatically export to the next open period instead of returning an error.
 3. Sync the connection by closing the right-hand menu and clicking the three-dot icon > Sync Now option.
 
-# Step 3: Configure Advanced Settings
+# Step 3: Configure advanced settings
 
 The following steps help you determine the advanced settings for your NetSuite connection.
 
