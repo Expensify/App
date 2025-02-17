@@ -154,6 +154,7 @@ import {
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
+    isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
     wasActionTakenByCurrentUser,
@@ -3304,6 +3305,9 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | u
  * 2. Report is settled or it is closed
  */
 function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
+    if (isInvoiceReport(report)) {
+        return true;
+    }
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
@@ -4483,10 +4487,9 @@ function getReportNameInternal({
             const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
             return formatReportLastMessageText(modifiedMessage);
         }
-        if (isTripRoom(report)) {
+        if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
             return report?.reportName ?? '';
         }
-
         if (isCardIssuedAction(parentReportAction)) {
             return getCardIssuedMessage({reportAction: parentReportAction, personalDetails});
         }
@@ -6036,12 +6039,11 @@ function buildOptimisticChatReport(
         return reportParticipants;
     }, {} as Participants);
     const currentTime = DateUtils.getDBTime();
-    const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     const optimisticChatReport: OptimisticChatReport = {
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
-        isPinned: isNewlyCreatedWorkspaceChat,
+        isPinned: false,
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: undefined,
@@ -8438,6 +8440,11 @@ function getAllAncestorReportActions(report: Report | null | undefined, currentU
         const parentReportAction = getReportAction(parentReportID, parentReportActionID);
 
         if (!parentReport || !parentReportAction || (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction)) {
+            break;
+        }
+
+        // For threads, we don't want to display trip summary
+        if (isTripPreview(parentReportAction) && allAncestors.length > 0) {
             break;
         }
 
