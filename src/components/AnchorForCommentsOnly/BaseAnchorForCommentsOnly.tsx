@@ -9,7 +9,7 @@ import Tooltip from '@components/Tooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
@@ -50,7 +50,7 @@ function BaseAnchorForCommentsOnly({
     } else {
         linkProps.href = href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
+    const defaultTextStyle = canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
     const linkHref = !linkHasImage ? href : undefined;
 
