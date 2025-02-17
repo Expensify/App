@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -123,7 +124,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
-            setAutocompleteSubstitutions(updatedSubstitutionsMap);
+            if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
+                setAutocompleteSubstitutions(updatedSubstitutionsMap);
+            }
 
             if (updatedUserQuery) {
                 listRef.current?.updateAndScrollToFocusedIndex(0);
@@ -290,6 +293,7 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
                     autocompleteListRef={listRef}
                     ref={textInputRef}
                     selection={selection}
+                    substitutionMap={autocompleteSubstitutions}
                 />
                 <View style={[styles.mh85vh, !isAutocompleteListVisible && styles.dNone]}>
                     <SearchAutocompleteList
