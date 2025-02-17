@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
 import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -161,8 +162,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     // Function to remove a member and close the modal
     const removeMemberAndCloseModal = useCallback(() => {
         removeMembers([accountID], policyID);
+        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
+        const remainingEmployeeCount = previousEmployeesCount - 1;
+        if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
+            // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
+            setPolicyPreventSelfApproval(route.params.policyID, false);
+        }
         setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, policyID]);
+    }, [accountID, policy?.employeeList, policy?.preventSelfApproval, policyID, route.params.policyID]);
 
     const removeUser = useCallback(() => {
         const ownerEmail = ownerDetails?.login;
