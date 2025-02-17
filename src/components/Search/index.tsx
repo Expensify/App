@@ -299,7 +299,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     );
 
     const customListHeader = useMemo(() => {
-        if (!isLargeScreenWidth) {
+        if (!isLargeScreenWidth || !searchResults?.data) {
             return null;
         }
 

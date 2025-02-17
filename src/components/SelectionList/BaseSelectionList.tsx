@@ -521,7 +521,7 @@ function BaseSelectionList<TItem extends ListItem>(
     );
 
     const renderSectionHeader = useCallback(
-      // eslint-disable-next-line react/no-unused-prop-types
+        // eslint-disable-next-line react/no-unused-prop-types
         ({section}: {section: SectionListDataType<TItem>}) => {
             if (section.CustomSectionHeader) {
                 return <section.CustomSectionHeader section={section} />;
@@ -914,18 +914,21 @@ function BaseSelectionList<TItem extends ListItem>(
         },
     );
 
-    const headerMessageContent = () =>
-        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
-        !!headerMessage && (
-            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
-            </View>
-        );
+    const headerMessageContent = useCallback(
+        () =>
+            (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
+            !!headerMessage && (
+                <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
+                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                </View>
+            ),
+        [flattenedSections.allOptions.length, headerMessage, headerMessageStyle, isLoadingNewOptions, showLoadingPlaceholder, styles, translate],
+    );
 
     const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
 
     const handleRenderSectionHeader = useCallback(
-        (arg) => (
+        (arg: {section: SectionListDataType<TItem>}) => (
             <>
                 {renderSectionHeader(arg)}
                 {listHeaderContent && header()}

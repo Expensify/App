@@ -1,9 +1,9 @@
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import * as Browser from '@libs/Browser';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {isMobileChrome} from '@libs/Browser';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import BaseSelectionList from './BaseSelectionList';
 import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './types';
@@ -15,7 +15,7 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
     const touchStart = useCallback(() => setIsScreenTouched(true), []);
     const touchEnd = useCallback(() => setIsScreenTouched(false), []);
     useEffect(() => {
-        if (!DeviceCapabilities.canUseTouchScreen()) {
+        if (!canUseTouchScreen()) {
             return;
         }
 
@@ -78,7 +78,7 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
             onScroll={defaultOnScroll}
             // Ignore the focus if it's caused by a touch event on mobile chrome.
             // For example, a long press will trigger a focus event on mobile chrome.
-            shouldIgnoreFocus={Browser.isMobileChrome() && isScreenTouched}
+            shouldIgnoreFocus={isMobileChrome() && isScreenTouched}
             shouldDebounceScrolling={shouldDebounceScrolling}
         />
     );
