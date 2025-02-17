@@ -4,6 +4,7 @@ import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {EarlyDiscountProvider} from '@components/EarlyDiscountContext';
 import '../wdyr';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
@@ -95,6 +96,7 @@ function App({url}: AppProps) {
                                 VideoPopoverMenuContextProvider,
                                 KeyboardProvider,
                                 KeyboardStateProvider,
+                                EarlyDiscountProvider,
                                 SearchRouterContextProvider,
                                 ProductTrainingContextProvider,
                                 InputBlurContextProvider,
