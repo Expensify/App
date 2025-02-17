@@ -88,8 +88,6 @@ export default function useAnimatedHighlightStyle({
             return;
         }
         setStartHighlight(false);
-        // nonRepeatableProgress.set(0);
-        // repeatableProgress.set(0);
 
         InteractionManager.runAfterInteractions(() => {
             runOnJS(() => {

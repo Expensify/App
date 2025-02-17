@@ -65,9 +65,6 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     const handleDismissError = useCallback(() => {
         onDismissError?.(item);
     }, [onDismissError, item]);
-    const onHandleLongPressRow = useCallback(() => {
-        onLongPressRow?.(item);
-    }, [onLongPressRow, item]);
 
     // Memoized focus handler
     const handleFocus = useCallback(
@@ -93,7 +90,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
-                onLongPressRow={onHandleLongPressRow}
+                onLongPressRow={onLongPressRow}
                 onSelectRow={handleSelectRow}
                 onCheckboxPress={handleOnCheckboxPress()}
                 onDismissError={handleDismissError}
@@ -118,4 +115,4 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
 
 BaseSelectionListItemRenderer.displayName = 'BaseSelectionListItemRenderer';
 
-export default React.memo(BaseSelectionListItemRenderer);
+export default BaseSelectionListItemRenderer;

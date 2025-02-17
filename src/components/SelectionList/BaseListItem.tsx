@@ -163,4 +163,4 @@ function BaseListItem<TItem extends ListItem>({
 
 BaseListItem.displayName = 'BaseListItem';
 
-export default React.memo(BaseListItem);
+export default BaseListItem;

@@ -77,7 +77,7 @@ function TransactionListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
-            onLongPressRow={onLongPressRow as ((item: ListItem) => void) | undefined}
+            onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
@@ -99,4 +99,4 @@ function TransactionListItem<TItem extends ListItem>({
 
 TransactionListItem.displayName = 'TransactionListItem';
 
-export default React.memo(TransactionListItem);
+export default TransactionListItem;
