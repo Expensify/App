@@ -33,7 +33,7 @@ type OpacityViewProps = {
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing?: boolean;
 
-    shouldAnimationOnRemove?: boolean;
+    shouldAnimateOnRemove?: boolean;
 };
 
 function OpacityView({
@@ -43,7 +43,7 @@ function OpacityView({
     style = [],
     dimmingValue = variables.hoverDimValue,
     needsOffscreenAlphaCompositing = false,
-    shouldAnimationOnRemove,
+    shouldAnimateOnRemove,
 }: OpacityViewProps) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
@@ -58,8 +58,8 @@ function OpacityView({
         <Animated.View
             style={[opacityStyle, style]}
             needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
-            exiting={shouldAnimationOnRemove ? SlideOutUp.duration(800).easing(Easing.out(Easing.ease)) : undefined}
-            layout={shouldAnimationOnRemove ? LinearTransition : undefined}
+            exiting={shouldAnimateOnRemove ? SlideOutUp.duration(800).easing(Easing.out(Easing.ease)) : undefined}
+            layout={shouldAnimateOnRemove ? LinearTransition : undefined}
         >
             {children}
         </Animated.View>

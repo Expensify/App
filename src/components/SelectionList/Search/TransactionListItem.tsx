@@ -22,7 +22,7 @@ function TransactionListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     isLoading,
-    shouldAnimationOnRemove,
+    shouldAnimateOnRemove,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -72,7 +72,7 @@ function TransactionListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            shouldAnimationOnRemove={shouldAnimationOnRemove}
+            shouldAnimateOnRemove={shouldAnimateOnRemove}
         >
             <TransactionListItemRow
                 item={transactionItem}

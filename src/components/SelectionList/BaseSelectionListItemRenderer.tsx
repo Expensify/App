@@ -15,7 +15,7 @@ type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListI
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        shouldAnimationOnRemove?: boolean;
+        shouldAnimateOnRemove?: boolean;
     };
 
 function BaseSelectionListItemRenderer<TItem extends ListItem>({
@@ -45,7 +45,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     titleStyles,
     singleExecution,
     titleContainerStyles,
-    shouldAnimationOnRemove,
+    shouldAnimateOnRemove,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isReportListItemType(item)) {
@@ -96,7 +96,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
-                shouldAnimationOnRemove={shouldAnimationOnRemove}
+                shouldAnimateOnRemove={shouldAnimateOnRemove}
             />
             {item.footerContent && item.footerContent}
         </>

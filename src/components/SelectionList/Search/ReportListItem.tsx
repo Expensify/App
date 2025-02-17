@@ -63,7 +63,7 @@ function ReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    shouldAnimationOnRemove,
+    shouldAnimateOnRemove,
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
 
@@ -133,7 +133,7 @@ function ReportListItem<TItem extends ListItem>({
                 onLongPressRow={onLongPressRow}
                 shouldSyncFocus={shouldSyncFocus}
                 isLoading={reportItem.isActionLoading}
-                shouldAnimationOnRemove={shouldAnimationOnRemove}
+                shouldAnimateOnRemove={shouldAnimateOnRemove}
             />
         );
     }
@@ -157,7 +157,7 @@ function ReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            shouldAnimationOnRemove={shouldAnimationOnRemove}
+            shouldAnimateOnRemove={shouldAnimateOnRemove}
         >
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (

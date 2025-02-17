@@ -316,7 +316,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Styles applid for the title container of the list item */
     titleContainerStyles?: StyleProp<ViewStyle>;
 
-    shouldAnimationOnRemove?: boolean;
+    shouldAnimateOnRemove?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -333,7 +333,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     hoverStyle?: StyleProp<ViewStyle>;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
-    shouldAnimationOnRemove?: boolean;
+    shouldAnimateOnRemove?: boolean;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -667,7 +667,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     initialNumToRender?: number;
 
     /** Whether to have an animation when an item is removed from the list */
-    shouldAnimationOnRemove?: boolean;
+    shouldAnimateOnRemove?: boolean;
 
     /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
     isScreenFocused?: boolean;

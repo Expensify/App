@@ -37,7 +37,7 @@ function BaseListItem<TItem extends ListItem>({
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    shouldAnimationOnRemove,
+    shouldAnimateOnRemove,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -109,7 +109,7 @@ function BaseListItem<TItem extends ListItem>({
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
                 wrapperStyle={pressableWrapperStyle}
-                shouldAnimationOnRemove={shouldAnimationOnRemove}
+                shouldAnimateOnRemove={shouldAnimateOnRemove}
             >
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}

@@ -124,7 +124,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
-        shouldAnimationOnRemove = false,
+        shouldAnimateOnRemove = false,
         isScreenFocused = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
@@ -574,7 +574,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
-                    shouldAnimationOnRemove={shouldAnimationOnRemove}
+                    shouldAnimateOnRemove={shouldAnimateOnRemove}
                 />
             </View>
         );
