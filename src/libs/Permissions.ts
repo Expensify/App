@@ -18,10 +18,6 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
-function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
-}
-
 function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
@@ -41,8 +37,16 @@ function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
 }
 
+function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
+}
+
 function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
+}
+
+function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
 }
 
 export default {
@@ -50,9 +54,10 @@ export default {
     canUseLinkPreviews,
     canUseSpotnanaTravel,
     canUseNetSuiteUSATax,
-    canUseCategoryAndTagApprovers,
     canUsePerDiem,
     canUseMergeAccounts,
     canUseManagerMcTest,
+    canUseInternationalBankAccount,
     canUseNSQS,
+    canUseCustomRules,
 };

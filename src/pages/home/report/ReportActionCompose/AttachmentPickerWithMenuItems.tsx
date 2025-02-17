@@ -150,7 +150,9 @@ function AttachmentPickerWithMenuItems({
                 text: translate('iou.paySomeone', {name: getPayeeName(report)}),
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
-                        setIsNoDelegateAccessMenuVisible(true);
+                        close(() => {
+                            setIsNoDelegateAccessMenuVisible(true);
+                        });
                         return;
                     }
                     selectOption(() => startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false);
@@ -290,7 +292,10 @@ function AttachmentPickerWithMenuItems({
                                 </View>
                                 <View style={expandCollapseButtonContainerStyles}>
                                     {isComposerFullSize ? (
-                                        <Tooltip text={translate('reportActionCompose.collapse')}>
+                                        <Tooltip
+                                            text={translate('reportActionCompose.collapse')}
+                                            key="composer-collapse"
+                                        >
                                             <PressableWithFeedback
                                                 onPress={(e) => {
                                                     e?.preventDefault();
@@ -311,7 +316,10 @@ function AttachmentPickerWithMenuItems({
                                             </PressableWithFeedback>
                                         </Tooltip>
                                     ) : (
-                                        <Tooltip text={translate('reportActionCompose.expand')}>
+                                        <Tooltip
+                                            text={translate('reportActionCompose.expand')}
+                                            key="composer-expand"
+                                        >
                                             <PressableWithFeedback
                                                 onPress={(e) => {
                                                     e?.preventDefault();

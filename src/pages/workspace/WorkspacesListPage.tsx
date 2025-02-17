@@ -4,16 +4,18 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
-import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
+import FeatureList from '@components/FeatureList';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import BottomTabBar from '@components/Navigation/BottomTabBar';
+import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -28,19 +30,17 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
-import {checkIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
+import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
-import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
+import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
+import Navigation from '@libs/Navigation/Navigation';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, getWorkspaceAccountID, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
@@ -110,6 +110,7 @@ function WorkspacesListPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -119,8 +120,6 @@ function WorkspacesListPage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-
-    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -152,14 +151,9 @@ function WorkspacesListPage() {
         deleteWorkspace(policyIDToDelete, policyNameToDelete);
         setIsDeleteModalOpen(false);
 
-        // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
-        if (activeWorkspaceID === policyIDToDelete) {
+        if (policyIDToDelete === activeWorkspaceID) {
             setActiveWorkspaceID(undefined);
-            const rootState = navigationRef.current?.getRootState() as State<RootStackParamList>;
-            const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
-            if (topmostBottomTabRoute?.name === SCREENS.SETTINGS.ROOT) {
-                Navigation.setParams({policyID: undefined}, topmostBottomTabRoute?.key);
-            }
+            resetPolicyIDInNavigationState();
         }
     };
 
@@ -203,7 +197,7 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: checkIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
+                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
                 });
             }
 
@@ -351,6 +345,18 @@ function WorkspacesListPage() {
         }, {});
     }, [reports]);
 
+    const navigateToWorkspace = useCallback(
+        (policyID: string) => {
+            // On the wide layout, we always want to open the Profile page when opening workpsace settings from the list
+            if (shouldUseNarrowLayout) {
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
+        },
+        [shouldUseNarrowLayout],
+    );
+
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
@@ -386,7 +392,7 @@ function WorkspacesListPage() {
                 return {
                     title: policy.name,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                    action: () => navigateToWorkspace(policy.id),
                     brickRoadIndicator: !isPolicyAdmin(policy)
                         ? undefined
                         : reimbursementAccountBrickRoadIndicator ??
@@ -411,7 +417,7 @@ function WorkspacesListPage() {
                 };
             })
             .sort((a, b) => localeCompare(a.title, b.title));
-    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms, session?.email, allConnectionSyncProgresses]);
+    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, policyRooms, navigateToWorkspace]);
 
     const getHeaderButton = () => (
         <Button
@@ -430,12 +436,13 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
+                bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
@@ -468,13 +475,14 @@ function WorkspacesListPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
+            bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
         >
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 >

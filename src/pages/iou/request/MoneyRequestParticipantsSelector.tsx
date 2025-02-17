@@ -20,7 +20,9 @@ import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -32,7 +34,6 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
-import type {Section} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
@@ -110,19 +111,19 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             {
                 betas,
                 selectedOptions: participants as Participant[],
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
 
                 // If we are using this component in the "Submit expense" or the combined submit/track flow then we pass the includeOwnedWorkspaceChats argument so that the current user
                 // sees the option to submit an expense from their admin on their own Workspace Chat.
-                includeOwnedWorkspaceChats:
-                    (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
+                includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
 
                 includeP2P: !isCategorizeOrShareAction,
                 includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
                 action,
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
-                includeSelfDM: true,
+                includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
+                canShowManagerMcTest: true,
             },
         );
 
@@ -150,7 +151,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
             canInviteUser: !isCategorizeOrShareAction,
             selectedOptions: participants as Participant[],
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
