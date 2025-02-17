@@ -1,5 +1,5 @@
 type StartIssueNewCardFlowParams = {
-    policyID: string;
+    policyID: string | undefined;
 };
 
 export default StartIssueNewCardFlowParams;

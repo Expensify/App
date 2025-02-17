@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
@@ -8,11 +8,14 @@ import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import MenuItem from '@components/MenuItem';
+import BottomTabBar from '@components/Navigation/BottomTabBar';
+import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -21,20 +24,19 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
+import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
@@ -45,20 +47,22 @@ import {openInitialSettingsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
+type SettingsTopLevelScreens = keyof typeof SETTINGS_TO_RHP;
+
 type MenuData = {
     translationKey: TranslationPaths;
     icon: IconAsset;
-    routeName?: Route;
+    screenName?: SettingsTopLevelScreens;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    action?: () => void;
+    action: () => void;
     link?: string | (() => Promise<string>);
     iconType?: typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
     iconStyles?: StyleProp<ViewStyle>;
@@ -93,13 +97,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
-    const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
-    const activeCentralPaneRoute = useActiveCentralPaneRoute();
+    const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
     const {setInitialURL} = useContext(InitialURLContext);
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
@@ -145,25 +149,29 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'common.profile',
                     icon: Expensicons.Profile,
-                    routeName: ROUTES.SETTINGS_PROFILE,
+                    screenName: SCREENS.SETTINGS.PROFILE.ROOT,
                     brickRoadIndicator: profileBrickRoadIndicator,
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE),
                 },
                 {
                     translationKey: 'common.wallet',
                     icon: Expensicons.Wallet,
-                    routeName: ROUTES.SETTINGS_WALLET,
+                    screenName: SCREENS.SETTINGS.WALLET.ROOT,
                     brickRoadIndicator:
                         hasPaymentMethodError(bankAccountList, paymentCardList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) ? 'error' : undefined,
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
                 },
                 {
                     translationKey: 'common.preferences',
                     icon: Expensicons.Gear,
-                    routeName: ROUTES.SETTINGS_PREFERENCES,
+                    screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
                 },
                 {
                     translationKey: 'initialSettingsPage.security',
                     icon: Expensicons.Lock,
-                    routeName: ROUTES.SETTINGS_SECURITY,
+                    screenName: SCREENS.SETTINGS.SECURITY,
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
                 },
             ],
         };
@@ -180,18 +188,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             {
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Buildings,
-                routeName: ROUTES.SETTINGS_WORKSPACES,
+                screenName: SCREENS.SETTINGS.WORKSPACES,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES),
             },
             {
                 translationKey: 'allSettingsScreen.domains',
                 icon: Expensicons.Globe,
-                action: () => {
-                    openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
-                },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 link: () => buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
+                action: () => {
+                    openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
+                },
             },
         ];
 
@@ -199,10 +208,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items.splice(1, 0, {
                 translationKey: 'allSettingsScreen.subscription',
                 icon: Expensicons.CreditCard,
-                routeName: ROUTES.SETTINGS_SUBSCRIPTION,
+                screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
                 brickRoadIndicator: !!privateSubscription?.errors || hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 badgeText: freeTrialText,
                 badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
+                action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
             });
         }
 
@@ -228,12 +238,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'initialSettingsPage.help',
                     icon: Expensicons.QuestionMark,
-                    action: () => {
-                        openExternalLink(CONST.NEWHELP_URL);
-                    },
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
+                    action: () => {
+                        openExternalLink(CONST.NEWHELP_URL);
+                    },
                 },
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
@@ -243,6 +253,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                               action: () => {
                                   NativeModules.HybridAppModule.closeReactNativeApp(false, true);
                                   setInitialURL(undefined);
+                                  setRootStatusBarEnabled(false);
                               },
                           }
                         : {
@@ -264,17 +275,20 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'initialSettingsPage.about',
                     icon: Expensicons.Info,
-                    routeName: ROUTES.SETTINGS_ABOUT,
+                    screenName: SCREENS.SETTINGS.ABOUT,
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
                 },
                 {
                     translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
                     icon: Expensicons.Lightbulb,
-                    routeName: ROUTES.SETTINGS_TROUBLESHOOT,
+                    screenName: SCREENS.SETTINGS.TROUBLESHOOT,
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
                 },
                 {
                     translationKey: 'sidebarScreen.saveTheWorld',
                     icon: Expensicons.Heart,
-                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                    screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
                 },
                 {
                     translationKey: signOutTranslationKey,
@@ -285,7 +299,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, signOut, setInitialURL, shouldOpenBookACall, isActingAsDelegate]);
+    }, [styles.pt4, setInitialURL, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -314,6 +328,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     {menuItemsData.items.map((item) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                         const isPaymentItem = item.translationKey === 'common.wallet';
+                        const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
 
                         return (
                             <MenuItem
@@ -324,13 +339,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 iconType={item.iconType}
                                 disabled={isExecuting}
                                 onPress={singleExecution(() => {
-                                    if (item.action) {
-                                        item.action();
-                                    } else {
-                                        waitForNavigate(() => {
-                                            Navigation.navigate(item.routeName);
-                                        })();
-                                    }
+                                    item.action();
                                 })}
                                 iconStyles={item.iconStyles}
                                 badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
@@ -343,11 +352,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                 ref={popoverAnchor}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={
-                                    !!activeCentralPaneRoute &&
-                                    !!item.routeName &&
-                                    !!(activeCentralPaneRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
-                                }
+                                focused={isFocused}
+                                isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
                                 shouldIconUseAutoWidthStyle
@@ -357,7 +363,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, isExecuting, singleExecution, activeCentralPaneRoute, waitForNavigate],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, focusedRouteName, isExecuting, singleExecution],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
@@ -423,9 +429,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pb0]}
-            includePaddingTop={false}
             testID={InitialSettingsPage.displayName}
+            bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}
