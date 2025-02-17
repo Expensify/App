@@ -41,6 +41,7 @@ import {
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {
@@ -151,8 +152,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = transactions?.map((t) => t.transactionID) ?? [];
+    // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy);
+    // Check if user should see broken connection violation warning.
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy) && !!transactionThreadReportID;
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
@@ -169,7 +172,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID)));
+        !!transactionThreadReportID &&
+        (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID))));
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
@@ -187,7 +191,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowSettlementButton =
         !shouldShowSubmitButton &&
         (shouldShowPayButton || shouldShowApproveButton) &&
-        !hasAllPendingRTERViolations &&
+        !shouldShowRTERViolationMessage(transactions) &&
         !shouldShowExportIntegrationButton &&
         !shouldShowBrokenConnectionViolation;
 
