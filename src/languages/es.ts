@@ -854,7 +854,7 @@ const translations = {
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
-        recordDistance: 'Crear gasto por desplazamiento',
+        recordDistance: 'Gasto de distancia',
         requestMoney: 'Crear gasto',
         perDiem: 'Crear viático',
         splitBill: 'Dividir gasto',
