@@ -8,8 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {ReceiptScan} from '@components/Icon/Expensicons';
+import {Checkmark, DotIndicator, Folder, Hourglass, Tag} from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -51,7 +50,7 @@ import {
     compareDuplicateTransactionFields,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation as hasNoticeTypeViolationTransactionUtils,
-    hasPendingUI,
+    hasPendingRTERViolation,
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation as hasViolationTransactionUtils,
     hasWarningTypeViolation as hasWarningTypeViolationTransactionUtils,
@@ -229,6 +228,14 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
+        if (isPending(transaction)) {
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+        }
+
+        if (hasPendingRTERViolation(getTransactionViolations(transactionID, transactionViolations))) {
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
+        }
+
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
@@ -272,17 +279,8 @@ function MoneyRequestPreviewContent({
     };
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
-        if (isScanning) {
-            return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
-        }
-        if (isPending(transaction)) {
-            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
-        }
         if (shouldShowBrokenConnectionViolation(transaction, iouReport, policy, violations)) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
-        }
-        if (hasPendingUI(transaction, violations)) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+            return {shouldShow: true, messageIcon: Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         return {shouldShow: false};
     };
@@ -291,7 +289,7 @@ function MoneyRequestPreviewContent({
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
-            return translate('iou.receiptScanning', {count: 1});
+            return translate('iou.receiptStatusTitle');
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
@@ -387,8 +385,9 @@ function MoneyRequestPreviewContent({
                                         <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                                         {!isSettled && shouldShowRBR && (
                                             <Icon
-                                                src={Expensicons.DotIndicator}
+                                                src={DotIndicator}
                                                 fill={theme.danger}
+                                                small
                                             />
                                         )}
                                     </View>
@@ -414,7 +413,7 @@ function MoneyRequestPreviewContent({
                                                 {isSettledReportUtils(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
-                                                            src={Expensicons.Checkmark}
+                                                            src={Checkmark}
                                                             fill={theme.iconSuccessFill}
                                                         />
                                                     </View>
@@ -473,7 +472,7 @@ function MoneyRequestPreviewContent({
                                                     ]}
                                                 >
                                                     <Icon
-                                                        src={Expensicons.Folder}
+                                                        src={Folder}
                                                         height={variables.iconSizeExtraSmall}
                                                         width={variables.iconSizeExtraSmall}
                                                         fill={theme.icon}
@@ -489,7 +488,7 @@ function MoneyRequestPreviewContent({
                                             {shouldShowTag && (
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
                                                     <Icon
-                                                        src={Expensicons.Tag}
+                                                        src={Tag}
                                                         height={variables.iconSizeExtraSmall}
                                                         width={variables.iconSizeExtraSmall}
                                                         fill={theme.icon}

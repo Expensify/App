@@ -41,6 +41,7 @@ import {
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {
@@ -154,7 +155,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         selector: (allTransactions) =>
             Object.fromEntries(Object.entries(allTransactions ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
     });
+    // Check if there is pending rter violation in all transactionViolations with given transactionIDs.    
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy, violations);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
@@ -170,7 +173,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID)));
+        !!transactionThreadReportID &&
+        (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID))));
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
@@ -188,7 +192,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowSettlementButton =
         !shouldShowSubmitButton &&
         (shouldShowPayButton || shouldShowApproveButton) &&
-        !hasAllPendingRTERViolations &&
+        !shouldShowRTERViolationMessage(transactions) &&
         !shouldShowExportIntegrationButton &&
         !shouldShowBrokenConnectionViolation;
 
