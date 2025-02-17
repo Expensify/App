@@ -741,7 +741,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
-        CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
@@ -1142,6 +1141,7 @@ const CONST = {
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 REJECTED: 'REJECTED',
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
+                DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -2612,6 +2612,14 @@ const CONST = {
             SMARTREPORT: 'SMARTREPORT',
             BILLCOM: 'BILLCOM',
         },
+        APPROVAL_MODE_TRANSLATION_KEYS: {
+            OPTIONAL: 'submitAndClose',
+            BASIC: 'submitAndApprove',
+            ADVANCED: 'advanced',
+            DYNAMICEXTERNAL: 'dynamictExternal',
+            SMARTREPORT: 'smartReport',
+            BILLCOM: 'billcom',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
@@ -2687,6 +2695,10 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
+        },
+        EXPENSE_REPORT_RULES: {
+            PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         CONNECTIONS: {
             NAME: {
