@@ -55,7 +55,6 @@ function TravelUpgrade() {
                 <ScreenWrapper
                     style={[styles.pb0]}
                     includePaddingTop={false}
-                    includeSafeAreaPaddingBottom={false}
                     testID={TravelUpgrade.displayName}
                 >
                     <WorkspaceConfirmationForm
