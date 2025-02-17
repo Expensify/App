@@ -335,6 +335,8 @@ function MoneyRequestAmountForm(
                         small
                         iconRight={Expensicons.DownArrow}
                         onPress={onCurrencyButtonPress}
+                        style={styles.minWidth18}
+                        isContentCentered
                         text={currency}
                     />
                 )}
@@ -347,6 +349,8 @@ function MoneyRequestAmountForm(
                             small
                             iconRight={Expensicons.DownArrow}
                             onPress={onCurrencyButtonPress}
+                            style={styles.minWidth18}
+                            isContentCentered
                             text={currency}
                         />
                     )}
@@ -356,6 +360,8 @@ function MoneyRequestAmountForm(
                             small
                             iconRight={Expensicons.PlusMinus}
                             onPress={onFlipAmount}
+                            style={styles.minWidth18}
+                            isContentCentered
                             text={translate('iou.flip')}
                         />
                     )}
