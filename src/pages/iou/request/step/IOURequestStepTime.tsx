@@ -13,7 +13,7 @@ import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePolicies, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnits} from '@libs/PolicyUtils';
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,10 +55,7 @@ function IOURequestStepTime({
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
 
-    const perDiemCustomUnits = getActivePolicies(allPolicies, session?.email)
-        .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
-        .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled);
-
+    const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
     const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
 
     const navigateBack = () => {
