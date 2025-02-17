@@ -19,7 +19,7 @@ import {createTransactionThread, search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -244,7 +244,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         transactions,
         previousTransactions,
         queryJSON,
-        offset,
+        // Set offset to 0 to retrieve the most recent chat messages.
+        offset: 0,
         reportActions,
         previousReportActions,
     });
@@ -333,7 +334,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     useEffect(
         () => () => {
-            if (isSearchTopmostCentralPane()) {
+            if (isSearchTopmostFullScreenRoute()) {
                 return;
             }
             clearSelectedTransactions();

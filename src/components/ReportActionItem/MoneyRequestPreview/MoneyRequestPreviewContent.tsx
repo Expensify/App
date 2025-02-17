@@ -8,8 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {ReceiptScan} from '@components/Icon/Expensicons';
+import {Checkmark, DotIndicator, Folder, Hourglass, Tag} from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -51,7 +50,7 @@ import {
     getTransactionViolations,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation as hasNoticeTypeViolationTransactionUtils,
-    hasPendingUI,
+    hasPendingRTERViolation,
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation as hasViolationTransactionUtils,
     hasWarningTypeViolation as hasWarningTypeViolationTransactionUtils,
@@ -112,8 +111,7 @@ function MoneyRequestPreviewContent({
     const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const transactionViolations = getTransactionViolations(transaction?.transactionID);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
@@ -146,9 +144,9 @@ function MoneyRequestPreviewContent({
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = hasViolationTransactionUtils(transaction?.transactionID, allViolations, true);
-    const hasNoticeTypeViolations = hasNoticeTypeViolationTransactionUtils(transaction?.transactionID, allViolations, true) && isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = hasWarningTypeViolationTransactionUtils(transaction?.transactionID, allViolations, true);
+    const hasViolations = hasViolationTransactionUtils(transaction?.transactionID, transactionViolations, true);
+    const hasNoticeTypeViolations = hasNoticeTypeViolationTransactionUtils(transaction?.transactionID, transactionViolations, true) && isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = hasWarningTypeViolationTransactionUtils(transaction?.transactionID, transactionViolations, true);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
@@ -164,8 +162,11 @@ function MoneyRequestPreviewContent({
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicates = useMemo(
-        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
-        [transactionViolations],
+        () =>
+            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            )?.data?.duplicates ?? [],
+        [transaction?.transactionID, transactionViolations],
     );
 
     // Remove settled transactions from duplicates
@@ -232,19 +233,28 @@ function MoneyRequestPreviewContent({
             message = translate('iou.split');
         }
 
+        if (isPending(transaction)) {
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
+        }
+
+        if (hasPendingRTERViolation(getTransactionViolations(transactionID, transactionViolations))) {
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
+        }
+
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
             return message;
         }
 
         if (shouldShowRBR && transaction) {
+            const violations = getTransactionViolations(transaction.transactionID, transactionViolations);
             if (shouldShowHoldMessage) {
                 return `${message} ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
-            const firstViolation = transactionViolations?.at(0);
+            const firstViolation = violations?.at(0);
             if (firstViolation) {
                 const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate);
-                const violationsCount = transactionViolations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
+                const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
@@ -275,17 +285,8 @@ function MoneyRequestPreviewContent({
     };
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
-        if (isScanning) {
-            return {shouldShow: true, messageIcon: ReceiptScan, messageDescription: translate('iou.receiptScanInProgress')};
-        }
-        if (isPending(transaction)) {
-            return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
-        }
         if (shouldShowBrokenConnectionViolation(transaction ? [transaction.transactionID] : [], iouReport, policy)) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
-        }
-        if (hasPendingUI(transaction, transactionViolations)) {
-            return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
+            return {shouldShow: true, messageIcon: Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         return {shouldShow: false};
     };
@@ -294,7 +295,7 @@ function MoneyRequestPreviewContent({
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
-            return translate('iou.receiptScanning', {count: 1});
+            return translate('iou.receiptStatusTitle');
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
@@ -390,8 +391,9 @@ function MoneyRequestPreviewContent({
                                         <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                                         {!isSettled && shouldShowRBR && (
                                             <Icon
-                                                src={Expensicons.DotIndicator}
+                                                src={DotIndicator}
                                                 fill={theme.danger}
+                                                small
                                             />
                                         )}
                                     </View>
@@ -417,7 +419,7 @@ function MoneyRequestPreviewContent({
                                                 {isSettledReportUtils(iouReport?.reportID) && !isPartialHold && !isBillSplit && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
-                                                            src={Expensicons.Checkmark}
+                                                            src={Checkmark}
                                                             fill={theme.iconSuccessFill}
                                                         />
                                                     </View>
@@ -476,7 +478,7 @@ function MoneyRequestPreviewContent({
                                                     ]}
                                                 >
                                                     <Icon
-                                                        src={Expensicons.Folder}
+                                                        src={Folder}
                                                         height={variables.iconSizeExtraSmall}
                                                         width={variables.iconSizeExtraSmall}
                                                         fill={theme.icon}
@@ -492,7 +494,7 @@ function MoneyRequestPreviewContent({
                                             {shouldShowTag && (
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
                                                     <Icon
-                                                        src={Expensicons.Tag}
+                                                        src={Tag}
                                                         height={variables.iconSizeExtraSmall}
                                                         width={variables.iconSizeExtraSmall}
                                                         fill={theme.icon}

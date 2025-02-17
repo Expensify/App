@@ -67,15 +67,16 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
+import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
+import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -96,7 +97,6 @@ import {
     buildOptimisticTaskReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     completeShortMention,
-    doesReportBelongToWorkspace,
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
@@ -1144,7 +1144,6 @@ function openReport(
 function navigateToAndOpenReport(
     userLogins: string[],
     shouldDismissModal = true,
-    actionType?: string,
     reportName?: string,
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
@@ -1163,7 +1162,7 @@ function navigateToAndOpenReport(
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
             // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
-            newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+            newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         } else {
             newChat = buildOptimisticChatReport(
                 [...participantAccountIDs, currentUserAccountID],
@@ -1175,7 +1174,7 @@ function navigateToAndOpenReport(
                 undefined,
                 undefined,
                 undefined,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             );
         }
     }
@@ -1184,11 +1183,13 @@ function navigateToAndOpenReport(
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
-        Navigation.dismissModalWithReport(report);
-    } else {
-        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID), actionType);
+        Navigation.dismissModal();
     }
+
+    // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
+    setTimeout(() => {
+        Navigation.isNavigationReady().then(() => Navigation.navigateToReportWithPolicyCheck({report}));
+    }, 0);
 }
 
 /**
@@ -1386,7 +1387,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         return;
     }
 
-    const lastReadTime = DateUtils.getDBTime();
+    const lastReadTime = DateUtils.getDBTimeWithSkew();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1544,7 +1545,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(preexistingReportID), CONST.NAVIGATION.TYPE.UP);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(preexistingReportID), {forceReplace: true});
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
@@ -1711,7 +1712,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
     // we should navigate to its report in order to not show not found page
     if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID), true);
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 }
 
@@ -2368,7 +2369,7 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true, actionType?: string) {
+function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true, linkToOptions?: LinkToOptions) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     if (!conciergeChatReportID) {
@@ -2379,12 +2380,12 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal, actionType);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), actionType);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), linkToOptions);
     }
 }
 
@@ -2541,8 +2542,10 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.setShouldPopAllStateOnUP(true);
+        Navigation.goBack(undefined, {shouldPopToTop: true});
+    } else {
+        Navigation.goBack();
     }
-    Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
@@ -2726,12 +2729,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () =>
         close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID) : false;
-            if (!reportBelongsToWorkspace) {
-                Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-            }
-            navigateFromNotification(reportID);
+            navigateFromNotification(reportID, policyID);
         });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
@@ -2945,7 +2943,21 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
-                            Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                            // Check if the report exists in the collection
+                            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                            // If the report does not exist, navigate to the last accessed report or Concierge chat
+                            if (!report) {
+                                const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                if (lastAccessedReportID) {
+                                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                    Navigation.navigate(lastAccessedReportRoute);
+                                    return;
+                                }
+                                navigateToConciergeChat(false, () => true);
+                                return;
+                            }
+
+                            Navigation.navigate(route as Route);
                         };
 
                         if (isAnonymousUser()) {
@@ -2983,7 +2995,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(false, () => true, CONST.NAVIGATION.TYPE.UP);
+        navigateToConciergeChat(false, () => true, {forceReplace: true});
     }
 }
 
@@ -3664,6 +3676,7 @@ function prepareOnboardingOnyxData(
         assignedGuideAccountID = generateAccountID(assignedGuideEmail);
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [assignedGuideAccountID]: {
+                isOptimisticPersonalDetail: assignedGuideEmail === CONST.SETUP_SPECIALIST_LOGIN,
                 login: assignedGuideEmail,
                 displayName: assignedGuideEmail,
             },
@@ -4661,6 +4674,7 @@ export {
     broadcastUserIsTyping,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    clearDeleteTransactionNavigateBackUrl,
     clearGroupChat,
     clearIOUError,
     clearNewRoomFormError,
@@ -4678,6 +4692,7 @@ export {
     exportReportToCSV,
     exportToIntegration,
     flagComment,
+    getConciergeReportID,
     getCurrentUserAccountID,
     getDraftPrivateNote,
     getMostRecentReportID,
@@ -4713,6 +4728,7 @@ export {
     saveReportActionDraft,
     saveReportDraftComment,
     searchInServer,
+    setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
     setLastOpenedPublicRoom,
@@ -4740,8 +4756,5 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
-    getConciergeReportID,
-    setDeleteTransactionNavigateBackUrl,
-    clearDeleteTransactionNavigateBackUrl,
     prepareOnboardingOnyxData,
 };
