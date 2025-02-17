@@ -26,7 +26,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -137,9 +136,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
-    const isSearchPageFocused = isSearchTopmostCentralPane();
     const isFocused = useIsFocused();
-    const isListFocused = isSearchPageFocused || isFocused;
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
     const {isKeyboardShown} = useKeyboardState();
@@ -885,7 +882,6 @@ function BaseSelectionList<TItem extends ListItem>(
                         scrollEventThrottle={scrollEventThrottle}
                         contentContainerStyle={contentContainerStyle}
                         CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
-                        scrollEnabled={isListFocused}
                     />
                     {children}
                 </>
