@@ -1308,16 +1308,14 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
  * i.e. user.submitsTo === their own email.
  */
 function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
-    const defaultApprover = policy?.approver ?? policy?.owner;
-    if (!policy?.employeeList || !defaultApprover) {
+    if (!policy?.employeeList || !policy?.owner) {
         return [];
     }
     return Object.keys(policy.employeeList).filter((email) => {
         const employee = policy?.employeeList?.[email] ?? {};
-        return employee?.submitsTo === email && employee?.email !== defaultApprover;
+        return employee?.submitsTo === email;
     });
 }
-
 /**
  * Checks if the workspace has only one user and if there no approver for the policy.
  * If so, we can't enable the "Prevent Self Approvals" feature.
