@@ -584,7 +584,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
                         return;
                     }
-                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                    Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(report?.policyID));
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,

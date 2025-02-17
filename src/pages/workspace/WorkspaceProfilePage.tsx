@@ -78,37 +78,37 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
     }, [policy?.id]);
     const onPressAddress = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_ADDRESS.getRoute(policy.id));
     }, [policy?.id]);
     const onPressName = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(policy.id));
     }, [policy?.id]);
     const onPressDescription = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.getRoute(policy.id));
     }, [policy?.id]);
     const onPressShare = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_SHARE.getRoute(policy.id));
     }, [policy?.id]);
     const onPressPlanType = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_PLAN.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_PLAN.getRoute(policy.id));
     }, [policy?.id]);
     const policyName = policy?.name ?? '';
     const policyDescription =
