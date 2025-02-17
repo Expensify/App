@@ -89,7 +89,6 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
-    const sharedVideoPlayerElementRef = useRef(false);
     const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
@@ -349,10 +348,9 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || sharedVideoPlayerElementRef.current) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
             return;
         }
-        sharedVideoPlayerElementRef.current = true;
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentlyPlayingURLReportID]);
 
