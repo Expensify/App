@@ -64,7 +64,6 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
             testID={TripChatNameEditPage.displayName}
             shouldEnableMaxHeight

@@ -31,10 +31,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
     }, [policyID]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={WorkspaceAdminRestrictedAction.displayName}
-        >
+        <ScreenWrapper testID={WorkspaceAdminRestrictedAction.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
                 onBackButtonPress={Navigation.goBack}

@@ -6,7 +6,6 @@ function AddPaymentCard() {
     return (
         <ScreenWrapper
             testID={AddPaymentCard.displayName}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <FullPageNotFoundView shouldShow />

@@ -6,7 +6,6 @@ function DisableAutoRenewSurveyPage() {
     return (
         <ScreenWrapper
             testID={DisableAutoRenewSurveyPage.displayName}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <FullPageNotFoundView shouldShow />

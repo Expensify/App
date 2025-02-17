@@ -39,7 +39,6 @@ function ValueSelectorModal({
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom
                 testID={ValueSelectorModal.displayName}
                 shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             >

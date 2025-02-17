@@ -42,10 +42,7 @@ function DateOfBirthPage() {
     }, []);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={DateOfBirthPage.displayName}
-        >
+        <ScreenWrapper testID={DateOfBirthPage.displayName}>
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
                     title={translate('common.dob')}

@@ -611,7 +611,6 @@ function IOURequestStepScan({
 
     return (
         <StepScreenWrapper
-            includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={!!backTo || isEditing}

@@ -72,7 +72,6 @@ function ValidateCodeActionModal({
             shouldUseModalPaddingStyle={false}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 includePaddingTop
                 shouldEnableMaxHeight
                 testID={ValidateCodeActionModal.displayName}

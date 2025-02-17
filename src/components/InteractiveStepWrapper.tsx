@@ -68,7 +68,6 @@ function InteractiveStepWrapper(
         <ScreenWrapper
             ref={ref}
             testID={wrapperID}
-            includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}

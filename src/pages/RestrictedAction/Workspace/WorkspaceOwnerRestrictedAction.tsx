@@ -25,10 +25,7 @@ function WorkspaceOwnerRestrictedAction() {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={WorkspaceOwnerRestrictedAction.displayName}
-        >
+        <ScreenWrapper testID={WorkspaceOwnerRestrictedAction.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
                 onBackButtonPress={Navigation.goBack}

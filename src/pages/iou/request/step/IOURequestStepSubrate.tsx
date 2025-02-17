@@ -173,7 +173,6 @@ function IOURequestStepSubrate({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={IOURequestStepSubrate.displayName}
         >

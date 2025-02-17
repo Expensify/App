@@ -75,7 +75,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             onEntryTransitionEnd={() => {
                 inputRef?.current?.focus();
             }}

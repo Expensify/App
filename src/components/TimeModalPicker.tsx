@@ -59,7 +59,6 @@ function TimeModalPicker({value, errorText, label, onInputChange = () => {}}: Ti
                 <ScreenWrapper
                     style={styles.pb0}
                     includePaddingTop={false}
-                    includeSafeAreaPaddingBottom
                     testID={TimeModalPicker.displayName}
                 >
                     <HeaderWithBackButton

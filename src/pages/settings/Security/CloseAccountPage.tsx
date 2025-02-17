@@ -71,10 +71,7 @@ function CloseAccountPage() {
     const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={CloseAccountPage.displayName}
-        >
+        <ScreenWrapper testID={CloseAccountPage.displayName}>
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
                     title={translate('closeAccountPage.closeAccount')}

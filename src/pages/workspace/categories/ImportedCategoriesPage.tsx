@@ -133,10 +133,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     };
 
     return (
-        <ScreenWrapper
-            testID={ImportedCategoriesPage.displayName}
-            includeSafeAreaPaddingBottom
-        >
+        <ScreenWrapper testID={ImportedCategoriesPage.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
                 onBackButtonPress={() =>

@@ -120,10 +120,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                testID={WorkspaceWorkflowsApprovalsEditPage.displayName}
-            >
+            <ScreenWrapper testID={WorkspaceWorkflowsApprovalsEditPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}

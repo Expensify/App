@@ -73,7 +73,6 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
             testID={GroupChatNameEditPage.displayName}
             shouldEnableMaxHeight

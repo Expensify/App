@@ -72,7 +72,6 @@ function PhoneNumberPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={PhoneNumberPage.displayName}
         >

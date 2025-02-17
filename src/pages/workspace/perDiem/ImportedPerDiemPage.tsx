@@ -138,10 +138,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     };
 
     return (
-        <ScreenWrapper
-            testID={ImportedPerDiemPage.displayName}
-            includeSafeAreaPaddingBottom
-        >
+        <ScreenWrapper testID={ImportedPerDiemPage.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.perDiem.importPerDiemRates')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_IMPORT.getRoute(policyID))}

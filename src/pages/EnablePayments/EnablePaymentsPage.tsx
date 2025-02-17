@@ -54,7 +54,6 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
-            includeSafeAreaPaddingBottom
             testID={EnablePaymentsPage.displayName}
         >
             {() => {

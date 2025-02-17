@@ -80,7 +80,6 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
         >
             <ScreenWrapper
                 includePaddingTop
-                includeSafeAreaPaddingBottom
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
             >

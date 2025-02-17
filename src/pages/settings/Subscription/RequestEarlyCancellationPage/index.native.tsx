@@ -6,7 +6,6 @@ function RequestEarlyCancellationPage() {
     return (
         <ScreenWrapper
             testID={RequestEarlyCancellationPage.displayName}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <FullPageNotFoundView shouldShow />

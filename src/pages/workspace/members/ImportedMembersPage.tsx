@@ -104,10 +104,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     };
 
     return (
-        <ScreenWrapper
-            testID={ImportedMembersPage.displayName}
-            includeSafeAreaPaddingBottom
-        >
+        <ScreenWrapper testID={ImportedMembersPage.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.people.importMembers')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID))}

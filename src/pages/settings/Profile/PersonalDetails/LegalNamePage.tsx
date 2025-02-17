@@ -79,7 +79,6 @@ function LegalNamePage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={LegalNamePage.displayName}
         >

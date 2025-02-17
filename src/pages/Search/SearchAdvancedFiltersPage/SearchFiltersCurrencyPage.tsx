@@ -45,7 +45,6 @@ function SearchFiltersCurrencyPage() {
             testID={SearchFiltersCurrencyPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton

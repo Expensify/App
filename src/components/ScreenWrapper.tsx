@@ -327,8 +327,7 @@ function ScreenWrapper(
                                         <OfflineIndicator
                                             style={[offlineIndicatorStyle]}
                                             containerStyles={
-                                                includeSafeAreaPaddingBottom
-                                                    ? [styles.offlineIndicatorMobile]
+                                                                                                    ? [styles.offlineIndicatorMobile]
                                                     : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + styles.offlineIndicatorMobile.paddingBottom}]
                                             }
                                         />

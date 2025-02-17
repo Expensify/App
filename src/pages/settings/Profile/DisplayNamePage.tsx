@@ -66,7 +66,6 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     };
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={DisplayNamePage.displayName}
         >

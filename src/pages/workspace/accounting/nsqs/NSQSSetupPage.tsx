@@ -69,7 +69,6 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={NSQSSetupPage.displayName}
         >

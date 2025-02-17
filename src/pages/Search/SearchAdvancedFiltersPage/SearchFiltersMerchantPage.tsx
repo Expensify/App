@@ -35,7 +35,6 @@ function SearchFiltersMerchantPage() {
             testID={SearchFiltersMerchantPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton

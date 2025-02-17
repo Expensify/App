@@ -94,7 +94,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={EditReportFieldPage.displayName}
         >

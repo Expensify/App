@@ -72,7 +72,6 @@ function CreateTagPage({route}: CreateTagPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={[styles.defaultModalContainer]}
                 testID={CreateTagPage.displayName}
                 shouldEnableMaxHeight
