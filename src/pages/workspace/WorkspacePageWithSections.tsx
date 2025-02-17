@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import React from 'react';
 import type {ReactNode} from 'react';
 import {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
