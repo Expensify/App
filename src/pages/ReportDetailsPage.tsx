@@ -173,7 +173,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {reportActions} = usePaginatedReportActions(report.reportID);
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, isAllStatus} = useSearchContext();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -348,8 +348,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
         Navigation.dismissModal();
-        unapproveExpenseReport(moneyRequestReport);
-    }, [isMoneyRequestExported, moneyRequestReport, isDelegateAccessRestricted]);
+        unapproveExpenseReport(moneyRequestReport, isAllStatus ? undefined : currentSearchHash);
+    }, [isDelegateAccessRestricted, isMoneyRequestExported, moneyRequestReport, isAllStatus, currentSearchHash]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
@@ -387,9 +387,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        cancelPaymentAction(moneyRequestReport, chatReport, backTo);
+        cancelPaymentAction(moneyRequestReport, chatReport, backTo, isAllStatus ? undefined : currentSearchHash);
         setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport, backTo]);
+    }, [moneyRequestReport, chatReport, backTo, isAllStatus, currentSearchHash]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];

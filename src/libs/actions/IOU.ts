@@ -8447,7 +8447,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
-function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
+function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>, hash?: number) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -8550,6 +8550,13 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
                 },
             },
         });
+    }
+
+    if (hash) {
+        const searchOnyxData = createSearchOnyxData(hash, expenseReport.reportID);
+        optimisticData.push(...searchOnyxData.optimisticData);
+        successData.push(...searchOnyxData.successData);
+        failureData.push(...searchOnyxData.failureData);
     }
 
     const parameters: UnapproveExpenseReportParams = {
@@ -8700,7 +8707,7 @@ function submitReport(expenseReport: OnyxTypes.Report, hash?: number) {
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report, backTo?: Route) {
+function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report, backTo?: Route, hash?: number) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -8832,6 +8839,13 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.REIMBURSED),
     });
+
+    if (hash) {
+        const searchOnyxData = createSearchOnyxData(hash, expenseReport?.reportID);
+        optimisticData.push(...searchOnyxData.optimisticData);
+        successData.push(...searchOnyxData.successData);
+        failureData.push(...searchOnyxData.failureData);
+    }
 
     API.write(
         WRITE_COMMANDS.CANCEL_PAYMENT,
