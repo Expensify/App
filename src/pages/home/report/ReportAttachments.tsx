@@ -33,8 +33,11 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         if (isOffline || isReportNotFound(report) || !reportID) {
             return false;
         }
-        const isLoadingReport = isEmptyObject(report) || isEmptyObject(reportActions);
-        return isLoadingApp || isLoadingReport || !report?.reportID;
+        if (!report?.reportID) {
+            return false;
+        }
+        const isLoadingReport = isEmptyObject(report ?? {}) || isEmptyObject(reportActions ?? {});
+        return isLoadingApp || isLoadingReport;
     }, [isLoadingApp, report, isOffline, reportID, reportActions]);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
@@ -54,7 +57,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     }, [report, fetchReport]);
 
     useEffect(() => {
-        if (!reportID || isLoadingApp || !isEmptyObject(report)) {
+        if (!reportID || isLoadingApp) {
             return;
         }
 

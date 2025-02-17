@@ -18,6 +18,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import {setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const Stack = createPlatformStackNavigator<AuthScreensParamList>();
 
@@ -171,27 +172,27 @@ describe('ReportAttachments', () => {
     });
     it('it should display the attachment if the source link is origin url', async () => {
         await signInWithTestUser();
-        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
-        await waitForBatchedUpdates();
 
-        // await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, reportAttachmentOnyx);
-        // await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAttachmentID}`, reportActionsAttachmentOnyx);
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, reportAttachmentOnyx);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAttachmentID}`, reportActionsAttachmentOnyx);
 
         // Given the report attachments params
         const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
-            source: 'https://staging.expensify.com/chat-attachments/700687712251048865417/w_d060af4fb7ac4a815e226ed99df9ef8dd216fdd8c7.png',
+            source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
-            reportID: '5',
+            reportID: '7487537791562875',
             isAuthTokenRequired: 'true',
             fileName: 'Screenshot_2025-02-05_at_13.03.32.png',
             accountID: '1',
         };
 
         // And ReportAttachmments is opened
-        const screen = renderPage(SCREENS.ATTACHMENTS, params);
+        const {queryByText} = renderPage(SCREENS.ATTACHMENTS, params);
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         // Then the blocking view or not here page should not appear.
-        expect(screen.queryByText('Hmm...')).toBeNull();
+        expect(queryByText("Hmm... it's not hereOops, this page cannot be foundGo back to home page")).toBeNull();
     });
 });
