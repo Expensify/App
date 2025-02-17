@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
+import Log from '@libs/Log';
 import {isThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {GetOnyxTypeForKey, OnyxDerivedKey, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
@@ -112,6 +113,7 @@ function init() {
             const recomputeDerivedValue = () => {
                 const newDerivedValue = compute(dependencyValues);
                 if (newDerivedValue !== derivedValue) {
+                    Log.info(`[OnyxDerived] value for key ${key} changed, updating it in Onyx`, false, {old: derivedValue, new: newDerivedValue});
                     derivedValue = newDerivedValue;
                     Onyx.set(key, derivedValue ?? null);
                 }
@@ -124,6 +126,7 @@ function init() {
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
                         callback: (value) => {
+                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(i, value);
                             recomputeDerivedValue();
                         },
@@ -132,6 +135,7 @@ function init() {
                     Onyx.connect({
                         key: dependencyOnyxKey,
                         callback: (value) => {
+                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(i, value);
                             recomputeDerivedValue();
                         },
