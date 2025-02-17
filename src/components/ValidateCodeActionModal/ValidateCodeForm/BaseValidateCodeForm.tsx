@@ -159,7 +159,7 @@ function BaseValidateCodeForm({
             return;
         }
         inputValidateCodeRef.current?.clear();
-    }, [autoFocus, hasMagicCodeBeenSent]);
+    }, [hasMagicCodeBeenSent]);
 
     useFocusEffect(
         useCallback(() => {
@@ -180,7 +180,7 @@ function BaseValidateCodeForm({
                 }
                 clearTimeout(clearInputTimeout.current);
             };
-        }, [autoFocus, hasMagicCodeBeenSent]),
+        }, [hasMagicCodeBeenSent]),
     );
 
     useEffect(() => {
