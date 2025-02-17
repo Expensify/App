@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -8,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import {clearReimbursementAccountBankCreation, createCorpayBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
@@ -69,31 +68,11 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
         [corpayFields, onMove, reimbursementAccountDraft, translate, values],
     );
 
-    const handleSubmit = () => {
-        const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
-
-        createCorpayBankAccount({...reimbursementAccountDraft, ...corpayData} as ReimbursementAccountForm);
-    };
-
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
-            return;
-        }
-
-        if (reimbursementAccount?.isSuccess) {
-            onNext();
-            clearReimbursementAccountBankCreation();
-        }
-
-        return () => clearReimbursementAccountBankCreation();
-    }, [onNext, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
-
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate('common.confirm')}
-            onSubmit={handleSubmit}
+            onSubmit={onNext}
             style={[styles.flexGrow1]}
             submitButtonStyles={styles.mh5}
         >

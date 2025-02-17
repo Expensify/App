@@ -379,9 +379,11 @@ function AttachmentModalBaseContent({
                 text: translate('common.replace'),
                 onSelected: () => {
                     closeModal?.(true);
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
-                    );
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    });
                 },
             });
         }

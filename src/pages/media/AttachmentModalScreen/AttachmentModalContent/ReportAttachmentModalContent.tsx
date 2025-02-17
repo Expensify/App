@@ -135,7 +135,6 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
                       isAuthTokenRequired: !!params.isAuthTokenRequired,
                       attachmentLink: params.attachmentLink ?? '',
                       originalFileName: params.originalFileName ?? '',
-                      fallbackRoute: ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID),
                   },
         [accountID, isLoadingApp, params, report],
     );

@@ -172,7 +172,8 @@ function Composer(
             }}
             onClear={onClear}
             showSoftInputOnFocus={showSoftInputOnFocus}
-            contextMenuHidden={contextMenuHidden}
+            // Prevent the context menu from showing when tapping the composer to focus it on iOS.
+            contextMenuHidden={getPlatform() === CONST.PLATFORM.IOS ? contextMenuHidden : false}
         />
     );
 }

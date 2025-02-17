@@ -2,7 +2,7 @@ import {useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {openReport} from '@libs/actions/Report';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isOneTransactionThread, isTrackExpenseReport} from '@libs/ReportUtils';
@@ -47,7 +47,7 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
     const onModalClose = useCallback(() => {
         // Receipt Page can be opened either from Reports or from Search RHP view
         // We have to handle going back to correct screens, if it was opened from RHP just close the modal, otherwise go to Report Page
-        const rootState = navigationRef.getRootState() as State<RootStackParamList>;
+        const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
         const secondToLastRoute = rootState.routes.at(-2);
         if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             Navigation.dismissModal();

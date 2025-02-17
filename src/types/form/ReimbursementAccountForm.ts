@@ -89,7 +89,6 @@ const INPUT_IDS = {
             OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
             ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
             BENEFICIAL_OWNERS: 'beneficialOwners',
-            ENTITY_CHART: 'entityChart',
             FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
             FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
             COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
@@ -136,7 +135,7 @@ type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
 type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number};
 
 type BeneficialOwnersStepExtraProps = {
-    [key: BeneficialOwnerDataKey]: string;
+    [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
 };
 
@@ -286,9 +285,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Beneficial owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
-
-    /** Entity chart */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]: FileObject[];
 
     /** Fund destination countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
