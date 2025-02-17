@@ -235,7 +235,7 @@ function Expensify() {
         if (!isAuthenticated) {
             return;
         }
-        setCrashlyticsUserId(session?.accountID ?? -1);
+        setCrashlyticsUserId(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     }, [isAuthenticated, session?.accountID]);
 
     useEffect(() => {
