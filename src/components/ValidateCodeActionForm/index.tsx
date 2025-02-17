@@ -1,10 +1,11 @@
 import React, {forwardRef, useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileSafari} from '@libs/Browser';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionFormProps} from './type';
 
@@ -27,6 +28,9 @@ function ValidateCodeActionForm({
     const isUnmounted = useRef(false);
 
     useEffect(() => {
+        if (!isMobileSafari()) {
+            Keyboard.dismiss();
+        }
         sendValidateCode();
 
         return () => {
