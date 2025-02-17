@@ -6185,6 +6185,7 @@ const CONST = {
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
+                DONE: 'done',
                 PAID: 'paid',
             },
             INVOICE: {
