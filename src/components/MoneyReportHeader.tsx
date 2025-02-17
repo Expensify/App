@@ -155,7 +155,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         selector: (allTransactions) =>
             Object.fromEntries(Object.entries(allTransactions ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
     });
-    // Check if there is pending rter violation in all transactionViolations with given transactionIDs.    
+    // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
     // Check if user should see broken connection violation warning.
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy, violations);

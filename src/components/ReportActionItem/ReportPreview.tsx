@@ -78,7 +78,6 @@ import {
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
-    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -235,7 +234,6 @@ function ReportPreview({
         hasActionsWithErrors(iouReportID);
     const lastThreeTransactions = transactions?.slice(-3) ?? [];
     const lastThreeReceipts = lastThreeTransactions.map((transaction) => ({...getThumbnailAndImageURIs(transaction), transaction}));
-    const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const showRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
     const shouldShowBrokenConnectionViolation = numberOfRequests === 1 && shouldShowBrokenConnectionViolationTransactionUtils(transactionIDList, iouReport, policy, violations);
