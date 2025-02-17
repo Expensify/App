@@ -52,12 +52,13 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             return;
         }
 
-        if (selfApproversEmails.length === 0) {
-            setPolicyPreventSelfApproval(policyID, true);
-        } else {
+        const selfApproversEmails = getAllSelfApprovers(policy);
+        if (selfApproversEmails.length > 0) {
             setIsPreventSelfApprovalsModalVisible(true);
+        } else {
+            setPolicyPreventSelfApproval(policyID, true);
         }
-    }
+    }    
 
     const {currentApprovalWorkflows, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
         if (!policy || !personalDetails) {
@@ -74,7 +75,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         return {
             defaultWorkflowMembers: result.availableMembers,
             usedApproverEmails: result.usedApproverEmails,
-            currentApprovalWorkflows: result.approvalWorkflows.filter((workflow) => !workflow.isDefault),
+            currentApprovalWorkflows: result.approvalWorkflows,
         };
     }, [personalDetails, policy]);
 
@@ -265,14 +266,14 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 isVisible={isPreventSelfApprovalsModalVisible}
                 title={translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle')}
                 prompt={translate('workspace.rules.expenseReportRules.preventSelfApprovalsModalText', {
-                    managerEmail: policy?.approver ?? '',
+                    managerEmail: policy?.owner ?? '',
                 })}
                 confirmText={translate('workspace.rules.expenseReportRules.preventSelfApprovalsConfirmButton')}
                 cancelText={translate('common.cancel')}
                 onConfirm={() => {
                     setPolicyPreventSelfApproval(policyID, true);
 
-                    const defaultApprover = policy?.approver ?? policy?.owner;
+                    const defaultApprover = policy?.owner;
                     if (!defaultApprover) {
                         setIsPreventSelfApprovalsModalVisible(false);
                         return;
