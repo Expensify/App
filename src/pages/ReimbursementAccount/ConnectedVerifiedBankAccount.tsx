@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import {requestResetFreePlanBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
+import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -30,9 +30,18 @@ type ConnectedVerifiedBankAccountProps = {
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setUSDBankAccountStep: (step: string | null) => void;
+
+    /** Whether the workspace currency is set to non USD currency */
+    isNonUSDWorkspace: boolean;
 };
 
-function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectedVerifiedBankAccountProps) {
+function ConnectedVerifiedBankAccount({
+    reimbursementAccount,
+    onBackButtonPress,
+    setShouldShowConnectedVerifiedBankAccount,
+    setUSDBankAccountStep,
+    isNonUSDWorkspace,
+}: ConnectedVerifiedBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -85,7 +94,7 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
                         <MenuItem
                             title={translate('workspace.bankAccount.disconnectBankAccount')}
                             icon={Close}
-                            onPress={requestResetFreePlanBankAccount}
+                            onPress={requestResetBankAccount}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             disabled={!!pendingAction || !isEmptyObject(errors)}
                         />
@@ -95,6 +104,7 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
             {shouldShowResetModal && (
                 <WorkspaceResetBankAccountModal
                     reimbursementAccount={reimbursementAccount}
+                    isNonUSDWorkspace={isNonUSDWorkspace}
                     setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                     setUSDBankAccountStep={setUSDBankAccountStep}
                 />

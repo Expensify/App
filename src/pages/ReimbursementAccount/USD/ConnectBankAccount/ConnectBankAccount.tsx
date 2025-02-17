@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import ConnectedVerifiedBankAccount from '@pages/ReimbursementAccount/ConnectedVerifiedBankAccount';
 import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
@@ -35,6 +36,8 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
 
     const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
+    const policyCurrency = policy?.outputCurrency ?? '';
+    const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
     if (bankAccountState === BankAccount.STATE.OPEN) {
@@ -44,6 +47,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                 onBackButtonPress={onBackButtonPress}
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
+                isNonUSDWorkspace={isNonUSDWorkspace}
             />
         );
     }

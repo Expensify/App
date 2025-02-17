@@ -70,8 +70,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(policyCurrency as CurrencyType);
-    const isUSDWorkspace = policyCurrency === CONST.CURRENCY.USD;
+    const hasUnsupportedCurrency = !CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(policyCurrency as CurrencyType);
+    const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -108,12 +108,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     /** Calculates the state used to show the "Continue with setup" view. */
     const getShouldShowContinueSetupButtonValue = useCallback(() => {
-        if (isUSDWorkspace) {
+        if (isNonUSDWorkspace) {
             return hasInProgressNonUSDVBBA();
         }
 
         return hasInProgressVBBA();
-    }, [isUSDWorkspace, hasInProgressNonUSDVBBA, hasInProgressVBBA]);
+    }, [isNonUSDWorkspace, hasInProgressNonUSDVBBA, hasInProgressVBBA]);
 
     /**
      When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx.
@@ -167,9 +167,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         }
 
         // TODO double check condition for non USD accounts - will be done in https://github.com/Expensify/App/issues/50912
-        setShouldShowConnectedVerifiedBankAccount(isUSDWorkspace ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
+        setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
-    }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, getShouldShowContinueSetupButtonValue, isUSDWorkspace, isPreviousPolicy]);
+    }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, getShouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy]);
 
     useEffect(
         () => {
@@ -387,11 +387,12 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 setUSDBankAccountStep={setUSDBankAccountStep}
                 onBackButtonPress={goBack}
+                isNonUSDWorkspace={isNonUSDWorkspace}
             />
         );
     }
 
-    if (isUSDWorkspace && nonUSDBankAccountStep !== null) {
+    if (isNonUSDWorkspace && nonUSDBankAccountStep !== null) {
         return (
             <NonUSDVerifiedBankAccountFlow
                 nonUSDBankAccountStep={nonUSDBankAccountStep}
@@ -417,13 +418,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     return (
         <VerifiedBankAccountFlowEntryPoint
             reimbursementAccount={reimbursementAccount}
-            onContinuePress={isUSDWorkspace ? continueNonUSDVBBASetup : continueUSDVBBASetup}
+            onContinuePress={isNonUSDWorkspace ? continueNonUSDVBBASetup : continueUSDVBBASetup}
             policyName={policyName}
             isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
             toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
             onBackButtonPress={Navigation.goBack}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
-            hasForeignCurrency={isUSDWorkspace}
+            isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}
             setUSDBankAccountStep={setUSDBankAccountStep}
         />
