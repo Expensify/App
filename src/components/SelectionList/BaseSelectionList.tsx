@@ -151,19 +151,22 @@ function BaseSelectionList<TItem extends ListItem>(
     const {singleExecution} = useSingleExecution();
     const [itemHeights, setItemHeights] = useState<Map<string, number>>(new Map());
     const itemHeightsRef = useRef(new Map<string, number>());
-    const onItemLayout = useCallback((event: LayoutChangeEvent, itemKey: string | null | undefined) => {
-        if (!itemKey) {
-            return;
-        }
+    const onItemLayout = useCallback(
+        (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
+            if (!itemKey) {
+                return;
+            }
 
-        const {height} = event.nativeEvent.layout;
+            const {height} = event.nativeEvent.layout;
 
-        // Only update when height is different from the default
-        if (height !== defaultItemHeight && itemHeightsRef.current.get(itemKey) !== height) {
-            itemHeightsRef.current.set(itemKey, height);
-            setItemHeights(new Map(itemHeightsRef.current));
-        }
-    }, []);
+            // Only update when height is different from the default
+            if (height !== defaultItemHeight && itemHeightsRef.current.get(itemKey) !== height) {
+                itemHeightsRef.current.set(itemKey, height);
+                setItemHeights(new Map(itemHeightsRef.current));
+            }
+        },
+        [defaultItemHeight],
+    );
 
     // Initialize item heights when sections change
     useEffect(() => {
@@ -179,7 +182,7 @@ function BaseSelectionList<TItem extends ListItem>(
         });
 
         itemHeightsRef.current = newItemHeights;
-    }, [sections]);
+    }, [defaultItemHeight, sections]);
 
     const incrementPage = useCallback(() => setCurrentPage((prev) => prev + 1), []);
 

@@ -499,7 +499,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)), data);
     }, [clearSelectedTransactions, data, selectedTransactions, setSelectedTransactions, status]);
 
-    const containerStyles = useMemo(() => [styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3], [type, isSmallScreenWidth]);
+    const containerStyles = useMemo(() => [styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3], [type, isSmallScreenWidth, styles]);
     const openReport = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
