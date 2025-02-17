@@ -1073,7 +1073,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
     JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
-    OPEN_REPORT: 'OpenReport',
     RECONNECT_APP: 'ReconnectApp',
     ADD_PAYMENT_CARD_GBP: 'AddPaymentCardGBP',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
@@ -1092,7 +1091,6 @@ type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
 
 type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;

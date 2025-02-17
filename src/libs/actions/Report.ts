@@ -910,6 +910,8 @@ function openReport(
         },
     ];
 
+    const finallyData: OnyxUpdate[] = [];
+
     const parameters: OpenReportParams = {
         reportID,
         reportActionID,
@@ -1118,18 +1120,16 @@ function openReport(
     };
 
     if (isFromDeepLink) {
-        API.paginate(
-            CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
-            SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT,
-            parameters,
-            {optimisticData, successData, failureData},
-            paginationConfig,
-        ).finally(() => {
-            Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+        finallyData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+            value: false,
         });
+
+        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData, finallyData}, paginationConfig);
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig, {
+        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData, finallyData}, paginationConfig, {
             checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
         });
     }

@@ -41,7 +41,7 @@ abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 /**
  * The API commands that require the skew calculation
  */
-const addSkewList: string[] = [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP];
+const addSkewList: string[] = [WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP];
 
 /**
  * Regex to get API command from the command
