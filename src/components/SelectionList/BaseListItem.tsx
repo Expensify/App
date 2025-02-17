@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useRef} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,7 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
-import { GestureResponderEvent } from 'react-native-modal';
 
 function BaseListItem<TItem extends ListItem>({
     item,
