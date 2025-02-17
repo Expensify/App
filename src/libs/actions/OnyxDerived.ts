@@ -1,3 +1,10 @@
+/**
+ * This file contains logic for derived Onyx keys. The idea behind derived keys is that if there is a common computation
+ * that we're doing in many places across the app to derive some value from multiple Onyx values, we can move that
+ * computation into this file, run it only once, and then share it across the app by storing the result of that computation in Onyx.
+ *
+ * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
+ */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
