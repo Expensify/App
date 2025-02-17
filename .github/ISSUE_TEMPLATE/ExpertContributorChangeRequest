@@ -18,11 +18,9 @@ labels: Daily, Task, ring0
 
 Do you want to remove this developer from the team? YES/NO
 
-### Tasks
+### Tasks for ring0 assignee
 
-The issue creator, please check the name of the team to add this developer to.
-
-- [ ] Add to the appropriate GitHub child team of external-expert-contributors (each agency must have its own child team): https://github.com/orgs/Expensify/teams/external-expert-contributors/teams
+- [ ] Add to the appropriate GitHub child team of [external-expert-contributors](https://github.com/orgs/Expensify/teams/external-expert-contributors/teams) (each agency must have its own child team)
 - [ ] Add to Slack channels using Slack Connect: 
     - [ ] [#quality](https://expensify.enterprise.slack.com/archives/C05LX9D6E07)
     - [ ] [#convert](https://expensify.enterprise.slack.com/archives/C07HPDRELLD)
