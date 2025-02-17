@@ -30,6 +30,8 @@ import ModalContext from './Modal/ModalContext';
 import OfflineIndicator from './OfflineIndicator';
 import withNavigationFallback from './withNavigationFallback';
 
+const includeSafeAreaPaddingBottom = false;
+
 type ScreenWrapperChildrenProps = {
     insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
@@ -124,7 +126,6 @@ function ScreenWrapper(
         shouldEnableMinHeight = false,
         includePaddingTop = true,
         keyboardAvoidingViewBehavior = 'padding',
-        includeSafeAreaPaddingBottom = true,
         shouldEnableKeyboardAvoidingView = true,
         shouldEnablePickerAvoiding = true,
         headerGapStyles,
@@ -263,7 +264,6 @@ function ScreenWrapper(
 
     const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
     const paddingTopStyle: StyleProp<ViewStyle> = {};
-    const paddingBottomStyle: StyleProp<ViewStyle> = {};
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     if (includePaddingTop) {
@@ -273,18 +273,16 @@ function ScreenWrapper(
         paddingTopStyle.paddingTop = unmodifiedPaddings.top;
     }
 
+    const bottomContentStyle: StyleProp<ViewStyle> = safeAreaPaddingBottomStyle;
     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-    if (includeSafeAreaPaddingBottom) {
-        paddingBottomStyle.paddingBottom = paddingBottom;
-    }
     if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
-        paddingBottomStyle.paddingBottom = unmodifiedPaddings.bottom;
+        bottomContentStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
         () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
-        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
+        [didScreenTransitionEnd, isSafeAreaTopPaddingApplied],
     );
 
     return (
@@ -352,7 +350,7 @@ function ScreenWrapper(
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
                 </View>
-                <View style={paddingBottomStyle}>{bottomContent}</View>
+                {bottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
             </View>
         </FocusTrapForScreens>
     );
