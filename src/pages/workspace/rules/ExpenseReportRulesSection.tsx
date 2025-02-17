@@ -52,8 +52,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             return;
         }
 
-        const selfApproversEmails = getAllSelfApprovers(policy);
-        if (selfApproversEmails.length > 0) {
+        const allSelfApproversEmails = getAllSelfApprovers(policy);
+        if (allSelfApproversEmails.length > 0) {
             setIsPreventSelfApprovalsModalVisible(true);
         } else {
             setPolicyPreventSelfApproval(policyID, true);
