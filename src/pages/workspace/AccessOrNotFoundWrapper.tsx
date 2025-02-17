@@ -92,7 +92,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
             shouldShowOfflineIndicator={false}
             onBackButtonPress={() => {
                 if (isPolicyNotAccessible) {
-                    Navigation.dismissModal();
+                    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
                     return;
                 }
                 Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined);

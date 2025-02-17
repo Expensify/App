@@ -92,11 +92,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
                             {`${translate('travel.termsAndConditions.subtitle')}`}
                             <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
                         </Text>
-                        <Text style={styles.mt6}>
-                            {`${translate('travel.termsAndConditions.helpDocIntro')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('travel.termsAndConditions.helpDoc')} `}</TextLink>
-                            {`${translate('travel.termsAndConditions.helpDocOutro')}`}
-                        </Text>
                         <CheckboxWithLabel
                             style={styles.mt6}
                             accessibilityLabel={translate('travel.termsAndConditions.travelTermsAndConditions')}
