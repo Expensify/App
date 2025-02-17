@@ -241,4 +241,42 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxAmount).toBe(5);
         });
     });
+
+    describe('shouldShowRTERViolationMessage', () => {
+        it('should return true if transaction is receipt being scanned', () => {
+            const transaction = generateTransaction({
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANREADY,
+                },
+            });
+            expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
+        });
+    });
+
+    describe('calculateTaxAmount', () => {
+        it('returns 0 for undefined percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for empty percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount('', 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for zero percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount('0%', 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for zero amount', () => {
+            const result = TransactionUtils.calculateTaxAmount('10%', 0, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns correct tax amount for valid percentage and amount', () => {
+            const result = TransactionUtils.calculateTaxAmount('10%', 10000, 'USD');
+            expect(result).toBe(9.09);
+        });
+    });
 });
