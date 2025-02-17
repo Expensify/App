@@ -83,6 +83,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.mb0]}
+            enabledWhenOffline
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{formTitle}</Text>
             <InputWrapper

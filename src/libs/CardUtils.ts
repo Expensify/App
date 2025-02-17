@@ -98,11 +98,19 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards) {
-    const feedCards: CardList = {...cardList};
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
+    const feedCards: CardList = {};
+    Object.values(cardList).forEach((card) => {
+        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+            return;
+        }
+
+        feedCards[card.cardID] = card;
+    });
+
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
         Object.values(currentCardFeed ?? {}).forEach((card) => {
-            if (!isCard(card)) {
+            if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
                 return;
             }
             feedCards[card.cardID] = card;
