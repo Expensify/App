@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormProviderProps} from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -60,7 +60,7 @@ const story: Meta<typeof FormProvider> = {
         CheckboxWithLabel: CheckboxWithLabel as ComponentType<unknown>,
         Picker: Picker as ComponentType<unknown>,
         StateSelector: StateSelector as ComponentType<unknown>,
-        DateInputModalPicker: DateInputModalPicker as ComponentType<unknown>,
+        DatePicker: DatePicker as ComponentType<unknown>,
     },
 };
 
@@ -105,7 +105,7 @@ function Template(props: FormProviderProps & FormProviderOnyxProps) {
                 hint="common.noPO"
             />
             <InputWrapper
-                InputComponent={DateInputModalPicker}
+                InputComponent={DatePicker}
                 inputID="dob"
                 label="Date of Birth"
                 containerStyles={defaultStyles.mt4}

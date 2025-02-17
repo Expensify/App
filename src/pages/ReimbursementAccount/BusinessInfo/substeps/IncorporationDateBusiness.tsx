@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getFieldRequiredErrors, isValidDate, isValidPastDate} from '@libs/ValidationUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -35,11 +35,11 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.incorporationDate && !isValidDate(values.incorporationDate)) {
+            if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
                 errors.incorporationDate = translate('common.error.dateInvalid');
-            } else if (values.incorporationDate && !isValidPastDate(values.incorporationDate)) {
+            } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
                 errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
             }
 
@@ -67,7 +67,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
             <InputWrapper
-                InputComponent={DateInputModalPicker}
+                InputComponent={DatePicker}
                 inputID={COMPANY_INCORPORATION_DATE_KEY}
                 label={translate('businessInfoStep.incorporationDate')}
                 containerStyles={[styles.mt6]}
