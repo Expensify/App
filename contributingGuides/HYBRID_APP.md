@@ -1,17 +1,17 @@
 # What is HybridApp?
-Every React Native mobile application needs native codebase with an entry point, known as `ReactRootView`. Depending on the platform the implementation differs. Nevertheless as a rule of thumb we can say that React Native just needs a **native** screen where JavaScript runtime can manipulate components and views.
+Every React Native mobile application needs native codebase with an entry point, known as `ReactRootView`. Depending on the platform the implementation differs. Nevertheless as a rule of thumb we can say that React Native just needs a **native** screen where JavaScript runtime can manipulate components and views. 
 
-It means that whenever we create a React Native application from scratch we instantiate it on a (very basic, bare) native codebase. However, we can always use a different, already existing codebase to run React Native. This is how we've built HybridApp - we've created a new `ReactRootView`, and taken all JavaScript code to run it in so-called OldDot.
+It means that whenever we create a React Native application from scratch we instantiate it on a (very basic, bare) native codebase. However, we can always use a different, already existing codebase to run React Native. This is how we've built HybridApp - we've created a new `ReactRootView`, and taken all JavaScript code to run it within the existing mobile application (OldDot).
 
-It means that HybridApp is a **regular native application**, which has an additional screen that runs React Native. 
+It means that HybridApp is a **regular native application**, which has an additional screen that runs React Native. HybridApp let us combine New Expensify and our classic app into a single mobile app for a seemless migration
 # How is HybridApp built?
-If you have access to the `Mobile-Expensify` repository, you are eligible to build HybridApp. The main difference between NewDot and HybridApp is that the native code is located in a different place. The native code is located under `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS
+If you have access to the closed-source `Mobile-Expensify` repository, you are eligible to build HybridApp. The main difference between NewDot and HybridApp is that the native code is located in a different place. The native code is located under `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS`.
 
 It is vital to understand, that modifying any code in `./android` and `./ios` folders in the root of the project **will not affect the HybridApp build at all.** In this case, if you'd like to change native code, you have to go to `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS` first. This is **especially important** when you want to remove native cache or `Pods` manually. 
 # How do the scripts work?
 While working on the HybridApp we've prepared a set of scripts to make the work with HybridApp easier. In general, the scripts `npm install`, `npm run clean`, `npm run android`, and `npm run ios` work on the following condition:
 
-**If you have cloned HybridApp to `Mobile-Expensify` submodule, change the default behaviour of the scripts to build HybridApp instead of NewDot.**
+**If you have cloned HybridApp to `Mobile-Expensify` submodule, the default behaviour of the scripts changes to build HybridApp instead of NewDot.**
 
 In that case, what are the differences in each script?
 
@@ -24,11 +24,11 @@ In that case, what are the differences in each script?
 	2. apply patches from `./patches`
 	3. cd to `Mobile-Expensify`
 	4. install `node_modules` for OldDot
-	5. apply patches from `./Mobile-Expensify/patches` -> for more info refer to [[#Patches]]
+	5. apply patches from `./Mobile-Expensify/patches` -> for more info refer to [Patches](#Patches)
 
 ## `npm run clean`
 - **Without access to HybridApp**: 
-	1. clean all cache for NewDot by running `npx react-native clean-project-auto` 
+	1. clean all caches for NewDot by running `npx react-native clean-project-auto` 
 	2. remove the following (you can find full documentation [here](https://github.com/pmadruga/react-native-clean-project?tab=readme-ov-file#content))
 		- `./node_modules`
 		- `./ios/Pods`
@@ -76,10 +76,10 @@ If you change the `Mobile-Expensify` code, it will be seen by `Expensify/App` as
 
 IMPORTANT: Please execute the following commands form the root of the project!
 - `git submodule update --init` 
-	- it initialises the submodule, and pulls the `Mobile-Expensify` code from the commit set in `Expesnify/App`. 
+	- it initialises the submodule, and pulls the `Mobile-Expensify` code from the commit set in `Expensify/App`. 
 	- **IMPORTANT**: If you already have the `Mobile-Expensify` code, you don't need to run the command with `--init` flag.
 - `git submodule update` 
-	- it pulls the `Mobile-Expensify` code from the commit set in `Expesnify/App`. 
+	- it pulls the `Mobile-Expensify` code from the commit set in `Expensify/App`. 
 	- **very similar to:** `git checkout <COMMIT_HASH>`
 - `git submodule update --remote` 
 	- it pulls the `Mobile-Expensify` code from the newest `main` on the remote repository.
@@ -90,6 +90,10 @@ There is a set of patches, that gets applied only to HybridApp. They are not req
 1. `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
 The `patch-package` takes `.patch` files, and applies the diff to `node_modules` after executing `npm install`. It means that if you'd like to build NewDot after HybridApp, it is best to remove `node_modules`, and run `npm run i-standalone` to make sure that HybridApp-specific patches won't be applied.
+# Environmental variables
+If you need to setup your local environment, you can create a `.env` file in the root of the project (aka `Expensify/App`). The variables will be included into the **native build**, which means that in case of HybridApp they will be also visible on the OldDot side. There is no need to have another `.env` file in `Mobile-Expensify`.
+
+If there are some connection problems with your local backend, please make sure you've included `ENVIRONMENT=development` in your `.env` file.
 # Pro Tips & Troubleshooting
 ## General
 
@@ -101,7 +105,7 @@ There are multiple thing that may cause the build to fail. This is a simple chec
 4. Check if you have a recent version of the `Mobile-Expensify` submodule
 	- if not, execute `git submodule update`, and rerun the build
 5. Clean the cache by executing `npm run clean` (with proper platform flags)
-If the problem still exists, please share the error on the open source channel
+If the problem still exists, please share the error in the #expensify-open-source channel
 ### What if I want to build a standalone NewDot?
 There are additional helper scripts, that will help you to run a standalone NewDot, even if you have access to `Mobile-Expensify`, and the default behaviour of the scripts builds HybridApp. 
 
@@ -121,7 +125,7 @@ It's a valid question, especially because clean builds may take some time. On th
 4. Whenever you've updated `.env` files
 This means that if you changed only React Native code, and didn't pull any changes, the rebuilt is probably not necessary. If something doesn't work, you can always restart the Metro bundler using the following command `npm run start --reset-cache`
 ### Should I rebuild HybridApp after bumping a `node_modules` library?
-The `package-lock.json` file contains information about exact versions of `node_modules` that will be installed on your machine. If you've bumped a dependency on your PR you can easily see if you would need to rebuild the app. In this case go to the `./node_modules/<PACKAGE_NAME>`, and see if there are any Objective-C, Swift, Java, Kotlin or C++ files. Usually they are located in `ios` or `android` folders.
+The `package-lock.json` file contains information about exact versions of `node_modules` that will be installed on your machine. If you've bumped a dependency on your PR you can easily check to see if you would need to rebuild the app by going to the `./node_modules/<PACKAGE_NAME>`, and seeing if there are any Objective-C, Swift, Java, Kotlin or C++ files. Usually they are located in `ios` or `android` folders.
 ### How to clear platform-specific cache?
 Executing `npm run clean` clears cache for React Native, Android, and iOS. It means that the whole process may take a while, even though you try to build only one platform. In this case you case you can pass additional arguments to specify which cache should be cleared in order to save some time:
 - **React Native:** `npm run clean -- --react-native` 
@@ -168,7 +172,7 @@ This way the debug app will get installed from the terminal. Alternatively you c
 You can do a similar thing for NewDot if you know the path to the generated `.apk`. In this case you can reuse the `adb install` command providing a different path.
 
 If you'd like to list all available `.apk`s to install them on your device you can run the following commands:
-- **HybridApp**: `find Mobile-Expensify/Android/build/outputs -name "*.apk
+- **HybridApp**: `find Mobile-Expensify/Android/build/outputs -name "*.apk`
 - **NewDot:** `find android/app/build/outputs -name "*.apk` 
 ### Build HybridApp in the `release` configuration
 If you'd like to build HybridApp in `release` configuration you need to adjust one thing in the code, and run the build manually from the terminal. 
