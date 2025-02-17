@@ -242,17 +242,6 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('shouldShowRTERViolationMessage', () => {
-        it('should return true if transaction is receipt being scanned', () => {
-            const transaction = generateTransaction({
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.SCANREADY,
-                },
-            });
-            expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
-        });
-    });
-
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 'USD');

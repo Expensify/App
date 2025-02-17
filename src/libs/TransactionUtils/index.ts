@@ -1369,10 +1369,6 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
     });
 }
 
-function shouldShowRTERViolationMessage(transactions?: Transaction[]) {
-    return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0)?.transactionID, allTransactionViolations));
-}
-
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1459,7 +1455,6 @@ export {
     getFormattedPostedDate,
     getCategoryTaxCodeAndAmount,
     isPerDiemRequest,
-    shouldShowRTERViolationMessage,
 };
 
 export type {TransactionChanges};
