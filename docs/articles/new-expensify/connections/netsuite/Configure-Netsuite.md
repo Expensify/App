@@ -121,7 +121,6 @@ In addition to inviting employees, this feature enables a custom set of approval
 When Auto Sync is enabled and you reimburse employees through Expensify, we help to automatically send finalized expenses to NetSuite. The timing of the export depends on the type of expense it is. 
 
 - **If you reimburse members through Expensify:** Reimbursing an expense report will trigger auto-export to NetSuite. When the expense report is exported to NetSuite, a corresponding bill payment will also be created in NetSuite.
-
 - **If you reimburse members outside of Expensify:** Expense reports will be exported to NetSuite at the time of final approval. After you mark the report as paid in NetSuite, the reimbursed status will be synced back to Expensify the next time the integration syncs.
 
 ## How do I configure my default corporate cards in NetSuite?
