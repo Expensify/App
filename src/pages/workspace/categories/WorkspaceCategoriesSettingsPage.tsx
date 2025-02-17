@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import CategorySelectorModal from '@components/CategorySelector/CategorySelectorModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -82,7 +82,11 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         if (categoryID !== selectedCategory.keyForList) {
             setWorkspaceDefaultSpendCategory(policyID, groupID, selectedCategory.keyForList);
         }
-        setIsSelectorModalVisible(false);
+
+        Keyboard.dismiss();
+        InteractionManager.runAfterInteractions(() => {
+            setIsSelectorModalVisible(false);
+        });
     };
 
     return (
