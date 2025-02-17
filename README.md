@@ -29,6 +29,7 @@
 * [Contributor License Agreement](contributingGuides/CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
 * [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
+* [HybridApp - additional info & troubleshooting](contributingGuides/HYBRID_APP.md)
 
 ----
 
@@ -556,25 +557,9 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 
 `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
-### HybridApp troubleshooting
+### Additional information and troubleshooting
 
-#### Cleaning the repo
-- `npm run clean` - deep clean of all HybridApp artifacts (including NewDot's `node_modules`)
-- `npm run clean -- --ios` - clean only iOS HybridApp artifacts (`Pods`, `build` folder, `DerivedData`)
-- `npm run clean -- --android` - clean only Android HybridApp artifacts (`.cxx`, `build`, and `.gradle` folders, execute `./gradlew clean`)
-
-If you'd like to do it manually, remember to `cd Mobile-Expensify` first!
-
-#### Common errors
-1. **Please check your internet connection** - set `_isOnDev` in `api.js` to always return `false` 
-2. **CDN: trunk URL couldn't be downloaded** - `cd Mobile-Expensify/iOS && pod repo remove trunk`
-
-3. **Task :validateSigningRelease FAILED** - open `Mobile-Expensify/Android/build.gradle` and do the following:
-    ```
-    - signingConfig signingConfigs.release
-    + signingConfig signingConfigs.debug
-    ```
-4. **Build service could not create build operation: unknown error while handling message: MsgHandlingError(message: "unable to initiate PIF transfer session (operation in progress?)")** - reopen XCode
+If you seek some addtional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
 
 ----
 
