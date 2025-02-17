@@ -328,12 +328,6 @@ type SafeAreaPadding = {
     paddingBottom: number;
     paddingLeft: number;
     paddingRight: number;
-
-    /**
-     * If we the device has a gesture bar (soft keys or gesture bar), this is the height of the gesture bar.
-     * Since `paddingBottom` is set to 0 on devices with gesture bar, this value is used to add padding to the bottom of the screen if necessary.
-     */
-    gestureBarHeight: number;
 };
 
 /**
@@ -341,16 +335,6 @@ type SafeAreaPadding = {
  */
 function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
     const platform = getPlatform();
-    const navigationBarType = getNavigationBarType(insets);
-
-    // If the navigation bar is a gesture bar, we want `paddingBottom` to be 0,
-    // while providing the `gestureBarHeight` as an extra property
-    let platformBottomInset = insets?.bottom ?? 0;
-    let gestureBarHeight = 0;
-    if (navigationBarType === CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR) {
-        gestureBarHeight = platformBottomInset;
-        platformBottomInset = 0;
-    }
 
     let insetsPercentage = insetsPercentageProp;
     if (insetsPercentage == null) {
@@ -368,10 +352,9 @@ function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: 
 
     return {
         paddingTop: insets?.top ?? 0,
-        paddingBottom: platformBottomInset * insetsPercentage,
+        paddingBottom: insets?.bottom ?? 0 * insetsPercentage,
         paddingLeft: (insets?.left ?? 0) * insetsPercentage,
         paddingRight: (insets?.right ?? 0) * insetsPercentage,
-        gestureBarHeight,
     };
 }
 
@@ -1268,6 +1251,7 @@ const staticStyleUtils = {
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
+    getNavigationBarType,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
