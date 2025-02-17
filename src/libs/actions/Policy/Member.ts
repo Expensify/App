@@ -342,7 +342,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
         policy?.name ?? '',
         accountIDs.filter((accountID) => {
             const login = allPersonalDetails?.[accountID]?.login;
-            return login && policy?.employeeList?.[login]?.role !== CONST.POLICY.ROLE.USER;
+            const role = login ? policy?.employeeList?.[login]?.role : '';
+            return role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR;
         }),
     );
 
@@ -694,7 +695,11 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
-    const adminRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID, role !== CONST.POLICY.ROLE.USER ? accountIDs : []);
+    const adminRoomMembers = buildRoomMembersOnyxData(
+        CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+        policyID,
+        role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR ? accountIDs : [],
+    );
     const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs]);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
