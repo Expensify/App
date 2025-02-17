@@ -12,4 +12,4 @@ function getAttachmentSource(source?: number | string) {
     return processedSource;
 }
 
-export {getAttachmentSource};
+export default getAttachmentSource;

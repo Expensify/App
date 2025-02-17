@@ -4,7 +4,7 @@ import AttachmentModal from '@components/AttachmentModal';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
-import {getAttachmentSource} from '@libs/AttachmentUtils';
+import getAttachmentSource from '@libs/AttachmentUtils';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -33,18 +33,17 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         if (isOffline || isReportNotFound(report) || !reportID) {
             return false;
         }
-        if (isLoadingApp || isEmptyObject(report)) {
-            return true;
-        }
-        return !report.reportID || isEmptyObject(reportActions);
-    }, [isLoadingApp, report, isOffline, reportID]);
+        const isLoadingReport = isEmptyObject(report) || isEmptyObject(reportActions);
+        return isLoadingApp || isLoadingReport || !report?.reportID;
+    }, [isLoadingApp, report, isOffline, reportID, reportActions]);
+
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
     const source = Number(route.params.source) || route.params.source;
     const attachmentSource = useMemo(() => getAttachmentSource(source), [source]);
 
     const fetchReport = useCallback(() => {
         openReport(reportID);
-    }, [reportID, openReport]);
+    }, [reportID]);
 
     const fetchReportIfNeeded = useCallback(() => {
         if (report?.reportID) {
@@ -52,15 +51,15 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         }
 
         fetchReport();
-    }, [report, reportID, fetchReport]);
+    }, [report, fetchReport]);
 
     useEffect(() => {
-        if (!reportID || isLoadingApp) {
+        if (!reportID || isLoadingApp || !isEmptyObject(report)) {
             return;
         }
 
         fetchReportIfNeeded();
-    }, [reportID, isLoadingApp]);
+    }, [reportID, isLoadingApp, fetchReportIfNeeded]);
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
