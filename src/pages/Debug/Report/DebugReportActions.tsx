@@ -8,7 +8,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportActionMessageText, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import Parser from '@libs/Parser';
+import {getReportActionHtml, getReportActionMessageText, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,11 +35,16 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 (reportAction) =>
                     reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionMessageText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
             )
-            .map((reportAction) => ({
-                reportActionID: reportAction.reportActionID,
-                text: getReportActionMessageText(reportAction),
-                alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
-            }));
+            .map((reportAction) => {
+                const htmlMessage = getReportActionHtml(reportAction);
+                return {
+                    reportActionID: reportAction.reportActionID,
+                    text: htmlMessage
+                        ? Parser.htmlToText(htmlMessage.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'))
+                        : getReportActionMessageText(reportAction),
+                    alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
+                };
+            });
     }, [sortedAllReportActions, debouncedSearchValue, datetimeToCalendarTime]);
 
     return (
