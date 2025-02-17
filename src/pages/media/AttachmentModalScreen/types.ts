@@ -1,5 +1,5 @@
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalContent/BaseContent';
 
@@ -40,6 +40,6 @@ type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
         isFromReviewDuplicates?: boolean;
     };
 
-type AttachmentModalScreenProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
+type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.ATTACHMENTS>;
 
 export type {AttachmentModalScreenParams, AttachmentModalScreenModalCallbacks, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse};
