@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -9,10 +9,10 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateDraftCustomStatus} from '@libs/actions/User';
+import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDatePassedError, getFieldRequiredErrors} from '@libs/ValidationUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
@@ -34,13 +34,13 @@ function SetDatePage({customStatus}: SetDatePageProps) {
     const customClearAfter = customStatus?.clearAfter ?? '';
 
     const onSubmit = (value: DateTime) => {
-        updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, value.dateTime)});
+        User.updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, value.dateTime)});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME]);
-        const dateError = getDatePassedError(values.dateTime);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME]);
+        const dateError = ValidationUtils.getDatePassedError(values.dateTime);
 
         if (values.dateTime && dateError) {
             errors.dateTime = dateError;
@@ -67,7 +67,7 @@ function SetDatePage({customStatus}: SetDatePageProps) {
                 enabledWhenOffline
             >
                 <InputWrapper
-                    InputComponent={DateInputModalPicker}
+                    InputComponent={DatePicker}
                     inputID={INPUT_IDS.DATE_TIME}
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}

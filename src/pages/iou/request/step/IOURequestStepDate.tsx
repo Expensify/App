@@ -2,17 +2,17 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isValidMoneyRequestType, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty, getFormattedCreated} from '@libs/TransactionUtils';
-import {setDraftSplitTransaction, setMoneyRequestCreated, updateMoneyRequestDate} from '@userActions/IOU';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -70,12 +70,14 @@ function IOURequestStepDate({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
-    const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
+    const currentCreated =
+        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getFormattedCreated(splitDraftTransaction) : TransactionUtils.getFormattedCreated(transaction);
     const parentReportAction = reportActions?.[(isEditingSplitBill ? reportActionID : report?.parentReportActionID) ?? -1];
-    const canEditingSplitBill = isEditingSplitBill && session && parentReportAction && session.accountID === parentReportAction.actorAccountID && areRequiredFieldsEmpty(transaction);
-    const canEditMoneyRequest = isEditing && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
+    const canEditingSplitBill =
+        isEditingSplitBill && session && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
+    const canEditMoneyRequest = isEditing && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFound = !isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill);
+    const shouldShowNotFound = !IOUUtils.isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -92,17 +94,17 @@ function IOURequestStepDate({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transaction?.transactionID ?? '-1', {created: newCreated});
+            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {created: newCreated});
             navigateBack();
             return;
         }
 
-        const isTransactionDraft = shouldUseTransactionDraft(action);
+        const isTransactionDraft = IOUUtils.shouldUseTransactionDraft(action);
 
-        setMoneyRequestCreated(transaction?.transactionID ?? '-1', newCreated, isTransactionDraft);
+        IOU.setMoneyRequestCreated(transaction?.transactionID ?? '-1', newCreated, isTransactionDraft);
 
         if (isEditing) {
-            updateMoneyRequestDate(transaction?.transactionID ?? '-1', reportID, newCreated, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestDate(transaction?.transactionID ?? '-1', reportID, newCreated, policy, policyTags, policyCategories);
         }
 
         navigateBack();
@@ -125,7 +127,7 @@ function IOURequestStepDate({
                 enabledWhenOffline
             >
                 <InputWrapper
-                    InputComponent={DateInputModalPicker}
+                    InputComponent={DatePicker}
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     label={translate('common.date')}
                     defaultValue={currentCreated}

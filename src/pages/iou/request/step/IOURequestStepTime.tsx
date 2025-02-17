@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -121,7 +121,7 @@ function IOURequestStepTime({
                 enabledWhenOffline
             >
                 <InputWrapper
-                    InputComponent={DateInputModalPicker}
+                    InputComponent={DatePicker}
                     inputID={INPUT_IDS.START_DATE}
                     label={translate('iou.startDate')}
                     defaultValue={currentStartDate}
@@ -137,7 +137,7 @@ function IOURequestStepTime({
                     />
                 </View>
                 <InputWrapper
-                    InputComponent={DateInputModalPicker}
+                    InputComponent={DatePicker}
                     inputID={INPUT_IDS.END_DATE}
                     label={translate('iou.endDate')}
                     defaultValue={currentEndDate}

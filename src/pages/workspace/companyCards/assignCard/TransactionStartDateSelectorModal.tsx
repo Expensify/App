@@ -1,5 +1,5 @@
 import React from 'react';
-import DateInputModalPicker from '@components/DatePicker/DaterInputWithPicker';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -67,7 +67,7 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
                     validate={validate}
                 >
                     <InputWrapper
-                        InputComponent={DateInputModalPicker}
+                        InputComponent={DatePicker}
                         inputID={INPUT_IDS.START_DATE}
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         maxDate={new Date()}
