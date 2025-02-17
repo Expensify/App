@@ -10,7 +10,7 @@ function TaskTitleRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const isFirstNodeNameH1 = tnode?.children?.at(0)?.domNode?.name === 'h1';
 
     return (
-        <View style={[isFirstNodeNameH1 && {marginTop: -8}]}>
+        <View style={[isFirstNodeNameH1 && {marginTop: -8}, styles.dInline]}>
             <TNodeChildrenRenderer
                 tnode={tnode}
                 renderChild={(props) => {
