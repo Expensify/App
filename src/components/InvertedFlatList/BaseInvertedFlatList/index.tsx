@@ -4,6 +4,7 @@ import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFl
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
 import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import RenderTaskQueue from './RenderTaskQueue';
 
@@ -98,7 +99,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         }
 
         // When autoscrollToTopThreshold is not set on iOS, we want to set maintainVisibleContentPosition to undefined casue it was causing issues when scrolling up
-        if (getPlatform() === 'ios') {
+        if (getPlatform() === CONST.PLATFORM.IOS) {
             return undefined;
         }
 
