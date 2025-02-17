@@ -2,6 +2,9 @@ name: 'Setup Git for OSBotify'
 description: 'Setup Git for OSBotify'
 
 inputs:
+  OP_VAULT:
+    description: 1Password vault where OSBotify GPG key can be found
+    required: true
   OP_SERVICE_ACCOUNT_TOKEN:
     description: "1Password service account token"
     required: true
@@ -16,7 +19,7 @@ runs:
       shell: bash
       env:
         OP_SERVICE_ACCOUNT_TOKEN: ${{ inputs.OP_SERVICE_ACCOUNT_TOKEN }}
-      run: op read "op://Mobile-Deploy-CI/OSBotify-private-key.asc/OSBotify-private-key.asc" --force --out-file ./OSBotify-private-key.asc
+      run: op read "op://${{ inputs.OP_VAULT }}/OSBotify-private-key.asc/OSBotify-private-key.asc" --force --out-file ./OSBotify-private-key.asc
 
     - name: Import OSBotify GPG Key
       shell: bash
