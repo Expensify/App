@@ -108,6 +108,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    NeedCategoryForExportToIntegrationParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -955,6 +956,7 @@ const translations = {
             other: 'Are you sure that you want to delete these expenses?',
         }),
         settledExpensify: 'Paid',
+        done: 'Done',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
         business: 'Business',
@@ -2627,6 +2629,10 @@ const translations = {
             title: 'Get started with Expensify Travel',
             message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
         },
+        maintenance: {
+            title: 'Expensify Travel is getting an upgrade! 🚀',
+            message: `It'll be unavailable February 23-24, but back and better than ever after that. If you need help with a current trip, please call +1 866-296-7768. Thanks!`,
+        },
     },
     workspace: {
         common: {
@@ -3695,7 +3701,7 @@ const translations = {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
-            needCategoryForExportToIntegration: 'Require a category on every expense in order to export to',
+            needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
@@ -5148,13 +5154,10 @@ const translations = {
                 stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
                 takeControl: `took control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `failed to sync with ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' || role === 'user' ? 'a member' : 'an admin'}`,
-                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
-                    `updated the role of ${email} to ${newRole === 'member' || newRole === 'user' ? 'member' : newRole} (previously ${
-                        currentRole === 'member' || currentRole === 'user' ? 'member' : currentRole
-                    })`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `added ${email} as ${role === 'member' ? 'a' : 'an'} ${role}`,
+                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `updated the role of ${email} to ${newRole} (previously ${currentRole})`,
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
-                removeMember: ({email, role}: AddEmployeeParams) => `removed ${role === 'member' || role === 'user' ? 'member' : 'admin'} ${email}`,
+                removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
