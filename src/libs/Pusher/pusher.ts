@@ -33,7 +33,7 @@ type UserIsLeavingRoomEvent = Record<string, boolean> & {
 
 type PingPongEvent = Record<string, string | number> & {
     pingID: string;
-    timestamp: number;
+    pingTimestamp: number;
 };
 
 type PusherEventMap = {
