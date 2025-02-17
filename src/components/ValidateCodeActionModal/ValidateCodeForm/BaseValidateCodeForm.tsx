@@ -72,8 +72,6 @@ type ValidateCodeFormProps = {
 
     /** Whether the form is loading or not */
     isLoading?: boolean;
-
-    autoFocus?: boolean;
 };
 
 function BaseValidateCodeForm({
@@ -89,7 +87,6 @@ function BaseValidateCodeForm({
     buttonStyles,
     hideSubmitButton,
     isLoading,
-    autoFocus,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -154,16 +151,9 @@ function BaseValidateCodeForm({
         }, []),
     );
 
-    useEffect(() => {
-        if (!hasMagicCodeBeenSent || autoFocus) {
-            return;
-        }
-        inputValidateCodeRef.current?.clear();
-    }, [hasMagicCodeBeenSent]);
-
     useFocusEffect(
         useCallback(() => {
-            if (!inputValidateCodeRef.current || !autoFocus) {
+            if (!inputValidateCodeRef.current) {
                 return;
             }
             if (clearInputTimeout.current) {

@@ -19,7 +19,6 @@ function ValidateCodeActionForm({
     hasMagicCodeBeenSent,
     isLoading,
     forwardedRef,
-    autoFocus = true,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
 
@@ -60,7 +59,6 @@ function ValidateCodeActionForm({
                 buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                 ref={forwardedRef}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                autoFocus={autoFocus}
             />
         </View>
     );
