@@ -49,6 +49,7 @@ import type {
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
+import type ExportReportPDFParams from '@libs/API/parameters/ExportReportPDFParams';
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -4652,6 +4653,25 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
+
+function exportReportToPDF({reportID, transactionIDList}: ExportReportPDFParams, onDownloadFailed: () => void) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, {
+        reportID,
+        transactionIDList,
+    });
+
+    const formData = new FormData();
+    Object.entries(finalParameters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+            formData.append(key, value.join(','));
+        } else {
+            formData.append(key, String(value));
+        }
+    });
+
+    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_PDF}), 'Expensify.pdf', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
 function getConciergeReportID() {
     return conciergeChatReportID;
 }
@@ -4690,6 +4710,7 @@ export {
     editReportComment,
     expandURLPreview,
     exportReportToCSV,
+    exportReportToPDF,
     exportToIntegration,
     flagComment,
     getConciergeReportID,

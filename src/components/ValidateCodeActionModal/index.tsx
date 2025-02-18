@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
+import ScrollView from '@components/ScrollView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionModalProps} from './type';
@@ -87,8 +88,10 @@ function ValidateCodeActionModal({
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                     onThreeDotsButtonPress={onThreeDotsButtonPress}
                 />
-
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                    style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
                     <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
                     {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                     <ValidateCodeForm
@@ -103,7 +106,7 @@ function ValidateCodeActionModal({
                         ref={validateCodeFormRef}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     />
-                </View>
+                </ScrollView>
                 {footer?.()}
             </ScreenWrapper>
         </Modal>

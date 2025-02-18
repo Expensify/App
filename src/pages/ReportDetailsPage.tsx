@@ -117,6 +117,7 @@ import {
     clearPolicyRoomNameErrors,
     clearReportFieldKeyErrors,
     exportReportToCSV,
+    exportReportToPDF,
     getReportPrivateNote,
     hasErrorInPrivateNotes,
     leaveGroupChat,
@@ -531,22 +532,39 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         }
 
         if (isMoneyRequestReport) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD,
-                translationKey: 'common.download',
-                icon: Expensicons.Download,
-                isAnonymousAction: false,
-                action: () => {
-                    if (isOffline) {
-                        setOfflineModalVisible(true);
-                        return;
-                    }
+            items.push(
+                {
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_CSV,
+                    translationKey: 'common.downloadAsCSV',
+                    icon: Expensicons.Table,
+                    isAnonymousAction: false,
+                    action: () => {
+                        if (isOffline) {
+                            setOfflineModalVisible(true);
+                            return;
+                        }
 
-                    exportReportToCSV({reportID: report.reportID, transactionIDList}, () => {
-                        setDownloadErrorModalVisible(true);
-                    });
+                        exportReportToCSV({reportID: report.reportID, transactionIDList}, () => {
+                            setDownloadErrorModalVisible(true);
+                        });
+                    },
                 },
-            });
+                {
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
+                    translationKey: 'common.downloadAsPDF',
+                    icon: Expensicons.Document,
+                    isAnonymousAction: false,
+                    action: () => {
+                        if (isOffline) {
+                            setOfflineModalVisible(true);
+                        }
+
+                        exportReportToPDF({reportID: report.reportID, transactionIDList}, () => {
+                            setDownloadErrorModalVisible(true);
+                        });
+                    },
+                },
+            );
         }
 
         if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
