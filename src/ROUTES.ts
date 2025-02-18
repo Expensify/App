@@ -37,7 +37,7 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
-    SEARCH_CENTRAL_PANE: {
+    SEARCH_ROOT: {
         route: 'search',
         getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const,
     },
