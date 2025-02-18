@@ -1,6 +1,6 @@
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Animated, View} from 'react-native';
+import {View} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -23,12 +23,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as SearchActions from '@libs/actions/Search';
+import {clearAllFilters, updateAdvancedFilters} from '@libs/actions/Search';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import getPlatform from '@libs/getPlatform';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
+import {getOverflowMenu} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -67,7 +68,9 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const {unmodifiedPaddings} = useStyledSafeAreaInsets();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
@@ -83,7 +86,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
 
     useEffect(() => {
         const listener = (event: EventArg<'state', false, NavigationContainerEventMap['state']['data']>) => {
-            if (Navigation.getRouteNameFromStateEvent(event) === SCREENS.SEARCH.CENTRAL_PANE) {
+            if (Navigation.getRouteNameFromStateEvent(event) === SCREENS.SEARCH.ROOT) {
                 setIsScreenFocused(true);
                 return;
             }
@@ -100,8 +103,8 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
 
     const onPress = () => {
         hideProductTrainingTooltip();
-        const values = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
-        SearchActions.updateAdvancedFilters(values);
+        const values = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+        updateAdvancedFilters(values);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
@@ -114,7 +117,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
             return {
                 text: item.title,
                 onSelected: singleExecution(() => {
-                    SearchActions.clearAllFilters();
+                    clearAllFilters();
                     Navigation.navigate(item.getRoute(policyID));
                 }),
                 isSelected,
@@ -172,7 +175,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
         shouldShowRightComponent: true,
         rightComponent: (
             <ThreeDotsMenu
-                menuItems={SearchUIUtils.getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), item.query ?? '', showDeleteModal, true, closeMenu)}
+                menuItems={getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), item.query ?? '', showDeleteModal, true, closeMenu)}
                 anchorPosition={{horizontal: 0, vertical: 380}}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -207,7 +210,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 onPress={openMenu}
             >
                 {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, StyleUtils.getHeight(variables.componentSizeNormal)]}>
+                    <View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, StyleUtils.getHeight(variables.componentSizeNormal)]}>
                         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, titleViewStyles]}>
                             <Icon
                                 src={menuIcon}
@@ -226,7 +229,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                                 small
                             />
                         </View>
-                    </Animated.View>
+                    </View>
                 )}
             </PressableWithFeedback>
             <EducationalTooltip
@@ -239,6 +242,7 @@ function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title,
                 shiftVertical={variables.searchFiltersTooltipShiftVerticalNarrow}
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 renderTooltipContent={renderProductTrainingTooltip}
+                onTooltipPress={onPress}
             >
                 <Button
                     icon={Expensicons.Filters}

@@ -13,6 +13,7 @@ import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 /*
  * This is a "utility page", that does this:
@@ -41,7 +42,7 @@ function ConciergePage() {
                     }
 
                     // Mark the viewTourTask as complete if we are redirected to Concierge after finishing the Navattic tour
-                    const {navattic} = route.params as {navattic?: string};
+                    const {navattic} = (route.params as {navattic?: string}) ?? {};
                     if (navattic === CONST.NAVATTIC.COMPLETED) {
                         if (viewTourTaskReport) {
                             if (viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || viewTourTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
@@ -52,7 +53,7 @@ function ConciergePage() {
                     Report.navigateToConciergeChat(true, () => !isUnmounted.current);
                 });
             } else {
-                Navigation.navigate();
+                Navigation.navigate(ROUTES.HOME);
             }
         }, [session, isLoadingReportData, route.params, viewTourTaskReport]),
     );

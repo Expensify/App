@@ -67,11 +67,11 @@ const INPUT_IDS = {
             BANK_ADDRESS_LINE_1: 'bankAddress',
             BANK_STATEMENT: 'bankStatement',
             COMPANY_NAME: 'companyName',
-            COMPANY_STREET: 'companyStreet',
+            COMPANY_STREET: 'companyStreetAddress',
             COMPANY_CITY: 'companyCity',
             COMPANY_STATE: 'companyState',
-            COMPANY_ZIP_CODE: 'companyZipCode',
-            COMPANY_COUNTRY: 'companyCountry',
+            COMPANY_POSTAL_CODE: 'companyPostalCode',
+            COMPANY_COUNTRY_CODE: 'companyCountryCode',
             BUSINESS_CONTACT_NUMBER: 'businessContactNumber',
             BUSINESS_CONFIRMATION_EMAIL: 'businessConfirmationEmail',
             FORMATION_INCORPORATION_COUNTRY_CODE: 'formationIncorporationCountryCode',
@@ -80,7 +80,7 @@ const INPUT_IDS = {
             COUNTRY_CODE: 'countryCode',
             TAX_ID_EIN_NUMBER: 'taxIDEINNumber',
             BUSINESS_CATEGORY: 'natureOfBusiness',
-            APPLICANT_TYPE_ID: 'applicantTypeID',
+            APPLICANT_TYPE_ID: 'applicantTypeId',
             PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
             PREFERRED_METHOD: 'preferredMethod',
             CURRENCY_NEEDED: 'currencyNeeded',
@@ -89,7 +89,6 @@ const INPUT_IDS = {
             OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
             ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
             BENEFICIAL_OWNERS: 'beneficialOwners',
-            ENTITY_CHART: 'entityChart',
             FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
             FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
             COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
@@ -136,7 +135,7 @@ type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
 type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number};
 
 type BeneficialOwnersStepExtraProps = {
-    [key: BeneficialOwnerDataKey]: string;
+    [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
 };
 
@@ -234,10 +233,10 @@ type NonUSDReimbursementAccountAdditionalProps = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STATE]: string;
 
     /** Company zip code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_ZIP_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_POSTAL_CODE]: string;
 
     /** Company country */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY]: Country | '';
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_COUNTRY_CODE]: Country | '';
 
     /** Business contact number */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CONTACT_NUMBER]: string;
@@ -286,9 +285,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Beneficial owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
-
-    /** Entity chart */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]: FileObject[];
 
     /** Fund destination countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;

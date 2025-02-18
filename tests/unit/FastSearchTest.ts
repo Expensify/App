@@ -84,8 +84,10 @@ describe('FastSearch', () => {
     });
 
     it('should work with large random data sets', () => {
-        const data = Array.from({length: 1000}, () => {
-            return Array.from({length: Math.floor(Math.random() * 22 + 9)}, () => {
+        const data = Array.from({length: 1_000}, () => {
+            // We generate very large search strings that breaks the assumption of a certain average search value length.
+            // This will cause a resizing of the underlying buffer, which we want to test here as well.
+            return Array.from({length: Math.floor(Math.random() * 100 + 9)}, () => {
                 const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789@-_.';
                 return alphabet.charAt(Math.floor(Math.random() * alphabet.length));
             }).join('');
