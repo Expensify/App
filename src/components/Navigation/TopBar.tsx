@@ -5,6 +5,7 @@ import Breadcrumbs from '@components/Breadcrumbs';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import HelpButton from '@components/SidePane/HelpButton';
 import Text from '@components/Text';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
@@ -31,6 +32,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
     const policy = usePolicy(activeWorkspaceID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const isAnonymousUser = Session.isAnonymousUser(session);
 
     const headerBreadcrumb = policy?.name
@@ -40,6 +42,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
           };
 
     const displaySignIn = isAnonymousUser;
+    const displayHelp = !!sidePane;
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
@@ -74,6 +77,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
+                {displayHelp && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
             <LoadingBar shouldShow={isLoadingReportData ?? false} />
