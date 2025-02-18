@@ -1,7 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import Animated, {Easing, LinearTransition, SlideOutUp, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, FadeOutUp, LinearTransition, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import variables from '@styles/variables';
 
@@ -58,7 +58,7 @@ function OpacityView({
         <Animated.View
             style={[opacityStyle, style]}
             needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
-            exiting={shouldAnimateOnRemove ? SlideOutUp.duration(800).easing(Easing.out(Easing.ease)) : undefined}
+            exiting={shouldAnimateOnRemove ? FadeOutUp.duration(800).easing(Easing.out(Easing.ease)) : undefined}
             layout={shouldAnimateOnRemove ? LinearTransition : undefined}
         >
             {children}
