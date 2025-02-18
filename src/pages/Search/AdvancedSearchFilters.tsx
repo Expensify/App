@@ -207,7 +207,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         ],
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.IN],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
@@ -426,11 +426,11 @@ function AdvancedSearchFilters() {
 
     const applyFiltersAndNavigate = () => {
         clearAllFilters();
-        Navigation.dismissModal();
         Navigation.navigate(
             ROUTES.SEARCH_CENTRAL_PANE.getRoute({
                 query: queryString,
             }),
+            {forceReplace: true},
         );
     };
 
@@ -519,7 +519,8 @@ function AdvancedSearchFilters() {
                 <View>
                     {filters.map((section, index) => {
                         return (
-                            <>
+                            // eslint-disable-next-line react/no-array-index-key
+                            <View key={`${section.at(0)?.key}-${index}`}>
                                 {index !== 0 && (
                                     <SpacerView
                                         shouldShow
@@ -538,7 +539,7 @@ function AdvancedSearchFilters() {
                                         />
                                     );
                                 })}
-                            </>
+                            </View>
                         );
                     })}
                 </View>
