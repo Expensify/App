@@ -9,8 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction, formatReportLastMessageText} from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -24,6 +25,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report);
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
@@ -43,13 +45,17 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 return `[${translate('parentReportAction.deletedMessage')}]`;
             }
 
+            if (isCreatedAction(reportAction)) {
+                return formatReportLastMessageText(SidebarUtils.getWelcomeMessage(report, policy).messageText ?? translate('report.noActivityYet'));
+            }
+
             if (reportActionMessage.html) {
                 return Parser.htmlToText(reportActionMessage.html.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
             }
 
             return getReportActionMessageText(reportAction);
         },
-        [translate],
+        [translate, policy, report],
     );
 
     const searchedReportActions = useMemo(() => {
