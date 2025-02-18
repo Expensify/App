@@ -11,6 +11,7 @@ import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/Trans
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('SidebarUtils', () => {
@@ -337,6 +338,29 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getWelcomeMessage', () => {
+        it('do not return pronouns in the welcome message text when it is group chat', async () => {
+            const MOCK_REPORT: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: 'group',
+                type: 'chat',
+            };
+            return (
+                waitForBatchedUpdates()
+                    // When Onyx is updated to contain that report
+                    .then(() =>
+                        Onyx.multiSet({
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                        }),
+                    )
+                    .then(() => {
+                        const result = SidebarUtils.getWelcomeMessage(MOCK_REPORT, undefined);
+                        expect(result.messageText).toBe('This chat is with One and Two.');
+                    })
+            );
         });
     });
 
