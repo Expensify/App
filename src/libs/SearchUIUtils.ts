@@ -346,7 +346,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     const isSubmitter = report.ownerAccountID === currentAccountID;
     const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = report.managerID === currentAccountID;
-    console.log('over here', {currentAccountID, isSubmitter, isAdmin, isApprover, policy})
+    console.log('over here', {currentAccountID, isSubmitter, isAdmin, isApprover, policy});
     const shouldShowReview = hasViolations(report.reportID, allViolations, undefined, allReportTransactions) && (isSubmitter || isApprover || isAdmin);
 
     if (shouldShowReview) {
