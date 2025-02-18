@@ -440,4 +440,172 @@ describe('WorkflowUtils', () => {
             });
         });
     });
+
+    describe('updateWorkflowDataOnApproverRemoval', () => {
+        it('Should remove Workflow 2 if its approvers are removed and it has no approvers, with Workspace (default) having the approver as the Workspace Owner.', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(1)],
+                isDefault: true,
+            };
+            const approvalWorkflow2: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[2];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
+        });
+        it('Should replace the approvers in Workflow 2 with the Workspace Owner if it has no approvers and the approver in Workspace (default) is different from the Workspace Owner', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(3)],
+                isDefault: true,
+            };
+            const approvalWorkflow2: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[2];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(1)]}]);
+        });
+        it('Should remove Workflow 2 if its approver is the Workspace Owner and the default Workspace approver is removed.', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(3)],
+                isDefault: true,
+            };
+            const approvalWorkflow2: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(1)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(updateWorkflowDataOnApproverRemoval).toEqual([
+                {...approvalWorkflow1, approvers: [buildApprover(1)]},
+                {...approvalWorkflow2, removeApprovalWorkflow: true},
+            ]);
+        });
+        it('Should replace the latest approver of Workflow 2 with the Workspace Owner if the latest approver of Workflow 2 is removed', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(1)],
+                isDefault: true,
+            };
+            const approvalWorkflow2: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2), buildApprover(3), buildApprover(4)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[4];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(2), buildApprover(3), buildApprover(1)]}]);
+        });
+        it('Should remove the approvers that have submitsTo set to the removed approver, update the removed approver to the Workspace Owner, and ensure there was a previous approver before this one', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(1)],
+                isDefault: true,
+            };
+            const approvalWorkflow2: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2), buildApprover(3), buildApprover(4)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[3];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, approvers: [buildApprover(2), buildApprover(1)]}]);
+        });
+        it('Should remove Workflow 2 if it has no approvers and the default Workspace approver is the approve', () => {
+            const approvalWorkflow1: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(1)],
+                isDefault: true,
+            };
+            const approvalWorkflow2: ApprovalWorkflow = {
+                members: [buildMember(1), buildMember(2)],
+                approvers: [buildApprover(2), buildApprover(3), buildApprover(4)],
+                isDefault: false,
+            };
+
+            const ownerDetails = personalDetails[1];
+            const removedApprover = personalDetails[2];
+
+            if (!removedApprover || !ownerDetails) {
+                return;
+            }
+
+            const updateWorkflowDataOnApproverRemoval = WorkflowUtils.updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows: [approvalWorkflow1, approvalWorkflow2],
+                removedApprover,
+                ownerDetails,
+            });
+
+            expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
+        });
+    });
 });
