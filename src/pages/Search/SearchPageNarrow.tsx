@@ -141,6 +141,9 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     searchRouterListVisible={searchRouterListVisible}
+                                    hideSearchRouterList={() => {
+                                        setSearchRouterListVisible(false);
+                                    }}
                                     onSearchRouterFocus={() => {
                                         topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                         setSearchRouterListVisible(true);

@@ -23,7 +23,10 @@ import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
+
+const SearchFiltersButtonTransition = getSearchFiltersButtonTransition();
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
@@ -210,9 +213,9 @@ function SearchAutocompleteInput(
                         inputStyle={[inputWidth, styles.pl3, {lineHeight: undefined}]}
                         placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
+                            onFocus?.();
                             autocompleteListRef?.current?.updateExternalTextInputFocus(true);
                             focusedSharedValue.set(true);
-                            onFocus?.();
                         }}
                         onBlur={() => {
                             autocompleteListRef?.current?.updateExternalTextInputFocus(false);
@@ -231,7 +234,7 @@ function SearchAutocompleteInput(
                 {!!rightComponent && (
                     <Animated.View
                         style={styles.pr3}
-                        layout={LinearTransition}
+                        layout={SearchFiltersButtonTransition}
                     >
                         {rightComponent}
                     </Animated.View>

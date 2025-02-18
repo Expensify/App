@@ -3,7 +3,7 @@ import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
+import Animated, {FadeInLeft, FadeInRight, FadeOutRight} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -40,12 +40,13 @@ const BORDER_WIDTH = 1;
 type SearchPageHeaderInputProps = {
     queryJSON: SearchQueryJSON;
     searchRouterListVisible?: boolean;
+    hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
     searchName?: string;
     inputRightComponent: React.ReactNode;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
@@ -147,18 +148,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
             }
 
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
-
+            hideSearchRouterList?.();
+            setIsAutocompleteListVisible(false);
             if (updatedQuery !== originalInputQuery) {
                 clearAllFilters();
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
-                setIsAutocompleteListVisible(false);
-            } else {
-                setTextInputValue(queryText);
-                setAutocompleteQueryValue(queryText);
             }
         },
-        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID, queryText],
+        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID],
     );
 
     const onListItemPress = useCallback(
@@ -249,12 +247,16 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, onSearchRout
                             />
                         </Animated.View>
                         {showPopupButton && (
-                            <View style={[styles.pl3]}>
+                            <Animated.View
+                                entering={FadeInRight}
+                                exiting={FadeOutRight}
+                                style={[styles.pl3]}
+                            >
                                 <SearchTypeMenuPopover
                                     queryJSON={queryJSON}
                                     searchName={searchName}
                                 />
-                            </View>
+                            </Animated.View>
                         )}
                     </View>
                     {!!searchRouterListVisible && (
