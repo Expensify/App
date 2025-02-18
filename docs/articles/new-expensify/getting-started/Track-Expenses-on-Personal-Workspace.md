@@ -2,7 +2,7 @@
 title: Track Expenses on a Personal Workspace
 description: Get started with Expensify and start tracking personal expenses
 ---
-<div id="expensify-classic" markdown="1">
+<div id="new-expensify" markdown="1">
 
 # Overview
 
