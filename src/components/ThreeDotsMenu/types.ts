@@ -1,4 +1,4 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutRectangle, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -52,4 +52,7 @@ type ThreeDotsMenuProps = {
     isNested?: boolean;
 };
 
+type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
+
+export type {LayoutChangeEventWithTarget};
 export default ThreeDotsMenuProps;

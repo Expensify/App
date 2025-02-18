@@ -806,7 +806,7 @@ function MoneyRequestConfirmationListFooter({
                             if (!transactionID) {
                                 return;
                             }
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID));
                         }}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
