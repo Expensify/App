@@ -4219,7 +4219,6 @@ const styles = (theme: ThemeColors) =>
             minWidth: variables.eReceiptBGHWidth,
             minHeight: variables.eReceiptBGHeight,
             overflow: 'hidden',
-            maxWidth: '100%',
         },
 
         eReceiptContentContainer: {

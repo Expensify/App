@@ -138,7 +138,7 @@ function ReceiptImage({
         );
     }
 
-    if (isEReceipt) {
+    if (true) {
         return (
             <View style={[styles.mw100, styles.h100]}>
                 <View
