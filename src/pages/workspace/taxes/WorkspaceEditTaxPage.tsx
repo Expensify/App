@@ -47,7 +47,7 @@ function WorkspaceEditTaxPage({
         if (!currentTaxRate) {
             return;
         }
-        setPolicyTaxesEnabled(policyID, [taxID], !!currentTaxRate.isDisabled);
+        setPolicyTaxesEnabled(policy, [taxID], !!currentTaxRate.isDisabled);
     };
 
     useEffect(() => {
@@ -61,7 +61,7 @@ function WorkspaceEditTaxPage({
         if (!policyID) {
             return;
         }
-        deletePolicyTaxes(policyID, [taxID]);
+        deletePolicyTaxes(policy, [taxID]);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };

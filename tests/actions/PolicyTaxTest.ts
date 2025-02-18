@@ -395,7 +395,7 @@ describe('actions/PolicyTax', () => {
         it('Disable policy`s taxes', () => {
             const disableTaxID = 'id_TAX_RATE_1';
             mockFetch?.pause?.();
-            setPolicyTaxesEnabled(fakePolicy.id, [disableTaxID], false);
+            setPolicyTaxesEnabled(fakePolicy, [disableTaxID], false);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -438,7 +438,7 @@ describe('actions/PolicyTax', () => {
         it('Disable policy`s taxes but API returns an error, then enable policy`s taxes again', () => {
             const disableTaxID = 'id_TAX_RATE_1';
             mockFetch?.pause?.();
-            setPolicyTaxesEnabled(fakePolicy.id, [disableTaxID], false);
+            setPolicyTaxesEnabled(fakePolicy, [disableTaxID], false);
             const originalTaxes = {...fakePolicy?.taxRates?.taxes};
             return waitForBatchedUpdates()
                 .then(
@@ -680,7 +680,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy.id, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -729,7 +729,7 @@ describe('actions/PolicyTax', () => {
             mockFetch?.pause?.();
             return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {taxRates: {foreignTaxDefault: 'id_TAX_RATE_1'}})
                 .then(() => {
-                    deletePolicyTaxes(fakePolicy.id, [taxID]);
+                    deletePolicyTaxes(fakePolicy, [taxID]);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -777,7 +777,7 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy.id, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
