@@ -1181,6 +1181,7 @@ const translations = {
     securityPage: {
         title: 'Security options',
         subtitle: 'Enable two-factor authentication to keep your account safe.',
+        goToSecurity: 'Go back to security page',
     },
     shareCodePage: {
         title: 'Your code',
