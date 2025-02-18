@@ -1,11 +1,12 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, Report, ReportAction} from '@src/types/onyx';
+import type {Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -262,6 +263,134 @@ describe('actions/PolicyMember', () => {
                 });
             });
             await mockFetch?.resume?.();
+        });
+
+        it('Add new members with admin/auditor role to the #admins room', async () => {
+            // Given a policy and an #admins room
+            const policyID = '1';
+            const adminRoomID = '1';
+            const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
+            const adminAccountID = 1234;
+            const adminEmail = 'admin@example.com';
+            const auditorAccountID = 1235;
+            const auditorEmail = 'auditor@example.com';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                approver: defaultApprover,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
+                ...createRandomReport(Number(adminRoomID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: 'always'},
+                },
+            });
+
+            // When adding a new admin, auditor, and user members
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.ADMIN);
+            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.AUDITOR);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+
+            await waitForBatchedUpdates();
+
+            // Then only the admin and auditor should be added to the #admins room
+            const adminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(adminRoom?.participants?.[adminAccountID]).toBeTruthy();
+            expect(adminRoom?.participants?.[auditorAccountID]).toBeTruthy();
+            expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
+        });
+    });
+
+    describe('removeMembers', () => {
+        it('Remove members with admin/auditor role from the #admins room', async () => {
+            // Given a policy and an #admins room
+            const policyID = '1';
+            const adminRoomID = '1';
+            const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminAccountID = 1234;
+            const adminEmail = 'admin@example.com';
+            const auditorAccountID = 1235;
+            const auditorEmail = 'auditor@example.com';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [adminAccountID]: {login: adminEmail},
+                [auditorAccountID]: {login: auditorEmail},
+                [userAccountID]: {login: userEmail},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                approver: defaultApprover,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [auditorEmail]: {role: CONST.POLICY.ROLE.AUDITOR},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
+                ...createRandomReport(Number(adminRoomID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: 'always'},
+                    [adminAccountID]: {notificationPreference: 'always'},
+                    [auditorAccountID]: {notificationPreference: 'always'},
+                    [userAccountID]: {notificationPreference: 'always'},
+                },
+            });
+
+            // When removing am admin, auditor, and user members
+            mockFetch?.pause?.();
+            Member.removeMembers([adminAccountID, auditorAccountID, userAccountID], policyID);
+
+            await waitForBatchedUpdates();
+
+            // Then only the admin and auditor should be removed from the #admins room
+            const optimisticAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
+                    callback: (reportMetadata) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportMetadata);
+                    },
+                });
+            });
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.length).toBe(2);
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(adminAccountID))?.pendingAction).toBe(
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(auditorAccountID))?.pendingAction).toBe(
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+            await mockFetch?.resume?.();
+
+            const successAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
+                    callback: (reportMetadata) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportMetadata);
+                    },
+                });
+            });
+            expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
     });
 });
