@@ -1,6 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxValue} from 'react-native-onyx';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
-import type {GetOnyxTypeForKey, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -14,8 +14,8 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
     key: Key;
     dependencies: Deps;
     compute: (args: {
-        -readonly [Index in keyof Deps]: GetOnyxTypeForKey<Deps[Index]>;
-    }) => OnyxEntry<OnyxDerivedValuesMapping[Key]>;
+        -readonly [Index in keyof Deps]: OnyxValue<Deps[Index]>;
+    }) => OnyxValue<Key>;
 };
 
 // eslint-disable-next-line import/prefer-default-export
