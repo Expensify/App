@@ -978,6 +978,9 @@ function isViolationDismissed(transaction: OnyxEntry<Transaction>, violation: Tr
     return transaction?.comment?.dismissedViolations?.[violation.name]?.[currentUserEmail] === `${currentUserAccountID}`;
 }
 
+/**
+ * Checks if violations are supported for the given transaction
+ */
 function doesTransactionSupportViolations(transaction: Transaction | undefined): transaction is Transaction {
     if (!transaction) {
         return false;
