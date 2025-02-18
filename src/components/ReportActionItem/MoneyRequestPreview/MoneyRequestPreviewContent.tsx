@@ -176,7 +176,8 @@ function MoneyRequestPreviewContent({
     const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
 
     const shouldShowTag = !!tag && isPolicyExpenseChat;
-    const shouldShowCategoryOrTag = shouldShowTag || !!category;
+    const shouldShowCategory = !!category && isPolicyExpenseChat;
+    const shouldShowCategoryOrTag = shouldShowTag || shouldShowCategory;
     const shouldShowRBR = hasNoticeTypeViolations || hasWarningTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
@@ -466,7 +467,7 @@ function MoneyRequestPreviewContent({
                                     {shouldShowCategoryOrTag && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
                                     {shouldShowCategoryOrTag && (
                                         <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
-                                            {!!category && (
+                                            {shouldShowCategory && (
                                                 <View
                                                     style={[
                                                         styles.flexRow,
