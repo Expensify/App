@@ -1,27 +1,23 @@
 import type {RouteProp} from '@react-navigation/native';
 import {findFocusedRoute, useNavigation} from '@react-navigation/native';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import React, {memo, useEffect, useMemo, useRef} from 'react';
+import {NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import ActiveGuidesEventListener from '@components/ActiveGuidesEventListener';
 import ActiveWorkspaceContextProvider from '@components/ActiveWorkspaceProvider';
 import ComposeProviders from '@components/ComposeProviders';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
-import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import SidePane from '@components/SidePane';
 import TestToolsModal from '@components/TestToolsModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
@@ -43,7 +39,6 @@ import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
-import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -225,7 +220,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {toggleSearch} = useSearchRouterContext();
-    const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
 
     const modal = useRef<OnyxTypes.Modal>({});
     const {isOnboardingCompleted} = useOnboardingFlowRouter();
@@ -637,7 +631,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             <TestToolsModal />
             <SearchRouterModal />
             <ActiveGuidesEventListener />
-            <HelpPanel />
+            <SidePane />
         </ComposeProviders>
     );
 }
@@ -661,4 +655,3 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     },
 })(AuthScreensMemoized);
-
