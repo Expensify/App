@@ -11,7 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -51,8 +51,14 @@ const expenseOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes;
     },
     {
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.DONE,
+        icon: Expensicons.Checkbox,
+        text: 'iou.done',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         status: CONST.SEARCH.STATUS.EXPENSE.PAID,
-        icon: Expensicons.MoneyBag,
+        icon: Expensicons.Checkmark,
         text: 'iou.settledExpensify',
     },
 ];
@@ -73,7 +79,7 @@ const invoiceOptions: Array<{type: SearchDataTypes; status: InvoiceSearchStatus;
     {
         type: CONST.SEARCH.DATA_TYPES.INVOICE,
         status: CONST.SEARCH.STATUS.INVOICE.PAID,
-        icon: Expensicons.MoneyBag,
+        icon: Expensicons.Checkmark,
         text: 'iou.settledExpensify',
     },
 ];
@@ -177,7 +183,7 @@ function SearchStatusBar({queryJSON, onStatusChange}: SearchStatusBarProps) {
             {options.map((item, index) => {
                 const onPress = singleExecution(() => {
                     onStatusChange?.();
-                    const query = SearchQueryUtils.buildSearchQueryString({...queryJSON, status: item.status});
+                    const query = buildSearchQueryString({...queryJSON, status: item.status});
                     Navigation.setParams({q: query});
                 });
                 const isActive = Array.isArray(queryJSON.status) ? queryJSON.status.includes(item.status) : queryJSON.status === item.status;
