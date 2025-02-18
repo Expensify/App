@@ -9,10 +9,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getReportActionHtml, getReportActionMessageText, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAction} from '@src/types/onyx';
 
 type DebugReportActionsProps = {
     reportID: string;
@@ -29,23 +30,37 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
     });
 
+    const getReportActionDebugText = (reportAction: ReportAction) => {
+        const reportActionMessage = getReportActionMessage(reportAction);
+        const originalMessage = getOriginalMessage(reportAction);
+
+        if (!reportActionMessage) {
+            return '';
+        }
+
+        if (originalMessage && 'deleted' in originalMessage && originalMessage.deleted) {
+            return `[${translate('parentReportAction.deletedMessage')}]`;
+        }
+
+        if (reportActionMessage.html) {
+            return Parser.htmlToText(reportActionMessage.html.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
+        }
+
+        return getReportActionMessageText(reportAction);
+    };
+
     const searchedReportActions = useMemo(() => {
         return (sortedAllReportActions ?? [])
             .filter(
                 (reportAction) =>
                     reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionMessageText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
             )
-            .map((reportAction) => {
-                const htmlMessage = getReportActionHtml(reportAction);
-                return {
-                    reportActionID: reportAction.reportActionID,
-                    text: htmlMessage
-                        ? Parser.htmlToText(htmlMessage.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'))
-                        : getReportActionMessageText(reportAction),
-                    alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
-                };
-            });
-    }, [sortedAllReportActions, debouncedSearchValue, datetimeToCalendarTime]);
+            .map((reportAction) => ({
+                reportActionID: reportAction.reportActionID,
+                text: getReportActionDebugText(reportAction),
+                alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
+            }));
+    }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);
 
     return (
         <ScrollView style={styles.mv3}>
