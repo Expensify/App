@@ -56,7 +56,7 @@ function ActionCell({
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
                     text={text}
-                    icon={Expensicons.Checkmark}
+                    icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
