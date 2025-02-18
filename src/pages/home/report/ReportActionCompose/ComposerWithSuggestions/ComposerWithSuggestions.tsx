@@ -28,7 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari, isMobileWebKit} from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
@@ -138,12 +138,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** policy ID of the report */
     policyID?: string;
 
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus: boolean;
-
-    /** A method to update showSoftInputOnFocus */
-    setShowSoftInputOnFocus: (value: boolean) => void;
-
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 };
@@ -228,8 +222,6 @@ function ComposerWithSuggestions(
 
         // For testing
         children,
-        showSoftInputOnFocus,
-        setShowSoftInputOnFocus,
         didHideComposerInput,
     }: ComposerWithSuggestionsProps,
     ref: ForwardedRef<ComposerRef>,
@@ -681,13 +673,6 @@ function ComposerWithSuggestions(
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
 
     useEffect(() => {
-        if (prevIsFocused || !isFocused || showSoftInputOnFocus) {
-            return;
-        }
-        setShowSoftInputOnFocus(true);
-    }, [isFocused, prevIsFocused, showSoftInputOnFocus, setShowSoftInputOnFocus]);
-
-    useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -830,25 +815,6 @@ function ComposerWithSuggestions(
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
-                    showSoftInputOnFocus={showSoftInputOnFocus}
-                    onTouchStart={() => {
-                        if (showSoftInputOnFocus) {
-                            return;
-                        }
-                        if (isMobileWebKit()) {
-                            isTouchEndedRef.current = false;
-                            // In iOS browsers, open the keyboard after a timeout, or it will close briefly.
-                            setTimeout(() => {
-                                if (!isTouchEndedRef.current) {
-                                    // Don't open the keyboard on long press so the callout menu can show.
-                                    return;
-                                }
-                                setShowSoftInputOnFocus(true);
-                            }, CONST.ANIMATED_TRANSITION);
-                            return;
-                        }
-                        setShowSoftInputOnFocus(true);
-                    }}
                 />
             </View>
 

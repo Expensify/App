@@ -31,6 +31,7 @@ import {canActionTask as canActionTaskUtils, canModifyTask as canModifyTaskUtils
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
 import {areAllGroupPoliciesExpenseChatDisabled, canSendInvoice as canSendInvoicePolicyUtils, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -84,6 +85,8 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
+        case CONST.QUICK_ACTIONS.PER_DIEM:
+            return Expensicons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
@@ -108,6 +111,7 @@ const getIouType = (action: QuickActionName) => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.PER_DIEM:
             return CONST.IOU.TYPE.SUBMIT;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
@@ -127,23 +131,22 @@ const getIouType = (action: QuickActionName) => {
 const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
             return 'quickAction.requestMoney';
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return 'quickAction.scanReceipt';
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.recordDistance';
+        case CONST.QUICK_ACTIONS.PER_DIEM:
+            return 'quickAction.perDiem';
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             return 'quickAction.splitBill';
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
             return 'quickAction.splitScan';
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return 'quickAction.splitDistance';
-        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return 'quickAction.trackManual';
-        case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return 'quickAction.trackScan';
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return 'quickAction.trackDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
@@ -189,7 +192,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     const {environment} = useEnvironment();
@@ -378,6 +381,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             if (!!iouType && !canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
                 return [];
             }
+            if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !quickActionPolicy?.arePerDiemRatesEnabled) {
+                return [];
+            }
             const onSelected = () => {
                 interceptAnonymousUser(() => {
                     hideProductTrainingTooltip();
@@ -454,6 +460,80 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
+    const menuItems = [
+        ...expenseMenuItems,
+        {
+            icon: Expensicons.ChatBubble,
+            text: translate('sidebarScreen.fabNewChat'),
+            onSelected: () => interceptAnonymousUser(startNewChat),
+        },
+        ...(canSendInvoice
+            ? [
+                  {
+                      icon: Expensicons.InvoiceGeneric,
+                      text: translate('workspace.invoices.sendInvoice'),
+                      shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
+                      onSelected: () =>
+                          interceptAnonymousUser(() => {
+                              if (shouldRedirectToExpensifyClassic) {
+                                  setModalVisible(true);
+                                  return;
+                              }
+
+                              startMoneyRequest(
+                                  CONST.IOU.TYPE.INVOICE,
+                                  // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                  // for all of the routes in the creation flow.
+                                  generateReportID(),
+                              );
+                          }),
+                  },
+              ]
+            : []),
+        ...(canUseSpotnanaTravel && !isBlockedFromSpotnanaTravel
+            ? [
+                  {
+                      icon: Expensicons.Suitcase,
+                      text: translate('travel.bookTravel'),
+                      onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
+                  },
+              ]
+            : []),
+        ...(!hasSeenTour
+            ? [
+                  {
+                      icon: Expensicons.Binoculars,
+                      iconStyles: styles.popoverIconCircle,
+                      iconFill: theme.icon,
+                      text: translate('tour.takeATwoMinuteTour'),
+                      description: translate('tour.exploreExpensify'),
+                      onSelected: () => {
+                          openExternalLink(navatticURL);
+                          setSelfTourViewed(isAnonymousUser());
+                          if (viewTourTaskReport && canModifyTask && canActionTask) {
+                              completeTask(viewTourTaskReport);
+                          }
+                      },
+                  },
+              ]
+            : []),
+        ...(!isLoading && shouldShowNewWorkspaceButton
+            ? [
+                  {
+                      displayInDefaultIconColor: true,
+                      contentFit: 'contain' as ImageContentFit,
+                      icon: Expensicons.NewWorkspace,
+                      iconWidth: variables.w46,
+                      iconHeight: variables.h40,
+                      text: translate('workspace.new.newWorkspace'),
+                      description: translate('workspace.new.getTheExpensifyCardAndMore'),
+                      onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
+                  },
+              ]
+            : []),
+        ...quickActionMenuItems,
+    ];
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
@@ -462,79 +542,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
-                menuItems={[
-                    ...expenseMenuItems,
-                    {
-                        icon: Expensicons.ChatBubble,
-                        text: translate('sidebarScreen.fabNewChat'),
-                        onSelected: () => interceptAnonymousUser(startNewChat),
-                    },
-                    ...(canSendInvoice
-                        ? [
-                              {
-                                  icon: Expensicons.InvoiceGeneric,
-                                  text: translate('workspace.invoices.sendInvoice'),
-                                  shouldCallAfterModalHide: shouldRedirectToExpensifyClassic,
-                                  onSelected: () =>
-                                      interceptAnonymousUser(() => {
-                                          if (shouldRedirectToExpensifyClassic) {
-                                              setModalVisible(true);
-                                              return;
-                                          }
-
-                                          startMoneyRequest(
-                                              CONST.IOU.TYPE.INVOICE,
-                                              // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
-                                              // for all of the routes in the creation flow.
-                                              generateReportID(),
-                                          );
-                                      }),
-                              },
-                          ]
-                        : []),
-                    ...(canUseSpotnanaTravel
-                        ? [
-                              {
-                                  icon: Expensicons.Suitcase,
-                                  text: translate('travel.bookTravel'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
-                              },
-                          ]
-                        : []),
-                    ...(!hasSeenTour
-                        ? [
-                              {
-                                  icon: Expensicons.Binoculars,
-                                  iconStyles: styles.popoverIconCircle,
-                                  iconFill: theme.icon,
-                                  text: translate('tour.takeATwoMinuteTour'),
-                                  description: translate('tour.exploreExpensify'),
-                                  onSelected: () => {
-                                      openExternalLink(navatticURL);
-                                      setSelfTourViewed(isAnonymousUser());
-                                      if (viewTourTaskReport && canModifyTask && canActionTask) {
-                                          completeTask(viewTourTaskReport);
-                                      }
-                                  },
-                              },
-                          ]
-                        : []),
-                    ...(!isLoading && shouldShowNewWorkspaceButton
-                        ? [
-                              {
-                                  displayInDefaultIconColor: true,
-                                  contentFit: 'contain' as ImageContentFit,
-                                  icon: Expensicons.NewWorkspace,
-                                  iconWidth: variables.w46,
-                                  iconHeight: variables.h40,
-                                  text: translate('workspace.new.newWorkspace'),
-                                  description: translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()))),
-                              },
-                          ]
-                        : []),
-                    ...quickActionMenuItems,
-                ]}
+                animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
+                animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
+                shouldUseNewModal
+                menuItems={menuItems.map((item) => {
+                    return {
+                        ...item,
+                        onSelected: () => {
+                            if (!item.onSelected) {
+                                return;
+                            }
+                            navigateAfterInteraction(item.onSelected);
+                        },
+                    };
+                })}
                 withoutOverlay
                 anchorRef={fabRef}
             />

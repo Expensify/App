@@ -288,6 +288,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: true
 
       - name: Load Desktop credentials from 1Password
         id: load-credentials
@@ -378,6 +380,7 @@ jobs:
         run: |
           op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore/NewApp_AppStore.mobileprovision" --force --out-file ./NewApp_AppStore.mobileprovision
           op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore_Notification_Service/NewApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./NewApp_AppStore_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore_Share_Extension/NewApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./NewApp_AppStore_Share_Extension.mobileprovision
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
           op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
 
