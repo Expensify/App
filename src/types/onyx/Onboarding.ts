@@ -14,6 +14,12 @@ type Onboarding = {
 
     /** A Boolean that tells whether the user has seen navattic tour  */
     selfTourViewed?: boolean;
+
+    /** A Boolean that tells whether the user should be redirected to OD after merging work email  */
+    shouldRedirectToClassicAfterMerge?: boolean;
+
+    /** A Boolean that informs whether the user needs to validate their work email */
+    shouldValidate?: boolean;
 };
 
 export default Onboarding;

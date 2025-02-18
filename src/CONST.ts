@@ -743,6 +743,7 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         PER_DIEM: 'newDotPerDiem',
+        PRIVATE_DOMAIN_ONBOARDING_CHECK: 'privateDomainOnboardingCheck',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
@@ -5369,6 +5370,8 @@ const CONST = {
             DEBUG: 'DEBUG',
         },
     },
+
+    MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {

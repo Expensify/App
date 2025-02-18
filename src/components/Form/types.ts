@@ -163,6 +163,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
+
+    /** Render extra button above submit button */
+    shouldRenderFooterAboveSubmit?: boolean;
 };
 
 type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
