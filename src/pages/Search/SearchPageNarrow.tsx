@@ -57,8 +57,10 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
+    const paddingTopValue = useSharedValue<number>(12);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
+        paddingTop: paddingTopValue.get(),
     }));
 
     const scrollHandler = useAnimatedScrollHandler({
@@ -71,9 +73,14 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
             const isScrollingDown = currentOffset > scrollOffset.get();
             const distanceScrolled = currentOffset - scrollOffset.get();
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderHeight));
+                const newTopBarOffset = clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderHeight);
+                topBarOffset.set(newTopBarOffset);
+                if (newTopBarOffset === variables.minimalTopBarOffset) {
+                    paddingTopValue.set(0);
+                }
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
                 topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+                paddingTopValue.set(12);
             }
             scrollOffset.set(currentOffset);
         },
@@ -84,9 +91,10 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
             if (windowHeight <= h) {
                 return;
             }
+            paddingTopValue.set(12);
             topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
         },
-        [windowHeight, topBarOffset, StyleUtils.searchHeaderHeight],
+        [windowHeight, paddingTopValue, topBarOffset, StyleUtils.searchHeaderHeight],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
