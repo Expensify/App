@@ -10,9 +10,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasPolicyWithXeroConnection} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import PageWrapper from './PageWrapper';
@@ -31,10 +31,9 @@ function EnabledPage() {
 
     return (
         <PageWrapper
-            stepName={EnabledPage.displayName}
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.ENABLED}
             title={translate('twoFactorAuth.headerTitle')}
             shouldEnableKeyboardAvoidingView={false}
-            onBackButtonPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
         >
             <ScrollView>
                 <Section

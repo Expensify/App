@@ -1,17 +1,21 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type PageWrapperProps = ChildrenProps & {
     /** Name of the step */
-    stepName: string;
+    stepName: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
 
     /** Title of the Header */
     title: string;
@@ -28,8 +32,33 @@ type PageWrapperProps = ChildrenProps & {
 
 function PageWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, children}: PageWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFound = useMemo(() => {
+        if (!account) {
+            return true;
+        }
+
+        const is2FAEnabled = !!account.requiresTwoFactorAuth;
+
+        switch (stepName) {
+            case CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES:
+            case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
+                return false;
+            case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
+                return is2FAEnabled || !account.codesAreCopied;
+            case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
+                return !is2FAEnabled;
+            case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
+                return !is2FAEnabled;
+            case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
+                return is2FAEnabled;
+            default:
+                return false;
+        }
+    }, [account, stepName]);
+
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
@@ -42,6 +71,8 @@ function PageWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEna
         );
     }
 
+    const defaultGoBack = () => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
+
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
@@ -49,12 +80,18 @@ function PageWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEna
             shouldEnableMaxHeight
             testID={stepName}
         >
-            <HeaderWithBackButton
-                title={title}
-                stepCounter={stepCounter}
-                onBackButtonPress={onBackButtonPress}
-            />
-            <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
+            <FullPageNotFoundView
+                shouldShow={shouldShowNotFound}
+                linkKey="securityPage.goToSecurity"
+                onLinkPress={defaultGoBack}
+            >
+                <HeaderWithBackButton
+                    title={title}
+                    stepCounter={stepCounter}
+                    onBackButtonPress={onBackButtonPress ?? defaultGoBack}
+                />
+                <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

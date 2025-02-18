@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import PageWrapper from './PageWrapper';
@@ -31,7 +32,7 @@ function DisablePage() {
 
     return (
         <PageWrapper
-            stepName={DisablePage.displayName}
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLE}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>

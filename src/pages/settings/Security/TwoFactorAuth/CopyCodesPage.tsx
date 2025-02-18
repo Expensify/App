@@ -24,6 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
 import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -75,7 +76,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                 total: 3,
             }}
             shouldEnableKeyboardAvoidingView={false}
-            stepName={CopyCodesPage.displayName}
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
             // When the 2FA code step is open from Xero flow, we don't need to pass backTo because we build the necessary root route
             // from the backTo param in the route (in getMatchingRootRouteForRHPRoute) and goBack will not need a fallbackRoute.
             onBackButtonPress={() => quitAndNavigateBack(route?.params?.forwardTo?.includes(READ_COMMANDS.CONNECT_POLICY_TO_XERO) ? undefined : route?.params?.backTo)}

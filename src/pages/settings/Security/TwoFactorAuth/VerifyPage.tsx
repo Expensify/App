@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
 import {clearAccountMessages} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -28,7 +28,7 @@ import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
 
 const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication';
 
-type VerifyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH.VERIFY>;
+type VerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.VERIFY>;
 
 function VerifyPage({route}: VerifyPageProps) {
     const styles = useThemeStyles();
@@ -45,11 +45,11 @@ function VerifyPage({route}: VerifyPageProps) {
     }, []);
 
     useEffect(() => {
-        if (!account?.requiresTwoFactorAuth) {
+        if (!account?.requiresTwoFactorAuth || !account.codesAreCopied) {
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute(route.params?.backTo, route.params?.forwardTo));
-    }, [account?.requiresTwoFactorAuth, route.params?.backTo, route.params?.forwardTo]);
+    }, [account?.codesAreCopied, account?.requiresTwoFactorAuth, route.params?.backTo, route.params?.forwardTo]);
 
     /**
      * Splits the two-factor auth secret key in 4 chunks
@@ -73,7 +73,7 @@ function VerifyPage({route}: VerifyPageProps) {
     return (
         <PageWrapper
             shouldEnableKeyboardAvoidingView={false}
-            stepName={VerifyPage.displayName}
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
                 step: 2,

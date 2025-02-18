@@ -4,15 +4,15 @@ import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import Navigation from '@navigation/Navigation';
+import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {openLink} from '@userActions/Link';
-import {clearTwoFactorAuthData} from '@userActions/TwoFactorAuthActions';
+import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import PageWrapper from './PageWrapper';
 
-type SuccessPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.TWO_FACTOR_AUTH.SUCCESS>;
+type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.SUCCESS>;
 
 function SuccessPage({route}: SuccessPageProps) {
     const {translate} = useLocalize();
@@ -20,7 +20,7 @@ function SuccessPage({route}: SuccessPageProps) {
 
     return (
         <PageWrapper
-            stepName={SuccessPage.displayName}
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
                 step: 3,
@@ -34,8 +34,7 @@ function SuccessPage({route}: SuccessPageProps) {
                 shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
-                    clearTwoFactorAuthData();
-                    Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                    quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
 
                     if (route.params?.forwardTo) {
                         openLink(route.params.forwardTo, environmentURL);
