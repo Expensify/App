@@ -428,8 +428,8 @@ function ReportActionsView({
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
 
-    // We want to disable auto scroll when we are loading more actions, cause it cause issues when scrolling up
-    const isLoading = isLoadingInitialReportActions || isLoadingOlderReportActions || isLoadingNewerReportActions;
+    // We want to disable auto-scroll when loading more actions, as it causes issues when scrolling up.
+    const isLoading = isLoadingInitialReportActions || isLoadingOlderReportActions;
     return (
         <>
             <ReportActionsList
