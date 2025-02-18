@@ -392,7 +392,7 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
-type IntegrationSyncFailedParams = {label: string; errorMessage: string};
+type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string};
 
 type AddEmployeeParams = {email: string; role: string};
 
@@ -417,6 +417,8 @@ type AmountWithCurrencyParams = {amountWithCurrency: string};
 type LowerUpperParams = {lower: string; upper: string};
 
 type CategoryNameParams = {categoryName: string};
+
+type NeedCategoryForExportToIntegrationParams = {connectionName: string};
 
 type TaxAmountParams = {taxAmount: number};
 
@@ -880,4 +882,5 @@ export type {
     UpdatedPolicyReportFieldDefaultValueParams,
     SubmitsToParams,
     SettlementDateParams,
+    NeedCategoryForExportToIntegrationParams,
 };
