@@ -147,7 +147,7 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
     isPressOnEnterActive?: boolean;
 
-    /** Wheater is a nested button inside other button, since nesting buttons isn't valid html */
+    /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
     isNested?: boolean;
 
     /** The text displays under the first line */
