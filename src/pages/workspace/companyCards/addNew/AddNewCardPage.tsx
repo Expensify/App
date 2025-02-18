@@ -2,12 +2,12 @@ import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AmexCustomFeed from './AmexCustomFeed';
-import BankConnection from './BankConnection';
 import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
@@ -47,7 +47,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.CARD_NAME:
             return <CardNameStep />;
         case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-            return <DetailsStep policyID={policy?.id ?? '-1'} />;
+            return <DetailsStep policyID={policyID} />;
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
             return <AmexCustomFeed />;
         default:
