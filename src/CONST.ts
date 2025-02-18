@@ -480,9 +480,6 @@ const CONST = {
     // Regex to read violation value from string given by backend
     VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
 
-    // Removes non-digit/non-plus characters for phone sanitization.
-    SANITIZE_PHONE_REGEX: /[^\d+]/g,
-
     // Validates phone numbers with digits, '+', '-', '()', '.', and spaces
     ACCEPTED_PHONE_CHARACTER_REGEX: /^[0-9+\-().\s]+$/,
 
