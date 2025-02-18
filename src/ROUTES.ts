@@ -133,7 +133,7 @@ const ROUTES = {
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
-    SETTINGS_SUBSCRIPTION: 'settings/subscription',
+    SETTINGS_SUBSCRIPTION: {route: 'settings/subscription', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo)},
     SETTINGS_SUBSCRIPTION_SIZE: {
         route: 'settings/subscription/subscription-size',
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
@@ -1116,25 +1116,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
-        getRoute: (
-            policyID: string,
-            connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>,
-            integrationToDisconnect?: ConnectionName,
-            shouldDisconnectIntegrationBeforeConnecting?: boolean,
-        ) => {
-            const searchParams = new URLSearchParams();
-
-            if (integrationToDisconnect) {
-                searchParams.append('integrationToDisconnect', integrationToDisconnect);
-            }
-            if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
-                searchParams.append('shouldDisconnectIntegrationBeforeConnecting', shouldDisconnectIntegrationBeforeConnecting.toString());
-            }
-
-            const queryParams = searchParams.size ? `?${searchParams.toString()}` : '';
-
-            return `settings/workspaces/${policyID}/accounting/${connection}/connection-selector${queryParams}` as const;
-        },
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/connection-selector` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
