@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -36,6 +36,15 @@ function ConfirmationStep({policyID, backTo, workspaceMemberEmail}: Confirmation
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [firstValidEmail, setFirstValidEmail] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (firstValidEmail ?? !assignCard?.data?.email) {
+            return;
+        }
+
+        setFirstValidEmail(assignCard.data.email);
+    }, [assignCard?.data?.email, firstValidEmail]);
 
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
