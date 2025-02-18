@@ -47,8 +47,8 @@ function AccountValidatePage() {
                 />
                 <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
                     <Text style={[styles.mt5, styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>
-                    <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', mergeAccountData?.email ?? '')}</Text>
-                    <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.enterMagicCode', mergeAccountData?.email ?? '')}</Text>
+                    <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {email: mergeAccountData?.email ?? ''})}</Text>
+                    <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.enterMagicCode', {email: mergeAccountData?.email ?? ''})}</Text>
                     <ValidateCodeForm
                         validateCodeAction={validateCodeAction}
                         handleSubmitForm={(code) => {

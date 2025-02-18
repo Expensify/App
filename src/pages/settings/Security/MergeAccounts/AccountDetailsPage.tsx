@@ -95,7 +95,7 @@ function AccountDetailsPage() {
                     enabledWhenOffline={false}
                 >
                     <View style={[styles.flexGrow1]}>
-                        <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountDetails.accountToMergeInto', userEmailOrPhone ?? '')}</Text>
+                        <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountDetails.accountToMergeInto', {email: userEmailOrPhone ?? ''})}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PHONE_OR_EMAIL}
