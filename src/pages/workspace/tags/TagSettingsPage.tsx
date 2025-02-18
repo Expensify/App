@@ -173,6 +173,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.['GL Code']}>
                         <MenuItemWithTopDescription
                             description={translate(`workspace.tags.glCode`)}
+                            title={currentPolicyTag?.['GL Code']}
                             onPress={navigateToEditGlCode}
                             iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
                             interactive={!hasAccountingConnections}
