@@ -46,7 +46,7 @@ jobs:
   comment_on_fork:
     name: Comment on all PRs that are forks
     # Only run on pull requests that *are* a fork
-    if: ${{ github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event.pull_request.head.repo.fork && github.event_name == 'pull_request_target' }}
     runs-on: ubuntu-latest
     steps:
       - name: Comment on forks
