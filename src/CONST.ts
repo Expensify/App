@@ -738,6 +738,7 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
+        PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
@@ -1386,6 +1387,12 @@ const CONST = {
             DEFAULT: 'default',
             DELETE: 'delete',
             PRESERVE: 'preserve',
+        },
+        ANIMATION_TIMING: {
+            DEFAULT_IN: 300,
+            DEFAULT_OUT: 200,
+            FAB_IN: 350,
+            FAB_OUT: 200,
         },
     },
     TIMING: {
@@ -6171,6 +6178,7 @@ const CONST = {
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
+                DONE: 'done',
                 PAID: 'paid',
             },
             INVOICE: {

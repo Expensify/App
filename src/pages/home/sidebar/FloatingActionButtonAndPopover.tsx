@@ -190,7 +190,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     const {environment} = useEnvironment();
@@ -485,7 +485,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   },
               ]
             : []),
-        ...(canUseSpotnanaTravel
+        ...(canUseSpotnanaTravel && !isBlockedFromSpotnanaTravel
             ? [
                   {
                       icon: Expensicons.Suitcase,
@@ -537,6 +537,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
+                animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
+                animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
+                shouldUseNewModal
                 menuItems={menuItems.map((item) => {
                     return {
                         ...item,
