@@ -60,22 +60,18 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const [isAnyoneElseDirector, setIsAnyoneElseDirector] = useState(false);
     const [directorBeingModifiedID, setDirectorBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
 
-    const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-
-    useEffect(() => {
-        if (!country) {
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        BankAccounts.getCorpayOnboardingFields(country);
-    }, [country]);
-
-    const submitSignerDetailsForm = useCallback(() => {
+    const submitSignerDetailsForm = () => {
         setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_DIRECTOR);
-    }, []);
+    };
 
-    const submitDirectorDetailsForm = useCallback(() => {
+    const submitDirectorDetailsForm = () => {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        prepareDirectorDetailsForm();
+        setIsAnyoneElseDirector(false);
+        setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_DIRECTOR);
+    };
+
+    const submit = useCallback(() => {
         // TODO: handle multiple directors
 
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorBeingModifiedID);
