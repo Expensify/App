@@ -1388,6 +1388,12 @@ const CONST = {
             DELETE: 'delete',
             PRESERVE: 'preserve',
         },
+        ANIMATION_TIMING: {
+            DEFAULT_IN: 300,
+            DEFAULT_OUT: 200,
+            FAB_IN: 350,
+            FAB_OUT: 200,
+        },
     },
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
