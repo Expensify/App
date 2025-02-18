@@ -328,7 +328,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 const firstViolation = violations.at(0);
 
                 if (firstViolation) {
-                    return ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                    return ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
                 }
             }
 
@@ -349,6 +349,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             canEditAmount,
             canEditDate,
             canEditMerchant,
+            canEdit,
         ],
     );
 
@@ -411,7 +412,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.includes(violation.name);
             if (isReceiptFieldViolation || isReceiptImageViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate);
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit);
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation) {
                     imageViolations.push(violationMessage);
@@ -419,7 +420,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate]);
+    }, [transactionViolations, translate, canEdit]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
@@ -812,6 +813,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     containerStyle={[styles.mt1]}
                                     textStyle={[styles.ph0]}
                                     isLast
+                                    canEdit={canEdit}
                                 />
                             )}
                         </View>
