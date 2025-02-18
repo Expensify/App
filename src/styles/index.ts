@@ -22,7 +22,6 @@ import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
 import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
-import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
@@ -130,7 +129,6 @@ const baseCodeTagStyles = (theme: ThemeColors) =>
         borderRadius: 5,
         borderColor: theme.border,
         backgroundColor: theme.textBackground,
-        // backgroundColor: theme.activeComponentBG, // If we want it more highlighted
     } satisfies ViewStyle & MixedStyleDeclaration);
 
 const headlineFont = {
@@ -210,7 +208,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingRight: 5,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 // Font size is determined by getCodeFontSize function in `StyleUtils.js`
-                ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
             },
 
             img: {
@@ -3359,10 +3356,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        codeWordWrapper: {
-            ...codeStyles.codeWordWrapper,
-        },
-
         codeWordStyle: {
             borderLeftWidth: 0,
             borderRightWidth: 0,
@@ -3373,7 +3366,6 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
             paddingRight: 0,
             justifyContent: 'center',
-            ...codeStyles.codeWordStyle,
         },
 
         codeFirstWordStyle: {
@@ -3388,10 +3380,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: 4,
             borderBottomRightRadius: 4,
             paddingRight: 5,
-        },
-
-        codePlainTextStyle: {
-            ...codeStyles.codePlainTextStyle,
         },
 
         fullScreenLoading: {
