@@ -34,11 +34,11 @@ function PhoneNumberPage() {
     const validateLoginError = getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
-    const formatPhoneNumber = useCallback((num: string) => {
+    const formatE164PhoneNumber = useCallback((num: string) => {
         const phoneNumberWithCountryCode = appendCountryCode(num);
         const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
-        return parsedPhoneNumber;
+        return parsedPhoneNumber.number?.e164;
     }, []);
 
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
@@ -49,9 +49,9 @@ function PhoneNumberPage() {
 
         // Only call the API if the user has changed their phone number
         if (phoneNumber !== values?.phoneNumber && values?.phoneNumber) {
-            const formattedPhone = formatPhoneNumber(values.phoneNumber);
+            const e164PhoneNumber = formatE164PhoneNumber(values.phoneNumber);
 
-            updatePhone(formattedPhone.number?.e164 ?? '', currenPhoneNumber);
+            updatePhone(e164PhoneNumber ?? '', currenPhoneNumber);
         }
 
         Navigation.goBack();
@@ -67,7 +67,9 @@ function PhoneNumberPage() {
                 return errors;
             }
 
-            if (!isValidPhoneNumber(phoneNumberValue)) {
+            const phoneNumberWithCountryCode = appendCountryCode(phoneNumberValue);
+
+            if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
                 return errors;
             }

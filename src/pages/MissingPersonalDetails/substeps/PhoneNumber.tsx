@@ -16,24 +16,26 @@ const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
 
-    const formatPhoneNumber = useCallback((num: string) => {
+    const formatE164PhoneNumber = useCallback((num: string) => {
         const phoneNumberWithCountryCode = appendCountryCode(num);
         const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
-        return parsedPhoneNumber;
+        return parsedPhoneNumber.number?.e164;
     }, []);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
-            const phoneNumberValue = values[INPUT_IDS.PHONE_NUMBER];
+            const phoneNumber = values[INPUT_IDS.PHONE_NUMBER];
 
-            if (!isRequiredFulfilled(phoneNumberValue)) {
+            if (!isRequiredFulfilled(phoneNumber)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
                 return errors;
             }
 
-            if (!isValidPhoneNumber(phoneNumberValue)) {
+            const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+
+            if (!isValidPhoneNumber(appendCountryCode(phoneNumberWithCountryCode))) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
             }
 
@@ -57,7 +59,7 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
             formTitle={translate('privatePersonalDetails.enterPhoneNumber')}
             validate={validate}
             onSubmit={(values) => {
-                handleSubmit({...values, phoneNumber: formatPhoneNumber(values[INPUT_IDS.PHONE_NUMBER]).number?.e164 ?? ''});
+                handleSubmit({...values, phoneNumber: formatE164PhoneNumber(values[INPUT_IDS.PHONE_NUMBER]) ?? ''});
             }}
             inputId={INPUT_IDS.PHONE_NUMBER}
             inputLabel={translate('common.phoneNumber')}
