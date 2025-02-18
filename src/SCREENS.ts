@@ -75,13 +75,6 @@ const SCREENS = {
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         CLOSE: 'Settings_Close',
-        TWO_FACTOR_AUTH: {
-            ROOT: 'Settings_TwoFactorAuth_Root',
-            VERIFY: 'Settings_TwoFactorAuth_Verify',
-            SUCCESS: 'Settings_TwoFactorAuth_Success',
-            DISABLED: 'Settings_TwoFactorAuth_Disabled',
-            DISABLE: 'Settings_TwoFactorAuth_Disable',
-        },
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
@@ -151,6 +144,13 @@ const SCREENS = {
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
         },
     },
+    TWO_FACTOR_AUTH: {
+        ROOT: 'Settings_TwoFactorAuth_Root',
+        VERIFY: 'Settings_TwoFactorAuth_Verify',
+        SUCCESS: 'Settings_TwoFactorAuth_Success',
+        DISABLED: 'Settings_TwoFactorAuth_Disabled',
+        DISABLE: 'Settings_TwoFactorAuth_Disable',
+    },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
@@ -159,6 +159,7 @@ const SCREENS = {
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
+        TWO_FACTOR_AUTH: 'TwoFactorAuth',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
