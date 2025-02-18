@@ -275,7 +275,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+        if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
             data.forEach((transaction) => {
                 if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
                     return;

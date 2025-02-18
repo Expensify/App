@@ -94,6 +94,7 @@ function SearchTypeMenu({queryJSON, searchName, shouldGroupByReports}: SearchTyp
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Document,
             getRoute: (policyID?: string) => {
+                clearSelectedTransactions();
                 const query = buildCannedSearchQuery({policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query, groupBy: 'reports'});
             },
