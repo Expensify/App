@@ -10,7 +10,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Clean production/adhoc build artifacts"
-               scriptText = "# Delete artificats from production/adhoc builds that might conflict&#10;rm /tmp/envfile&#10;rm ios/tmp.xcconfig&#10;">
+               scriptText = "# Delete artificats from production/adhoc builds that might conflict&#10;rm /tmp/envfile&#10;rm &quot;${SRCROOT}/tmp.xcconfig&quot;&#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
