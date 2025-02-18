@@ -8,7 +8,7 @@ description: How to manage the Expensify Card
 You must be a Workspace Admin to manage this feature.
 {% include end-info.html %}
 
-Once your Expensify Cards have been issued, you can monitor them and check your card’s current balance, remaining limit, and earned cash back.
+Once your Expensify Visa® Commercial Cards have been issued, you can monitor them and check your card’s current balance, remaining limit, and earned cash back.
 
 1. Click your profile image or icon in the bottom left menu.
 2. Scroll down and click **Workspaces** in the left menu.
