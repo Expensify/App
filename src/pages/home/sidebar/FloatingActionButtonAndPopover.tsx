@@ -85,6 +85,8 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
             return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
+        case CONST.QUICK_ACTIONS.PER_DIEM:
+            return Expensicons.CalendarSolid;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
@@ -109,6 +111,7 @@ const getIouType = (action: QuickActionName) => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.PER_DIEM:
             return CONST.IOU.TYPE.SUBMIT;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
@@ -128,23 +131,22 @@ const getIouType = (action: QuickActionName) => {
 const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
             return 'quickAction.requestMoney';
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return 'quickAction.scanReceipt';
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.recordDistance';
+        case CONST.QUICK_ACTIONS.PER_DIEM:
+            return 'quickAction.perDiem';
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
             return 'quickAction.splitBill';
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
             return 'quickAction.splitScan';
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return 'quickAction.splitDistance';
-        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return 'quickAction.trackManual';
-        case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return 'quickAction.trackScan';
-        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-            return 'quickAction.trackDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
@@ -378,6 +380,9 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         if (quickAction?.action) {
             const iouType = getIouType(quickAction?.action);
             if (!!iouType && !canCreateRequest(quickActionReport, quickActionPolicy, iouType)) {
+                return [];
+            }
+            if (quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !quickActionPolicy?.arePerDiemRatesEnabled) {
                 return [];
             }
             const onSelected = () => {
