@@ -1,9 +1,11 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCrossSubsidiaryCustomersConfiguration, updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
@@ -31,6 +33,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
     const importCustomer = importMappings?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     const importJobs = importMappings?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     const importedValue = importMappings?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT);
 
     const updateMapping = useCallback(
         (importField: ImportField, isEnabled: boolean) => {
@@ -95,7 +98,10 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)}
                 onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)}
             />
-            {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                isToggleTriggered={shouldAnimateAccordionSection}
+            >
                 <ToggleSettingOptionRow
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
@@ -108,9 +114,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
                     onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
                 />
-            )}
 
-            {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
                 <OfflineWithFeedback
                     pendingAction={settingsPendingAction(
                         [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
@@ -134,7 +138,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                         }
                     />
                 </OfflineWithFeedback>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }

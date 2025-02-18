@@ -18,10 +18,11 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
-import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -50,7 +51,7 @@ import {
     isUnread,
 } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
-import type {AuthScreensParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import {PersonalDetailsContext} from '@src/components/OnyxProvider';
@@ -184,7 +185,7 @@ function ReportActionsList({
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
@@ -455,13 +456,27 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
+    // https://github.com/Expensify/App/issues/54520
+    useEffect(() => {
+        if (!isSafari()) {
+            return;
+        }
+        const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
+        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
+            InteractionManager.runAfterInteractions(() => {
+                reportScrollManager.scrollToBottom();
+            });
+        }
+    }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
+
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
             InteractionManager.runAfterInteractions(() => {
                 setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
-                if (!isFromCurrentUser || !isReportScreenTopmostCentralPane()) {
+                if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
                 if (!hasNewestReportActionRef.current) {
@@ -745,7 +760,7 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        if (!isSearchTopmostCentralPane()) {
+        if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
         }
@@ -771,6 +786,7 @@ function ReportActionsList({
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 testID={reportActionsListTestID}
+                nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList
