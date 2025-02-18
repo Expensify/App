@@ -1,3 +1,4 @@
+import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,8 +16,8 @@ function setCodesAreCopied() {
 }
 
 function quitAndNavigateBack(backTo?: Route) {
-    clearTwoFactorAuthData();
     Navigation.goBack(backTo);
+    InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
 }
 
 export {clearTwoFactorAuthData, quitAndNavigateBack, setCodesAreCopied};
