@@ -70,6 +70,27 @@ async function translate(text: string, targetLang: string): Promise<string> {
     }
 }
 
+async function translateInBatches(stringsToTranslate: Map<string, string>, lang: string): Promise<Map<string, string>> {
+    const translations = new Map<string, string>();
+    const entries = Array.from(stringsToTranslate.entries());
+
+    for (let i = 0; i < entries.length; i += TRANSLATION_BATCH_SIZE) {
+        const batch = entries.slice(i, i + TRANSLATION_BATCH_SIZE);
+        const results = await Promise.all(
+            batch.map(async ([originalText]) => {
+                const translatedText = await translate(originalText, lang);
+                return [originalText, translatedText] as [string, string];
+            }),
+        );
+
+        results.forEach(([originalText, translatedText]) => {
+            translations.set(originalText, translatedText);
+        });
+    }
+
+    return translations;
+}
+
 function isPlainStringNode(node: ts.Node): node is StringLiteral {
     return (
         ts.isStringLiteral(node) &&
@@ -188,27 +209,6 @@ function createTransformer(translations: Map<string, string>): ts.TransformerFac
             return transformedNode as ts.SourceFile; // Safe cast since we always pass in a SourceFile
         };
     };
-}
-
-async function translateInBatches(stringsToTranslate: Map<string, string>, lang: string): Promise<Map<string, string>> {
-    const translations = new Map<string, string>();
-    const entries = Array.from(stringsToTranslate.entries());
-
-    for (let i = 0; i < entries.length; i += TRANSLATION_BATCH_SIZE) {
-        const batch = entries.slice(i, i + TRANSLATION_BATCH_SIZE);
-        const results = await Promise.all(
-            batch.map(async ([originalText]) => {
-                const translatedText = await translate(originalText, lang);
-                return [originalText, translatedText] as [string, string];
-            }),
-        );
-
-        results.forEach(([originalText, translatedText]) => {
-            translations.set(originalText, translatedText);
-        });
-    }
-
-    return translations;
 }
 
 // Main function to process translations
