@@ -45,12 +45,11 @@ function PageWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEna
         switch (stepName) {
             case CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES:
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
+            case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
                 return false;
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
-                return is2FAEnabled || !account.codesAreCopied;
+                return !account.codesAreCopied;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return !is2FAEnabled;
-            case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
                 return !is2FAEnabled;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
                 return is2FAEnabled;
