@@ -6165,7 +6165,7 @@ const CONST = {
             ASC: 'asc',
             DESC: 'desc',
         },
-        GROUPED_BY: {
+        GROUP_BY: {
             REPORTS: 'reports',
         },
         STATUS: {

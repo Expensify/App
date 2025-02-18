@@ -41,12 +41,12 @@ import type {PaymentData, SearchQueryJSON} from './types';
 
 type SearchPageHeaderProps = {
     queryJSON: SearchQueryJSON;
-    shouldBeGroupedByReports?: boolean;
+    shouldGroupByReports?: boolean;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, shouldBeGroupedByReports}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, shouldGroupByReports}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -376,7 +376,7 @@ function SearchPageHeader({queryJSON, shouldBeGroupedByReports}: SearchPageHeade
         <>
             <SearchPageHeaderInput
                 queryJSON={queryJSON}
-                shouldBeGroupedByReports={shouldBeGroupedByReports}
+                shouldGroupByReports={shouldGroupByReports}
             >
                 {headerButtonsOptions.length > 0 ? (
                     <ButtonWithDropdownMenu

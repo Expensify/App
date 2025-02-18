@@ -6,6 +6,7 @@ import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
@@ -40,7 +41,7 @@ import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
-    shouldBeGroupedByReports?: boolean;
+    shouldGroupByReports?: boolean;
     searchName?: string;
 };
 
@@ -51,7 +52,7 @@ type SearchTypeMenuItem = {
     getRoute: (policyID?: string) => Route;
 };
 
-function SearchTypeMenu({queryJSON, searchName, shouldBeGroupedByReports}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON, searchName, shouldGroupByReports}: SearchTypeMenuProps) {
     const {type, hash} = queryJSON;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -73,6 +74,7 @@ function SearchTypeMenu({queryJSON, searchName, shouldBeGroupedByReports}: Searc
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
+    const {clearSelectedTransactions} = useSearchContext();
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -80,6 +82,9 @@ function SearchTypeMenu({queryJSON, searchName, shouldBeGroupedByReports}: Searc
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Receipt,
             getRoute: (policyID?: string) => {
+                if (shouldGroupByReports) {
+                    clearSelectedTransactions()
+                }
                 const query = buildCannedSearchQuery({policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
             },
@@ -224,7 +229,7 @@ function SearchTypeMenu({queryJSON, searchName, shouldBeGroupedByReports}: Searc
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {
-              if (shouldBeGroupedByReports) {
+              if (shouldGroupByReports) {
                   return item.title === translate('common.expenseReports');
               }
               return item.type === type;

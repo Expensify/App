@@ -45,7 +45,7 @@ function SearchPage({route}: SearchPageProps) {
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
 
-    const shouldBeGroupedByReports = groupBy === CONST.SEARCH.GROUPED_BY.REPORTS;
+    const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
@@ -56,7 +56,7 @@ function SearchPage({route}: SearchPageProps) {
                 <SearchPageNarrow
                     queryJSON={queryJSON}
                     policyID={policyID}
-                    shouldBeGroupedByReports={shouldBeGroupedByReports}
+                    shouldGroupByReports={shouldGroupByReports}
                     searchName={searchName}
                 />
             </FreezeWrapper>
@@ -85,7 +85,7 @@ function SearchPage({route}: SearchPageProps) {
                                     <SearchTypeMenu
                                         queryJSON={queryJSON}
                                         searchName={searchName}
-                                        shouldBeGroupedByReports={shouldBeGroupedByReports}
+                                        shouldGroupByReports={shouldGroupByReports}
                                     />
                                 </View>
                             ) : (
@@ -106,13 +106,13 @@ function SearchPage({route}: SearchPageProps) {
                         >
                             <SearchPageHeader
                                 queryJSON={queryJSON}
-                                shouldBeGroupedByReports={shouldBeGroupedByReports}
+                                shouldGroupByReports={shouldGroupByReports}
                             />
                             <SearchStatusBar queryJSON={queryJSON} />
                             <Search
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
-                                shouldBeGroupedByReports={shouldBeGroupedByReports}
+                                shouldGroupByReports={shouldGroupByReports}
                             />
                         </ScreenWrapper>
                     </View>
