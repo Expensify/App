@@ -480,7 +480,7 @@ const ONYXKEYS = {
     TRAVEL_PROVISIONING: 'travelProvisioning',
 
     /** Stores the information about the state of side panel */
-    NVP_SIDE_PANEL: 'nvp_sidePanelExpanded',
+    NVP_SIDE_PANE: 'nvp_sidePaneExpanded',
 
     /** Collection Keys */
     COLLECTION: {
@@ -1081,7 +1081,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
-    [ONYXKEYS.NVP_SIDE_PANEL]: {
+    [ONYXKEYS.NVP_SIDE_PANE]: {
         open: boolean;
         openMobile: boolean;
     };
