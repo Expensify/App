@@ -346,7 +346,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     if (isArchivedReportWithID(report.reportID)) {
         return null;
     }
-    
+
     if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
