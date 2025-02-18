@@ -199,7 +199,7 @@ export default {
     receiptPlaceholderIconWidth: 80,
     receiptPlaceholderIconHeight: 80,
     reportPreviewMaxWidth: 335,
-    reportActionImagesSingleImageHeight: 147,
+    reportActionImagesSingleImageHeight: 160,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
