@@ -1,6 +1,8 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -24,7 +26,7 @@ import {
     getFilteredReimbursableAccountOptions,
     settingsPendingAction,
 } from '@libs/PolicyUtils';
-import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
+import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideCustomFormIDOptions,
     shouldHideExportJournalsTo,
@@ -39,8 +41,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide' | 'hintText'> & {subscribedSettings?: string[]};
-
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -50,6 +50,9 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
+
+    const shouldShowCustomFormIDOptions = useSharedValue(!shouldHideCustomFormIDOptions(config));
+    const shouldAnimateAccordionSection = useSharedValue(false);
 
     const selectedReimbursementAccount = useMemo(
         () => findSelectedBankAccountWithDefaultSelect(getFilteredReimbursableAccountOptions(payableList), config?.reimbursementAccountID),
@@ -69,7 +72,25 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         return findSelectedBankAccountWithDefaultSelect(getFilteredApprovalAccountOptions(payableList), config?.approvalAccount);
     }, [config?.approvalAccount, payableList, translate]);
 
-    const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
+    const renderDefaultMenuItem = (item: MenuItemToRender) => {
+        return (
+            <OfflineWithFeedback
+                key={item.description}
+                pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)}
+            >
+                <MenuItemWithTopDescription
+                    title={item.title}
+                    description={item.description}
+                    shouldShowRightIcon
+                    onPress={item?.onPress}
+                    brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    hintText={item.hintText}
+                />
+            </OfflineWithFeedback>
+        );
+    };
+
+    const menuItems: ExtendedMenuItemWithSubscribedSettings[] = [
         {
             type: 'menuitem',
             title: autoSyncConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled'),
@@ -207,25 +228,37 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.netsuite.advancedConfig.customFormIDDescription'),
             shouldPlaceSubtitleBelowSwitch: true,
             onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
-            onToggle: (isEnabled) => updateNetSuiteCustomFormIDOptionsEnabled(policyID, isEnabled),
+            onToggle: (isEnabled) => {
+                updateNetSuiteCustomFormIDOptionsEnabled(policyID, isEnabled);
+                shouldShowCustomFormIDOptions.set(isEnabled);
+                shouldAnimateAccordionSection.set(true);
+            },
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED], config?.pendingFields),
             errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_ENABLED),
         },
         {
-            type: 'menuitem',
-            description: translate('workspace.netsuite.advancedConfig.customFormIDReimbursable'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
-            title: config?.customFormIDOptions?.reimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.reimbursableExpensesExportDestination]],
-            subscribedSettings: [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE],
-            shouldHide: shouldHideCustomFormIDOptions(config),
-        },
-        {
-            type: 'menuitem',
-            description: translate('workspace.netsuite.advancedConfig.customFormIDNonReimbursable'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
-            title: config?.customFormIDOptions?.nonReimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.nonreimbursableExpensesExportDestination]],
-            subscribedSettings: [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE],
-            shouldHide: shouldHideCustomFormIDOptions(config),
+            type: 'accordion',
+            children: [
+                {
+                    type: 'menuitem',
+                    description: translate('workspace.netsuite.advancedConfig.customFormIDReimbursable'),
+                    onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
+                    title: config?.customFormIDOptions?.reimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.reimbursableExpensesExportDestination]],
+                    subscribedSettings: [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.REIMBURSABLE],
+                    shouldHide: shouldHideCustomFormIDOptions(config),
+                },
+                {
+                    type: 'menuitem',
+                    description: translate('workspace.netsuite.advancedConfig.customFormIDNonReimbursable'),
+                    onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
+                    title: config?.customFormIDOptions?.nonReimbursable?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[config.nonreimbursableExpensesExportDestination]],
+                    subscribedSettings: [CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_TYPE.NON_REIMBURSABLE],
+                    shouldHide: shouldHideCustomFormIDOptions(config),
+                },
+            ],
+            shouldHide: false,
+            shouldExpand: shouldShowCustomFormIDOptions,
+            shouldAnimateSection: shouldAnimateAccordionSection,
         },
     ];
 
@@ -243,7 +276,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
             {menuItems
-                .filter((item) => !item.shouldHide)
+                .filter((item) => !item?.shouldHide)
                 .map((item) => {
                     switch (item.type) {
                         case 'divider':
@@ -264,24 +297,19 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                     wrapperStyle={[styles.mv3, styles.ph5]}
                                 />
                             );
-                        default:
+                        case 'accordion':
                             return (
-                                <OfflineWithFeedback
-                                    key={item.description}
-                                    pendingAction={
-                                        settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)
-                                    }
+                                <Accordion
+                                    isExpanded={item.shouldExpand}
+                                    isToggleTriggered={item.shouldAnimateSection}
                                 >
-                                    <MenuItemWithTopDescription
-                                        title={item.title}
-                                        description={item.description}
-                                        shouldShowRightIcon
-                                        onPress={item?.onPress}
-                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                        hintText={item.hintText}
-                                    />
-                                </OfflineWithFeedback>
+                                    {item.children.map((child) => {
+                                        return renderDefaultMenuItem(child);
+                                    })}
+                                </Accordion>
                             );
+                        default:
+                            return renderDefaultMenuItem(item);
                     }
                 })}
         </ConnectionLayout>
