@@ -343,8 +343,10 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const errors = getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
-    if (isArchivedReportWithID(report.reportID)) return null;
-
+    if (isArchivedReportWithID(report.reportID)) {
+        return null;
+    }
+    
     if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
