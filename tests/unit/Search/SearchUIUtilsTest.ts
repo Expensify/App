@@ -1,9 +1,17 @@
+import Onyx from 'react-native-onyx';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const accountID = 18439984;
+const adminAccountID = 18439984;
+const adminEmail = 'admin@policy.com';
+const approverAccountID = 1111111;
+const approverEmail = 'approver@policy.com';
+const overlimitApproverAccountID = 222222;
+const overlimitApproverEmail = 'overlimit@policy.com';
 const policyID = 'A1B2C3';
 const reportID = '123456789';
 const reportID2 = '11111';
@@ -14,16 +22,28 @@ const transactionID2 = '2';
 const searchResults: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {
-            [accountID]: {
-                accountID,
+            [adminAccountID]: {
+                accountID: adminAccountID,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                displayName: 'test',
-                login: 'test1234@gmail.com',
+                displayName: 'Admin',
+                login: adminEmail,
+            },
+            [approverAccountID]: {
+                accountID: approverAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Approver',
+                login: approverEmail,
+            },
+            [overlimitApproverAccountID]: {
+                accountID: overlimitApproverAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Overlimit Approver',
+                login: overlimitApproverEmail,
             },
         },
         [`policy_${policyID}`]: {
             id: 'test',
-            approvalMode: 'OPTIONAL',
+            approvalMode: 'ADVANCED',
             autoReimbursement: {
                 limit: 0,
             },
@@ -35,9 +55,29 @@ const searchResults: OnyxTypes.SearchResults = {
             reimbursementChoice: 'reimburseManual',
             role: 'admin',
             type: 'team',
+            employeeList: {
+                [adminEmail]: {
+                    email: adminEmail,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    forwardsTo: '',
+                    submitsTo: approverEmail,
+                },
+                [approverEmail]: {
+                    email: approverEmail,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalLimit: 100,
+                    submitsTo: adminEmail,
+                    overLimitForwardsTo: overlimitApproverEmail,
+                },
+                [overlimitApproverEmail]: {
+                    email: overlimitApproverEmail,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    submitsTo: approverEmail,
+                },
+            },
         },
         [`report_${reportID}`]: {
-            accountID,
+            accountID: adminAccountID,
             action: 'view',
             chatReportID: '1706144653204915',
             created: '2024-12-21 13:05:20',
@@ -45,9 +85,9 @@ const searchResults: OnyxTypes.SearchResults = {
             isOneTransactionReport: true,
             isPolicyExpenseChat: false,
             isWaitingOnBankAccount: false,
-            managerID: accountID,
+            managerID: adminAccountID,
             nonReimbursableTotal: 0,
-            ownerAccountID: accountID,
+            ownerAccountID: adminAccountID,
             policyID,
             reportID,
             reportName: 'Expense Report #123',
@@ -58,7 +98,7 @@ const searchResults: OnyxTypes.SearchResults = {
             unheldTotal: -5000,
         },
         [`report_${reportID2}`]: {
-            accountID,
+            accountID: adminAccountID,
             action: 'view',
             chatReportID: '1706144653204915',
             created: '2024-12-21 13:05:20',
@@ -66,9 +106,9 @@ const searchResults: OnyxTypes.SearchResults = {
             isOneTransactionReport: true,
             isPolicyExpenseChat: false,
             isWaitingOnBankAccount: false,
-            managerID: accountID,
+            managerID: adminAccountID,
             nonReimbursableTotal: 0,
-            ownerAccountID: accountID,
+            ownerAccountID: adminAccountID,
             policyID,
             reportID: reportID2,
             reportName: 'Expense Report #123',
@@ -79,7 +119,7 @@ const searchResults: OnyxTypes.SearchResults = {
             unheldTotal: -5000,
         },
         [`transactions_${transactionID}`]: {
-            accountID,
+            accountID: adminAccountID,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -93,7 +133,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: accountID,
+            managerID: adminAccountID,
             description: '',
             hasViolation: false,
             merchant: 'Expense',
@@ -111,7 +151,7 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionType: 'cash',
         },
         [`transactions_${transactionID2}`]: {
-            accountID,
+            accountID: adminAccountID,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -125,7 +165,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: accountID,
+            managerID: adminAccountID,
             description: '',
             hasViolation: true,
             merchant: 'Expense',
@@ -190,5 +230,17 @@ describe('Test getAction', () => {
 
         action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
         expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+    });
+
+    test('Should show `View` to overlimit approver', () => {
+        Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
+        searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
+        return waitForBatchedUpdates().then(() => {
+            let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+
+            action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
     });
 });
