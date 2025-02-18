@@ -61,7 +61,6 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         return (
             <ScreenWrapper
                 testID={IssueNewCardPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
                 <DelegateNoAccessWrapper

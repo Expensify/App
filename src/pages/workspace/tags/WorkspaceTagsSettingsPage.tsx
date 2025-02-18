@@ -126,7 +126,6 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         >
             {({policy}) => (
                 <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
                     style={[styles.defaultModalContainer]}
                     testID={WorkspaceTagsSettingsPage.displayName}
                 >

@@ -186,7 +186,6 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         >
             <ScreenWrapper
                 testID={WorkspaceExpensifyCardBankAccounts.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
             >

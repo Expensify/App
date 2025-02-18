@@ -55,7 +55,6 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
     return (
         <ScreenWrapper
             testID={SubscriptionSizePage.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             shouldShowOfflineIndicatorInWideScreen

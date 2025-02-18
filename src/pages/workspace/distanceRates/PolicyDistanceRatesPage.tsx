@@ -340,7 +340,6 @@ function PolicyDistanceRatesPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRatesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen

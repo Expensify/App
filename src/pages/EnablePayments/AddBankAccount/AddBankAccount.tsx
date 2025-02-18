@@ -72,7 +72,6 @@ function AddBankAccount() {
     return (
         <ScreenWrapper
             testID={AddBankAccount.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator
         >

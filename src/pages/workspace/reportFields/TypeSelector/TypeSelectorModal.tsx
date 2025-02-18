@@ -45,7 +45,6 @@ function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelec
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={TypeSelectorModal.displayName}
             >
                 <HeaderWithBackButton

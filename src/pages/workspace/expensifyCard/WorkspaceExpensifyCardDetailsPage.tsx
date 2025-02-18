@@ -91,10 +91,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceExpensifyCardDetailsPage.displayName}
-            >
+            <ScreenWrapper testID={WorkspaceExpensifyCardDetailsPage.displayName}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithBackButton

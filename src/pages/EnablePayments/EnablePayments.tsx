@@ -39,7 +39,6 @@ function EnablePaymentsPage() {
         return (
             <ScreenWrapper
                 testID={EnablePaymentsPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
@@ -55,7 +54,6 @@ function EnablePaymentsPage() {
         return (
             <ScreenWrapper
                 testID={EnablePaymentsPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
                 <HeaderWithBackButton

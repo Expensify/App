@@ -175,10 +175,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                 onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    testID={WorkspaceWorkflowsPayerPage.displayName}
-                >
+                <ScreenWrapper testID={WorkspaceWorkflowsPayerPage.displayName}>
                     <HeaderWithBackButton
                         title={translate('workflowsPayerPage.title')}
                         subtitle={policyName}

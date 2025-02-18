@@ -83,10 +83,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceCompanyCardDetailsPage.displayName}
-            >
+            <ScreenWrapper testID={WorkspaceCompanyCardDetailsPage.displayName}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
                         <HeaderWithBackButton

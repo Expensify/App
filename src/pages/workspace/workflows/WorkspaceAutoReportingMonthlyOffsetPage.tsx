@@ -77,10 +77,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceAutoReportingMonthlyOffsetPage.displayName}
-            >
+            <ScreenWrapper testID={WorkspaceAutoReportingMonthlyOffsetPage.displayName}>
                 <FullPageNotFoundView
                     onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                     onLinkPress={PolicyUtils.goBackFromInvalidPolicy}

@@ -68,7 +68,6 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
         >
             <ScreenWrapper
                 testID={WorkspaceSettlementFrequencyPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

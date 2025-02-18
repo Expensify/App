@@ -89,7 +89,6 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            includeSafeAreaPaddingBottom={false}
             testID={WalletStatementPage.displayName}
         >
             <HeaderWithBackButton

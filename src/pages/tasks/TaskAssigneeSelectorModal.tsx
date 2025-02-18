@@ -208,10 +208,7 @@ function TaskAssigneeSelectorModal() {
     }, [debouncedSearchValue]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={TaskAssigneeSelectorModal.displayName}
-        >
+        <ScreenWrapper testID={TaskAssigneeSelectorModal.displayName}>
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton
                     title={translate('task.assignee')}

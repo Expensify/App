@@ -429,7 +429,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}

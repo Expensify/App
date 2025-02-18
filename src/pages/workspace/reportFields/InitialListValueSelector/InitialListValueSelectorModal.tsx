@@ -47,7 +47,6 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={InitialListValueSelectorModal.displayName}
             >
                 <HeaderWithBackButton

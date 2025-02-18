@@ -45,10 +45,7 @@ function PriorityModePage() {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={PriorityModePage.displayName}
-        >
+        <ScreenWrapper testID={PriorityModePage.displayName}>
             <HeaderWithBackButton
                 title={translate('priorityModePage.priorityMode')}
                 onBackButtonPress={() => Navigation.goBack()}

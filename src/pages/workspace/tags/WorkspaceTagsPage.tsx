@@ -409,7 +409,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceTagsPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen

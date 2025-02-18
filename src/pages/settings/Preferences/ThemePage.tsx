@@ -40,10 +40,7 @@ function ThemePage() {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={ThemePage.displayName}
-        >
+        <ScreenWrapper testID={ThemePage.displayName}>
             <HeaderWithBackButton
                 title={translate('themePage.theme')}
                 onBackButtonPress={() => Navigation.goBack()}
