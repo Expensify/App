@@ -13,8 +13,8 @@ type SidebarSpacerWrapperProps = {
 function SidebarSpacerWrapper({children}: SidebarSpacerWrapperProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
-    const [sidePanel] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
-    const shouldShowHelpPanel = isExtraLargeScreenWidth && !!sidePanel?.open;
+    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const shouldShowHelpPanel = isExtraLargeScreenWidth && !!sidePane?.open;
 
     return <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout, shouldShowHelpPanel)}>{children}</View>;
 }
