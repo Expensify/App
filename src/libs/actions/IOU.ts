@@ -4250,33 +4250,58 @@ type AddTrackedExpenseToPolicyParam = {
     moneyRequestPreviewReportActionID: string;
 } & ConvertTrackedWorkspaceParams;
 
+type ConvertTrackedExpenseToRequestParams = {
+    payerParams: {
+        accountID: number;
+        email: string;
+    };
+    transactionParams: {
+        transactionID: string;
+        actionableWhisperReportActionID: string | undefined;
+        linkedTrackedExpenseReportAction: OnyxTypes.ReportAction;
+        linkedTrackedExpenseReportID: string;
+        amount: number;
+        currency: string;
+        comment: string;
+        merchant: string;
+        created: string;
+        attendees?: Attendee[];
+        transactionThreadReportID: string;
+    };
+    chatParams: {
+        reportID: string;
+        createdReportActionID: string | undefined;
+        reportPreviewReportActionID: string;
+    };
+    iouParams: {
+        reportID: string;
+        createdReportActionID: string | undefined;
+        reportActionID: string;
+    };
+    onyxData: OnyxData;
+    workspaceParams?: ConvertTrackedWorkspaceParams;
+};
+
 function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData) {
     API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
 }
 
-function convertTrackedExpenseToRequest(
-    payerAccountID: number,
-    payerEmail: string,
-    chatReportID: string,
-    transactionID: string,
-    actionableWhisperReportActionID: string | undefined,
-    createdChatReportActionID: string | undefined,
-    moneyRequestReportID: string,
-    moneyRequestCreatedReportActionID: string | undefined,
-    moneyRequestPreviewReportActionID: string,
-    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
-    linkedTrackedExpenseReportID: string,
-    transactionThreadReportID: string,
-    reportPreviewReportActionID: string,
-    onyxData: OnyxData,
-    amount: number,
-    currency: string,
-    comment: string,
-    merchant: string,
-    created: string,
-    attendees?: Attendee[],
-    workspaceParams?: ConvertTrackedWorkspaceParams,
-) {
+function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams} = convertTrackedExpenseParams;
+    const {accountID: payerAccountID, email: payerEmail} = payerParams;
+    const {
+        transactionID,
+        actionableWhisperReportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        amount,
+        currency,
+        comment,
+        merchant,
+        created,
+        attendees,
+        transactionThreadReportID,
+    } = transactionParams;
     const {optimisticData, successData, failureData} = onyxData;
 
     const {
@@ -4287,7 +4312,7 @@ function convertTrackedExpenseToRequest(
     } = getConvertTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
-        moneyRequestReportID,
+        iouParams.reportID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
@@ -4308,11 +4333,11 @@ function convertTrackedExpenseToRequest(
             reimbursable: true,
             transactionID,
             actionableWhisperReportActionID,
-            moneyRequestReportID,
-            moneyRequestCreatedReportActionID,
-            moneyRequestPreviewReportActionID,
+            moneyRequestReportID: iouParams.reportID,
+            moneyRequestCreatedReportActionID: iouParams.createdReportActionID,
+            moneyRequestPreviewReportActionID: iouParams.reportActionID,
             modifiedExpenseReportActionID,
-            reportPreviewReportActionID,
+            reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
             ...workspaceParams,
         };
 
@@ -4329,16 +4354,16 @@ function convertTrackedExpenseToRequest(
         merchant,
         payerAccountID,
         payerEmail,
-        chatReportID,
+        chatReportID: chatParams.reportID,
         transactionID,
         actionableWhisperReportActionID,
-        createdChatReportActionID,
-        moneyRequestReportID,
-        moneyRequestCreatedReportActionID,
-        moneyRequestPreviewReportActionID,
+        createdChatReportActionID: chatParams.createdReportActionID,
+        moneyRequestReportID: iouParams.reportID,
+        moneyRequestCreatedReportActionID: iouParams.createdReportActionID,
+        moneyRequestPreviewReportActionID: iouParams.reportActionID,
         transactionThreadReportID,
         modifiedExpenseReportActionID,
-        reportPreviewReportActionID,
+        reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
     };
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
@@ -4529,29 +4554,37 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                           customUnitRateID,
                       }
                     : undefined;
-            convertTrackedExpenseToRequest(
-                payerAccountID,
-                payerEmail,
-                chatReport.reportID,
-                transaction.transactionID,
-                actionableWhisperReportActionID,
-                createdChatReportActionID,
-                iouReport.reportID,
-                createdIOUReportActionID,
-                iouAction.reportActionID,
-                linkedTrackedExpenseReportAction,
-                linkedTrackedExpenseReportID,
-                transactionThreadReportID,
-                reportPreviewAction.reportActionID,
+            convertTrackedExpenseToRequest({
+                payerParams: {
+                    accountID: payerAccountID,
+                    email: payerEmail,
+                },
+                transactionParams: {
+                    amount,
+                    currency,
+                    comment,
+                    merchant,
+                    created,
+                    attendees,
+                    transactionID: transaction.transactionID,
+                    actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID,
+                    transactionThreadReportID,
+                },
+                chatParams: {
+                    reportID: chatReport.reportID,
+                    createdReportActionID: createdChatReportActionID,
+                    reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                },
+                iouParams: {
+                    reportID: iouReport.reportID,
+                    createdReportActionID: createdIOUReportActionID,
+                    reportActionID: iouAction.reportActionID,
+                },
                 onyxData,
-                amount,
-                currency,
-                comment,
-                merchant,
-                created,
-                attendees,
                 workspaceParams,
-            );
+            });
             break;
         }
         default: {
