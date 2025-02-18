@@ -99,6 +99,7 @@ import {
     getReportOrDraftReport,
     getReportParticipantsTitle,
     getReportPreviewMessage,
+    getReportSubtitlePrefix,
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
@@ -549,33 +550,35 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const formattedLastMessageText = formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? ''));
+    const reportPrefix = getReportSubtitlePrefix(report);
+    const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
     if (isExpenseThread || option.isMoneyRequestReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'iou.expense');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'iou.expense');
     }
 
     if (option.isThread) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'threads.thread');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : option.subtitle;
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
     }
 
     if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
-        return showChatPreviewLine && !forcePolicyNamePreview && formattedLastMessageText ? formattedLastMessageText : option.subtitle;
+        return showChatPreviewLine && !forcePolicyNamePreview && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'task.task');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'task.task');
     }
 
     if (isGroupChat) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'common.group');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'common.group');
     }
 
     return showChatPreviewLine && formattedLastMessageText
-        ? formattedLastMessageText
+        ? formattedLastMessageTextWithPrefix
         : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
 }
 

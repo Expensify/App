@@ -470,6 +470,7 @@ function SearchAutocompleteList(
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
     );
 
+    console.log(sections);
     return (
         <SelectionList<OptionData | SearchQueryItem>
             sections={sections}
