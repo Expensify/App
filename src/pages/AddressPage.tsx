@@ -25,16 +25,18 @@ type AddressPageProps = {
     updateAddress: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
     /** Title of address page */
     title: string;
+
+    defaultCountry?: Country;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState(address?.country);
+    const [currentCountry, setCurrentCountry] = useState(address?.country ?? defaultCountry);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);

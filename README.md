@@ -26,7 +26,7 @@
 * [Offline First](contributingGuides/OFFLINE_UX.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
-* [Contributor License Agreement](contributingGuides/CLA.md)
+* [Contributor License Agreement](CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
 * [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
 
