@@ -171,10 +171,6 @@ function MoneyRequestAmountForm(
     );
 
     const onFlipAmount = useCallback(() => {
-        if (!moneyRequestAmountInput.current?.getAmount()) {
-            return;
-        }
-
         setIsNegative((prevIsNegative) => !prevIsNegative);
     }, []);
 
