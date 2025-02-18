@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import {getButtonRole} from './Button/utils';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import {FallbackAvatar} from './Icon/Expensicons';
@@ -134,22 +135,24 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
                     <PressableWithoutFeedback
                         onPress={showActorDetails}
                         accessibilityLabel={title}
-                        role={CONST.ROLE.BUTTON}
+                        role={getButtonRole(true)}
                     >
-                        {shouldShowSubscriptAvatar ? (
-                            <SubscriptAvatar
-                                backgroundColor={avatarBorderColor}
-                                mainAvatar={icons.at(0) ?? fallbackIcon}
-                                secondaryAvatar={icons.at(1)}
-                                size={size}
-                            />
-                        ) : (
-                            <MultipleAvatars
-                                icons={icons}
-                                size={size}
-                                secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                            />
-                        )}
+                        <View accessibilityLabel={title}>
+                            {shouldShowSubscriptAvatar ? (
+                                <SubscriptAvatar
+                                    backgroundColor={avatarBorderColor}
+                                    mainAvatar={icons.at(0) ?? fallbackIcon}
+                                    secondaryAvatar={icons.at(1)}
+                                    size={size}
+                                />
+                            ) : (
+                                <MultipleAvatars
+                                    icons={icons}
+                                    size={size}
+                                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+                                />
+                            )}
+                        </View>
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
                         <CaretWrapper>

@@ -96,7 +96,7 @@ function SearchPage({route}: SearchPageProps) {
                                     <HeaderGap />
                                     <TopBar
                                         activeWorkspaceID={policyID}
-                                        breadcrumbLabel={translate('common.search')}
+                                        breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                     />
                                     <SearchTypeMenu
