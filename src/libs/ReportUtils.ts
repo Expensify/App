@@ -64,7 +64,7 @@ import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged, prepareOnboardingOnyxData} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
-import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
+import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
@@ -77,8 +77,9 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 // eslint-disable-next-line import/no-cycle
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
+import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
-import Navigation from './Navigation/Navigation';
+import Navigation, {navigationRef} from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
@@ -153,6 +154,7 @@ import {
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
+    isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
     wasActionTakenByCurrentUser,
@@ -692,6 +694,10 @@ type Thread = {
     parentReportActionID: string;
 } & Report;
 
+type GetChatRoomSubtitleConfig = {
+    isCreateExpenseFlow?: boolean;
+};
+
 type GetPolicyNameParams = {
     report: OnyxInputOrEntry<Report>;
     returnEmptyIfNotFound?: boolean;
@@ -712,6 +718,8 @@ type GetReportNameParams = {
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     policies?: SearchPolicy[];
 };
+
+type ReportByPolicyMap = Record<string, Report[]>;
 
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
@@ -774,6 +782,7 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<Report>;
+let reportsByPolicyID: ReportByPolicyMap;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -789,12 +798,27 @@ Onyx.connect({
         if (!value) {
             return;
         }
-        Object.values(value).forEach((report) => {
+
+        reportsByPolicyID = Object.values(value).reduce<ReportByPolicyMap>((acc, report) => {
             if (!report) {
-                return;
+                return acc;
             }
+
             handleReportChanged(report);
-        });
+
+            // Get all reports, which are the ones that are:
+            // - Owned by the same user
+            // - Are either open or submitted
+            // - Belong to the same workspace
+            if (report.policyID && report.ownerAccountID === currentUserAccountID && (report.stateNum ?? 0) <= 1) {
+                if (!acc[report.policyID]) {
+                    acc[report.policyID] = [];
+                }
+                acc[report.policyID].push(report);
+            }
+
+            return acc;
+        }, {});
     },
 });
 
@@ -1058,8 +1082,7 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
     if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName)) {
         return noPolicyFound;
     }
-
-    const finalPolicy = policy ?? policies?.find((p) => p.id === report.policyID) ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+    const finalPolicy = isEmptyObject(policy) ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : policy ?? policies?.find((p) => p.id === report.policyID);
 
     const parentReport = getRootParentReport({report, reports});
 
@@ -1088,6 +1111,28 @@ function isChatReport(report: OnyxEntry<Report>): boolean {
 
 function isInvoiceReport(report: OnyxInputOrEntry<Report> | SearchReport): boolean {
     return report?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
+function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
+    if (!invoiceRoomID) {
+        return false;
+    }
+
+    return isInvoiceRoom(getReport(invoiceRoomID, allReports));
+}
+
+/**
+ * Checks if the report with supplied ID has been approved or not
+ */
+function isReportIDApproved(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    const report = getReport(reportID, allReports);
+    if (!report) {
+        return;
+    }
+    return isReportApproved({report});
 }
 
 /**
@@ -1160,20 +1205,6 @@ function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
  */
 function isReportManager(report: OnyxEntry<Report>): boolean {
     return !!(report && report.managerID === currentUserAccountID);
-}
-
-/**
- * Checks if the report with supplied ID has been approved
- */
-function isReportIDApproved(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
-    const report = getReport(reportID, allReports);
-    if (!report) {
-        return;
-    }
-    return isReportApproved({report});
 }
 
 /**
@@ -2581,7 +2612,8 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
             )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
-            .join(', ');
+            .join(', ')
+            .slice(0, CONST.REPORT_NAME_LIMIT);
     }
 
     return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
@@ -3274,6 +3306,9 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | u
  * 2. Report is settled or it is closed
  */
 function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
+    if (isInvoiceReport(report)) {
+        return true;
+    }
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
@@ -3534,7 +3569,7 @@ function canEditMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction<typeof 
  * Checks if the current user can edit the provided property of an expense
  *
  */
-function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, isDeleteAction?: boolean): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -3592,7 +3627,8 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
             !isReceiptBeingScanned(transaction) &&
             !isDistanceRequest(transaction) &&
             !isPerDiemRequest(transaction) &&
-            (isAdmin || isManager || isRequestor)
+            (isAdmin || isManager || isRequestor) &&
+            (isDeleteAction ? isRequestor : true)
         );
     }
 
@@ -4452,10 +4488,9 @@ function getReportNameInternal({
             const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
             return formatReportLastMessageText(modifiedMessage);
         }
-        if (isTripRoom(report)) {
+        if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
             return report?.reportName ?? '';
         }
-
         if (isCardIssuedAction(parentReportAction)) {
             return getCardIssuedMessage({reportAction: parentReportAction, personalDetails});
         }
@@ -4487,7 +4522,9 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = report?.reportName ?? getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+        const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
     }
 
     if (isInvoiceRoom(report)) {
@@ -4541,7 +4578,7 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
 /**
  * Get either the policyName or domainName the chat is tied to
  */
-function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
+function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubtitleConfig = {isCreateExpenseFlow: false}): string | undefined {
     if (isChatThread(report)) {
         return '';
     }
@@ -4562,7 +4599,15 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
         return report?.reportName?.substring(1) ?? '';
     }
     if ((isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || isExpenseReport(report)) {
-        return translateLocal('workspace.common.workspace');
+        const submitToAccountID = getSubmitToAccountID(getPolicy(report?.policyID), report);
+        const submitsToAccountDetails = allPersonalDetails?.[submitToAccountID];
+        const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
+
+        if (!subtitle || !config.isCreateExpenseFlow) {
+            return translateLocal('workspace.common.workspace');
+        }
+
+        return translateLocal('iou.submitsTo', {name: subtitle ?? ''});
     }
     if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';
@@ -4650,8 +4695,10 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
     if (!backRoute) {
         return;
     }
-    const topmostCentralPaneRoute = Navigation.getTopMostCentralPaneRouteFromRootState();
-    if (topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+
+    const rootState = navigationRef.current?.getRootState();
+    const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
+    if (lastFullScreenRoute?.name === SCREENS.SEARCH.ROOT) {
         Navigation.dismissModal();
         return;
     }
@@ -5316,10 +5363,11 @@ function getWorkspaceNameUpdatedMessage(action: ReportAction) {
 
 function getDeletedTransactionMessage(action: ReportAction) {
     const deletedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION>) ?? {};
-    const amount = Math.abs(deletedTransactionOriginalMessage.amount ?? 0) / 100;
-    const currency = getCurrencySymbol(deletedTransactionOriginalMessage.currency ?? '');
+    const amount = Math.abs(deletedTransactionOriginalMessage.amount ?? 0);
+    const currency = deletedTransactionOriginalMessage.currency ?? '';
+    const formattedAmount = convertToDisplayString(amount, currency) ?? '';
     const message = translateLocal('iou.deletedTransaction', {
-        amount: `${currency}${amount}`,
+        amount: formattedAmount,
         merchant: deletedTransactionOriginalMessage.merchant ?? '',
     });
     return message;
@@ -5992,12 +6040,11 @@ function buildOptimisticChatReport(
         return reportParticipants;
     }, {} as Participants);
     const currentTime = DateUtils.getDBTime();
-    const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
     const optimisticChatReport: OptimisticChatReport = {
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
-        isPinned: isNewlyCreatedWorkspaceChat,
+        isPinned: false,
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: undefined,
@@ -6901,17 +6948,15 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     if (!isCurrentUserSubmitter(report.reportID)) {
         return false;
     }
+    if (!report.policyID || !reportsByPolicyID) {
+        return false;
+    }
 
-    // Get all potential reports, which are the ones that are:
-    // - Owned by the same user
-    // - Are either open or submitted
-    // - Belong to the same workspace
-    // And if any have a violation, then it should have a RBR
-    const reports = Object.values(allReports ?? {}) as Report[];
-    const potentialReports = reports.filter((r) => r?.ownerAccountID === currentUserAccountID && (r?.stateNum ?? 0) <= 1 && r?.policyID === report.policyID);
-    return potentialReports.some(
-        (potentialReport) => hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations),
-    );
+    // If any report has a violation, then it should have a RBR
+    const potentialReports = reportsByPolicyID[report.policyID] ?? [];
+    return potentialReports.some((potentialReport) => {
+        return hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations);
+    });
 }
 
 /**
@@ -7913,7 +7958,14 @@ function shouldDisableRename(report: OnyxEntry<Report>): boolean {
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
 function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return isPolicyAdminPolicyUtils(policy) && !isAdminRoom(report) && !isArchivedReport(getReportNameValuePairs(report?.reportID)) && !isThread(report) && !isInvoiceRoom(report);
+    return (
+        isPolicyAdminPolicyUtils(policy) &&
+        !isAdminRoom(report) &&
+        !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
+        !isThread(report) &&
+        !isInvoiceRoom(report) &&
+        !isPolicyExpenseChat(report)
+    );
 }
 
 /**
@@ -8389,6 +8441,11 @@ function getAllAncestorReportActions(report: Report | null | undefined, currentU
         const parentReportAction = getReportAction(parentReportID, parentReportActionID);
 
         if (!parentReport || !parentReportAction || (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction)) {
+            break;
+        }
+
+        // For threads, we don't want to display trip summary
+        if (isTripPreview(parentReportAction) && allAncestors.length > 0) {
             break;
         }
 
@@ -9352,11 +9409,11 @@ export {
     isPolicyExpenseChat,
     isPolicyExpenseChatAdmin,
     isProcessingReport,
+    isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicAnnounceRoom,
     isPublicRoom,
     isReportApproved,
-    isReportIDApproved,
     isReportManuallyReimbursed,
     isReportDataReady,
     isReportFieldDisabled,
@@ -9380,6 +9437,7 @@ export {
     isInvoiceRoom,
     isInvoiceRoomWithID,
     isInvoiceReport,
+    isNewDotInvoice,
     isOpenInvoiceReport,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,

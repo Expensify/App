@@ -1,7 +1,7 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
@@ -9,14 +9,13 @@ import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
@@ -38,24 +37,19 @@ function Composer(
         selection,
         value,
         isGroupPolicyReport = false,
-        showSoftInputOnFocus = true,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocusRef} = useResetComposerFocus(textInput);
-    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const [contextMenuHidden, setContextMenuHidden] = useState(true);
-
     const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
-    const keyboardState = useKeyboardState();
-    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
 
     useEffect(() => {
         if (autoFocus === !!autoFocusInputRef.current) {
@@ -63,13 +57,6 @@ function Composer(
         }
         inputCallbackRef(autoFocus ? textInput.current : null);
     }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
-
-    useEffect(() => {
-        if (!showSoftInputOnFocus || !isKeyboardShown) {
-            return;
-        }
-        setContextMenuHidden(false);
-    }, [showSoftInputOnFocus, isKeyboardShown]);
 
     useEffect(() => {
         if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
@@ -129,7 +116,7 @@ function Composer(
             const mimeType = clipboardContent?.type ?? '';
             const fileURI = clipboardContent?.data;
             const baseFileName = fileURI?.split('/').pop() ?? 'file';
-            const {fileName: stem, fileExtension: originalFileExtension} = FileUtils.splitExtensionFromFileName(baseFileName);
+            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
             const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
             const fileName = `${stem}.${fileExtension}`;
             const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
@@ -171,8 +158,6 @@ function Composer(
                 props?.onBlur?.(e);
             }}
             onClear={onClear}
-            showSoftInputOnFocus={showSoftInputOnFocus}
-            contextMenuHidden={contextMenuHidden}
         />
     );
 }
