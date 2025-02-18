@@ -6,12 +6,12 @@ import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
-import {useSearchContext} from '@components/Search/SearchContext';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
@@ -83,7 +83,7 @@ function SearchTypeMenu({queryJSON, searchName, shouldGroupByReports}: SearchTyp
             icon: Expensicons.Receipt,
             getRoute: (policyID?: string) => {
                 if (shouldGroupByReports) {
-                    clearSelectedTransactions()
+                    clearSelectedTransactions();
                 }
                 const query = buildCannedSearchQuery({policyID});
                 return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
