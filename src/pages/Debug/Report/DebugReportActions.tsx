@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
@@ -30,24 +30,27 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         selector: (allReportActions) => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true),
     });
 
-    const getReportActionDebugText = (reportAction: ReportAction) => {
-        const reportActionMessage = getReportActionMessage(reportAction);
-        const originalMessage = getOriginalMessage(reportAction);
+    const getReportActionDebugText = useCallback(
+        (reportAction: ReportAction) => {
+            const reportActionMessage = getReportActionMessage(reportAction);
+            const originalMessage = getOriginalMessage(reportAction);
 
-        if (!reportActionMessage) {
-            return '';
-        }
+            if (!reportActionMessage) {
+                return '';
+            }
 
-        if (originalMessage && 'deleted' in originalMessage && originalMessage.deleted) {
-            return `[${translate('parentReportAction.deletedMessage')}]`;
-        }
+            if (!!reportActionMessage.deleted || (originalMessage && 'deleted' in originalMessage && originalMessage.deleted)) {
+                return `[${translate('parentReportAction.deletedMessage')}]`;
+            }
 
-        if (reportActionMessage.html) {
-            return Parser.htmlToText(reportActionMessage.html.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
-        }
+            if (reportActionMessage.html) {
+                return Parser.htmlToText(reportActionMessage.html.replace(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
+            }
 
-        return getReportActionMessageText(reportAction);
-    };
+            return getReportActionMessageText(reportAction);
+        },
+        [translate],
+    );
 
     const searchedReportActions = useMemo(() => {
         return (sortedAllReportActions ?? [])
