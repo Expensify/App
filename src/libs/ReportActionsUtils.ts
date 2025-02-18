@@ -1690,19 +1690,8 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
 
-        const linkURLofHelpDotSite: Record<string, string> = {
-            'QuickBooks Online': 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
-            'QuickBooks Desktop': '',
-            quickbooks: 'https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Configure-Quickbooks-Online',
-            NetSuite: 'https://help.expensify.com/articles/new-expensify/connections/netsuite/Configure-Netsuite',
-            Xero: 'https://help.expensify.com/articles/new-expensify/connections/xero/Configure-Xero',
-            Intacct: 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
-            FinancialForce: '',
-            'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
-            Certinia: '',
-        };
+        const url = CONST.HELP_DOC_LINKS[label as keyof typeof CONST.HELP_DOC_LINKS]
 
-        const url = linkURLofHelpDotSite[label];
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.automaticTwo'),
             url: url || '',
