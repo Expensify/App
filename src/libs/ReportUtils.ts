@@ -4578,7 +4578,7 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
 }
 
 function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
-    if ((!isDefaultRoom(report) && !isPolicyExpenseChat(report)) || isThread(report)) {
+    if ((!isChatRoom(report) && !isPolicyExpenseChat(report)) || isThread(report)) {
         return '';
     }
 
