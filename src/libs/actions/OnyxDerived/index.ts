@@ -9,7 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
-import type {GetOnyxTypeForKey, OnyxDerivedKey, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
+import type {OnyxDerivedKey, OnyxDerivedValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
@@ -25,16 +25,6 @@ const ONYX_DERIVED_VALUES = {
 } as const;
 
 /**
- * This helper exists to map an array of Onyx keys such as `['report_', 'conciergeReportID']`
- * to the values for those keys (correctly typed) such as `[OnyxCollection<Report>, OnyxEntry<string>]`
- *
- * Note: just using .map, you'd end up with `Array<OnyxCollection<Report>|OnyxEntry<string>>`, which is not what we want. This preserves the order of the keys provided.
- */
-function getOnyxValues<Keys extends readonly OnyxKey[]>(keys: Keys): Promise<{[Index in keyof Keys]: GetOnyxTypeForKey<Keys[Index]>}> {
-    return Promise.all(keys.map((key) => OnyxUtils.get(key))) as Promise<{[Index in keyof Keys]: GetOnyxTypeForKey<Keys[Index]>}>;
-}
-
-/**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
  */
 function init() {
@@ -48,7 +38,7 @@ function init() {
             if (derivedValue) {
                 Log.info(`Derived value ${derivedValue} for ${key} restored from disk`);
             } else {
-                getOnyxValues(dependencies).then((values) => {
+                OnyxUtils.tupleGet(dependencies).then((values) => {
                     dependencyValues = values;
                     derivedValue = compute(values);
                     Onyx.set(key, derivedValue ?? null);
