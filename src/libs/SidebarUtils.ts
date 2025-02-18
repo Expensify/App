@@ -699,19 +699,16 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
     const displayNamesWithTooltipsText = displayNamesWithTooltips
-        .map(({displayName, pronouns}, index) => {
-            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
-
+        .map(({displayName}, index) => {
             if (index === displayNamesWithTooltips.length - 1) {
-                return `${formattedText}.`;
+                return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
-                return `${formattedText} ${translateLocal('common.and')}`;
+                return `${displayName} ${translateLocal('common.and')}`;
             }
             if (index < displayNamesWithTooltips.length - 2) {
-                return `${formattedText},`;
+                return `${displayName},`;
             }
-
             return '';
         })
         .join(' ');
