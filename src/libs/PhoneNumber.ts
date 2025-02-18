@@ -3,7 +3,6 @@ import {parsePhoneNumber as originalParsePhoneNumber} from 'awesome-phonenumber'
 import type {ParsedPhoneNumber, ParsedPhoneNumberInvalid, PhoneNumberParseOptions} from 'awesome-phonenumber';
 import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
-import {appendCountryCode} from './LoginUtils';
 
 /**
  * Wraps awesome-phonenumber's parsePhoneNumber function to handle the case where we want to treat
@@ -52,28 +51,13 @@ function addSMSDomainIfPhoneNumber(login = ''): string {
     return login;
 }
 
-function sanitizePhoneNumber(num?: string) {
-    return num?.replace(CONST.SANITIZE_PHONE_REGEX, '') ?? '';
-}
-
-function formatPhoneNumber(num: string) {
-    const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(num));
-    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
-
-    return parsedPhoneNumber;
-}
-
-function isValidPhoneNumber(phoneNumber: string): boolean {
-    const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumber);
-    const phoneNumberWithCountryCode = appendCountryCode(sanitizedPhoneNumber);
-    const parsedPhoneNumber = formatPhoneNumber(sanitizedPhoneNumber);
-
-    return (
-        CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) &&
-        !CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber) &&
-        !!(parsedPhoneNumber?.possible && Str.isValidE164Phone(phoneNumberWithCountryCode))
-    );
+function isValidPhoneNumber(phoneNumberValue: string): boolean {
+    if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumberValue) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumberValue)) {
+        return false;
+    }
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumberValue);
+    return parsedPhoneNumber.possible;
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {parsePhoneNumber, addSMSDomainIfPhoneNumber, isValidPhoneNumber, sanitizePhoneNumber};
+export {parsePhoneNumber, addSMSDomainIfPhoneNumber, isValidPhoneNumber};

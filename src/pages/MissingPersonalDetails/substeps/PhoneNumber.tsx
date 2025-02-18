@@ -4,7 +4,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import {appendCountryCode} from '@libs/LoginUtils';
-import {isValidPhoneNumber, parsePhoneNumber, sanitizePhoneNumber} from '@libs/PhoneNumber';
+import {isValidPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
@@ -17,7 +17,7 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
     const {translate} = useLocalize();
 
     const formatPhoneNumber = useCallback((num: string) => {
-        const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(num));
+        const phoneNumberWithCountryCode = appendCountryCode(num);
         const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
         return parsedPhoneNumber;

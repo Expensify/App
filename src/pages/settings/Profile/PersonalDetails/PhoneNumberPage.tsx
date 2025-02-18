@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isValidPhoneNumber, parsePhoneNumber, sanitizePhoneNumber} from '@libs/PhoneNumber';
+import {isValidPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -35,7 +35,7 @@ function PhoneNumberPage() {
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
     const formatPhoneNumber = useCallback((num: string) => {
-        const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(num));
+        const phoneNumberWithCountryCode = appendCountryCode(num);
         const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
         return parsedPhoneNumber;
