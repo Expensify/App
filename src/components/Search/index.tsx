@@ -174,7 +174,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     useEffect(() => {
         clearSelectedTransactions(hash);
         setCurrentSearchHash(hash);
-    }, [hash, clearSelectedTransactions, setCurrentSearchHash, shouldGroupByReports]);
+    }, [hash, clearSelectedTransactions, setCurrentSearchHash]);
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
