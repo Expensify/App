@@ -519,7 +519,8 @@ function AdvancedSearchFilters() {
                 <View>
                     {filters.map((section, index) => {
                         return (
-                            <>
+                            // eslint-disable-next-line react/no-array-index-key
+                            <View key={`${section.at(0)?.key}-${index}`}>
                                 {index !== 0 && (
                                     <SpacerView
                                         shouldShow
@@ -538,7 +539,7 @@ function AdvancedSearchFilters() {
                                         />
                                     );
                                 })}
-                            </>
+                            </View>
                         );
                     })}
                 </View>

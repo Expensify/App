@@ -23,6 +23,7 @@ import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import type BottomDockedModalProps from './Modal/BottomDockedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
@@ -59,7 +60,11 @@ type PopoverMenuItem = MenuItemProps & {
     testID?: string;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
+    Pick<BottomDockedModalProps, 'animationInDelay'> & {
+        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
+        shouldUseNewModal?: boolean;
+    };
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
@@ -165,8 +170,10 @@ function PopoverMenu({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     animationIn = 'fadeIn',
+    animationInDelay,
     animationOut = 'fadeOut',
     animationInTiming = CONST.ANIMATED_TRANSITION,
+    animationOutTiming,
     disableAnimation = true,
     withoutOverlay = false,
     shouldSetModalVisibility = true,
@@ -181,6 +188,7 @@ function PopoverMenu({
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     testID: testIDProp,
+    shouldUseNewModal,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -356,7 +364,9 @@ function PopoverMenu({
             onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
+            animationInDelay={animationInDelay}
             animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             disableAnimation={disableAnimation}
             fromSidebarMediumScreen={fromSidebarMediumScreen}
             withoutOverlay={withoutOverlay}
@@ -367,6 +377,7 @@ function PopoverMenu({
             innerContainerStyle={innerContainerStyle}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testIDProp}
+            shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
