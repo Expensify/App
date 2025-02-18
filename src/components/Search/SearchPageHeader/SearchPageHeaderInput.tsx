@@ -3,7 +3,7 @@ import isEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {FadeInLeft, FadeInRight, FadeOutRight} from 'react-native-reanimated';
+import Animated, {FadeInRight, FadeOutRight} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -156,7 +156,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 setAutocompleteQueryValue('');
             }
         },
-        [autocompleteSubstitutions, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID],
     );
 
     const onListItemPress = useCallback(
