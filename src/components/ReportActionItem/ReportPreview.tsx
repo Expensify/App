@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useSearchState from '@hooks/useSearchState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -159,6 +160,7 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isOnSearch} = useSearchState();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -540,7 +542,7 @@ function ReportPreview({
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, styles.borderedContentCardLarge]}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, isOnSearch ? styles.borderedContentCardLarge : {}]}
                     role="button"
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
