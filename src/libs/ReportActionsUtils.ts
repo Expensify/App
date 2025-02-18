@@ -1690,7 +1690,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
 
-        const url = CONST.HELP_DOC_LINKS[label as keyof typeof CONST.HELP_DOC_LINKS]
+        const url = CONST.HELP_DOC_LINKS[label as keyof typeof CONST.HELP_DOC_LINKS];
 
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.automaticTwo'),

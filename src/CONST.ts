@@ -2858,7 +2858,6 @@ const CONST = {
         Certinia: '',
     },
 
-
     CUSTOM_UNITS: {
         NAME_DISTANCE: 'Distance',
         NAME_PER_DIEM_INTERNATIONAL: 'Per Diem International',
