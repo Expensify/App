@@ -79,6 +79,8 @@ function FormWrapper({
         }
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
+                // Delay the scroll to allow Safari's rendering cycle to complete
+                // Without this, iOS Safari may ignore or delay the scroll action
                 setTimeout(() => {
                     formRef.current?.scrollToEnd({animated: true});
                 }, CONST.ANIMATED_TRANSITION);
