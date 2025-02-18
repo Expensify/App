@@ -228,18 +228,17 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
         const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
         const distanceSymbolCoorinate = useMemo(() => {
-            const length = directionCoordinates?.length;
-            // If the array is empty, return undefined
-            if (!length) {
-                return undefined;
+            if (!directionCoordinates?.length || !waypoints?.length) {
+                return;
             }
+            const {northEast, southWest} = utils.getBounds(
+                waypoints.map((waypoint) => waypoint.coordinate),
+                directionCoordinates,
+            );
+            const boundsCenter = utils.getBoundsCenter({northEast, southWest});
 
-            // Find the index of the middle element
-            const middleIndex = Math.floor(length / 2);
-
-            // Return the middle element
-            return directionCoordinates.at(middleIndex);
-        }, [directionCoordinates]);
+            return utils.findClosestCoordinateOnLineFromCenter(boundsCenter, directionCoordinates);
+        }, [waypoints, directionCoordinates]);
 
         return !isOffline && isAccessTokenSet && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
