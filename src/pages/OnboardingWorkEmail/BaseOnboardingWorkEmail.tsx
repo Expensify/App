@@ -51,7 +51,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const {isOffline} = useNetwork();
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
-
+    
     useEffect(() => {
         setOnboardingErrorMessage('');
     }, []);
@@ -173,7 +173,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                     <InputWrapper
                         InputComponent={TextInput}
                         // We do not want to auto-focus for mobile platforms
-                        ref={operatingSystem === CONST.OS.NATIVE ? undefined : inputCallbackRef}
+                        ref={(operatingSystem !== CONST.OS.ANDROID && operatingSystem !== CONST.OS.IOS) ? inputCallbackRef : undefined}
                         name="fname"
                         inputID={INPUT_IDS.ONBOARDING_WORK_EMAIL}
                         label={translate('common.workEmail')}
