@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import HelpButton from '@components/SidePane/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -65,6 +66,7 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
+    shouldDisplayHelpButton = true,
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
@@ -275,6 +277,7 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
+                {shouldDisplayHelpButton && <HelpButton />}
                 {shouldDisplaySearchRouter && <SearchButton style={styles.mr5} />}
             </View>
         </View>

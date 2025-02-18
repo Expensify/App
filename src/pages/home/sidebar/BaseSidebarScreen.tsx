@@ -63,8 +63,6 @@ function BaseSidebarScreen() {
         updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, activeWorkspaceID, isLoading, currentRoute.key]);
 
-    const shouldDisplaySearch = shouldUseNarrowLayout;
-
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -77,7 +75,8 @@ function BaseSidebarScreen() {
                     <TopBar
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
-                        shouldDisplaySearch={shouldDisplaySearch}
+                        shouldDisplaySearch={shouldUseNarrowLayout}
+                        shouldDisplaySidePane={shouldUseNarrowLayout}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />

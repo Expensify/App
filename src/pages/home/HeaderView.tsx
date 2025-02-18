@@ -16,6 +16,7 @@ import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import HelpButton from '@components/SidePane/HelpButton';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -348,8 +349,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                {shouldDisplaySidePane && <SearchButton style={styles.ml2} />}
-                                {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
+                                {shouldDisplaySidePane && <HelpButton style={styles.ml2} />}
+                                {shouldDisplaySearchRouter && <SearchButton style={!shouldDisplaySidePane && styles.ml2} />}
                             </View>
                             <ConfirmModal
                                 isVisible={isDeleteTaskConfirmModalVisible}

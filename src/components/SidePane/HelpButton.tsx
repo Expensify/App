@@ -1,3 +1,4 @@
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';

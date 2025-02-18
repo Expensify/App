@@ -23,10 +23,11 @@ type TopBarProps = {
     breadcrumbLabel: string;
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
+    shouldDisplaySidePane?: boolean;
     shouldDisplayCancelSearch?: boolean;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayCancelSearch = false}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySidePane = true, shouldDisplaySearch = true, shouldDisplayCancelSearch = false}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
@@ -42,7 +43,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
           };
 
     const displaySignIn = isAnonymousUser;
-    const displayHelp = !!sidePane;
+    const displayHelp = shouldDisplaySidePane && !!sidePane;
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
