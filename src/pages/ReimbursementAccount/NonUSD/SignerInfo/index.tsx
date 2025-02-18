@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -8,7 +9,6 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,6 @@ import JobTitle from './substeps/JobTitle';
 import Name from './substeps/Name';
 import Occupation from './substeps/Occupation';
 import UploadDocuments from './substeps/UploadDocuments';
-import {Str} from 'expensify-common';
 
 type SignerInfoProps = {
     /** Handles back button press */
