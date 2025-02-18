@@ -52,6 +52,7 @@ Once the invite is accepted, the new members will appear in your members list.
 
 {% include info.html %}
 You can also invite members on the workspace’s Profile page by clicking **Share** to share the workspace’s URL or QR code.
+If you're using accounting software, you can invite members to your Workspace directly through your accounting system. New Expensify seamlessly integrates with NetSuite, QuickBooks Online, Sage Intacct, and Xero.
 {% include end-info.html %}
 
 ![Click Members on the left and click Invite member]({{site.url}}/assets/images/ExpensifyHelp_InviteMembers_1.png){:width="100%"}
