@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,7 +6,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -27,17 +27,18 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const firstValidEmailRef = useRef<string | null>(null);
-
+    const [firstValidEmail, setFirstValidEmail] = useState<string | null>(null);
+    console.log('firstValidEmail', firstValidEmail);
     useEffect(() => {
-        if (!firstValidEmailRef.current && assignCard?.data?.email) {
-            firstValidEmailRef.current = assignCard.data.email;
+        if (firstValidEmail || !assignCard?.data?.email) {
+            return;
         }
-    }, []);
+        setFirstValidEmail(assignCard.data.email);
+    }, [assignCard?.data?.email, firstValidEmail]);
 
     useEffect(() => {
         return () => {
-            CompanyCards.clearAssignCardStepAndData();
+            clearAssignCardStepAndData();
         };
     }, []);
 
@@ -84,7 +85,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 <ConfirmationStep
                     policyID={policyID}
                     backTo={backTo}
-                    workspaceMemberEmail={firstValidEmailRef.current ?? ''}
+                    workspaceMemberEmail={firstValidEmail ?? ''}
                 />
             );
         default:
