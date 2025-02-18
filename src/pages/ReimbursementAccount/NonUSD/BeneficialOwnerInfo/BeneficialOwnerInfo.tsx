@@ -51,7 +51,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const [ownerKeys, setOwnerKeys] = useState<string[]>([]);
-    const [ownerBeingModifiedID, setOwnerBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY);
+    const [ownerBeingModifiedID, setOwnerBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
     const [isEditingCreatedOwner, setIsEditingCreatedOwner] = useState(false);
     const [isUserEnteringHisOwnData, setIsUserEnteringHisOwnData] = useState(false);
     const [isUserOwner, setIsUserOwner] = useState(false);
@@ -199,7 +199,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
             setIsUserOwner(value);
             setIsUserEnteringHisOwnData(value);
-            setOwnerKeys((currentOwnersKeys) => currentOwnersKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY));
+            setOwnerKeys((currentOwnersKeys) => currentOwnersKeys.filter((key) => key !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY));
 
             // User is an owner but there are 4 other owners already added, so we remove last one
             if (value && ownerKeys.length === 4) {
@@ -235,7 +235,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit}: BeneficialOwnerInfoP
 
             // User is an owner and no one else is an owner
             if (isUserOwner && !value) {
-                setOwnerKeys([CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.CURRENT_USER_KEY]);
+                setOwnerKeys([CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]);
                 setCurrentSubStep(SUBSTEP.BENEFICIAL_OWNERS_LIST);
                 return;
             }

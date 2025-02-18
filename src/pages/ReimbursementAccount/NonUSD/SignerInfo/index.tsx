@@ -22,7 +22,7 @@ import JobTitle from './substeps/JobTitle';
 import Name from './substeps/Name';
 import Occupation from './substeps/Occupation';
 import UploadDocuments from './substeps/UploadDocuments';
-import {FileObject} from '@components/AttachmentModal';
+import {Str} from 'expensify-common';
 
 type SignerInfoProps = {
     /** Handles back button press */
@@ -33,6 +33,7 @@ type SignerInfoProps = {
 };
 
 type SignerDetailsFormProps = SubStepProps & {isSecondSigner: boolean; directorID: string};
+type DirectorDetailsFormProps = SubStepProps & {isSecondSigner: boolean; directorID: string};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
 const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
@@ -41,25 +42,11 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORP
 const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, Occupation, DateOfBirth, Address, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
 const userIsOwnerCadBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [UploadDocuments, Confirmation];
-
-const INPUT_KEYS = {
-    SIGNER_FULL_NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_FULL_NAME,
-    SIGNER_DATE_OF_BIRTH: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_DATE_OF_BIRTH,
-    SIGNER_JOB_TITLE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_JOB_TITLE,
-    SIGNER_EMAIL: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL,
-    SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS,
-    SIGNER_COPY_OF_ID: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID,
-    SIGNER_ADDRESS_PROOF: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF,
-    // SIGNER_CODICE_PROOF: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_CODICE_PROOF,
-    SIGNER_PDS_AND_FSG: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PRD_AND_SFG,
-    SIGNER_PROOF_OF_DIRECTORS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTORS,
-};
+const directorDetailsBodyContent: Array<ComponentType<DirectorDetailsFormProps>> = [Name, JobTitle, Occupation];
 
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
 
-    // TODO: change it to be state value (might change if there is more directors)
-    const directorID = 'currentUser';
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -70,10 +57,11 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const isSecondSigner = false;
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
-    const onyxValues = useMemo(() => getSubstepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
+    const [isAnyoneElseDirector, setIsAnyoneElseDirector] = useState(false);
+    const [directorBeingModifiedID, setDirectorBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
 
     const country = reimbursementAccount?.achData?.additionalData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
@@ -86,8 +74,8 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         BankAccounts.getCorpayOnboardingFields(country);
     }, [country]);
 
-    const submit = useCallback(() => {
-        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorID);
+    const submitSignerDetailsForm = useCallback(() => {
+        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorBeingModifiedID);
 
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
@@ -97,30 +85,15 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 inputs: JSON.stringify(signerDetails),
                 ...signerFiles,
                 bankAccountID,
-                directorIDs: `${directorID}`,
+                directorIDs: `${directorBeingModifiedID}`,
             });
             onSubmit();
         }
-    }, [account?.primaryLogin, bankAccountID, currency, onSubmit, reimbursementAccountDraft]);
+    }, [account?.primaryLogin, bankAccountID, currency, directorBeingModifiedID, onSubmit, reimbursementAccountDraft]);
 
-    const handleNextSubStep = useCallback(
-        (value: boolean) => {
-            if (currentSubStep !== SUBSTEP.IS_DIRECTOR) {
-                return;
-            }
-
-            // user is director
-            if (value) {
-                setIsUserDirector(value);
-                setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
-                return;
-            }
-
-            setIsUserDirector(value);
-            setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
-        },
-        [currentSubStep],
-    );
+    const submitDirectorDetailsForm = useCallback(() => {
+        // TODO: to be implemented
+    }, []);
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
@@ -142,7 +115,51 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         prevScreen,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<SignerDetailsFormProps>({bodyContent, startFrom: 0, onFinished: submit});
+    } = useSubStep<SignerDetailsFormProps>({bodyContent, startFrom: 0, onFinished: submitSignerDetailsForm});
+
+    const {
+        componentToRender: DirectorDetailsForm,
+        isEditing: directorsBeingEditing,
+        screenIndex: directorsScreenIndex,
+        nextScreen: directorsNextScreen,
+        prevScreen: directorsPrevScreen,
+        moveTo: directorsMoveTo,
+        resetScreenIndex: directorsResetScreenIndex,
+    } = useSubStep<DirectorDetailsFormProps>({bodyContent: directorDetailsBodyContent, startFrom: 0, onFinished: submitDirectorDetailsForm});
+
+    const prepareDirectorDetailsForm = useCallback(() => {
+        const directorID = Str.guid();
+        setDirectorBeingModifiedID(directorID);
+        directorsResetScreenIndex();
+        setCurrentSubStep(SUBSTEP.DIRECTOR_DETAILS_FORM);
+    }, [directorsResetScreenIndex]);
+
+    const handleNextSubStep = useCallback(
+        (value: boolean) => {
+            if (currentSubStep === SUBSTEP.IS_DIRECTOR) {
+                // user is director so we gather their data
+                if (value) {
+                    setIsUserDirector(value);
+                    setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
+                    return;
+                }
+
+                setIsUserDirector(value);
+                setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+                return;
+            }
+
+            if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_DIRECTOR) {
+                setIsAnyoneElseDirector(value);
+                prepareDirectorDetailsForm();
+                return;
+            }
+
+            setIsUserDirector(value);
+            setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+        },
+        [currentSubStep, prepareDirectorDetailsForm],
+    );
 
     const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
@@ -158,12 +175,16 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             prevScreen();
         } else if (currentSubStep === SUBSTEP.SIGNER_DETAILS_FORM && screenIndex === 0) {
             setCurrentSubStep(SUBSTEP.IS_DIRECTOR);
+        } else if (currentSubStep === SUBSTEP.DIRECTOR_DETAILS_FORM && directorsScreenIndex > 0) {
+            directorsPrevScreen();
+        } else if (currentSubStep === SUBSTEP.DIRECTOR_DETAILS_FORM && directorsScreenIndex === 0) {
+            setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
         } else if (currentSubStep === SUBSTEP.HANG_TIGHT) {
             Navigation.goBack();
         } else {
             setCurrentSubStep((subStep) => subStep - 1);
         }
-    }, [currentSubStep, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
+    }, [currentSubStep, directorsPrevScreen, directorsScreenIndex, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
     const handleEmailSubmit = useCallback(() => {
         // TODO: the message to the email provided in the previous step should be sent
@@ -187,13 +208,32 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 />
             )}
 
+            {currentSubStep === SUBSTEP.IS_ANYONE_ELSE_DIRECTOR && (
+                <YesNoStep
+                    title="Is anyone else director?"
+                    description="Some description here"
+                    defaultValue={isAnyoneElseDirector}
+                    onSelectedValue={handleNextSubStep}
+                />
+            )}
+
             {currentSubStep === SUBSTEP.SIGNER_DETAILS_FORM && (
                 <SignerDetailsForm
                     isEditing={isEditing}
                     onNext={nextScreen}
                     onMove={moveTo}
                     isSecondSigner={isSecondSigner}
-                    directorID={directorID}
+                    directorID={directorBeingModifiedID}
+                />
+            )}
+
+            {currentSubStep === SUBSTEP.DIRECTOR_DETAILS_FORM && (
+                <DirectorDetailsForm
+                    isEditing={directorsBeingEditing}
+                    onNext={directorsNextScreen}
+                    onMove={directorsMoveTo}
+                    isSecondSigner={isSecondSigner}
+                    directorID={directorBeingModifiedID}
                 />
             )}
 
