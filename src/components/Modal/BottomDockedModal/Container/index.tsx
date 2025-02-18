@@ -85,4 +85,5 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
 }
 
 Container.displayName = 'ModalContainer';
+
 export default Container;

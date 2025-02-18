@@ -222,4 +222,6 @@ function BottomDockedModal({
     );
 }
 
+BottomDockedModal.displayName = 'BottomDockedModal';
+
 export default BottomDockedModal;

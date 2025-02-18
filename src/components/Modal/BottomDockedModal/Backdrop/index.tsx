@@ -5,6 +5,7 @@ import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
@@ -20,7 +21,13 @@ const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
  */
 
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 300, animationOutTiming = 300}: BackdropProps) {
+function Backdrop({
+    style,
+    customBackdrop,
+    onBackdropPress,
+    animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
+    animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+}: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -79,5 +86,7 @@ function Backdrop({style, customBackdrop, onBackdropPress, animationInTiming = 3
 
     return BackdropOverlay;
 }
+
+Backdrop.displayName = 'Backdrop';
 
 export default Backdrop;
