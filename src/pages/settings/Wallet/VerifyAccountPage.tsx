@@ -72,10 +72,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (isUserValidated || !isValidateCodeActionModalVisible) {
         return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                testID={VerifyAccountPage.displayName}
-            >
+            <ScreenWrapper testID={VerifyAccountPage.displayName}>
                 <HeaderWithBackButton
                     title={translate('contacts.validateAccount')}
                     onBackButtonPress={() => Navigation.goBack(backTo)}

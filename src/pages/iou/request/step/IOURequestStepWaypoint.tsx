@@ -161,7 +161,6 @@ function IOURequestStepWaypoint({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}

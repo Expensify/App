@@ -102,7 +102,6 @@ function CreateReportFieldsPage({
             shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={styles.defaultModalContainer}
                 testID={CreateReportFieldsPage.displayName}
                 shouldEnableMaxHeight

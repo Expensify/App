@@ -72,7 +72,6 @@ function WorkspaceCreateTaxPage({
         >
             <ScreenWrapper
                 testID={WorkspaceCreateTaxPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
             >
                 <FullPageNotFoundView shouldShow={PolicyUtils.hasAccountingConnections(policy)}>

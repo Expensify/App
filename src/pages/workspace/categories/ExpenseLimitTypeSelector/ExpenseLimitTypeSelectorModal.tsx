@@ -50,7 +50,6 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={ExpenseLimitTypeSelectorModal.displayName}
             >
                 <HeaderWithBackButton

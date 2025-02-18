@@ -59,7 +59,6 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={TripDetailsPage.displayName}

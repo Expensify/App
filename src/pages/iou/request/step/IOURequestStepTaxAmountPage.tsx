@@ -158,7 +158,6 @@ function IOURequestStepTaxAmountPage({
             onBackButtonPress={navigateBack}
             testID={IOURequestStepTaxAmountPage.displayName}
             shouldShowWrapper={!!(backTo || isEditing)}
-            includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
                 isEditing={!!(backTo || isEditing)}

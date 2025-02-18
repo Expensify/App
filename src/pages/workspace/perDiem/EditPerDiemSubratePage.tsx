@@ -71,7 +71,6 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate) || isEmptyObject(selectedSubrate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={[styles.defaultModalContainer]}
                 testID={EditPerDiemSubratePage.displayName}
                 shouldEnableMaxHeight

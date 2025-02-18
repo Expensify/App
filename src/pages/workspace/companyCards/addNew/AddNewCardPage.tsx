@@ -26,7 +26,6 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         return (
             <ScreenWrapper
                 testID={AddNewCardPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />

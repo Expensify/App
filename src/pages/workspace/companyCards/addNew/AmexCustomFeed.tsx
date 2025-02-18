@@ -71,7 +71,6 @@ function AmexCustomFeed() {
     return (
         <ScreenWrapper
             testID={AmexCustomFeed.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

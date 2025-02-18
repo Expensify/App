@@ -6,7 +6,6 @@ function SubscriptionSizePage() {
     return (
         <ScreenWrapper
             testID={SubscriptionSizePage.displayName}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <FullPageNotFoundView shouldShow />

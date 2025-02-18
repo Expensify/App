@@ -103,7 +103,6 @@ function ReportFieldsInitialValuePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={styles.defaultModalContainer}
                 testID={ReportFieldsInitialValuePage.displayName}
                 shouldEnableMaxHeight

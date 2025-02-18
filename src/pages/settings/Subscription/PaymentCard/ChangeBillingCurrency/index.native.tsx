@@ -6,7 +6,6 @@ function ChangeBillingCurrency() {
     return (
         <ScreenWrapper
             testID={ChangeBillingCurrency.displayName}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <FullPageNotFoundView shouldShow />

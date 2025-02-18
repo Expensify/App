@@ -47,7 +47,6 @@ function RulesCustomPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={RulesCustomPage.displayName}
             >

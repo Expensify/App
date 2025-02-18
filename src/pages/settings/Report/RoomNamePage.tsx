@@ -84,7 +84,6 @@ function RoomNamePage({report}: RoomNamePageProps) {
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
-            includeSafeAreaPaddingBottom
             testID={RoomNamePage.displayName}
         >
             <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report)}>

@@ -109,10 +109,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     }, [debouncedSearchValue]);
 
     return (
-        <ScreenWrapper
-            testID={BaseShareLogList.displayName}
-            includeSafeAreaPaddingBottom={false}
-        >
+        <ScreenWrapper testID={BaseShareLogList.displayName}>
             {({didScreenTransitionEnd}) => (
                 <>
                     <HeaderWithBackButton

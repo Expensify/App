@@ -162,7 +162,6 @@ function StatusClearAfterPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={StatusClearAfterPage.displayName}
         >

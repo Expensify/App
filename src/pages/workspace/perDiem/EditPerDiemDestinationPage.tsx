@@ -72,7 +72,6 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={[styles.defaultModalContainer]}
                 testID={EditPerDiemDestinationPage.displayName}
                 shouldEnableMaxHeight

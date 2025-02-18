@@ -145,7 +145,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     route={route}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                     shouldShowOfflineIndicatorInWideScreen
-                    includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
                 >
                     {(isFeedAdded || isPending) && !!selectedFeed && (

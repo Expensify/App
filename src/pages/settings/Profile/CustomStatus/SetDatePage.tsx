@@ -50,10 +50,7 @@ function SetDatePage({customStatus}: SetDatePageProps) {
     }, []);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={SetDatePage.displayName}
-        >
+        <ScreenWrapper testID={SetDatePage.displayName}>
             <HeaderWithBackButton
                 title={translate('statusPage.date')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}

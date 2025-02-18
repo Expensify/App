@@ -65,7 +65,6 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={[styles.defaultModalContainer]}
                 testID={TagGLCodePage.displayName}
                 shouldEnableMaxHeight

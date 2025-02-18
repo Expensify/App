@@ -76,7 +76,6 @@ function ReportFieldsAddListValuePage({
             shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={styles.defaultModalContainer}
                 testID={ReportFieldsAddListValuePage.displayName}
                 shouldEnableMaxHeight

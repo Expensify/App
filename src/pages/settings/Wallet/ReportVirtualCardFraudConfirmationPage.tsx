@@ -30,7 +30,6 @@ function ReportVirtualCardFraudConfirmationPage({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
             testID={ReportVirtualCardFraudConfirmationPage.displayName}

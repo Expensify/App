@@ -26,7 +26,6 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={TripSummaryPage.displayName}

@@ -13,7 +13,6 @@ function TwoFactorAuthPage() {
         return (
             <ScreenWrapper
                 testID={TwoFactorAuthPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />

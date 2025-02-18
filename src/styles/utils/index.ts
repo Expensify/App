@@ -24,6 +24,7 @@ import createReportActionContextMenuStyleUtils from './generators/ReportActionCo
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getHighResolutionInfoWrapperStyle from './getHighResolutionInfoWrapperStyle';
+import getNavigationBarType from './getNavigationBarType/index.android';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
@@ -330,10 +331,11 @@ type SafeAreaPadding = {
 };
 
 /**
- * Takes safe area insets and returns padding to use for a View
+ * Takes safe area insets and returns platform specific padding to use for a View
  */
-function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
+function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number): SafeAreaPadding {
     const platform = getPlatform();
+
     let insetsPercentage = insetsPercentageProp;
     if (insetsPercentage == null) {
         switch (platform) {
@@ -350,7 +352,7 @@ function getSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: number):
 
     return {
         paddingTop: insets?.top ?? 0,
-        paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
+        paddingBottom: insets?.bottom ?? 0 * insetsPercentage,
         paddingLeft: (insets?.left ?? 0) * insetsPercentage,
         paddingRight: (insets?.right ?? 0) * insetsPercentage,
     };
@@ -1224,7 +1226,7 @@ const staticStyleUtils = {
     getPaymentMethodMenuWidth,
     getSafeAreaInsets,
     getSafeAreaMargins,
-    getSafeAreaPadding,
+    getPlatformSafeAreaPadding,
     getSignInWordmarkWidthStyle,
     getTextColorStyle,
     getTransparentColor,
@@ -1249,6 +1251,7 @@ const staticStyleUtils = {
     getBorderRadiusStyle,
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
+    getNavigationBarType,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

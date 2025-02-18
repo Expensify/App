@@ -169,7 +169,6 @@ function DetailsStep({policyID}: DetailsStepProps) {
     return (
         <ScreenWrapper
             testID={DetailsStep.displayName}
-            includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

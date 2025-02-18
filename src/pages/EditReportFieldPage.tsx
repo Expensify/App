@@ -45,7 +45,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     if (!reportFieldsEnabled || !reportField || !policyField || !report || isDisabled) {
         return (
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
                 testID={EditReportFieldPage.displayName}
             >
@@ -95,7 +94,6 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={EditReportFieldPage.displayName}
         >

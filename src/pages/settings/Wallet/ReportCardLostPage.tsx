@@ -160,10 +160,7 @@ function ReportCardLostPage({
     const isDamaged = reason?.key === OPTIONS_KEYS.DAMAGED;
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={ReportCardLostPage.displayName}
-        >
+        <ScreenWrapper testID={ReportCardLostPage.displayName}>
             <HeaderWithBackButton
                 title={translate('reportCardLostOrDamaged.screenTitle')}
                 onBackButtonPress={handleBackButtonPress}

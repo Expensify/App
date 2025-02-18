@@ -247,7 +247,6 @@ function RoomInvitePage({
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={RoomInvitePage.displayName}
-            includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report)}

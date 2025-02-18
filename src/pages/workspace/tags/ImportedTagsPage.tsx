@@ -122,10 +122,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     };
 
     return (
-        <ScreenWrapper
-            testID={ImportedTagsPage.displayName}
-            includeSafeAreaPaddingBottom
-        >
+        <ScreenWrapper testID={ImportedTagsPage.displayName}>
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
                 onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID))}

@@ -43,7 +43,6 @@ function CategoryDescriptionHintPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={[styles.defaultModalContainer]}
                 testID={CategoryDescriptionHintPage.displayName}
                 shouldEnableMaxHeight

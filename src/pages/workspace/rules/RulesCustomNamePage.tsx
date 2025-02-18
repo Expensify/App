@@ -58,7 +58,6 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
             shouldBeBlocked={!policy?.shouldShowCustomReportTitleOption}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={RulesCustomNamePage.displayName}
             >

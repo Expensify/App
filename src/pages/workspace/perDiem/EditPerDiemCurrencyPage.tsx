@@ -52,10 +52,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate)}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                testID={EditPerDiemCurrencyPage.displayName}
-            >
+            <ScreenWrapper testID={EditPerDiemCurrencyPage.displayName}>
                 <HeaderWithBackButton
                     title={translate('common.currency')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID))}

@@ -124,7 +124,6 @@ function RequestEarlyCancellationPage() {
     return (
         <ScreenWrapper
             testID={RequestEarlyCancellationPage.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

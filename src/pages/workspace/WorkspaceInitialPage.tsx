@@ -438,7 +438,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
-            includeSafeAreaPaddingBottom
             bottomContent={shouldShowBottomTab ? <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} /> : null}
         >
             <FullPageNotFoundView

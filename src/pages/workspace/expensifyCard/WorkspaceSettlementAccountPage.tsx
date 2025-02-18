@@ -90,7 +90,6 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         >
             <ScreenWrapper
                 testID={WorkspaceSettlementAccountPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton

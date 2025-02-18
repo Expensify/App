@@ -62,7 +62,6 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
                 testID={PaymentCardCurrencyModal.displayName}
             >
                 <HeaderWithBackButton

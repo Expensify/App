@@ -156,7 +156,6 @@ function StatusPage() {
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
             shouldEnablePickerAvoiding={false}
-            includeSafeAreaPaddingBottom
             testID={HeaderPageLayout.displayName}
         >
             <HeaderWithBackButton

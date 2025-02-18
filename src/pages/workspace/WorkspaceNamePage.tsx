@@ -62,7 +62,6 @@ function WorkspaceNamePage({policy}: Props) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={WorkspaceNamePage.displayName}
             >

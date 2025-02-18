@@ -33,10 +33,7 @@ function SetTimePage({customStatus}: SetTimePageProps) {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID={SetTimePage.displayName}
-        >
+        <ScreenWrapper testID={SetTimePage.displayName}>
             <HeaderWithBackButton
                 title={translate('statusPage.time')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}

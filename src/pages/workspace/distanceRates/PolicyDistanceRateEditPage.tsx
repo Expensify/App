@@ -67,7 +67,6 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRateEditPage.displayName}
                 shouldEnableMaxHeight

@@ -43,7 +43,6 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
             shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={RulesAutoApproveReportsUnderPage.displayName}
             >

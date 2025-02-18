@@ -79,7 +79,6 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepSendFrom.displayName}
-            includeSafeAreaPaddingBottom
         >
             <SelectionList
                 sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}

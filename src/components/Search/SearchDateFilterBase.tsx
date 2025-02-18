@@ -45,7 +45,6 @@ function SearchDateFilterBase({dateKey, titleKey}: SearchDateFilterBaseProps) {
             testID={SearchDateFilterBase.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton

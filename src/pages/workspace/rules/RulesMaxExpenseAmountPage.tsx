@@ -46,7 +46,6 @@ function RulesMaxExpenseAmountPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 testID={RulesMaxExpenseAmountPage.displayName}
             >

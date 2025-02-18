@@ -117,7 +117,6 @@ function TaskShareDestinationSelectorModal() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             testID="TaskShareDestinationSelectorModal"
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >

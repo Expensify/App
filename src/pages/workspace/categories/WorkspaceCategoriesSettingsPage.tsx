@@ -97,7 +97,6 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceCategoriesSettingsPage.displayName}
             >
