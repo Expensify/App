@@ -14,9 +14,9 @@ function SidebarSpacerWrapper({children}: SidebarSpacerWrapperProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
-    const shouldShowHelpPanel = isExtraLargeScreenWidth && !!sidePane?.open;
+    const shouldShowSidePane = isExtraLargeScreenWidth && !!sidePane?.open;
 
-    return <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout, shouldShowHelpPanel)}>{children}</View>;
+    return <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout, shouldShowSidePane)}>{children}</View>;
 }
 
 SidebarSpacerWrapper.displayName = 'SidebarSpacerWrapper';
