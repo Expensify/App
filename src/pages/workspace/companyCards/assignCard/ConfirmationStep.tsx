@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -33,13 +33,18 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const firstValidEmailRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!firstValidEmailRef.current && assignCard?.data?.email) {
+            firstValidEmailRef.current = assignCard.data.email;
+        }
+    }, [assignCard?.data?.email]);
 
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
-    const parts = backTo?.split('/');
-    const membersIndex = parts?.indexOf('members') ?? -1;
-    const workspaceMemberAccountID = parts?.[membersIndex + 1] ?? '';
-    const cardholderAccountID = getPersonalDetailByEmail(data?.email ?? '')?.accountID.toString() ?? '';
+    const workspaceMemberAccountID = getPersonalDetailByEmail(firstValidEmailRef.current ?? '')?.accountID?.toString() ?? '';
+    const cardholderAccountID = getPersonalDetailByEmail(data?.email ?? '')?.accountID?.toString() ?? '';
     const submit = () => {
         if (!policyID) {
             return;
