@@ -8,80 +8,20 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import type {NonEmptyTuple, ValueOf} from 'type-fest';
 import Log from '@libs/Log';
-import {isThread} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import type {GetOnyxTypeForKey, OnyxDerivedKey, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type SymmetricDifference from '@src/types/utils/SymmetricDifference';
-
-/**
- * A derived value configuration describes:
- *  - a tuple of Onyx keys to subscribe to (dependencies),
- *  - a compute function that derives a value from the dependent Onyx values.
- *    The compute function receives a single argument that's a tuple of the onyx values for the declared dependencies.
- *    For example, if your dependencies are `['report_', 'account'], then compute will receive a [OnyxCollection<Report>, OnyxEntry<Account>]
- */
-type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
-    key: Key;
-    dependencies: Deps;
-    compute: (args: {
-        -readonly [Index in keyof Deps]: GetOnyxTypeForKey<Deps[Index]>;
-    }) => OnyxEntry<OnyxDerivedValuesMapping[Key]>;
-};
-
-/**
- * Helper function to create a derived value config. This function is just here to help TypeScript infer Deps, so instead of writing this:
- *
- * const conciergeChatReportIDConfig: OnyxDerivedValueConfig<[typeof ONYXKEYS.COLLECTION.REPORT, typeof ONYXKEYS.CONCIERGE_REPORT_ID]> = {
- *     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
- *     ...
- * };
- *
- * We can just write this:
- *
- * const conciergeChatReportIDConfig = createOnyxDerivedValueConfig({
- *     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID]
- * })
- */
-function createOnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>>(
-    config: OnyxDerivedValueConfig<Key, Deps>,
-): OnyxDerivedValueConfig<Key, Deps> {
-    return config;
-}
+import conciergeChatReportIDConfig from './configs/conciergeChatReportID';
 
 /**
  * Global map of derived configs.
  * This object holds our derived value configurations.
  */
 const ONYX_DERIVED_VALUES = {
-    [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: createOnyxDerivedValueConfig({
-        key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
-        dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
-        compute: ([reports, conciergeChatReportID]) => {
-            if (!reports) {
-                return undefined;
-            }
-
-            const conciergeReport = Object.values(reports).find((report) => {
-                if (!report?.participants || isThread(report)) {
-                    return false;
-                }
-
-                const participantAccountIDs = new Set(Object.keys(report.participants));
-                if (participantAccountIDs.size !== 2) {
-                    return false;
-                }
-
-                return participantAccountIDs.has(CONST.ACCOUNT_ID.CONCIERGE.toString()) || report?.reportID === conciergeChatReportID;
-            });
-
-            return conciergeReport?.reportID;
-        },
-    }),
+    [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: conciergeChatReportIDConfig,
 } as const;
 
 /**
@@ -129,6 +69,7 @@ function init() {
             };
 
             for (let i = 0; i < dependencies.length; i++) {
+                // eslint-disable-next-line rulesdir/prefer-at
                 const dependencyOnyxKey = dependencies[i];
                 if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
                     Onyx.connect({
