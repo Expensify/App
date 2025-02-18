@@ -28,7 +28,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [firstValidEmail, setFirstValidEmail] = useState<string | null>(null);
-    console.log('firstValidEmail', firstValidEmail);
     useEffect(() => {
         if (firstValidEmail || !assignCard?.data?.email) {
             return;
