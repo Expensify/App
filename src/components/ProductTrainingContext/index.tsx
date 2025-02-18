@@ -24,6 +24,17 @@ type ProductTrainingContextType = {
     unregisterTooltip: (tooltipName: ProductTrainingTooltipName) => void;
 };
 
+type ProductTrainingContextConfig = {
+    /**
+     * Callback to be called when the tooltip is dismissed
+     */
+    onDismiss?: () => void;
+    /**
+     * Callback to be called when the tooltip is confirmed
+     */
+    onConfirm?: () => void;
+};
+
 const ProductTrainingContext = createContext<ProductTrainingContextType>({
     shouldRenderTooltip: () => false,
     registerTooltip: () => {},
@@ -159,7 +170,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
     return <ProductTrainingContext.Provider value={contextValue}>{children}</ProductTrainingContext.Provider>;
 }
 
-const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true) => {
+const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shouldShow = true, config: ProductTrainingContextConfig = {}) => {
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -221,16 +232,20 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
                             style={[styles.flex1, styles.ph1]}
+                            onPress={config.onConfirm}
                         />
                         <Button
                             text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             style={[styles.flex1, styles.ph1]}
+                            onPress={config.onDismiss}
                         />
                     </View>
                 )}
             </View>
         );
     }, [
+        config.onConfirm,
+        config.onDismiss,
         styles.alignItemsCenter,
         styles.flex1,
         styles.flexRow,
