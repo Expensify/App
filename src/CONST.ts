@@ -4780,6 +4780,14 @@ const CONST = {
         AFTER_WEEK: 'afterWeek',
         CUSTOM: 'custom',
     },
+    TWO_FACTOR_AUTH_STEPS: {
+        COPY_CODES: 'COPY_CODES',
+        VERIFY: 'VERIFY',
+        SUCCESS: 'SUCCESS',
+        ENABLED: 'ENABLED',
+        DISABLED: 'DISABLED',
+        DISABLE: 'DISABLE',
+    },
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',
