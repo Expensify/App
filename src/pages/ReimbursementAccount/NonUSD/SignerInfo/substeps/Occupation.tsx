@@ -9,7 +9,7 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type OccupationProps = SubStepProps & {directorID: string};
+type OccupationProps = SubStepProps & {directorID?: string};
 
 const {PREFIX, DIRECTOR_OCCUPATION} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
@@ -18,13 +18,13 @@ function Occupation({onNext, onMove, isEditing, directorID}: OccupationProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const inputID = `${PREFIX}_${directorID}_${DIRECTOR_OCCUPATION}`;
-    const defaultValue = reimbursementAccountDraft?.[inputID] ?? '';
+    const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [inputID]);
 
-            if (values[inputID] && !ValidationUtils.isValidLegalName(values[inputID])) {
+            if (values[inputID] && !ValidationUtils.isValidLegalName(String(values[inputID]))) {
                 errors[inputID] = translate('bankAccount.error.fullName');
             }
 

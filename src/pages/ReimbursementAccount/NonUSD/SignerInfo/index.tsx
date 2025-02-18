@@ -31,8 +31,8 @@ type SignerInfoProps = {
     onSubmit: () => void;
 };
 
-type SignerDetailsFormProps = SubStepProps & {isSecondSigner: boolean; directorID: string};
-type DirectorDetailsFormProps = SubStepProps & {isSecondSigner: boolean; directorID: string};
+type SignerDetailsFormProps = SubStepProps & {directorID?: string};
+type DirectorDetailsFormProps = SubStepProps & {directorID?: string};
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
 const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SUBSTEP;
@@ -52,8 +52,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
-    // TODO consider if this is needed
-    const isSecondSigner = false;
     const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
@@ -74,6 +72,12 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     }, [country]);
 
     const submitSignerDetailsForm = useCallback(() => {
+        setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_DIRECTOR);
+    }, []);
+
+    const submitDirectorDetailsForm = useCallback(() => {
+        // TODO: handle multiple directors
+
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorBeingModifiedID);
 
         if (currency === CONST.CURRENCY.AUD) {
@@ -89,10 +93,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             onSubmit();
         }
     }, [account?.primaryLogin, bankAccountID, currency, directorBeingModifiedID, onSubmit, reimbursementAccountDraft]);
-
-    const submitDirectorDetailsForm = useCallback(() => {
-        // TODO: to be implemented
-    }, []);
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
@@ -221,7 +221,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                     isEditing={isEditing}
                     onNext={nextScreen}
                     onMove={moveTo}
-                    isSecondSigner={isSecondSigner}
                     directorID={directorBeingModifiedID}
                 />
             )}
@@ -231,7 +230,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                     isEditing={directorsBeingEditing}
                     onNext={directorsNextScreen}
                     onMove={directorsMoveTo}
-                    isSecondSigner={isSecondSigner}
                     directorID={directorBeingModifiedID}
                 />
             )}
