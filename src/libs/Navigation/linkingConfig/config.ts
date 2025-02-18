@@ -1,15 +1,14 @@
 import type {LinkingOptions} from '@react-navigation/native';
-import type {RootStackParamList} from '@navigation/types';
+import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
+import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
+import type {RootNavigatorParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
-import type {RouteConfig} from './createNormalizedConfigs';
-import createNormalizedConfigs from './createNormalizedConfigs';
 
 // Moved to a separate file to avoid cyclic dependencies.
-const config: LinkingOptions<RootStackParamList>['config'] = {
-    initialRouteName: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
+const config: LinkingOptions<RootNavigatorParamList>['config'] = {
     screens: {
         // Main Routes
         [SCREENS.VALIDATE_LOGIN]: ROUTES.VALIDATE_LOGIN,
@@ -30,48 +29,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
-        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
-        [SCREENS.SETTINGS.PROFILE.ROOT]: {
-            path: ROUTES.SETTINGS_PROFILE,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-            path: ROUTES.SETTINGS_PREFERENCES,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.SECURITY]: {
-            path: ROUTES.SETTINGS_SECURITY,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.WALLET.ROOT]: {
-            path: ROUTES.SETTINGS_WALLET,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.ABOUT]: {
-            path: ROUTES.SETTINGS_ABOUT,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.TROUBLESHOOT]: {
-            path: ROUTES.SETTINGS_TROUBLESHOOT,
-            exact: true,
-        },
-        [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-        [SCREENS.SEARCH.CENTRAL_PANE]: {
+        [SCREENS.SEARCH.ROOT]: {
             path: ROUTES.SEARCH_CENTRAL_PANE.route,
-        },
-        [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-        [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
-
-        // Sidebar
-        [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
-            path: ROUTES.ROOT,
-            initialRouteName: SCREENS.HOME,
-            screens: {
-                [SCREENS.HOME]: ROUTES.HOME,
-                [SCREENS.SETTINGS.ROOT]: {
-                    path: ROUTES.SETTINGS,
-                },
-            },
         },
 
         [SCREENS.NOT_FOUND]: '*',
@@ -208,22 +167,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                             exact: true,
@@ -342,12 +285,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM]: {
                             path: ROUTES.SETTINGS_DELEGATE_CONFIRM.route,
-                            parse: {
-                                login: (login: string) => decodeURIComponent(login),
-                            },
-                        },
-                        [SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.route,
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
                             },
@@ -1582,7 +1519,56 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
+        [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: {
+            path: ROUTES.ROOT,
+            screens: {
+                [SCREENS.HOME]: {
+                    path: ROUTES.HOME,
+                    exact: true,
+                },
+                [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+            },
+        },
+
+        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: {
+            screens: {
+                [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
+                [SCREENS.SETTINGS.WORKSPACES]: {
+                    path: ROUTES.SETTINGS_WORKSPACES,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                    path: ROUTES.SETTINGS_PROFILE,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.SECURITY]: {
+                    path: ROUTES.SETTINGS_SECURITY,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.WALLET.ROOT]: {
+                    path: ROUTES.SETTINGS_WALLET,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.ABOUT]: {
+                    path: ROUTES.SETTINGS_ABOUT,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.TROUBLESHOOT]: {
+                    path: ROUTES.SETTINGS_TROUBLESHOOT,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
+                [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                    path: ROUTES.SETTINGS_PREFERENCES,
+                    // exact: true,
+                },
+            },
+        },
+
+        [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: {
+            // The path given as initialRouteName does not have route params.
+            // initialRouteName is not defined in this split navigator because in this case the initial route requires a policyID defined in its route params.
             screens: {
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,
