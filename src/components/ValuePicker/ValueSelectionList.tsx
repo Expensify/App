@@ -16,6 +16,7 @@ function ValueSelectionList({items = [], selectedItem, onItemSelected, shouldSho
             initiallyFocusedOptionKey={selectedItem?.value}
             shouldStopPropagation
             shouldShowTooltips={shouldShowTooltips}
+            shouldUpdateFocusedIndex
             ListItem={RadioListItem}
         />
     );
