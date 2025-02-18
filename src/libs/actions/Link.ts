@@ -116,7 +116,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
                         reject(error);
                         throw error;
                     }
-                    const travelURL = buildTravelDotURL(response.spotnanaToken, postLoginPath);
+                    const travelURL = buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false, postLoginPath);
                     resolve(undefined);
                     return travelURL;
                 })
