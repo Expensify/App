@@ -855,17 +855,15 @@ const translations = {
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
-        recordDistance: 'Grabar distancia',
+        recordDistance: 'Gasto de distancia',
         requestMoney: 'Crear gasto',
+        perDiem: 'Crear viático',
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
         assignTask: 'Assignar tarea',
         header: 'Acción rápida',
-        trackManual: 'Crear gasto',
-        trackScan: 'Escanear recibo',
-        trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
     },
@@ -1156,6 +1154,9 @@ const translations = {
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
+    },
+    modal: {
+        backdropLabel: 'Fondo del Modal',
     },
     profilePage: {
         profile: 'Perfil',
