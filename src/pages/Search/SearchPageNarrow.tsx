@@ -57,7 +57,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
-    const paddingTopValue = useSharedValue<number>(12);
+    const paddingTopValue = useSharedValue<number>(styles.pt3.paddingTop);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
         paddingTop: paddingTopValue.get(),
@@ -80,7 +80,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                 }
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
                 topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
-                paddingTopValue.set(12);
+                paddingTopValue.set(styles.pt3.paddingTop);
             }
             scrollOffset.set(currentOffset);
         },
@@ -91,10 +91,10 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
             if (windowHeight <= h) {
                 return;
             }
-            paddingTopValue.set(12);
+            paddingTopValue.set(styles.pt3.paddingTop);
             topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
         },
-        [windowHeight, paddingTopValue, topBarOffset, StyleUtils.searchHeaderHeight],
+        [windowHeight, paddingTopValue, styles.pt3.paddingTop, topBarOffset, StyleUtils.searchHeaderHeight],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
