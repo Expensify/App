@@ -133,6 +133,8 @@ type AttachmentModalProps = {
 
     canEditReceipt?: boolean;
 
+    canDeleteReceipt?: boolean;
+
     shouldDisableSendButton?: boolean;
 
     attachmentLink?: string;
@@ -157,6 +159,7 @@ function AttachmentModal({
     children,
     fallbackSource,
     canEditReceipt = false,
+    canDeleteReceipt = false,
     onModalClose = () => {},
     isLoading = false,
     shouldShowNotFoundPage = false,
@@ -291,8 +294,8 @@ function AttachmentModal({
     const deleteAndCloseModal = useCallback(() => {
         detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
-    }, [transaction, report]);
+        Navigation.goBack();
+    }, [transaction]);
 
     const isValidFile = useCallback(
         (fileObject: FileObject) =>
@@ -432,9 +435,11 @@ function AttachmentModal({
                 text: translate('common.replace'),
                 onSelected: () => {
                     closeModal(true);
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
-                    );
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    });
                 },
             });
         }
@@ -447,7 +452,7 @@ function AttachmentModal({
         }
 
         const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canEditReceipt && !hasMissingSmartscanFields(transaction)) {
+        if (!hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && canDeleteReceipt && !hasMissingSmartscanFields(transaction)) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
