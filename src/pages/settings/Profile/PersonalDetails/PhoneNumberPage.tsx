@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -16,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {isValidPhoneNumber, parsePhoneNumber, sanitizePhoneNumber} from '@libs/PhoneNumber';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -35,7 +34,6 @@ function PhoneNumberPage() {
     const validateLoginError = getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
-    const sanitizePhoneNumber = (num?: string): string => num?.replace(CONST.SANITIZE_PHONE_REGEX, '') ?? '';
     const formatPhoneNumber = useCallback((num: string) => {
         const phoneNumberWithCountryCode = appendCountryCode(sanitizePhoneNumber(num));
         const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
@@ -69,17 +67,9 @@ function PhoneNumberPage() {
                 return errors;
             }
 
-            if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumberValue) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumberValue)) {
+            if (!isValidPhoneNumber(phoneNumberValue)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
                 return errors;
-            }
-
-            const sanitizedPhoneNumber = sanitizePhoneNumber(phoneNumberValue);
-            const phoneNumberWithCountryCode = appendCountryCode(sanitizedPhoneNumber);
-            const parsedPhoneNumber = formatPhoneNumber(phoneNumberValue);
-
-            if (!parsedPhoneNumber.possible || !Str.isValidE164Phone(phoneNumberWithCountryCode)) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
             }
 
             if (validateLoginError && Object.keys(errors).length > 0) {
@@ -88,7 +78,7 @@ function PhoneNumberPage() {
 
             return errors;
         },
-        [formatPhoneNumber, translate, validateLoginError],
+        [translate, validateLoginError],
     );
 
     return (
