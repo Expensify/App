@@ -1599,8 +1599,8 @@ function generateDefaultWorkspaceName(email = ''): string {
 
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
-    const workspaceTranslations = CONST.LANGUAGES.map((lang) => translate(lang, 'workspace.new.workspaceName', {userName: escapedName})).join('|');
-    const workspaceRegex = new RegExp(`(?:${workspaceTranslations})\\s*(\\d+)?\\s*?$`, 'i');
+    const workspaceTranslations = CONST.LANGUAGES.map((lang) => translate(lang, 'workspace.common.workspace')).join('|');
+    const workspaceRegex = new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
 
     const workspaceNumbers = Object.values(allPolicies)
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
