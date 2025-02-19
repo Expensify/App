@@ -435,8 +435,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     continue;
                 }
 
-                if(isResolvedActionableWhisper(reportAction))
-                {
+                if (isResolvedActionableWhisper(reportAction)) {
                     continue;
                 }
 
