@@ -262,7 +262,7 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
+    const {insets, paddingTop, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
     const paddingTopStyle: StyleProp<ViewStyle> = {};
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
@@ -273,11 +273,11 @@ function ScreenWrapper(
         paddingTopStyle.paddingTop = unmodifiedPaddings.top;
     }
 
-    const bottomContentStyle: StyleProp<ViewStyle> = safeAreaPaddingBottomStyle;
-    // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-    if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
-        bottomContentStyle.paddingBottom = unmodifiedPaddings.bottom;
-    }
+    const bottomContentStyle: StyleProp<ViewStyle> = {
+        ...safeAreaPaddingBottomStyle,
+        // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
+        ...(includeSafeAreaPaddingBottom && ignoreInsetsConsumption ? {paddingBottom: unmodifiedPaddings.bottom} : {}),
+    };
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -326,11 +326,7 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             style={[offlineIndicatorStyle]}
-                                            containerStyles={
-                                                includeSafeAreaPaddingBottom
-                                                    ? [styles.offlineIndicatorMobile]
-                                                    : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + styles.offlineIndicatorMobile.paddingBottom}]
-                                            }
+                                            containerStyles={styles.offlineIndicatorMobile}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
@@ -350,7 +346,7 @@ function ScreenWrapper(
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
                 </View>
-                {bottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
+                {!!bottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
             </View>
         </FocusTrapForScreens>
     );
