@@ -1,17 +1,13 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
@@ -58,7 +54,6 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -76,8 +71,6 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
                     const {icon, title} = getIconAndTitle(route.name, translate);
-                    const shouldShowTestReceiptTooltip =
-                        route.name === CONST.TAB_REQUEST.SCAN && isActive && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas);
                     const onPress = () => {
                         if (isActive) {
                             return;
@@ -110,7 +103,6 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                             backgroundColor={backgroundColor}
                             isActive={isActive}
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
-                            shouldShowTestReceiptTooltip={shouldShowTestReceiptTooltip}
                         />
                     );
                 })}
