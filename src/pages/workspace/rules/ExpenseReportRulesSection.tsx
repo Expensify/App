@@ -76,7 +76,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             setPolicyPreventSelfApproval(policyID, true);
         }
     }    
-    const isPreventSelfApprovalsDisabled = !canEnablePreventSelfApprovals(currentApprovalWorkflows as ApprovalWorkflow[]) && !policy?.preventSelfApproval;
+    const isPreventSelfApprovalsDisabled = currentApprovalWorkflows && !canEnablePreventSelfApprovals(currentApprovalWorkflows) && !policy?.preventSelfApproval;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         return (
