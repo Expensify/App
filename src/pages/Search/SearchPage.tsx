@@ -9,8 +9,8 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,7 +42,7 @@ function SearchPage({route}: SearchPageProps) {
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
 
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
@@ -79,12 +79,11 @@ function SearchPage({route}: SearchPageProps) {
                                     <HeaderGap />
                                     <TopBar
                                         activeWorkspaceID={policyID}
-                                        breadcrumbLabel={translate('common.search')}
+                                        breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                     />
                                     <SearchTypeMenu
                                         queryJSON={queryJSON}
-                                        searchName={searchName}
                                         shouldGroupByReports={shouldGroupByReports}
                                     />
                                 </View>
@@ -104,10 +103,7 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                shouldGroupByReports={shouldGroupByReports}
-                            />
+                            <SearchPageHeader queryJSON={queryJSON} />
                             <SearchStatusBar queryJSON={queryJSON} />
                             <Search
                                 key={queryJSON.hash}
