@@ -288,7 +288,7 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
         return feedIcons[feedKey];
     }
 
-    return Illustrations.AmexCompanyCards;
+    return ExpensifyCardImage;
 }
 
 /**
