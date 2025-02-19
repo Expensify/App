@@ -26,9 +26,12 @@ type EarlyDiscountBannerProps = {
 
     /** The guide booking button to display */
     GuideBookingButton?: React.JSX.Element;
+
+    /** Function to trigger when the discount banner is dismissed */
+    onDismissedDiscountBanner?: () => void;
 };
 
-function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton}: EarlyDiscountBannerProps) {
+function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onDismissedDiscountBanner}: EarlyDiscountBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -54,7 +57,10 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton}: EarlyDisc
         () => (
             <Tooltip text={translate('common.close')}>
                 <PressableWithFeedback
-                    onPress={() => setIsDismissed(true)}
+                    onPress={() => {
+                        setIsDismissed(true);
+                        onDismissedDiscountBanner?.();
+                    }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.close')}
                 >
@@ -65,7 +71,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton}: EarlyDisc
                 </PressableWithFeedback>
             </Tooltip>
         ),
-        [theme.icon, translate],
+        [theme.icon, translate, onDismissedDiscountBanner],
     );
 
     const rightComponent = useMemo(() => {
