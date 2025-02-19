@@ -75,6 +75,10 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, hash);
             return {
                 ...baseMenuItem,
+                onPress: () => {
+                    clearAllFilters();
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                },
                 rightComponent: (
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
