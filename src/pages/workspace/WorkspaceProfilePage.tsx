@@ -184,13 +184,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             shouldShowNonAdmin
             icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
-            onBackButtonPress={() => {
-                if (backTo) {
-                    Navigation.navigate(backTo);
-                    return;
-                }
-                return Navigation.goBack();
-            }}
+            onBackButtonPress={() => Navigation.goBack(backTo)}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

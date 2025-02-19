@@ -580,8 +580,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     if (!report?.policyID) {
                         return;
                     }
-                    const activeRoute = Navigation.getActiveRoute();
-                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, activeRoute));
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, Navigation.getActiveRoute()));
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
