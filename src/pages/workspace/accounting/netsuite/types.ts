@@ -105,6 +105,8 @@ type CustomListSelectorType = SelectorType & {
     id: string;
 };
 
+type SubStepWithPolicy = SubStepProps & {policyID: string | undefined};
+
 export type {
     MenuItem,
     MenuItemToRender,
@@ -115,4 +117,5 @@ export type {
     CustomFieldSubStepWithPolicy,
     CustomListSelectorType,
     ExtendedMenuItemWithSubscribedSettings,
+    SubStepWithPolicy,
 };

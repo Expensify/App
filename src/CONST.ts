@@ -1060,6 +1060,7 @@ const CONST = {
         REQUEST_MANUAL: 'requestManual',
         REQUEST_SCAN: 'requestScan',
         REQUEST_DISTANCE: 'requestDistance',
+        PER_DIEM: 'perDiem',
         SPLIT_MANUAL: 'splitManual',
         SPLIT_SCAN: 'splitScan',
         SPLIT_DISTANCE: 'splitDistance',
@@ -1387,6 +1388,12 @@ const CONST = {
             DEFAULT: 'default',
             DELETE: 'delete',
             PRESERVE: 'preserve',
+        },
+        ANIMATION_TIMING: {
+            DEFAULT_IN: 300,
+            DEFAULT_OUT: 200,
+            FAB_IN: 350,
+            FAB_OUT: 200,
         },
     },
     TIMING: {
@@ -6218,7 +6225,6 @@ const CONST = {
             LOWER_THAN: 'lt',
             LOWER_THAN_OR_EQUAL_TO: 'lte',
         },
-        SYNTAX_RANGE_NAME: 'syntax',
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
