@@ -39,7 +39,7 @@ function canUseMergeAccounts(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
+    return true;
 }
 
 function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {

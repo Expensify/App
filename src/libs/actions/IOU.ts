@@ -2813,6 +2813,25 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         },
     });
 
+    console.log({
+        payerAccountID,
+        payerEmail,
+        iouReport,
+        chatReport,
+        transaction: optimisticTransaction,
+        iouAction,
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : undefined,
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : undefined,
+        reportPreviewAction,
+        transactionThreadReportID: optimisticTransactionThread?.reportID,
+        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
+        onyxData: {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    });
+
     return {
         payerAccountID,
         payerEmail,
