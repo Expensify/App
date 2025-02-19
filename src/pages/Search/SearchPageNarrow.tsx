@@ -137,7 +137,9 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.narrowSearchHeaderStyle]}>
+                            <Animated.View
+                                style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.narrowSearchHeaderStyle, styles.bgTransparent]}
+                            >
                                 <SearchPageHeader
                                     queryJSON={queryJSON}
                                     searchRouterListVisible={searchRouterListVisible}
@@ -149,14 +151,16 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                                         setSearchRouterListVisible(true);
                                     }}
                                 />
-                                {!searchRouterListVisible && (
-                                    <SearchStatusBar
-                                        queryJSON={queryJSON}
-                                        onStatusChange={() => {
-                                            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
-                                        }}
-                                    />
-                                )}
+                                <View style={[styles.appBG]}>
+                                    {!searchRouterListVisible && (
+                                        <SearchStatusBar
+                                            queryJSON={queryJSON}
+                                            onStatusChange={() => {
+                                                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                                            }}
+                                        />
+                                    )}
+                                </View>
                             </Animated.View>
                         </View>
                     </View>
