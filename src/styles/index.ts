@@ -233,6 +233,7 @@ const webViewStyles = (theme: ThemeColors) =>
             },
             h1: {
                 fontSize: undefined,
+                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -281,7 +282,13 @@ const styles = (theme: ThemeColors) =>
 
         h1: {
             fontSize: variables.fontSizeLarge,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
             marginBottom: 8,
+        },
+
+        taskTitleH1: {
+            fontWeight: undefined,
         },
 
         autoCompleteSuggestionContainer: {
