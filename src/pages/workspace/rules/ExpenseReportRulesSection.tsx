@@ -277,9 +277,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                         return;
                     }
 
-                    const workflowsToRemove = currentApprovalWorkflows?.filter(
-                        (workflow) => !workflow.isDefault && workflow.approvers.length === 1
-                    ) || [];
+                    const workflowsToRemove = currentApprovalWorkflows?.filter((workflow) => !workflow.isDefault && workflow.approvers.length === 1) || [];
 
                     workflowsToRemove.forEach((workflow) => {
                         removeApprovalWorkflow(policyID, workflow);
