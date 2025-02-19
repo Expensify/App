@@ -19,8 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {getPolicy} from '@libs/PolicyUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getPreservedSplitNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
@@ -53,13 +53,13 @@ type BottomTabBarProps = {
  * Otherwise policyID will be inserted into query
  */
 function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: string): SearchQueryString {
-    const queryJSON = SearchQueryUtils.buildSearchQueryJSON(query);
+    const queryJSON = buildSearchQueryJSON(query);
     if (!queryJSON) {
         return query;
     }
 
     const policyID = activePolicyID ?? queryJSON.policyID;
-    const policy = PolicyUtils.getPolicy(policyID);
+    const policy = getPolicy(policyID);
 
     // In case policy is missing or there is no policy currently selected via WorkspaceSwitcher we remove it
     if (!activePolicyID || !policy) {
@@ -68,7 +68,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
         queryJSON.policyID = policyID;
     }
 
-    return SearchQueryUtils.buildSearchQueryString(queryJSON);
+    return buildSearchQueryString(queryJSON);
 }
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
@@ -116,7 +116,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                 const cleanedQuery = handleQueryWithPolicyID(q, activeWorkspaceID);
 
                 Navigation.navigate(
-                    ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                    ROUTES.SEARCH_ROOT.getRoute({
                         query: cleanedQuery,
                         ...rest,
                     }),
@@ -124,10 +124,10 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                 return;
             }
 
-            const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
+            const defaultCannedQuery = buildCannedSearchQuery();
             // when navigating to search we might have an activePolicyID set from workspace switcher
             const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
         });
     }, [activeWorkspaceID, selectedTab]);
 

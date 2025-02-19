@@ -1061,6 +1061,7 @@ const CONST = {
         REQUEST_MANUAL: 'requestManual',
         REQUEST_SCAN: 'requestScan',
         REQUEST_DISTANCE: 'requestDistance',
+        PER_DIEM: 'perDiem',
         SPLIT_MANUAL: 'splitManual',
         SPLIT_SCAN: 'splitScan',
         SPLIT_DISTANCE: 'splitDistance',
@@ -6225,7 +6226,6 @@ const CONST = {
             LOWER_THAN: 'lt',
             LOWER_THAN_OR_EQUAL_TO: 'lte',
         },
-        SYNTAX_RANGE_NAME: 'syntax',
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
             STATUS: 'status',

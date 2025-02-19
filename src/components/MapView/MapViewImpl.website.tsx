@@ -12,6 +12,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -299,7 +300,7 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
                                 onPress={toggleDistanceUnit}
                             >
                                 <View style={styles.distanceLabelWrapper}>
-                                    <View style={styles.distanceLabelText}> {DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters, distanceUnit)}</View>
+                                    <Text style={styles.distanceLabelText}> {DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters, distanceUnit)}</Text>
                                 </View>
                             </PressableWithoutFeedback>
                         </Marker>

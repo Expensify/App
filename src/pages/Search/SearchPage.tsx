@@ -9,8 +9,8 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -42,7 +42,7 @@ function SearchPage({route}: SearchPageProps) {
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
     const {clearSelectedTransactions} = useSearchContext();
 
@@ -99,10 +99,7 @@ function SearchPage({route}: SearchPageProps) {
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                     />
-                                    <SearchTypeMenu
-                                        queryJSON={queryJSON}
-                                        searchName={searchName}
-                                    />
+                                    <SearchTypeMenu queryJSON={queryJSON} />
                                 </View>
                             ) : (
                                 <HeaderWithBackButton
