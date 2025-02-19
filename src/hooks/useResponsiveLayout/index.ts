@@ -24,7 +24,7 @@ import type ResponsiveLayoutResult from './types';
  * For more details on the various modal types we've defined for this app and implemented using react-native-modal, see `ModalType`.
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
-    const {windowWidth, windowHeight, fontScale} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
 
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.
     const screenHeight = Dimensions.get('screen').height;
@@ -77,6 +77,5 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         onboardingIsMediumOrLargerScreenWidth,
         isLargeScreenWidth,
         isSmallScreen,
-        fontScale,
     };
 }
