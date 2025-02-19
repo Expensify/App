@@ -37,9 +37,11 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
-    SEARCH_CENTRAL_PANE: {
+    SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const,
+        getRoute: ({query, name, groupBy}: {query: SearchQueryString; name?: string; groupBy?: string}) => {
+            return `search?q=${encodeURIComponent(query)}${groupBy ? `&groupBy=${groupBy}` : ''}${name ? `&name=${name}` : ''}` as const;
+        },
     },
     SEARCH_SAVED_SEARCH_RENAME: {
         route: 'search/saved-search/rename',
@@ -133,7 +135,7 @@ const ROUTES = {
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
-    SETTINGS_SUBSCRIPTION: 'settings/subscription',
+    SETTINGS_SUBSCRIPTION: {route: 'settings/subscription', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo)},
     SETTINGS_SUBSCRIPTION_SIZE: {
         route: 'settings/subscription/subscription-size',
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
@@ -795,11 +797,11 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE route');
             }
-            return `settings/workspaces/${policyID}/profile` as const;
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile` as const, backTo);
         },
     },
     WORKSPACE_PROFILE_ADDRESS: {
@@ -1116,25 +1118,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
-        getRoute: (
-            policyID: string,
-            connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>,
-            integrationToDisconnect?: ConnectionName,
-            shouldDisconnectIntegrationBeforeConnecting?: boolean,
-        ) => {
-            const searchParams = new URLSearchParams();
-
-            if (integrationToDisconnect) {
-                searchParams.append('integrationToDisconnect', integrationToDisconnect);
-            }
-            if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
-                searchParams.append('shouldDisconnectIntegrationBeforeConnecting', shouldDisconnectIntegrationBeforeConnecting.toString());
-            }
-
-            const queryParams = searchParams.size ? `?${searchParams.toString()}` : '';
-
-            return `settings/workspaces/${policyID}/accounting/${connection}/connection-selector${queryParams}` as const;
-        },
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/connection-selector` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
@@ -2130,7 +2114,12 @@ const ROUTES = {
     },
     DEBUG_REPORT_ACTION: {
         route: 'debug/report/:reportID/actions/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}` as const,
+        getRoute: (reportID: string | undefined, reportActionID: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the DEBUG_REPORT_ACTION route');
+            }
+            return `debug/report/${reportID}/actions/${reportActionID}` as const;
+        },
     },
     DEBUG_REPORT_ACTION_CREATE: {
         route: 'debug/report/:reportID/actions/create',
