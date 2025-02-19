@@ -2104,8 +2104,10 @@ const styles = (theme: ThemeColors) =>
         chatItem: {
             display: 'flex',
             flexDirection: 'row',
-            paddingVertical: 8,
-            paddingHorizontal: 20,
+            paddingTop: 8,
+            paddingBottom: 8,
+            paddingLeft: 20,
+            paddingRight: 20,
         },
 
         chatItemRightGrouped: {
