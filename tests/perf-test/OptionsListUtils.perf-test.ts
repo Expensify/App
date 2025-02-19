@@ -75,6 +75,8 @@ jest.mock('@react-navigation/native', () => {
 
 const options = OptionsListUtils.createOptionList(personalDetails, reports);
 
+const getValidOptionsConfig = { betas: mockedBetas, includeRecentReports: true, includeTasks: true, includeThreads: true, includeMoneyRequests: true, includeMultipleParticipantReports: true, includeSelfDM: true, includeOwnedWorkspaceChats: true };
+
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
     beforeAll(() => {
@@ -107,9 +109,16 @@ describe('OptionsListUtils', () => {
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
+        const formattedOptions = OptionsListUtils.getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, getValidOptionsConfig);    
         await measureFunction(() => {
-            const formattedOptions = OptionsListUtils.getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {betas: mockedBetas});
-            OptionsListUtils.filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+            const result = OptionsListUtils.filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+        });
+    });
+    test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
+        await waitForBatchedUpdates();
+        const formattedOptions = OptionsListUtils.getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, getValidOptionsConfig);
+        await measureFunction(() => {
+            const result = OptionsListUtils.filterAndOrderOptions(formattedOptions, '');
         });
     });
 
