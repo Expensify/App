@@ -11,7 +11,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEnablePreventSelfApprovals, getAllSelfApprovers, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {canEnablePreventSelfApprovals, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {
@@ -21,7 +21,7 @@ import {
     setPolicyPreventMemberCreatedTitle,
     setPolicyPreventSelfApproval,
 } from '@userActions/Policy/Policy';
-import {updateApprovalWorkflow} from '@userActions/Workflow';
+import {removeApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,8 +43,6 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
     const [isPreventSelfApprovalsModalVisible, setIsPreventSelfApprovalsModalVisible] = useState(false);
-    const isPreventSelfApprovalsDisabled = !canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
-    const selfApproversEmails = getAllSelfApprovers(policy);
 
     function handleTogglePreventSelfApprovals(isEnabled: boolean) {
         if (!isEnabled) {
@@ -52,8 +50,9 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             return;
         }
 
-        const allSelfApproversEmails = getAllSelfApprovers(policy);
-        if (allSelfApproversEmails.length > 0) {
+        const workflowsWithOnlyOneApproverCount = currentApprovalWorkflows?.filter((workflow) => workflow.approvers.length === 1).length;
+
+        if (workflowsWithOnlyOneApproverCount && workflowsWithOnlyOneApproverCount > 0) {
             setIsPreventSelfApprovalsModalVisible(true);
         } else {
             setPolicyPreventSelfApproval(policyID, true);
@@ -78,6 +77,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             currentApprovalWorkflows: result.approvalWorkflows,
         };
     }, [personalDetails, policy]);
+    const isPreventSelfApprovalsDisabled = !canEnablePreventSelfApprovals(currentApprovalWorkflows as ApprovalWorkflow[]) && !policy?.preventSelfApproval;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         return (
@@ -266,52 +266,25 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 isVisible={isPreventSelfApprovalsModalVisible}
                 title={translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle')}
                 prompt={translate('workspace.rules.expenseReportRules.preventSelfApprovalsModalText', {
-                    managerEmail: policy?.owner ?? '',
+                    managerEmail: policy?.approver ?? policy?.owner ?? '',
                 })}
                 confirmText={translate('workspace.rules.expenseReportRules.preventSelfApprovalsConfirmButton')}
                 cancelText={translate('common.cancel')}
                 onConfirm={() => {
-                    setPolicyPreventSelfApproval(policyID, true);
-
-                    const defaultApprover = policy?.owner;
+                    const defaultApprover = policy?.approver ?? policy?.owner;
                     if (!defaultApprover) {
                         setIsPreventSelfApprovalsModalVisible(false);
                         return;
                     }
 
-                    currentApprovalWorkflows?.forEach((workflow: ApprovalWorkflow) => {
-                        const oldApprovers = workflow.approvers ?? [];
-                        const approversToRemove = oldApprovers.filter((approver: Approver) => selfApproversEmails.includes(approver?.email));
-                        const newApprovers = oldApprovers.filter((approver: Approver) => !selfApproversEmails.includes(approver?.email));
+                    const workflowsToRemove = currentApprovalWorkflows?.filter(
+                        (workflow) => !workflow.isDefault && workflow.approvers.length === 1
+                    ) || [];
 
-                        if (!newApprovers.some((a) => a.email === defaultApprover)) {
-                            newApprovers.unshift({
-                                email: defaultApprover,
-                                displayName: defaultApprover,
-                            });
-                        }
-
-                        const oldMembers = workflow.members ?? [];
-                        const newMembers = oldMembers.map((member: Member) => {
-                            const isSelfApprover = selfApproversEmails.includes(member.email);
-                            return isSelfApprover ? {...member, submitsTo: defaultApprover} : member;
-                        });
-
-                        const newWorkflow = {
-                            ...workflow,
-                            approvers: newApprovers,
-                            availableMembers: [...workflow.members, ...defaultWorkflowMembers],
-                            members: newMembers,
-                            usedApproverEmails,
-                            isDefault: workflow.isDefault ?? false,
-                            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
-                            errors: null,
-                        };
-
-                        const membersToRemove: Member[] = [];
-
-                        updateApprovalWorkflow(policyID, newWorkflow, membersToRemove, approversToRemove);
+                    workflowsToRemove.forEach((workflow) => {
+                        removeApprovalWorkflow(policyID, workflow);
                     });
+                    setPolicyPreventSelfApproval(policyID, true);
                     setIsPreventSelfApprovalsModalVisible(false);
                 }}
                 onCancel={() => setIsPreventSelfApprovalsModalVisible(false)}
