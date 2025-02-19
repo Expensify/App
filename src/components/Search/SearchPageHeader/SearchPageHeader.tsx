@@ -39,11 +39,18 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; searchName?: string; searchRouterListVisible?: boolean; hideSearchRouterList?: () => void; onSearchRouterFocus?: () => void};
+type SearchPageHeaderProps = {
+    queryJSON: SearchQueryJSON;
+    searchName?: string;
+    searchRouterListVisible?: boolean;
+    hideSearchRouterList?: () => void;
+    onSearchRouterFocus?: () => void;
+    shouldGroupByReports?: boolean;
+};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, shouldGroupByReports}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -417,6 +424,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
                 searchName={searchName}
                 hideSearchRouterList={hideSearchRouterList}
                 inputRightComponent={InputRightComponent}
+                shouldGroupByReports={shouldGroupByReports}
             />
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}

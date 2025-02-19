@@ -34,9 +34,10 @@ type SearchPageBottomTabProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
     searchName?: string;
+    shouldGroupByReports?: boolean;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTabProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageBottomTabProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -151,6 +152,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                                             topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                             setSearchRouterListVisible(true);
                                         }}
+                                        shouldGroupByReports={shouldGroupByReports}
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
@@ -178,6 +180,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                         <SearchPageHeader
                             queryJSON={queryJSON}
                             searchName={searchName}
+                            shouldGroupByReports={shouldGroupByReports}
                         />
                     </>
                 )}
@@ -189,6 +192,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                             onSearchListScroll={scrollHandler}
                             onContentSizeChange={onContentSizeChange}
                             contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+                            shouldGroupByReports={shouldGroupByReports}
                         />
                     </View>
                 )}

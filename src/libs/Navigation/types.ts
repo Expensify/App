@@ -1777,6 +1777,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.SEARCH.ROOT]: {
         q: SearchQueryString;
         name?: string;
+        groupBy?: string;
     };
 };
 
