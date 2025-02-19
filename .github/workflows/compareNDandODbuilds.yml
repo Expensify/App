@@ -100,7 +100,7 @@ jobs:
         run: |
           git submodule update --init --remote
       
-      - name: Checkout Old Dot if PR specified
+      - name: Checkout OldDot if PR specified
         if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
         run: |
           cd Mobile-Expensify
