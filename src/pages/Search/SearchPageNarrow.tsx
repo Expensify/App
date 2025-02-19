@@ -138,10 +138,8 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View
-                                style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.narrowSearchHeaderStyle, styles.bgTransparent]}
-                            >
-                                <View style={[{paddingTop: 1}, styles.appBG]}>
+                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
+                                <View style={[styles.narrowSearchHeaderStyle]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
                                         searchRouterListVisible={searchRouterListVisible}
