@@ -33,7 +33,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import switchPolicyID from './helpers/switchPolicyID';
 import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
+import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -506,11 +506,22 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
     );
 }
 
-function getReportRouteByID(reportID?: string) {
-    if (!reportID) {
+function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navigationRef.getRootState().routes): NavigationRoute | null {
+    if (!reportID || !routes?.length) {
         return null;
     }
-    return navigationRef.getRootState().routes.find((route) => route.name === SCREENS.REPORT && !!route.params && 'reportID' in route.params && route.params.reportID === reportID);
+    for (const route of routes) {
+        if (route.name === SCREENS.REPORT && !!route.params && 'reportID' in route.params && route.params.reportID === reportID) {
+            return route;
+        }
+        if (route.state?.routes) {
+            const partialRoute = getReportRouteByID(reportID, route.state.routes);
+            if (partialRoute) {
+                return partialRoute;
+            }
+        }
+    }
+    return null;
 }
 
 /**
@@ -563,11 +574,9 @@ function removeScreenFromNavigationState(screen: string) {
 }
 
 function removeScreenByKey(key: string) {
-    const state = navigationRef.getRootState();
-    const routes = state.routes.filter((item) => item.key !== key);
-
     isNavigationReady().then(() => {
-        navigationRef.current?.dispatch(() => {
+        navigationRef.current?.dispatch((state) => {
+            const routes = state.routes?.filter((item) => item.key !== key);
             return CommonActions.reset({
                 ...state,
                 routes,
