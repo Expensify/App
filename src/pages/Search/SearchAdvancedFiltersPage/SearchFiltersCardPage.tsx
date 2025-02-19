@@ -73,6 +73,7 @@ function buildCardsData(
     selectedCards: string[],
     isClosedCards = false,
 ): ItemsGroupedBySelection {
+    // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag
     const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => filterCondition(card))
@@ -174,6 +175,7 @@ function buildCardFeedsData(
             const isBankRepeating = repeatingBanks.includes(bank);
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = getPolicy(policyID?.toUpperCase());
+            // We need to assign correspondingCardIDs for closed cards as well, because we need to be able to select on "all" both closed and individual cards
             const correspondingCardIDs = Object.entries(cardFeed ?? {})
                 .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && (!isCardHiddenFromSearch(card) || isCardClosed(card)))
                 .map(([cardKey]) => cardKey);
