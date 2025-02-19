@@ -2612,7 +2612,8 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
             )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
-            .join(', ');
+            .join(', ')
+            .slice(0, CONST.REPORT_NAME_LIMIT);
     }
 
     return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
@@ -6968,7 +6969,7 @@ function hasViolations(
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, shouldShowInReview));
 }
 
 /**

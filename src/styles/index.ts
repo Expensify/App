@@ -1108,7 +1108,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 1,
+            zIndex: variables.searchTopBarZIndex + 2,
             backgroundColor: theme.appBG,
         },
 
@@ -2721,6 +2721,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.transparent,
         },
 
+        modalContainer: {height: '100%'},
+
+        modalAnimatedContainer: {width: '100%'},
+
+        modalContainerBox: {
+            zIndex: 2,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+
+        modalBackdrop: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'black',
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,
@@ -3747,7 +3766,12 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 1,
+            flex: 1,
+        },
+
+        narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
@@ -4415,10 +4439,6 @@ const styles = (theme: ThemeColors) =>
             } satisfies TextStyle),
 
         animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
