@@ -448,7 +448,7 @@ function ReportActionItemMessageEdit({action, draftMessage, reportID, policyID, 
                         <Composer
                             multiline
                             ref={textInputRef}
-                            autoFocus
+                            autoFocus={prevDraftMessage === undefined || draftMessage !== undefined}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
