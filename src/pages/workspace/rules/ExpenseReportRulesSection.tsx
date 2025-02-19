@@ -25,7 +25,6 @@ import {removeApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
