@@ -5,13 +5,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import type {Ancestor} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +27,6 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
 
     return (
         <View
@@ -48,16 +46,12 @@ function ThreadDivider({ancestor, isLinkDisabled = false}: ThreadDividerProps) {
             ) : (
                 <PressableWithoutFeedback
                     onPress={() => {
-                        const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(
-                            ancestor.reportAction,
-                            ancestor.reportAction.reportActionID ?? '-1',
-                            ReportUtils.canUserPerformWriteAction(ancestor.report),
-                        );
+                        const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWriteAction(ancestor.report));
                         // Pop the thread report screen before navigating to the chat report.
-                        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1'));
-                        if (isVisibleAction && !isOffline) {
+                        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
+                        if (isVisibleAction) {
                             // Pop the chat report screen before navigating to the linked report action.
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID ?? '-1', ancestor.reportAction.reportActionID));
+                            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
                         }
                     }}
                     accessibilityLabel={translate('threads.thread')}

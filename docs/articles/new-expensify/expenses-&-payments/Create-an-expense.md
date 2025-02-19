@@ -57,6 +57,10 @@ When an expense is submitted to a workspace, your approver will receive an email
 ![Enter workspace or individual's name]({{site.url}}/assets/images/ExpensifyHelp-CreateExpenseUpdate-4.png){:width="100%"}
 
 {% include info.html %}
+SmartScan can only detect and process text written in the Latin alphabet.
+{% include end-info.html %}
+
+{% include info.html %}
 You can also forward receipts to receipts@expensify.com using your primary or secondary email address. SmartScan will automatically extract all the details from the receipt and add them to your expenses.
 {% include end-info.html %}
 
@@ -167,6 +171,10 @@ Yes, you can [split an expense](https://help.expensify.com/articles/new-expensif
 **Can I change an expense once I’ve submitted it?**
 
 Yes, you can edit an expense until it is paid. When an expense is submitted, the details can be edited except for the amount and date.
+
+**Can I add multiple receipts to a newly created expense?**
+
+Yes, you can add multiple receipt images to a new expense. One possible way to do this is to combine all receipts into a single PDF file. From there, simply upload the combined PDF to the expense.
 
 **What are expense reports?**
 

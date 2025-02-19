@@ -106,6 +106,7 @@ function SelectionListWithModal<TItem extends ListItem>(
                 ref={ref}
                 sections={sections}
                 onLongPressRow={handleLongPressRow}
+                isScreenFocused={isScreenFocused}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
@@ -113,6 +114,7 @@ function SelectionListWithModal<TItem extends ListItem>(
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
+                shouldPreventScrollOnFocus
             >
                 <MenuItem
                     title={translate('common.select')}

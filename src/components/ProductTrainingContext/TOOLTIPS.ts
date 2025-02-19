@@ -12,6 +12,7 @@ const {
     BOTTOM_NAV_INBOX_TOOLTIP,
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
+    SCAN_TEST_TOOLTIP,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -26,6 +27,7 @@ type TooltipData = {
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
+    shouldRenderActionButtons?: boolean;
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
@@ -112,6 +114,23 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
         priority: 800,
         shouldShow: () => true,
+    },
+    [SCAN_TEST_TOOLTIP]: {
+        content: [
+            {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
+            {text: 'productTrainingTooltip.scanTestTooltip.part6', isBold: false},
+            {text: 'productTrainingTooltip.scanTestTooltip.part7', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part8', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
+        name: SCAN_TEST_TOOLTIP,
+        priority: 900,
+        shouldShow: () => false,
+        shouldRenderActionButtons: true,
     },
 };
 

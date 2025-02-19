@@ -24,6 +24,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -67,6 +68,7 @@ function BaseSelectionList<TItem extends ListItem>(
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
+        isConfirmButtonDisabled = false,
         shouldUseDefaultTheme = false,
         shouldPreventDefaultFocusOnSelectRow = false,
         containerStyle,
@@ -94,6 +96,7 @@ function BaseSelectionList<TItem extends ListItem>(
         sectionTitleStyles,
         textInputAutoFocus = true,
         shouldShowTextInputAfterHeader = false,
+        shouldShowHeaderMessageAfterHeader = false,
         includeSafeAreaPaddingBottom = true,
         shouldTextInputInterceptSwipe = false,
         listHeaderContent,
@@ -121,6 +124,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
+        isScreenFocused = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -128,6 +132,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<TItem, SectionWithIndexOffset<TItem>>>(null);
     const innerTextInputRef = useRef<RNTextInput | null>(null);
+    const hasKeyBeenPressed = useRef(false);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
@@ -317,12 +322,22 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const debouncedScrollToIndex = useMemo(() => lodashDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true}), [scrollToIndex]);
 
+    const setHasKeyBeenPressed = useCallback(() => {
+        if (hasKeyBeenPressed.current) {
+            return;
+        }
+
+        // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
+        // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
+        hasKeyBeenPressed.current = true;
+    }, []);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: true,
+        isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
@@ -332,8 +347,15 @@ function BaseSelectionList<TItem extends ListItem>(
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
+        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
     });
+
+    useEffect(() => {
+        addKeyDownPressListener(setHasKeyBeenPressed);
+
+        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
+    }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex((option) => option.isSelected) : -1),
@@ -360,18 +382,14 @@ function BaseSelectionList<TItem extends ListItem>(
      */
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
+            if (!isFocused && !isScreenFocused) {
+                return;
+            }
             // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
             if (canSelectMultiple) {
-                if (sections.length > 1) {
-                    // If the list has only 1 section (e.g. Workspace Members list), we do nothing.
-                    // If the list has multiple sections (e.g. Workspace Invite list), and `shouldUnfocusRow` is false,
-                    // we focus the first one after all the selected (selected items are always at the top).
-                    const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
-
-                    if (!item.isSelected) {
-                        // If we're selecting an item, scroll to it's position at the top, so we can see it
-                        scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
-                    }
+                if (sections.length > 1 && !item.isSelected) {
+                    // If we're selecting an item, scroll to it's position at the top, so we can see it
+                    scrollToIndex(0, true);
                 }
 
                 if (shouldShowTextInput) {
@@ -392,7 +410,6 @@ function BaseSelectionList<TItem extends ListItem>(
         [
             canSelectMultiple,
             sections.length,
-            flattenedSections.selectedOptions.length,
             scrollToIndex,
             shouldShowTextInput,
             clearInputAfterSelect,
@@ -400,6 +417,8 @@ function BaseSelectionList<TItem extends ListItem>(
             setFocusedIndex,
             onSelectRow,
             shouldPreventDefaultFocusOnSelectRow,
+            isFocused,
+            isScreenFocused,
         ],
     );
 
@@ -548,7 +567,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldIgnoreFocus={shouldIgnoreFocus}
                     setFocusedIndex={setFocusedIndex}
                     normalizedIndex={normalizedIndex}
-                    shouldSyncFocus={!isTextInputFocusedRef.current}
+                    shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     wrapperStyle={listItemWrapperStyle}
                     titleStyles={listItemTitleStyles}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
@@ -679,7 +698,7 @@ function BaseSelectionList<TItem extends ListItem>(
         if (
             (prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) ||
             flattenedSections.allOptions.length === 0 ||
-            shouldUpdateFocusedIndex
+            (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && shouldUpdateFocusedIndex)
         ) {
             return;
         }
@@ -789,9 +808,17 @@ function BaseSelectionList<TItem extends ListItem>(
         {
             captureOnInputs: true,
             shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
-            isActive: !disableKeyboardShortcuts && isFocused,
+            isActive: !disableKeyboardShortcuts && isFocused && !isConfirmButtonDisabled,
         },
     );
+
+    const headerMessageContent = () =>
+        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
+        !!headerMessage && (
+            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
+                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+            </View>
+        );
 
     const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
 
@@ -801,11 +828,7 @@ function BaseSelectionList<TItem extends ListItem>(
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
-            {(!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) && !!headerMessage && (
-                <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
-                </View>
-            )}
+            {!shouldShowHeaderMessageAfterHeader && headerMessageContent()}
             {!!headerContent && headerContent}
             {flattenedSections.allOptions.length === 0 && (showLoadingPlaceholder || shouldShowListEmptyContent) ? (
                 renderListEmptyContent()
@@ -847,6 +870,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 <>
                                     {listHeaderContent}
                                     {renderInput()}
+                                    {shouldShowHeaderMessageAfterHeader && headerMessageContent()}
                                 </>
                             ) : (
                                 listHeaderContent
@@ -872,6 +896,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         onPress={onConfirm}
                         pressOnEnter
                         enterKeyEventListenerPriority={1}
+                        isDisabled={isConfirmButtonDisabled}
                     />
                 </FixedFooter>
             )}

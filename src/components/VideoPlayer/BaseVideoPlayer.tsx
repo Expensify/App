@@ -20,10 +20,11 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import shouldReplayVideo from './shouldReplayVideo';
 import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
+import useHandleNativeVideoControls from './useHandleNativeVideoControls';
 import * as VideoUtils from './utils';
 import VideoPlayerControls from './VideoPlayerControls';
 
@@ -86,12 +87,17 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume, lastNonZeroVolume} = useVolumeContext();
-    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    useHandleNativeVideoControls({
+        videoPlayerRef,
+        isOffline,
+        isLocalFile: isUploading,
+    });
+    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
 
@@ -163,6 +169,7 @@ function BaseVideoPlayer({
             }
             setIsPopoverVisible(true);
         });
+        setPopoverMenuSource(url);
         if (!event || !('nativeEvent' in event)) {
             return;
         }

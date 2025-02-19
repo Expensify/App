@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ForwardedRef, MutableRefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
@@ -10,12 +10,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
-import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
-import * as styleConst from '@components/TextInput/styleConst';
+import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INACTIVE_LABEL_TRANSLATE_Y} from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import useHtmlPaste from '@hooks/useHtmlPaste';
@@ -24,11 +23,12 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import * as InputUtils from '@libs/InputUtils';
+import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import InputComponentMap from './implementations';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
@@ -65,7 +65,7 @@ function BaseTextInput(
         prefixCharacter = '',
         suffixCharacter = '',
         inputID,
-        isMarkdownEnabled = false,
+        type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         shouldUseDisabledStyles = true,
@@ -75,11 +75,14 @@ function BaseTextInput(
         suffixStyle = [],
         contentWidth,
         loadingSpinnerStyle,
+        uncontrolled = false,
+        placeholderTextColor,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+    const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
+    const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
 
     const theme = useTheme();
@@ -98,11 +101,10 @@ function BaseTextInput(
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
-    const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
 
-    const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
-    const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
+    const labelScale = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE);
+    const labelTranslateY = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y);
 
     const input = useRef<HTMLInputElement | null>(null);
     const isLabelActive = useRef(initialActiveLabel);
@@ -141,7 +143,7 @@ function BaseTextInput(
             return;
         }
 
-        animateLabel(styleConst.ACTIVE_LABEL_TRANSLATE_Y, styleConst.ACTIVE_LABEL_SCALE);
+        animateLabel(ACTIVE_LABEL_TRANSLATE_Y, ACTIVE_LABEL_SCALE);
         isLabelActive.current = true;
     }, [animateLabel, value]);
 
@@ -152,7 +154,7 @@ function BaseTextInput(
             return;
         }
 
-        animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
+        animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE);
         isLabelActive.current = false;
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
@@ -187,7 +189,6 @@ function BaseTextInput(
             const layout = event.nativeEvent.layout;
 
             setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
-            setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
         },
         [autoGrowHeight, multiline],
     );
@@ -263,27 +264,11 @@ function BaseTextInput(
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
-    /**
-     * To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
-     * make sure to include the `lineHeight`.
-     * Reference: https://github.com/Expensify/App/issues/26735
-     * For other platforms, explicitly remove `lineHeight` from single-line inputs
-     * to prevent long text from disappearing once it exceeds the input space.
-     * See https://github.com/Expensify/App/issues/13802
-     */
-    const lineHeight = useMemo(() => {
-        if (Browser.isSafari() || Browser.isMobileChrome()) {
-            const lineHeightValue = StyleSheet.flatten(inputStyle).lineHeight;
-            if (lineHeightValue !== undefined) {
-                return lineHeightValue;
-            }
-        }
-
-        return undefined;
-    }, [inputStyle]);
-
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
+    // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
+    // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
+    const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
 
     return (
         <>
@@ -330,8 +315,7 @@ function BaseTextInput(
                                 />
                             </>
                         ) : null}
-
-                        <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                        <View style={[styles.textInputAndIconContainer(isMarkdownEnabled), isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
@@ -369,7 +353,7 @@ function BaseTextInput(
                                 {...inputProps}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
-                                placeholderTextColor={theme.placeholderText}
+                                placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
@@ -380,15 +364,11 @@ function BaseTextInput(
                                     inputPaddingRight,
                                     inputProps.secureTextEntry && styles.secureInput,
 
-                                    // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
-                                    // once it exceeds the input space (See https://github.com/Expensify/App/issues/13802)
-                                    !isMultiline && {height, lineHeight},
-
                                     // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
                                     // Set overflow property to enable the parent flexbox to shrink its size
                                     // (See https://github.com/Expensify/App/issues/41766)
-                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
+                                    !isMultiline && isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
@@ -407,8 +387,8 @@ function BaseTextInput(
                                 secureTextEntry={passwordHidden}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
-                                inputMode={inputProps.inputMode}
-                                value={value}
+                                inputMode={inputMode}
+                                value={uncontrolled ? undefined : value}
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
@@ -431,7 +411,7 @@ function BaseTextInput(
                                         if (didScrollToEndRef.current || !input.current) {
                                             return;
                                         }
-                                        InputUtils.scrollToRight(input.current);
+                                        scrollToRight(input.current);
                                         didScrollToEndRef.current = true;
                                     }}
                                 >
@@ -524,7 +504,7 @@ function BaseTextInput(
                             return;
                         }
                         let additionalWidth = 0;
-                        if (Browser.isMobileSafari() || Browser.isSafari() || Browser.isMobileChrome()) {
+                        if (isMobileSafari() || isSafari() || isMobileChrome()) {
                             additionalWidth = 2;
                         }
                         setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);

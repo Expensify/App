@@ -9,13 +9,15 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Locale, OnyxInputOrEntry, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Locale, OnyxInputOrEntry, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
@@ -27,9 +29,10 @@ import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
 import {getEffectiveDisplayName, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
-import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {isOnHoldByTransactionID} from './TransactionUtils';
+import {getReportFieldAlternativeTextTranslationKey} from './WorkspaceReportFieldUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -635,8 +638,51 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
+/**
+ * Checks if a given report action corresponds to an actionable mention whisper.
+ * @param reportAction
+ */
+function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
+}
+
+/**
+ * Checks if a given report action corresponds to an actionable report mention whisper.
+ * @param reportAction
+ */
+function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER);
+}
+
+/**
+ * Checks whether an action is actionable track expense.
+ */
+function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
+}
+
+function isActionableWhisper(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER
+    | typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER
+> {
+    return isActionableMentionWhisper(reportAction) || isActionableTrackExpense(reportAction) || isActionableReportMentionWhisper(reportAction);
+}
+
 const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
 const supportedActionTypes: ReportActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
+
+/**
+ * Checks whether an action is actionable track expense and resolved.
+ *
+ */
+function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(reportAction);
+    const resolution = originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage ? originalMessage?.resolution : null;
+    return !!resolution;
+}
 
 /**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
@@ -686,6 +732,11 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return true;
     }
 
+    // If action is actionable whisper and resolved by user, then we don't want to render anything
+    if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
@@ -701,24 +752,6 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
         return true;
     }
     return !isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-}
-
-/**
- * Checks whether an action is actionable track expense.
- *
- */
-function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER);
-}
-
-/**
- * Checks whether an action is actionable track expense and resolved.
- *
- */
-function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    const originalMessage = getOriginalMessage(reportAction);
-    const resolution = originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage ? originalMessage?.resolution : null;
-    return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
 /**
@@ -739,8 +772,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
-        !isResolvedActionTrackExpense(reportAction)
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
     );
 }
 
@@ -774,10 +806,11 @@ function getLastVisibleAction(
     reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+    reportActionsParam: OnyxCollection<ReportActions> = allReportActions,
 ): OnyxEntry<ReportAction> {
     let reportActions: Array<ReportAction | null | undefined> = [];
     if (!isEmpty(actionsToMerge)) {
-        reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
+        reportActions = Object.values(fastMerge(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true)) as Array<
             ReportAction | null | undefined
         >;
     } else {
@@ -925,12 +958,12 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNu
 /**
  * Find the transaction associated with this reportAction, if one exists.
  */
-function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction> | undefined, reportID?: string): string | null {
+function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction> | undefined, reportID?: string): string | undefined {
     const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionOrID] : reportActionOrID;
     if (!reportAction || !isMoneyRequestAction(reportAction)) {
-        return null;
+        return undefined;
     }
-    return getOriginalMessage(reportAction)?.IOUTransactionID ?? null;
+    return getOriginalMessage(reportAction)?.IOUTransactionID;
 }
 
 function getReportAction(reportID: string | undefined, reportActionID: string | undefined): ReportAction | undefined {
@@ -1169,7 +1202,8 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
-function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
+// We pass getReportName as a param to avoid cyclic dependency.
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
 
@@ -1184,12 +1218,12 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     }
 
     if (isLeaveAction) {
-        verb = translateLocal('workspace.invite.leftWorkspace');
+        verb = getPolicyChangeLogEmployeeLeftMessage(reportAction);
     }
 
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
-    const personalDetails = getPersonalDetailsByIDs(targetAccountIDs, 0);
+    const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
 
     const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
@@ -1203,9 +1237,8 @@ function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): 
     });
 
     const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
-        const roomName = originalMessage?.roomName;
-
-        if (roomName) {
+        const roomName = getReportNameCallback(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage?.reportID}`]);
+        if (roomName && originalMessage) {
             const preposition = isInviteAction ? ` ${translateLocal('workspace.invite.to')} ` : ` ${translateLocal('workspace.invite.from')} `;
 
             if (originalMessage.reportID) {
@@ -1338,7 +1371,9 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
             const {result, label} = originalMessage;
             const errorMessage = result?.messages?.join(', ') ?? '';
-            return translateLocal('report.actions.type.integrationsMessage', {errorMessage, label});
+            const linkText = result?.link?.text ?? '';
+            const linkURL = result?.link?.url ?? '';
+            return translateLocal('report.actions.type.integrationsMessage', {errorMessage, label, linkText, linkURL});
         }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return translateLocal('report.actions.type.managerAttachReceipt');
@@ -1371,8 +1406,8 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     }
 }
 
-function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
-    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback);
     const html = messageElements
         .map((messageElement) => {
             switch (messageElement.kind) {
@@ -1400,11 +1435,6 @@ function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
         text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
-}
-
-function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
-    const messageElements = getMemberChangeMessageElements(reportAction);
-    return messageElements.map((element) => element.content).join('');
 }
 
 function getReportActionMessageFragments(action: ReportAction): Message[] {
@@ -1452,22 +1482,6 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
 }
 
 /**
- * Checks if a given report action corresponds to an actionable mention whisper.
- * @param reportAction
- */
-function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
-}
-
-/**
- * Checks if a given report action corresponds to an actionable report mention whisper.
- * @param reportAction
- */
-function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER);
-}
-
-/**
  * Constructs a message for an actionable mention whisper report action.
  * @param reportAction
  * @returns the actionable mention whisper message.
@@ -1478,7 +1492,7 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
     }
     const originalMessage = getOriginalMessage(reportAction);
     const targetAccountIDs: number[] = originalMessage?.inviteeAccountIDs ?? [];
-    const personalDetails = getPersonalDetailsByIDs(targetAccountIDs, 0);
+    const personalDetails = getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
     const mentionElements = targetAccountIDs.map((accountID): string => {
         const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
         const displayName = getEffectiveDisplayName(personalDetail);
@@ -1601,7 +1615,10 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
 /**
  * Get IOU action for a reportID and transactionID
  */
-function getIOUActionForReportID(reportID: string, transactionID: string): OnyxEntry<ReportAction> {
+function getIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined): OnyxEntry<ReportAction> {
+    if (!reportID || !transactionID) {
+        return undefined;
+    }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const reportActions = getAllReportActions(report?.reportID);
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
@@ -1731,7 +1748,7 @@ function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Rep
 
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = originalMessage?.role ?? '';
+    const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
     return translateLocal('report.actions.type.addEmployee', {email: formattedEmail, role});
 }
@@ -1746,9 +1763,23 @@ function getPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repo
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const newRole = originalMessage?.newValue ?? '';
-    const oldRole = originalMessage?.oldValue ?? '';
+    const newRole = translateLocal('workspace.common.roleName', {role: typeof originalMessage?.newValue === 'string' ? originalMessage?.newValue : ''}).toLowerCase();
+    const oldRole = translateLocal('workspace.common.roleName', {role: typeof originalMessage?.oldValue === 'string' ? originalMessage?.oldValue : ''}).toLowerCase();
     return translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+}
+
+function getPolicyChangeLogEmployeeLeftMessage(reportAction: ReportAction, useName = false): string {
+    if (!isLeavePolicyAction(reportAction)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const personalDetails = getPersonalDetailsByIDs({accountIDs: reportAction.actorAccountID ? [reportAction.actorAccountID] : [], currentUserAccountID: 0})?.at(0);
+    if (!!originalMessage && !originalMessage.email) {
+        originalMessage.email = personalDetails?.login;
+    }
+    const nameOrEmail = useName && !!personalDetails?.firstName ? `${personalDetails?.firstName}:` : originalMessage?.email ?? '';
+    const formattedNameOrEmail = formatPhoneNumber(nameOrEmail);
+    return translateLocal('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
 }
 
 function isPolicyChangeLogDeleteMemberMessage(
@@ -1757,13 +1788,288 @@ function isPolicyChangeLogDeleteMemberMessage(
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
 }
 
+function getWorkspaceNameUpdatedMessage(action: ReportAction) {
+    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
+    const message = oldName && newName ? translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
+    return message;
+}
+
+function getWorkspaceDescriptionUpdatedMessage(action: ReportAction) {
+    const {oldDescription, newDescription} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION>) ?? {};
+    const message =
+        typeof oldDescription === 'string' && newDescription ? translateLocal('workspaceActions.updateWorkspaceDescription', {newDescription, oldDescription}) : getReportActionText(action);
+    return message;
+}
+
+function getWorkspaceCurrencyUpdateMessage(action: ReportAction) {
+    const {oldCurrency, newCurrency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY>) ?? {};
+    const message = oldCurrency && newCurrency ? translateLocal('workspaceActions.updatedWorkspaceCurrencyAction', {oldCurrency, newCurrency}) : getReportActionText(action);
+    return message;
+}
+
+type AutoReportingFrequencyKey = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
+
+const getAutoReportingFrequencyDisplayNames = (): AutoReportingFrequencyDisplayNames => ({
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: translateLocal('workflowsPage.frequencies.monthly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: translateLocal('workflowsPage.frequencies.daily'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: translateLocal('workflowsPage.frequencies.weekly'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: translateLocal('workflowsPage.frequencies.twiceAMonth'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: translateLocal('workflowsPage.frequencies.byTrip'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: translateLocal('workflowsPage.frequencies.manually'),
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: translateLocal('workflowsPage.frequencies.instant'),
+});
+
+function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
+    const {oldFrequency, newFrequency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY>) ?? {};
+
+    if (!oldFrequency || !newFrequency) {
+        return getReportActionText(action);
+    }
+
+    const frequencyDisplayNames = getAutoReportingFrequencyDisplayNames();
+    const oldFrequencyTranslation = frequencyDisplayNames[oldFrequency]?.toLowerCase();
+    const newFrequencyTranslation = frequencyDisplayNames[newFrequency]?.toLowerCase();
+
+    if (!oldFrequencyTranslation || !newFrequencyTranslation) {
+        return getReportActionText(action);
+    }
+
+    return translateLocal('workspaceActions.updatedWorkspaceFrequencyAction', {
+        oldFrequency: oldFrequencyTranslation,
+        newFrequency: newFrequencyTranslation,
+    });
+}
+
+function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
+    const {categoryName, oldValue, newName, oldName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
+        return translateLocal('workspaceActions.addCategory', {
+            categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY && categoryName) {
+        return translateLocal('workspaceActions.deleteCategory', {
+            categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
+        return translateLocal('workspaceActions.updateCategory', {
+            oldValue: !!oldValue,
+            categoryName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
+        return translateLocal('workspaceActions.setCategoryName', {
+            oldName,
+            newName,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getWorkspaceTagUpdateMessage(action: ReportAction): string {
+    const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG && tagListName && tagName) {
+        return translateLocal('workspaceActions.addTag', {
+            tagListName,
+            tagName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG && tagListName && tagName) {
+        return translateLocal('workspaceActions.deleteTag', {
+            tagListName,
+            tagName,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED && tagListName && tagName) {
+        return translateLocal('workspaceActions.updateTagEnabled', {
+            tagListName,
+            tagName,
+            enabled,
+        });
+    }
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_NAME && tagListName && newName && oldName) {
+        return translateLocal('workspaceActions.updateTagName', {
+            tagListName,
+            newName,
+            oldName,
+        });
+    }
+
+    if (
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG &&
+        tagListName &&
+        typeof oldValue === 'string' &&
+        typeof newValue === 'string' &&
+        tagName &&
+        updatedField
+    ) {
+        return translateLocal('workspaceActions.updateTag', {
+            tagListName,
+            oldValue,
+            newValue,
+            tagName,
+            updatedField,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getWorkspaceCustomUnitRateAddedMessage(action: ReportAction): string {
+    const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (customUnitName && rateName) {
+        return translateLocal('workspaceActions.addCustomUnitRate', {
+            customUnitName,
+            rateName,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
+    const {fieldName, fieldType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (fieldName && fieldType) {
+        return translateLocal('workspaceActions.addedReportField', {
+            fieldName,
+            fieldType: translateLocal(getReportFieldAlternativeTextTranslationKey(fieldType as PolicyReportFieldType)),
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getWorkspaceReportFieldUpdateMessage(action: ReportAction): string {
+    const {updateType, fieldName, defaultValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (updateType === 'updatedDefaultValue' && fieldName && defaultValue) {
+        return translateLocal('workspaceActions.updateReportFieldDefaultValue', {
+            fieldName,
+            defaultValue,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getWorkspaceReportFieldDeleteMessage(action: ReportAction): string {
+    const {fieldType, fieldName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+
+    if (fieldType && fieldName) {
+        return translateLocal('workspaceActions.deleteReportField', {
+            fieldName,
+            fieldType: translateLocal(getReportFieldAlternativeTextTranslationKey(fieldType as PolicyReportFieldType)),
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
+    const {newValue, oldValue, updatedField} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD>) ?? {};
+
+    const newValueTranslationKey = CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS[newValue as keyof typeof CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS];
+    const oldValueTranslationKey = CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS[oldValue as keyof typeof CONST.POLICY.APPROVAL_MODE_TRANSLATION_KEYS];
+
+    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE && oldValueTranslationKey && newValueTranslationKey) {
+        return translateLocal('workspaceActions.updateApprovalMode', {
+            newValue: translateLocal(`workspaceApprovalModes.${newValueTranslationKey}` as TranslationPaths),
+            oldValue: translateLocal(`workspaceApprovalModes.${oldValueTranslationKey}` as TranslationPaths),
+            fieldName: updatedField,
+        });
+    }
+
+    if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.PREVENT_SELF_APPROVAL && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return translateLocal('workspaceActions.preventSelfApproval', {
+            oldValue,
+            newValue,
+        });
+    }
+
+    if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.MAX_EXPENSE_AGE && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return translateLocal('workspaceActions.updateMaxExpenseAge', {
+            oldValue,
+            newValue,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action: ReportAction): string {
+    const {oldMaxExpenseAmountNoReceipt, newMaxExpenseAmountNoReceipt, currency} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT>) ?? {};
+
+    if (typeof oldMaxExpenseAmountNoReceipt === 'number' && typeof newMaxExpenseAmountNoReceipt === 'number') {
+        return translateLocal('workspaceActions.updateMaxExpenseAmountNoReceipt', {
+            oldValue: convertToDisplayString(oldMaxExpenseAmountNoReceipt, currency),
+            newValue: convertToDisplayString(newMaxExpenseAmountNoReceipt, currency),
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogMaxExpenseAmountMessage(action: ReportAction): string {
+    const {oldMaxExpenseAmount, newMaxExpenseAmount, currency} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT>) ?? {};
+
+    if (typeof oldMaxExpenseAmount === 'number' && typeof newMaxExpenseAmount === 'number') {
+        return translateLocal('workspaceActions.updateMaxExpenseAmount', {
+            oldValue: convertToDisplayString(oldMaxExpenseAmount, currency),
+            newValue: convertToDisplayString(newMaxExpenseAmount, currency),
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogDefaultBillableMessage(action: ReportAction): string {
+    const {oldDefaultBillable, newDefaultBillable} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE>) ?? {};
+
+    if (typeof oldDefaultBillable === 'string' && typeof newDefaultBillable === 'string') {
+        return translateLocal('workspaceActions.updateDefaultBillable', {
+            oldValue: oldDefaultBillable,
+            newValue: newDefaultBillable,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogDefaultTitleEnforcedMessage(action: ReportAction): string {
+    const {value} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED>) ?? {};
+
+    if (typeof value === 'boolean') {
+        return translateLocal('workspaceActions.updateDefaultTitleEnforced', {
+            value,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
     if (!isPolicyChangeLogDeleteMemberMessage(reportAction)) {
         return '';
     }
     const originalMessage = getOriginalMessage(reportAction);
     const email = originalMessage?.email ?? '';
-    const role = originalMessage?.role ?? '';
+    const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     return translateLocal('report.actions.type.removeMember', {email, role});
 }
 
@@ -1786,10 +2092,18 @@ function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPO
 
 function getRemovedFromApprovalChainMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN>>) {
     const originalMessage = getOriginalMessage(reportAction);
-    const submittersNames = getPersonalDetailsByIDs(originalMessage?.submittersAccountIDs ?? [], currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID).map(
-        ({displayName, login}) => displayName ?? login ?? 'Unknown Submitter',
-    );
+    const submittersNames = getPersonalDetailsByIDs({
+        accountIDs: originalMessage?.submittersAccountIDs ?? [],
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+    }).map(({displayName, login}) => displayName ?? login ?? 'Unknown Submitter');
     return translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
+}
+
+function getDemotedFromWorkspaceMessage(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE>>) {
+    const originalMessage = getOriginalMessage(reportAction);
+    const policyName = originalMessage?.policyName ?? translateLocal('workspace.common.workspace');
+    const oldRole = translateLocal('workspace.common.roleName', {role: originalMessage?.oldRole}).toLowerCase();
+    return translateLocal('workspaceActions.demotedFromWorkspace', {policyName, oldRole});
 }
 
 function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
@@ -1802,7 +2116,19 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
-function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRenderHTML = false, policyID = '-1', shouldDisplayLinkToCard = false) {
+function getCardIssuedMessage({
+    reportAction,
+    shouldRenderHTML = false,
+    policyID = '-1',
+    shouldDisplayLinkToCard = false,
+    personalDetails,
+}: {
+    reportAction: OnyxEntry<ReportAction>;
+    shouldRenderHTML?: boolean;
+    policyID?: string;
+    shouldDisplayLinkToCard?: boolean;
+    personalDetails?: Partial<PersonalDetailsList>;
+}) {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
@@ -1815,7 +2141,11 @@ function getCardIssuedMessage(reportAction: OnyxEntry<ReportAction>, shouldRende
 
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const assigneeDetails = getPersonalDetailsByIDs([assigneeAccountID], currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID).at(0);
+    const assigneeDetails = getPersonalDetailsByIDs({
+        accountIDs: [assigneeAccountID],
+        currentUserAccountID: currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        personalDetailsParam: personalDetails,
+    }).at(0);
     const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : assigneeDetails?.firstName ?? assigneeDetails?.login ?? '';
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
@@ -1857,13 +2187,8 @@ function getReportActionsLength() {
 }
 
 function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale): boolean {
-    // The user was never online.
-    if (!lastOnlineAt) {
-        return true;
-    }
-
-    // The user never was never offline.
-    if (!lastOfflineAt) {
+    // The user has never gone offline or never come back online
+    if (!lastOfflineAt || !lastOnlineAt) {
         return false;
     }
 
@@ -1902,7 +2227,6 @@ export {
     getLinkedTransactionID,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
-    getMemberChangeMessagePlainText,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
     getMostRecentIOURequestActionID,
@@ -1911,6 +2235,7 @@ export {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getRemovedFromApprovalChainMessage,
+    getDemotedFromWorkspaceMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage,
@@ -1924,6 +2249,7 @@ export {
     getWhisperedTo,
     hasRequestFromCurrentAccount,
     isActionOfType,
+    isActionableWhisper,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableMentionWhisper,
@@ -1957,7 +2283,6 @@ export {
     isReportActionAttachment,
     isReportActionDeprecated,
     isReportPreviewAction,
-    isResolvedActionTrackExpense,
     isReversedTransaction,
     isRoomChangeLogAction,
     isSentMoneyReportAction,
@@ -1989,6 +2314,7 @@ export {
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDeleteMemberMessage,
+    getPolicyChangeLogEmployeeLeftMessage,
     getRenamedAction,
     isCardIssuedAction,
     getCardIssuedMessage,
@@ -1996,6 +2322,21 @@ export {
     getActionableJoinRequestPendingReportAction,
     getReportActionsLength,
     wasActionCreatedWhileOffline,
+    getWorkspaceCategoryUpdateMessage,
+    getWorkspaceUpdateFieldMessage,
+    getWorkspaceNameUpdatedMessage,
+    getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceFrequencyUpdateMessage,
+    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getWorkspaceDescriptionUpdatedMessage,
+    getWorkspaceReportFieldAddMessage,
+    getWorkspaceCustomUnitRateAddedMessage,
+    getWorkspaceTagUpdateMessage,
+    getWorkspaceReportFieldUpdateMessage,
+    getWorkspaceReportFieldDeleteMessage,
 };
 
 export type {LastVisibleMessage};

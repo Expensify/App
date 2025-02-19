@@ -53,11 +53,11 @@ function clearAddNewCardFlow() {
     });
 }
 
-function addNewCompanyCardsFeed(policyID: string, cardFeed: CompanyCardFeed, feedDetails: string, cardFeeds: OnyxEntry<CardFeeds>, lastSelectedFeed?: CompanyCardFeed) {
+function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyCardFeed, feedDetails: string, cardFeeds: OnyxEntry<CardFeeds>, lastSelectedFeed?: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
-    if (!authToken) {
+    if (!authToken || !policyID) {
         return;
     }
 
@@ -403,8 +403,6 @@ function unassignWorkspaceCompanyCard(workspaceAccountID: number, bankName: stri
 
 function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, bankName: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
-    const optimisticFeedUpdates = {[bankName]: {errors: null}};
-    const failureFeedUpdates = {[bankName]: {errors: {error: CONST.COMPANY_CARDS.CONNECTION_ERROR}}};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -435,13 +433,6 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                         lastScrape: null,
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                settings: {companyCards: optimisticFeedUpdates},
             },
         },
     ];
@@ -502,13 +493,6 @@ function updateWorkspaceCompanyCard(workspaceAccountID: number, cardID: string, 
                         lastScrape: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                     },
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
-            value: {
-                settings: {companyCards: failureFeedUpdates},
             },
         },
     ];

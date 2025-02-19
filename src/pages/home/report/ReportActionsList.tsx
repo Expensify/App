@@ -18,10 +18,11 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
-import {getChatFSAttributes} from '@libs/Fullstory';
-import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -50,7 +51,7 @@ import {
     isUnread,
 } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
-import type {AuthScreensParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import {PersonalDetailsContext} from '@src/components/OnyxProvider';
@@ -130,6 +131,7 @@ type ReportActionsListProps = {
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
 const MSG_VISIBLE_THRESHOLD = 250;
+const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
 
 // In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
@@ -183,7 +185,7 @@ function ReportActionsList({
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
@@ -389,9 +391,18 @@ function ReportActionsList({
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
-    const isLastPendingActionIsDelete = sortedReportActions?.at(0)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    // Display the new message indicator when comment linking and not close to the newest message.
+    const reportActionID = route?.params?.reportActionID;
+    const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
+    const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
+    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(!isLinkedActionCloseToNewest);
 
-    const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
+    useEffect(() => {
+        if (isLinkedActionCloseToNewest) {
+            return;
+        }
+        setIsFloatingMessageCounterVisible(true);
+    }, [isLinkedActionCloseToNewest, route]);
 
     useEffect(() => {
         if (
@@ -400,6 +411,7 @@ function ReportActionsList({
             reportActionSize.current > sortedVisibleReportActions.length &&
             hasNewestReportAction
         ) {
+            setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
@@ -438,17 +450,33 @@ function ReportActionsList({
             return;
         }
         InteractionManager.runAfterInteractions(() => {
+            setIsFloatingMessageCounterVisible(false);
             reportScrollManager.scrollToBottom();
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
+    // https://github.com/Expensify/App/issues/54520
+    useEffect(() => {
+        if (!isSafari()) {
+            return;
+        }
+        const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
+        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
+            InteractionManager.runAfterInteractions(() => {
+                reportScrollManager.scrollToBottom();
+            });
+        }
+    }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
+
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
             InteractionManager.runAfterInteractions(() => {
+                setIsFloatingMessageCounterVisible(false);
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
-                if (!isFromCurrentUser || !isReportScreenTopmostCentralPane()) {
+                if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
                     return;
                 }
                 if (!hasNewestReportActionRef.current) {
@@ -514,7 +542,9 @@ function ReportActionsList({
         onScroll?.(event);
     };
 
-    const scrollToBottomAndMarkReportAsRead = () => {
+    const scrollToBottomAndMarkReportAsRead = useCallback(() => {
+        setIsFloatingMessageCounterVisible(false);
+
         if (!hasNewestReportAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
             openReport(report.reportID);
@@ -524,7 +554,7 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    };
+    }, [report.reportID, reportScrollManager, hasNewestReportAction]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
@@ -586,7 +616,7 @@ function ReportActionsList({
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
 
-        const isArchivedReport = isArchivedNonExpenseReport(report);
+        const isArchivedReport = isArchivedNonExpenseReport(report, reportNameValuePairs);
         const hasNewMessagesInView = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
@@ -730,7 +760,7 @@ function ReportActionsList({
     }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        if (!isSearchTopmostCentralPane()) {
+        if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
         }
@@ -742,20 +772,21 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
-    // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
-    const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
+
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
 
     return (
         <>
             <FloatingMessageCounter
-                isActive={(isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) || canScrollToNewerComments}
+                isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 testID={reportActionsListTestID}
+                nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList
@@ -782,7 +813,7 @@ function ReportActionsList({
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={route?.params?.reportActionID}
+                    initialScrollKey={reportActionID}
                 />
             </View>
         </>
