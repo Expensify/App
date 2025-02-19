@@ -481,12 +481,12 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
-        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID ?? '-1', reportActionID, referrer));
+        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer));
         return;
     }
 
     const params: Record<string, string> = {
-        reportID: targetReport?.reportID ?? '-1',
+        reportID: targetReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
     };
 
     if (reportActionID) {
