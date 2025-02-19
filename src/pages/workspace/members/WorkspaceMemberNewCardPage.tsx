@@ -10,7 +10,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getFilteredCardList, hasOnlyOneCardToAssign, isSelectedFeedExpired} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getFilteredCardList, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getWorkspaceAccountID} from '@libs/PolicyUtils';
@@ -20,7 +20,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {openPolicyCompanyCardsFeed, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -99,6 +99,9 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const handleSelectFeed = (feed: CardFeedListItem) => {
         setSelectedFeed(feed.value);
+        if (isCustomFeed(feed.value as CompanyCardFeed)) {
+            openPolicyCompanyCardsFeed(policyID, feed.value as CompanyCardFeed);
+        }
         setShouldShowError(false);
     };
 
