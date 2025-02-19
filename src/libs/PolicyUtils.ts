@@ -87,6 +87,16 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
             !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
     );
 }
+
+function getPerDiemCustomUnits(policies: OnyxCollection<Policy> | null, email: string | undefined): Array<{policyID: string; customUnit: CustomUnit}> {
+    return (
+        getActivePolicies(policies, email)
+            .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
+            // We filter out custom units that are undefine but ts cant' figure it out.
+            .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled) as Array<{policyID: string; customUnit: CustomUnit}>
+    );
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -1324,6 +1334,7 @@ export {
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
+    getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,

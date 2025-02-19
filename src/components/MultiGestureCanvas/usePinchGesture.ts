@@ -125,6 +125,8 @@ const usePinchGesture = ({
             pinchOrigin.y.set(adjustedFocal.y);
         })
         .onChange((evt) => {
+            'worklet';
+
             // Disable the pinch gesture if one finger is released,
             // to prevent the content from shaking/jumping
             if (evt.numberOfPointers !== 2) {

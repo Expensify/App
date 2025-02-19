@@ -56,7 +56,7 @@ function ActionCell({
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
                     text={text}
-                    icon={Expensicons.Checkmark}
+                    icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
@@ -89,6 +89,7 @@ function ActionCell({
                 icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? Expensicons.DotIndicator : undefined}
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
+                isNested
             />
         ) : null;
     }
@@ -102,6 +103,7 @@ function ActionCell({
             isLoading={isLoading}
             success
             isDisabled={isOffline}
+            isNested
         />
     );
 }
