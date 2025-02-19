@@ -299,7 +299,7 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
     };
@@ -756,8 +756,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
-        integrationToDisconnect?: ConnectionName;
-        shouldDisconnectIntegrationBeforeConnecting?: boolean;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
@@ -878,14 +876,17 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
@@ -895,14 +896,17 @@ type SettingsNavigatorParamList = {
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
         policyID: string;
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.RULES_CUSTOM_NAME]: {
         policyID: string;
@@ -1109,7 +1113,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        backTo: string;
+        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
         action: IOUAction;

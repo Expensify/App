@@ -1,24 +1,22 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
-import {requestValidateCodeAction} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -37,9 +35,6 @@ const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const primaryLogin = account?.primaryLogin ?? '';
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
@@ -84,22 +79,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         prevScreen();
     };
 
-    const handleValidateCodeEntered = useCallback(
+    const handleSubmitForm = useCallback(
         (validateCode: string) => {
             updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
-            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack();
         },
         [values],
     );
-
-    const sendValidateCode = () => {
-        if (validateCodeAction?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
-    };
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
@@ -144,15 +129,10 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
                 personalDetailsValues={values}
             />
 
-            <ValidateCodeActionModal
-                handleSubmitForm={handleValidateCodeEntered}
-                sendValidateCode={sendValidateCode}
-                clearError={() => {}}
+            <MissingPersonalDetailsMagicCodeModal
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isVisible={isValidateCodeActionModalVisible}
-                title={translate('cardPage.validateCardTitle')}
-                descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
-                hasMagicCodeBeenSent={!!validateCodeAction?.validateCodeSent}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                handleSubmitForm={handleSubmitForm}
             />
         </ScreenWrapper>
     );

@@ -37,7 +37,7 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
-    SEARCH_CENTRAL_PANE: {
+    SEARCH_ROOT: {
         route: 'search',
         getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const,
     },
@@ -133,7 +133,7 @@ const ROUTES = {
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
-    SETTINGS_SUBSCRIPTION: 'settings/subscription',
+    SETTINGS_SUBSCRIPTION: {route: 'settings/subscription', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo)},
     SETTINGS_SUBSCRIPTION_SIZE: {
         route: 'settings/subscription/subscription-size',
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
@@ -1130,25 +1130,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
-        getRoute: (
-            policyID: string,
-            connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>,
-            integrationToDisconnect?: ConnectionName,
-            shouldDisconnectIntegrationBeforeConnecting?: boolean,
-        ) => {
-            const searchParams = new URLSearchParams();
-
-            if (integrationToDisconnect) {
-                searchParams.append('integrationToDisconnect', integrationToDisconnect);
-            }
-            if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
-                searchParams.append('shouldDisconnectIntegrationBeforeConnecting', shouldDisconnectIntegrationBeforeConnecting.toString());
-            }
-
-            const queryParams = searchParams.size ? `?${searchParams.toString()}` : '';
-
-            return `settings/workspaces/${policyID}/accounting/${connection}/connection-selector${queryParams}` as const;
-        },
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/connection-selector` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
@@ -1448,27 +1430,27 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_NAME: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name`, backTo),
     },
     EXPENSIFY_CARD_NAME: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/name` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/name`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_LIMIT: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit`, backTo),
     },
     EXPENSIFY_CARD_LIMIT: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/limit',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/limit` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/limit`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit-type',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type`, backTo),
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/limit-type',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/limit-type`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
@@ -1741,7 +1723,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_ORGANIZATION: {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
-        getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+        getRoute: (policyID: string | undefined, currentOrganizationID: string | undefined) => {
+            if (!policyID || !currentOrganizationID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ORGANIZATION route');
+            }
+            return `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
@@ -1835,7 +1822,12 @@ const ROUTES = {
     MISSING_PERSONAL_DETAILS: 'missing-personal-details',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR route');
+            }
+            return `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/existing-connections',
@@ -2041,7 +2033,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/entity',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY route');
+            }
+            return `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
