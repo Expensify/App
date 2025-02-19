@@ -93,7 +93,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     useEffect(() => {
         fetchCategories();
-    }, [fetchCategories]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);

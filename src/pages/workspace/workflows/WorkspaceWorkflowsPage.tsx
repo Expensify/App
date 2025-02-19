@@ -105,7 +105,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         InteractionManager.runAfterInteractions(() => {
             fetchData();
         });
-    }, [fetchData]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {

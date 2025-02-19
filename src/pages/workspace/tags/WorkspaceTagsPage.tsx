@@ -94,7 +94,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     useEffect(() => {
         fetchTags();
-    }, [fetchTags]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const cleanupSelectedOption = useCallback(() => setSelectedTags({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);

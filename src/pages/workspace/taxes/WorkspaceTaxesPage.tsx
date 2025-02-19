@@ -83,7 +83,9 @@ function WorkspaceTaxesPage({
 
     useEffect(() => {
         fetchTaxes();
-    }, [fetchTaxes]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
