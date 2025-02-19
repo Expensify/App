@@ -94,7 +94,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
 
             return {
                 ...baseMenuItem,
-                onSelected: baseMenuItem.onPress,
+                // onSelected: baseMenuItem.onPress,
                 rightComponent: (
                     <ThreeDotsMenu
                         menuItems={getOverflowMenu(baseMenuItem.title ?? '', Number(baseMenuItem.hash ?? ''), item.query ?? '')}
