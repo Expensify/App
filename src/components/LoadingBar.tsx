@@ -15,7 +15,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
-        if (shouldShow) {
+        if (true) {
             // eslint-disable-next-line react-compiler/react-compiler
             left.set(0);
             width.set(0);

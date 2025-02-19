@@ -1,28 +1,29 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SearchSelectionModeHeader from './SearchSelectionModeHeader';
-import SearchTypeMenu from './SearchTypeMenu';
 import useHandleBackButton from './useHandleBackButton';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
@@ -39,11 +40,11 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
-
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const {clearSelectedTransactions} = useSearchContext();
+    const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
 
     const handleBackButtonPress = useCallback(() => {
         if (!selectionMode?.isEnabled) {
@@ -56,8 +57,8 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
     useHandleBackButton(handleBackButtonPress);
 
     const scrollOffset = useSharedValue(0);
-    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderHeight);
     const paddingTopValue = useSharedValue<number>(styles.pt3.paddingTop);
+    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
         paddingTop: paddingTopValue.get(),
@@ -72,15 +73,16 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
             const currentOffset = contentOffset.y;
             const isScrollingDown = currentOffset > scrollOffset.get();
             const distanceScrolled = currentOffset - scrollOffset.get();
+
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                const newTopBarOffset = clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderHeight);
-                topBarOffset.set(newTopBarOffset);
+                const newTopBarOffset = clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset);
                 if (newTopBarOffset === variables.minimalTopBarOffset) {
                     paddingTopValue.set(0);
                 }
+                topBarOffset.set(newTopBarOffset);
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
                 paddingTopValue.set(styles.pt3.paddingTop);
+                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
             }
             scrollOffset.set(currentOffset);
         },
@@ -92,12 +94,21 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                 return;
             }
             paddingTopValue.set(styles.pt3.paddingTop);
-            topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
+            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
         },
-        [windowHeight, paddingTopValue, styles.pt3.paddingTop, topBarOffset, StyleUtils.searchHeaderHeight],
+        [windowHeight, paddingTopValue, styles.pt3.paddingTop, topBarOffset, StyleUtils.searchHeaderDefaultOffset],
     );
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
+    const cancelSearchCallback = useCallback(() => {
+        if (searchRouterListVisible) {
+            setSearchRouterListVisible(false);
+            return;
+        }
+        Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    }, [searchRouterListVisible]);
 
     if (!queryJSON) {
         return (
@@ -115,49 +126,77 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
         );
     }
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && !isCannedSearchQuery(queryJSON);
+    console.log(searchRouterListVisible);
 
     return (
         <ScreenWrapper
             testID={SearchPageNarrow.displayName}
+            shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
         >
-            <View style={[styles.flex1, {overflow: 'hidden'}]}>
+            <View style={[styles.flex1, styles.overflowHidden]}>
                 {!selectionMode?.isEnabled ? (
-                    <>
+                    <View style={[StyleUtils.getSearchBottomTabHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
                                 activeWorkspaceID={policyID}
                                 breadcrumbLabel={translate('common.reports')}
-                                shouldDisplaySearch={shouldUseNarrowLayout}
-                                shouldDisplayCancelSearch={shouldDisplayCancelSearch}
+                                shouldDisplaySearch={false}
+                                cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
                             />
                         </View>
-                        <Animated.View style={[styles.searchTopBarStyle, topBarAnimatedStyle]}>
-                            <SearchTypeMenu
-                                queryJSON={queryJSON}
-                                searchName={searchName}
-                            />
-                            <SearchStatusBar
-                                queryJSON={queryJSON}
-                                onStatusChange={() => {
-                                    topBarOffset.set(withTiming(StyleUtils.searchHeaderHeight, {duration: ANIMATION_DURATION_IN_MS}));
-                                }}
-                            />
-                        </Animated.View>
-                    </>
+                        <View style={[styles.flex1]}>
+                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.narrowSearchHeaderStyle]}>
+                                <SearchPageHeader
+                                    queryJSON={queryJSON}
+                                    searchRouterListVisible={searchRouterListVisible}
+                                    hideSearchRouterList={() => {
+                                        setSearchRouterListVisible(false);
+                                    }}
+                                    onSearchRouterFocus={() => {
+                                        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                        setSearchRouterListVisible(true);
+                                    }}
+                                />
+                                {!searchRouterListVisible && (
+                                    <SearchStatusBar
+                                        queryJSON={queryJSON}
+                                        onStatusChange={() => {
+                                            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                                        }}
+                                    />
+                                )}
+                            </Animated.View>
+                        </View>
+                    </View>
                 ) : (
-                    <SearchSelectionModeHeader queryJSON={queryJSON} />
+                    <>
+                        <HeaderWithBackButton
+                            title={translate('common.selectMultiple')}
+                            onBackButtonPress={() => {
+                                clearSelectedTransactions();
+                                turnOffMobileSelectionMode();
+                            }}
+                        />
+                        <SearchPageHeader
+                            queryJSON={queryJSON}
+                            searchName={searchName}
+                        />
+                    </>
                 )}
-                <Search
-                    key={queryJSON.hash}
-                    queryJSON={queryJSON}
-                    onSearchListScroll={scrollHandler}
-                    onContentSizeChange={onContentSizeChange}
-                    contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
-                />
+                {!searchRouterListVisible && (
+                    <View style={[styles.flex1]}>
+                        <Search
+                            key={queryJSON.hash}
+                            queryJSON={queryJSON}
+                            onSearchListScroll={scrollHandler}
+                            onContentSizeChange={onContentSizeChange}
+                            contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+                        />
+                    </View>
+                )}
             </View>
         </ScreenWrapper>
     );

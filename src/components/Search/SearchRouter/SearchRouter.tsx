@@ -215,7 +215,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
             }
 
             onRouterClose();
-            Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: updatedQuery}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
@@ -331,9 +331,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
                         caretHidden={shouldHideInputCaret}
                         autocompleteListRef={listRef}
                         shouldShowOfflineMessage
-                        wrapperStyle={[styles.border, styles.alignItemsCenter]}
+                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
                         outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                        wrapperFocusedStyle={[styles.borderColorFocus]}
+                        wrapperFocusedStyle={styles.borderColorFocus}
                         isSearchingForReports={isSearchingForReports}
                         selection={selection}
                         substitutionMap={autocompleteSubstitutions}
