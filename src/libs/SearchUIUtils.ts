@@ -716,7 +716,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             },
         },
         {
-            title: 'common.expenseReports',
+            translationPath: 'common.expenseReports',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.Document,
             getRoute: (policyID?: string) => {
