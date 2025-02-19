@@ -6,6 +6,7 @@
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
+  "workspaces": ["emails/*"],
   "scripts": {
     "i-standalone": "STANDALONE_NEW_DOT=true npm i",
     "install-standalone": "STANDALONE_NEW_DOT=true npm install",

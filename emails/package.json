@@ -1,0 +1,19 @@
+{
+  "name": "emails",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "A lightweight set of utilities that render Expensify's react-native-web components in a server, such that they can be used in email communications",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0"
+  }
+}
