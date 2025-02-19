@@ -439,7 +439,15 @@ const styles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
         },
-
+        textDoubleDecker: {
+            fontSize: variables.fontSizeSmall,
+            opacity: 0.8,
+            fontWeight: FontUtils.fontWeight.bold,
+            lineHeight: 12,
+        },
+        noPaddingBottom: {
+            paddingBottom: 0,
+        },
         textNormal: {
             fontSize: variables.fontSizeNormal,
         },
@@ -566,6 +574,20 @@ const styles = (theme: ThemeColors) =>
         borderRadiusComponentLarge: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
+
+        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
+            // On natives we can use absolute positioning.
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            paddingBottom: bottomSafeAreaOffset,
+            bottom: 0,
+
+            // There is a missing border right on the wide layout
+            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
+            borderColor: theme.border,
+        }),
 
         bottomTabBarContainer: {
             flexDirection: 'row',
@@ -1087,7 +1109,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 1,
+            zIndex: variables.searchTopBarZIndex + 2,
             backgroundColor: theme.appBG,
         },
 
@@ -1581,6 +1603,19 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             flexWrap: 'wrap',
             ...wordBreak.breakWord,
+        },
+
+        searchSplitContainer: {
+            flex: 1,
+            flexDirection: 'row',
+        },
+
+        searchSidebar: {
+            width: variables.sideBarWidth,
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderColor: theme.border,
         },
 
         // Sidebar Styles
@@ -2699,6 +2734,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.transparent,
         },
 
+        modalContainer: {height: '100%'},
+
+        modalAnimatedContainer: {width: '100%'},
+
+        modalContainerBox: {
+            zIndex: 2,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+
+        modalBackdrop: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'black',
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,
@@ -3725,7 +3779,12 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 1,
+            backgroundColor: theme.appBG,
+        },
+
+        narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
@@ -4393,10 +4452,6 @@ const styles = (theme: ThemeColors) =>
             } satisfies TextStyle),
 
         animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 

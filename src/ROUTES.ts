@@ -37,9 +37,11 @@ const ROUTES = {
     // This route renders the list of reports.
     HOME: 'home',
 
-    SEARCH_CENTRAL_PANE: {
+    SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const,
+        getRoute: ({query, name, groupBy}: {query: SearchQueryString; name?: string; groupBy?: string}) => {
+            return `search?q=${encodeURIComponent(query)}${groupBy ? `&groupBy=${groupBy}` : ''}${name ? `&name=${name}` : ''}` as const;
+        },
     },
     SEARCH_SAVED_SEARCH_RENAME: {
         route: 'search/saved-search/rename',
@@ -133,7 +135,7 @@ const ROUTES = {
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
-    SETTINGS_SUBSCRIPTION: 'settings/subscription',
+    SETTINGS_SUBSCRIPTION: {route: 'settings/subscription', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo)},
     SETTINGS_SUBSCRIPTION_SIZE: {
         route: 'settings/subscription/subscription-size',
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
@@ -152,15 +154,11 @@ const ROUTES = {
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
-        getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
+        getRoute: (login: string, role?: string, backTo?: string) => getUrlWithBackToParam(`settings/security/delegate/${encodeURIComponent(login)}/role/${role}`, backTo),
     },
     SETTINGS_UPDATE_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/update-role/:currentRole',
         getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
-    },
-    SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE: {
-        route: 'settings/security/delegate/:login/update-role/:role/magic-code',
-        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${role}/magic-code` as const,
     },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:login/role/:role/confirm',
@@ -196,22 +194,6 @@ const ROUTES = {
     SETTINGS_DOMAINCARD_REPORT_FRAUD: {
         route: 'settings/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
-        route: 'settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/name` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
-        route: 'settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/phone` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
-        route: 'settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/address` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
-        route: 'settings/wallet/card/:domain/get-physical/confirm',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/confirm` as const,
     },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
@@ -506,7 +488,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, participantsAutoAssigned?: boolean) =>
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, participantsAutoAssigned?: boolean) =>
             `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
@@ -692,7 +674,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
         route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string, reportID: string, backTo = '', action: IOUAction = 'create') =>
+        getRoute: (iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', action: IOUAction = 'create') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SPLIT_PAYER: {
@@ -815,11 +797,11 @@ const ROUTES = {
     },
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE route');
             }
-            return `settings/workspaces/${policyID}/profile` as const;
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile` as const, backTo);
         },
     },
     WORKSPACE_PROFILE_ADDRESS: {
@@ -1136,25 +1118,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
-        getRoute: (
-            policyID: string,
-            connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>,
-            integrationToDisconnect?: ConnectionName,
-            shouldDisconnectIntegrationBeforeConnecting?: boolean,
-        ) => {
-            const searchParams = new URLSearchParams();
-
-            if (integrationToDisconnect) {
-                searchParams.append('integrationToDisconnect', integrationToDisconnect);
-            }
-            if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
-                searchParams.append('shouldDisconnectIntegrationBeforeConnecting', shouldDisconnectIntegrationBeforeConnecting.toString());
-            }
-
-            const queryParams = searchParams.size ? `?${searchParams.toString()}` : '';
-
-            return `settings/workspaces/${policyID}/accounting/${connection}/connection-selector${queryParams}` as const;
-        },
+        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/connection-selector` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
@@ -1254,7 +1218,7 @@ const ROUTES = {
     },
     WORKSPACE_EDIT_TAGS: {
         route: 'settings/workspaces/:policyID/tags/:orderWeight/edit',
-        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const,
+        getRoute: (policyID: string, orderWeight: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const, backTo),
     },
     WORKSPACE_TAG_EDIT: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/edit',
@@ -1454,27 +1418,27 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_NAME: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name`, backTo),
     },
     EXPENSIFY_CARD_NAME: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/name` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/name`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_LIMIT: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit`, backTo),
     },
     EXPENSIFY_CARD_LIMIT: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/limit',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/limit` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/limit`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE: {
         route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit-type',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type`, backTo),
     },
     EXPENSIFY_CARD_LIMIT_TYPE: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/limit-type',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
+        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/limit-type`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         route: 'settings/workspaces/:policyID/expensify-card/issue-new',
@@ -1747,7 +1711,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_ORGANIZATION: {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
-        getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+        getRoute: (policyID: string | undefined, currentOrganizationID: string | undefined) => {
+            if (!policyID || !currentOrganizationID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ORGANIZATION route');
+            }
+            return `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
@@ -1841,7 +1810,12 @@ const ROUTES = {
     MISSING_PERSONAL_DETAILS: 'missing-personal-details',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR route');
+            }
+            return `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/existing-connections',
@@ -2047,7 +2021,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/entity',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY route');
+            }
+            return `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
@@ -2135,7 +2114,12 @@ const ROUTES = {
     },
     DEBUG_REPORT_ACTION: {
         route: 'debug/report/:reportID/actions/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}` as const,
+        getRoute: (reportID: string | undefined, reportActionID: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the DEBUG_REPORT_ACTION route');
+            }
+            return `debug/report/${reportID}/actions/${reportActionID}` as const;
+        },
     },
     DEBUG_REPORT_ACTION_CREATE: {
         route: 'debug/report/:reportID/actions/create',
