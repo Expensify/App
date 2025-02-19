@@ -126,8 +126,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
         );
     }
 
-    console.log(searchRouterListVisible);
-
     return (
         <ScreenWrapper
             testID={SearchPageNarrow.displayName}
