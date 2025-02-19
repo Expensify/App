@@ -1,43 +1,24 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Plus, Workflows} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAllCardsForWorkspace, isSmartLimitEnable as isSmartLimitEnableUtils} from '@libs/CardUtils';
-import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {
-    getCorrectedAutoReportingFrequency,
-    getWorkspaceAccountID,
-    isControlPolicy,
-    isPaidGroupPolicy as isPaidGroupPolicyUtils,
-    isPolicyAdmin as isPolicyAdminUtils,
-} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
-import withPolicy from '@pages/workspace/withPolicy';
-import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -46,9 +27,22 @@ import {
     setWorkspaceAutoReportingFrequency,
     setWorkspaceReimbursement,
     updateGeneralSettings,
-} from '@userActions/Policy/Policy';
+} from '@libs/actions/Policy/Policy';
+import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {getAllCardsForWorkspace, isSmartLimitEnable as isSmartLimitEnableUtil} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getCorrectedAutoReportingFrequency, getWorkspaceAccountID, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
+import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
-import {setApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -73,9 +67,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const workspaceAccountID = getWorkspaceAccountID(route.params.policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
-    const isSmartLimitEnable = isSmartLimitEnableUtils(workspaceCards);
+    const isSmartLimitEnable = isSmartLimitEnableUtil(workspaceCards);
     const policyApproverEmail = policy?.approver;
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
@@ -107,10 +101,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID]);
+    }, [policy, route.params.policyID, setIsCurrencyModalOpen]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
-    const isPolicyAdmin = isPolicyAdminUtils(policy);
+    const isPolicyAdmin = isPolicyAdminUtil(policy);
 
     useFocusEffect(
         useCallback(() => {
@@ -200,7 +194,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         <MenuItem
                             title={translate('workflowsPage.addApprovalButton')}
                             titleStyle={styles.textStrong}
-                            icon={Expensicons.Plus}
+                            icon={Plus}
                             iconHeight={20}
                             iconWidth={20}
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
@@ -208,7 +202,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                     </>
                 ),
-                additionalText: isSmartLimitEnable ? translate('workspace.moreFeatures.workflows.additionalText') : '',
+                additionalText: isSmartLimitEnable ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : '',
                 disabled: isSmartLimitEnable,
                 isActive:
                     ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
@@ -321,6 +315,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateApprovalMode,
         isDevelopment,
         isDebugModeEnabled,
+        setIsCurrencyModalOpen,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -347,7 +342,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         </Section>
     );
 
-    const isPaidGroupPolicy = isPaidGroupPolicyUtils(policy);
+    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
@@ -357,7 +352,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
-                icon={Illustrations.Workflows}
+                icon={Workflows}
                 route={route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
                 shouldShowOfflineIndicatorInWideScreen

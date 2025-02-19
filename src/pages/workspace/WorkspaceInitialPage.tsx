@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import {
@@ -41,8 +40,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {clearErrors, openPolicyInitialPage, removeWorkspace, updateGeneralSettings} from '@libs/actions/Policy/Policy';
-import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
+import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {checkIfFeedConnectionIsBroken, flatAllCardsList} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -106,7 +104,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const workspaceAccountID = getWorkspaceAccountID(policy?.id);
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
@@ -161,19 +158,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const policyID = policy?.id;
     const policyName = policy?.name ?? '';
-    useEffect(() => {
-        if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
-            return;
-        }
-        setIsCurrencyModalOpen(false);
-    }, [policy?.outputCurrency, isCurrencyModalOpen]);
-
-    /** Call update workspace currency and hide the modal */
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        updateGeneralSettings(policyID, policyName, CONST.CURRENCY.USD);
-        setIsCurrencyModalOpen(false);
-        navigateToBankAccountRoute(policyID);
-    }, [policyID, policyName]);
 
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
@@ -503,16 +487,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         </View>
                     )}
                 </ScrollView>
-                <ConfirmModal
-                    title={translate('workspace.bankAccount.workspaceCurrency')}
-                    isVisible={isCurrencyModalOpen}
-                    onConfirm={confirmCurrencyChangeAndHideModal}
-                    onCancel={() => setIsCurrencyModalOpen(false)}
-                    prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                    confirmText={translate('workspace.bankAccount.updateToUSD')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

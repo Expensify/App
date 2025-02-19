@@ -860,17 +860,15 @@ const translations = {
     },
     quickAction: {
         scanReceipt: 'Scan receipt',
-        recordDistance: 'Record distance',
+        recordDistance: 'Track distance',
         requestMoney: 'Create expense',
+        perDiem: 'Create per diem',
         splitBill: 'Split expense',
         splitScan: 'Split receipt',
         splitDistance: 'Split distance',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pay ${name ?? 'someone'}`,
         assignTask: 'Assign task',
         header: 'Quick action',
-        trackManual: 'Create expense',
-        trackScan: 'Scan receipt',
-        trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
     },
@@ -1158,6 +1156,9 @@ const translations = {
         resolutionConstraints: ({minHeightInPx, minWidthInPx, maxHeightInPx, maxWidthInPx}: ResolutionConstraintsParams) =>
             `Please upload an image larger than ${minHeightInPx}x${minWidthInPx} pixels and smaller than ${maxHeightInPx}x${maxWidthInPx} pixels.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `Profile picture must be one of the following types: ${allowedExtensions.join(', ')}.`,
+    },
+    modal: {
+        backdropLabel: 'Modal Backdrop',
     },
     profilePage: {
         profile: 'Profile',
@@ -3834,7 +3835,7 @@ const translations = {
             workflows: {
                 title: 'Workflows',
                 subtitle: 'Configure how spend is approved and paid.',
-                additionalText:
+                disableApprovalPrompt:
                     'Expensify Cards from this workspace currently rely on approval to define their Smart Limits. Please amend the limit types of any Expensify Cards with Smart Limits before disabling approvals.',
             },
             invoices: {
