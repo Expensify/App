@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -29,6 +30,7 @@ const {
     BUSINESS_CONTACT_NUMBER,
     BUSINESS_CONFIRMATION_EMAIL,
     FORMATION_INCORPORATION_COUNTRY_CODE,
+    FORMATION_INCORPORATION_STATE,
     ANNUAL_VOLUME,
     APPLICANT_TYPE_ID,
     TRADE_VOLUME,
@@ -41,6 +43,13 @@ const displayStringValue = (list: Array<{id: string; name: string; stringValue: 
 
 const displayAddress = (street: string, city: string, state: string, zipCode: string, country: string): string => {
     return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${street}, ${city}, ${state}, ${zipCode}, ${country}` : `${street}, ${city}, ${zipCode}, ${country}`;
+};
+
+const displayIncorporationLocation = (country: string, state: string) => {
+    const countryFullName = CONST.ALL_COUNTRIES[country as keyof typeof CONST.COUNTRY];
+    const stateFullName = COMMON_CONST.STATES[state as keyof typeof COMMON_CONST.STATES]?.stateName ?? COMMON_CONST.PROVINCES[state as keyof typeof COMMON_CONST.PROVINCES]?.provinceName;
+
+    return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${stateFullName}, ${countryFullName}` : `${countryFullName}`;
 };
 
 function Confirmation({onNext, onMove}: SubStepProps) {
@@ -137,7 +146,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                     />
                     <MenuItemWithTopDescription
                         description={translate('businessInfoStep.incorporation')}
-                        title={values[FORMATION_INCORPORATION_COUNTRY_CODE]}
+                        title={displayIncorporationLocation(values[FORMATION_INCORPORATION_COUNTRY_CODE], values[FORMATION_INCORPORATION_STATE])}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(5);

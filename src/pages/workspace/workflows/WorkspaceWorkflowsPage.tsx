@@ -7,8 +7,8 @@ import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Plus} from '@components/Icon/Expensicons';
+import {Workflows} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -19,19 +19,27 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as Policy from '@userActions/Policy/Policy';
+import {
+    clearPolicyErrorField,
+    isCurrencySupportedForDirectReimbursement,
+    openPolicyWorkflowsPage,
+    setWorkspaceApprovalMode,
+    setWorkspaceAutoReportingFrequency,
+    setWorkspaceReimbursement,
+    updateGeneralSettings,
+} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
@@ -70,27 +78,26 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
     const displayNameForAuthorizedPayer = useMemo(
-        () => PersonalDetailsUtils.getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
+        () => getPersonalDetailByEmail(policy?.achAccount?.reimburser ?? '')?.displayName ?? policy?.achAccount?.reimburser,
         [policy?.achAccount?.reimburser],
     );
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
     const fetchData = useCallback(() => {
-        Policy.openPolicyWorkflowsPage(route.params.policyID);
+        openPolicyWorkflowsPage(route.params.policyID);
     }, [route.params.policyID]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
             return;
         }
-        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     }, [policy, route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
-    const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
 
     useFocusEffect(
         useCallback(() => {
@@ -102,7 +109,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
-        if (!PolicyUtils.isControlPolicy(policy)) {
+        if (!isControlPolicy(policy)) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID)),
             );
@@ -132,16 +139,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.delaySubmissionDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    Policy.setWorkspaceAutoReportingFrequency(
-                        route.params.policyID,
-                        isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                    );
+                    setWorkspaceAutoReportingFrequency(route.params.policyID, isEnabled ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                 },
                 subMenuItems: (
                     <MenuItemWithTopDescription
                         title={
                             getAutoReportingFrequencyDisplayNames(preferredLocale)[
-                                (PolicyUtils.getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
+                                (getCorrectedAutoReportingFrequency(policy) as AutoReportingFrequencyKey) ?? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY
                             ]
                         }
                         titleStyle={styles.textNormalThemeText}
@@ -156,15 +160,15 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 ),
                 isActive: (policy?.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
                 pendingAction: policy?.pendingFields?.autoReporting ?? policy?.pendingFields?.autoReportingFrequency,
-                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
             },
             {
                 title: translate('workflowsPage.addApprovalsTitle'),
                 subtitle: translate('workflowsPage.addApprovalsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+                    setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
                 subMenuItems: (
                     <>
@@ -183,7 +187,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         <MenuItem
                             title={translate('workflowsPage.addApprovalButton')}
                             titleStyle={styles.textStrong}
-                            icon={Expensicons.Plus}
+                            icon={Plus}
                             iconHeight={20}
                             iconWidth={20}
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
@@ -194,8 +198,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 isActive:
                     ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
-                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
-                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
             },
             {
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
@@ -205,14 +209,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     let newReimbursementChoice;
                     if (!isEnabled) {
                         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-                    } else if (!!policy?.achAccount && !Policy.isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                    } else if (!!policy?.achAccount && !isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
                         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                     } else {
                         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
                     }
 
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                    Policy.setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice, newReimburserEmail ?? '');
+                    setWorkspaceReimbursement(route.params.policyID, newReimbursementChoice, newReimburserEmail ?? '');
                 },
                 subMenuItems:
                     !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
@@ -233,7 +237,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 titleStyle={shouldShowBankAccount ? undefined : styles.textLabelSupportingEmptyValue}
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
-                                    if (!Policy.isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
+                                    if (!isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
                                         setIsCurrencyModalOpen(true);
                                         return;
                                     }
@@ -243,9 +247,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
                                 iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
                                 iconStyles={bankIcon.iconStyles}
-                                disabled={isOffline || !isPolicyAdmin}
+                                disabled={isOffline || !isPolicyAdmin(policy)}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                shouldShowRightIcon={!isOffline && isPolicyAdmin}
+                                shouldShowRightIcon={!isOffline && isPolicyAdmin(policy)}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 displayInDefaultIconColor
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -254,8 +258,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 <OfflineWithFeedback
                                     pendingAction={policy?.pendingFields?.reimburser}
                                     shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
-                                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                    onClose={() => Policy.clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                    errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                    onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
                                     errorRowStyles={[styles.ml7]}
                                 >
                                     <MenuItemWithTopDescription
@@ -275,8 +279,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 isEndOptionRow: true,
                 isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
-                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
-                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
+                errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
+                onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
             },
         ];
     }, [
@@ -289,7 +293,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         addApprovalAction,
         isOffline,
         theme.spinner,
-        isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
@@ -317,7 +320,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         </Section>
     );
 
-    const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
@@ -327,11 +329,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
-                icon={Illustrations.Workflows}
+                icon={Workflows}
                 route={route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
                 shouldShowOfflineIndicatorInWideScreen
-                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+                shouldShowNotFoundPage={!isPaidGroupPolicy(policy) || !isPolicyAdmin}
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

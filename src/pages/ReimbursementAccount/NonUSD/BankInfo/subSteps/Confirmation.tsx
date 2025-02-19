@@ -23,6 +23,7 @@ function Confirmation({onNext, onMove, corpayFields}: BankInfoSubStepProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
+    // TODO returned account number is redacted - it shouldn't be, expecting BE fix
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
 
     const items = useMemo(

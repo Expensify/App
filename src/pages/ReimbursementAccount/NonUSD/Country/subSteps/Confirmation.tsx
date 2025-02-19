@@ -49,9 +49,9 @@ function Confirmation({onNext}: SubStepProps) {
         Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
     };
 
-    const handleSelectingCountry = (country: string) => {
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: country});
-        setSelectedCountry(country);
+    const handleSubmit = () => {
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        onNext();
     };
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -97,7 +97,7 @@ function Confirmation({onNext}: SubStepProps) {
                         formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                         submitButtonText={translate('common.confirm')}
                         validate={validate}
-                        onSubmit={onNext}
+                        onSubmit={handleSubmit}
                         style={[styles.flexGrow1]}
                         submitButtonStyles={[styles.mh5, styles.pb0, styles.mbn1]}
                         isSubmitDisabled={disableSubmit}
@@ -105,7 +105,7 @@ function Confirmation({onNext}: SubStepProps) {
                         <InputWrapper
                             InputComponent={PushRowWithModal}
                             optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
-                            onValueChange={(value) => handleSelectingCountry(value as string)}
+                            onValueChange={(value) => setSelectedCountry(value as string)}
                             description={translate('common.country')}
                             modalHeaderTitle={translate('countryStep.selectCountry')}
                             searchInputTitle={translate('countryStep.findCountry')}

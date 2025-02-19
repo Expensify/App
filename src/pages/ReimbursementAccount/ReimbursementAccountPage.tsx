@@ -55,6 +55,8 @@ type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
     const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
     const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -72,6 +74,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const policyCurrency = policy?.outputCurrency ?? '';
     const hasUnsupportedCurrency = !CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(policyCurrency as CurrencyType);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
+    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -85,6 +88,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    // TODO: set default step - we gotta display finish step instantly if account is being verified
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
@@ -103,8 +107,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     /** Returns true if user passed first step of flow for non USD VBBA */
     const hasInProgressNonUSDVBBA = useCallback((): boolean => {
-        return !!achData?.bankAccountID && !!achData?.created;
-    }, [achData?.bankAccountID, achData?.created]);
+        return (!!achData?.bankAccountID && !!achData?.created) || (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '');
+    }, [achData?.bankAccountID, achData?.created, policyCurrency, reimbursementAccountDraft?.country]);
 
     /** Calculates the state used to show the "Continue with setup" view. */
     const getShouldShowContinueSetupButtonValue = useCallback(() => {
@@ -234,6 +238,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const continueNonUSDVBBASetup = () => {
         setShouldShowContinueSetupButton(false);
+        if (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '') {
+            setNonUSDBankAccountStep(corpayFields !== undefined ? CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO : CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
+            return;
+        }
+
         if (achData?.created && achData?.corpay?.companyName === undefined) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO);
             return;

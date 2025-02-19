@@ -67,6 +67,7 @@ function Address({onNext, onMove, isEditing}: AddressProps) {
             shouldDisplayStateSelector={shouldDisplayStateSelector}
             shouldDisplayCountrySelector
             shouldAllowCountryChange={false}
+            shouldValidateZipCodeFormat={countryDefaultValue === CONST.COUNTRY.US}
         />
     );
 }

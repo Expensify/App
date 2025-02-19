@@ -20,9 +20,12 @@ type FinishChatCardProps = {
 
     /** Boolean required to display Enable2FACard component */
     requiresTwoFactorAuth: boolean;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setUSDBankAccountStep: (step: string | null) => void;
 };
 
-function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishChatCardProps) {
+function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBankAccountStep}: FinishChatCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -57,10 +60,10 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
             </Section>
             {!requiresTwoFactorAuth && <Enable2FACard policyID={policyID} />}
             {shouldShowResetModal && (
-                // TODO: check if this modal is needed
                 <WorkspaceResetBankAccountModal
                     reimbursementAccount={reimbursementAccount}
                     isNonUSDWorkspace={false}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
                 />
             )}
         </ScrollView>

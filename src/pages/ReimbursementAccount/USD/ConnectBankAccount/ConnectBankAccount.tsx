@@ -87,6 +87,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                 <FinishChatCard
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
                     reimbursementAccount={reimbursementAccount}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
                 />
             )}
         </ScreenWrapper>

@@ -94,6 +94,7 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
             onCountryChange={handleCountryChange}
             shouldDisplayStateSelector={shouldDisplayStateSelector}
             shouldDisplayCountrySelector
+            shouldValidateZipCodeFormat={reimbursementAccountDraft?.[inputKeys.country] === CONST.COUNTRY.US}
         />
     );
 }
