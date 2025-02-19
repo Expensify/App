@@ -752,10 +752,6 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
         query: item.query,
         shouldShowRightComponent: true,
         focused: Number(key) === hash,
-        onPress: () => {
-            clearAllFilters();
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
-        },
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         shouldIconUseAutoWidthStyle: true,

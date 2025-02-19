@@ -24,6 +24,7 @@ import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as g
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
@@ -93,7 +94,10 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
 
             return {
                 ...baseMenuItem,
-                onSelected: baseMenuItem.onPress,
+                onSelected: () => {
+                    clearAllFilters();
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                },
                 rightComponent: (
                     <ThreeDotsMenu
                         menuItems={getOverflowMenu(baseMenuItem.title ?? '', Number(baseMenuItem.hash ?? ''), item.query ?? '')}
