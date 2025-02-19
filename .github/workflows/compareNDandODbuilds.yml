@@ -21,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Get ND PR commit SHA
+      - name: Get NewDot PR commit SHA
         id: getHeadRef
         run: |
           set -e
