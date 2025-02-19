@@ -26,7 +26,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -44,22 +43,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
 
     const [isPreventSelfApprovalsModalVisible, setIsPreventSelfApprovalsModalVisible] = useState(false);
 
-    function handleTogglePreventSelfApprovals(isEnabled: boolean) {
-        if (!isEnabled) {
-            setPolicyPreventSelfApproval(policyID, false);
-            return;
-        }
-
-        const workflowsWithOnlyOneApproverCount = currentApprovalWorkflows?.filter((workflow) => workflow.approvers.length === 1).length;
-
-        if (workflowsWithOnlyOneApproverCount && workflowsWithOnlyOneApproverCount > 0) {
-            setIsPreventSelfApprovalsModalVisible(true);
-        } else {
-            setPolicyPreventSelfApproval(policyID, true);
-        }
-    }
-
-    const {currentApprovalWorkflows, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
+    const {currentApprovalWorkflows} = useMemo(() => {
         if (!policy || !personalDetails) {
             return {};
         }
@@ -77,6 +61,21 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             currentApprovalWorkflows: result.approvalWorkflows,
         };
     }, [personalDetails, policy]);
+
+    function handleTogglePreventSelfApprovals(isEnabled: boolean) {
+        if (!isEnabled) {
+            setPolicyPreventSelfApproval(policyID, false);
+            return;
+        }
+
+        const workflowsWithOnlyOneApproverCount = currentApprovalWorkflows?.filter((workflow) => workflow.approvers.length === 1).length;
+
+        if (workflowsWithOnlyOneApproverCount && workflowsWithOnlyOneApproverCount > 0) {
+            setIsPreventSelfApprovalsModalVisible(true);
+        } else {
+            setPolicyPreventSelfApproval(policyID, true);
+        }
+    }    
     const isPreventSelfApprovalsDisabled = !canEnablePreventSelfApprovals(currentApprovalWorkflows as ApprovalWorkflow[]) && !policy?.preventSelfApproval;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
@@ -277,7 +276,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                         return;
                     }
 
-                    const workflowsToRemove = currentApprovalWorkflows?.filter((workflow) => !workflow.isDefault && workflow.approvers.length === 1) || [];
+                    const workflowsToRemove = currentApprovalWorkflows?.filter((workflow) => !workflow.isDefault && workflow.approvers.length === 1) ?? [];
 
                     workflowsToRemove.forEach((workflow) => {
                         removeApprovalWorkflow(policyID, workflow);
