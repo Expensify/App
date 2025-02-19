@@ -716,6 +716,15 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             },
         },
         {
+            title: translate('common.expenseReports'),
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Document,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query, groupBy: 'reports'});
+            },
+        },
+        {
             translationPath: 'common.chats',
             type: CONST.SEARCH.DATA_TYPES.CHAT,
             icon: Expensicons.ChatBubbles,
