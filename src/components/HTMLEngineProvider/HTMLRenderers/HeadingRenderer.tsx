@@ -1,12 +1,11 @@
 import React from 'react';
-// import {View} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function HeadingRendered({tnode}: CustomRendererProps<TText | TPhrasing>) {
+function HeadingRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
 
@@ -27,6 +26,6 @@ function HeadingRendered({tnode}: CustomRendererProps<TText | TPhrasing>) {
     );
 }
 
-HeadingRendered.displayName = 'HeadingRendered';
+HeadingRenderer.displayName = 'HeadingRenderer';
 
-export default HeadingRendered;
+export default HeadingRenderer;
