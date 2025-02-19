@@ -721,7 +721,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             icon: Expensicons.Document,
             getRoute: (policyID?: string) => {
                 const query = buildCannedSearchQuery({policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query, groupBy: 'reports'});
+                return ROUTES.SEARCH_ROOT.getRoute({uery, groupBy: 'reports'});
             },
         },
         {
