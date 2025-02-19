@@ -1,5 +1,4 @@
-import {useContext, useMemo} from 'react';
-import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
+import {useMemo} from 'react';
 import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 
@@ -34,31 +33,14 @@ import useStyleUtils from './useStyleUtils';
 function useStyledSafeAreaInsets() {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingTop: platformPaddingTop, paddingBottom: platformPaddingBottom} = StyleUtils.getPlatformSafeAreaPadding(insets);
-
-    const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
-    const isTopAlreadyApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;
-    const isBottomAlreadyApplied = screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false;
-
-    const adaptedInsets = {
-        ...insets,
-        top: isTopAlreadyApplied ? 0 : insets?.top,
-        bottom: isBottomAlreadyApplied ? 0 : insets?.bottom,
-    };
-
-    const paddingTop = isTopAlreadyApplied ? 0 : platformPaddingTop;
-    const paddingBottom = isBottomAlreadyApplied ? 0 : platformPaddingBottom;
+    const {paddingTop, paddingBottom} = StyleUtils.getPlatformSafeAreaPadding(insets);
 
     const safeAreaPaddingBottomStyle = useMemo(() => ({paddingBottom}), [paddingBottom]);
 
     return {
         paddingTop,
         paddingBottom,
-        unmodifiedPaddings: {
-            top: platformPaddingTop,
-            bottom: platformPaddingBottom,
-        },
-        insets: adaptedInsets,
+        insets,
         safeAreaPaddingBottomStyle,
     };
 }
