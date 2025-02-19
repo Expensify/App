@@ -34,7 +34,7 @@ import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {canSendInvoice} from './PolicyUtils';
-import {isDeletedAction} from './ReportActionsUtils';
+import {isDeletedAction, isResolvedActionableWhisper} from './ReportActionsUtils';
 import {
     getSearchReportName,
     hasInvoiceReports,
@@ -432,6 +432,11 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (isDeletedAction(reportAction)) {
                     // eslint-disable-next-line no-continue
+                    continue;
+                }
+
+                if(isResolvedActionableWhisper(reportAction))
+                {
                     continue;
                 }
 
