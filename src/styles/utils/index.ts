@@ -353,7 +353,7 @@ function getPlatformSafeAreaPadding(insets?: EdgeInsets, insetsPercentageProp?: 
 
     return {
         paddingTop: insets?.top ?? 0,
-        paddingBottom: insets?.bottom ?? 0 * insetsPercentage,
+        paddingBottom: (insets?.bottom ?? 0) * insetsPercentage,
         paddingLeft: (insets?.left ?? 0) * insetsPercentage,
         paddingRight: (insets?.right ?? 0) * insetsPercentage,
     };
