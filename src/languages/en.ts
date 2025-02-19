@@ -518,6 +518,9 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
+        leaveWorkspace: 'Leave workspace',
+        leaveWorkspaceConfirmation: "If you leave this workspace you will no longer be able to manage the workspace's settings.",
+        cannotLeaveWorkspaceConfirmation: 'Please approve any oustanding expense reports submitted to you before leaving the workspace',
     },
     supportalNoAccess: {
         title: 'Not so fast',

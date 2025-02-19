@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -31,6 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
+import {getLatestError} from '@libs/ErrorUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
@@ -124,6 +125,13 @@ function WorkspacesListPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+
+    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+    const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
+    const policyToLeave = getPolicy(policyIDToLeave);
+
+    const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
+
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
@@ -155,6 +163,15 @@ function WorkspacesListPage() {
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
         }
+    };
+
+    const confirmLeaveAndHideModal = () => {
+        if (!policyIDToLeave) {
+            return;
+        }
+
+        leaveWorkspace(policyIDToLeave);
+        setIsLeaveModalOpen(false);
     };
 
     /**
@@ -197,7 +214,10 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
-                    onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
+                    onSelected: callFunctionIfActionIsAllowed(() => {
+                        setPolicyIDToLeave(item.policyID);
+                        setIsLeaveModalOpen(true);
+                    }),
                 });
             }
 
@@ -429,6 +449,19 @@ function WorkspacesListPage() {
         />
     );
 
+    useEffect(() => {
+        if (!session?.email || !policyToLeave?.employeeList) {
+            return;
+        }
+
+        const error = getLatestError(policyToLeave?.employeeList[session?.email]?.errors);
+        const firstErrorMessage = !isEmptyObject(error) ? Object.values(error).at(0) : null;
+
+        if (firstErrorMessage === CONST.LEAVE_WORKSPACE.ERROR.POLICY_OWNER_CANNOT_LEAVE) {
+            setIsCannotLeaveWorkspaceModalOpen(true);
+        }
+    }, [policyToLeave, session]);
+
     if (isEmptyObject(workspaces)) {
         return (
             <ScreenWrapper
@@ -505,6 +538,27 @@ function WorkspacesListPage() {
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isLeaveModalOpen}
+                onConfirm={confirmLeaveAndHideModal}
+                onCancel={() => setIsLeaveModalOpen(false)}
+                prompt={translate('common.leaveWorkspaceConfirmation')}
+                confirmText={translate('common.leaveWorkspace')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+            <ConfirmModal
+                title={translate('common.leaveWorkspace')}
+                isVisible={isCannotLeaveWorkspaceModalOpen}
+                onConfirm={() => {
+                    setIsCannotLeaveWorkspaceModalOpen(false);
+                }}
+                prompt={translate('common.cannotLeaveWorkspaceConfirmation')}
+                confirmText={translate('common.buttonConfirm')}
+                success
+                shouldShowCancelButton={false}
             />
             <SupportalActionRestrictedModal
                 isModalOpen={isSupportalActionRestrictedModalOpen}

@@ -509,6 +509,9 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        leaveWorkspace: 'Abandonar espacio de trabajo',
+        leaveWorkspaceConfirmation: 'Si abandona este espacio de trabajo, ya no podrá gestionar la configuración del mismo.',
+        cannotLeaveWorkspaceConfirmation: 'Por favor, apruebe cualquier informe de gastos pendiente que se le envíe antes de abandonar el espacio de trabajo',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

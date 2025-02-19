@@ -6682,6 +6682,11 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    LEAVE_WORKSPACE: {
+        ERROR: {
+            POLICY_OWNER_CANNOT_LEAVE: '401 Policy owner cannot leave',
+        },
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
