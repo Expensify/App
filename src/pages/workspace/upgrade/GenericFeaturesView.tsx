@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type GenericFeaturesViewProps = {

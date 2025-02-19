@@ -6,7 +6,7 @@ import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {waitForIdle} from '@libs/Network/SequentialQueue';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import WorkspaceUpgradePage from '@pages/workspace/upgrade/WorkspaceUpgradePage';
 import CONST from '@src/CONST';
@@ -44,7 +44,7 @@ describe('WorkspaceUpgrade', () => {
     });
 
     afterEach(async () => {
-        await SequentialQueue.waitForIdle();
+        await waitForIdle();
         await act(async () => {
             await Onyx.clear();
         });
