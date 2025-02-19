@@ -162,7 +162,7 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {
               if (shouldGroupByReports) {
-                  return item.translationPath === translate('common.expenseReports');
+                  return item.translationPath === 'common.expenseReports';
               }
               return item.type === type;
           })

@@ -149,6 +149,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                                         topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                         setSearchRouterListVisible(true);
                                     }}
+                                    shouldGroupByReports={shouldGroupByReports}
                                 />
                                 {!searchRouterListVisible && (
                                     <SearchStatusBar
@@ -173,6 +174,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                         <SearchPageHeader
                             queryJSON={queryJSON}
                             searchName={searchName}
+                            shouldGroupByReports={shouldGroupByReports}
                         />
                     </>
                 )}
