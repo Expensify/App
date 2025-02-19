@@ -163,6 +163,7 @@ function navigate(route: Route, options?: LinkToOptions) {
         pendingRoute = route;
         return;
     }
+
     linkTo(navigationRef.current, route, options);
 }
 
