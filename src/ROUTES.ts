@@ -2112,7 +2112,12 @@ const ROUTES = {
     },
     DEBUG_REPORT_ACTION: {
         route: 'debug/report/:reportID/actions/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}` as const,
+        getRoute: (reportID: string | undefined, reportActionID: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the DEBUG_REPORT_ACTION route');
+            }
+            return `debug/report/${reportID}/actions/${reportActionID}` as const;
+        },
     },
     DEBUG_REPORT_ACTION_CREATE: {
         route: 'debug/report/:reportID/actions/create',
