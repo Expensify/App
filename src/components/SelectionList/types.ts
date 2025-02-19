@@ -668,6 +668,15 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
     isScreenFocused?: boolean;
+
+    /**
+     * Temporary flag to enable bottom safe area handling in selection list content (Default: false)
+     * Bottom safe area padding at the moment is handled in the root view of the selection list.
+     * Optimally, we want to add the padding to the scrollable content instead (contentContainerStyle of the <SelectionList />).
+     * This flag can be removed, once all components/screens have switched to this behavior
+     */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    TEMPORARY_enableBottomSafeAreaPaddingInContent?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
