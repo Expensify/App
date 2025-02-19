@@ -16,16 +16,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
+import type {TransactionListItemType} from './SelectionList/types';
 import Text from './Text';
 
 type EReceiptProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */
     transactionID: string | undefined;
+
+    /** The transaction data in search */
+    transactionItem?: TransactionListItemType;
 };
 
 const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
 const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
-function EReceipt({transactionID}: EReceiptProps) {
+function EReceipt({transactionID, transactionItem}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -41,7 +45,7 @@ function EReceipt({transactionID}: EReceiptProps) {
         merchant: transactionMerchant,
         created: transactionDate,
         cardID: transactionCardID,
-    } = getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;

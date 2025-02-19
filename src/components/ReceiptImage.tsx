@@ -10,6 +10,7 @@ import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
+import type {TransactionListItemType} from './SelectionList/types';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -87,6 +88,9 @@ type ReceiptImageProps = (
 
     /** Callback to be called on pressing the image */
     onPress?: () => void;
+
+    /** The transaction data in search */
+    transactionItem?: TransactionListItemType;
 };
 
 function ReceiptImage({
@@ -107,6 +111,7 @@ function ReceiptImage({
     fallbackIconBackground,
     isEmptyReceipt = false,
     onPress,
+    transactionItem,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -145,7 +150,10 @@ function ReceiptImage({
                     onLayout={onParentLayout}
                     style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}]}
                 >
-                    <EReceipt transactionID={transactionID} />
+                    <EReceipt
+                        transactionID={transactionID}
+                        transactionItem={transactionItem}
+                    />
                 </View>
             </View>
         );
