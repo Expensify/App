@@ -92,12 +92,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** Should show educational tooltip */
     shouldShowEducationalTooltip?: boolean;
 
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus: boolean;
-
-    /** A method to update showSoftInputOnFocus */
-    setShowSoftInputOnFocus: (value: boolean) => void;
-
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 };
@@ -121,10 +115,8 @@ function ReportActionCompose({
     isReportReadyForDisplay = true,
     lastReportAction,
     shouldShowEducationalTooltip,
-    showSoftInputOnFocus,
     onComposerFocus,
     onComposerBlur,
-    setShowSoftInputOnFocus,
     didHideComposerInput,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
@@ -534,8 +526,6 @@ function ReportActionCompose({
                                 onFocus={onFocus}
                                 onBlur={onBlur}
                                 measureParentContainer={measureContainer}
-                                showSoftInputOnFocus={showSoftInputOnFocus}
-                                setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                 onValueChange={onValueChange}
                                 didHideComposerInput={didHideComposerInput}
                             />

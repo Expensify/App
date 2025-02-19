@@ -30,7 +30,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.SEARCH.ROOT]: {
-            path: ROUTES.SEARCH_CENTRAL_PANE.route,
+            path: ROUTES.SEARCH_ROOT.route,
         },
 
         [SCREENS.NOT_FOUND]: '*',

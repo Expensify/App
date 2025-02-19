@@ -11,7 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfNewFeedConnected} from '@libs/CardUtils';
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -23,30 +24,40 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
 
-type BankConnectionStepProps = {
+type BankConnectionProps = {
+    /** ID of the policy */
     policyID?: string;
+
+    /** Selected feed for assign card flow */
+    feed?: CompanyCardFeed;
+
+    /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
 };
 
-function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStepProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const bankName = bankNameFromRoute ?? addNewCard?.data?.selectedBank;
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
+    const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.selectedBank;
     const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
     const {isOffline} = useNetwork();
 
     const url = getCompanyCardBankConnection(policyID, bankName);
+    const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
+    const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
+    const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
@@ -57,6 +68,14 @@ function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStep
 
     const handleBackButtonPress = () => {
         customWindow?.close();
+
+        // Handle assign card flow
+        if (feed) {
+            Navigation.goBack();
+            return;
+        }
+
+        // Handle add new card flow
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -83,6 +102,22 @@ function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStep
         if (!url || isOffline) {
             return;
         }
+
+        // Handle assign card flow
+        if (feed) {
+            if (!isFeedExpired) {
+                customWindow?.close();
+                setAssignCardStepAndData({
+                    currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    isEditing: false,
+                });
+                return;
+            }
+            customWindow = openBankConnection(url);
+            return;
+        }
+
+        // Handle add new card flow
         if (isNewFeedConnected) {
             setShouldBlockWindowOpen(true);
             customWindow?.close();
@@ -95,12 +130,12 @@ function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStep
         if (!shouldBlockWindowOpen) {
             customWindow = openBankConnection(url);
         }
-    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, isOffline]);
+    }, [isNewFeedConnected, shouldBlockWindowOpen, newFeed, policyID, url, feed, isFeedExpired, isOffline]);
 
     return (
         <ScreenWrapper testID={BankConnection.displayName}>
             <HeaderWithBackButton
-                title={!backTo ? translate('workspace.companyCards.addCards') : undefined}
+                title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView>
