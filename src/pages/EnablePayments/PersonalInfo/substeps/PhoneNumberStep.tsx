@@ -7,7 +7,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {isValidPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidUSPhone} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -35,14 +35,14 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             if (values.phoneNumber) {
                 const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber);
 
-                if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
+                if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(formatE164PhoneNumber(phoneNumberWithCountryCode))) {
                     errors.phoneNumber = translate('common.error.phoneNumber');
                 }
             }
 
             return errors;
         },
-        [translate],
+        [formatE164PhoneNumber, translate],
     );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
