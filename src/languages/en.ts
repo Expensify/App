@@ -518,6 +518,7 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
+        expenseReports: 'Expense Reports',
     },
     supportalNoAccess: {
         title: 'Not so fast',

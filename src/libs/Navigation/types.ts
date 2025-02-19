@@ -1562,9 +1562,11 @@ type SettingsSplitNavigatorParamList = {
 type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
@@ -1777,6 +1779,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.SEARCH.ROOT]: {
         q: SearchQueryString;
         name?: string;
+        groupBy?: string;
     };
 };
 
