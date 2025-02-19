@@ -287,10 +287,6 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 8,
         },
 
-        taskTitleH1: {
-            fontWeight: undefined,
-        },
-
         autoCompleteSuggestionContainer: {
             flexDirection: 'row',
             alignItems: 'center',
