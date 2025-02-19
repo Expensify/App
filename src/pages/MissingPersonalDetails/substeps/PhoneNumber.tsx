@@ -35,7 +35,7 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
 
             const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
 
-            if (!isValidPhoneNumber(appendCountryCode(phoneNumberWithCountryCode))) {
+            if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
             }
 

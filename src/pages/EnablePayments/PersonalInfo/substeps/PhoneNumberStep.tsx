@@ -5,7 +5,9 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
-import {getFieldRequiredErrors, isValidUSPhone} from '@libs/ValidationUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
+import {isValidPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -19,13 +21,25 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
+    const formatE164PhoneNumber = useCallback((num: string) => {
+        const phoneNumberWithCountryCode = appendCountryCode(num);
+        const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+
+        return parsedPhoneNumber.number?.e164;
+    }, []);
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
             const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.phoneNumber && !isValidUSPhone(values.phoneNumber, true)) {
-                errors.phoneNumber = translate('bankAccount.error.phoneNumber');
+            if (values.phoneNumber) {
+                const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber);
+
+                if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
+                    errors.phoneNumber = translate('common.error.phoneNumber');
+                }
             }
+
             return errors;
         },
         [translate],
@@ -46,7 +60,9 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             formTitle={translate('personalInfoStep.whatsYourPhoneNumber')}
             formDisclaimer={translate('personalInfoStep.weNeedThisToVerify')}
             validate={validate}
-            onSubmit={handleSubmit}
+            onSubmit={(values) => {
+                handleSubmit({...values, phoneNumber: formatE164PhoneNumber(values.phoneNumber) ?? ''});
+            }}
             inputId={PERSONAL_INFO_STEP_KEY.PHONE_NUMBER}
             inputLabel={translate('common.phoneNumber')}
             inputMode={CONST.INPUT_MODE.TEL}
