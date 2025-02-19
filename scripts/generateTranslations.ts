@@ -41,7 +41,7 @@ const debugFile = ts.createSourceFile('tempDebug.ts', '', ts.ScriptTarget.Latest
 // Helper function to call OpenAI for translation
 async function translate(text: string, targetLang: string): Promise<string> {
     if (isDryRun || !openai) {
-        return Promise.resolve(`${targetLang} ${text}`);
+        return Promise.resolve(`[${targetLang}] ${text}`);
     }
 
     try {
