@@ -140,17 +140,19 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                             <Animated.View
                                 style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.narrowSearchHeaderStyle, styles.bgTransparent]}
                             >
-                                <SearchPageHeader
-                                    queryJSON={queryJSON}
-                                    searchRouterListVisible={searchRouterListVisible}
-                                    hideSearchRouterList={() => {
-                                        setSearchRouterListVisible(false);
-                                    }}
-                                    onSearchRouterFocus={() => {
-                                        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                        setSearchRouterListVisible(true);
-                                    }}
-                                />
+                                <View style={[{paddingTop: 1}, styles.appBG]}>
+                                    <SearchPageHeader
+                                        queryJSON={queryJSON}
+                                        searchRouterListVisible={searchRouterListVisible}
+                                        hideSearchRouterList={() => {
+                                            setSearchRouterListVisible(false);
+                                        }}
+                                        onSearchRouterFocus={() => {
+                                            topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                            setSearchRouterListVisible(true);
+                                        }}
+                                    />
+                                </View>
                                 <View style={[styles.appBG]}>
                                     {!searchRouterListVisible && (
                                         <SearchStatusBar
