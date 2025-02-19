@@ -11,10 +11,10 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
+import {getBankCardDetailsImage, getCorrectStepForSelectedBank} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -31,10 +31,10 @@ function SelectBankStep() {
             setHasError(true);
         } else {
             if (addNewCard?.data.selectedBank !== bankSelected) {
-                CompanyCards.clearAddNewCardFlow();
+                clearAddNewCardFlow();
             }
-            CompanyCards.setAddNewCompanyCardStepAndData({
-                step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
+            setAddNewCompanyCardStepAndData({
+                step: getCorrectStepForSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
                     cardTitle: !isOtherBankSelected ? bankSelected : undefined,
@@ -60,7 +60,7 @@ function SelectBankStep() {
         isSelected: bankSelected === bank,
         leftElement: (
             <Icon
-                src={CardUtils.getBankCardDetailsImage(bank)}
+                src={getBankCardDetailsImage(bank)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
