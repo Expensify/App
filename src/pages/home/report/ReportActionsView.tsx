@@ -30,6 +30,7 @@ import {
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
+import shouldMaintainVisibleContentPosition from '@libs/shouldMaintainVisibleContentPosition';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -429,7 +430,7 @@ function ReportActionsView({
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
 
     // We want to disable auto-scroll when loading more actions, as it causes issues when scrolling up.
-    const isLoading = isLoadingInitialReportActions || isLoadingOlderReportActions;
+    const shouldEnableAutoScrollToTopThreshold = shouldEnableAutoScroll && shouldMaintainVisibleContentPosition(isLoadingInitialReportActions || isLoadingOlderReportActions);
     return (
         <>
             <ReportActionsList
@@ -450,7 +451,7 @@ function ReportActionsView({
                 hasLoadingNewerReportActionsError={hasLoadingNewerReportActionsError}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
-                shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll && !isLoading}
+                shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
             />
             <UserTypingEventListener report={report} />
             <PopoverReactionList ref={reactionListRef} />
