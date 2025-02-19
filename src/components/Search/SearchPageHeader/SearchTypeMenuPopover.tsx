@@ -167,7 +167,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
         }
 
         return items;
-    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, policyID, closeMenu]);
+    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, policyID, closeMenu, shouldGroupByReports]);
 
     const allMenuItems = useMemo(() => {
         const items = [];
