@@ -351,7 +351,7 @@ function ReportActionItemSingle({
     }
 
     return (
-        <View style={[styles.selectionListPressableItemWrapper, styles.mh0, styles.alignItemsStretch, styles.flexColumn, wrapperStyle]}>
+        <View style={[styles.chatItem, styles.pv4, styles.ph4, wrapperStyle]}>
             <View style={styles.webViewStyles.tagStyles.ol}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
