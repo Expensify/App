@@ -108,7 +108,7 @@ function BillingBanner({
             />
 
             <View style={[styles.flex1, styles.justifyContentCenter]}>
-                <View style={[styles.flex1, styles.justifyContentBetween, styles.flexRow]}>
+                <View style={[styles.justifyContentBetween, styles.flexRow]}>
                     {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
                     {dismissButton}
                 </View>
