@@ -330,7 +330,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
     }, [allCards, currencyList, hideProductTrainingTooltip, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const InputRightComponent = useMemo(() => {
-        return headerButtonsOptions.length > 0 ? (
+        return headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || selectionMode?.isEnabled) ? (
             <ButtonWithDropdownMenu
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
@@ -370,6 +370,8 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
         styles.productTrainingTooltipWrapper,
         styles.searchAutocompleteInputResults,
         translate,
+        selectionMode,
+        shouldUseNarrowLayout,
     ]);
 
     if (shouldUseNarrowLayout && selectionMode?.isEnabled) {

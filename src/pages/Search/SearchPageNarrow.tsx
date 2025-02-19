@@ -138,27 +138,31 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.narrowSearchHeaderStyle]}>
-                                <SearchPageHeader
-                                    queryJSON={queryJSON}
-                                    searchRouterListVisible={searchRouterListVisible}
-                                    hideSearchRouterList={() => {
-                                        setSearchRouterListVisible(false);
-                                    }}
-                                    onSearchRouterFocus={() => {
-                                        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                        setSearchRouterListVisible(true);
-                                    }}
-                                    shouldGroupByReports={shouldGroupByReports}
-                                />
-                                {!searchRouterListVisible && (
-                                    <SearchStatusBar
+                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
+                                <View style={[styles.narrowSearchHeaderStyle]}>
+                                    <SearchPageHeader
                                         queryJSON={queryJSON}
-                                        onStatusChange={() => {
-                                            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                                        searchRouterListVisible={searchRouterListVisible}
+                                        hideSearchRouterList={() => {
+                                            setSearchRouterListVisible(false);
                                         }}
+                                        onSearchRouterFocus={() => {
+                                            topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                            setSearchRouterListVisible(true);
+                                        }}
+                                        shouldGroupByReports={shouldGroupByReports}
                                     />
-                                )}
+                                </View>
+                                <View style={[styles.appBG]}>
+                                    {!searchRouterListVisible && (
+                                        <SearchStatusBar
+                                            queryJSON={queryJSON}
+                                            onStatusChange={() => {
+                                                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                                            }}
+                                        />
+                                    )}
+                                </View>
                             </Animated.View>
                         </View>
                     </View>
