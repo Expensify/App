@@ -203,15 +203,16 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
+    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
+    const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner;
 
     const guideBookingButton = (
         <Button
-            success
             text={translate('getAssistancePage.scheduleADemo')}
             onPress={() => {
                 openExternalLink(account?.guideDetails?.calendarLink ?? '');
             }}
-            style={!shouldUseNarrowLayout && isChatUsedForOnboarding && styles.mr2}
+            style={shouldUseNarrowLayout ? shouldShowGuideBookingButtonInEarlyDiscountBanner && [styles.flex1] : isChatUsedForOnboarding && styles.mr2}
             icon={CalendarSolid}
         />
     );
@@ -336,7 +337,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
+                                    {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
                                             pressable
@@ -366,8 +367,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                     )}
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-                <View style={isChatUsedForOnboarding && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
-                    {!isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && <View style={getGuideBookButtonStyles()}>{guideBookingButton}</View>}
+                <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
+                    {!shouldShowGuideBookingButtonInEarlyDiscountBanner && !isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && (
+                        <View style={getGuideBookButtonStyles()}>{guideBookingButton}</View>
+                    )}
                     {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                         <FreeTrial
                             pressable
@@ -386,7 +389,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 )}
                 <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             </View>
-            {shouldShowDiscount && isChatUsedForOnboarding && <EarlyDiscountBanner isSubscriptionPage={false} />}
+            {shouldShowEarlyDiscountBanner && (
+                <EarlyDiscountBanner
+                    GuideBookingButton={shouldShowGuideBookingButtonInEarlyDiscountBanner ? guideBookingButton : undefined}
+                    isSubscriptionPage={false}
+                />
+            )}
         </>
     );
 }
