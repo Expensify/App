@@ -337,7 +337,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}
                 anchorAlignment={{
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 }}
                 shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
