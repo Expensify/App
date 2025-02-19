@@ -116,9 +116,7 @@ function Expensify() {
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
-    const shouldHideSplash =
-        shouldInit &&
-        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+    const shouldHideSplash = shouldInit && splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {

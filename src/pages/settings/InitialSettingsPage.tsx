@@ -52,6 +52,7 @@ import SCREENS from '@src/SCREENS';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {multiply} from '../../../modules/hybrid-app';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
@@ -248,29 +249,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
-                    ...(NativeModules.HybridAppModule
-                        ? {
-                              action: () => {
-                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
-                                  setInitialURL(undefined);
-                                  setRootStatusBarEnabled(false);
-                              },
-                          }
-                        : {
-                              action() {
-                                  if (isActingAsDelegate) {
-                                      setIsNoDelegateAccessMenuVisible(true);
-                                      return;
-                                  }
-                                  resetExitSurveyForm(() => {
-                                      if (shouldOpenBookACall) {
-                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
-                                          return;
-                                      }
-                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
-                                  });
-                              },
-                          }),
+                    action: () => {
+                        multiply(1, 2);
+                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        setInitialURL(undefined);
+                        setRootStatusBarEnabled(false);
+                    },
                 },
                 {
                     translationKey: 'initialSettingsPage.about',
