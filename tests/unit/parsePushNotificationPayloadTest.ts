@@ -31,6 +31,7 @@ const payloadWithOnyxData = {
     roomName: '',
     app: 'new',
 };
+
 // gzip compressed json string
 const compressedPayloadWithOnyxData =
     'H4sIAAAAAAAAA5WQT0/DMAzFv0rJeYe0zVrKbVqR4NDBYZzQhCxqbRVJEyXen6rqd6fJmBjQC7f4/ew8P/eMOoPsLmIWjba01EphS2wWMWpIBrJGR9EzdFJD7YFuu1MJBCN77dkHdt/ji3dqdOvekjjnRZ7FeZbP4zTjl7EKaadr36/QbtHLB5B7b9OzRGRpUoztWSJiHouU3wYdwqcrUGGbRVkun6rqfrX202fbx9KTKdPrtb66Jlxmfh/nYIvnTJebXBntSEkvPaCUOjpqK+ubcCU80R992AzDsBmpBEcvpgbCYC54Ivi84EKMzFg8NHrvpnj6M9rvZP8JZrVWl9v5GozxzxaPbPgE0MCh7v4BAAA=';
