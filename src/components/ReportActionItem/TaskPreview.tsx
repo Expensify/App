@@ -11,7 +11,6 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
-import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -80,7 +79,6 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
-    const titleStyle = StyleUtils.getTaskPreviewTitleStyle(iconWrapperStyle.height, isTaskCompleted);
 
     const shouldShowGreenDotIndicator = isOpenTaskReport(taskReport, action) && isReportManager(taskReport);
     if (isDeletedParentAction) {
@@ -128,9 +126,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             </View>
                         </UserDetailsTooltip>
                     )}
-                    <Text style={titleStyle}>
-                        <RenderHTML html={taskReport?.reportName ?? ''} />
-                    </Text>
+                    <RenderHTML html={`<comment>${taskReport?.reportName ?? ''}</comment>`} />
                 </View>
                 {shouldShowGreenDotIndicator && (
                     <View style={iconWrapperStyle}>

@@ -232,7 +232,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
-                fontSize: variables.fontSizeLarge,
+                fontSize: undefined,
                 marginBottom: 8,
             },
         },
@@ -277,6 +277,11 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            marginBottom: 8,
         },
 
         autoCompleteSuggestionContainer: {
@@ -4282,11 +4287,6 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeXLarge,
             maxWidth: '100%',
             ...wordBreak.breakWord,
-        },
-
-        taskTitleBold: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_BOLD.fontFamily,
-            fontWeight: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_BOLD.fontWeight,
         },
 
         taskDescriptionMenuItem: {

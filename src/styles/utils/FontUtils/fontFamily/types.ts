@@ -11,7 +11,6 @@ type FontFamilyKey =
     | 'EXP_NEUE_ITALIC'
     | 'EXP_NEUE_BOLD_ITALIC'
     | 'EXP_NEW_KANSAS_MEDIUM'
-    | 'EXP_NEW_KANSAS_BOLD'
     | 'EXP_NEW_KANSAS_MEDIUM_ITALIC';
 
 type FontFamily = {

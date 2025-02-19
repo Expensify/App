@@ -73,20 +73,11 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={[
-                style,
-                parentStyle,
-                textDecorationLineStyle,
-                styles.textUnderlinePositionUnder,
-                styles.textDecorationSkipInkNone,
-                isChildOfTaskTitle && styles.taskTitleMenuItem,
-                isChildOfTaskTitle && HTMLEngineUtils.isChildOfH1(tnode) && styles.taskTitleBold,
-            ]}
+            style={[style, parentStyle, textDecorationLineStyle, styles.textUnderlinePositionUnder, styles.textDecorationSkipInkNone, isChildOfTaskTitle && styles.taskTitleMenuItem]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment) : undefined}
             linkHasImage={linkHasImage}
-            wrapperStyle={isChildOfTaskTitle && styles.dInlineFlex}
         >
             <TNodeChildrenRenderer
                 tnode={tnode}

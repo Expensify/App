@@ -109,9 +109,7 @@ function TaskView({report}: TaskViewProps) {
                                             disabled={!canActionTask}
                                         />
                                         <View style={[styles.flexRow, styles.flex1]}>
-                                            <View style={styles.renderHTMLTitle}>
-                                                <RenderHTML html={taskTitle} />
-                                            </View>
+                                            <RenderHTML html={taskTitle} />
                                         </View>
                                         {!isDisableInteractive && (
                                             <View style={styles.taskRightIconContainer}>

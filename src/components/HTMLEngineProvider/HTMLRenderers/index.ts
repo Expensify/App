@@ -4,6 +4,7 @@ import CodeRenderer from './CodeRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
+import HeadingRendered from './HeadingRendered';
 import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
@@ -22,6 +23,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     code: CodeRenderer,
     img: ImageRenderer,
     video: VideoRenderer,
+    h1: HeadingRendered,
 
     // Custom tag renderers
     edited: EditedRenderer,
