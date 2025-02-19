@@ -12,26 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validateActor:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
-    steps:
-      - name: Check if user is deployer
-        id: isUserDeployer
-        run: |
-          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
-            echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
   prep:
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
@@ -41,10 +22,17 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+      - name: Validate actor
+        id: validateActor
+        uses: ./.github/actions/composite/validateActor
+        with:
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
         with:
+          OP_VAULT: ${{ vars.OP_VAULT }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
@@ -104,7 +92,7 @@ jobs:
         working-directory: android/app
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-        run: op read "op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+        run: op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
       - name: Upload Android app to Google Play
         run: bundle exec fastlane android upload_google_play_internal
@@ -168,9 +156,9 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read "op://Mobile-Deploy-CI/firebase.json/firebase.json" --force --out-file ./firebase.json
-          op read "op://Mobile-Deploy-CI/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
-          op read "op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android 
@@ -182,9 +170,9 @@ jobs:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
-          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
       - name: Get Android native version
         id: getAndroidVersion
@@ -300,6 +288,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: true
 
       - name: Load Desktop credentials from 1Password
         id: load-credentials
@@ -308,8 +298,8 @@ jobs:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DESKTOP_CERTIFICATE_BASE64: "op://Mobile-Deploy-CI/Desktop Certificates.p12/CSC_LINK"
-          DESKTOP_CERTIFICATE_PASSWORD: "op://Mobile-Deploy-CI/Desktop Certificates.p12/CSC_KEY_PASSWORD"
+          DESKTOP_CERTIFICATE_BASE64: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_LINK"
+          DESKTOP_CERTIFICATE_PASSWORD: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_KEY_PASSWORD"
 
       - name: Build desktop app
         run: |
@@ -388,10 +378,11 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read "op://Mobile-Deploy-CI/NewApp_AppStore/NewApp_AppStore.mobileprovision" --force --out-file ./NewApp_AppStore.mobileprovision
-          op read "op://Mobile-Deploy-CI/NewApp_AppStore_Notification_Service/NewApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./NewApp_AppStore_Notification_Service.mobileprovision
-          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
-          op read "op://Mobile-Deploy-CI/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore/NewApp_AppStore.mobileprovision" --force --out-file ./NewApp_AppStore.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore_Notification_Service/NewApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./NewApp_AppStore_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore_Share_Extension/NewApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./NewApp_AppStore_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+          op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
 
       - name: Get iOS native version
         id: getIOSVersion
@@ -511,12 +502,12 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read "op://Mobile-Deploy-CI/firebase.json/firebase.json" --force --out-file ./firebase.json
-          op read "op://Mobile-Deploy-CI/OldApp_AppStore/OldApp_AppStore.mobileprovision" --force --out-file ./OldApp_AppStore.mobileprovision
-          op read "op://Mobile-Deploy-CI/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./OldApp_AppStore_Share_Extension.mobileprovision
-          op read "op://Mobile-Deploy-CI/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./OldApp_AppStore_Notification_Service.mobileprovision
-          op read "op://Mobile-Deploy-CI/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
-          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+          op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/OldApp_AppStore.mobileprovision" --force --out-file ./OldApp_AppStore.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./OldApp_AppStore_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./OldApp_AppStore_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"

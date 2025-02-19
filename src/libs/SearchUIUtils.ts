@@ -1,5 +1,7 @@
+import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
@@ -10,7 +12,9 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
@@ -22,14 +26,18 @@ import type {
     SearchTransaction,
     SearchTransactionAction,
 } from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
+import {clearAllFilters} from './actions/Search';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
+import {canSendInvoice} from './PolicyUtils';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {
     getSearchReportName,
+    hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -38,7 +46,19 @@ import {
     isMoneyRequestReport,
     isSettled,
 } from './ReportUtils';
-import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isExpensifyCardTransaction, isPending} from './TransactionUtils';
+import {buildCannedSearchQuery} from './SearchQueryUtils';
+import {
+    getMerchant,
+    getAmount as getTransactionAmount,
+    getCreated as getTransactionCreatedDate,
+    getMerchant as getTransactionMerchant,
+    isAmountMissing,
+    isExpensifyCardTransaction,
+    isPartialMerchant,
+    isPending,
+    isReceiptBeingScanned,
+    isScanRequest,
+} from './TransactionUtils';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -70,6 +90,20 @@ type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
 type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+type SavedSearchMenuItem = MenuItemWithLink & {
+    key: string;
+    hash: string;
+    query: string;
+    styles?: Array<ViewStyle | TextStyle>;
+};
+
+type SearchTypeMenuItem = {
+    translationPath: TranslationPaths;
+    type: SearchDataTypes;
+    icon: IconAsset;
+    getRoute: (policyID?: string) => Route;
+};
 
 /**
  * @private
@@ -347,10 +381,14 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
-    const hasOnlyPendingTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+    const hasOnlyPendingCardOrScanningTransactions =
+        allReportTransactions.length > 0 &&
+        allReportTransactions.every(
+            (t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || (isScanRequest(t) && isReceiptBeingScanned(t)),
+        );
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
-    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingTransactions) {
+    if (canApproveIOU(report, policy) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
         return CONST.SEARCH.ACTION_TYPES.APPROVE;
     }
 
@@ -637,7 +675,12 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
         },
         {
             text: translateLocal('common.delete'),
-            onSelected: () => showDeleteModal(hash),
+            onSelected: () => {
+                if (isMobileMenu && closeMenu) {
+                    closeMenu();
+                }
+                showDeleteModal(hash);
+            },
             icon: Expensicons.Trashcan,
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
@@ -652,6 +695,71 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
  */
 function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
+}
+
+function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | null, email: string | undefined): SearchTypeMenuItem[] {
+    const typeMenuItems: SearchTypeMenuItem[] = [
+        {
+            translationPath: 'common.expenses',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Receipt,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
+            },
+        },
+        {
+            translationPath: 'common.chats',
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
+            },
+        },
+    ];
+
+    if (canSendInvoice(allPolicies, email) || hasInvoiceReports()) {
+        typeMenuItems.push({
+            translationPath: 'workspace.common.invoices',
+            type: CONST.SEARCH.DATA_TYPES.INVOICE,
+            icon: Expensicons.InvoiceGeneric,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
+            },
+        });
+    }
+
+    typeMenuItems.push({
+        translationPath: 'travel.trips',
+        type: CONST.SEARCH.DATA_TYPES.TRIP,
+        icon: Expensicons.Suitcase,
+        getRoute: (policyID?: string) => {
+            const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
+            return ROUTES.SEARCH_ROOT.getRoute({query});
+        },
+    });
+
+    return typeMenuItems;
+}
+
+function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, hash: number): SavedSearchMenuItem {
+    return {
+        key,
+        title,
+        hash: key,
+        query: item.query,
+        shouldShowRightComponent: true,
+        focused: Number(key) === hash,
+        onPress: () => {
+            clearAllFilters();
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+        },
+        pendingAction: item.pendingAction,
+        disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        shouldIconUseAutoWidthStyle: true,
+    };
 }
 
 export {
@@ -669,4 +777,7 @@ export {
     isCorrectSearchUserName,
     isReportActionEntry,
     getAction,
+    createTypeMenuItems,
+    createBaseSavedSearchMenuItem,
 };
+export type {SavedSearchMenuItem, SearchTypeMenuItem};

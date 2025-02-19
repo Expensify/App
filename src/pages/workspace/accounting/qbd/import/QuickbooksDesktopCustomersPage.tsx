@@ -1,7 +1,9 @@
 import React from 'react';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
@@ -22,6 +24,8 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const isSwitchOn = !!(qbdConfig?.mappings?.customers && qbdConfig.mappings.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = qbdConfig?.mappings?.customers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isSwitchOn);
 
     return (
         <ConnectionLayout
@@ -50,7 +54,10 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
                 errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS)}
                 onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS)}
             />
-            {isSwitchOn && (
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                isToggleTriggered={shouldAnimateAccordionSection}
+            >
                 <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.MAPPINGS.CUSTOMERS], qbdConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
@@ -65,7 +72,7 @@ function QuickbooksDesktopCustomersPage({policy}: WithPolicyProps) {
                         }
                     />
                 </OfflineWithFeedback>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }

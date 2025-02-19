@@ -28,7 +28,7 @@ type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
@@ -80,7 +80,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             shouldEnableMaxHeight
             testID={TravelTerms.displayName}
         >
-            <FullPageNotFoundView shouldShow={!canUseSpotnanaTravel && !NativeModules.HybridAppModule}>
+            <FullPageNotFoundView shouldShow={(!canUseSpotnanaTravel && !NativeModules.HybridAppModule) || (isBlockedFromSpotnanaTravel && !NativeModules.HybridAppModule)}>
                 <HeaderWithBackButton
                     title={translate('travel.termsAndConditions.header')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -91,11 +91,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         <Text style={styles.mt4}>
                             {`${translate('travel.termsAndConditions.subtitle')}`}
                             <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
-                        </Text>
-                        <Text style={styles.mt6}>
-                            {`${translate('travel.termsAndConditions.helpDocIntro')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('travel.termsAndConditions.helpDoc')} `}</TextLink>
-                            {`${translate('travel.termsAndConditions.helpDocOutro')}`}
                         </Text>
                         <CheckboxWithLabel
                             style={styles.mt6}
