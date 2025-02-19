@@ -663,6 +663,18 @@ type OriginalMessageRemovedFromApprovalChain = {
     whisperedTo: number[];
 };
 
+/** Model of `Demoted From Workspace` report action */
+type OriginalMessageDemotedFromWorkspace = {
+    /** The policy name */
+    policyName: string;
+
+    /** The old role of the employee that is being demoted */
+    oldRole: string;
+
+    /** The accountID of the member who was demoted from workspace */
+    whisperedTo: number[];
+};
+
 /**
  * Model of `Add payment card` report action
  */
@@ -745,6 +757,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN]: OriginalMessageRemovedFromApprovalChain;
+    [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;

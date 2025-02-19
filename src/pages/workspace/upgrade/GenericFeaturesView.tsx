@@ -67,7 +67,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, policyID}: Gen
                     {translate('workspace.upgrade.commonFeatures.benefits.perMember')}{' '}
                     <TextLink
                         style={[styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                     >
                         {translate('workspace.upgrade.commonFeatures.benefits.learnMore')}
                     </TextLink>{' '}
