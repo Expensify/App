@@ -122,7 +122,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         if ((!currentReportID && isReportTopmostSplitNavigator()) || (!prevCurrentReportID && !isReportTopmostSplitNavigator()) || currentReportID === prevCurrentReportID) {
             return;
         }
-        resetVideoPlayerData();
+
+        // We call another setStatusAsync inside useLayoutEffect on the video component so we add a delay here to avoid the error from appears
+        setTimeout(() => {
+            resetVideoPlayerData();
+        }, 0);
     }, [currentReportID, prevCurrentReportID, resetVideoPlayerData]);
 
     useEffect(() => {
