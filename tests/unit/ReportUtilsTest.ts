@@ -4,11 +4,13 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {
+    buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
+    canEditWriteCapability,
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
@@ -1755,6 +1757,13 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticChatReport', () => {
+        it('should always set isPinned to false', () => {
+            const result = buildOptimisticChatReport([1, 2, 3]);
+            expect(result.isPinned).toBe(false);
+        });
+    });
+
     describe('getInvoiceChatByParticipants', () => {
         it('only returns an invoice chat if the receiver type matches', () => {
             // Given an invoice chat that has been converted from an individual to policy receiver type
@@ -1831,6 +1840,16 @@ describe('ReportUtils', () => {
             };
 
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+    });
+
+    describe('canEditWriteCapability', () => {
+        it('should return false for workspace chat', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
         });
     });
 
