@@ -36,7 +36,6 @@ type OpacityViewProps = {
     shouldAnimateOnRemove?: boolean;
 };
 
-
 function OpacityView({
     shouldDim,
     dimAnimationDuration = variables.dimAnimationDuration,
