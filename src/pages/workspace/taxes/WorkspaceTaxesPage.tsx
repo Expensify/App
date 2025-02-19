@@ -118,9 +118,9 @@ function WorkspaceTaxesPage({
 
     const updateWorkspaceTaxEnabled = useCallback(
         (value: boolean, taxID: string) => {
-            setPolicyTaxesEnabled(policyID, [taxID], value);
+            setPolicyTaxesEnabled(policy, [taxID], value);
         },
-        [policyID],
+        [policy],
     );
 
     const taxesList = useMemo<ListItem[]>(() => {
@@ -192,23 +192,23 @@ function WorkspaceTaxesPage({
     };
 
     const deleteTaxes = useCallback(() => {
-        if (!policyID) {
+        if (!policy?.id) {
             return;
         }
-        deletePolicyTaxes(policyID, selectedTaxesIDs);
+        deletePolicyTaxes(policy, selectedTaxesIDs);
         setSelectedTaxesIDs([]);
         setIsDeleteModalVisible(false);
-    }, [policyID, selectedTaxesIDs]);
+    }, [policy, selectedTaxesIDs]);
 
     const toggleTaxes = useCallback(
         (isEnabled: boolean) => {
-            if (!policyID) {
+            if (!policy?.id) {
                 return;
             }
-            setPolicyTaxesEnabled(policyID, selectedTaxesIDs, isEnabled);
+            setPolicyTaxesEnabled(policy, selectedTaxesIDs, isEnabled);
             setSelectedTaxesIDs([]);
         },
-        [policyID, selectedTaxesIDs],
+        [policy, selectedTaxesIDs],
     );
 
     const navigateToEditTaxRate = (taxRate: ListItem) => {
