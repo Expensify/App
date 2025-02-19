@@ -41,6 +41,7 @@ import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
+import ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -1304,30 +1305,17 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
 };
 
 /**
- * Returns an array of user emails who are currently self-approving:
- * i.e. user.submitsTo === their own email.
+ * Checks if we can enable the "Prevent Self Approvals" feature for the workspace.
+ * We can enable it if there are more than 1 approver in the workspace.
  */
-function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
-    if (!policy?.employeeList || !policy?.owner) {
-        return [];
-    }
-    return Object.keys(policy.employeeList).filter((email) => {
-        const employee = policy?.employeeList?.[email] ?? {};
-        return employee?.submitsTo === email;
-    });
-}
-/**
- * Checks if the workspace has only one user and if there no approver for the policy.
- * If so, we can't enable the "Prevent Self Approvals" feature.
- */
-function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
-    if (!policy?.employeeList || !policy.approver) {
+function canEnablePreventSelfApprovals(approvalWorkflows: ApprovalWorkflow[]): boolean {
+    if (approvalWorkflows.length === 0) {
         return false;
     }
 
-    const employeeEmails = Object.keys(policy.employeeList);
+    const numberOfApproversForDefaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault)?.approvers.length;
 
-    return employeeEmails.length > 1;
+    return numberOfApproversForDefaultWorkflow ? numberOfApproversForDefaultWorkflow > 1 : false;
 }
 
 export {
@@ -1336,7 +1324,6 @@ export {
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
-    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
