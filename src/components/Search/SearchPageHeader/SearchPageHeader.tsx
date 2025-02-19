@@ -10,6 +10,8 @@ import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import {useSearchContext} from '@components/Search/SearchContext';
+import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -28,22 +30,20 @@ import {
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates, hasVBBA} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildFilterFormValuesFromQuery} from '@libs/SearchQueryUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {useSearchContext} from './SearchContext';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
-import type {PaymentData, SearchQueryJSON} from './types';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON};
+type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; searchName?: string; searchRouterListVisible?: boolean; hideSearchRouterList?: () => void; onSearchRouterFocus?: () => void};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -57,9 +57,9 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
-    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -67,7 +67,6 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-
     const [isScreenFocused, setIsScreenFocused] = useState(false);
 
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
@@ -316,94 +315,108 @@ function SearchPageHeader({queryJSON}: SearchPageHeaderProps) {
         styles.textWrap,
     ]);
 
-    if (shouldUseNarrowLayout) {
-        if (selectionMode?.isEnabled) {
-            return (
-                <View>
-                    <SearchSelectedNarrow
-                        options={headerButtonsOptions}
-                        itemsLength={selectedTransactionsKeys.length}
-                    />
-                    <ConfirmModal
-                        isVisible={isDeleteExpensesConfirmModalVisible}
-                        onConfirm={handleDeleteExpenses}
-                        onCancel={() => {
-                            setIsDeleteExpensesConfirmModalVisible(false);
-                        }}
-                        title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
-                    <DecisionModal
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.offlinePrompt')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isOfflineModalVisible}
-                        onClose={() => setIsOfflineModalVisible(false)}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isDownloadErrorModalVisible}
-                        onClose={() => setIsDownloadErrorModalVisible(false)}
-                    />
-                </View>
-            );
-        }
-        return null;
-    }
-
-    const onFiltersButtonPress = () => {
+    const onFiltersButtonPress = useCallback(() => {
         hideProductTrainingTooltip();
         const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
         updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    };
+    }, [allCards, currencyList, hideProductTrainingTooltip, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
-    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    const InputRightComponent = useMemo(() => {
+        return headerButtonsOptions.length > 0 ? (
+            <ButtonWithDropdownMenu
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
+                options={headerButtonsOptions}
+                isSplitButton={false}
+                shouldUseStyleUtilityForAnchorPosition
+            />
+        ) : (
+            <EducationalTooltip
+                shouldRender={shouldShowProductTrainingTooltip}
+                anchorAlignment={{
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                }}
+                shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
+                wrapperStyle={styles.productTrainingTooltipWrapper}
+                renderTooltipContent={renderProductTrainingTooltip}
+                onTooltipPress={onFiltersButtonPress}
+            >
+                <Button
+                    innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
+                    icon={Expensicons.Filters}
+                    onPress={onFiltersButtonPress}
+                />
+            </EducationalTooltip>
+        );
+    }, [
+        headerButtonsOptions,
+        onFiltersButtonPress,
+        renderProductTrainingTooltip,
+        selectedTransactionsKeys.length,
+        shouldShowProductTrainingTooltip,
+        styles.bgTransparent,
+        styles.borderNone,
+        styles.productTrainingTooltipWrapper,
+        styles.searchAutocompleteInputResults,
+        translate,
+    ]);
+
+    if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
+        return (
+            <View>
+                <SearchSelectedNarrow
+                    options={headerButtonsOptions}
+                    itemsLength={selectedTransactionsKeys.length}
+                />
+                <ConfirmModal
+                    isVisible={isDeleteExpensesConfirmModalVisible}
+                    onConfirm={handleDeleteExpenses}
+                    onCancel={() => {
+                        setIsDeleteExpensesConfirmModalVisible(false);
+                    }}
+                    title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
+                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                <DecisionModal
+                    title={translate('common.youAppearToBeOffline')}
+                    prompt={translate('common.offlinePrompt')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsOfflineModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isOfflineModalVisible}
+                    onClose={() => setIsOfflineModalVisible(false)}
+                />
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isDownloadErrorModalVisible}
+                    onClose={() => setIsDownloadErrorModalVisible(false)}
+                />
+            </View>
+        );
+    }
 
     return (
         <>
-            <SearchPageHeaderInput queryJSON={queryJSON}>
-                {headerButtonsOptions.length > 0 ? (
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        shouldAlwaysShowDropdownMenu
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                        options={headerButtonsOptions}
-                        isSplitButton={false}
-                        shouldUseStyleUtilityForAnchorPosition
-                    />
-                ) : (
-                    <EducationalTooltip
-                        shouldRender={shouldShowProductTrainingTooltip}
-                        anchorAlignment={{
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        }}
-                        shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
-                        wrapperStyle={styles.productTrainingTooltipWrapper}
-                        renderTooltipContent={renderProductTrainingTooltip}
-                        onTooltipPress={onFiltersButtonPress}
-                    >
-                        <Button
-                            innerStyles={!isCannedQuery && [styles.searchAutocompleteInputResults, styles.borderNone]}
-                            text={translate('search.filtersHeader')}
-                            icon={Expensicons.Filters}
-                            onPress={onFiltersButtonPress}
-                        />
-                    </EducationalTooltip>
-                )}
-            </SearchPageHeaderInput>
+            <SearchPageHeaderInput
+                searchRouterListVisible={searchRouterListVisible}
+                onSearchRouterFocus={onSearchRouterFocus}
+                queryJSON={queryJSON}
+                searchName={searchName}
+                hideSearchRouterList={hideSearchRouterList}
+                inputRightComponent={InputRightComponent}
+            />
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}
                 onConfirm={handleDeleteExpenses}
