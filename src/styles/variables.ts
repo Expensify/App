@@ -263,7 +263,7 @@ export default {
     gbrTooltipShiftHorizontal: -15,
     fabTooltipShiftHorizontal: -11,
     workspaceLHNtooltipShiftHorizontal: 23,
-    searchFiltersTooltipShiftHorizontal: -25,
+    searchFiltersTooltipShiftHorizontal: -4,
     quickActionTooltipShiftHorizontal: 24,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
@@ -274,10 +274,12 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -26,
-    searchHeaderHeight: 80,
+    minimalTopBarOffset: -106,
+    searchHeaderDefaultOffset: 0,
     searchListContentMarginTop: 116,
     searchTopBarZIndex: 9,
+    searchTopBarHeight: 52,
+    searchRouterInputMargin: 52,
 
     h20: 20,
     h28: 28,
