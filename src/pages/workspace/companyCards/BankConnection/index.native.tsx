@@ -12,7 +12,8 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedFeed} from '@libs/actions/Card';
-import {checkIfNewFeedConnected} from '@libs/CardUtils';
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs/CardUtils';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
@@ -24,33 +25,50 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
-type BankConnectionStepProps = {
+type BankConnectionProps = {
+    /** ID of the policy */
     policyID?: string;
+
+    /** Selected feed for assign card flow */
+    feed?: CompanyCardFeed;
+
+    /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
 };
 
-function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStepProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const styles = useThemeStyles();
     const webViewRef = useRef<WebView>(null);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const bankName = bankNameFromRoute ?? addNewCard?.data?.selectedBank;
+    const bankName = feed ? getBankName(feed) : bankNameFromRoute ?? addNewCard?.data?.selectedBank;
     const url = getCompanyCardBankConnection(policyID, bankName);
     const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
+    const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const {isNewFeedConnected, newFeed} = useMemo(() => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds?.settings?.oAuthAccountDetails ?? {}), [cardFeeds, prevFeedsData]);
+    const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
+    const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
     const handleBackButtonPress = () => {
+        // Handle assign card flow
+        if (feed) {
+            Navigation.goBack();
+            return;
+        }
+
+        // Handle add new card flow
         if (backTo) {
             Navigation.goBack(backTo);
             return;
@@ -70,13 +88,24 @@ function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStep
         if (!url) {
             return;
         }
+
+        // Handle assign card flow
+        if (feed && !isFeedExpired) {
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                isEditing: false,
+            });
+            return;
+        }
+
+        // Handle add new card flow
         if (isNewFeedConnected) {
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         }
-    }, [isNewFeedConnected, newFeed, policyID, url]);
+    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {
@@ -94,7 +123,7 @@ function BankConnection({policyID: policyIDFromProps, route}: BankConnectionStep
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={!backTo ? translate('workspace.companyCards.addCards') : undefined}
+                title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView>

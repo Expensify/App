@@ -2,9 +2,8 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Role, Text, View} from 'react-native';
-import {Platform} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -20,30 +19,6 @@ import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 AnimatedPath.displayName = 'AnimatedPath';
-
-type AdapterPropsRecord = {
-    type: number;
-    payload?: number | null;
-};
-
-type AdapterProps = {
-    fill?: string | AdapterPropsRecord;
-    stroke?: string | AdapterPropsRecord;
-};
-
-const adapter = createAnimatedPropAdapter(
-    (props: AdapterProps) => {
-        if (Object.keys(props).includes('fill')) {
-            // eslint-disable-next-line no-param-reassign
-            props.fill = {type: 0, payload: processColor(props.fill)};
-        }
-        if (Object.keys(props).includes('stroke')) {
-            // eslint-disable-next-line no-param-reassign
-            props.stroke = {type: 0, payload: processColor(props.stroke)};
-        }
-    },
-    ['fill', 'stroke'],
-);
 
 type FloatingActionButtonProps = {
     /* Callback to fire on request to toggle the FloatingActionButton */
@@ -63,7 +38,7 @@ type FloatingActionButtonProps = {
 };
 
 function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTooltipAllowed}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View | Text>) {
-    const {success, buttonDefaultBG, textLight, textDark} = useTheme();
+    const {success, buttonDefaultBG, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
@@ -95,21 +70,8 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
         return {
             transform: [{rotate: `${sharedValue.get() * 135}deg`}],
             backgroundColor,
-            borderRadius,
         };
     });
-
-    const animatedProps = useAnimatedProps(
-        () => {
-            const fill = interpolateColor(sharedValue.get(), [0, 1], [textLight, textDark]);
-
-            return {
-                fill,
-            };
-        },
-        undefined,
-        Platform.OS === 'web' ? undefined : adapter,
-    );
 
     const toggleFabAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         hideProductTrainingTooltip();
@@ -145,14 +107,14 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
                 role={role}
                 shouldUseHapticsOnLongPress={false}
             >
-                <Animated.View style={[styles.floatingActionButton, animatedStyle]}>
+                <Animated.View style={[styles.floatingActionButton, {borderRadius}, animatedStyle]}>
                     <Svg
                         width={variables.iconSizeNormal}
                         height={variables.iconSizeNormal}
                     >
                         <AnimatedPath
                             d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
-                            animatedProps={animatedProps}
+                            fill={textLight}
                         />
                     </Svg>
                 </Animated.View>
