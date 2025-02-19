@@ -430,12 +430,8 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const invoiceReceiverPolicy: SearchPolicy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
-                if (isDeletedAction(reportAction)) {
+                if (isDeletedAction(reportAction) || isResolvedActionableWhisper(reportAction)) {
                     // eslint-disable-next-line no-continue
-                    continue;
-                }
-
-                if (isResolvedActionableWhisper(reportAction)) {
                     continue;
                 }
 
