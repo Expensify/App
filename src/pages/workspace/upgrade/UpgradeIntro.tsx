@@ -120,7 +120,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                                 openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
                                 return;
                             }
-                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()));
                         }}
                     >
                         {translate('workspace.upgrade.note.learnMore')}
