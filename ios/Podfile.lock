@@ -1605,7 +1605,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-advanced-input-mask (1.2.1):
+  - react-native-advanced-input-mask (1.3.1):
     - DoubleConversion
     - ForkInputMask (~> 7.3.2)
     - glog
@@ -3351,7 +3351,7 @@ SPEC CHECKSUMS:
   React-logger: 26155dc23db5c9038794db915f80bd2044512c2e
   React-Mapbuffer: ad1ba0205205a16dbff11b8ade6d1b3959451658
   React-microtasksnativemodule: e771eb9eb6ace5884ee40a293a0e14a9d7a4343c
-  react-native-advanced-input-mask: 22e3bd2a0f38fada50b475c98bf39d39053097a3
+  react-native-advanced-input-mask: 8190f8726ed83c894490a7b333da051757655ea4
   react-native-airship: e10f6823d8da49bbcb2db4bdb16ff954188afccc
   react-native-app-logs: ee32b6e80bf8d1b883dfc5ac96efa7c1bd9a06a5
   react-native-blob-util: 221c61c98ae507b758472ac4d2d489119d1a6c44

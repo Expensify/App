@@ -22,7 +22,7 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
-    const isAutoSyncEnabled = nsqsConfig?.autoSync.enabled ?? false;
+    const isAutoSyncEnabled = nsqsConfig?.autoSync?.enabled ?? false;
     const approvalAccount = nsqsConfig?.approvalAccount ?? '';
     const nsqsData = policy?.connections?.netsuiteQuickStart?.data;
     const payableAccounts: NSQSPayableAccount[] = useMemo(() => nsqsData?.payableAccounts ?? [], [nsqsData?.payableAccounts]);
