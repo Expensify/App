@@ -95,10 +95,10 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
 
             return {
                 ...baseMenuItem,
-                onSelected: () => {
+                onSelected: singleExecution(() => {
                     clearAllFilters();
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
-                },
+                }),
                 rightComponent: (
                     <ThreeDotsMenu
                         menuItems={getOverflowMenu(baseMenuItem.title ?? '', Number(baseMenuItem.hash ?? ''), item.query ?? '')}
@@ -115,7 +115,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 shouldCallAfterModalHide: true,
             };
         },
-        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards],
+        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, singleExecution],
     );
 
     const savedSearchItems = useMemo(() => {
