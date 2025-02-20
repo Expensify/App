@@ -6495,10 +6495,6 @@ function buildOptimisticResolvedDuplicatesReportAction(): OptimisticDismissedVio
                 text: translateLocal('violations.resolvedDuplicates'),
             },
         ],
-        originalMessage: {
-            reason: 'merge',
-            violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-        },
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         person: [
             {
