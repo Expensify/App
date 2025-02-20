@@ -11,7 +11,7 @@ import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
-import {appendCountryCode, formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -312,7 +312,7 @@ function isValidPhoneNumber(phoneNumber: string): boolean {
         return false;
     }
     const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
-    return parsedPhoneNumber.possible && isValidUSPhone(formatE164PhoneNumber(phoneNumber));
+    return parsedPhoneNumber.possible;
 }
 
 function isValidValidateCode(validateCode: string): boolean {
