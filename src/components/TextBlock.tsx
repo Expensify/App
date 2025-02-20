@@ -22,11 +22,12 @@ function TextBlock({color, textStyles, text}: TextBlockProps) {
 
     return (
         <>
-            {words.map((word) => (
+            {words.map((word, index) => (
                 <Text
                     color={color}
                     style={textStyles}
-                    key={word}
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={index}
                 >
                     {word}
                 </Text>
