@@ -41,6 +41,7 @@ import {
     isPending,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {
@@ -150,8 +151,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = transactions?.map((t) => t.transactionID) ?? [];
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy);
+    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: (allTransactions) =>
+            Object.fromEntries(Object.entries(allTransactions ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
+    });
+    // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    // Check if user should see broken connection violation warning.
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy, violations);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
@@ -166,7 +173,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID)));
+        !!transactionThreadReportID &&
+        (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID))));
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
@@ -177,14 +185,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const filteredTransactions = transactions?.filter((t) => t) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, filteredTransactions);
+    const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, filteredTransactions, violations);
 
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
         !shouldShowSubmitButton &&
         (shouldShowPayButton || shouldShowApproveButton) &&
-        !hasAllPendingRTERViolations &&
+        !shouldShowRTERViolationMessage(transactions) &&
         !shouldShowExportIntegrationButton &&
         !shouldShowBrokenConnectionViolation;
 

@@ -73,9 +73,9 @@ import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import type {OnboardingPurpose} from '@src/CONST';
@@ -346,6 +346,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                     oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name,
                     policyName: '',
                 }),
+                isPinned: false,
             },
         });
 
@@ -417,13 +418,13 @@ function deleteWorkspace(policyID: string, policyName: string) {
             value: {
                 oldPolicyName,
                 policyName: report?.policyName,
+                isPinned: report?.isPinned,
             },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: null,
             },
         });
@@ -643,7 +644,10 @@ function clearPolicyErrorField(policyID: string | undefined, fieldName: string) 
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
-function clearQBOErrorField(policyID: string, fieldName: string) {
+function clearQBOErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
@@ -2849,7 +2853,7 @@ function savePreferredExportMethod(policyID: string, exportMethod: ReportExportT
     Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
 }
 
-function enableExpensifyCard(policyID: string, enabled: boolean) {
+function enableExpensifyCard(policyID: string, enabled: boolean, shouldNavigateToExpensifyCardPage = false) {
     const authToken = NetworkStore.getAuthToken();
     if (!authToken) {
         return;
@@ -2895,6 +2899,11 @@ function enableExpensifyCard(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyExpensifyCardsParams = {authToken, policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS, parameters, onyxData);
+
+    if (enabled && shouldNavigateToExpensifyCardPage) {
+        navigateToExpensifyCardPage(policyID);
+        return;
+    }
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -3867,6 +3876,63 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_EXPENSE_MAX_AGE, parameters, onyxData);
+}
+
+/**
+ * Call the API to set the custom rules for the given policy
+ * @param policyID - id of the policy to set the max expense age
+ * @param customRules - the custom rules description in natural language
+ */
+function updateCustomRules(policyID: string, customRules: string) {
+    const policy = getPolicy(policyID);
+    const originalCustomRules = policy?.customRules;
+    const parsedCustomRules = ReportUtils.getParsedComment(customRules);
+    if (parsedCustomRules === originalCustomRules) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customRules: parsedCustomRules,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        // TODO
+                        // maxExpenseAge: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customRules: originalCustomRules,
+                    // TODO
+                    // pendingFields: {maxExpenseAge: null},
+                    // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        description: parsedCustomRules,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_CUSTOM_RULES, parameters, onyxData);
 }
 
 /**
@@ -4918,6 +4984,7 @@ export {
     setPolicyMaxExpenseAmountNoReceipt,
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
+    updateCustomRules,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
