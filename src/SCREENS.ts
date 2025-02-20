@@ -36,7 +36,7 @@ const SCREENS = {
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
     },
     SEARCH: {
-        CENTRAL_PANE: 'Search_Central_Pane',
+        ROOT: 'Search_Root',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
@@ -61,7 +61,6 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
-        BOTTOM_TAB: 'Search_Bottom_Tab',
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -76,7 +75,6 @@ const SCREENS = {
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         CLOSE: 'Settings_Close',
-        TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
         CONSOLE: 'Settings_Console',
@@ -113,12 +111,6 @@ const SCREENS = {
         WALLET: {
             ROOT: 'Settings_Wallet',
             DOMAIN_CARD: 'Settings_Wallet_DomainCard',
-            CARD_GET_PHYSICAL: {
-                NAME: 'Settings_Card_Get_Physical_Name',
-                PHONE: 'Settings_Card_Get_Physical_Phone',
-                ADDRESS: 'Settings_Card_Get_Physical_Address',
-                CONFIRM: 'Settings_Card_Get_Physical_Confirm',
-            },
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
@@ -150,8 +142,14 @@ const SCREENS = {
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
-            UPDATE_DELEGATE_ROLE_MAGIC_CODE: 'Settings_Delegate_Update_Magic_Code',
         },
+    },
+    TWO_FACTOR_AUTH: {
+        ROOT: 'Settings_TwoFactorAuth_Root',
+        VERIFY: 'Settings_TwoFactorAuth_Verify',
+        SUCCESS: 'Settings_TwoFactorAuth_Success',
+        DISABLED: 'Settings_TwoFactorAuth_Disabled',
+        DISABLE: 'Settings_TwoFactorAuth_Disable',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
@@ -161,6 +159,7 @@ const SCREENS = {
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
+        TWO_FACTOR_AUTH: 'TwoFactorAuth',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',

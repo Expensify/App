@@ -7,9 +7,9 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {updateQuickbooksOnlineReceivableAccount} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -29,7 +29,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const data: CardListItem[] = useMemo(
         () =>
             accountsReceivable?.map((account) => ({
@@ -44,9 +44,9 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     const selectExportInvoice = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== qboConfig?.receivableAccount?.id) {
-                QuickbooksOnline.updateQuickbooksOnlineReceivableAccount(policyID, row.value, qboConfig?.receivableAccount);
+                updateQuickbooksOnlineReceivableAccount(policyID, row.value, qboConfig?.receivableAccount);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
         },
         [qboConfig?.receivableAccount, policyID],
     );
@@ -79,8 +79,8 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.qbo.exportInvoices"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT], qboConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
+            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT], qboConfig?.pendingFields)}
+            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT)}
             listEmptyContent={listEmptyContent}
