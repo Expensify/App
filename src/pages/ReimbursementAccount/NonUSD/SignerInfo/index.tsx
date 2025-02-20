@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ComponentType} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
@@ -13,6 +13,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import DirectorsList from './DirectorsList';
 import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
 import Address from './substeps/Address';
@@ -46,6 +47,7 @@ const directorDetailsBodyContent: Array<ComponentType<DirectorDetailsFormProps>>
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
 
+    const [directorKeys, setDirectorKeys] = useState<string[]>([]);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -72,8 +74,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     };
 
     const submit = useCallback(() => {
-        // TODO: handle multiple directors
-
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorBeingModifiedID);
 
         if (currency === CONST.CURRENCY.AUD) {
@@ -125,6 +125,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const prepareDirectorDetailsForm = useCallback(() => {
         const directorID = Str.guid();
         setDirectorBeingModifiedID(directorID);
+        setDirectorKeys((currentKeys) => [...currentKeys, directorID]);
         directorsResetScreenIndex();
         setCurrentSubStep(SUBSTEP.DIRECTOR_DETAILS_FORM);
     }, [directorsResetScreenIndex]);
@@ -135,6 +136,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 // user is director so we gather their data
                 if (value) {
                     setIsUserDirector(value);
+                    setDirectorKeys([CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]);
                     setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
                     return;
                 }
@@ -145,6 +147,19 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             }
 
             if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_DIRECTOR) {
+                if (!value) {
+                    if (directorKeys.length === 1) {
+                        // user selected "No" and it's the first time we ask -> we should just submit the step
+                        submit();
+                        return;
+                    }
+
+                    // user selected "No" and there is additional director data collected already -> show confirmation page
+                    setCurrentSubStep(SUBSTEP.DIRECTORS_LIST);
+                    setDirectorKeys((currentKeys) => currentKeys.slice(0, currentKeys.length - 1));
+                    return;
+                }
+
                 setIsAnyoneElseDirector(value);
                 prepareDirectorDetailsForm();
                 return;
@@ -153,7 +168,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             setIsUserDirector(value);
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         },
-        [currentSubStep, prepareDirectorDetailsForm],
+        [currentSubStep, directorKeys.length, prepareDirectorDetailsForm, submit],
     );
 
     const handleBackButtonPress = useCallback(() => {
@@ -180,6 +195,10 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             setCurrentSubStep((subStep) => subStep - 1);
         }
     }, [currentSubStep, directorsPrevScreen, directorsScreenIndex, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
+
+    const handleDirectorEdit = useCallback(() => {
+        // TODO: to be implemented
+    }, []);
 
     const handleEmailSubmit = useCallback(() => {
         // TODO: the message to the email provided in the previous step should be sent
@@ -227,6 +246,14 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                     onNext={directorsNextScreen}
                     onMove={directorsMoveTo}
                     directorID={directorBeingModifiedID}
+                />
+            )}
+
+            {currentSubStep === SUBSTEP.DIRECTORS_LIST && (
+                <DirectorsList
+                    directorKeys={directorKeys}
+                    onConfirm={submit}
+                    onEdit={handleDirectorEdit}
                 />
             )}
 

@@ -1,9 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ReimbursementAccountForm} from '@src/types/form';
-import CONST from '@src/CONST';
 import type {FileObject} from '@components/AttachmentModal';
+import CONST from '@src/CONST';
+import type {ReimbursementAccountForm} from '@src/types/form';
 
 type SignerInfoDirector = {
+    directorKey: string;
     fullName: string;
     jobTitle: string;
     occupation: string;
@@ -60,6 +61,7 @@ function getValuesForSignerInfo(directorIDs: string[], reimbursementAccountDraft
             const directorKey = `${directorsPrefix}_${directorID}`;
 
             return {
+                directorKey,
                 fullName: reimbursementAccountDraft[`${directorKey}_${signerInfoKeys.DIRECTOR_FULL_NAME}`] ?? '',
                 jobTitle: reimbursementAccountDraft[`${directorKey}_${signerInfoKeys.DIRECTOR_JOB_TITLE}`] ?? '',
                 occupation: reimbursementAccountDraft[`${directorKey}_${signerInfoKeys.DIRECTOR_OCCUPATION}`] ?? '',
