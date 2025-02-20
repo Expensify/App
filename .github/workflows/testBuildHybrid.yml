@@ -66,6 +66,8 @@ jobs:
           github-token: ${{ github.token }}
           result-encoding: string
           script: |
+            if ('${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER}}') return '${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER}}';
+
             if (!'${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}') return '';
 
             const pullRequest = await github.rest.pulls.get({
@@ -96,6 +98,7 @@ jobs:
             if [[ -z "${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}" && -z "${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}" ]]; then
               echo "REF=" >> "$GITHUB_OUTPUT"
             else
+              echo "PR=${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}" >> "$GITHUB_OUTPUT"
               echo "REF=$(gh pr view ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
             fi
           env:
@@ -121,7 +124,7 @@ jobs:
             });
 
       - name: Add build start comment to OD PR
-        if: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER != '' || needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
+        if: ${{ needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -130,7 +133,7 @@ jobs:
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: 'Mobile-Expensify',
-              issue_number: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }},
+              issue_number: ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }},
               body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
             });
 
@@ -163,7 +166,7 @@ jobs:
           cd Mobile-Expensify
           git fetch origin ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
           git checkout ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
-          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}"
+          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -278,7 +281,7 @@ jobs:
           cd Mobile-Expensify
           git fetch origin ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
           git checkout ${{ needs.getOldDotRef.outputs.OLD_DOT_REF }}
-          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}"
+          echo "Building from https://github.com/Expensify/Mobile-Expensify/pull/${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}"
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -361,7 +364,7 @@ jobs:
   postGithubComment:
     runs-on: ubuntu-latest
     name: Post a GitHub comment with app download links for testing
-    needs: [getNewDotRef, androidHybrid, iosHybrid]
+    needs: [getNewDotRef, getOldDotPR, androidHybrid, iosHybrid]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -382,11 +385,25 @@ jobs:
           ios_path=$(echo "$content_ios" | jq -r '.html_path')
           echo "ios_path=$ios_path" >> "$GITHUB_OUTPUT"
 
-      - name: Publish links to apps for download
+      - name: Publish links to apps for download on NewDot PR
+        if: github.event.inputs.APP_PULL_REQUEST_NUMBER != ''
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
           PR_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}
+          REPO: App
           GITHUB_TOKEN: ${{ github.token }}
+          ANDROID: ${{ needs.androidHybrid.result }}
+          IOS: ${{ needs.iosHybrid.result }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
+          IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
+
+      - name: Publish links to apps for download on OldDot PR
+        if: needs.getOldDotPR.outputs.OLD_DOT_PR
+        uses: ./.github/actions/javascript/postTestBuildComment
+        with:
+          PR_NUMBER: ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}
+          REPO: Mobile-Expensify
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}

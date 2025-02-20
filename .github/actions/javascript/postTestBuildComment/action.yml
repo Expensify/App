@@ -1,6 +1,14 @@
 name: "Mark Pull Requests as Deployed"
 description: "Mark pull requests as deployed on production or staging"
 inputs:
+    REPO:
+        description: "Repository to place a comment"
+        required: false
+        type: choice
+        options:
+            - App
+            - Mobile-Expensify
+        default: App
     PR_NUMBER:
         description: "Pull request number"
         required: false
