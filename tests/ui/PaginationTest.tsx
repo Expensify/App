@@ -19,12 +19,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
+jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
@@ -128,47 +129,60 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      value: buildReportComments(messageCount, initialID),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+        const comments = buildReportComments(messageCount, initialID);
+        return {
+            onyxData:
+                reportID === REPORT_ID
+                    ? [
+                          {
+                              onyxMethod: 'merge',
+                              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                              value: comments,
+                          },
+                      ]
+                    : [],
+            hasOlderActions: !comments['1'],
+            hasNewerActions: !!reportID,
+        };
+    });
 }
 
 function mockGetOlderActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      // The API also returns the action that was requested with the reportActionID.
-                      value: buildReportComments(messageCount + 1, reportActionID),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) => {
+        // The API also returns the action that was requested with the reportActionID.
+        const comments = buildReportComments(messageCount + 1, reportActionID);
+        return {
+            onyxData:
+                reportID === REPORT_ID
+                    ? [
+                          {
+                              onyxMethod: 'merge',
+                              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                              value: comments,
+                          },
+                      ]
+                    : [],
+            hasOlderActions: comments['1'] != null,
+        };
+    });
 }
 
 function mockGetNewerActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) =>
-        reportID === REPORT_ID
-            ? [
-                  {
-                      onyxMethod: 'merge',
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                      // The API also returns the action that was requested with the reportActionID.
-                      value: buildReportComments(messageCount + 1, reportActionID, true),
-                  },
-              ]
-            : [],
-    );
+    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => ({
+        onyxData:
+            reportID === REPORT_ID
+                ? [
+                      {
+                          onyxMethod: 'merge',
+                          key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                          // The API also returns the action that was requested with the reportActionID.
+                          value: buildReportComments(messageCount + 1, reportActionID, true),
+                      },
+                  ]
+                : [],
+        hasNewerActions: messageCount > 0,
+    }));
 }
 
 /**
@@ -268,7 +282,7 @@ describe('Pagination', () => {
 
         expect(getReportActions()).toHaveLength(5);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID, reportActionID: ''});
+        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
@@ -292,7 +306,7 @@ describe('Pagination', () => {
 
         expect(getReportActions()).toHaveLength(CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID, reportActionID: ''});
+        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 

@@ -1,4 +1,4 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
@@ -7,16 +7,15 @@ import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
-import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsList from '@src/pages/home/report/ReportActionsList';
 import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
-import variables from '@src/styles/variables';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import * as LHNTestUtilsModule from '../utils/LHNTestUtils';
+import createRandomReport from '../utils/collections/reports';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -25,6 +24,16 @@ type LazyLoadLHNTestUtils = {
 };
 
 const mockedNavigate = jest.fn();
+
+// Mock Fullstory library dependency
+jest.mock('@libs/Fullstory', () => ({
+    default: {
+        consentAndIdentify: jest.fn(),
+    },
+    getFSAttributes: jest.fn(),
+    getChatFSAttributes: jest.fn().mockReturnValue(['mockTestID', 'mockFSClass']),
+    parseFSAttributes: jest.fn(),
+}));
 
 jest.mock('@components/withCurrentUserPersonalDetails', () => {
     // Lazy loading of LHNTestUtils
@@ -73,31 +82,46 @@ const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
 const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
 
+const TEST_USER_ACCOUNT_ID = 1;
+const TEST_USER_LOGIN = 'test@test.com';
+
+const signUpWithTestUser = () => {
+    TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+};
+
+const report = createRandomReport(1);
+const parentReportAction = createRandomReportAction(1);
+
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    Onyx.clear().then(waitForBatchedUpdates);
+    signUpWithTestUser();
+});
+
+afterEach(() => {
+    Onyx.clear();
 });
 
 function ReportActionsListWrapper() {
+    const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider]}>
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
-                        parentReportAction={createRandomReportAction(1)}
+                        parentReportAction={parentReportAction}
                         parentReportActionForTransactionThread={undefined}
-                        sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
-                        report={LHNTestUtilsModule.getFakeReport()}
+                        sortedReportActions={reportActions}
+                        sortedVisibleReportActions={reportActions}
+                        report={report}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
                         onContentSizeChange={() => {}}
                         listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
-                        transactionThreadReport={LHNTestUtilsModule.getFakeReport()}
-                        reportActions={ReportTestUtils.getMockedSortedReportActions(500)}
+                        transactionThreadReport={report}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
@@ -110,57 +134,5 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
         await screen.findByTestId('report-actions-list');
     };
     await waitForBatchedUpdates();
-
-    Onyx.multiSet({
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
-    });
-
-    await measureRenders(<ReportActionsListWrapper />, {scenario});
-});
-
-test('[ReportActionsList] should render list items', async () => {
-    const scenario = async () => {
-        const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
-        await screen.findAllByLabelText(hintText);
-    };
-
-    await waitForBatchedUpdates();
-
-    Onyx.multiSet({
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
-    });
-
-    await measureRenders(<ReportActionsListWrapper />, {scenario});
-});
-
-test('[ReportActionsList] should scroll through list of items', async () => {
-    const eventData = {
-        nativeEvent: {
-            contentOffset: {
-                y: variables.optionRowHeight * 5,
-            },
-            contentSize: {
-                // Dimensions of the scrollable content
-                height: variables.optionRowHeight * 10,
-                width: 100,
-            },
-            layoutMeasurement: {
-                // Dimensions of the device
-                height: variables.optionRowHeight * 5,
-                width: 100,
-            },
-        },
-    };
-
-    const scenario = async () => {
-        const reportActionsList = await screen.findByTestId('report-actions-list');
-        fireEvent.scroll(reportActionsList, eventData);
-    };
-    await waitForBatchedUpdates();
-
-    Onyx.multiSet({
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
-    });
-
     await measureRenders(<ReportActionsListWrapper />, {scenario});
 });

@@ -11,6 +11,8 @@ There are several options for exporting Expensify reports to Sage Intacct. Let's
 
 To access these settings, go to **Settings > Workspace > Group > Connections** and select the **Configure** button.
 
+![Highlighting the Configure button for the Sage Intacct Integration]({{site.url}}/assets/images/SageConfigureIntegrationConfigureButton.png){:width="100%"}
+
 ## Export Options
 
 ### Preferred Exporter
@@ -84,7 +86,7 @@ These settings are particularly relevant to billable expenses and can be configu
 
 ### Tax
 
-As of September 2023, our Sage Intacct integration supports native VAT and GST tax. To enable this feature, open the Sage Intacct configuration settings in your workspace, go to the Coding tab, and enable Tax. For existing Sage Intacct connectings, simply resync your workspace and the tax toggle will appear. For new Sage Intacct connections, the tax toggle will be available when you complete the integration steps. 
+As of September 2023, our Sage Intacct integration supports native VAT and GST tax. To enable this feature, open the Sage Intacct configuration settings in your workspace, go to the Coding tab, and enable Tax. For existing Sage Intacct connections, simply resync your workspace and the tax toggle will appear. For new Sage Intacct connections, the tax toggle will be available when you complete the integration steps. 
 Enabling this option will import your native tax rates from Sage Intacct into Expensify. From there, you can select default rates for each category.
 
 ### User-Defined Dimensions
@@ -94,6 +96,8 @@ You can add User-Defined Dimensions (UDD) to your workspace by locating the "Int
 To find the Integration Name in Sage Intacct:
 1. Go to **Platform Services > Objects > List**
 2. Set "filter by application" to "user-defined dimensions."
+
+![Image of Sage Intacct Objects filtered by User Defined Dimension]({{site.url}}/assets/images/SageConfigureUserDefinedDimensionsFilter.png){:width="100%"}
 
 Now, in Expensify, navigate to **Settings > Workspaces > Group > [Workspace Name] > Connections**, and click **Configure** under Sage Intacct. On the Coding tab, enable the toggle next to User Defined Dimensions. Enter the "Integration name" and choose whether to import it into Expensify as an expense-level Tag or as a Report Field, then click **Save**.
 

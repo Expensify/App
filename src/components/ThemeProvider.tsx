@@ -22,7 +22,17 @@ function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderPr
     const theme = useMemo(() => themes[debouncedTheme], [debouncedTheme]);
 
     useEffect(() => {
+        /*
+         * For static themes we don't want to apply the autofill input style globally
+         * SignInPageLayout uses static theme and handles this differently.
+         */
+        if (staticThemePreference) {
+            return;
+        }
         DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input');
+
+        // staticThemePreference as it is a property that does not change we don't need it in the dependency array
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [theme.text]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;

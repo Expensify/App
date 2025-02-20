@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,28 +10,37 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
-import Text from '@components/Text';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import Switch from '@components/Switch';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {
+    clearPolicyTagErrors,
+    clearPolicyTagListErrorField,
+    clearPolicyTagListErrors,
+    deletePolicyTags,
+    openPolicyTagsPage,
+    setPolicyTagsRequired,
+    setWorkspaceTagEnabled,
+} from '@libs/actions/Policy/Tag';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getCleanedTagName, getTagListName, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,27 +48,30 @@ import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
-type WorkspaceViewTagsProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>;
+type WorkspaceViewTagsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>;
 
 function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
     const dropdownButtonRef = useRef(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {selectionMode} = useMobileSelectionMode();
-    const currentTagListName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
+    const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
+    const isQuickSettingsFlow = !!backTo;
 
     const fetchTags = useCallback(() => {
-        Tag.openPolicyTagsPage(policyID);
+        openPolicyTagsPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
@@ -78,25 +89,46 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         };
     }, [isFocused]);
 
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedTags({});
+        },
+        onNavigationCallBack: () => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : undefined),
+    });
+
+    const updateWorkspaceTagEnabled = useCallback(
+        (value: boolean, tagName: string) => {
+            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight);
+        },
+        [policyID, route.params.orderWeight],
+    );
+
     const tagList = useMemo<TagListItem[]>(
         () =>
             Object.values(currentPolicyTag?.tags ?? {})
                 .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
                 .map((tag) => ({
                     value: tag.name,
-                    text: PolicyUtils.getCleanedTagName(tag.name),
+                    text: getCleanedTagName(tag.name),
                     keyForList: tag.name,
                     isSelected: selectedTags[tag.name] && canSelectMultiple,
                     pendingAction: tag.pendingAction,
                     errors: tag.errors ?? undefined,
                     enabled: tag.enabled,
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                    rightElement: (
+                        <Switch
+                            isOn={tag.enabled}
+                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            accessibilityLabel={translate('workspace.tags.enableTag')}
+                            onToggle={(newValue: boolean) => updateWorkspaceTagEnabled(newValue, tag.name)}
+                        />
+                    ),
                 })),
-        [currentPolicyTag, selectedTags, canSelectMultiple, translate],
+        [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 
-    const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
 
     const tagListKeyedByName = useMemo(
         () =>
@@ -124,31 +156,28 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const getCustomListHeader = () => {
-        const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.ml3]}>
-                <View>
-                    <Text style={[styles.searchInputStyle]}>{translate('common.name')}</Text>
-                </View>
-                <View style={[StyleUtils.getMinimumWidth(60)]}>
-                    <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-                </View>
-            </View>
+        return (
+            <CustomListHeader
+                canSelectMultiple={canSelectMultiple}
+                leftHeaderText={translate('common.name')}
+                rightHeaderText={translate('statusPage.status')}
+            />
         );
-        if (canSelectMultiple) {
-            return header;
-        }
-        return <View style={[styles.peopleRow, styles.userSelectNone, styles.ph9, styles.pt3, styles.pb5]}>{header}</View>;
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value));
+        Navigation.navigate(
+            isQuickSettingsFlow
+                ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value, backTo)
+                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value),
+        );
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
 
     const deleteTags = () => {
         setSelectedTags({});
-        Tag.deletePolicyTags(policyID, selectedTagsArray);
+        deletePolicyTags(policyID, selectedTagsArray);
         setIsDeleteTagsConfirmModalVisible(false);
     };
 
@@ -161,7 +190,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-        const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+        const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
 
         if (!isThereAnyAccountingConnection && !isMultiLevelTags && selectedTagsArray.length > 0) {
             options.push({
@@ -194,24 +223,24 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
         if (enabledTagCount > 0) {
             options.push({
-                icon: Expensicons.DocumentSlash,
+                icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Tag.setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
+                    setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
                 },
             });
         }
 
         if (disabledTagCount > 0) {
             options.push({
-                icon: Expensicons.Document,
+                icon: Expensicons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags({});
-                    Tag.setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
+                    setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
                 },
             });
         }
@@ -233,11 +262,15 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        Tag.setPolicyTagsRequired(policyID, false, route.params.orderWeight);
+        setPolicyTagsRequired(policyID, false, route.params.orderWeight);
     }
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0));
+        Navigation.navigate(
+            isQuickSettingsFlow
+                ? ROUTES.SETTINGS_TAGS_EDIT.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, backTo)
+                : ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight ?? 0, Navigation.getActiveRoute()),
+        );
     };
 
     const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
@@ -261,7 +294,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack();
+                        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : undefined);
                     }}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
@@ -283,22 +316,22 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             title={translate('common.required')}
                             switchAccessibilityLabel={translate('common.required')}
                             isActive={!!currentPolicyTag?.required}
-                            onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
+                            onToggle={(on) => setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                            onCloseError={() => Tag.clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
+                            onCloseError={() => clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
                         />
                     </View>
                 )}
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
-                    onClose={() => Tag.clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
+                    onClose={() => clearPolicyTagListErrors(policyID, currentPolicyTag.orderWeight)}
                     pendingAction={currentPolicyTag.pendingAction}
                     errorRowStyles={styles.mh5}
                 >
                     <MenuItemWithTopDescription
-                        title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
+                        title={getCleanedTagName(currentPolicyTag.name)}
                         description={translate(`workspace.tags.customTagName`)}
                         onPress={navigateToEditTag}
                         shouldShowRightIcon
@@ -323,10 +356,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => {
-                            Tag.clearPolicyTagErrors(policyID, item.value, route.params.orderWeight);
+                            clearPolicyTagErrors(policyID, item.value, route.params.orderWeight);
                         }}
                     />
                 )}

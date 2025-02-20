@@ -7,69 +7,119 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {checkIfFeedConnectionIsBroken, flatAllCardsList, getBankName, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsListHeaderButtonsProps = {
     /** Current policy id */
     policyID: string;
 
     /** Currently selected feed */
-    selectedFeed: string;
+    selectedFeed: CompanyCardFeed;
+
+    /** Whether to show assign card button */
+    shouldShowAssignCardButton?: boolean;
+
+    /** Handle assign card action */
+    handleAssignCard: () => void;
 };
 
-function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed}: WorkspaceCompanyCardsListHeaderButtonsProps) {
+function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldShowAssignCardButton, handleAssignCard}: WorkspaceCompanyCardsListHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
+    const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
+    const isCommercialFeed = isCustomFeed(selectedFeed);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const currentFeedData = companyFeeds?.[selectedFeed];
+    const bankName = getBankName(selectedFeed);
+    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`]);
 
     return (
-        <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
-            <PressableWithFeedback
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ml4, shouldUseNarrowLayout && styles.mb3]}
-                accessibilityLabel={cardFeeds?.companyCardNicknames?.[selectedFeed] ?? ''}
-            >
-                <Icon
-                    src={CardUtils.getCardFeedIcon(selectedFeed)}
-                    width={variables.iconSizeExtraLarge}
-                    height={variables.iconSizeExtraLarge}
-                />
-                <View>
-                    <CaretWrapper>
-                        <Text style={styles.textStrong}>{cardFeeds?.companyCardNicknames?.[selectedFeed]}</Text>
-                    </CaretWrapper>
-                    <Text style={styles.textLabelSupporting}>{translate('workspace.companyCards.customFeed')}</Text>
-                </View>
-            </PressableWithFeedback>
+        <View>
+            <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
+                <PressableWithFeedback
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
+                    accessibilityLabel={formattedFeedName ?? ''}
+                >
+                    <Icon
+                        src={getCardFeedIcon(selectedFeed)}
+                        height={variables.cardIconHeight}
+                        width={variables.cardIconWidth}
+                        additionalStyles={styles.cardIcon}
+                    />
+                    <View>
+                        <View style={[styles.flexRow, styles.gap1]}>
+                            <CaretWrapper>
+                                <Text style={styles.textStrong}>{formattedFeedName}</Text>
+                            </CaretWrapper>
+                            {checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID), selectedFeed) && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={theme.danger}
+                                />
+                            )}
+                        </View>
+                        <Text style={styles.textLabelSupporting}>{translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}</Text>
+                    </View>
+                </PressableWithFeedback>
 
-            <View style={[styles.flexRow, styles.gap2]}>
-                <Button
-                    success
-                    isDisabled={cardFeeds?.companyCards?.[selectedFeed].pending ?? false}
-                    // TODO: navigate to Assign card flow when it's implemented
-                    onPress={() => {}}
-                    icon={Expensicons.Plus}
-                    text={translate('workspace.companyCards.assignCard')}
-                    style={shouldChangeLayout && styles.flex1}
-                />
-                <Button
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
-                    icon={Expensicons.Gear}
-                    text={translate('common.settings')}
-                    style={shouldChangeLayout && styles.flex1}
-                />
+                <View style={[styles.flexRow, styles.gap2]}>
+                    {!!shouldShowAssignCardButton && (
+                        <Button
+                            success
+                            isDisabled={!currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken}
+                            onPress={handleAssignCard}
+                            icon={Expensicons.Plus}
+                            text={translate('workspace.companyCards.assignCard')}
+                            style={shouldChangeLayout && styles.flex1}
+                        />
+                    )}
+                    <Button
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID))}
+                        icon={Expensicons.Gear}
+                        text={translate('common.settings')}
+                        style={shouldChangeLayout && styles.flex1}
+                    />
+                </View>
             </View>
+            {isSelectedFeedConnectionBroken && !!bankName && (
+                <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
+                    <Icon
+                        src={Expensicons.DotIndicator}
+                        fill={theme.danger}
+                        additionalStyles={styles.mr1}
+                    />
+                    <Text style={styles.offlineFeedback.text}>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorFirstPart')}</Text>
+                        <TextLink
+                            style={[StyleUtils.getDotIndicatorTextStyles(), styles.link]}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, bankName, Navigation.getActiveRoute()))}
+                        >
+                            {translate('workspace.companyCards.brokenConnectionErrorLink')}
+                        </TextLink>
+                        <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('workspace.companyCards.brokenConnectionErrorSecondPart')}</Text>
+                    </Text>
+                </View>
+            )}
         </View>
     );
 }

@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
+import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
@@ -11,7 +12,7 @@ type UseAutoFocusInput = {
     inputRef: RefObject<TextInput | null>;
 };
 
-export default function useAutoFocusInput(): UseAutoFocusInput {
+export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
@@ -25,6 +26,9 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
+            if (inputRef.current && isMultiline) {
+                moveSelectionToEnd(inputRef.current);
+            }
             inputRef.current?.focus();
             setIsScreenTransitionEnded(false);
         });
@@ -32,7 +36,7 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isScreenTransitionEnded, isInputInitialized, splashScreenState]);
+    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState]);
 
     useFocusEffect(
         useCallback(() => {
@@ -53,6 +57,9 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
         inputRef.current = ref;
         if (isInputInitialized) {
             return;
+        }
+        if (ref && isMultiline) {
+            scrollToBottom(ref);
         }
         setIsInputInitialized(true);
     };

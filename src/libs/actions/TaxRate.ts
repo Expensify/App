@@ -1,4 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
@@ -12,6 +12,7 @@ import type {
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {translateLocal} from '@libs/Localize';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import * as ErrorUtils from '@src/libs/ErrorUtils';
@@ -21,7 +22,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import {default as INPUT_IDS_TAX_CODE} from '@src/types/form/WorkspaceTaxCodeForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
+import type {Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 let allPolicies: OnyxCollection<Policy>;
@@ -206,15 +207,18 @@ function clearTaxRateError(policyID: string, taxID: string, pendingAction?: Onyx
 
 type TaxRateEnabledMap = Record<string, Pick<TaxRate, 'isDisabled' | 'errors' | 'pendingAction' | 'pendingFields' | 'errorFields'>>;
 
-function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isEnabled: boolean) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const originalTaxes = {...policy?.taxRates?.taxes};
+function setPolicyTaxesEnabled(policy: OnyxEntry<Policy>, taxesIDsToUpdate: string[], isEnabled: boolean) {
+    if (!policy) {
+        return;
+    }
+
+    const originalTaxes = {...policy.taxRates?.taxes};
 
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
@@ -233,7 +237,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
@@ -247,7 +251,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
@@ -266,7 +270,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
     };
 
     const parameters = {
-        policyID,
+        policyID: policy.id,
         taxFieldsArray: JSON.stringify(taxesIDsToUpdate.map((taxID) => ({taxCode: taxID, enabled: isEnabled}))),
     } satisfies SetPolicyTaxesEnabledParams;
 
@@ -281,13 +285,17 @@ type TaxRateDeleteMap = Record<
     | null
 >;
 
-function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[]) {
     const policyTaxRates = policy?.taxRates?.taxes;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const firstTaxID = Object.keys(policyTaxRates ?? {})
         .sort((a, b) => a.localeCompare(b))
         .at(0);
+    const distanceRateCustomUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
+    const customUnitID = distanceRateCustomUnit?.customUnitID;
+    const ratesToUpdate = Object.values(distanceRateCustomUnit?.rates ?? {}).filter(
+        (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
+    );
 
     if (!policyTaxRates) {
         console.debug('Policy or tax rates not found');
@@ -296,11 +304,38 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
 
     const isForeignTaxRemoved = foreignTaxDefault && taxesToDelete.includes(foreignTaxDefault);
 
+    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
+    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
+
+    ratesToUpdate.forEach((rate) => {
+        const rateID = rate.customUnitRateID;
+        optimisticRates[rateID] = {
+            attributes: {
+                taxRateExternalID: null,
+                taxClaimablePercentage: null,
+            },
+            pendingFields: {
+                taxRateExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                taxClaimablePercentage: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        };
+        successRates[rateID] = {pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null}};
+        failureRates[rateID] = {
+            attributes: {...rate?.attributes},
+            pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null},
+            errorFields: {
+                taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        };
+    });
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: isForeignTaxRemoved ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null},
@@ -310,13 +345,19 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
+                    customUnits: distanceRateCustomUnit &&
+                        customUnitID && {
+                            [customUnitID]: {
+                                rates: optimisticRates,
+                            },
+                        },
                 },
             },
         ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: null},
@@ -325,13 +366,19 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
+                    customUnits: distanceRateCustomUnit &&
+                        customUnitID && {
+                            [customUnitID]: {
+                                rates: successRates,
+                            },
+                        },
                 },
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: null},
@@ -344,13 +391,19 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                             return acc;
                         }, {}),
                     },
+                    customUnits: distanceRateCustomUnit &&
+                        customUnitID && {
+                            [customUnitID]: {
+                                rates: failureRates,
+                            },
+                        },
                 },
             },
         ],
     };
 
     const parameters = {
-        policyID,
+        policyID: policy.id,
         taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
     } satisfies DeletePolicyTaxesParams;
 
@@ -490,32 +543,22 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
 function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const originalTaxRate = {...policy?.taxRates?.taxes[oldTaxCode]};
-    const customUnits = Object.values(policy?.customUnits ?? {});
-    const optimisticCustomUnit = {
-        customUnits: {
-            ...customUnits.reduce((units, customUnit) => {
-                // eslint-disable-next-line no-param-reassign
-                units[customUnit.customUnitID] = {
-                    rates: {
-                        ...Object.keys(customUnit.rates).reduce((rates, rateID) => {
-                            if (customUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
-                                // eslint-disable-next-line no-param-reassign
-                                rates[rateID] = {
-                                    attributes: {
-                                        taxRateExternalID: newTaxCode,
-                                    },
-                                };
-                            }
-                            return rates;
-                        }, {} as Record<string, Rate>),
-                    },
-                };
-                return units;
-            }, {} as Record<string, Partial<CustomUnit>>),
+    const distanceRateCustomUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
+    const optimisticDistanceRateCustomUnit = distanceRateCustomUnit && {
+        ...distanceRateCustomUnit,
+        rates: {
+            ...Object.keys(distanceRateCustomUnit.rates).reduce((rates, rateID) => {
+                if (distanceRateCustomUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
+                    // eslint-disable-next-line no-param-reassign
+                    rates[rateID] = {
+                        attributes: {
+                            taxRateExternalID: newTaxCode,
+                        },
+                    };
+                }
+                return rates;
+            }, {} as Record<string, NullishDeep<Rate>>),
         },
-    };
-    const failureCustomUnit = {
-        customUnits: policy?.customUnits,
     };
     const oldDefaultExternalID = policy?.taxRates?.defaultExternalID;
     const oldForeignTaxDefault = policy?.taxRates?.foreignTaxDefault;
@@ -539,7 +582,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                             },
                         },
                     },
-                    ...(!!customUnits && optimisticCustomUnit),
+                    ...(!!distanceRateCustomUnit && {customUnits: {[distanceRateCustomUnit.customUnitID]: optimisticDistanceRateCustomUnit}}),
                 },
             },
         ],
@@ -584,7 +627,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                             },
                         },
                     },
-                    ...(!!customUnits && failureCustomUnit),
+                    ...(!!distanceRateCustomUnit && {customUnits: {[distanceRateCustomUnit.customUnitID]: distanceRateCustomUnit}}),
                 },
             },
         ],

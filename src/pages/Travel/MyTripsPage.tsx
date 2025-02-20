@@ -1,4 +1,5 @@
 import React from 'react';
+import {NativeModules} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,7 +9,7 @@ import ManageTrips from './ManageTrips';
 
 function MyTripsPage() {
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
 
     return (
         <ScreenWrapper
@@ -20,7 +21,7 @@ function MyTripsPage() {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!canUseSpotnanaTravel}
+                shouldShow={(!canUseSpotnanaTravel && !NativeModules.HybridAppModule) || (isBlockedFromSpotnanaTravel && !NativeModules.HybridAppModule)}
             >
                 <HeaderWithBackButton
                     title={translate('travel.header')}

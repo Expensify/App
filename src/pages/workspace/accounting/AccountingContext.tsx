@@ -4,6 +4,7 @@ import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
@@ -55,10 +56,18 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const popoverAnchorRefs = useRef<Record<string, MutableRefObject<View | null>>>(defaultAccountingContext.popoverAnchorRefs.current);
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to allow QuickBooks Desktop setup to be shown only on large screens
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const startIntegrationFlow = React.useCallback(
         (newActiveIntegration: ActiveIntegration) => {
+            if (!policyID) {
+                return;
+            }
+
             const accountingIntegrationData = getAccountingIntegrationData(
                 newActiveIntegration.name,
                 policyID,
@@ -67,6 +76,8 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 undefined,
                 newActiveIntegration.integrationToDisconnect,
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
+                undefined,
+                isSmallScreenWidth,
             );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
@@ -80,7 +91,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate],
+        [isSmallScreenWidth, policy, policyID, translate],
     );
 
     const closeConfirmationModal = () => {
@@ -106,23 +117,23 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     );
 
     const renderActiveIntegration = () => {
-        if (!activeIntegration) {
+        if (!policyID || !activeIntegration) {
             return null;
         }
 
         return getAccountingIntegrationData(activeIntegration.name, policyID, translate, policy, activeIntegration.key)?.setupConnectionFlow;
     };
 
-    const shouldShowConfirmationModal = activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && activeIntegration?.integrationToDisconnect;
+    const shouldShowConfirmationModal = !!activeIntegration?.shouldDisconnectIntegrationBeforeConnecting && !!activeIntegration?.integrationToDisconnect;
 
     return (
         <AccountingContext.Provider value={accountingContext}>
             {children}
             {!shouldShowConfirmationModal && renderActiveIntegration()}
-            {shouldShowConfirmationModal && activeIntegration?.integrationToDisconnect && (
+            {shouldShowConfirmationModal && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
-                        if (!activeIntegration?.integrationToDisconnect) {
+                        if (!policyID || !activeIntegration?.integrationToDisconnect) {
                             return;
                         }
                         removePolicyConnection(policyID, activeIntegration?.integrationToDisconnect);

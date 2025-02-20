@@ -29,7 +29,9 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     }
 
     // If the user is typing on OldDot, firstUserTyping will be a string (the user's displayName)
-    const firstUserTypingDisplayName = isUserTypingADisplayName ? firstUserTyping : ReportUtils.getDisplayNameForParticipant(Number(firstUserTyping), false, false);
+    const firstUserTypingDisplayName = isUserTypingADisplayName
+        ? firstUserTyping
+        : ReportUtils.getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false});
 
     if (usersTyping.length === 1) {
         return (
@@ -48,7 +50,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
             style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
             numberOfLines={1}
         >
-            {translate('reportTypingIndicator.multipleUsers')}
+            {translate('reportTypingIndicator.multipleMembers')}
             {` ${translate('reportTypingIndicator.areTyping')}`}
         </Text>
     );

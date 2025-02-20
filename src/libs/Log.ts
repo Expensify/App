@@ -3,6 +3,7 @@
 
 /* eslint-disable rulesdir/no-api-in-views */
 import {Logger} from 'expensify-common';
+import AppLogs from 'react-native-app-logs';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import CONST from '@src/CONST';
@@ -11,7 +12,7 @@ import pkg from '../../package.json';
 import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
-import * as Network from './Network';
+import {post} from './Network';
 import requireParameters from './requireParameters';
 
 let timeout: NodeJS.Timeout;
@@ -39,7 +40,7 @@ function LogCommand(parameters: LogCommandParameters): Promise<{requestID: strin
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
     // Non-cancellable request: during logout, when requests are cancelled, we don't want to cancel any remaining logs
-    return Network.post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
+    return post(commandName, {...parameters, forceNetworkRequest: true, canCancel: false}) as Promise<{requestID: string}>;
 }
 
 // eslint-disable-next-line
@@ -81,5 +82,22 @@ const Log = new Logger({
     isDebug: true,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
+
+AppLogs.configure({appGroupName: 'group.com.expensify.new', interval: -1});
+AppLogs.registerHandler({
+    filter: '[NotificationService]',
+    handler: ({filter, logs}) => {
+        logs.forEach((log) => {
+            // Both native and JS logs are captured by the filter so we replace the filter before logging to avoid an infinite loop
+            const message = `[PushNotification] ${log.message.replace(filter, 'NotificationService -')}`;
+
+            if (log.level === 'error') {
+                Log.hmmm(message);
+            } else {
+                Log.info(message);
+            }
+        });
+    },
+});
 
 export default Log;

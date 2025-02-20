@@ -24,6 +24,9 @@ type AvatarWithDelegateAvatarProps = {
 
 function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
     const styles = useThemeStyles();
+
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct avatar size
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const delegatePersonalDetail = Object.values(personalDetails[0] ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);

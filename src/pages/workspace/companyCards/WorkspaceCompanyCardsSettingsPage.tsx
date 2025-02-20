@@ -1,5 +1,4 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -13,8 +12,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy/Policy';
+import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
+import {getCompanyFeeds, getCustomOrFormattedFeedName, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -22,8 +23,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardFeed} from '@src/types/onyx';
 
-type WorkspaceCompanyCardsSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
+type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
 function WorkspaceCompanyCardsSettingsPage({
     route: {
@@ -33,15 +35,17 @@ function WorkspaceCompanyCardsSettingsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [deleteCompanyCardConfirmModalVisible, setDeleteCompanyCardConfirmModalVisible] = useState(false);
 
-    // TODO: use data form onyx instead of mocked one when API is implemented
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    // const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const lastSelectedFeed = 'cdfbmo';
-    const feedName = cardFeeds?.companyCardNicknames?.[lastSelectedFeed] ?? '';
-    const liabilityType = cardFeeds?.companyCards?.[lastSelectedFeed]?.liabilityType;
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want to run the hook only once to escape unexpected feed change
+    const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), []);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const feedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const liabilityType = selectedFeed && companyFeeds[selectedFeed]?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
 
     const navigateToChangeFeedName = () => {
@@ -49,15 +53,26 @@ function WorkspaceCompanyCardsSettingsPage({
     };
 
     const deleteCompanyCardFeed = () => {
-        Policy.deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, lastSelectedFeed);
+        if (selectedFeed) {
+            const {cardList, ...cards} = cardsList ?? {};
+            const cardIDs = Object.keys(cards);
+            const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeed[])
+                .filter((feed) => feed !== selectedFeed && companyFeeds[feed]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .at(0);
+            deleteWorkspaceCompanyCardFeed(policyID, workspaceAccountID, selectedFeed, cardIDs, feedToOpen);
+        }
         setDeleteCompanyCardConfirmModalVisible(false);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
     const onToggleLiability = (isOn: boolean) => {
-        Policy.setWorkspaceCompanyCardTransactionLiability(
+        if (!selectedFeed) {
+            return;
+        }
+        setWorkspaceCompanyCardTransactionLiability(
             workspaceAccountID,
-            lastSelectedFeed,
+            policyID,
+            selectedFeed,
             isOn ? CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW : CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.RESTRICT,
         );
     };
@@ -101,7 +116,7 @@ function WorkspaceCompanyCardsSettingsPage({
                         isVisible={deleteCompanyCardConfirmModalVisible}
                         onConfirm={deleteCompanyCardFeed}
                         onCancel={() => setDeleteCompanyCardConfirmModalVisible(false)}
-                        title={translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
+                        title={feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
                         prompt={translate('workspace.moreFeatures.companyCards.removeCardFeedDescription')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}

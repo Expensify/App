@@ -14,7 +14,7 @@ Before a report can be reimbursed via direct deposit:
 
 To reimburse a report via direct deposit (USD):
 1. Open the report.
-2. Click the **Reimburse** button and select **Via Direct Deposit (ACH)**.
+2. Click the **Reimburse** button and select **Via Direct Deposit**.
 3. Confirm that the correct bank account is listed in the dropdown menu.
 4. Click **Accept Terms & Pay**. 
 
@@ -27,7 +27,7 @@ Before a report can be reimbursed via global reimbursement:
 
 To reimburse a report via global reimbursement:
 1. Open the report.
-2. Click the **Reimburse** button and select **Via Direct Deposit (ACH)**.
+2. Click the **Reimburse** button and select **Via Direct Deposit**.
 3. Confirm that the correct bank account is listed in the dropdown menu.
 4. Click **Accept Terms & Pay**.
 

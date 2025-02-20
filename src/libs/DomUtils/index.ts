@@ -34,25 +34,25 @@ const addCSS = (css: string, styleId: string) => {
  * Chrome on iOS does not support the autofill pseudo class because it is a non-standard webkit feature.
  * We should rely on the chrome-autofilled property being added to the input when users use auto-fill
  */
-const getAutofilledInputStyle = (inputTextColor: string) => `
-    input[chrome-autofilled],
-    input[chrome-autofilled]:hover,
-    input[chrome-autofilled]:focus,
-    textarea[chrome-autofilled],
-    textarea[chrome-autofilled]:hover,
-    textarea[chrome-autofilled]:focus,
-    select[chrome-autofilled],
-    select[chrome-autofilled]:hover,
-    select[chrome-autofilled]:focus,
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    textarea:-webkit-autofill,
-    textarea:-webkit-autofill:hover,
-    textarea:-webkit-autofill:focus,
-    select:-webkit-autofill,
-    select:-webkit-autofill:hover,
-    select:-webkit-autofill:focus {
+const getAutofilledInputStyle = (inputTextColor: string, cssSelector = '') => `
+   ${cssSelector} input[chrome-autofilled],
+    ${cssSelector} input[chrome-autofilled]:hover,
+    ${cssSelector} input[chrome-autofilled]:focus,
+    ${cssSelector} textarea[chrome-autofilled],
+    ${cssSelector}  textarea[chrome-autofilled]:hover,
+    ${cssSelector} textarea[chrome-autofilled]:focus,
+    ${cssSelector} select[chrome-autofilled],
+    ${cssSelector} select[chrome-autofilled]:hover,
+    ${cssSelector} select[chrome-autofilled]:focus,
+    ${cssSelector} input:-webkit-autofill,
+    ${cssSelector} input:-webkit-autofill:hover,
+    ${cssSelector} input:-webkit-autofill:focus,
+    ${cssSelector} textarea:-webkit-autofill,
+    ${cssSelector} textarea:-webkit-autofill:hover,
+    ${cssSelector} textarea:-webkit-autofill:focus,
+    ${cssSelector} select:-webkit-autofill,
+    ${cssSelector} select:-webkit-autofill:hover,
+    ${cssSelector} select:-webkit-autofill:focus {
         -webkit-background-clip: text;
         -webkit-text-fill-color: ${inputTextColor};
         caret-color: ${inputTextColor};

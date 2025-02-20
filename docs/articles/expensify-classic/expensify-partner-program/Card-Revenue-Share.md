@@ -2,26 +2,23 @@
 title: Expensify Card revenue share for ExpensifyApproved! partners
 description: Earn money when your clients adopt the Expensify Card
 ---
-# Overview
 You can now earn additional income for your firm every time your client uses their Expensify Card. In short, your firm gets 0.5% of your clients’ total Expensify Card spend as cash back. The more your clients spend, the more cashback your firm receives!
 
 This program is currently only available to US-based ExpensifyApproved! partner accountants.
 
-# Become a domain admin
-To benefit from this program, you or a member of your firm must be a domain admin on your client’s domain in Expensify.
+# Become a Domain Admin
+To benefit from this program, you or a member of your firm must be a domain admin on the client’s domain in Expensify:
 1. Head to *Settings > Domains*
-2. Click the name of your client's domain
+2. Click the client's domain
+     - If you can click on the domain and access the domain settings, you are a Domain Admin
+     - If you’re not a Domain Admin, your client can add you as one by heading to **Settings > Domains > [Client's Domain] > Domain Admins > Add Admin**.
 
-If you can click into the domain and access the domain settings, that means you are a domain admin. 
+_**Note:** You can view all domain admins under Settings > Domains > [Client's Domain] > Domain Admins._
 
-Note: You can view all domain admins under *Settings > Domains > [Client's domain name] > Domain Admins*. 
+# Connect a deposit-only business bank account
+[Follow these instructions](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#connect-a-business-deposit-only-account) to connect a deposit-only business bank account.
 
-If you’re not a domain admin, your client can add you as one by heading to **Settings > Domains > [Client's domain name] > Domain Admins > Add admin**.
-
-# Connect a deposit account
-Next, connect a deposit-only business bank account. Any revenue earned will be deposited directly into that account. 
-
-Instructions to connect a deposit-only business bank account are [here](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/deposit-accounts/Deposit-Accounts-USD#how-to-connect-a-business-deposit-only-bank-account).
+Once that's complete, any revenue earned will be deposited directly into that bank account. 
 
 {% include faq-begin.md %}
 

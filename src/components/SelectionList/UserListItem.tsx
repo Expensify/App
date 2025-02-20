@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
@@ -72,7 +73,7 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
-            pressableStyle={[isFocused && styles.sidebarLinkActive, pressableStyle]}
+            pressableStyle={pressableStyle}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
@@ -86,7 +87,7 @@ function UserListItem<TItem extends ListItem>({
         >
             {(hovered?: boolean) => (
                 <>
-                    {canSelectMultiple && (
+                    {!!canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -96,7 +97,7 @@ function UserListItem<TItem extends ListItem>({
                             style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {item.isSelected && (
+                                {!!item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={theme.textLight}
@@ -147,6 +148,14 @@ function UserListItem<TItem extends ListItem>({
                         )}
                     </View>
                     {!!item.rightElement && item.rightElement}
+                    {!!item.shouldShowRightIcon && (
+                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
+                            <Icon
+                                src={Expensicons.ArrowRight}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, false, false, !!isDisabled, item.isInteractive !== false))}
+                            />
+                        </View>
+                    )}
                 </>
             )}
         </BaseListItem>

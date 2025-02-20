@@ -119,7 +119,7 @@ function NetSuiteImportCustomFieldEdit({
 
     const renderForm = useMemo(
         () =>
-            customField && (
+            !!customField && (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM}
                     style={[styles.flexGrow1, styles.ph5]}
@@ -147,7 +147,7 @@ function NetSuiteImportCustomFieldEdit({
 
     const renderSelection = useMemo(
         () =>
-            customField && (
+            !!customField && (
                 <NetSuiteCustomFieldMappingPicker
                     onInputChange={(value) => {
                         updateRecord({

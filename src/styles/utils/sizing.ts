@@ -37,6 +37,10 @@ export default {
         maxHeight: '100%',
     },
 
+    mh65vh: {
+        maxHeight: '65vh',
+    },
+
     mh85vh: {
         maxHeight: '85vh',
     },
@@ -54,6 +58,10 @@ export default {
 
     mnh0: {
         minHeight: 0,
+    },
+
+    mnh13: {
+        minHeight: 52,
     },
 
     mnw0: {
@@ -96,6 +104,10 @@ export default {
         width: '80%',
     },
 
+    w90: {
+        width: '90%',
+    },
+
     w100: {
         width: '100%',
     },
@@ -117,5 +129,8 @@ export default {
     },
     wAuto: {
         width: 'auto',
+    },
+    wFitContent: {
+        width: 'fit-content',
     },
 } satisfies Record<string, ViewStyle>;

@@ -2,7 +2,9 @@ import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
+import {getDistanceRateCustomUnitRate, getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,7 +82,7 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
  */
 function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], transaction: Transaction) {
     const policyTagKeys = getSortedTagKeys(policyTagList);
-    const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
+    const selectedTags = TransactionUtils.getTagArrayFromName(transaction?.tag ?? '');
     let newTransactionViolations = [...transactionViolations];
 
     newTransactionViolations = newTransactionViolations.filter(
@@ -168,6 +170,7 @@ const ViolationsUtils = {
         policyTagList: PolicyTagLists,
         policyCategories: PolicyCategories,
         hasDependentTags: boolean,
+        isInvoiceTransaction: boolean,
     ): OnyxUpdate {
         const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
         if (isPartialTransaction) {
@@ -205,7 +208,7 @@ const ViolationsUtils = {
 
             // Add 'missingCategory' violation if category is required and not set
             if (!hasMissingCategoryViolation && policyRequiresCategories && !categoryKey) {
-                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION});
+                newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
         }
 
@@ -218,8 +221,62 @@ const ViolationsUtils = {
                     : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyTagList, hasDependentTags);
         }
 
-        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
+        if (updatedTransaction?.comment?.customUnit?.customUnitRateID && !!getDistanceRateCustomUnitRate(policy, updatedTransaction?.comment?.customUnit?.customUnitRateID)) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
+        }
+
+        const isControlPolicy = policy.type === CONST.POLICY.TYPE.CORPORATE;
+        const inputDate = new Date(updatedTransaction.modifiedCreated ?? updatedTransaction.created);
+        const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
+        const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
+        const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
+        const amount = updatedTransaction.modifiedAmount ?? updatedTransaction.amount;
+        const shouldShowReceiptRequiredViolation =
+            !isInvoiceTransaction &&
+            policy.maxExpenseAmountNoReceipt &&
+            Math.abs(amount) > policy.maxExpenseAmountNoReceipt &&
+            !TransactionUtils.hasReceipt(updatedTransaction) &&
+            isControlPolicy;
+        const shouldShowOverLimitViolation = !isInvoiceTransaction && policy.maxExpenseAmount && Math.abs(amount) > policy.maxExpenseAmount && isControlPolicy;
+        const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
+        // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
+        if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
+            newTransactionViolations.push({name: CONST.VIOLATIONS.FUTURE_DATE, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
+        }
+
+        // Remove 'futureDate' violation if transaction date is not in the future
+        if (hasFutureDateViolation && !shouldDisplayFutureDateViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
+        }
+
+        if (!hasReceiptRequiredViolation && shouldShowReceiptRequiredViolation) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+                data: {
+                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmountNoReceipt, policy.outputCurrency),
+                },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
+        if (hasReceiptRequiredViolation && !shouldShowReceiptRequiredViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
+        }
+
+        if (!hasOverLimitViolation && shouldShowOverLimitViolation) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.OVER_LIMIT,
+                data: {
+                    formattedLimit: CurrencyUtils.convertAmountToDisplayString(policy.maxExpenseAmount, policy.outputCurrency),
+                },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
+        if (hasOverLimitViolation && !shouldShowOverLimitViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.OVER_LIMIT});
         }
 
         return {
@@ -253,6 +310,8 @@ const ViolationsUtils = {
             tagName,
             taxName,
             type,
+            rterType,
+            message = '',
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -309,6 +368,8 @@ const ViolationsUtils = {
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
                 return translate('violations.receiptRequired', {formattedLimit, category});
+            case 'customRules':
+                return translate('violations.customRules', {message});
             case 'rter':
                 return translate('violations.rter', {
                     brokenBankConnection,
@@ -316,6 +377,7 @@ const ViolationsUtils = {
                     email,
                     isTransactionOlderThan7Days,
                     member,
+                    rterType,
                 });
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed');
@@ -340,6 +402,11 @@ const ViolationsUtils = {
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                 return violation.name as never;
         }
+    },
+
+    // We have to use regex, because Violation limit is given in a inconvenient form: "$2,000.00"
+    getViolationAmountLimit(violation: TransactionViolation): number {
+        return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
     },
 };
 

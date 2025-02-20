@@ -18,18 +18,17 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
-function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLocationsEnabled: boolean}) {
+function Footer({isTaxEnabled}: {isTaxEnabled: boolean}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    if (!isTaxEnabled && !isLocationsEnabled) {
+    if (!isTaxEnabled) {
         return null;
     }
 
     return (
         <View style={[styles.gap2, styles.mt2, styles.ph5]}>
             {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
-            {isLocationsEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
         </View>
     );
 }
@@ -43,11 +42,9 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const styles = useThemeStyles();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const isLocationsEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qboConfig?.syncTax;
     const shouldShowTaxError = isTaxesEnabled && qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const shouldShowLocationError = isLocationsEnabled && qboConfig?.reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const hasErrors = !!qboConfig?.errorFields?.reimbursableExpensesExportDestination && (shouldShowTaxError || shouldShowLocationError);
+    const hasErrors = !!qboConfig?.errorFields?.reimbursableExpensesExportDestination && shouldShowTaxError;
     const policyID = policy?.id ?? '-1';
 
     const data: MenuItem[] = useMemo(
@@ -57,7 +54,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 text: translate(`workspace.qbo.accounts.check`),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                isShown: !isLocationsEnabled,
+                isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 accounts: bankAccounts ?? [],
             },
             {
@@ -73,11 +70,11 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 text: translate(`workspace.qbo.accounts.bill`),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                isShown: !isLocationsEnabled,
+                isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 accounts: accountPayable ?? [],
             },
         ],
-        [qboConfig?.reimbursableExpensesExportDestination, isTaxesEnabled, translate, isLocationsEnabled, bankAccounts, accountPayable, journalEntryAccounts],
+        [qboConfig?.reimbursableExpensesExportDestination, qboConfig?.syncLocations, translate, bankAccounts, accountPayable, journalEntryAccounts, isTaxesEnabled],
     );
 
     const sections = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
@@ -128,12 +125,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             }
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION)}
-            listFooterContent={
-                <Footer
-                    isTaxEnabled={isTaxesEnabled}
-                    isLocationsEnabled={isLocationsEnabled}
-                />
-            }
+            listFooterContent={<Footer isTaxEnabled={isTaxesEnabled} />}
         />
     );
 }

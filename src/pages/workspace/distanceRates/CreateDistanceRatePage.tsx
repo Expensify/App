@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
@@ -12,7 +11,9 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -24,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyCreateDistanceRateForm';
 import type {Rate} from '@src/types/onyx/Policy';
 
-type CreateDistanceRatePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
+type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
 
 function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
@@ -32,22 +33,22 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const customUnits = policy?.customUnits ?? {};
-    const customUnitID = customUnits[Object.keys(customUnits)[0]]?.customUnitID ?? '';
+    const customUnit = getDistanceRateCustomUnit(policy);
+    const customUnitID = customUnit?.customUnitID ?? '';
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, currency, toLocaleDigit),
-        [currency, toLocaleDigit],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, customUnit?.rates ?? {}, toLocaleDigit),
+        [toLocaleDigit, customUnit?.rates],
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
         const newRate: Rate = {
             currency,
-            name: getOptimisticRateName(customUnits[customUnitID]?.rates),
+            name: getOptimisticRateName(customUnit?.rates ?? {}),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
@@ -64,7 +65,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 style={[styles.defaultModalContainer]}
                 testID={CreateDistanceRatePage.displayName}
                 shouldEnableMaxHeight

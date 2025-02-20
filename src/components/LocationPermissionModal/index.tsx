@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
@@ -39,10 +39,10 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         if (hasError) {
             if (Linking.openSettings) {
                 Linking.openSettings();
+            } else {
+                onDeny?.();
             }
             setShowModal(false);
-            setHasError(false);
-            resetPermissionFlow();
             return;
         }
         cb();
@@ -54,7 +54,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                     onGrant();
                 } else {
-                    onDeny(status);
+                    onDeny();
                 }
             })
             .finally(() => {
@@ -64,7 +64,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     });
 
     const skipLocationPermission = () => {
-        onDeny(RESULTS.DENIED);
+        onDeny();
         setShowModal(false);
         setHasError(false);
     };
@@ -81,15 +81,22 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         setShowModal(false);
         resetPermissionFlow();
     };
+
+    const locationErrorMessage = useMemo(() => (isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage'), [isWeb]);
+
     return (
         <ConfirmModal
+            shouldShowCancelButton={!(isWeb && hasError)}
+            onModalHide={() => {
+                setHasError(false);
+                resetPermissionFlow();
+            }}
             isVisible={showModal}
             onConfirm={grantLocationPermission}
             onCancel={skipLocationPermission}
             onBackdropPress={closeModal}
             confirmText={getConfirmText()}
             cancelText={translate('common.notNow')}
-            prompt={translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage')}
             promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}
             title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
@@ -100,6 +107,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             iconHeight={120}
             shouldCenterIcon
             shouldReverseStackedButtons
+            prompt={translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage')}
         />
     );
 }

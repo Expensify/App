@@ -1,9 +1,29 @@
 import AmexCompanyCards from '@assets/images/companyCards/amex.svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
+import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
+import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
+import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capitalone.svg';
+import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
+import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
 import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
+import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
+import OtherCompanyCardDetail from '@assets/images/companyCards/card=-generic.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
+import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
+import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
+import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-brex-large.svg';
+import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
+import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
+import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
+import OtherCompanyCardDetailLarge from '@assets/images/companyCards/large/card-generic-large.svg';
+import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
+import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
+import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
+import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
 import MasterCardCompanyCards from '@assets/images/companyCards/mastercard.svg';
+import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
@@ -18,6 +38,7 @@ import ConciergeBlue from '@assets/images/product-illustrations/concierge--blue.
 import ConciergeExclamation from '@assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
+import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
@@ -45,6 +66,7 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
+import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -53,6 +75,8 @@ import BankArrow from '@assets/images/simple-illustrations/simple-illustration__
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
+import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
+import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
@@ -65,10 +89,12 @@ import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustra
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
+import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
+import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
@@ -84,6 +110,7 @@ import LockOpen from '@assets/images/simple-illustrations/simple-illustration__l
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
+import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyBadge from '@assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
@@ -91,9 +118,12 @@ import MoneyWings from '@assets/images/simple-illustrations/simple-illustration_
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
+import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
+import Pillow from '@assets/images/simple-illustrations/simple-illustration__pillow.svg';
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
+import RealtimeReport from '@assets/images/simple-illustrations/simple-illustration__realtimereports.svg';
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
@@ -104,6 +134,7 @@ import SendMoney from '@assets/images/simple-illustrations/simple-illustration__
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
+import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__stopwatch.svg';
 import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
 import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
@@ -168,6 +199,7 @@ export {
     MoneyReceipts,
     PinkBill,
     CreditCardsNew,
+    CreditCardsNewGreen,
     InvoiceBlue,
     LaptopwithSecondScreenandHourglass,
     LockOpen,
@@ -191,16 +223,22 @@ export {
     TrashCan,
     TeleScope,
     Profile,
+    Puzzle,
     PalmTree,
     LockClosed,
     Gears,
     QRCode,
+    RealtimeReport,
+    HoldExpense,
     ReceiptEnvelope,
     Approval,
     WalletAlt,
     Workflows,
+    PendingBank,
     ThreeLeggedLaptopWoman,
     House,
+    Building,
+    Buildings,
     Alert,
     TeachersUnite,
     Abacus,
@@ -210,6 +248,7 @@ export {
     ExpensifyCardIllustration,
     SplitBill,
     PiggyBank,
+    Pillow,
     Accounting,
     Car,
     Coins,
@@ -219,6 +258,7 @@ export {
     ReceiptLocationMarker,
     Lightbulb,
     EmptyStateTravel,
+    Stopwatch,
     SubscriptionAnnual,
     SubscriptionPPU,
     ExpensifyApprovedLogo,
@@ -244,4 +284,26 @@ export {
     MasterCardCompanyCardDetail,
     AmexCardCompanyCardDetail,
     TurtleInShell,
+    BankOfAmericaCompanyCardDetail,
+    BrexCompanyCardDetail,
+    CapitalOneCompanyCardDetail,
+    ChaseCompanyCardDetail,
+    CitibankCompanyCardDetail,
+    OtherCompanyCardDetail,
+    StripeCompanyCardDetail,
+    WellsFargoCompanyCardDetail,
+    PerDiem,
+    AmexCardCompanyCardDetailLarge,
+    BankOfAmericaCompanyCardDetailLarge,
+    BrexCompanyCardDetailLarge,
+    CapitalOneCompanyCardDetailLarge,
+    ChaseCompanyCardDetailLarge,
+    CitibankCompanyCardDetailLarge,
+    OtherCompanyCardDetailLarge,
+    MasterCardCompanyCardDetailLarge,
+    StripeCompanyCardDetailLarge,
+    VisaCompanyCardDetailLarge,
+    WellsFargoCompanyCardDetailLarge,
+    Flash,
+    ExpensifyMobileApp,
 };

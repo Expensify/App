@@ -1,15 +1,18 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import React from 'react';
 import type {MutableRefObject} from 'react';
 import type {TextInput} from 'react-native';
 import SCREENS from '@src/SCREENS';
-import getTopmostRouteName from './Navigation/getTopmostRouteName';
-import isReportOpenInRHP from './Navigation/isReportOpenInRHP';
+import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
 import navigationRef from './Navigation/navigationRef';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
 const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
-const editComposerRef = React.createRef<TextInput>();
+
+// There are two types of composer: general composer (edit composer) and main composer.
+// The general composer callback will take priority if it exists.
+const editComposerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
 // There are two types of focus callbacks: priority and general
 // Priority callback would take priority if it existed
 let priorityFocusCallback: FocusCallback | null = null;
@@ -35,7 +38,8 @@ function onComposerFocus(callback: FocusCallback | null, isPriorityCallback = fa
 function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
     /** Do not trigger the refocusing when the active route is not the report screen */
     const navigationState = navigationRef.getState();
-    if (!navigationState || (!isReportOpenInRHP(navigationState) && getTopmostRouteName(navigationState) !== SCREENS.REPORT)) {
+    const focusedRoute = findFocusedRoute(navigationState);
+    if (!navigationState || (!isReportOpenInRHP(navigationState) && focusedRoute?.name !== SCREENS.REPORT)) {
         return;
     }
 
@@ -58,6 +62,7 @@ function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
  */
 function clear(isPriorityCallback = false) {
     if (isPriorityCallback) {
+        editComposerRef.current = null;
         priorityFocusCallback = null;
     } else {
         focusCallback = null;

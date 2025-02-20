@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,11 +17,11 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as Environment from '@libs/Environment/Environment';
+import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
-import * as Report from '@userActions/Report';
+import {openExternalLink} from '@userActions/Link';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -51,7 +51,7 @@ type MenuItem = {
 function AboutPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const popoverAnchor = useRef<View | RNText | null>(null);
+    const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -72,7 +72,7 @@ function AboutPage() {
                 icon: Expensicons.Eye,
                 iconRight: Expensicons.NewWindow,
                 action: () => {
-                    Link.openExternalLink(CONST.GITHUB_URL);
+                    openExternalLink(CONST.GITHUB_URL);
                     return Promise.resolve();
                 },
                 link: CONST.GITHUB_URL,
@@ -82,7 +82,7 @@ function AboutPage() {
                 icon: Expensicons.MoneyBag,
                 iconRight: Expensicons.NewWindow,
                 action: () => {
-                    Link.openExternalLink(CONST.UPWORK_URL);
+                    openExternalLink(CONST.UPWORK_URL);
                     return Promise.resolve();
                 },
                 link: CONST.UPWORK_URL,
@@ -90,7 +90,7 @@ function AboutPage() {
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
                 icon: Expensicons.Bug,
-                action: waitForNavigate(Report.navigateToConciergeChat),
+                action: waitForNavigate(navigateToConciergeChat),
             },
         ];
 
@@ -117,7 +117,7 @@ function AboutPage() {
                     selectable
                     style={[styles.textLabel, styles.textVersion, styles.alignSelfCenter]}
                 >
-                    v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
+                    v{isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                 </Text>
             </View>
         ),
@@ -138,6 +138,7 @@ function AboutPage() {
                 shouldDisplaySearchRouter
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 icon={Illustrations.PalmTree}
+                shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -166,14 +167,14 @@ function AboutPage() {
                         {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
                         <TextLink
                             style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.TERMS_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
                         >
                             {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
                         </TextLink>{' '}
                         {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
                         <TextLink
                             style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.PRIVACY_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                         >
                             {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
                         </TextLink>

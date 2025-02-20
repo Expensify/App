@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {OnyxValueWithOfflineFeedback} from './OnyxCommon';
+import type {OnyxValueWithOfflineFeedback, PendingFields} from './OnyxCommon';
 
 /**
  * Approver in the approval workflow
@@ -55,6 +55,11 @@ type Member = {
      * Avatar URL of the current user from their personal details
      */
     avatar?: AvatarSource;
+
+    /**
+     * Pending states for offline updates
+     */
+    pendingFields?: PendingFields<'submitsTo' | 'forwardsTo'>;
 };
 
 /**
@@ -94,11 +99,6 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      * The current action of the workflow, used to navigate between different screens
      */
     action: ValueOf<typeof CONST.APPROVAL_WORKFLOW.ACTION>;
-
-    /**
-     * Whether we are waiting for the API action to complete
-     */
-    isLoading: boolean;
 
     /**
      * List of available members that can be selected in the workflow

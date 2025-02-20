@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,6 +11,7 @@ import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
-type ImportedCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
+type ImportedCategoriesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
@@ -30,9 +30,11 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+    const isQuickSettingsFlow = !!backTo;
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -67,14 +69,21 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         } else {
             const duplicate = findDuplicate(columns);
             const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+
+            const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
+            const categoriesNames = categoriesNamesColumn !== -1 ? spreadsheet?.data[categoriesNamesColumn] : [];
+            const containsEmptyName = categoriesNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
+
             if (duplicateColumn) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicateColumn.text});
+            } else if (containsEmptyName) {
+                errors.emptyNames = translate('spreadsheet.emptyMappedField', {fieldName: translate('common.name')});
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
+    }, [spreadsheet?.columns, spreadsheet?.data, requiredColumns, translate, columnRoles, containsHeader]);
 
     const importCategories = useCallback(() => {
         setIsValidationEnabled(true);
@@ -120,7 +129,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingCategories(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     };
 
     return (
@@ -130,7 +139,9 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID))}
+                onBackButtonPress={() =>
+                    Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID))
+                }
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

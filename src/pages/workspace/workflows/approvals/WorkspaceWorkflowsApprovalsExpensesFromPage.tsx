@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -19,7 +18,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -48,7 +48,7 @@ type SelectionListMember = {
 type MembersSection = SectionListData<SelectionListMember, Section<SelectionListMember>>;
 
 type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM>;
 
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
@@ -61,6 +61,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const shouldShowListEmptyContent = approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
+    const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -86,6 +87,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, [approvalWorkflow?.members, policy?.employeeList, translate]);
 
+    const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
     const sections: MembersSection[] = useMemo(() => {
         const members: SelectionListMember[] = [...selectedMembers];
 
@@ -106,7 +108,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                     };
                 })
-                .filter((member) => !selectedMembers.some((selectedOption) => selectedOption.login === member.login));
+                .filter(
+                    (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
+                );
 
             members.push(...availableMembers);
         }
@@ -127,7 +131,17 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 shouldShow: true,
             },
         ];
-    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.employeeList, selectedMembers, translate]);
+    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.preventSelfApproval, policy?.employeeList, selectedMembers, translate, approversEmail]);
+
+    const goBack = useCallback(() => {
+        let backTo;
+        if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+        } else if (!isInitialCreationFlow) {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
+        }
+        Navigation.goBack(backTo);
+    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
 
     const nextStep = useCallback(() => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
@@ -141,17 +155,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else {
-            const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
             Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
         }
-    }, [approvalWorkflow, route.params.backTo, route.params.policyID, selectedMembers]);
-
-    const goBack = useCallback(() => {
-        if (isInitialCreationFlow) {
-            Workflow.clearApprovalWorkflow();
-        }
-        Navigation.goBack();
-    }, [isInitialCreationFlow]);
+    }, [approvalWorkflow?.action, firstApprover, route.params.backTo, route.params.policyID, selectedMembers]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -199,10 +205,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
-            >
+            <ScreenWrapper testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}>
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}

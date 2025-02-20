@@ -17,6 +17,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {getButtonRole, getButtonStyle} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonProps = Partial<ChildrenProps> & {
@@ -122,6 +123,9 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Id to use for this button */
     id?: string;
 
+    /** Used to locate this button in ui tests */
+    testID?: string;
+
     /** Accessibility label for the component */
     accessibilityLabel?: string;
 
@@ -142,6 +146,12 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
     isPressOnEnterActive?: boolean;
+
+    /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
+    isNested?: boolean;
+
+    /** The text displays under the first line */
+    secondLineText?: string;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -237,11 +247,14 @@ function Button(
         shouldShowRightIcon = false,
 
         id = '',
+        testID = undefined,
         accessibilityLabel = '',
         isSplitButton = false,
         link = false,
         isContentCentered = false,
         isPressOnEnterActive,
+        isNested = false,
+        secondLineText = '',
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -256,7 +269,7 @@ function Button(
             return rest.children;
         }
 
-        const textComponent = (
+        const primaryText = (
             <Text
                 numberOfLines={1}
                 style={[
@@ -269,6 +282,7 @@ function Button(
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
                     !!icon && styles.textAlignLeft,
+                    !!secondLineText && styles.noPaddingBottom,
                     textStyles,
                     isHovered && textHoverStyles,
                     link && styles.link,
@@ -282,6 +296,15 @@ function Button(
             </Text>
         );
 
+        const textComponent = secondLineText ? (
+            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1]}>
+                {primaryText}
+                <Text style={[isLoading && styles.opacity0, styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker]}>{secondLineText}</Text>
+            </View>
+        ) : (
+            primaryText
+        );
+
         const defaultFill = success || danger ? theme.textLight : theme.icon;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -289,15 +312,15 @@ function Button(
             return (
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
-                        {icon && (
-                            <View style={[large ? styles.mr2 : styles.mr1, !text && styles.mr0, iconStyles]}>
+                        {!!icon && (
+                            <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    hasText={!!text}
                                     fill={isHovered ? iconHoverFill ?? defaultFill : iconFill ?? defaultFill}
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             </View>
                         )}
@@ -312,6 +335,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             ) : (
                                 <Icon
@@ -320,6 +344,7 @@ function Button(
                                     small={small}
                                     medium={medium}
                                     large={large}
+                                    isButtonIcon
                                 />
                             )}
                         </View>
@@ -359,6 +384,10 @@ function Button(
                     if (shouldEnableHapticFeedback) {
                         HapticFeedback.press();
                     }
+
+                    if (isDisabled || isLoading) {
+                        return; // Prevent the onPress from being triggered when the button is disabled or in a loading state
+                    }
                     return onPress(event);
                 }}
                 onLongPress={(event) => {
@@ -390,10 +419,10 @@ function Button(
                     isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
                     shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
                     innerStyles,
                     link && styles.bgTransparent,
+                    getButtonStyle(styles, isNested),
                 ]}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -403,8 +432,9 @@ function Button(
                 ]}
                 disabledStyle={disabledStyle}
                 id={id}
+                testID={testID}
                 accessibilityLabel={accessibilityLabel}
-                role={CONST.ROLE.BUTTON}
+                role={getButtonRole(isNested)}
                 hoverDimmingValue={1}
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}

@@ -1,13 +1,9 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
-import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,29 +11,21 @@ import Growl from '@libs/Growl';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccount} from '@src/types/onyx';
 
-type VerifyIdentityOnyxProps = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
-    /** Onfido applicant ID from ONYX */
-    onfidoApplicantID: OnyxEntry<string>;
-
-    /** The token required to initialize the Onfido SDK */
-    onfidoToken: OnyxEntry<string>;
-};
-
-type VerifyIdentityProps = VerifyIdentityOnyxProps & {
+type VerifyIdentityProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 };
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplicantID, onfidoToken}: VerifyIdentityProps) {
+function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [onfidoApplicantID] = useOnyx(ONYXKEYS.ONFIDO_APPLICANT_ID);
+    const [onfidoToken] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
 
     const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const handleOnfidoSuccess = useCallback(
@@ -61,17 +49,13 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
     };
 
     return (
-        <ScreenWrapper testID={VerifyIdentity.displayName}>
-            <HeaderWithBackButton
-                title={translate('onfidoStep.verifyIdentity')}
-                onBackButtonPress={onBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={2}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                />
-            </View>
+        <InteractiveStepWrapper
+            wrapperID={VerifyIdentity.displayName}
+            headerTitle={translate('onfidoStep.verifyIdentity')}
+            handleBackButtonPress={onBackButtonPress}
+            startStepIndex={2}
+            stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+        >
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
                     <Onfido
@@ -82,21 +66,10 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
                     />
                 </ScrollView>
             </FullPageOfflineBlockingView>
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 
 VerifyIdentity.displayName = 'VerifyIdentity';
 
-export default withOnyx<VerifyIdentityProps, VerifyIdentityOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    onfidoApplicantID: {
-        key: ONYXKEYS.ONFIDO_APPLICANT_ID,
-    },
-    onfidoToken: {
-        key: ONYXKEYS.ONFIDO_TOKEN,
-    },
-})(VerifyIdentity);
+export default VerifyIdentity;

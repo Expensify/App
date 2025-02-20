@@ -50,6 +50,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
     const lastScrollOffsetRef = useRef(0);
     const isListRenderedRef = useRef(false);
     const mvcpAutoscrollToTopThresholdRef = useRef(mvcpAutoscrollToTopThreshold);
+    // eslint-disable-next-line react-compiler/react-compiler
     mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
 
     const getScrollOffset = useCallback((): number => {
@@ -108,28 +109,31 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         }
     }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal]);
 
-    const adjustForMaintainVisibleContentPosition = useCallback(() => {
-        if (mvcpMinIndexForVisible == null) {
-            return;
-        }
-
-        const firstVisibleView = firstVisibleViewRef.current;
-        const prevFirstVisibleOffset = prevFirstVisibleOffsetRef.current;
-        if (firstVisibleView == null || !firstVisibleView.isConnected || prevFirstVisibleOffset == null) {
-            return;
-        }
-
-        const firstVisibleViewOffset = horizontal ? firstVisibleView.offsetLeft : firstVisibleView.offsetTop;
-        const delta = firstVisibleViewOffset - prevFirstVisibleOffset;
-        if (Math.abs(delta) > (IS_MOBILE_SAFARI ? 100 : 0.5)) {
-            const scrollOffset = lastScrollOffsetRef.current;
-            prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
-            scrollToOffset(scrollOffset + delta, false, true);
-            if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
-                scrollToOffset(0, true, false);
+    const adjustForMaintainVisibleContentPosition = useCallback(
+        (animated = true) => {
+            if (mvcpMinIndexForVisible == null) {
+                return;
             }
-        }
-    }, [scrollToOffset, mvcpMinIndexForVisible, horizontal]);
+
+            const firstVisibleView = firstVisibleViewRef.current;
+            const prevFirstVisibleOffset = prevFirstVisibleOffsetRef.current;
+            if (firstVisibleView == null || !firstVisibleView.isConnected || prevFirstVisibleOffset == null) {
+                return;
+            }
+
+            const firstVisibleViewOffset = horizontal ? firstVisibleView.offsetLeft : firstVisibleView.offsetTop;
+            const delta = firstVisibleViewOffset - prevFirstVisibleOffset;
+            if (Math.abs(delta) > (IS_MOBILE_SAFARI ? 100 : 0.5)) {
+                const scrollOffset = lastScrollOffsetRef.current;
+                prevFirstVisibleOffsetRef.current = firstVisibleViewOffset;
+                scrollToOffset(scrollOffset + delta, false, true);
+                if (mvcpAutoscrollToTopThresholdRef.current != null && scrollOffset <= mvcpAutoscrollToTopThresholdRef.current) {
+                    scrollToOffset(0, animated, false);
+                }
+            }
+        },
+        [scrollToOffset, mvcpMinIndexForVisible, horizontal],
+    );
 
     const setupMutationObserver = useCallback(() => {
         const contentView = getContentView();
@@ -140,6 +144,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
         mutationObserverRef.current?.disconnect();
 
         const mutationObserver = new MutationObserver((mutations) => {
+            let isEditComposerAdded = false;
             // Check if the first visible view is removed and re-calculate it
             // if needed.
             mutations.forEach((mutation) => {
@@ -148,6 +153,12 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                         return;
                     }
                     firstVisibleViewRef.current = null;
+                });
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType !== Node.ELEMENT_NODE || !(node as HTMLElement).querySelector('#composer')) {
+                        return;
+                    }
+                    isEditComposerAdded = true;
                 });
             });
 
@@ -161,7 +172,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
                 return;
             }
 
-            adjustForMaintainVisibleContentPosition();
+            adjustForMaintainVisibleContentPosition(!isEditComposerAdded);
             prepareForMaintainVisibleContentPosition();
         });
         mutationObserver.observe(contentView, {

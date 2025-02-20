@@ -27,13 +27,13 @@ import Text from './Text';
 
 type ImportSpreedsheetProps = {
     // The route to navigate to when the back button is pressed.
-    backTo: Routes;
+    backTo?: Routes;
 
     // The route to navigate to after the file import is completed.
     goTo: Routes;
 };
 
-function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
+function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isReadingFile, setIsReadingFIle] = useState(false);
@@ -42,6 +42,8 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -91,8 +93,10 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             .then((arrayBuffer) => {
                 const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'});
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false});
-                setSpreadsheetData(data as string[][])
+                const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
+                const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
+
+                setSpreadsheetData(formattedSpreadsheetData)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })
@@ -121,7 +125,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
             </View>
             <View
                 style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                // eslint-disable-next-line react-compiler/react-compiler, react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
                 <Text style={[styles.textFileUpload, styles.mb1]}>{translate('spreadsheet.upload')}</Text>
@@ -158,7 +162,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            testID={ImportSpreedsheet.displayName}
+            testID={ImportSpreadsheet.displayName}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
@@ -167,7 +171,7 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={translate('spreadsheet.importSpreadsheet')}
-                            onBackButtonPress={() => Navigation.navigate(backTo)}
+                            onBackButtonPress={() => Navigation.goBack(backTo)}
                         />
 
                         <View style={[styles.flex1, styles.uploadFileView(isSmallScreenWidth)]}>
@@ -212,6 +216,6 @@ function ImportSpreedsheet({backTo, goTo}: ImportSpreedsheetProps) {
     );
 }
 
-ImportSpreedsheet.displayName = 'ImportSpreedsheet';
+ImportSpreadsheet.displayName = 'ImportSpreadsheet';
 
-export default ImportSpreedsheet;
+export default ImportSpreadsheet;

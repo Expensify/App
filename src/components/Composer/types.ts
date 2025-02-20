@@ -13,9 +13,6 @@ type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeE
 };
 
 type ComposerProps = Omit<TextInputProps, 'onClear'> & {
-    /** identify id in the text input */
-    id?: string;
-
     /** Indicate whether input is multiline */
     multiline?: boolean;
 
@@ -56,12 +53,6 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
 
     /** Selection Object */
     selection?: TextSelection;
-
-    /** Whether the full composer can be opened */
-    isFullComposerAvailable?: boolean;
-
-    /** Allow the full composer to be opened */
-    setIsFullComposerAvailable?: (value: boolean) => void;
 
     /** Should we calculate the caret position */
     shouldCalculateCaretPosition?: boolean;

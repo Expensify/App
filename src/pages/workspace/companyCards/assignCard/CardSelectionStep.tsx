@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
+import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -13,67 +13,51 @@ import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-
-type MockedCard = {
-    key: string;
-    cardNumber: string;
-};
-
-const mockedCardList = [
-    {
-        key: '1',
-        cardNumber: '123412XXXXXX1234',
-    },
-    {
-        key: '2',
-        cardNumber: '123412XXXXXX1235',
-    },
-    {
-        key: '3',
-        cardNumber: '123412XXXXXX1236',
-    },
-];
-
-const mockedCardListEmpty: MockedCard[] = [];
-
-const feedNamesMapping = {
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'Visa',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD]: 'MasterCard',
-    [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: 'American Express',
-};
+import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardSelectionStepProps = {
-    feed: string;
+    /** Selected feed */
+    feed: CompanyCardFeed;
+
+    /** Current policy id */
+    policyID: string | undefined;
 };
 
-function CardSelectionStep({feed}: CardSelectionStepProps) {
+function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     const isEditing = assignCard?.isEditing;
-    const assignee = assignCard?.data?.email ?? '';
+    const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
-    const [cardSelected, setCardSelected] = useState(assignCard?.data?.cardName ?? '');
+    const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({
+            setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
             return;
         }
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
     };
 
     const handleSelectCard = (cardNumber: string) => {
@@ -86,38 +70,44 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
             setShouldShowError(true);
             return;
         }
-        CompanyCards.setAssignCardStepAndData({
+
+        const cardNumber =
+            Object.entries(filteredCardList)
+                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
+                ?.at(0) ?? '';
+
+        setAssignCardStepAndData({
             currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {cardName: cardSelected},
+            data: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
         });
     };
 
-    // TODO: for now mocking cards
-    const mockedCards = !Object.values(CONST.COMPANY_CARD.FEED_BANK_NAME).some((value) => value === feed) ? mockedCardListEmpty : mockedCardList;
-
-    const cardListOptions = mockedCards.map((item) => ({
-        keyForList: item?.cardNumber,
-        value: item?.cardNumber,
-        text: item?.cardNumber,
-        isSelected: cardSelected === item?.cardNumber,
+    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
+        keyForList: encryptedCardNumber,
+        value: encryptedCardNumber,
+        text: maskCardNumber(cardNumber, feed),
+        isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
-                src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.iconSizeExtraLarge}
+                src={getCardFeedIcon(feed)}
+                height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
+                additionalStyles={[styles.mr3, styles.cardIcon]}
             />
         ),
     }));
+
+    const searchedListOptions = useMemo(() => {
+        return cardListOptions.filter((option) => option.text.toLowerCase().includes(searchText));
+    }, [searchText, cardListOptions]);
 
     return (
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={cardListOptions.length ? 1 : undefined}
-            stepNames={cardListOptions.length ? CONST.COMPANY_CARD.STEP_NAMES : undefined}
             headerTitle={translate('workspace.companyCards.assignCard')}
+            headerSubtitle={assigneeDisplayName}
         >
             {!cardListOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
@@ -140,18 +130,37 @@ function CardSelectionStep({feed}: CardSelectionStepProps) {
                 </View>
             ) : (
                 <>
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                        {translate('workspace.companyCards.chooseCardFor', {
-                            assignee: PersonalDetailsUtils.getPersonalDetailByEmail(assignee ?? '')?.displayName ?? '',
-                            feed: feedNamesMapping[feed as ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>] ?? 'visa',
-                        })}
-                    </Text>
                     <SelectionList
-                        sections={[{data: cardListOptions}]}
+                        sections={[{data: searchedListOptions}]}
+                        headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
+                        shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
+                        textInputLabel={translate('common.search')}
+                        textInputValue={searchText}
+                        onChangeText={setSearchText}
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => handleSelectCard(value)}
                         initiallyFocusedOptionKey={cardSelected}
+                        listHeaderContent={
+                            <View>
+                                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                                    <InteractiveStepSubHeader
+                                        startStepIndex={1}
+                                        stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                                    />
+                                </View>
+                                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+                                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
+                                    {translate('workspace.companyCards.chooseCardFor', {
+                                        assignee: assigneeDisplayName,
+                                        feed: getBankName(feed),
+                                    })}
+                                </Text>
+                            </View>
+                        }
+                        shouldShowTextInputAfterHeader
+                        shouldShowHeaderMessageAfterHeader
+                        includeSafeAreaPaddingBottom={false}
+                        shouldShowListEmptyContent={false}
                         shouldUpdateFocusedIndex
                     />
                     <FormAlertWithSubmitButton

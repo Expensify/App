@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 function useDebouncedState<T>(initialValue: T, delay: number = CONST.TIMING.USE_DEBOUNCED_STATE_DELAY): [T, T, (value: T) => void] {
     const [value, setValue] = useState(initialValue);
     const [debouncedValue, setDebouncedValue] = useState(initialValue);
+    // eslint-disable-next-line react-compiler/react-compiler
     const debouncedSetDebouncedValue = useRef(debounce(setDebouncedValue, delay)).current;
 
     useEffect(() => () => debouncedSetDebouncedValue.cancel(), [debouncedSetDebouncedValue]);

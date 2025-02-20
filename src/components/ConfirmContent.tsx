@@ -168,7 +168,7 @@ function ConfirmContent({
                     </View>
                 )}
                 <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
-                    {iconSource && (
+                    {!!iconSource && (
                         <View style={[shouldCenterIcon ? styles.justifyContentCenter : null, styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={iconSource}
@@ -207,6 +207,7 @@ function ConfirmContent({
                             isPressOnEnterActive={isVisible}
                             large
                             text={confirmText || translate('common.yes')}
+                            accessibilityLabel={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                         />
                         {shouldShowCancelButton && !shouldReverseStackedButtons && (

@@ -36,6 +36,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    shouldHighlightSelectedItem,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -58,8 +59,9 @@ function InviteMemberListItem<TItem extends ListItem>({
 
     return (
         <BaseListItem
+            pressableStyle={[[shouldHighlightSelectedItem && item.isSelected && styles.activeComponentBG]]}
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, isFocused && styles.sidebarLinkActive]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -125,7 +127,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                         )}
                     </View>
                     {!!item.rightElement && item.rightElement}
-                    {shouldShowCheckBox && (
+                    {!!shouldShowCheckBox && (
                         <PressableWithFeedback
                             onPress={handleCheckboxPress}
                             disabled={isDisabled}

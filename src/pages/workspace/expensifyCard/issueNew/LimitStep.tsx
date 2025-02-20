@@ -1,58 +1,67 @@
 import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import ScreenWrapper from '@components/ScreenWrapper';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Card from '@userActions/Card';
+import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 
-function LimitStep() {
+type LimitStepProps = {
+    /** ID of the policy */
+    policyID: string | undefined;
+};
+
+function LimitStep({policyID}: LimitStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const isEditing = issueNewCard?.isEditing;
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-            const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit));
-            Card.setIssueNewCardStepAndData({
+            const limit = convertToBackendAmount(Number(values?.limit));
+            setIssueNewCardStepAndData({
                 step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_NAME,
                 data: {limit},
                 isEditing: false,
+                policyID,
             });
         },
-        [isEditing],
+        [isEditing, policyID],
     );
 
     const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE});
-    }, [isEditing]);
+        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, policyID});
+    }, [isEditing, policyID]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
 
             // We only want integers to be sent as the limit
-            if (!Number(values.limit) || !Number.isInteger(Number(values.limit))) {
+            if (!Number(values.limit)) {
                 errors.limit = translate('iou.error.invalidAmount');
+            } else if (!Number.isInteger(Number(values.limit))) {
+                errors.limit = translate('iou.error.invalidIntegerAmount');
+            }
+
+            if (Number(values.limit) > CONST.EXPENSIFY_CARD.LIMIT_VALUE) {
+                errors.limit = translate('workspace.card.issueNewCard.cardLimitError');
             }
             return errors;
         },
@@ -60,22 +69,15 @@ function LimitStep() {
     );
 
     return (
-        <ScreenWrapper
-            testID={LimitStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+        <InteractiveStepWrapper
+            wrapperID={LimitStep.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            headerTitle={translate('workspace.card.issueCard')}
+            handleBackButtonPress={handleBackButtonPress}
+            startStepIndex={3}
+            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.card.issueCard')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={3}
-                    stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
-                />
-            </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.setLimit')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
@@ -91,13 +93,13 @@ function LimitStep() {
             >
                 <InputWrapper
                     InputComponent={AmountForm}
-                    defaultValue={CurrencyUtils.convertToFrontendAmountAsString(issueNewCard?.data?.limit, CONST.CURRENCY.USD, false)}
+                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, CONST.CURRENCY.USD, false)}
                     isCurrencyPressable={false}
                     inputID={INPUT_IDS.LIMIT}
                     ref={inputCallbackRef}
                 />
             </FormProvider>
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 

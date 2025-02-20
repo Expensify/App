@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -12,6 +11,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors, settingsPendingAction} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Connections} from '@src/types/onyx/Policy';
 
-type SageIntacctDefaultVendorPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR>;
+type SageIntacctDefaultVendorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR>;
 
 function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps) {
     const styles = useThemeStyles();
@@ -66,9 +66,13 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             if (value !== defaultVendor) {
                 updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
+            Navigation.goBack(
+                isReimbursable
+                    ? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)
+                    : ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID),
+            );
         },
-        [defaultVendor, policyID, settingName],
+        [defaultVendor, isReimbursable, policyID, settingName],
     );
 
     const listEmptyContent = useMemo(

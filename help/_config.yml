@@ -8,3 +8,4 @@ github_username:  expensify
 # Ignore what's only used for the Github repo
 exclude:
   - README.md
+  - GUIDELINES.md

@@ -69,11 +69,26 @@ type Response = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     shared_secret?: string;
 
+    /** Setup Url */
+    setupUrl?: string;
+
     /** The accountID of the user */
     accountID?: number;
 
     /** The email of the user */
     email?: string;
+
+    /** If there is older data to load for pagination commands */
+    hasOlderActions?: boolean;
+
+    /** If there is newer data to load for pagination commands */
+    hasNewerActions?: boolean;
+
+    /** The email of the original user (returned when in delegate mode) */
+    requesterEmail?: string;
+
+    /** The ID of the original user (returned when in delegate mode) */
+    requesterID?: number;
 };
 
 export default Response;

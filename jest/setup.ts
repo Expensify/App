@@ -1,5 +1,6 @@
 /* eslint-disable max-classes-per-file */
 import '@shopify/flash-list/jestSetup';
+import type * as RNAppLogs from 'react-native-app-logs';
 import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
@@ -8,12 +9,18 @@ import 'setimmediate';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
+// Needed for tests to have the necessary environment variables set
+if (!('GITHUB_REPOSITORY' in process.env)) {
+    process.env.GITHUB_REPOSITORY_OWNER = 'Expensify';
+    process.env.GITHUB_REPOSITORY = 'Expensify/App';
+}
+
 setupMockImages();
 mockFSLibrary();
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
+jest.mock('react-native/src/private/animated/NativeAnimatedHelper');
 
 // Mock react-native-onyx storage layer because the SQLite storage layer doesn't work in jest.
 // Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project,
@@ -75,9 +82,16 @@ jest.mock('react-native-reanimated', () => ({
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
+jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native-app-logs/jest'));
+
 jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
+}));
+
+jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
+    defineTask: jest.fn(),
+    onBackgroundTaskExecution: jest.fn(),
 }));
 
 // This makes FlatList render synchronously for easier testing.
@@ -98,3 +112,41 @@ jest.mock(
             dispose() {}
         },
 );
+
+jest.mock(
+    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
+    () =>
+        class SyncRenderTaskQueue {
+            private handler: (info: unknown) => void = () => {};
+
+            add(info: unknown) {
+                this.handler(info);
+            }
+
+            setHandler(handler: () => void) {
+                this.handler = handler;
+            }
+
+            cancel() {}
+        },
+);
+
+jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn((command: string, data: Record<string, unknown>) => {
+        const formData = new FormData();
+
+        Object.keys(data).forEach((key) => {
+            const value = data[key];
+
+            if (value === undefined) {
+                return;
+            }
+
+            formData.append(key, value as string | Blob);
+        });
+
+        return Promise.resolve(formData);
+    }),
+}));

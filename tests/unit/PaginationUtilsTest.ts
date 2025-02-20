@@ -59,7 +59,9 @@ describe('PaginationUtils', () => {
             ];
             for (const targetID of targetIDs) {
                 const result = PaginationUtils.getContinuousChain(input, pages, getID, targetID);
-                expect(result).toStrictEqual(expectedOutput);
+                expect(result.data).toStrictEqual(expectedOutput);
+                expect(result.hasPreviousPage).toBe(true);
+                expect(result.hasNextPage).toBe(true);
             }
         });
 
@@ -95,7 +97,9 @@ describe('PaginationUtils', () => {
             // Expect these sortedItems
             const expectedResult: Item[] = [];
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
-            expect(result).toStrictEqual(expectedResult);
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(false);
+            expect(result.hasNextPage).toBe(false);
         });
 
         it('given an input ID of an action in a gap it will return only that action', () => {
@@ -132,7 +136,9 @@ describe('PaginationUtils', () => {
                 '8',
             ]);
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
-            expect(result).toStrictEqual(expectedResult);
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(false);
+            expect(result.hasNextPage).toBe(false);
         });
 
         it('given an empty input ID and the report only contains pending actions, it will return all actions', () => {
@@ -152,10 +158,35 @@ describe('PaginationUtils', () => {
             // Expect these sortedItems
             const expectedResult = [...input];
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
-            expect(result).toStrictEqual(expectedResult);
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(false);
+            expect(result.hasNextPage).toBe(false);
         });
 
-        it('given an input ID and the report only contains pending actions, it will return an empty array', () => {
+        it('given an input ID and the report only contains pending actions, it will return all actions', () => {
+            const input = createItems([
+                // Given these sortedItems
+                '7',
+                '6',
+                '5',
+                '4',
+                '3',
+                '2',
+                '1',
+            ]);
+
+            const pages: Pages = [];
+
+            // Expect these sortedItems
+            const expectedResult = [...input];
+            const result = PaginationUtils.getContinuousChain(input, pages, getID, '4');
+            // Expect the result to be the same
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(false);
+            expect(result.hasNextPage).toBe(false);
+        });
+
+        it('given an input ID of 8 which does not exist in Onyx and the report only contains pending actions, it will return an empty array', () => {
             const input = createItems([
                 // Given these sortedItems
                 '7',
@@ -171,8 +202,10 @@ describe('PaginationUtils', () => {
 
             // Expect these sortedItems
             const expectedResult: Item[] = [];
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '4');
-            expect(result).toStrictEqual(expectedResult);
+            const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(false);
+            expect(result.hasNextPage).toBe(false);
         });
 
         it('does not include actions outside of pages', () => {
@@ -212,7 +245,9 @@ describe('PaginationUtils', () => {
                 '9',
             ]);
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '10');
-            expect(result).toStrictEqual(expectedResult);
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(true);
+            expect(result.hasNextPage).toBe(true);
         });
 
         it('given a page with an empty firstItemID include actions until the start', () => {
@@ -237,7 +272,9 @@ describe('PaginationUtils', () => {
                 '14',
             ]);
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
-            expect(result).toStrictEqual(expectedResult);
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(false);
+            expect(result.hasNextPage).toBe(true);
         });
 
         it('given a page with null lastItemID include actions to the end', () => {
@@ -262,7 +299,9 @@ describe('PaginationUtils', () => {
                 '14',
             ]);
             const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
-            expect(result).toStrictEqual(expectedResult);
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(true);
+            expect(result.hasNextPage).toBe(false);
         });
     });
 

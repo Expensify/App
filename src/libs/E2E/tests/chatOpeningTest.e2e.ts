@@ -15,6 +15,7 @@ const test = (config: NativeConfig) => {
     console.debug('[E2E] Logging in for chat opening');
 
     const reportID = getConfigValueOrThrow('reportID', config);
+    const name = getConfigValueOrThrow('name', config);
 
     E2ELogin().then((neededLogin) => {
         if (neededLogin) {
@@ -26,10 +27,9 @@ const test = (config: NativeConfig) => {
 
         console.debug('[E2E] Logged in, getting chat opening metrics and submitting them…');
 
-        const [renderChatPromise, renderChatResolve] = getPromiseWithResolve();
         const [chatTTIPromise, chatTTIResolve] = getPromiseWithResolve();
 
-        Promise.all([renderChatPromise, chatTTIPromise]).then(() => {
+        chatTTIPromise.then(() => {
             console.debug(`[E2E] Submitting!`);
 
             E2EClient.submitTestDone();
@@ -45,26 +45,10 @@ const test = (config: NativeConfig) => {
 
             console.debug(`[E2E] Entry: ${JSON.stringify(entry)}`);
 
-            if (entry.name === CONST.TIMING.CHAT_RENDER) {
-                E2EClient.submitTestResults({
-                    branch: Config.E2E_BRANCH,
-                    name: 'Chat opening',
-                    metric: entry.duration,
-                    unit: 'ms',
-                })
-                    .then(() => {
-                        console.debug('[E2E] Done with chat opening, exiting…');
-                        renderChatResolve();
-                    })
-                    .catch((err) => {
-                        console.debug('[E2E] Error while submitting test results:', err);
-                    });
-            }
-
             if (entry.name === CONST.TIMING.OPEN_REPORT) {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
-                    name: 'Chat TTI',
+                    name: `${name} Chat TTI`,
                     metric: entry.duration,
                     unit: 'ms',
                 })

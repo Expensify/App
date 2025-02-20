@@ -36,7 +36,7 @@ describe('PersistedRequests', () => {
     });
 
     it('remove a request from the PersistedRequests array', () => {
-        PersistedRequests.remove(request);
+        PersistedRequests.endRequestAndRemoveFromQueue(request);
         expect(PersistedRequests.getAll().length).toBe(0);
     });
 
@@ -84,7 +84,7 @@ describe('PersistedRequests', () => {
     it('when removing a request should update the persistedRequests queue and clear the ongoing request', () => {
         PersistedRequests.processNextRequest();
         expect(PersistedRequests.getOngoingRequest()).toEqual(request);
-        PersistedRequests.remove(request);
+        PersistedRequests.endRequestAndRemoveFromQueue(request);
         expect(PersistedRequests.getOngoingRequest()).toBeNull();
         expect(PersistedRequests.getAll().length).toBe(0);
     });

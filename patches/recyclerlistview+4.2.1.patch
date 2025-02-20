@@ -1,0 +1,12 @@
+diff --git a/node_modules/recyclerlistview/dist/reactnative/core/RecyclerListView.js b/node_modules/recyclerlistview/dist/reactnative/core/RecyclerListView.js
+index 3ca4550..753c2f7 100644
+--- a/node_modules/recyclerlistview/dist/reactnative/core/RecyclerListView.js
++++ b/node_modules/recyclerlistview/dist/reactnative/core/RecyclerListView.js
+@@ -251,6 +251,7 @@ var RecyclerListView = /** @class */ (function (_super) {
+         this._virtualRenderer.setOptimizeForAnimations(false);
+     };
+     RecyclerListView.prototype.componentDidMount = function () {
++        this._isMounted = true;
+         if (this._initComplete) {
+             this._processInitialOffset();
+             this._processOnEndReached();

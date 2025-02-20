@@ -46,7 +46,7 @@ npm run android
   ```diff
   {
     "private": true,
-+ "main": "src/libs/E2E/reactNativeEntry.ts"
++ "main": "src/libs/E2E/reactNativeLaunchingTest.ts"
   }
   ```
 

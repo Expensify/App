@@ -40,7 +40,7 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
+            Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
             return;
         }
 
@@ -54,7 +54,7 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             testID={EnablePaymentsPage.displayName}
         >
             {() => {

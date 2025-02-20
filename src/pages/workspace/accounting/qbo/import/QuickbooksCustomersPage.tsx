@@ -1,12 +1,15 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -21,6 +24,20 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const isSwitchOn = !!(qboConfig?.syncCustomers && qboConfig?.syncCustomers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = qboConfig?.syncCustomers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+
+    const isAccordionExpanded = useSharedValue(isSwitchOn);
+    const shouldAnimateAccordionSection = useSharedValue(false);
+    const hasMounted = useSharedValue(false);
+
+    useEffect(() => {
+        isAccordionExpanded.set(isSwitchOn);
+        if (hasMounted.get()) {
+            shouldAnimateAccordionSection.set(true);
+        } else {
+            hasMounted.set(true);
+        }
+    }, [hasMounted, isAccordionExpanded, isSwitchOn, shouldAnimateAccordionSection]);
+
     return (
         <ConnectionLayout
             displayName={QuickbooksCustomersPage.displayName}
@@ -48,14 +65,22 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS)}
             />
-            {isSwitchOn && (
-                <MenuItemWithTopDescription
-                    interactive={false}
-                    title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                    description={translate('workspace.common.displayedAs')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                />
-            )}
+
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                isToggleTriggered={shouldAnimateAccordionSection}
+            >
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                        description={translate('workspace.common.displayedAs')}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS.getRoute(policyID))}
+                        shouldShowRightIcon
+                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
+                        brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_CUSTOMERS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
+            </Accordion>
         </ConnectionLayout>
     );
 }

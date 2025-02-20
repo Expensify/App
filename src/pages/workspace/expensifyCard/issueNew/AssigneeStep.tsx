@@ -1,11 +1,8 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import ScreenWrapper from '@components/ScreenWrapper';
+import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
@@ -15,11 +12,11 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
+import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import * as Card from '@userActions/Card';
+import {clearIssueNewCardFlow, getCardDefaultName, setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -36,7 +33,8 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const policyID = policy?.id;
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -47,25 +45,26 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             assigneeEmail: assignee?.login ?? '',
         };
 
-        if (isEditing && issueNewCard?.data?.cardTitle === Card.getCardDefaultName(PersonalDetailsUtils.getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {
+        if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {
             // If the card title is the default card title, update it with the new assignee's name
-            data.cardTitle = Card.getCardDefaultName(PersonalDetailsUtils.getUserNameByEmail(assignee?.login ?? '', 'firstName'));
+            data.cardTitle = getCardDefaultName(getUserNameByEmail(assignee?.login ?? '', 'firstName'));
         }
 
-        Card.setIssueNewCardStepAndData({
+        setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data,
             isEditing: false,
+            policyID,
         });
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
         Navigation.goBack();
-        Card.clearIssueNewCardFlow();
+        clearIssueNewCardFlow(policyID);
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
@@ -78,11 +77,11 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         }
 
         Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
-            if (PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+            if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 return;
             }
 
-            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+            const personalDetail = getPersonalDetailByEmail(email);
             membersList.push({
                 keyForList: email,
                 text: personalDetail?.displayName,
@@ -100,7 +99,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             });
         });
 
-        membersList = OptionsListUtils.sortAlphabetically(membersList, 'text');
+        membersList = sortAlphabetically(membersList, 'text');
 
         return membersList;
     }, [isOffline, policy?.employeeList]);
@@ -115,7 +114,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
         const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
 
         return [
@@ -130,26 +129,19 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return OptionsListUtils.getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
+        return getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
     }, [debouncedSearchTerm, sections]);
 
     return (
-        <ScreenWrapper
-            testID={AssigneeStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+        <InteractiveStepWrapper
+            wrapperID={AssigneeStep.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            headerTitle={translate('workspace.card.issueCard')}
+            handleBackButtonPress={handleBackButtonPress}
+            startStepIndex={0}
+            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.card.issueCard')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    startStepIndex={0}
-                    stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
-                />
-            </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
                 textInputLabel={textInputLabel}
@@ -160,7 +152,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                 ListItem={UserListItem}
                 onSelectRow={submit}
             />
-        </ScreenWrapper>
+        </InteractiveStepWrapper>
     );
 }
 

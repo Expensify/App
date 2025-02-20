@@ -63,11 +63,9 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: {
-                isLoading: true,
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -82,11 +80,6 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: {...approvalWorkflow, isLoading: false},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 employeeList: previousEmployeeList,
@@ -96,11 +89,6 @@ function createApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     ];
 
     const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: null,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -139,11 +127,9 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: {
-                isLoading: true,
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -158,11 +144,6 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: {...approvalWorkflow, isLoading: false},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 employeeList: previousEmployeeList,
@@ -174,15 +155,10 @@ function updateApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 
     const successData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: null,
-        },
-        {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null}])),
+                employeeList: Object.fromEntries(Object.keys(updatedEmployees).map((key) => [key, {pendingAction: null, pendingFields: null}])),
             },
         },
     ];
@@ -213,11 +189,9 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: {
-                isLoading: true,
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -232,11 +206,6 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: {...approvalWorkflow, isLoading: false},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 employeeList: previousEmployeeList,
@@ -246,11 +215,6 @@ function removeApprovalWorkflow(policyID: string, approvalWorkflow: ApprovalWork
     ];
 
     const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.APPROVAL_WORKFLOW,
-            value: null,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -334,7 +298,7 @@ function clearApprovalWorkflowApprovers() {
 }
 
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+    Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
 
 function clearApprovalWorkflow() {

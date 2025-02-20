@@ -2,17 +2,23 @@ import {useFocusEffect} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
 import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {useInputBlurContext} from '@components/InputBlurContext';
+import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isSafari} from '@libs/Browser';
+import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import * as FormActions from '@userActions/FormActions';
+import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
@@ -66,6 +72,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
+
+    /** Whether the form is loading */
+    isLoading?: boolean;
 };
 
 function FormProvider(
@@ -79,6 +88,7 @@ function FormProvider(
         onSubmit,
         shouldTrimValues = true,
         allowHTML = false,
+        isLoading = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
@@ -92,15 +102,16 @@ function FormProvider(
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
+    const {setIsBlurred} = useInputBlurContext();
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
-            const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(values) : values;
+            const trimmedStringValues = shouldTrimValues ? prepareValues(values) : values;
 
             if (shouldClearServerError) {
-                FormActions.clearErrors(formID);
+                clearErrors(formID);
             }
-            FormActions.clearErrorFields(formID);
+            clearErrorFields(formID);
 
             const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
 
@@ -165,7 +176,7 @@ function FormProvider(
         }
 
         // Prepare validation values
-        const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
+        const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
         // Validate in order to make sure the correct error translations are displayed,
         // making sure to not clear server errors if they exist
@@ -183,30 +194,34 @@ function FormProvider(
         [touchedInputs],
     );
 
-    const submit = useCallback(() => {
-        // Return early if the form is already submitting to avoid duplicate submission
-        if (formState?.isLoading) {
-            return;
-        }
+    const submit = useDebounceNonReactive(
+        useCallback(() => {
+            // Return early if the form is already submitting to avoid duplicate submission
+            if (!!formState?.isLoading || isLoading) {
+                return;
+            }
 
-        // Prepare values before submitting
-        const trimmedStringValues = shouldTrimValues ? ValidationUtils.prepareValues(inputValues) : inputValues;
+            // Prepare values before submitting
+            const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
-        // Touches all form inputs, so we can validate the entire form
-        Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
+            // Touches all form inputs, so we can validate the entire form
+            Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
 
-        // Validate form and return early if any errors are found
-        if (!isEmptyObject(onValidate(trimmedStringValues))) {
-            return;
-        }
+            // Validate form and return early if any errors are found
+            if (!isEmptyObject(onValidate(trimmedStringValues))) {
+                return;
+            }
 
-        // Do not submit form if network is offline and the form is not enabled when offline
-        if (network?.isOffline && !enabledWhenOffline) {
-            return;
-        }
+            // Do not submit form if network is offline and the form is not enabled when offline
+            if (network?.isOffline && !enabledWhenOffline) {
+                return;
+            }
 
-        onSubmit(trimmedStringValues);
-    }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate, shouldTrimValues]);
+            KeyboardUtils.dismiss().then(() => onSubmit(trimmedStringValues));
+        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues]),
+        1000,
+        {leading: true, trailing: false},
+    );
 
     // Keep track of the focus state of the current screen.
     // This is used to prevent validating the form on blur before it has been interacted with.
@@ -239,14 +254,25 @@ function FormProvider(
     );
 
     const resetErrors = useCallback(() => {
-        FormActions.clearErrors(formID);
-        FormActions.clearErrorFields(formID);
+        clearErrors(formID);
+        clearErrorFields(formID);
         setErrors({});
     }, [formID]);
+
+    const resetFormFieldError = useCallback(
+        (inputID: keyof Form) => {
+            const newErrors = {...errors};
+            delete newErrors[inputID];
+            setFormErrors(formID, newErrors as Errors);
+            setErrors(newErrors);
+        },
+        [errors, formID],
+    );
 
     useImperativeHandle(forwardedRef, () => ({
         resetForm,
         resetErrors,
+        resetFormFieldError,
     }));
 
     const registerInput = useCallback<RegisterInput>(
@@ -300,7 +326,8 @@ function FormProvider(
                 value: inputValues[inputID],
                 // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
-                defaultValue: undefined,
+                // If it's uncontrolled, then we set the `defaultValue` prop to actual value
+                defaultValue: inputProps.uncontrolled ? inputProps.defaultValue : undefined,
                 onTouched: (event) => {
                     if (!inputProps.shouldSetTouchedOnBlurOnly) {
                         setTimeout(() => {
@@ -353,6 +380,11 @@ function FormProvider(
                         }, VALIDATE_DELAY);
                     }
                     inputProps.onBlur?.(event);
+                    if (isSafari()) {
+                        InteractionManager.runAfterInteractions(() => {
+                            setIsBlurred(true);
+                        });
+                    }
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key ?? inputID;
@@ -369,13 +401,13 @@ function FormProvider(
                     });
 
                     if (inputProps.shouldSaveDraft && !formID.includes('Draft')) {
-                        FormActions.setDraftValues(formID, {[inputKey]: value});
+                        setDraftValues(formID, {[inputKey]: value});
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },
             };
         },
-        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, formID, shouldValidateOnChange],
+        [draftValues, inputValues, formState?.errorFields, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, setIsBlurred, formID, shouldValidateOnChange],
     );
     const value = useMemo(() => ({registerInput}), [registerInput]);
 
@@ -388,6 +420,7 @@ function FormProvider(
                 onSubmit={submit}
                 inputRefs={inputRefs}
                 errors={errors}
+                isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}

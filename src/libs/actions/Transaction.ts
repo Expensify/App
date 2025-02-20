@@ -8,14 +8,17 @@ import * as API from '@libs/API';
 import type {DismissViolationParams, GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import * as NumberUtils from '@libs/NumberUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {buildOptimisticDismissedViolationReportAction, buildOptimisticUnHoldReportAction, isCurrentUserSubmitter} from '@libs/ReportUtils';
+import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, RecentWaypoint, ReportAction, ReportActions, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type TransactionState from '@src/types/utils/TransactionStateType';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -126,7 +129,8 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists && waypoint !== null) {
         const clonedWaypoints = lodashClone(recentWaypoints);
-        clonedWaypoints.unshift(waypoint);
+        const updatedWaypoint = {...waypoint, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
+        clonedWaypoints.unshift(updatedWaypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER));
     }
 }
@@ -202,13 +206,27 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     return Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, newTransaction);
 }
 
-function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): OnyxData {
+function getOnyxDataForRouteRequest(transactionID: string, transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT): OnyxData {
+    let keyPrefix;
+    switch (transactionState) {
+        case CONST.TRANSACTION.STATE.DRAFT:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.BACKUP:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION_BACKUP;
+            break;
+        case CONST.TRANSACTION.STATE.CURRENT:
+        default:
+            keyPrefix = ONYXKEYS.COLLECTION.TRANSACTION;
+            break;
+    }
+
     return {
         optimisticData: [
             {
                 // Clears any potentially stale error messages from fetching the route
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                key: `${keyPrefix}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: true,
@@ -223,18 +241,26 @@ function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): Ony
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                key: `${keyPrefix}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: false,
                     },
+                    // When the user opens the distance request editor and changes the connection from offline to online,
+                    // the transaction's pendingFields and pendingAction will be removed, but not transactionBackup.
+                    // We clear the pendingFields and pendingAction for the backup here to ensure consistency with the transaction.
+                    // Without this, the map will not be clickable if the user dismisses the distance request editor without saving.
+                    ...(transactionState === CONST.TRANSACTION.STATE.BACKUP && {
+                        pendingFields: {waypoints: null},
+                        pendingAction: null,
+                    }),
                 },
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                key: `${keyPrefix}${transactionID}`,
                 value: {
                     comment: {
                         isLoading: false,
@@ -246,18 +272,47 @@ function getOnyxDataForRouteRequest(transactionID: string, isDraft = false): Ony
 }
 
 /**
+ * Sanitizes the waypoints by removing the pendingAction property.
+ *
+ * @param waypoints - The collection of waypoints to sanitize.
+ * @returns The sanitized collection of waypoints.
+ */
+function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
+    return Object.entries(waypoints).reduce((acc, [key, waypoint]) => {
+        const {pendingAction, ...rest} = waypoint as RecentWaypoint;
+        acc[key] = rest;
+        return acc;
+    }, {} as WaypointCollection);
+}
+
+/**
  * Gets the route for a set of waypoints
  * Used so we can generate a map view of the provided waypoints
  */
-function getRoute(transactionID: string, waypoints: WaypointCollection, isDraft: boolean) {
+
+function getRoute(transactionID: string, waypoints: WaypointCollection, routeType: TransactionState = CONST.TRANSACTION.STATE.CURRENT) {
     const parameters: GetRouteParams = {
         transactionID,
-        waypoints: JSON.stringify(waypoints),
+        waypoints: JSON.stringify(sanitizeRecentWaypoints(waypoints)),
     };
 
-    API.read(isDraft ? READ_COMMANDS.GET_ROUTE_FOR_DRAFT : READ_COMMANDS.GET_ROUTE, parameters, getOnyxDataForRouteRequest(transactionID, isDraft));
-}
+    let command;
+    switch (routeType) {
+        case CONST.TRANSACTION.STATE.DRAFT:
+            command = READ_COMMANDS.GET_ROUTE_FOR_DRAFT;
+            break;
+        case CONST.TRANSACTION.STATE.CURRENT:
+            command = READ_COMMANDS.GET_ROUTE;
+            break;
+        case CONST.TRANSACTION.STATE.BACKUP:
+            command = READ_COMMANDS.GET_ROUTE_FOR_BACKUP;
+            break;
+        default:
+            throw new Error('Invalid route type');
+    }
 
+    API.read(command, parameters, getOnyxDataForRouteRequest(transactionID, routeType));
+}
 /**
  * Updates all waypoints stored in the transaction specified by the provided transactionID.
  *
@@ -269,6 +324,9 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
+            customUnit: {
+                quantity: null,
+            },
         },
         // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
@@ -298,25 +356,26 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
-    const isSubmitter = currentTransactions.every((transaction) => isCurrentUserSubmitter(transaction.reportID ?? ''));
+    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID, transaction.transactionID));
     const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
-        if (isSubmitter) {
-            return buildOptimisticUnHoldReportAction();
-        }
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
-        value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: optimisticDissmidedViolationReportActions.at(index) as ReportAction,
-        },
-    }));
+    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
+            value: optimisticDissmidedViolationReportAction
+                ? {
+                      [optimisticDissmidedViolationReportAction.reportActionID]: optimisticDissmidedViolationReportAction as ReportAction,
+                  }
+                : undefined,
+        };
+    });
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
@@ -358,32 +417,43 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         },
     }));
 
-    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
-        value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: null,
-        },
-    }));
+    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
+            value: optimisticDissmidedViolationReportAction
+                ? {
+                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                  }
+                : undefined,
+        };
+    });
 
     failureData.push(...failureDataTransactionViolations);
     failureData.push(...failureDataTransaction);
     failureData.push(...failureReportActions);
 
-    const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
-        value: {
-            [optimisticDissmidedViolationReportActions.at(index)?.reportActionID ?? '']: {
-                pendingAction: null,
-            },
-        },
-    }));
-
+    const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
+            value: optimisticDissmidedViolationReportAction
+                ? {
+                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                  }
+                : undefined,
+        };
+    });
+    // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
+    // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
+    // parent reports than the one we set optimistically, resulting in duplicate report actions. Therefore, we send the BE
+    // random report action ids and onSuccessData we reset the report actions we added optimistically to avoid duplicate actions.
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
-        reportActionIDList: optimisticDissmidedViolationReportActions.map((action) => action.reportActionID).join(','),
+        reportActionIDList: optimisticDissmidedViolationReportActions.map(() => NumberUtils.rand64()).join(','),
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
@@ -404,10 +474,30 @@ function abandonReviewDuplicateTransactions() {
 }
 
 function clearError(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null, waypoints: null, routes: null}});
 }
 
-function markAsCash(transactionID: string, transactionThreadReportID: string) {
+function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpense | undefined {
+    const modifiedExpenseActions = Object.values(ReportActionsUtils.getAllReportActions(reportID)).filter(ReportActionsUtils.isModifiedExpenseAction);
+    modifiedExpenseActions.sort((a, b) => Number(a.reportActionID) - Number(b.reportActionID));
+    return ReportActionsUtils.getOriginalMessage(modifiedExpenseActions.at(-1));
+}
+
+function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | undefined) {
+    const transaction = TransactionUtils.getTransaction(transactionID);
+
+    if (transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+            modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
+            modifiedCurrency: originalMessage.oldCurrency,
+        });
+    }
+}
+
+function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined) {
+    if (!transactionID || !transactionThreadReportID) {
+        return;
+    }
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
         reason: 'manual',
         violationName: CONST.VIOLATIONS.RTER,
@@ -470,6 +560,18 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
+function getRecentWaypoints() {
+    return recentWaypoints;
+}
+
+function getAllTransactionViolationsLength() {
+    return allTransactionViolations.length;
+}
+
+function getAllTransactions() {
+    return Object.keys(allTransactions ?? {}).length;
+}
+
 export {
     addStop,
     createInitialWaypoints,
@@ -483,4 +585,10 @@ export {
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
+    getRecentWaypoints,
+    sanitizeRecentWaypoints,
+    getAllTransactionViolationsLength,
+    getAllTransactions,
+    getLastModifiedExpense,
+    revert,
 };

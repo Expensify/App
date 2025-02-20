@@ -134,6 +134,15 @@ function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorField
     return latestErrorFields.reduce((acc, error) => Object.assign(acc, error), {});
 }
 
+function getLatestError(errors?: Errors): Errors {
+    if (!errors || Object.keys(errors).length === 0) {
+        return {};
+    }
+
+    const key = Object.keys(errors).sort().reverse().at(0) ?? '';
+    return {[key]: getErrorMessageWithTranslationData(errors[key])};
+}
+
 /**
  * Method used to attach already translated message
  * @param errors - An object containing current errors in the form
@@ -198,6 +207,7 @@ export {
     getLatestErrorFieldForAnyField,
     getLatestErrorMessage,
     getLatestErrorMessageField,
+    getLatestError,
     getMicroSecondOnyxErrorWithTranslationKey,
     getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,

@@ -57,7 +57,7 @@ function ConfirmationStep({personalBankAccount, personalBankAccountDraft, onNext
                 onPress={handleModifyAccountNumbers}
             />
             <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
-                {error && error.length > 0 && (
+                {!!error && error.length > 0 && (
                     <DotIndicatorMessage
                         textStyles={[styles.formError]}
                         type="error"

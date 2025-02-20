@@ -86,7 +86,7 @@ function Badge({
             aria-label={!pressable ? text : undefined}
             accessible={false}
         >
-            {icon && (
+            {!!icon && (
                 <View style={[styles.mr2, iconStyles]}>
                     <Icon
                         width={variables.iconSizeExtraSmall}

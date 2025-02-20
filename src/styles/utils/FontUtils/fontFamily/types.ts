@@ -4,6 +4,8 @@ type FontFamilyKey =
     | 'SYSTEM'
     | 'MONOSPACE'
     | 'MONOSPACE_BOLD'
+    | 'MONOSPACE_ITALIC'
+    | 'MONOSPACE_BOLD_ITALIC'
     | 'EXP_NEUE'
     | 'EXP_NEUE_BOLD'
     | 'EXP_NEUE_ITALIC'

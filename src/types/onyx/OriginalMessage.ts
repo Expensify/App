@@ -270,14 +270,140 @@ type OriginalMessageChangeLog = {
     /** When was it last modified */
     lastModified?: string;
 
-    /** New role of user */
-    newValue?: string;
+    /** New role of user or new value of the category/tag field
+     * The user role will be of type string and category/tag value (enabled/disable)
+     * will be of type boolean.
+     */
+    newValue?: boolean | string;
 
-    /** Old role of user */
-    oldValue?: string;
+    /** Old role of user or old value (enabled/disable) of the category/tag field.
+     * The user role will be of type string and category/tag value (enabled/disable)
+     * will be of type boolean.
+     */
+    oldValue?: boolean | string;
 
     /** Name of connection */
     connectionName?: AllConnectionName;
+
+    /** Name of the added category */
+    categoryName?: string;
+};
+
+/** Model of change log */
+type OriginalMessagePolicyChangeLog = {
+    /** Account IDs of users that either got invited or removed from the room */
+    targetAccountIDs?: number[];
+
+    /** Name of the chat room */
+    roomName?: string;
+
+    /** Description of the chat room */
+    description?: string;
+
+    /** ID of the report */
+    reportID?: number;
+
+    /** Old name of the workspace/tag */
+    oldName?: string;
+
+    /** New name of the workspace/tag */
+    newName?: string;
+
+    /** Email of user */
+    email?: string;
+
+    /** Role of user */
+    role?: string;
+
+    /** When was it last modified */
+    lastModified?: string;
+
+    /** Old currency of the workspace */
+    oldCurrency?: string;
+
+    /** New currency of the workspace */
+    newCurrency?: string;
+
+    /** Old frequency of the workspace */
+    oldFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+    /** New frequency of the workspace */
+    newFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+    /** Name of connection */
+    connectionName?: AllConnectionName;
+
+    /** Name of the added category */
+    categoryName?: string;
+
+    /** Name of the updated field */
+    updatedField?: string;
+
+    /** Old value for max expense amount with no receipt */
+    oldMaxExpenseAmountNoReceipt?: number;
+
+    /** New value for max expense amount with no receipt */
+    newMaxExpenseAmountNoReceipt?: number;
+
+    /** Currency of the policy */
+    currency?: string;
+
+    /** Old value for max expense amount for violations */
+    oldMaxExpenseAmount?: number;
+
+    /** New value for max expense amount for violations */
+    newMaxExpenseAmount?: number;
+
+    /** Old default billable value */
+    oldDefaultBillable?: string;
+
+    /** New default billable value */
+    newDefaultBillable?: string;
+
+    /** value -- returned when updating "Auto-approve compliant reports" */
+    value?: boolean;
+
+    /** New desciption */
+    newDescription?: string;
+
+    /** Old desciption */
+    oldDescription?: string;
+
+    /** Report field type */
+    fieldType?: string;
+
+    /** Report field name */
+    fieldName?: string;
+
+    /** Custom unit name */
+    customUnitName?: string;
+
+    /** Custom unit name */
+    rateName?: string;
+
+    /** Added/Updated tag name */
+    tagName?: string;
+
+    /** Updated tag list name */
+    tagListName?: string;
+
+    /** Updated tag enabled/disabled value */
+    enabled?: boolean;
+
+    /** Default value of a report field */
+    defaultValue?: string;
+
+    /** field ID of a report field */
+    fieldID?: string;
+
+    /**  update type of a report field */
+    updateType?: string;
+
+    /** New role of user or new value of the category/tag field */
+    newValue?: boolean | string;
+
+    /** Old role of user or old value of the category/tag field */
+    oldValue?: boolean | string;
 };
 
 /** Model of `join policy changelog` report action */
@@ -362,6 +488,24 @@ type OriginalMessageModifiedExpense = {
 
     /** The ID of moved report */
     movedToReportID?: string;
+
+    /** The old stringify list of attendees */
+    oldAttendees?: string;
+
+    /** The stringify list of attendees */
+    attendees?: string;
+};
+
+/** Model of the `deleted transaction` report action */
+type OriginalMessageDeletedTransaction = {
+    /** The merchant of the transaction */
+    merchant?: string;
+
+    /** The amount of the transaction */
+    amount?: number;
+
+    /** The currency of the transaction */
+    currency?: string;
 };
 
 /** Model of `reimbursement queued` report action */
@@ -400,7 +544,7 @@ type OriginalMessageReimbursementDequeued = {
 /** Model of `moved` report action */
 type OriginalMessageMoved = {
     /** ID of the old policy */
-    fromPolicyID: string;
+    fromPolicyID: string | undefined;
 
     /** ID of the new policy */
     toPolicyID: string;
@@ -438,6 +582,9 @@ type OriginalMessageApproved = {
     /** Approved expense amount */
     amount: number;
 
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
+
     /** Currency of the approved expense amount */
     currency: string;
 
@@ -449,6 +596,9 @@ type OriginalMessageApproved = {
 type OriginalMessageForwarded = {
     /** Forwarded expense amount */
     amount: number;
+
+    /** Was the action created automatically, not by a human */
+    automaticAction?: boolean;
 
     /** Currency of the forwarded expense amount */
     currency: string;
@@ -513,6 +663,18 @@ type OriginalMessageRemovedFromApprovalChain = {
     whisperedTo: number[];
 };
 
+/** Model of `Demoted From Workspace` report action */
+type OriginalMessageDemotedFromWorkspace = {
+    /** The policy name */
+    policyName: string;
+
+    /** The old role of the employee that is being demoted */
+    oldRole: string;
+
+    /** The accountID of the member who was demoted from workspace */
+    whisperedTo: number[];
+};
+
 /**
  * Model of `Add payment card` report action
  */
@@ -535,7 +697,7 @@ type OriginalMessageIntegrationSyncFailed = {
 /**
  * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
  */
-type OriginalMessageExpensifyCard = {
+type OriginalMessageCard = {
     /** The id of the user the card was assigned to */
     assigneeAccountID: number;
 
@@ -544,10 +706,13 @@ type OriginalMessageExpensifyCard = {
 };
 
 /**
- * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, and CARD_ISSUED_VIRTUAL actions
+ * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED and CARD_ISSUED_VIRTUAL actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
-    typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
 >;
 
 /** The map type of original message */
@@ -583,6 +748,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
@@ -591,6 +757,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN]: OriginalMessageRemovedFromApprovalChain;
+    [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
@@ -616,12 +783,14 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: OriginalMessageExpensifyCard;
-    [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: OriginalMessageExpensifyCard;
-    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: OriginalMessageExpensifyCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
+    [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
 } & OldDotOriginalMessageMap & {
-        [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
+        [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>]: OriginalMessageChangeLog;
     };

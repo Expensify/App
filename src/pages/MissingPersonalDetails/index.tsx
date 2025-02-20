@@ -7,10 +7,9 @@ import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
 function MissingPersonalDetails() {
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
-    const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, cardListMetadata, draftValuesMetadata);
+    const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
@@ -19,7 +18,6 @@ function MissingPersonalDetails() {
     return (
         <MissingPersonalDetailsContent
             privatePersonalDetails={privatePersonalDetails}
-            cardList={cardList}
             draftValues={draftValues}
         />
     );

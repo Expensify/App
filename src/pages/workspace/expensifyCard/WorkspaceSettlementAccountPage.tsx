@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as AccountingUtils from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-type WorkspaceSettlementAccountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
+type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
 function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
     const styles = useThemeStyles();
@@ -59,7 +59,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
             return {
                 value: bankAccountID,
                 text: bankAccount.title,
-                leftElement: icon && (
+                leftElement: !!icon && (
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
                         <Icon
                             src={icon}
@@ -106,7 +106,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     listHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                            {isUsedContinuousReconciliation && (
+                            {!!isUsedContinuousReconciliation && (
                                 <Text style={[styles.mh5, styles.mb6]}>
                                     <Text>{translate('workspace.expensifyCard.settlementAccountInfoPt1')}</Text>{' '}
                                     <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connectionParam))}>

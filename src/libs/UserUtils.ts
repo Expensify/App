@@ -6,7 +6,7 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Account, LoginList, Session} from '@src/types/onyx';
+import type {Account, LoginList, PrivatePersonalDetails, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
@@ -64,7 +64,18 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  * has an unvalidated contact method.
  */
 function hasLoginListInfo(loginList: OnyxEntry<LoginList>): boolean {
-    return !Object.values(loginList ?? {}).every((field) => field.validatedDate);
+    return Object.values(loginList ?? {}).some((login) => session?.email !== login.partnerUserID && !login.validatedDate);
+}
+
+/**
+ * Checks if the current user has a validated the primary contact method
+ */
+function isCurrentUserValidated(loginList: OnyxEntry<LoginList>): boolean {
+    if (!loginList || !session?.email) {
+        return false;
+    }
+
+    return !!loginList?.[session.email]?.validatedDate;
 }
 
 /**
@@ -78,6 +89,23 @@ function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>): LoginL
     if (hasLoginListInfo(loginList)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
+
+    return undefined;
+}
+
+/**
+ * Gets the appropriate brick road indicator status for the Profile section.
+ * Error status is higher priority, so we check for that first.
+ */
+function getProfilePageBrickRoadIndicator(loginList: OnyxEntry<LoginList>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): LoginListIndicator {
+    const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
+    if (hasLoginListError(loginList) || hasPhoneNumberError) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    }
+    if (hasLoginListInfo(loginList)) {
+        return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+    }
+
     return undefined;
 }
 
@@ -240,6 +268,7 @@ export {
     getDefaultAvatarURL,
     getFullSizeAvatar,
     getLoginListBrickRoadIndicator,
+    getProfilePageBrickRoadIndicator,
     getSecondaryPhoneLogin,
     getSmallSizeAvatar,
     hasLoginListError,
@@ -247,5 +276,6 @@ export {
     hashText,
     isDefaultAvatar,
     getContactMethod,
+    isCurrentUserValidated,
 };
 export type {AvatarSource, LoginListIndicator};

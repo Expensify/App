@@ -88,7 +88,7 @@ function MentionSuggestions({
 
             return (
                 <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                    {item.icons && !!item.icons.length && (
+                    {!!item.icons && !!item.icons.length && (
                         <View style={styles.mentionSuggestionsAvatarContainer}>
                             <Avatar
                                 source={item.icons.at(0)?.source}

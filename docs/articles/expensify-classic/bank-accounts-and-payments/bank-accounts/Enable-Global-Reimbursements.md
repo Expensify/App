@@ -16,8 +16,6 @@ Before you can complete this process, you must first connect a **verified** U.S.
 
 Once your verified U.S. bank account has been added and verified, you can request that global reimbursements be enabled on your account.
 
-Click the support icon in your Expensify account to inform your Setup Specialist, Account Manager, or Concierge that you’d like to enable global reimbursements. They will ask you to confirm the currencies of the bank accounts and determine if your account meets the criteria for global reimbursements.
-
 ## Step 2: Re-verify the bank account
 
 1. Hover over **Settings**, then click **Workspaces**. 
@@ -28,12 +26,6 @@ Click the support icon in your Expensify account to inform your Setup Specialist
 6. Ensure that the reimbursement method is set to **Direct** and that the right bank account is selected. 
 7. Click the **Payments** tab on the left.
 8. Click **Enable Global Reimbursement** next to the bank account.  
-
-{% include info.html %}
-This button may not appear for up to 60 minutes after the Expensify team confirms global reimbursements for your account.
-{% include end-info.html %}  
-
-{:start="9"}
 9. Complete the International Reimbursement DocuSign form. 
 
 Once the form is complete, it is automatically sent to our Compliance Team for review. Our Support Team will contact you with more details if additional information is required, which may include: 
@@ -43,11 +35,7 @@ Once the form is complete, it is automatically sent to our Compliance Team for r
 
 # For AUD, CAD, GBP, and EUR accounts
 
-## Step 1: Request global reimbursements
-
-Click the support icon in your Expensify account to inform your Setup Specialist, Account Manager, or Concierge that you’d like to enable global reimbursements. They will ask you to confirm the currencies of the bank accounts and determine if your account meets the criteria for global reimbursements.
-
-## Step 2: Add the bank account
+## Step 1: Add the bank account
 
 1. Hover over **Settings**, then click **Workspaces**. 
 2. Select the workspace.
@@ -55,12 +43,6 @@ Click the support icon in your Expensify account to inform your Setup Specialist
 4. Ensure that the selected workspace currency matches your reimbursement bank account currency.
 5. Click the **Reimbursements** tab on the left.
 6. Set the reimbursement method to **Direct**. 
-
-{% include info.html %}
-This button may not appear for up to 60 minutes after the Expensify team confirms global reimbursements for your account.
-{% include end-info.html %}  
-
-{:start="7"}
 7. Click **Add Business Bank Account**.
 8. If necessary, click **Switch Country** to select the correct country if not automatically selected.
 9. Enter the bank account details, then click **Save & Continue**.

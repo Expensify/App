@@ -93,8 +93,8 @@ const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>)
                 translationPath: 'footer.expensifyHelp',
             },
             {
-                href: CONST.FOOTER.COMMUNITY_URL,
-                translationPath: 'footer.community',
+                href: CONST.FOOTER.TERMS_URL,
+                translationPath: 'footer.terms',
             },
             {
                 href: CONST.FOOTER.PRIVACY_URL,

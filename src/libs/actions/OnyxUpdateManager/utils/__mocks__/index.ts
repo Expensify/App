@@ -6,7 +6,7 @@ import {applyUpdates} from './applyUpdates';
 const UtilsImplementation = jest.requireActual<typeof OnyxUpdateManagerUtilsImport>('@libs/actions/OnyxUpdateManager/utils');
 
 type OnyxUpdateManagerUtilsMockValues = {
-    onValidateAndApplyDeferredUpdates: ((clientLastUpdateID?: number) => Promise<void>) | undefined;
+    beforeValidateAndApplyDeferredUpdates: ((clientLastUpdateID?: number) => Promise<void>) | undefined;
 };
 
 type OnyxUpdateManagerUtilsMock = typeof UtilsImplementation & {
@@ -16,17 +16,19 @@ type OnyxUpdateManagerUtilsMock = typeof UtilsImplementation & {
 };
 
 const mockValues: OnyxUpdateManagerUtilsMockValues = {
-    onValidateAndApplyDeferredUpdates: undefined,
+    beforeValidateAndApplyDeferredUpdates: undefined,
 };
 const mockValuesProxy = createProxyForObject(mockValues);
 
 const detectGapsAndSplit = jest.fn(UtilsImplementation.detectGapsAndSplit);
 
-const validateAndApplyDeferredUpdates = jest.fn((clientLastUpdateID?: number) =>
-    (mockValuesProxy.onValidateAndApplyDeferredUpdates === undefined ? Promise.resolve() : mockValuesProxy.onValidateAndApplyDeferredUpdates(clientLastUpdateID)).then(() =>
-        UtilsImplementation.validateAndApplyDeferredUpdates(clientLastUpdateID),
-    ),
-);
+const validateAndApplyDeferredUpdates = jest.fn((clientLastUpdateID?: number) => {
+    if (mockValuesProxy.beforeValidateAndApplyDeferredUpdates === undefined) {
+        return UtilsImplementation.validateAndApplyDeferredUpdates(clientLastUpdateID);
+    }
+
+    return mockValuesProxy.beforeValidateAndApplyDeferredUpdates(clientLastUpdateID).then(() => UtilsImplementation.validateAndApplyDeferredUpdates(clientLastUpdateID));
+});
 
 export {applyUpdates, detectGapsAndSplit, validateAndApplyDeferredUpdates, mockValuesProxy as mockValues};
 export type {OnyxUpdateManagerUtilsMock};

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -13,20 +13,24 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import ValidateAccountMessage from '@components/ValidateAccountMessage';
+import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as Link from '@userActions/Link';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {openPlaidView, setBankAccountSubStep} from '@userActions/BankAccounts';
+import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
+import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BankInfo from './BankInfo/BankInfo';
 
 type BankAccountStepProps = {
@@ -47,17 +51,39 @@ type BankAccountStepProps = {
 
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Should ValidateCodeActionModal be displayed or not */
+    isValidateCodeActionModalVisible?: boolean;
+
+    /** Toggle ValidateCodeActionModal */
+    toggleValidateCodeActionModal?: (isVisible: boolean) => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
 
-function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = '', receivedRedirectURI, reimbursementAccount, onBackButtonPress}: BankAccountStepProps) {
+function BankAccountStep({
+    plaidLinkOAuthToken = '',
+    policyID = '',
+    policyName = '',
+    receivedRedirectURI,
+    reimbursementAccount,
+    onBackButtonPress,
+    isValidateCodeActionModalVisible,
+    toggleValidateCodeActionModal,
+}: BankAccountStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const contactMethod = account?.primaryLogin ?? '';
+    const selectedSubStep = useRef('');
+
+    const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
+    const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
+    const hasMagicCodeBeenSent = !!loginData?.validateCodeSent;
 
     let subStep = reimbursementAccount?.achData?.subStep ?? '';
     const shouldReinitializePlaidLink = plaidLinkOAuthToken && receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
@@ -65,8 +91,20 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
         subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
-    const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
+    const bankAccountRoute = `${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES.NEW, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
+
+    useEffect(() => {
+        if (!account?.validated) {
+            return;
+        }
+
+        if (selectedSubStep.current === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL) {
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+        } else if (selectedSubStep.current === CONST.BANK_ACCOUNT.SUBSTEP.PLAID) {
+            openPlaidView();
+        }
+    }, [account?.validated]);
 
     const removeExistingBankAccountDetails = () => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -78,7 +116,7 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
             [bankInfoStepKeys.PLAID_ACCOUNT_ID]: '',
             [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: '',
         };
-        ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
+        updateReimbursementAccountDraft(bankAccountData);
     };
 
     if (subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID || subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
@@ -115,7 +153,7 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
                     >
                         {!!plaidDesktopMessage && (
                             <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink onPress={() => Link.openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
+                                <TextLink onPress={() => openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
                         {!!personalBankAccounts.length && (
@@ -138,13 +176,18 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
                             <MenuItem
                                 icon={Expensicons.Bank}
                                 title={translate('bankAccount.connectOnlineWithPlaid')}
-                                disabled={!!isPlaidDisabled || !account?.validated}
+                                disabled={!!isPlaidDisabled}
                                 onPress={() => {
-                                    if (!!isPlaidDisabled || !account?.validated) {
+                                    if (isPlaidDisabled) {
+                                        return;
+                                    }
+                                    if (!account?.validated) {
+                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
+                                        toggleValidateCodeActionModal?.(true);
                                         return;
                                     }
                                     removeExistingBankAccountDetails();
-                                    BankAccounts.openPlaidView();
+                                    openPlaidView();
                                 }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
@@ -154,25 +197,28 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
                             <MenuItem
                                 icon={Expensicons.Connect}
                                 title={translate('bankAccount.connectManually')}
-                                disabled={!account?.validated}
                                 onPress={() => {
+                                    if (!account?.validated) {
+                                        selectedSubStep.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                                        toggleValidateCodeActionModal?.(true);
+                                        return;
+                                    }
                                     removeExistingBankAccountDetails();
-                                    BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                    setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
                                 }}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             />
                         </View>
                     </Section>
-                    {!account?.validated && <ValidateAccountMessage />}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href={CONST.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
+                        <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
                         <PressableWithoutFeedback
-                            onPress={() => Link.openExternalLink('https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security/')}
+                            onPress={() => openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
                             style={[styles.flexRow, styles.alignItemsCenter]}
                             accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
                         >
-                            <TextLink href="https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security/">{translate('bankAccount.yourDataIsSecure')}</TextLink>
+                            <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
                             <View style={styles.ml1}>
                                 <Icon
                                     src={Expensicons.Lock}
@@ -182,6 +228,19 @@ function BankAccountStep({plaidLinkOAuthToken = '', policyID = '', policyName = 
                         </PressableWithoutFeedback>
                     </View>
                 </ScrollView>
+                <ValidateCodeActionModal
+                    title={translate('contacts.validateAccount')}
+                    descriptionPrimary={translate('contacts.featureRequiresValidate')}
+                    descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
+                    isVisible={!!isValidateCodeActionModalVisible}
+                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                    validatePendingAction={loginData?.pendingFields?.validateCodeSent}
+                    sendValidateCode={() => requestValidateCodeAction()}
+                    handleSubmitForm={(validateCode) => validateSecondaryLogin(loginList, contactMethod, validateCode)}
+                    validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
+                    clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
+                    onClose={() => toggleValidateCodeActionModal?.(false)}
+                />
             </View>
         </ScreenWrapper>
     );
