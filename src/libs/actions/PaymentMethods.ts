@@ -281,14 +281,7 @@ function addSubscriptionPaymentCard(
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
 function addPaymentCardGBP(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
-        Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
-    });
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData);
 }
 
 /**
