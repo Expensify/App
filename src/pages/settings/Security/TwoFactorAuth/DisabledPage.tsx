@@ -9,14 +9,14 @@ import variables from '@styles/variables';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import PageWrapper from './PageWrapper';
+import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function DisabledPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
-        <PageWrapper
+        <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLED}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
@@ -35,7 +35,7 @@ function DisabledPage() {
                     onPress={() => quitAndNavigateBack(ROUTES.SETTINGS_SECURITY)}
                 />
             </FixedFooter>
-        </PageWrapper>
+        </TwoFactorAuthWrapper>
     );
 }
 

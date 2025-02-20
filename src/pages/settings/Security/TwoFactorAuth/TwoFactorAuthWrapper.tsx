@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type PageWrapperProps = ChildrenProps & {
+type TwoFactorAuthWrapperProps = ChildrenProps & {
     /** Name of the step */
     stepName: ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS>;
 
@@ -30,7 +30,7 @@ type PageWrapperProps = ChildrenProps & {
     shouldEnableKeyboardAvoidingView?: boolean;
 };
 
-function PageWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, children}: PageWrapperProps) {
+function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEnableKeyboardAvoidingView = true, children}: TwoFactorAuthWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
 
@@ -61,7 +61,7 @@ function PageWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEna
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={PageWrapper.displayName}
+                testID={TwoFactorAuthWrapper.displayName}
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
             >
@@ -95,6 +95,6 @@ function PageWrapper({stepName, title, stepCounter, onBackButtonPress, shouldEna
     );
 }
 
-PageWrapper.displayName = 'VerifyPage';
+TwoFactorAuthWrapper.displayName = 'TwoFactorAuthWrapper';
 
-export default PageWrapper;
+export default TwoFactorAuthWrapper;

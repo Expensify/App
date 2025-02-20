@@ -22,9 +22,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import PageWrapper from './PageWrapper';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
+import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication';
 
@@ -71,7 +71,7 @@ function VerifyPage({route}: VerifyPageProps) {
     }
 
     return (
-        <PageWrapper
+        <TwoFactorAuthWrapper
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
             title={translate('twoFactorAuth.headerTitle')}
@@ -135,7 +135,7 @@ function VerifyPage({route}: VerifyPageProps) {
                     }}
                 />
             </FixedFooter>
-        </PageWrapper>
+        </TwoFactorAuthWrapper>
     );
 }
 

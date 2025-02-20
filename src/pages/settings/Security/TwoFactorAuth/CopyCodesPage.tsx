@@ -29,8 +29,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import PageWrapper from './PageWrapper';
 import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
+import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const theme = useTheme();
@@ -68,7 +68,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     useBeforeRemove(() => setIsValidateModalVisible(false));
 
     return (
-        <PageWrapper
+        <TwoFactorAuthWrapper
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
                 step: 1,
@@ -187,7 +187,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                     quitAndNavigateBack();
                 }}
             />
-        </PageWrapper>
+        </TwoFactorAuthWrapper>
     );
 }
 

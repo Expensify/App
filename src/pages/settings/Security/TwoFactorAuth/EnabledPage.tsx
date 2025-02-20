@@ -15,7 +15,7 @@ import {hasPolicyWithXeroConnection} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import PageWrapper from './PageWrapper';
+import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function EnabledPage() {
     const theme = useTheme();
@@ -30,7 +30,7 @@ function EnabledPage() {
     }, []);
 
     return (
-        <PageWrapper
+        <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.ENABLED}
             title={translate('twoFactorAuth.headerTitle')}
             shouldEnableKeyboardAvoidingView={false}
@@ -71,7 +71,7 @@ function EnabledPage() {
                     isVisible={isVisible}
                 />
             </ScrollView>
-        </PageWrapper>
+        </TwoFactorAuthWrapper>
     );
 }
 

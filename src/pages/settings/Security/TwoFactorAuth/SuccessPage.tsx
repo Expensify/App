@@ -10,7 +10,7 @@ import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import PageWrapper from './PageWrapper';
+import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.SUCCESS>;
 
@@ -19,7 +19,7 @@ function SuccessPage({route}: SuccessPageProps) {
     const {environmentURL} = useEnvironment();
 
     return (
-        <PageWrapper
+        <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
@@ -41,7 +41,7 @@ function SuccessPage({route}: SuccessPageProps) {
                     }
                 }}
             />
-        </PageWrapper>
+        </TwoFactorAuthWrapper>
     );
 }
 

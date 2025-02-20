@@ -11,9 +11,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import PageWrapper from './PageWrapper';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import type {BaseTwoFactorAuthFormRef} from './TwoFactorAuthForm/types';
+import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function DisablePage() {
     const styles = useThemeStyles();
@@ -31,7 +31,7 @@ function DisablePage() {
     }, [account?.requiresTwoFactorAuth]);
 
     return (
-        <PageWrapper
+        <TwoFactorAuthWrapper
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.DISABLE}
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
         >
@@ -60,7 +60,7 @@ function DisablePage() {
                     }}
                 />
             </FixedFooter>
-        </PageWrapper>
+        </TwoFactorAuthWrapper>
     );
 }
 
