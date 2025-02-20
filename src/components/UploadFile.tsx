@@ -5,9 +5,9 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -86,7 +86,7 @@ function UploadFile({
         }
 
         if (acceptedFileTypes.length > 0) {
-            const filesExtensions = files.map((file) => FileUtils.splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
+            const filesExtensions = files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
 
             if (acceptedFileTypes.every((element) => !filesExtensions.includes(element as string))) {
                 setError(translate('attachmentPicker.notAllowedExtension'));
