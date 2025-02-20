@@ -3874,9 +3874,10 @@ const translations = {
                 updating: 'Actualizando...',
                 noAccountsFound: 'No se han encontrado cuentas',
                 defaultCard: 'Tarjeta predeterminada',
-                downgradeTitle: 'No se puede degradar el trabajo',
-                downgradeSubTitle:
-                    'Este espacio de trabajo tiene dos o más fuentes de alimentación de tarjetas externas conectadas. Los espacios de trabajo de recopilación solo permiten hasta una fuente de alimentación de tarjetas externa. Por favor, arréglelo o haga lo que sea antes de cambiar a una versión inferior.',
+                downgradeTitle: 'No se puede degradar el espacio de trabajo',
+                downgradeSubTitleFirstPart: `Este espacio de trabajo no se puede degradar al plan Collect porque tiene más de una fuente de tarjetas conectada (excluidas las tarjetas Expensify, si corresponde). Por favor`,
+                downgradeSubTitleMiddlePart: 'desconectar fuentes de tarjetas adicionales',
+                downgradeSubTitleLastPart: 'para continuar.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
                 expensifyCardBannerTitle: 'Obtén la Tarjeta Expensify',
                 expensifyCardBannerSubtitle:

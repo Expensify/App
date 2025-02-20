@@ -3,6 +3,8 @@ import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,6 +16,7 @@ import {canModifyPlan, getWorkspaceAccountID, isCollectPolicy} from '@libs/Polic
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DowngradeConfirmation from './DowngradeConfirmation';
 import DowngradeIntro from './DowngradeIntro';
@@ -48,6 +51,14 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const onClose = () => {
         setIsDowngradeWarningModalOpen(false);
         Navigation.dismissModal();
+    };
+
+    const onMoveToCompanyCardFeeds = () => {
+        if (!policyID) {
+            return;
+        }
+        setIsDowngradeWarningModalOpen(false);
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID));
     };
 
     if (!canPerformDowngrade) {
@@ -92,7 +103,18 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 onConfirm={onClose}
                 shouldShowCancelButton={false}
                 onCancel={onClose}
-                prompt={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
+                prompt={
+                    <Text>
+                        {translate('workspace.moreFeatures.companyCards.downgradeSubTitleFirstPart')}{' '}
+                        <TextLink
+                            style={styles.link}
+                            onPress={onMoveToCompanyCardFeeds}
+                        >
+                            {translate('workspace.moreFeatures.companyCards.downgradeSubTitleMiddlePart')}
+                        </TextLink>{' '}
+                        {translate('workspace.moreFeatures.companyCards.downgradeSubTitleLastPart')}
+                    </Text>
+                }
                 confirmText={translate('common.buttonConfirm')}
             />
         </ScreenWrapper>

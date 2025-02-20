@@ -3828,9 +3828,10 @@ const translations = {
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
-                downgradeTitle: `Can't downgrade work`,
-                downgradeSubTitle:
-                    'This workspace has two or more external card feeds connected. Collect workspaces only allow up to 1 external card feed. Please fix it or whatever before downgrading.',
+                downgradeTitle: `Can't downgrade workspace`,
+                downgradeSubTitleFirstPart: `This workspace can't be downgraded to the Collect plan because it has more than one connected card feed (excluding Expensify Cards, if applicable). Please`,
+                downgradeSubTitleMiddlePart: `disconnect additional card feeds`,
+                downgradeSubTitleLastPart: 'to proceed.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
                 expensifyCardBannerTitle: 'Get the Expensify Card',
                 expensifyCardBannerSubtitle: 'Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more.',
