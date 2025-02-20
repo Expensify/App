@@ -112,16 +112,21 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onDismisse
         return null;
     }
 
-    const title = isSubscriptionPage ? (
-        <Text style={styles.textStrong}>
-            {translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase1', {discountType: discountInfo?.discountType})}&nbsp;
-            <Text>{translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase2')}</Text>
-        </Text>
-    ) : (
-        <Text style={styles.textStrong}>
-            {translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase1')}&nbsp;
-            <Text>{translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase2', {discountType: discountInfo?.discountType})}</Text>
-        </Text>
+    const title = (
+        <View style={[styles.justifyContentBetween, styles.flexRow]}>
+            {isSubscriptionPage ? (
+                <Text style={styles.textStrong}>
+                    {translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase1', {discountType: discountInfo?.discountType})}&nbsp;
+                    <Text>{translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase2')}</Text>
+                </Text>
+            ) : (
+                <Text style={styles.textStrong}>
+                    {translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase1')}&nbsp;
+                    <Text>{translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase2', {discountType: discountInfo?.discountType})}</Text>
+                </Text>
+            )}
+            {discountInfo?.discountType === 25 && (shouldUseNarrowLayout ? dismissButton : undefined)}
+        </View>
     );
 
     return (
@@ -137,7 +142,6 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onDismisse
             subtitleStyle={[styles.mt1, styles.mutedNormalTextLabel, isSubscriptionPage && StyleUtils.getTextColorStyle(theme.trialTimer)]}
             icon={Illustrations.TreasureChest}
             rightComponent={!isSubscriptionPage && rightComponent}
-            dismissButton={discountInfo?.discountType === 25 && (shouldUseNarrowLayout ? dismissButton : undefined)}
         />
     );
 }

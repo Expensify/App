@@ -45,9 +45,6 @@ type BillingBannerProps = {
 
     /** A component to be rendered on the right side of the banner. */
     rightComponent?: React.ReactNode;
-
-    /** A dismiss button to display in banner */
-    dismissButton?: React.ReactNode;
 };
 
 function BillingBanner({
@@ -62,7 +59,6 @@ function BillingBanner({
     onRightIconPress,
     rightIconAccessibilityLabel,
     rightComponent,
-    dismissButton,
 }: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -108,10 +104,7 @@ function BillingBanner({
             />
 
             <View style={[styles.flex1, styles.justifyContentCenter]}>
-                <View style={[styles.justifyContentBetween, styles.flexRow]}>
-                    {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
-                    {dismissButton}
-                </View>
+                {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
                 {typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle}
             </View>
             {!!rightComponent && rightComponent}
