@@ -12,10 +12,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getBankCardDetailsImage, getCorrectStepForSelectedBank} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -34,10 +34,10 @@ function SelectBankStep() {
             setHasError(true);
         } else {
             if (addNewCard?.data.selectedBank !== bankSelected) {
-                CompanyCards.clearAddNewCardFlow();
+                clearAddNewCardFlow();
             }
-            CompanyCards.setAddNewCompanyCardStepAndData({
-                step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
+            setAddNewCompanyCardStepAndData({
+                step: getCorrectStepForSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
                     cardTitle: !isOtherBankSelected ? bankSelected : undefined,
@@ -63,7 +63,7 @@ function SelectBankStep() {
         isSelected: bankSelected === bank,
         leftElement: (
             <Icon
-                src={CardUtils.getBankCardDetailsImage(bank, illustrations)}
+                src={getBankCardDetailsImage(bank, illustrations)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
