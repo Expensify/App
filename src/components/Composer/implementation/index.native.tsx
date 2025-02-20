@@ -1,21 +1,19 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import mimeDb from 'mime-db';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent, TextInput, TextInputChangeEventData, TextInputPasteEventData} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {FileObject} from '@components/AttachmentModal';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -35,7 +33,6 @@ function Composer(
         selection,
         value,
         isGroupPolicyReport = false,
-        showSoftInputOnFocus = true,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -46,18 +43,6 @@ function Composer(
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-
-    const [contextMenuHidden, setContextMenuHidden] = useState(true);
-
-    const keyboardState = useKeyboardState();
-    const isKeyboardShown = keyboardState?.isKeyboardShown ?? false;
-
-    useEffect(() => {
-        if (!showSoftInputOnFocus || !isKeyboardShown) {
-            return;
-        }
-        setContextMenuHidden(false);
-    }, [showSoftInputOnFocus, isKeyboardShown]);
 
     useEffect(() => {
         if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
@@ -143,9 +128,6 @@ function Composer(
             readOnly={isDisabled}
             onPaste={pasteFile}
             onClear={onClear}
-            showSoftInputOnFocus={showSoftInputOnFocus}
-            // Prevent the context menu from showing when tapping the composer to focus it on iOS.
-            contextMenuHidden={getPlatform() === CONST.PLATFORM.IOS ? contextMenuHidden : false}
         />
     );
 }
