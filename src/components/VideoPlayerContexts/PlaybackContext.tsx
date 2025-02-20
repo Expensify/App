@@ -123,7 +123,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             return;
         }
 
-        // We call another setStatusAsync inside useLayoutEffect on the video component, 
+        // We call another setStatusAsync inside useLayoutEffect on the video component,
         // so we add a delay here to prevent the error from appearing.
         setTimeout(() => {
             resetVideoPlayerData();
