@@ -1105,7 +1105,7 @@ type NSQSConnectionData = {
  */
 type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configuration of automatic synchronization from NSQS to the app */
-    autoSync: {
+    autoSync?: {
         /** Job ID of the synchronization */
         jobID: string;
 
@@ -1114,9 +1114,9 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** Configuration options pertaining to sync */
-    syncOptions: {
+    syncOptions?: {
         /** Configuration of import settings from NSQS to Expensify */
-        mapping: {
+        mapping?: {
             /** How NSQS customers are displayed as */
             customers: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
 
@@ -1136,7 +1136,7 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** NSQS credentials */
     credentials: {
-        /** Encrypted token for NSQS authentification */
+        /** Encrypted token for NSQS authentication */
         accessToken: string;
 
         /** The company ID */
