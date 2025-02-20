@@ -37,7 +37,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         onStartReached,
         renderItem,
         keyExtractor = defaultKeyExtractor,
-        shouldMaintainVisibleContentPosition,
+        shouldMaintainVisibleContentPosition = true,
         ...rest
     } = props;
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
