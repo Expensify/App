@@ -58,11 +58,9 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
     useHandleBackButton(handleBackButtonPress);
 
     const scrollOffset = useSharedValue(0);
-    const paddingTopValue = useSharedValue<number>(styles.pt3.paddingTop);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
-        paddingTop: paddingTopValue.get(),
     }));
 
     const scrollHandler = useAnimatedScrollHandler({
@@ -76,13 +74,8 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
             const distanceScrolled = currentOffset - scrollOffset.get();
 
             if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                const newTopBarOffset = clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset);
-                if (newTopBarOffset === variables.minimalTopBarOffset) {
-                    paddingTopValue.set(0);
-                }
-                topBarOffset.set(newTopBarOffset);
+                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
             } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                paddingTopValue.set(styles.pt3.paddingTop);
                 topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
             }
             scrollOffset.set(currentOffset);
@@ -94,10 +87,9 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
             if (windowHeight <= h) {
                 return;
             }
-            paddingTopValue.set(styles.pt3.paddingTop);
             topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
         },
-        [windowHeight, paddingTopValue, styles.pt3.paddingTop, topBarOffset, StyleUtils.searchHeaderDefaultOffset],
+        [windowHeight, topBarOffset, StyleUtils.searchHeaderDefaultOffset],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
