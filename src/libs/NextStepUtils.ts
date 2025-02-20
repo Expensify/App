@@ -167,11 +167,11 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
                     if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                         autoSubmissionDate = lastDayOfMonth(currentDate);
-                        autoSubmissionMonth = `the ${format(currentDate, CONST.DATE.MONTH_FORMAT)}`;
+                        autoSubmissionMonth = format(currentDate, CONST.DATE.MONTH_FORMAT);
                     } else if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                         const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(currentDate);
                         autoSubmissionDate = setDate(currentDate, lastBusinessDayOfMonth);
-                        autoSubmissionMonth = `the ${format(currentDate, CONST.DATE.MONTH_FORMAT)}`;
+                        autoSubmissionMonth = format(currentDate, CONST.DATE.MONTH_FORMAT);
                     } else if (autoReportingOffset !== undefined) {
                         autoSubmissionDate = setDate(currentDate, autoReportingOffset);
                     }
@@ -184,7 +184,9 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: formattedDate ? `on the ${formattedDate} of ${autoSubmissionMonth || 'each month'}` : '',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: formattedDate
+                            ? `on the ${formattedDate} of ${autoSubmissionMonth ? `the ${autoSubmissionMonth}` : 'each month'}`
+                            : '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
