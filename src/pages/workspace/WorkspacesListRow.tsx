@@ -1,6 +1,6 @@
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
@@ -10,6 +10,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -18,7 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
@@ -120,7 +121,7 @@ function WorkspacesListRow({
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID).at(0);
+    const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
@@ -149,6 +150,7 @@ function WorkspacesListRow({
                 <Tooltip
                     maxWidth={variables.w184}
                     text={translate('workspace.common.defaultNote')}
+                    numberOfLines={4}
                 >
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
@@ -164,24 +166,28 @@ function WorkspacesListRow({
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>
-                    <View ref={threeDotsMenuContainerRef}>
-                        <ThreeDotsMenu
-                            onIconPress={() => {
-                                if (shouldUseNarrowLayout) {
-                                    return;
-                                }
-                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                    setThreeDotsMenuPosition({
-                                        horizontal: x + width,
-                                        vertical: y + height,
-                                    });
+                    <View
+                        ref={threeDotsMenuContainerRef}
+                        onLayout={(e: LayoutChangeEvent) => {
+                            if (shouldUseNarrowLayout) {
+                                return;
+                            }
+                            const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
+                            target?.measureInWindow((x, y, width) => {
+                                setThreeDotsMenuPosition({
+                                    horizontal: x + width,
+                                    vertical: y,
                                 });
-                            }}
+                            });
+                        }}
+                    >
+                        <ThreeDotsMenu
                             menuItems={menuItems}
                             anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
+                            isNested
                         />
                     </View>
                 </View>
@@ -225,7 +231,7 @@ function WorkspacesListRow({
                             <View style={styles.flex1}>
                                 <WorkspacesListRowDisplayName
                                     isDeleted={isDeleted}
-                                    ownerName={PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
+                                    ownerName={getDisplayNameOrDefault(ownerDetails)}
                                 />
                                 <Text
                                     numberOfLines={1}

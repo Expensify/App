@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -27,7 +27,7 @@ function SelectFeedType() {
             setHasError(true);
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({
+        setAddNewCompanyCardStepAndData({
             step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
             data: {selectedFeedType: typeSelected},
         });
@@ -38,14 +38,14 @@ function SelectFeedType() {
     }, [addNewCard?.data.selectedFeedType]);
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
         {
             value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
-            text: translate('workspace.companyCards.customFeed'),
-            alternateText: translate('workspace.companyCards.addNewCard.customFeedDetails'),
+            text: translate('workspace.companyCards.commercialFeed'),
+            alternateText: translate('workspace.companyCards.addNewCard.commercialFeedDetails'),
             keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
         },

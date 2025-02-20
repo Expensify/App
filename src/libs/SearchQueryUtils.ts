@@ -14,7 +14,7 @@ import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
-import {getTagNamesFromTagsLists} from './PolicyUtils';
+import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {hashText} from './UserUtils';
@@ -67,10 +67,10 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains space.
+ * Returns string value wrapped in quotes "", if the value contains space or &nbsp; (no-breaking space).
  */
 function sanitizeSearchValue(str: string) {
-    if (str.includes(' ')) {
+    if (str.includes(' ') || str.includes(`\xA0`)) {
         return `"${str}"`;
     }
     return str;
@@ -559,6 +559,9 @@ function getFilterDisplayValue(
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
     }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
+        return getCleanedTagName(filterValue);
+    }
     return filterValue;
 }
 
@@ -621,14 +624,22 @@ function buildCannedSearchQuery({
     type = CONST.SEARCH.DATA_TYPES.EXPENSE,
     status = CONST.SEARCH.STATUS.EXPENSE.ALL,
     policyID,
+    cardID,
 }: {
     type?: SearchDataTypes;
     status?: SearchStatus;
     policyID?: string;
+    cardID?: string;
 } = {}): SearchQueryString {
-    const queryString = policyID
-        ? `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`
-        : `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+    let queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+
+    if (policyID) {
+        queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`;
+    }
+
+    if (cardID) {
+        queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status} expense-type:card card:${cardID}`;
+    }
 
     // Parse the query to fill all default query fields with values
     const normalizedQueryJSON = buildSearchQueryJSON(queryString);
@@ -644,6 +655,10 @@ function buildCannedSearchQuery({
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     return !queryJSON.filters;
+}
+
+function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters;
 }
 
 /**
@@ -725,4 +740,5 @@ export {
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
     getUserFriendlyKey,
+    isDefaultExpensesQuery,
 };

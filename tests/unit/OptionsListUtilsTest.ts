@@ -148,14 +148,89 @@ describe('OptionsListUtils', () => {
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
+        },
 
-            // This indicates that the report is archived
-            stateNum: 2,
-            statusNum: 2,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            private_isArchived: DateUtils.getDBTime(),
+        // Thread report with notification preference = hidden
+        '11': {
+            lastReadTime: '2021-01-14 11:25:39.200',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            reportID: '11',
+            isPinned: false,
+            participants: {
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+            reportName: '',
+            oldPolicyName: "SHIELD's workspace",
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
         },
     };
+
+    const activePolicyID = 'DEF456';
+
+    const WORKSPACE_CHATS: ReportUtils.OptionData[] = [
+        {
+            reportID: '1',
+            text: 'Google Workspace',
+            policyID: '11',
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '2',
+            text: 'Google Drive Workspace',
+            policyID: '22',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '3',
+            text: 'Slack Team Workspace',
+            policyID: '33',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '4',
+            text: 'Slack Development Workspace',
+            policyID: '44',
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '5',
+            text: 'Microsoft Teams Workspace',
+            policyID: '55',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '6',
+            text: 'Microsoft Project Workspace',
+            policyID: '66',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '7',
+            text: 'Notion Design Workspace',
+            policyID: '77',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '8',
+            text: 'Notion Workspace for Marketing',
+            policyID: activePolicyID,
+            isPolicyExpenseChat: true,
+        },
+        {
+            reportID: '9',
+            text: 'Asana Task Workspace',
+            policyID: '99',
+            isPolicyExpenseChat: false,
+        },
+        {
+            reportID: '10',
+            text: 'Asana Project Management',
+            policyID: '1010',
+            isPolicyExpenseChat: true,
+        },
+    ];
 
     // And a set of personalDetails some with existing reports and some without
     const PERSONAL_DETAILS: PersonalDetailsList = {
@@ -313,6 +388,32 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_SELFDM: OnyxCollection<Report> = {
+        16: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '16',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: 'Expense Report',
+            type: CONST.REPORT.TYPE.EXPENSE,
+        },
+        17: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '17',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            },
+            reportName: '',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+        },
+    };
+
     const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
         '999': {
@@ -356,6 +457,15 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const PERSONAL_DETAILS_WITH_MANAGER_MCTEST: PersonalDetailsList = {
+        ...PERSONAL_DETAILS,
+        '1003': {
+            accountID: 1003,
+            displayName: 'Manager McTest',
+            login: CONST.EMAIL.MANAGER_MCTEST,
+            reportID: '',
+        },
+    };
     const policyID = 'ABC123';
 
     const POLICY: Policy = {
@@ -366,6 +476,10 @@ describe('OptionsListUtils', () => {
         owner: '',
         outputCurrency: '',
         isPolicyExpenseChatEnabled: false,
+    };
+
+    const reportNameValuePairs = {
+        private_isArchived: DateUtils.getDBTime(),
     };
 
     // Set the currently logged in user, report data, and personal details
@@ -380,6 +494,8 @@ describe('OptionsListUtils', () => {
                     total: 1000,
                 },
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: POLICY,
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: activePolicyID,
+                [ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING]: {},
             },
         });
         Onyx.registerLogger(() => {});
@@ -391,13 +507,16 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
+    let OPTIONS_WITH_MANAGER_MCTEST: OptionsListUtils.OptionList;
 
     beforeEach(() => {
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
         OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_MANAGER_MCTEST = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST);
     });
 
     it('getSearchOptions()', () => {
@@ -408,8 +527,8 @@ describe('OptionsListUtils', () => {
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(9);
 
-        // Then all of the reports should be shown including the archived rooms.
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
+        // Then all of the reports should be shown including the archived rooms, except for the report with notificationPreferences hidden.
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
     });
 
     it('orderOptions()', () => {
@@ -478,7 +597,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.CONCIERGE],
+                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
             },
         );
 
@@ -488,7 +607,10 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
+        results = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+            {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}},
+        );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         // Filtering of personalDetails that have reports is done in filterOptions
@@ -502,7 +624,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.RECEIPTS],
+                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
             },
         );
 
@@ -510,6 +632,32 @@ describe('OptionsListUtils', () => {
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
         expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+
+        // Test for check if Manager McTest is correctly included or excluded from the results
+        let options = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+            {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+        );
+        expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+
+        // Manager McTest shouldn't be included to recipients when its not an IOU action
+        options = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+            {includeP2P: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+        );
+
+        expect(options.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+
+        return waitForBatchedUpdates()
+            .then(() => Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: new Date() as unknown as string}))
+            .then(() => {
+                // Manager McTest shouldn't be included to recipients when the user has already submitted an expense
+                const optionsWhenUserAlreadySubmittedExpense = OptionsListUtils.getValidOptions(
+                    {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                    {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                );
+                expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+            });
     });
 
     it('getValidOptions() for group Chat', () => {
@@ -526,7 +674,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we provide a "selected" option to getValidOptions()
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: ['peterparker@expensify.com']});
+        results = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: {'peterparker@expensify.com': true}});
 
         // Then the option should not appear anywhere in either list
         expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
@@ -548,7 +696,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.CONCIERGE],
+                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
             },
         );
 
@@ -560,7 +708,10 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
         // Test by excluding Chronos from the results
-        results = OptionsListUtils.getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: [CONST.EMAIL.CHRONOS]});
+        results = OptionsListUtils.getValidOptions(
+            {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+            {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}},
+        );
 
         // We should expect all the personalDetails to show (minus
         // the currently logged in user and Concierge)
@@ -576,7 +727,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
             },
             {
-                excludeLogins: [CONST.EMAIL.RECEIPTS],
+                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
             },
         );
 
@@ -619,6 +770,20 @@ describe('OptionsListUtils', () => {
         // Then we should expect the DMS, the group chats and the workspace room to show
         // We should expect all the recent reports to show, excluding the archived rooms
         expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
+    });
+
+    describe('getShareLogOptions', () => {
+        it('should not include read-only report', () => {
+            // Given a list of 11 report options with reportID of 10 is archived
+            // OPTIONS, defined above
+
+            // When getting the share log options
+            const results = OptionsListUtils.getShareLogOptions(OPTIONS, []);
+
+            // Then the report with reportID of 10 should not be included on the list
+            expect(results.recentReports.length).toBe(10);
+            expect(results.recentReports.find((report) => report.reportID === '10')).toBeUndefined();
+        });
     });
 
     it('getMemberInviteOptions()', () => {
@@ -761,8 +926,8 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an exluded logins list', () => {
             const searchText = 'admin@expensify.com';
 
-            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS});
-            const filterOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            const options = OptionsListUtils.getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const filterOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
             expect(filterOptions.recentReports.length).toBe(0);
         });
 
@@ -770,7 +935,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'test@email.com';
 
             const options = OptionsListUtils.getSearchOptions(OPTIONS);
-            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
         });
@@ -1002,6 +1167,19 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.personalDetails.length).toBe(2);
             expect(matchingEntries.length).toBe(1);
         });
+
+        it('should order self dm always on top if the search matches with the self dm login', () => {
+            const searchTerm = 'tonystark@expensify.com';
+
+            const OPTIONS_WITH_SELFDM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELFDM);
+
+            // When search term matches with self dm login
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_SELFDM, [CONST.BETAS.ALL]);
+            const filteredOptions = OptionsListUtils.filterAndOrderOptions(options, searchTerm);
+
+            // Then the self dm should be on top.
+            expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
+        });
     });
 
     describe('canCreateOptimisticPersonalDetailOption', () => {
@@ -1035,6 +1213,158 @@ describe('OptionsListUtils', () => {
             });
 
             expect(canCreate).toBe(false);
+        });
+    });
+
+    it('createOptionList() localization', () => {
+        const reports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+        expect(reports.at(9)?.subtitle).toBe('Workspace');
+        return waitForBatchedUpdates()
+            .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
+            .then(() => {
+                const newReports = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                expect(newReports.at(9)?.subtitle).toBe('Espacio de trabajo');
+            });
+    });
+
+    describe('filterWorkspaceChats', () => {
+        it('should return an empty array if there are no workspace chats', () => {
+            const result = OptionsListUtils.filterWorkspaceChats([], []);
+
+            expect(result.length).toEqual(0);
+        });
+
+        it('should return all workspace chats if there are no search terms', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, []);
+
+            expect(result).toEqual(WORKSPACE_CHATS);
+            expect(result.length).toEqual(WORKSPACE_CHATS.length);
+        });
+
+        it('should filter multiple workspace chats by search term', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Google']);
+
+            expect(result.length).toEqual(2);
+        });
+
+        it('should filter workspace chat by exact name', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['Microsoft', 'Teams', 'Workspace']);
+
+            expect(result.length).toEqual(1);
+        });
+
+        it('should return an empty array if there are no matching workspace chats', () => {
+            const result = OptionsListUtils.filterWorkspaceChats(WORKSPACE_CHATS, ['XYZ']);
+
+            expect(result.length).toEqual(0);
+        });
+    });
+
+    describe('orderWorkspaceOptions', () => {
+        it('should put the default workspace on top of the list', () => {
+            const result = OptionsListUtils.orderWorkspaceOptions(WORKSPACE_CHATS);
+
+            expect(result.at(0)?.text).toEqual('Notion Workspace for Marketing');
+        });
+    });
+
+    describe('filterSelfDMChat', () => {
+        const REPORT = {
+            reportID: '1',
+            text: 'Google Workspace',
+            policyID: '11',
+            isPolicyExpenseChat: true,
+        };
+        const LOGIN = 'johndoe@test.com';
+        const ALTERNATE_TEXT = 'John William Doe';
+        const SUBTITLE = 'Software Engineer';
+
+        it('should return the report when there are no search terms', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, []);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should return undefined, when the search term does not match the report', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['XYZ']);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should filter report by text', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['Google']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact text', () => {
+            const result = OptionsListUtils.filterSelfDMChat(REPORT, ['Google', 'Workspace']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by login', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, login: LOGIN}, ['john']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact login', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, login: LOGIN}, [LOGIN]);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by alternate text', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['William']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact alternate text', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: true}, ['John', 'William', 'Doe']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by alternate text if it is not a thread', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, alternateText: ALTERNATE_TEXT, isThread: false}, ['William']);
+
+            expect(result?.reportID).toBeUndefined();
+        });
+
+        it('should filter report by subtitle', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should filter report by exact subtitle', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE}, ['Software', 'Engineer']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+
+        it('should not filter report by subtitle if it is not an expense chat nor a chat room', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE, isPolicyExpenseChat: false, isChatRoom: false}, ['Software']);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should filter report by subtitle if it is a chat room', () => {
+            const result = OptionsListUtils.filterSelfDMChat({...REPORT, subtitle: SUBTITLE, isPolicyExpenseChat: false, isChatRoom: true}, ['Software']);
+
+            expect(result?.reportID).toEqual(REPORT.reportID);
+        });
+    });
+
+    describe('filterReports', () => {
+        it('should match a user with an accented name when searching using non-accented characters', () => {
+            const reports = [{text: "Álex Timón D'artagnan Zo-e"} as ReportUtils.OptionData];
+            const searchTerms = ['Alex Timon Dartagnan Zoe'];
+            const filteredReports = OptionsListUtils.filterReports(reports, searchTerms);
+
+            expect(filteredReports).toEqual(reports);
         });
     });
 });

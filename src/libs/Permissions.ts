@@ -1,9 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
-import * as SessionUtils from './SessionUtils';
-
-const isAccountIDEven = (accountID: number) => accountID % 2 === 0;
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -17,18 +14,13 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
+function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
+    // Don't check for all betas or nobody can use test travel on dev
+    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+}
+
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
-}
-
-function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
-}
-
-function canUseCombinedTrackSubmit(): boolean {
-    // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
-    const session = SessionUtils.getSession();
-    return isAccountIDEven(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
 }
 
 function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
@@ -50,14 +42,28 @@ function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
 }
 
+function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
+}
+
+function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
+}
+
+function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseSpotnanaTravel,
+    isBlockedFromSpotnanaTravel,
     canUseNetSuiteUSATax,
-    canUseCombinedTrackSubmit,
-    canUseCategoryAndTagApprovers,
     canUsePerDiem,
     canUseMergeAccounts,
     canUseManagerMcTest,
+    canUseInternationalBankAccount,
+    canUseNSQS,
+    canUseCustomRules,
 };

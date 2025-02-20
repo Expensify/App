@@ -11,13 +11,12 @@ import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
-import type {CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getPolicy} from './PolicyUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -99,11 +98,19 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
-function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards) {
-    const feedCards: CardList = {...cardList};
+function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
+    const feedCards: CardList = {};
+    Object.values(cardList).forEach((card) => {
+        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
+            return;
+        }
+
+        feedCards[card.cardID] = card;
+    });
+
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
         Object.values(currentCardFeed ?? {}).forEach((card) => {
-            if (!isCard(card)) {
+            if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
                 return;
             }
             feedCards[card.cardID] = card;
@@ -284,8 +291,11 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
     return Illustrations.AmexCompanyCards;
 }
 
-function isCustomFeed(feed: CompanyCardFeed): boolean {
-    return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => value === feed);
+/**
+ * Verify if the feed is a custom feed. Those are also refered to as commercial feeds.
+ */
+function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
+    return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
 function getCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>, shouldFilterOutRemovedFeeds = false): CompanyFeeds {
@@ -434,9 +444,9 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
+function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
     const cards = {};
-    for (const [key, values] of Object.entries(allWorkspaceCards ?? {})) {
+    for (const [key, values] of Object.entries(allCardList ?? {})) {
         if (key.includes(workspaceAccountID.toString()) && values) {
             const {cardList, ...rest} = values;
             Object.assign(cards, rest);
@@ -445,15 +455,62 @@ function getAllCardsForWorkspace(workspaceAccountID: number): CardList {
     return cards;
 }
 
-const getDescriptionForPolicyDomainCard = (domainName: string): string => {
-    // A domain name containing a policyID indicates that this is a workspace feed
-    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
-    if (policyID) {
-        const policy = getPolicy(policyID.toUpperCase());
-        return policy?.name ?? domainName;
+const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+
+function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
+    if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
+        const filteredFeeds = Object.keys(cardFeeds?.settings?.companyCards ?? {}).filter((str) => str.includes(feedKey));
+
+        const feedNumbers = filteredFeeds.map((str) => parseInt(str.replace(feedKey, ''), 10)).filter(Boolean);
+        feedNumbers.sort((a, b) => a - b);
+
+        let firstAvailableNumber = 1;
+        for (const num of feedNumbers) {
+            if (num && num !== firstAvailableNumber) {
+                return `${feedKey}${firstAvailableNumber}`;
+            }
+            firstAvailableNumber++;
+        }
+
+        return `${feedKey}${firstAvailableNumber}`;
     }
-    return domainName;
-};
+    return feedKey;
+}
+
+/**
+ * Takes the list of cards divided by workspaces and feeds and returns the flattened non-Expensify cards related to the provided workspace
+ *
+ * @param allCardsList the list where cards split by workspaces and feeds and stored under `card_${workspaceAccountID}_${feedName}` keys
+ * @param workspaceAccountID the workspace account id we want to get cards for
+ */
+function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, workspaceAccountID: number): Record<string, Card> | undefined {
+    if (!allCardsList) {
+        return;
+    }
+
+    return Object.entries(allCardsList).reduce((acc, [key, cards]) => {
+        if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST.EXPENSIFY_CARD.BANK)) {
+            return acc;
+        }
+        const {cardList, ...feedCards} = cards ?? {};
+        Object.assign(acc, feedCards);
+        return acc;
+    }, {});
+}
+
+/**
+ * Check if any card from the provided feed(s) has a broken connection
+ *
+ * @param feedCards the list of the cards, related to one or several feeds
+ * @param [feedToExclude] the feed to ignore during the check, it's useful for checking broken connection error only in the feeds other than the selected one
+ */
+function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefined, feedToExclude?: string): boolean {
+    if (!feedCards || isEmptyObject(feedCards)) {
+        return false;
+    }
+
+    return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+}
 
 export {
     isExpensifyCard,
@@ -486,8 +543,10 @@ export {
     getDefaultCardName,
     mergeCardListWithWorkspaceFeeds,
     isCard,
-    getDescriptionForPolicyDomainCard,
     getAllCardsForWorkspace,
     isCardIssued,
     isCardHiddenFromSearch,
+    getFeedType,
+    flatAllCardsList,
+    checkIfFeedConnectionIsBroken,
 };

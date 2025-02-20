@@ -1,11 +1,14 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
+import {PopoverContext} from '@components/PopoverProvider';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
+import {parseFSAttributes} from '@libs/Fullstory';
 import CONST from '@src/CONST';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
@@ -38,6 +41,8 @@ function BaseGenericTooltip({
     },
     shouldUseOverlay = false,
     onHideTooltip = () => {},
+    isEducationTooltip = false,
+    onTooltipPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -49,6 +54,14 @@ function BaseGenericTooltip({
     const rootWrapper = useRef<HTMLDivElement>(null);
 
     const StyleUtils = useStyleUtils();
+    const {setActivePopoverExtraAnchorRef} = useContext(PopoverContext);
+
+    useEffect(() => {
+        if (!isEducationTooltip) {
+            return;
+        }
+        setActivePopoverExtraAnchorRef(rootWrapper);
+    }, [isEducationTooltip, setActivePopoverExtraAnchorRef]);
 
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
@@ -83,6 +96,7 @@ function BaseGenericTooltip({
                 shouldForceRenderingBelow,
                 anchorAlignment,
                 wrapperStyle,
+                isEducationTooltip,
             }),
         [
             StyleUtils,
@@ -99,6 +113,7 @@ function BaseGenericTooltip({
             shouldForceRenderingBelow,
             anchorAlignment,
             wrapperStyle,
+            isEducationTooltip,
         ],
     );
 
@@ -106,14 +121,32 @@ function BaseGenericTooltip({
         return StyleUtils.getTooltipAnimatedStyles({tooltipContentWidth: contentMeasuredWidth, tooltipWrapperHeight: wrapperMeasuredHeight, currentSize: animation});
     });
 
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
+    useLayoutEffect(parseFSAttributes, []);
+
     let content;
     if (renderTooltipContent) {
-        content = <View ref={viewRef(contentRef)}>{renderTooltipContent()}</View>;
+        content = (
+            <View
+                ref={viewRef(contentRef)}
+                fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
+            >
+                {renderTooltipContent()}
+            </View>
+        );
     } else {
         content = (
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
+                fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
             >
                 <Text
                     style={textStyle}
@@ -125,6 +158,8 @@ function BaseGenericTooltip({
         );
     }
 
+    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
+
     const body = document.querySelector('body');
 
     if (!body) {
@@ -134,15 +169,18 @@ function BaseGenericTooltip({
     return ReactDOM.createPortal(
         <>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Animated.View
+            <AnimatedWrapper
                 ref={viewRef(rootWrapper)}
                 style={[rootWrapperStyle, animationStyle]}
+                onPress={isEducationTooltip ? onTooltipPress : undefined}
+                role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
             >
                 {content}
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Animated.View>
+            </AnimatedWrapper>
         </>,
         body,
     );

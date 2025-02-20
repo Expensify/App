@@ -1,12 +1,14 @@
 import {Portal} from '@gorhom/portal';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {View as RNView} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
+import {parseFSAttributes} from '@libs/Fullstory';
 import CONST from '@src/CONST';
 import type {BaseGenericTooltipProps} from './types';
 
@@ -37,6 +39,8 @@ function BaseGenericTooltip({
     shouldUseOverlay = false,
     onHideTooltip = () => {},
     shouldTeleportPortalToModalLayer = false,
+    isEducationTooltip = false,
+    onTooltipPress = () => {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -69,6 +73,7 @@ function BaseGenericTooltip({
                 anchorAlignment,
                 wrapperStyle,
                 shouldAddHorizontalPadding: false,
+                isEducationTooltip,
             }),
         [
             StyleUtils,
@@ -85,6 +90,7 @@ function BaseGenericTooltip({
             shouldForceRenderingBelow,
             anchorAlignment,
             wrapperStyle,
+            isEducationTooltip,
         ],
     );
 
@@ -96,26 +102,48 @@ function BaseGenericTooltip({
         });
     });
 
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
+    useLayoutEffect(parseFSAttributes, []);
+
     let content;
     if (renderTooltipContent) {
-        content = <View>{renderTooltipContent()}</View>;
+        content = (
+            <View
+                fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
+            >
+                {renderTooltipContent()}
+            </View>
+        );
     } else {
         content = (
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
+                fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
             >
                 <Text style={textStyle}>{text}</Text>
             </Text>
         );
     }
 
+    const AnimatedWrapper = isEducationTooltip ? AnimatedPressableWithoutFeedback : Animated.View;
+
     return (
         <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Animated.View
-                ref={rootWrapper}
+            <AnimatedWrapper
                 style={[rootWrapperStyle, animationStyle]}
+                ref={rootWrapper}
+                onPress={isEducationTooltip ? onTooltipPress : undefined}
+                role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 onLayout={(e) => {
                     const {height, width} = e.nativeEvent.layout;
                     if (height === wrapperMeasuredHeightAnimated.get()) {
@@ -134,7 +162,7 @@ function BaseGenericTooltip({
                 <View style={pointerWrapperStyle}>
                     <View style={pointerStyle} />
                 </View>
-            </Animated.View>
+            </AnimatedWrapper>
         </Portal>
     );
 }

@@ -9,6 +9,12 @@ import 'setimmediate';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
+// Needed for tests to have the necessary environment variables set
+if (!('GITHUB_REPOSITORY' in process.env)) {
+    process.env.GITHUB_REPOSITORY_OWNER = 'Expensify';
+    process.env.GITHUB_REPOSITORY = 'Expensify/App';
+}
+
 setupMockImages();
 mockFSLibrary();
 
@@ -106,3 +112,41 @@ jest.mock(
             dispose() {}
         },
 );
+
+jest.mock(
+    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
+    () =>
+        class SyncRenderTaskQueue {
+            private handler: (info: unknown) => void = () => {};
+
+            add(info: unknown) {
+                this.handler(info);
+            }
+
+            setHandler(handler: () => void) {
+                this.handler = handler;
+            }
+
+            cancel() {}
+        },
+);
+
+jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn((command: string, data: Record<string, unknown>) => {
+        const formData = new FormData();
+
+        Object.keys(data).forEach((key) => {
+            const value = data[key];
+
+            if (value === undefined) {
+                return;
+            }
+
+            formData.append(key, value as string | Blob);
+        });
+
+        return Promise.resolve(formData);
+    }),
+}));

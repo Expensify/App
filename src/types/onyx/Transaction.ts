@@ -82,7 +82,7 @@ type Comment = {
     splits?: Split[];
 
     /** Violations that were dismissed */
-    dismissedViolations?: Record<ViolationName, Record<string, string | number>>;
+    dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 };
 
 /** Model of transaction custom unit */
@@ -132,7 +132,7 @@ type TransactionCustomUnit = {
         name: string;
 
         /** Custom unit rate */
-        rate?: number;
+        rate: number;
     }>;
 };
 
@@ -452,7 +452,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         receipt?: Receipt;
 
         /** The iouReportID associated with the transaction */
-        reportID: string;
+        reportID: string | undefined;
 
         /** Existing routes */
         routes?: Routes;
@@ -586,4 +586,5 @@ export type {
     TransactionCollectionDataSet,
     SplitShare,
     SplitShares,
+    TransactionCustomUnit,
 };

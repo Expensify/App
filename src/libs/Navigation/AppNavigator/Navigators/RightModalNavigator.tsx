@@ -5,6 +5,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
+import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
 import {isSafari} from '@libs/Browser';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
@@ -87,6 +88,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.SettingsModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH}
+                        component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
+                        listeners={{
+                            blur: () => {
+                                InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
+                            },
+                        }}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_CHAT}
                         component={ModalStackNavigators.NewChatModalStackNavigator}
                     />
@@ -137,6 +147,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.MONEY_REQUEST}
                         component={ModalStackNavigators.MoneyRequestModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION}
+                        component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
                     />
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_TASK}

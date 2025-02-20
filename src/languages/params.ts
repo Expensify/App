@@ -115,6 +115,11 @@ type RequestCountParams = {
     pendingReceipts: number;
 };
 
+type DeleteTransactionParams = {
+    amount: string;
+    merchant: string;
+};
+
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -165,6 +170,8 @@ type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
 type ThreadSentMoneyReportNameParams = {formattedAmount: string; comment: string};
 
+type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
+
 type SizeExceededParams = {maxUploadSizeInMB: number};
 
 type ResolutionConstraintsParams = {minHeightInPx: number; minWidthInPx: number; maxHeightInPx: number; maxWidthInPx: number};
@@ -200,8 +207,6 @@ type StepCounterParams = {step: number; total?: number; text?: string};
 type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
-
-type WelcomeNoteParams = {workspaceName: string};
 
 type RoomNameReservedErrorParams = {reservedName: string};
 
@@ -253,6 +258,8 @@ type ViolationsPerDayLimitParams = {formattedLimit: string};
 
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
+type ViolationsCustomRulesParams = {message: string};
+
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
     isAdmin: boolean;
@@ -285,6 +292,34 @@ type HeldRequestParams = {comment: string};
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
+
+type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
+
+type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
+
+type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
+
+type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
+
+type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
+
+type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName: string; tagListName: string; updatedField: string};
+
+type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
+
+type AddedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+
+type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
+
+type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
+
+type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
+
+type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: string};
+
+type UpdatedPolicyFieldWithValueParam = {value: boolean};
+
+type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
@@ -357,11 +392,13 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
-type IntegrationSyncFailedParams = {label: string; errorMessage: string};
+type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string};
 
 type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
+
+type LeftWorkspaceParams = {nameOrEmail: string};
 
 type RemoveMemberParams = {email: string; role: string};
 
@@ -380,6 +417,8 @@ type AmountWithCurrencyParams = {amountWithCurrency: string};
 type LowerUpperParams = {lower: string; upper: string};
 
 type CategoryNameParams = {categoryName: string};
+
+type NeedCategoryForExportToIntegrationParams = {connectionName: string};
 
 type TaxAmountParams = {taxAmount: number};
 
@@ -416,6 +455,10 @@ type BillingBannerCardExpiredParams = {amountOwed: number};
 type BillingBannerCardOnDisputeParams = {amountOwed: string; cardEnding: string};
 
 type TrialStartedTitleParams = {numOfDays: number};
+
+type EarlyDiscountTitleParams = {discountType: number};
+
+type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
 
 type CardNextPaymentParams = {nextPaymentDate: string};
 
@@ -495,6 +538,11 @@ type DefaultAmountParams = {
 
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
+};
+
+type DemotedFromWorkspaceParams = {
+    policyName: string;
+    oldRole: string;
 };
 
 type IntegrationExportParams = {
@@ -586,24 +634,20 @@ type ChatWithAccountManagerParams = {
     accountManagerDisplayName: string;
 };
 
-type FirstDayTextParams = {
-    hours: string;
-};
-
-type LastDayTextParams = {
-    hours: string;
-};
-
-type TripLengthTextParams = {
-    days: number;
-};
-
 type EditDestinationSubtitleParams = {
     destination: string;
 };
 
 type FlightLayoverParams = {
     layover: string;
+};
+
+type SubmitsToParams = {
+    name: string;
+};
+
+type SettlementDateParams = {
+    settlementDate: string;
 };
 
 export type {
@@ -617,6 +661,7 @@ export type {
     ConnectionParams,
     IntegrationExportParams,
     RemovedFromApprovalWorkflowParams,
+    DemotedFromWorkspaceParams,
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
@@ -654,6 +699,8 @@ export type {
     BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     TrialStartedTitleParams,
+    EarlyDiscountTitleParams,
+    EarlyDiscountSubtitleParams,
     RemoveMemberPromptParams,
     StatementTitleParams,
     RenamedWorkspaceNameActionParams,
@@ -702,6 +749,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
+    MovedFromPersonalSpaceParams,
     SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -728,6 +776,7 @@ export type {
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,
+    DeleteTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -763,6 +812,7 @@ export type {
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
     ViolationsReceiptRequiredParams,
+    ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
@@ -770,7 +820,6 @@ export type {
     WalletProgramParams,
     WeSentYouMagicSignInLinkParams,
     WelcomeEnterMagicCodeParams,
-    WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
@@ -795,6 +844,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,
     FiltersAmountBetweenParams,
@@ -814,9 +864,23 @@ export type {
     CompanyNameParams,
     CustomUnitRateParams,
     ChatWithAccountManagerParams,
-    FirstDayTextParams,
-    LastDayTextParams,
-    TripLengthTextParams,
+    UpdatedPolicyCurrencyParams,
+    UpdatedPolicyFrequencyParams,
+    UpdatedPolicyCategoryParams,
+    UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyFieldWithNewAndOldValueParams,
+    UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    AddedOrDeletedPolicyReportFieldParams,
+    AddedPolicyCustomUnitRateParams,
+    UpdatedPolicyTagParams,
+    UpdatedPolicyTagNameParams,
+    UpdatedPolicyTagFieldParams,
+    UpdatedPolicyReportFieldDefaultValueParams,
+    SubmitsToParams,
+    SettlementDateParams,
+    NeedCategoryForExportToIntegrationParams,
 };

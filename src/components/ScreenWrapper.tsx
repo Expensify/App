@@ -12,13 +12,14 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
+import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
@@ -40,6 +41,9 @@ type ScreenWrapperChildrenProps = {
 type ScreenWrapperProps = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
     children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
+
+    /** Content to display under the offline indicator */
+    bottomContent?: ReactNode;
 
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
@@ -97,7 +101,7 @@ type ScreenWrapperProps = {
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: PlatformStackNavigationProp<RootStackParamList> | PlatformStackNavigationProp<AuthScreensParamList>;
+    navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -136,6 +140,7 @@ function ScreenWrapper(
         shouldShowOfflineIndicatorInWideScreen = false,
         shouldUseCachedViewportHeight = false,
         focusTrapSettings,
+        bottomContent,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -146,12 +151,13 @@ function ScreenWrapper(
      * so in other places where ScreenWrapper is used, we need to
      * fallback to useNavigation.
      */
-    const navigationFallback = useNavigation<PlatformStackNavigationProp<RootStackParamList>>();
+    const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -161,7 +167,7 @@ function ScreenWrapper(
     const {isDevelopment} = useEnvironment();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-    const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
+    const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
 
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
@@ -171,6 +177,7 @@ function ScreenWrapper(
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
         NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+        setRootStatusBarEnabled(false);
     });
 
     const panResponder = useRef(
@@ -184,7 +191,7 @@ function ScreenWrapper(
         PanResponder.create({
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && Browser.isMobile();
+                const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && Keyboard.isVisible() && isMobile();
 
                 return isHorizontalSwipe && shouldDismissKeyboard;
             },
@@ -198,7 +205,7 @@ function ScreenWrapper(
          * Disables the blur state when Safari is detected.
          */
         const handleViewportResize = () => {
-            if (!Browser.isSafari()) {
+            if (!isSafari()) {
                 return; // Exit early if not Safari
             }
             setIsBlurred(false); // Disable blur state for Safari
@@ -255,25 +262,26 @@ function ScreenWrapper(
     }, []);
 
     const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
-    const paddingStyle: StyleProp<ViewStyle> = {};
+    const paddingTopStyle: StyleProp<ViewStyle> = {};
+    const paddingBottomStyle: StyleProp<ViewStyle> = {};
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     if (includePaddingTop) {
-        paddingStyle.paddingTop = paddingTop;
+        paddingTopStyle.paddingTop = paddingTop;
     }
     if (includePaddingTop && ignoreInsetsConsumption) {
-        paddingStyle.paddingTop = unmodifiedPaddings.top;
+        paddingTopStyle.paddingTop = unmodifiedPaddings.top;
     }
 
     // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
     if (includeSafeAreaPaddingBottom) {
-        paddingStyle.paddingBottom = paddingBottom;
+        paddingBottomStyle.paddingBottom = paddingBottom;
     }
     if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
-        paddingStyle.paddingBottom = unmodifiedPaddings.bottom;
+        paddingBottomStyle.paddingBottom = unmodifiedPaddings.bottom;
     }
 
-    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
+    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
         () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
         [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
@@ -290,7 +298,7 @@ function ScreenWrapper(
             >
                 <View
                     fsClass="fs-unmask"
-                    style={[styles.flex1, paddingStyle, style]}
+                    style={[styles.flex1, paddingTopStyle, style]}
                     // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
                     {...keyboardDismissPanResponder.panHandlers}
                 >
@@ -344,6 +352,7 @@ function ScreenWrapper(
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
                 </View>
+                <View style={paddingBottomStyle}>{bottomContent}</View>
             </View>
         </FocusTrapForScreens>
     );
