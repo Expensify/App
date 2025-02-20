@@ -122,6 +122,7 @@ function ReportActionsListWrapper() {
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
                         transactionThreadReport={report}
+                        shouldMaintainVisibleContentPosition
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
