@@ -104,6 +104,7 @@ const INPUT_IDS = {
             SIGNER_COPY_OF_ID: 'copyOfID',
             SIGNER_CODICE_FISCALE: 'codiceFiscaleTaxID',
             SIGNER_PRD_AND_SFG: 'PRDAndFSG',
+            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
             PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
             AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
             CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
@@ -304,6 +305,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Signer email */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
+
+    /** Second signer email */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
 
     /** Signer complete residential address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
