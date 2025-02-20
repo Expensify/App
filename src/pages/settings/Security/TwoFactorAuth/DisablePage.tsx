@@ -1,12 +1,15 @@
+import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDisableTwoFactorAuthErrors} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,6 +63,16 @@ function DisablePage() {
                     }}
                 />
             </FixedFooter>
+            <ConfirmModal
+                title={translate('twoFactorAuth.twoFactorAuthCannotDisable')}
+                prompt={translate('twoFactorAuth.twoFactorAuthRequired')}
+                confirmText={translate('common.buttonConfirm')}
+                onConfirm={clearDisableTwoFactorAuthErrors}
+                shouldShowCancelButton={false}
+                onBackdropPress={clearDisableTwoFactorAuthErrors}
+                onCancel={clearDisableTwoFactorAuthErrors}
+                isVisible={!isEmpty(account?.errorFields?.disableTwoFactorAuth ?? {})}
+            />
         </TwoFactorAuthWrapper>
     );
 }
