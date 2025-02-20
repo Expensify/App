@@ -557,8 +557,12 @@ describe('Test getListItem', () => {
         expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', true)).toEqual(ReportListItem);
     });
 
-    it('should return ReportListItem for other types', () => {
+    it('should return ReportListItem when type is TRIP', () => {
         expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, 'all')).toEqual(ReportListItem);
+    });
+
+    it('should return ReportListItem when type is INVOICE', () => {
+        expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, 'all')).toEqual(ReportListItem);
     });
 });
 
@@ -575,8 +579,12 @@ describe('getSections', () => {
         expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', searchResults.data, searchResults.search, true)).toEqual(reportsListItems);
     });
 
-    it('should return getReportSections result for other types', () => {
+    it('should return getReportSections result when type is TRIP', () => {
         expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, 'all', searchResults.data, searchResults.search)).toEqual(reportsListItems);
+    });
+
+    it('should return getReportSections result when type is INVOICE', () => {
+        expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', searchResults.data, searchResults.search)).toEqual(reportsListItems);
     });
 });
 
@@ -918,8 +926,195 @@ describe('Test getSortedSections', () => {
         ]);
     });
 
-    it('should return getSortedReportData result for other types', () => {
+    it('should return getSortedReportData result when type is TRIP', () => {
         expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, 'all', reportsListItems)).toEqual([
+            {
+                accountID: 18439984,
+                action: 'pay',
+                chatReportID: '1706144653204915',
+                created: '2024-12-21 13:05:20',
+                currency: 'USD',
+                from: {
+                    accountID: 18439984,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'test',
+                    login: 'test1234@gmail.com',
+                },
+                isOneTransactionReport: true,
+                isPolicyExpenseChat: false,
+                isWaitingOnBankAccount: false,
+                keyForList: '123456789',
+                managerID: 18439984,
+                nonReimbursableTotal: 0,
+                ownerAccountID: 18439984,
+                policyID: 'A1B2C3',
+                reportID: '123456789',
+                reportName: 'Expense Report #123',
+                stateNum: 1,
+                statusNum: 1,
+                to: {
+                    accountID: 18439984,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'test',
+                    login: 'test1234@gmail.com',
+                },
+                total: -5000,
+                transactions: [
+                    {
+                        accountID: 18439984,
+                        action: 'pay',
+                        amount: -5000,
+                        canDelete: true,
+                        canHold: true,
+                        canUnhold: false,
+                        category: '',
+                        comment: {
+                            comment: '',
+                        },
+                        created: '2024-12-21',
+                        currency: 'USD',
+                        date: '2024-12-21',
+                        description: '',
+                        formattedFrom: 'test',
+                        formattedMerchant: 'Expense',
+                        formattedTo: 'test',
+                        formattedTotal: 5000,
+                        from: {
+                            accountID: 18439984,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                            displayName: 'test',
+                            login: 'test1234@gmail.com',
+                        },
+                        hasEReceipt: false,
+                        hasViolation: false,
+                        isFromOneTransactionReport: true,
+                        keyForList: '1',
+                        managerID: 18439984,
+                        merchant: 'Expense',
+                        modifiedAmount: 0,
+                        modifiedCreated: '',
+                        modifiedCurrency: '',
+                        modifiedMerchant: 'Expense',
+                        parentTransactionID: '',
+                        policyID: 'A1B2C3',
+                        reportID: '123456789',
+                        reportType: 'expense',
+                        shouldShowCategory: true,
+                        shouldShowMerchant: true,
+                        shouldShowTag: false,
+                        shouldShowTax: false,
+                        shouldShowYear: true,
+                        tag: '',
+                        to: {
+                            accountID: 18439984,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                            displayName: 'test',
+                            login: 'test1234@gmail.com',
+                        },
+                        transactionID: '1',
+                        transactionThreadReportID: '456',
+                        transactionType: 'cash',
+                    },
+                ],
+                type: 'expense',
+                unheldTotal: -5000,
+            },
+            {
+                accountID: 18439984,
+                action: 'review',
+                chatReportID: '1706144653204915',
+                created: '2024-12-21 13:05:20',
+                currency: 'USD',
+                from: {
+                    accountID: 18439984,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'test',
+                    login: 'test1234@gmail.com',
+                },
+                isOneTransactionReport: true,
+                isPolicyExpenseChat: false,
+                isWaitingOnBankAccount: false,
+                keyForList: '11111',
+                managerID: 18439984,
+                nonReimbursableTotal: 0,
+                ownerAccountID: 18439984,
+                policyID: 'A1B2C3',
+                reportID: '11111',
+                reportName: 'Expense Report #123',
+                stateNum: 1,
+                statusNum: 1,
+                to: {
+                    accountID: 18439984,
+                    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                    displayName: 'test',
+                    login: 'test1234@gmail.com',
+                },
+                total: -5000,
+                transactions: [
+                    {
+                        accountID: 18439984,
+                        action: 'review',
+                        amount: -5000,
+                        canDelete: true,
+                        canHold: true,
+                        canUnhold: false,
+                        category: '',
+                        comment: {
+                            comment: '',
+                        },
+                        created: '2024-12-21',
+                        currency: 'USD',
+                        date: '2024-12-21',
+                        description: '',
+                        formattedFrom: 'test',
+                        formattedMerchant: 'Expense',
+                        formattedTo: 'test',
+                        formattedTotal: 5000,
+                        from: {
+                            accountID: 18439984,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                            displayName: 'test',
+                            login: 'test1234@gmail.com',
+                        },
+                        hasEReceipt: false,
+                        hasViolation: true,
+                        isFromOneTransactionReport: true,
+                        keyForList: '2',
+                        managerID: 18439984,
+                        merchant: 'Expense',
+                        modifiedAmount: 0,
+                        modifiedCreated: '',
+                        modifiedCurrency: '',
+                        modifiedMerchant: 'Expense',
+                        parentTransactionID: '',
+                        policyID: 'A1B2C3',
+                        reportID: '11111',
+                        reportType: 'expense',
+                        shouldShowCategory: true,
+                        shouldShowMerchant: true,
+                        shouldShowTag: false,
+                        shouldShowTax: false,
+                        shouldShowYear: true,
+                        tag: '',
+                        to: {
+                            accountID: 18439984,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                            displayName: 'test',
+                            login: 'test1234@gmail.com',
+                        },
+                        transactionID: '2',
+                        transactionThreadReportID: '456',
+                        transactionType: 'cash',
+                    },
+                ],
+                type: 'expense',
+                unheldTotal: -5000,
+            },
+        ]);
+    });
+
+    it('should return getSortedReportData result when type is INVOICE', () => {
+        expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', reportsListItems)).toEqual([
             {
                 accountID: 18439984,
                 action: 'pay',
