@@ -4,7 +4,7 @@ import type {ForwardedRef} from 'react';
 import React from 'react';
 import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
-import {toggleSelectionFormat} from '@libs/FormatSelectionUtils';
+import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet

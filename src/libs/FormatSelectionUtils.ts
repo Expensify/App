@@ -60,4 +60,4 @@ function toggleSelectionFormat(text: string, selectionStart: number, selectionEn
     return {updatedText, cursorOffset};
 }
 
-export {toggleSelectionFormat};
+export default toggleSelectionFormat;

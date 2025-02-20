@@ -12,7 +12,10 @@ module.exports = {
         '^.+\\.[jt]sx?$': 'babel-jest',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
-    transformIgnorePatterns: ['<rootDir>/node_modules/(?!react-native)/'],
+    transformIgnorePatterns: [
+        '<rootDir>/node_modules/(?!react-native)/',
+        '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js', // Exclude this file to let FormatSelectionUtilsTest run.
+    ],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],
     globals: {
         __DEV__: true,
