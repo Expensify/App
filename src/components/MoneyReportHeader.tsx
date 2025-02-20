@@ -26,7 +26,6 @@ import {
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
-    isClosedExpenseReportWithNoExpenses,
     isCurrentUserSubmitter,
     isInvoiceReport,
     navigateBackOnDeleteTransaction,
@@ -200,7 +199,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
-    const shouldShowNextStep = !isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
+    const shouldShowNextStep = transactions?.length !== 0 && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
         isDuplicate ||
         shouldShowSettlementButton ||
