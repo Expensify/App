@@ -128,7 +128,7 @@ type ReportActionsListProps = {
     shouldEnableAutoScrollToTopThreshold?: boolean;
 
     /** On iOS, used for unsetting maintainVisibleContentPosition to prevent scroll issues when loading older actions */
-    shouldMaintainVisibleContentPosition: boolean;
+    shouldMaintainVisibleContentPosition?: boolean;
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
