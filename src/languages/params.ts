@@ -650,6 +650,10 @@ type SettlementDateParams = {
     settlementDate: string;
 };
 
+type CurrencyInputDisabledTextParams = {
+    currency: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -883,4 +887,5 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     NeedCategoryForExportToIntegrationParams,
+    CurrencyInputDisabledTextParams,
 };

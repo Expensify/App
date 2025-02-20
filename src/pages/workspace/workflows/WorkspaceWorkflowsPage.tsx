@@ -249,9 +249,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 iconHeight={bankIcon.iconHeight ?? bankIcon.iconSize}
                                 iconWidth={bankIcon.iconWidth ?? bankIcon.iconSize}
                                 iconStyles={bankIcon.iconStyles}
-                                disabled={isOffline || !isPolicyAdmin(policy)}
+                                disabled={isOffline || !isPolicyAdmin}
                                 shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
-                                shouldShowRightIcon={!isOffline && isPolicyAdmin(policy)}
+                                shouldShowRightIcon={!isOffline && isPolicyAdmin}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
                                 displayInDefaultIconColor
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -295,6 +295,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         addApprovalAction,
         isOffline,
         theme.spinner,
+        isPolicyAdmin,
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
@@ -337,7 +338,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 route={route}
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
                 shouldShowOfflineIndicatorInWideScreen
-                shouldShowNotFoundPage={!isPaidGroupPolicy(policy) || !isPolicyAdmin}
+                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

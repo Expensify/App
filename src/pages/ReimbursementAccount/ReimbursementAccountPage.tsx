@@ -88,7 +88,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    // TODO: set default step - we gotta display finish step instantly if account is being verified
+    // TODO: set default step - we gotta display finish step instantly if account is being verified, will come from BE?
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
@@ -108,7 +108,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     /** Returns true if user passed first step of flow for non USD VBBA */
     const hasInProgressNonUSDVBBA = useCallback((): boolean => {
         return (!!achData?.bankAccountID && !!achData?.created) || (policyCurrency === CONST.CURRENCY.EUR && nonUSDCountryDraftValue !== '');
-    }, [achData?.bankAccountID, achData?.created, policyCurrency, reimbursementAccountDraft?.country]);
+    }, [achData?.bankAccountID, achData?.created, nonUSDCountryDraftValue, policyCurrency]);
 
     /** Calculates the state used to show the "Continue with setup" view. */
     const getShouldShowContinueSetupButtonValue = useCallback(() => {
@@ -170,7 +170,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        // TODO double check condition for non USD accounts - will be done in https://github.com/Expensify/App/issues/50912
+        // TODO waiting on source of info if account is connected for NON USD workspaces, BE?
         setShouldShowConnectedVerifiedBankAccount(isNonUSDWorkspace ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonValue());
     }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, getShouldShowContinueSetupButtonValue, isNonUSDWorkspace, isPreviousPolicy]);
