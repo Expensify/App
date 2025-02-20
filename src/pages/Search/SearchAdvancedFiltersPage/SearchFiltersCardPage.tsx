@@ -204,6 +204,21 @@ function getSelectedFeeds(data: ItemsGroupedBySelection['selected']) {
     return data.map((feed) => feed.keyForFeed);
 }
 
+function getSelectedCardsFromFeeds(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined, selectedFeeds: string[] | undefined): string[] {
+    if (!workspaceCardFeeds || !selectedFeeds) {
+        return [];
+    }
+
+    return Array.from(
+        new Set(
+            selectedFeeds.flatMap((feedId) => {
+                const feed = workspaceCardFeeds[`cards_${feedId}`];
+                return !feed ? [] : Object.keys(feed).filter((cardNumber) => feed[cardNumber].state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+            }),
+        ),
+    );
+}
+
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -212,7 +227,11 @@ function SearchFiltersCardPage() {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const initiallySelectedCards = searchAdvancedFiltersForm?.cardID;
+    const initiallySelectedFeeds = useMemo(() => getSelectedCardsFromFeeds(workspaceCardFeeds, searchAdvancedFiltersForm?.feed), [workspaceCardFeeds, searchAdvancedFiltersForm?.feed]);
+    const initiallySelectedCards = useMemo(() => {
+        const selectedCards = new Set([...initiallySelectedFeeds, ...(searchAdvancedFiltersForm?.cardID ?? [])]);
+        return [...selectedCards];
+    }, [initiallySelectedFeeds, searchAdvancedFiltersForm?.cardID]);
     const [selectedCards, setSelectedCards] = useState(initiallySelectedCards ?? []);
     const personalDetails = usePersonalDetails();
 
@@ -288,13 +307,17 @@ function SearchFiltersCardPage() {
     }, [cardFeedsSectionData.selected, cardFeedsSectionData.unselected, individualCardsSectionData.selected, individualCardsSectionData.unselected, searchFunction, translate]);
 
     const handleConfirmSelection = useCallback(() => {
+        const feeds = getSelectedFeeds(cardFeedsSectionData.selected);
+        const cardsFromSelectedFeed = getSelectedCardsFromFeeds(workspaceCardFeeds, feeds);
+        const IDs = selectedCards.filter((card) => !cardsFromSelectedFeed.includes(card));
+
         updateAdvancedFilters({
-            cardID: selectedCards,
-            feed: getSelectedFeeds(cardFeedsSectionData.selected),
+            cardID: IDs,
+            feed: feeds,
         });
 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [selectedCards, cardFeedsSectionData.selected]);
+    }, [selectedCards, cardFeedsSectionData.selected, workspaceCardFeeds]);
 
     const updateNewCards = useCallback(
         (item: CardFilterItem) => {
