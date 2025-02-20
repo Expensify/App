@@ -26,7 +26,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
 
             if (values.phoneNumber) {
                 const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber);
-                const e164FormattedPhoneNumber = formatE164PhoneNumber(phoneNumberWithCountryCode);
+                const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber);
 
                 if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
                     errors.phoneNumber = translate('common.error.phoneNumber');
