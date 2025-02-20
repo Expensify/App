@@ -73,21 +73,6 @@ function FormWrapper({
 
     const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
 
-    useEffect(() => {
-        if (!shouldScrollToEnd) {
-            return;
-        }
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                // Delay the scroll to allow Safari's rendering cycle to complete
-                // Without this, iOS Safari may ignore or delay the scroll action
-                setTimeout(() => {
-                    formRef.current?.scrollToEnd({animated: true});
-                }, CONST.ANIMATED_TRANSITION);
-            });
-        });
-    }, [shouldScrollToEnd]);
-
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
         const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => Object.keys(errorFields).includes(key));
@@ -126,6 +111,16 @@ function FormWrapper({
                 ref={formContentRef}
                 // Note: the paddingBottom is only grater 0 if no parent has applied the inset yet:
                 style={[style, {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
+                onLayout={() => {
+                    if (!shouldScrollToEnd) {
+                        return;
+                    }
+                    InteractionManager.runAfterInteractions(() => {
+                        requestAnimationFrame(() => {
+                            formRef.current?.scrollToEnd({animated: true});
+                        });
+                    });
+                }}
             >
                 {children}
                 {isSubmitButtonVisible && (
