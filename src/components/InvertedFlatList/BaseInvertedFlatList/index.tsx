@@ -106,7 +106,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
         if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
             config.autoscrollToTopThreshold = AUTOSCROLL_TO_TOP_THRESHOLD;
-            return config;
         }
 
         return config;
