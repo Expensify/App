@@ -61,6 +61,7 @@ import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getPerDiemCustomUnit, getPolicy, getSubmitToAccountID, hasDependentTags, isControlPolicy, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
 import {
     getAllReportActions,
+    getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleMessage,
     getOriginalMessage,
@@ -7745,15 +7746,15 @@ function getReportFromHoldRequestsOnyxData(
     };
 }
 
-function hasOutstandingChildRequest(reportID: string, excludedIOUReportID: string){
-    const reportActions = ReportActionsUtils.getAllReportActions(reportID);
-    return !!Object.values(reportActions).find(action => {
-        const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-        if(iouReportID === excludedIOUReportID){
+function hasOutstandingChildRequest(reportID: string, excludedIOUReportID: string) {
+    const reportActions = getAllReportActions(reportID);
+    return !!Object.values(reportActions).find((action) => {
+        const iouReportID = getIOUReportIDFromReportActionPreview(action);
+        if (iouReportID === excludedIOUReportID) {
             return false;
         }
-        return ReportUtils.getReport(iouReportID)?.hasOutstandingChildRequest;
-    })
+        return getReportOrDraftReport(iouReportID)?.hasOutstandingChildRequest;
+    });
 }
 
 function getPayMoneyRequestParams(
