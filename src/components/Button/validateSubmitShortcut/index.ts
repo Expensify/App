@@ -11,7 +11,9 @@ import type ValidateSubmitShortcut from './types';
 
 const validateSubmitShortcut: ValidateSubmitShortcut = (isDisabled, isLoading, event) => {
     const eventTarget = event?.target as HTMLElement;
-    if (isDisabled || isLoading || eventTarget.nodeName === 'TEXTAREA' || (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)) {
+
+    // If the event target node is for an input, such as when there's a stray "Enter" event from an autocomplete input, then ignore it because it's not meant for this button
+    if (isDisabled || isLoading || eventTarget.nodeName === 'TEXTAREA' || eventTarget.nodeName === 'INPUT' || (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)) {
         return false;
     }
 
