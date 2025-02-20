@@ -1,5 +1,4 @@
 type ExportReportPDFParams = {
-    transactionIDList: string[];
     reportID: string;
 };
 

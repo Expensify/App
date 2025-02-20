@@ -300,6 +300,15 @@ Onyx.connect({
     },
 });
 
+let allReportPDFFiles: OnyxCollection<string>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportPDFFiles = value;
+    },
+});
+
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
