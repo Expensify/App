@@ -116,7 +116,7 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
          * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
          */
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        TEMPORARY_disableSafeAreaPaddingBottom?: boolean;
+        enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
     };
 
 export default BaseModalProps;

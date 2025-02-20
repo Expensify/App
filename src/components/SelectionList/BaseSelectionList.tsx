@@ -126,7 +126,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleContainerStyles,
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
-        TEMPORARY_enableBottomSafeAreaPaddingInContent: enableBottomSafeAreaPaddingInContent = false,
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -828,12 +828,12 @@ function BaseSelectionList<TItem extends ListItem>(
         [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
     );
     const sectionListContentContainerStyle = useMemo(() => {
-        return enableBottomSafeAreaPaddingInContent ? [paddingBottomStyle, contentContainerStyleProp] : contentContainerStyleProp;
-    }, [contentContainerStyleProp, enableBottomSafeAreaPaddingInContent, paddingBottomStyle]);
+        return enableEdgeToEdgeBottomSafeAreaPadding ? [paddingBottomStyle, contentContainerStyleProp] : contentContainerStyleProp;
+    }, [contentContainerStyleProp, enableEdgeToEdgeBottomSafeAreaPadding, paddingBottomStyle]);
 
     // TODO: test _every_ component that uses SelectionList
     return (
-        <View style={[styles.flex1, !enableBottomSafeAreaPaddingInContent && paddingBottomStyle, containerStyle]}>
+        <View style={[styles.flex1, !enableEdgeToEdgeBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}

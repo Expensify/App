@@ -676,7 +676,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * This flag can be removed, once all components/screens have switched to this behavior
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    TEMPORARY_enableBottomSafeAreaPaddingInContent?: boolean;
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

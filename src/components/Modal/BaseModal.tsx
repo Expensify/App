@@ -75,7 +75,7 @@ function BaseModal(
         swipeThreshold = 150,
         swipeDirection,
         shouldPreventScrollOnFocus = false,
-        TEMPORARY_disableSafeAreaPaddingBottom = false,
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -215,7 +215,7 @@ function BaseModal(
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
               // disableSafeAreaPaddingBottom is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-              shouldAddBottomSafeAreaPadding: !TEMPORARY_disableSafeAreaPaddingBottom && (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
+              shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
