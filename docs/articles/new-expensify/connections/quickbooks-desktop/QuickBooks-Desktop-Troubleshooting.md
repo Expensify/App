@@ -1,115 +1,125 @@
 ---
-title: Quickbooks Desktop Troubleshooting
-description: Quickbooks Desktop Troubleshooting
+title: QuickBooks Desktop troubleshooting
+description: Resolve common QuickBooks Desktop integration issues with Expensify, including Web Connector, authentication, import, and export errors.
 order: 3
+---
+
+This article provides step-by-step solutions for common QuickBooks Desktop issues encountered when syncing with Expensify. Follow these troubleshooting steps to quickly address and resolve connectivity, authentication, import, and export problems.
+
 ---
 
 # The Web Connector cannot be reached
 
-Generally, these errors indicate that there is a connection issue, where there’s a breakdown between Expensify and QuickBooks.
+These errors usually indicate a connection issue between Expensify and QuickBooks.
 
 ## How to resolve
 
-1. Make sure that the Web Connector and QuickBooks Desktop are both running.
-2. Make sure that the Web Connector is installed in the same location as your QuickBooks application. For example, if QuickBooks is installed on your local desktop, the Web Connector should be too. Or if QuickBooks is installed on a remote server, the Web Connector should be installed there as well.
+1. Ensure QuickBooks Desktop and the Web Connector are running.
+2. Install the Web Connector in the same location as QuickBooks (local desktop or remote server).
 
 If the error persists:
- 
-1. Close the Web Connector completely (you may want to use Task Manager to do this). 
-2. Right-click the Web Connector icon on your desktop and select **Run as administrator**. 
-3. Sync your Expensify Workspace again.  
 
-If this doesn’t work, the final troubleshooting steps should be:
+1. Completely close the Web Connector (use Task Manager if needed).
+2. Right-click the Web Connector icon and select **Run as administrator**.
+3. Sync your Expensify workspace again.
 
-1. Quit QuickBooks Desktop, then reopen it. 
+If issues continue:
+
+1. Quit and reopen QuickBooks Desktop.
 2. In Expensify, go to **Settings > Workspaces**.
-3. Click the workspace name that is connected to QuickBooks Desktop.
-4. Click **Accounting**. 
-5. Click the three virtical dots next to **QuickBooks Desktop**.
+3. Select your workspace connected to QuickBooks Desktop.
+4. Click **Accounting**.
+5. Click the three vertical dots next to **QuickBooks Desktop**.
 6. Click **Sync now**.
-7. If this still doesn’t resolve the issue, use the link to reinstall the Web Connector. 
+7. If unresolved, reinstall the Web Connector using the provided link.
 
-# Connection and/or authentication issue
+---
 
-Generally, these errors indicate that there is a credentials issue.
+# Connection or authentication issues
 
-## How to resolve
-
-1. Make sure QuickBooks Desktop is open with the correct company file. This must be the same company file that you have connected to Expensify.
-2. Make sure the QuickBooks Web Connector is open and the connector is online.
-3. Make sure that there are no dialogue boxes open in QuickBooks that are interfering with attempts to sync or export. To resolve this, close any open windows in QuickBooks Desktop so that you only see a gray screen, then try exporting or syncing again.
-4. Check that you have the correct permissions. 
-5. Log in to QuickBooks Desktop as an Admin (in single-user mode). 
-6. Go to **Edit** > **Preferences** > **Integrated Applications** > **Company Preferences**.
-
-![Company Preferences page of QuickBooks Desktop](https://help.expensify.com/assets/images/quickbooks-desktop-company-preferences.png){:width="100%"}
-
-7. Select the Web Connector and click **Properties**.
-
-![Web Connector Properties page in QuickBooks Desktop](https://help.expensify.com/assets/images/quickbooks-desktop-access-rights.png){:width="100%"}
-
-8. Make sure that the "Allow this application to login automatically" checkbox is selected and click **OK**.
-9. Close all windows in QuickBooks.
-
-If these general troubleshooting steps don’t work, reach out to Concierge and have the following information ready to provide:
-
-1. What version of QuickBooks Desktop do you have (Enterprise 2016, Pro 2014, etc.)?
-2. Is your QuickBooks program installed on your computer or a remote network/drive?
-3. Is your QuickBooks company file installed on your computer or a remote network/drive?
-4. Is your Web Connector installed on your computer or a remote network/drive?
-5. If any of the above are on a remote option, is there a company that runs that remote environment? If so, who (ie: RightNetworks, SwissNet, Cloud9, etc.)?
-
-# Import issue or missing categories and/or tags
-
-Generally, if you are having issues importing data from QuickBooks to Expensify, this indicates that the integration needs to be updated or your version of QuickBooks may not support a specific configuration.
+These errors usually indicate a credential issue.
 
 ## How to resolve
 
-1. Re-sync the connection between Expensify and QuickBooks Desktop from the Workspace Accounting settings. A fresh sync can often resolve any issues, especially if you have recently updated your chart of accounts, projects, customers, or jobs in QuickBooks Desktop.
-2. Check your configuration in QuickBooks Desktop. Expensify will import the chart of accounts to be utilized either as categories or export account options, while projects, customers, and tags will be imported as tags.
+1. Ensure QuickBooks Desktop is open with the correct company file.
+2. Ensure the QuickBooks Web Connector is open and online.
+3. Close any open dialogue boxes in QuickBooks Desktop and retry syncing or exporting.
+4. Check permissions: log in to QuickBooks Desktop as Admin (single-user mode).
+5. Go to **Edit > Preferences > Integrated Applications > Company Preferences**.
 
-If these general troubleshooting steps don’t work, reach out to Concierge with context on what is specifically missing in Expensify, as well as screenshots from your QuickBooks Desktop setup.
+![Company Preferences](https://help.expensify.com/assets/images/quickbooks-desktop-company-preferences.png){:width="100%"}
 
-# Export or "can't find category/class/location/account" issue
+6. Select the Web Connector and click **Properties**.
 
-Generally, when an export error occurs, we’ll add a system message in the related Workspace Chat that explains the reason for the export error. This will give you an indication of how to resolve the error.
+![Web Connector Properties](https://help.expensify.com/assets/images/quickbooks-desktop-access-rights.png){:width="100%"}
+
+7. Check **Allow this application to login automatically** and click **OK**.
+8. Close all QuickBooks windows.
+
+If unresolved, contact Concierge with:
+
+- QuickBooks Desktop version.
+- Location of QuickBooks and company file (local or remote).
+- Location of Web Connector (local or remote).
+- Provider of remote environment (if applicable, e.g., RightNetworks).
+
+---
+
+# Import issues or missing categories/tags
+
+These issues indicate the integration needs updating or QuickBooks version incompatibility.
 
 ## How to resolve
 
-1. Re-sync the connection between Expensify and QuickBooks Desktop from the Workspace Accounting settings. A fresh sync can often resolve any issues, especially if you have recently updated your chart of accounts or projects, customers, or jobs in QuickBooks Desktop.
-2. Re-apply coding to expenses and re-export the report. If you’ve recently synced Expensify and QuickBooks or recently made changes to your Workspace category or tags settings, you may need to re-apply coding to expenses. 
-3. Make sure that your current version of QuickBooks Desktop supports the selected export option. Different versions of QuickBooks Desktop support different export options and the [version that you own](https://quickbooks.intuit.com/desktop/) may not be compatible with the export type. 
+1. Re-sync the connection from **Workspace Accounting** settings.
+2. Verify configuration in QuickBooks. Expensify imports chart of accounts as categories or export account options, and imports projects, customers, and tags as tags.
 
-If these general troubleshooting steps don’t work, reach out to Concierge with the Report ID, some context on what you’re trying to do, and a screenshot of the Expensify error message.
+If unresolved, contact Concierge with details and QuickBooks screenshots.
+
+---
+
+# Export or "can't find category/class/location/account" issues
+
+These errors usually generate a system message in Workspace Chat indicating the issue.
+
+## How to resolve
+
+1. Re-sync the connection from **Workspace Accounting** settings.
+2. Re-apply coding to expenses and re-export reports.
+3. Verify your QuickBooks Desktop version supports the selected export option ([check compatibility](https://quickbooks.intuit.com/desktop/)).
+
+If unresolved, contact Concierge with Report ID, context, and Expensify error screenshot.
+
+---
 
 # “Oops!” error when syncing or exporting
 
-Generally, an “Oops!” error can often be temporary or a false error. Although you will see a message pop up, there may actually not be an actual issue. 
+These errors can often be temporary or false alarms.
 
 ## How to resolve
 
-1. Check to see if the sync or export was successful.
-2. If it wasn't, please attempt to sync or export the connection again.
+1. Check if the sync/export was successful.
+2. Retry syncing or exporting if unsuccessful.
 
-If the problem persists, download the QuickBooks Desktop log file via the Web Connector (click View Logs to download them) and reach out to Concierge for further assistance.
+If persistent, download QuickBooks Desktop logs via Web Connector (**View Logs**) and contact Concierge.
 
 {% include info.html %}
-If you’re using a remote server (e.g. RightNetworks), you may need to contact that support team to request your logs.
+If using a remote server (e.g., RightNetworks), contact their support for logs.
 {% include end-info.html %}
+
+---
 
 # Reports not exporting to QuickBooks Desktop
 
-Generally, this is the result of not having both the QuickBooks Web Connector and the Company File open, since the Report was exported.
+Usually caused by the Web Connector or QuickBooks company file being closed during export.
 
 ## How to resolve
 
-1. Make sure that the Web Connector and QuickBooks Desktop Company File are both open.
-2. In the Web Connector, check that the Last Status is “Ok”.
+1. Ensure the Web Connector and QuickBooks Desktop company file are open.
+2. In Web Connector, verify **Last Status** is "Ok".
 
-![QuickBooks Web Connector showing status "OK"](https://help.expensify.com/assets/images/quickbooks-desktop-web-connector.png){:width="100%"}
+![Web Connector Status](https://help.expensify.com/assets/images/quickbooks-desktop-web-connector.png){:width="100%"}
 
-3. Check the Workspace Chat in Expensify to confirm that the report has been successfully exported to QuickBooks Desktop.
+3. Check Workspace Chat in Expensify to confirm successful export.
 
-[WE NEED A NEW IMAGE HERE SHOWING A SUCCESSFUL EXPORT MESSAGE IN THE WORKSPACE CHAT OR REPORT]
-
-If these general troubleshooting steps don’t work, reach out to Concierge with your Expensify Report ID and a screenshot of your QuickBooks Web Connector.
+If unresolved, contact Concierge with Expensify Report ID and Web Connector screenshot.
