@@ -40,10 +40,11 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const preferredCurrency = usePreferredCurrency();
 
     const formattedPrice = React.useMemo(() => {
-        const upgradePlan = isCategorizing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE;
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
-        const upgradePrice = CONST.SUBSCRIPTION_PRICES[upgradeCurrency][upgradePlan][CONST.SUBSCRIPTION.TYPE.ANNUAL];
-        return `${convertToShortDisplayString(upgradePrice, upgradeCurrency)} `;
+        return `${convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[upgradeCurrency][isCategorizing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            upgradeCurrency,
+        )} `;
     }, [preferredCurrency, isCategorizing]);
 
     /**
@@ -58,6 +59,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
             <GenericFeaturesView
                 onUpgrade={onUpgrade}
                 buttonDisabled={buttonDisabled}
+                formattedPrice={formattedPrice}
                 loading={loading}
                 policyID={policyID}
             />
@@ -120,7 +122,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                                 openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
                                 return;
                             }
-                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()));
                         }}
                     >
                         {translate('workspace.upgrade.note.learnMore')}
