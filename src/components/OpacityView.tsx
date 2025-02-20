@@ -1,10 +1,12 @@
 import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import Animated, {Keyframe, LinearTransition, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, Keyframe, LinearTransition, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import variables from '@styles/variables';
+
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
 type OpacityViewProps = {
     /** Should we dim the view */
@@ -56,6 +58,8 @@ function OpacityView({
             },
             to: {
                 height: '0',
+                // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
+                easing,
             },
         });
     }, [height]);
