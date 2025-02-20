@@ -1,5 +1,7 @@
+import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
@@ -10,7 +12,9 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
     ListItemDataType,
@@ -22,14 +26,18 @@ import type {
     SearchTransaction,
     SearchTransactionAction,
 } from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
+import {clearAllFilters} from './actions/Search';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
+import {canSendInvoice} from './PolicyUtils';
 import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
 import {
     getSearchReportName,
+    hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -38,6 +46,7 @@ import {
     isMoneyRequestReport,
     isSettled,
 } from './ReportUtils';
+import {buildCannedSearchQuery} from './SearchQueryUtils';
 import {
     getMerchant,
     getAmount as getTransactionAmount,
@@ -81,6 +90,20 @@ type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
 type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+type SavedSearchMenuItem = MenuItemWithLink & {
+    key: string;
+    hash: string;
+    query: string;
+    styles?: Array<ViewStyle | TextStyle>;
+};
+
+type SearchTypeMenuItem = {
+    translationPath: TranslationPaths;
+    type: SearchDataTypes;
+    icon: IconAsset;
+    getRoute: (policyID?: string) => Route;
+};
 
 /**
  * @private
@@ -497,11 +520,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 /**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
-function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<typeof type, typeof status> {
+function getListItem(type: SearchDataTypes, status: SearchStatus, shouldGroupByReports = false): ListItemType<typeof type, typeof status> {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
-    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
         return TransactionListItem;
     }
     return ReportListItem;
@@ -510,11 +533,11 @@ function getListItem(type: SearchDataTypes, status: SearchStatus): ListItemType<
 /**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
-function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], shouldGroupByReports = false) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
-    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
         return getTransactionsSections(data, metadata);
     }
     return getReportSections(data, metadata);
@@ -523,11 +546,18 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
 /**
  * Sorts sections of data based on a specified column and sort order for displaying sorted results.
  */
-function getSortedSections(type: SearchDataTypes, status: SearchStatus, data: ListItemDataType<typeof type, typeof status>, sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+function getSortedSections(
+    type: SearchDataTypes,
+    status: SearchStatus,
+    data: ListItemDataType<typeof type, typeof status>,
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+    shouldGroupByReports = false,
+) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
-    if (status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
         return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
     }
     return getSortedReportData(data as ReportListItemType[]);
@@ -674,6 +704,80 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
+function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | null, email: string | undefined): SearchTypeMenuItem[] {
+    const typeMenuItems: SearchTypeMenuItem[] = [
+        {
+            translationPath: 'common.expenses',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Receipt,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
+            },
+        },
+        {
+            translationPath: 'common.expenseReports',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Document,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query, groupBy: 'reports'});
+            },
+        },
+        {
+            translationPath: 'common.chats',
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
+            },
+        },
+    ];
+
+    if (canSendInvoice(allPolicies, email) || hasInvoiceReports()) {
+        typeMenuItems.push({
+            translationPath: 'workspace.common.invoices',
+            type: CONST.SEARCH.DATA_TYPES.INVOICE,
+            icon: Expensicons.InvoiceGeneric,
+            getRoute: (policyID?: string) => {
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
+                return ROUTES.SEARCH_ROOT.getRoute({query});
+            },
+        });
+    }
+
+    typeMenuItems.push({
+        translationPath: 'travel.trips',
+        type: CONST.SEARCH.DATA_TYPES.TRIP,
+        icon: Expensicons.Suitcase,
+        getRoute: (policyID?: string) => {
+            const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
+            return ROUTES.SEARCH_ROOT.getRoute({query});
+        },
+    });
+
+    return typeMenuItems;
+}
+
+function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, hash: number): SavedSearchMenuItem {
+    return {
+        key,
+        title,
+        hash: key,
+        query: item.query,
+        shouldShowRightComponent: true,
+        focused: Number(key) === hash,
+        onPress: () => {
+            clearAllFilters();
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+        },
+        pendingAction: item.pendingAction,
+        disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        shouldIconUseAutoWidthStyle: true,
+    };
+}
+
 export {
     getListItem,
     getSections,
@@ -689,4 +793,7 @@ export {
     isCorrectSearchUserName,
     isReportActionEntry,
     getAction,
+    createTypeMenuItems,
+    createBaseSavedSearchMenuItem,
 };
+export type {SavedSearchMenuItem, SearchTypeMenuItem};
