@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
@@ -21,6 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SelectBankStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
+
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
     const [hasError, setHasError] = useState(false);
@@ -60,7 +63,7 @@ function SelectBankStep() {
         isSelected: bankSelected === bank,
         leftElement: (
             <Icon
-                src={CardUtils.getBankCardDetailsImage(bank)}
+                src={CardUtils.getBankCardDetailsImage(bank, illustrations)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}

@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import type IllustrationsType from '@styles/theme/illustrations/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -257,7 +258,7 @@ function sortCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, per
     });
 }
 
-function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK): IconAsset {
+function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, illustrations: IllustrationsType): IconAsset {
     const feedIcons = {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: Illustrations.VisaCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX]: Illustrations.AmexCardCompanyCardDetailLarge,
@@ -270,6 +271,7 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
         [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: Illustrations.BrexCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetailLarge,
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: illustrations.GenericCSVCompanyCardLarge,
         [CONST.EXPENSIFY_CARD.BANK]: ExpensifyCardImage,
     };
 
@@ -288,7 +290,11 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
         return feedIcons[feedKey];
     }
 
-    return Illustrations.OtherCompanyCardDetailLarge;
+    if (cardFeed.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
+        return illustrations.GenericCSVCompanyCardLarge;
+    }
+
+    return illustrations.GenericCompanyCardLarge;
 }
 
 /**
@@ -322,10 +328,15 @@ function getBankName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: 'Citibank',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: 'Wells Fargo',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: 'CSV',
     };
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
     const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
+
+    if (feedType.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
+        return 'CSV';
+    }
 
     if (!feedKey) {
         return '';
@@ -334,7 +345,7 @@ function getBankName(feedType: CompanyCardFeed): string {
     return feedNamesMapping[feedKey];
 }
 
-const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>): IconAsset => {
+const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, illustrations: IllustrationsType): IconAsset => {
     const iconMap: Record<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>, IconAsset> = {
         [CONST.COMPANY_CARDS.BANKS.AMEX]: Illustrations.AmexCardCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA]: Illustrations.BankOfAmericaCompanyCardDetail,
@@ -344,7 +355,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
         [CONST.COMPANY_CARDS.BANKS.WELLS_FARGO]: Illustrations.WellsFargoCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.BREX]: Illustrations.BrexCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.STRIPE]: Illustrations.StripeCompanyCardDetail,
-        [CONST.COMPANY_CARDS.BANKS.OTHER]: Illustrations.OtherCompanyCardDetail,
+        [CONST.COMPANY_CARDS.BANKS.OTHER]: illustrations.GenericCompanyCard,
     };
     return iconMap[bank];
 };
