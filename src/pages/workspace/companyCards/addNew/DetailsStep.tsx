@@ -27,7 +27,7 @@ import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
 type DetailsStepProps = {
     /** ID of the current policy */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function DetailsStep({policyID}: DetailsStepProps) {
