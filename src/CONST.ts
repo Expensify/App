@@ -6245,6 +6245,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            FEED: 'feed',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
@@ -6278,6 +6279,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            FEED: 'feed',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',

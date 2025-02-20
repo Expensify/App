@@ -23,10 +23,10 @@ import ROUTES from '@src/ROUTES';
 import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]};
+type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; keyForFeed: string};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
 
-type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]};
+type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
 
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
@@ -63,6 +63,7 @@ function createIndividualCardFilterItem(card: Card, personalDetailsList: Persona
             icon,
         },
         isCardFeed: false,
+        keyForFeed: '',
     };
 }
 
@@ -102,6 +103,7 @@ function createCardFeedItem({
     bank,
     cardFeedLabel,
     keyForList,
+    keyForFeed,
     correspondingCardIDs,
     selectedCards,
     translate,
@@ -109,6 +111,7 @@ function createCardFeedItem({
     bank: string;
     cardFeedLabel: string | undefined;
     keyForList: string;
+    keyForFeed: string;
     correspondingCardIDs: string[];
     selectedCards: string[];
     translate: LocaleContextProps['translate'];
@@ -126,6 +129,7 @@ function createCardFeedItem({
         bankIcon: {
             icon,
         },
+        keyForFeed,
         isCardFeed: true,
         correspondingCards: correspondingCardIDs,
     };
@@ -151,6 +155,7 @@ function buildCardFeedsData(
             cardFeedLabel: isBankRepeating ? getDescriptionForPolicyDomainCard(domainName) : undefined,
             translate,
             keyForList: `${domainName}-${bank}`,
+            keyForFeed: `${domainFeed.fundID}_${bank}`,
             selectedCards,
         });
         if (feedItem.isSelected) {
@@ -181,6 +186,7 @@ function buildCardFeedsData(
                 correspondingCardIDs,
                 cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined,
                 translate,
+                keyForFeed: cardFeedKey.replace('cards_', ''), // what if cards_ is a part of key?
                 keyForList: cardFeedKey,
                 selectedCards,
             });
@@ -192,6 +198,10 @@ function buildCardFeedsData(
         });
 
     return {selected: selectedFeeds, unselected: unselectedFeeds};
+}
+
+function getSelectedFeeds(data: ItemsGroupedBySelection['selected']) {
+    return data.map((feed) => feed.keyForFeed);
 }
 
 function SearchFiltersCardPage() {
@@ -223,7 +233,13 @@ function SearchFiltersCardPage() {
                     if (accumulator[currentCard.domainName]) {
                         accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
                     } else {
-                        accumulator[currentCard.domainName] = {domainName: currentCard.domainName, bank: currentCard.bank, correspondingCardIDs: [currentCard.cardID.toString()]};
+                        // if the cards belongs to the same domain, every card of it should have the same fundID
+                        accumulator[currentCard.domainName] = {
+                            fundID: currentCard.fundID,
+                            domainName: currentCard.domainName,
+                            bank: currentCard.bank,
+                            correspondingCardIDs: [currentCard.cardID.toString()],
+                        };
                     }
                 }
                 return accumulator;
@@ -274,10 +290,11 @@ function SearchFiltersCardPage() {
     const handleConfirmSelection = useCallback(() => {
         updateAdvancedFilters({
             cardID: selectedCards,
+            feed: getSelectedFeeds(cardFeedsSectionData.selected),
         });
 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [selectedCards]);
+    }, [selectedCards, cardFeedsSectionData.selected]);
 
     const updateNewCards = useCallback(
         (item: CardFilterItem) => {
