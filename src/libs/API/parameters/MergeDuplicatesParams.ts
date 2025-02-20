@@ -12,7 +12,7 @@ type MergeDuplicatesParams = {
     tag: string;
     receiptID: number;
     reportID: string | undefined;
-    reportActionID: number | undefined;
+    reportActionID?: number | undefined;
 };
 
 export default MergeDuplicatesParams;
