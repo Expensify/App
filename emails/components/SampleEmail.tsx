@@ -1,12 +1,20 @@
 import React from 'react';
-import EmailWrapper from '../components/EmailWrapper';
+import {View} from 'react-native';
+import Icon from '@components/Icon';
+import {ExpensifyWordmark} from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import variables from '../../src/styles/variables';
 
 const SampleEmail: React.FC = () => {
     return (
-        <EmailWrapper>
-            <h1>Welcome to Expensify!</h1>
-            <p>We're glad to have you on board.</p>
-        </EmailWrapper>
+        <View style={{alignItems: 'center', padding: 20}}>
+            <Icon
+                src={ExpensifyWordmark}
+                width={variables.modalWordmarkWidth}
+                height={variables.modalWordmarkHeight}
+            />
+            <Text>We're glad to have you on board.</Text>
+        </View>
     );
 };
 

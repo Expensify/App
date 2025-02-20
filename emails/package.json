@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node server.ts",
+    "build": "webpack --config ../config/webpack/webpack.emails.ts",
+    "start": "npm run build && node dist/server.bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
