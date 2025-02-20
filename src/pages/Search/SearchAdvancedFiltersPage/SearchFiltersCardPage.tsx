@@ -73,8 +73,8 @@ function buildCardsData(
     selectedCards: string[],
     isClosedCards = false,
 ): ItemsGroupedBySelection {
-    // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag
-    const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card));
+    // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
+    const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => filterCondition(card))
         .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards));
@@ -177,7 +177,7 @@ function buildCardFeedsData(
             const correspondingPolicy = getPolicy(policyID?.toUpperCase());
             // We need to assign correspondingCardIDs for closed cards as well, because we need to be able to select on "all" both closed and individual cards
             const correspondingCardIDs = Object.entries(cardFeed ?? {})
-                .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && (!isCardHiddenFromSearch(card) || isCardClosed(card)))
+                .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
                 .map(([cardKey]) => cardKey);
 
             const feedItem = createCardFeedItem({
