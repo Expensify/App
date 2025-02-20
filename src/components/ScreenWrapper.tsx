@@ -262,28 +262,24 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const {insets, paddingTop, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
+    const {insets, paddingTop, safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const paddingTopStyle: StyleProp<ViewStyle> = {};
 
-    const isSafeAreaTopPaddingApplied = includePaddingTop;
     if (includePaddingTop) {
         paddingTopStyle.paddingTop = paddingTop;
     }
     if (includePaddingTop && ignoreInsetsConsumption) {
-        paddingTopStyle.paddingTop = unmodifiedPaddings.top;
+        paddingTopStyle.paddingTop = insets.top;
     }
 
     const bottomContentStyle: StyleProp<ViewStyle> = {
         ...safeAreaPaddingBottomStyle,
         // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-        ...(includeSafeAreaPaddingBottom && ignoreInsetsConsumption ? {paddingBottom: unmodifiedPaddings.bottom} : {}),
+        ...(includeSafeAreaPaddingBottom && ignoreInsetsConsumption ? {paddingBottom: insets.bottom} : {}),
     };
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
-    const contextValue = useMemo(
-        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
-        [didScreenTransitionEnd, isSafeAreaTopPaddingApplied],
-    );
+    const contextValue = useMemo(() => ({didScreenTransitionEnd}), [didScreenTransitionEnd]);
 
     return (
         <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
