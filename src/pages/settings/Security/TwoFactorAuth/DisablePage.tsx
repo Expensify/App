@@ -76,7 +76,7 @@ function DisablePage() {
                 shouldShowCancelButton={false}
                 onBackdropPress={closeModal}
                 onCancel={closeModal}
-                isVisible={!isEmpty(account?.errorFields?.disableTwoFactorAuth ?? {})}
+                isVisible={!isEmpty(account?.errorFields?.requiresTwoFactorAuth ?? {})}
             />
         </TwoFactorAuthWrapper>
     );

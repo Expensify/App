@@ -1075,7 +1075,7 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
 }
 
 function clearDisableTwoFactorAuthErrors() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {disableTwoFactorAuth: null}});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {requiresTwoFactorAuth: null}});
 }
 
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
