@@ -398,7 +398,7 @@ jobs:
           IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
 
       - name: Publish links to apps for download on OldDot PR
-        if: needs.getOldDotPR.outputs.OLD_DOT_PR
+        if: needs.getOldDotPR.outputs.OLD_DOT_PR != ''
         uses: ./.github/actions/javascript/postTestBuildComment
         with:
           PR_NUMBER: ${{ needs.getOldDotPR.outputs.OLD_DOT_PR }}
