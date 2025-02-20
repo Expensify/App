@@ -724,13 +724,43 @@ function openPolicyCompanyCardsFeed(policyID: string, feed: CompanyCardFeed) {
     API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
 }
 
-function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeed) {
+function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeed, workspaceAccountID: number) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
         policyID,
         feed,
     };
 
-    API.read(READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE, parameters);
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_ASSIGN_FEED_CARD_PAGE, parameters, {optimisticData, successData, failureData});
 }
 
 export {

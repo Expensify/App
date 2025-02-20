@@ -100,7 +100,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const handleSelectFeed = (feed: CardFeedListItem) => {
         setSelectedFeed(feed.value);
         if (isCustomFeed(feed.value as CompanyCardFeed)) {
-            openAssignFeedCardPage(policyID, feed.value as CompanyCardFeed);
+            openAssignFeedCardPage(policyID, feed.value as CompanyCardFeed, workspaceAccountID);
         }
         setShouldShowError(false);
     };
@@ -172,6 +172,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     onSubmit={handleSubmit}
                     message={translate('common.error.pleaseSelectOne')}
                     buttonText={translate('common.next')}
+                    isLoading={!!cardFeeds?.isLoading}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
