@@ -214,7 +214,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             onPress={() => {
                 openExternalLink(account?.guideDetails?.calendarLink ?? '');
             }}
-            style={shouldUseNarrowLayout ? shouldShowGuideBookingButtonInEarlyDiscountBanner && [styles.flex1] : isChatUsedForOnboarding && styles.mr2}
+            style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && [styles.flex1]}
             icon={CalendarSolid}
         />
     );
