@@ -523,7 +523,7 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, shouldGroupByR
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
+    if (!shouldGroupByReports) {
         return TransactionListItem;
     }
     return ReportListItem;
@@ -536,7 +536,7 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
+    if (!shouldGroupByReports) {
         return getTransactionsSections(data, metadata);
     }
     return getReportSections(data, metadata);
@@ -556,7 +556,7 @@ function getSortedSections(
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
+    if (!shouldGroupByReports) {
         return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
     }
     return getSortedReportData(data as ReportListItemType[]);
