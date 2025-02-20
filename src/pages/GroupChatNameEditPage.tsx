@@ -60,9 +60,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                 if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
                     updateChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.GROUP);
                 }
-
-                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID)));
-
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
                 return;
             }
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {

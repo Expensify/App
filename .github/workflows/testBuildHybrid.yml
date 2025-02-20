@@ -28,6 +28,9 @@ jobs:
   prep:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Validate that user is an Expensify employee
         if: github.event_name == 'workflow_dispatch'
         uses: ./.github/actions/composite/validateActor
@@ -49,6 +52,9 @@ jobs:
     outputs:
       REF: ${{ steps.getHeadRef.outputs.REF }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Check if pull request number is correct
         id: getHeadRef
         run: |
@@ -134,11 +140,11 @@ jobs:
               body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
             });
 
-      - name: Add build start comment to ND PR
+      - name: Add build start comment to OD PR
         if: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER != '' || needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
         uses: actions/github-script@v7
         with:
-          github-token: ${{ github.token }}
+          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
           script: |
             const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             github.rest.issues.createComment({
@@ -217,8 +223,8 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read "op://Mobile-Deploy-CI/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
-          op read "op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android
@@ -230,9 +236,9 @@ jobs:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
-          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
       - name: Build Android app
         id: build
@@ -345,10 +351,10 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read "op://Mobile-Deploy-CI/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
-          op read "op://Mobile-Deploy-CI/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
-          op read "op://Mobile-Deploy-CI/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
-          op read "op://Mobile-Deploy-CI/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc/OldApp_AdHoc.mobileprovision" --force --out-file ./OldApp_AdHoc.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Share_Extension/OldApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./OldApp_AdHoc_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AdHoc_Notification_Service/OldApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./OldApp_AdHoc_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Build AdHoc app
         run: bundle exec fastlane ios build_adhoc_hybrid

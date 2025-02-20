@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
+import {getButtonRole, getButtonStyle} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -94,7 +95,7 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
-                role={CONST.ROLE.BUTTON}
+                role={getButtonRole(true)}
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
@@ -103,6 +104,7 @@ function BaseListItem<TItem extends ListItem>({
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    getButtonStyle(styles, true),
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}

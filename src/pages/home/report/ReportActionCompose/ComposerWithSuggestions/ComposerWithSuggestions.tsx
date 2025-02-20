@@ -28,7 +28,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileSafari, isMobileWebKit} from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
@@ -138,12 +138,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** policy ID of the report */
     policyID?: string;
 
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus: boolean;
-
-    /** A method to update showSoftInputOnFocus */
-    setShowSoftInputOnFocus: (value: boolean) => void;
-
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 };
@@ -228,8 +222,6 @@ function ComposerWithSuggestions(
 
         // For testing
         children,
-        showSoftInputOnFocus,
-        setShowSoftInputOnFocus,
         didHideComposerInput,
     }: ComposerWithSuggestionsProps,
     ref: ForwardedRef<ComposerRef>,
@@ -647,7 +639,8 @@ function ComposerWithSuggestions(
     const prevIsFocused = usePrevious(isFocused);
 
     useEffect(() => {
-        if (modal?.isVisible && !prevIsModalVisible) {
+        const isModalVisible = modal?.isVisible;
+        if (isModalVisible && !prevIsModalVisible) {
             // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
@@ -655,6 +648,7 @@ function ComposerWithSuggestions(
         // We want to blur the input immediately when a screen is out of focus.
         if (!isFocused) {
             textInputRef.current?.blur();
+            return;
         }
 
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
@@ -664,8 +658,7 @@ function ComposerWithSuggestions(
             !(
                 (willBlurTextInputOnTapOutside || (shouldAutoFocus && canFocusInputOnScreenFocus())) &&
                 !isNextModalWillOpenRef.current &&
-                !modal?.isVisible &&
-                isFocused &&
+                !isModalVisible &&
                 (!!prevIsModalVisible || !prevIsFocused)
             )
         ) {
@@ -678,13 +671,6 @@ function ComposerWithSuggestions(
         }
         focus(true);
     }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
-
-    useEffect(() => {
-        if (prevIsFocused || !isFocused || showSoftInputOnFocus) {
-            return;
-        }
-        setShowSoftInputOnFocus(true);
-    }, [isFocused, prevIsFocused, showSoftInputOnFocus, setShowSoftInputOnFocus]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -829,25 +815,6 @@ function ComposerWithSuggestions(
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={isMobileSafari()}
                     isGroupPolicyReport={isGroupPolicyReport}
-                    showSoftInputOnFocus={showSoftInputOnFocus}
-                    onTouchStart={() => {
-                        if (showSoftInputOnFocus) {
-                            return;
-                        }
-                        if (isMobileWebKit()) {
-                            isTouchEndedRef.current = false;
-                            // In iOS browsers, open the keyboard after a timeout, or it will close briefly.
-                            setTimeout(() => {
-                                if (!isTouchEndedRef.current) {
-                                    // Don't open the keyboard on long press so the callout menu can show.
-                                    return;
-                                }
-                                setShowSoftInputOnFocus(true);
-                            }, CONST.ANIMATED_TRANSITION);
-                            return;
-                        }
-                        setShowSoftInputOnFocus(true);
-                    }}
                 />
             </View>
 

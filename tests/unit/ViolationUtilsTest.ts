@@ -1,10 +1,12 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
@@ -54,6 +56,16 @@ const missingTagViolation = {
 const tagOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+};
+
+const smartScanFailedViolation = {
+    name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    type: CONST.VIOLATION_TYPES.WARNING,
+};
+
+const duplicatedTransactionViolation = {
+    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    type: CONST.VIOLATION_TYPES.WARNING,
 };
 
 describe('getViolationsOnyxData', () => {
@@ -408,5 +420,93 @@ describe('getViolationsOnyxData', () => {
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
             expect(result.value).toEqual(expect.arrayContaining([missingDepartmentTag, missingRegionTag, missingProjectTag]));
         });
+    });
+});
+
+const getFakeTransaction = (transactionID: string, comment?: Transaction['comment']) => ({
+    transactionID,
+    attendees: [{email: 'text@expensify.com'}],
+    reportID: '1234',
+    amount: 100,
+    comment: comment ?? {},
+    created: '2023-07-24 13:46:20',
+    merchant: 'United Airlines',
+    currency: 'USD',
+});
+
+const CARLOS_EMAIL = 'cmartins@expensifail.com';
+const CARLOS_ACCOUNT_ID = 1;
+
+describe('getViolations', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {
+                    email: CARLOS_EMAIL,
+                    accountID: CARLOS_ACCOUNT_ID,
+                },
+            },
+        });
+    });
+
+    afterEach(() => Onyx.clear());
+
+    it('should check if violation is dismissed or not', async () => {
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation);
+
+        expect(isSmartScanDismissed).toBeTruthy();
+        expect(isDuplicateViolationDismissed).toBeFalsy();
+    });
+
+    it('should return filtered out dismissed violations', async () => {
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        // Should filter out the smartScanFailedViolation
+        const filteredViolations = getTransactionViolations(transaction.transactionID, transactionViolationsCollection);
+        expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
+    });
+
+    it('checks if transaction has warning type violation after filtering dismissed violations', async () => {
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        // Should filter out the smartScanFailedViolation and return true, duplicatedTransactionViolation is a warning type violation but it's not considered in hasWarningTypeViolation
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction.transactionID, transactionViolationsCollection);
+        expect(hasWarningTypeViolationRes).toBeFalsy();
     });
 });
