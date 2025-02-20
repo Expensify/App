@@ -4624,7 +4624,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
         const subtitle = submitsToAccountDetails?.displayName ?? submitsToAccountDetails?.login;
 
         if (!subtitle || !config.isCreateExpenseFlow) {
-            return translateLocal('workspace.common.workspace');
+            return getPolicyName({report});
         }
 
         return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
