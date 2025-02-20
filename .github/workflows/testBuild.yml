@@ -316,7 +316,7 @@ jobs:
           IOS_HYBRID: ${{ needs.buildHybridApps.result }}
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{ needs.uploadAndroid.outputs.S3_APK_PATH }}
-          ANROID_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
+          ANDROID_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
           IOS_LINK: ${{ steps.get_ios_path.outputs.ios_path }}
           IOS_HYBRID_LINK: ${{ needs.buildHybridApps.outputs.IOS_LINK }}

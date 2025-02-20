@@ -23,7 +23,7 @@ on:
         value: ${{ jobs.androidHybrid.outputs.S3_APK_PATH }}
       IOS_LINK:
         value: ${{ jobs.iosHybrid.outputs.IOS_PATH }}
-    
+  
 jobs:
   prep:
     runs-on: ubuntu-latest
@@ -60,8 +60,8 @@ jobs:
         run: |
           set -e
 
-          if [[ "${{ github.event_name }}" == "workflow_call "]]; then
-            echo "REF=${{ github.event.inputs.APP_REF }}" >> "$GITHUB_OUTPUT"
+          if [[ "${{ github.event_name }}" == "workflow_call " ]]; then
+            echo "REF=${{ inputs.APP_REF }}" >> "$GITHUB_OUTPUT"
             exit 0
           fi 
 

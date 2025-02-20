@@ -42,7 +42,7 @@ function getTestBuildMessage(): string {
 | ------------- | ------------- |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
-| Android Hybrid :dragon:  | iOS Hybrid :dragon_face: |
+| Android Hybrid :robot::arrows_counterclockwise:  | iOS Hybrid :apple::arrows_counterclockwise: |
 | ${result.ANDROID_HYBRID.link}  | ${result.IOS_HYBRID.link}  |
 | ${result.ANDROID_HYBRID.qrCode}  | ${result.IOS_HYBRID.qrCode}  |
 | Desktop :computer: | Web :spider_web: |
