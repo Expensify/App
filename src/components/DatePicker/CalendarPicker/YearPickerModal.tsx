@@ -53,11 +53,12 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            shouldHandleNavigationBack
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom
                 testID={YearPickerModal.displayName}
             >
                 <HeaderWithBackButton

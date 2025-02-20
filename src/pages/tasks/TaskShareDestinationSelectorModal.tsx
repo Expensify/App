@@ -67,7 +67,7 @@ function TaskShareDestinationSelectorModal() {
             };
         }
         const filteredReports = reportFilter(optionList.reports);
-        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], '', [], [], true);
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, optionList.personalDetails, [], [], {}, true);
         const header = OptionsListUtils.getHeaderMessage(recentReports && recentReports.length !== 0, false, '');
         return {
             recentReports,
@@ -82,8 +82,8 @@ function TaskShareDestinationSelectorModal() {
         if (debouncedSearchValue.trim() === '') {
             return defaultOptions;
         }
-        const filteredReports = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+        const filteredReports = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             canInviteUser: false,
         });
         const header = OptionsListUtils.getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);

@@ -12,26 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validateActor:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
-    steps:
-      - name: Check if user is deployer
-        id: isUserDeployer
-        run: |
-          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
-            echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
   prep:
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
@@ -41,11 +22,18 @@ jobs:
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
+      - name: Validate actor
+        id: validateActor
+        uses: ./.github/actions/composite/validateActor
+        with:
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
         with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
@@ -97,12 +85,14 @@ jobs:
           pattern: android-*-artifact
           merge-multiple: true
 
-      - name: Log downloaded artifact paths
-        run: ls -R /tmp/artifacts
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
 
-      - name: Decrypt json w/ Google Play credentials
-        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
+      - name: Load files from 1Password
         working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
 
       - name: Upload Android app to Google Play
         run: bundle exec fastlane android upload_google_play_internal
@@ -118,43 +108,32 @@ jobs:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
-    defaults:
-      run:
-        working-directory: Mobile-Expensify/react-native
     steps:
-      - name: Checkout
+      - name: Checkout App and Mobile-Expensify repo
         uses: actions/checkout@v4
         with:
-          repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
-      - name: Update submodule
+      - name: Update submodule to match main
         run: |
-          git submodule update --init
-          # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        id: setup-node
+        uses: ./.github/actions/composite/setupNode
         with:
-          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
-          cache: npm
-          cache-dependency-path: 'Mobile-Expensify/react-native'
+          IS_HYBRID_BUILD: 'true'
 
-      - name: Install node modules
+      - name: Run grunt build
         run: |
-          npm install
-          cd .. && npm install
-          
-          # Fixes https://github.com/Expensify/App/issues/51682
-          npm run grunt:build:shared
+            cd Mobile-Expensify
+            npm run grunt:build:shared
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -166,7 +145,6 @@ jobs:
         uses: ruby/setup-ruby@v1.190.0
         with:
           bundler-cache: true
-          working-directory: 'Mobile-Expensify/react-native'
 
       - name: Install New Expensify Gems
         run: bundle install
@@ -178,10 +156,12 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./upload-key.keystore upload-key.keystore 
-          op document get --output ./android-fastlane-json-key.json android-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+
           # Copy the keystore to the Android directory for Fullstory
-          cp ./upload-key.keystore ../Android 
+          cp ./upload-key.keystore Mobile-Expensify/Android 
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
@@ -190,13 +170,13 @@ jobs:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
-          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
 
       - name: Get Android native version
         id: getAndroidVersion
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_OUTPUT"
+        run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' Mobile-Expensify/Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -212,12 +192,25 @@ jobs:
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
+      - name: Get current Android rollout percentage
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        id: getAndroidRolloutPercentage
+        uses: ./.github/actions/javascript/getAndroidRolloutPercentage
+        with:
+          GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
+          PACKAGE_NAME: org.me.mobiexpensifyg
+
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          # Complete the previous version rollout
-          bundle exec fastlane android complete_hybrid_rollout
-          
+          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
+          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
+              echo "Completing the previous version rollout"
+              bundle exec fastlane android complete_hybrid_rollout
+          else
+              echo "Skipping the completion of the previous version rollout"
+          fi
+
           # Submit the new version for review and slow rollout when it's approved
           bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
@@ -228,6 +221,27 @@ jobs:
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
+
+      - name: Generate APK from AAB
+        run: |
+          json=$(curl -s https://api.github.com/repos/google/bundletool/releases/latest)
+          downloadUrl=$(echo "$json" | jq -r ".assets | .[].browser_download_url")
+          curl "$downloadUrl" -4 -sL -o 'bundletool.jar'
+          java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
+            --mode=universal \
+            --ks=upload-key.keystore \
+            --ks-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
+            --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
+            --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          
+          unzip -p Expensify.apks universal.apk > Expensify.apk
+
+      - name: Upload Android APK build artifact
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-hybrid-apk-artifact
+          path: Expensify.apk
 
       - name: Upload Android build artifact
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -274,11 +288,18 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: true
 
-      - name: Decrypt Developer ID Certificate
-        run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
+      - name: Load Desktop credentials from 1Password
+        id: load-credentials
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
         env:
-          DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          DESKTOP_CERTIFICATE_BASE64: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_LINK"
+          DESKTOP_CERTIFICATE_PASSWORD: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_KEY_PASSWORD"
 
       - name: Build desktop app
         run: |
@@ -288,13 +309,14 @@ jobs:
             npm run desktop-build-staging
           fi
         env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          CSC_LINK: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
+          GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
 
       - name: Upload desktop sourcemaps artifact
         uses: actions/upload-artifact@v4
@@ -312,8 +334,8 @@ jobs:
     name: Build and deploy iOS
     needs: prep
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    runs-on: macos-13-xlarge
+      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+    runs-on: macos-15-xlarge
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -326,7 +348,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        uses: ruby/setup-ruby@v1.204.0
         with:
           bundler-cache: true
 
@@ -349,25 +371,18 @@ jobs:
           max_attempts: 5
           command: scripts/pod-install.sh
 
-      - name: Decrypt AppStore profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
 
-      - name: Decrypt AppStore Notification Service profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
+      - name: Load files from 1Password
         env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt certificate
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt App Store Connect API key
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output ios-fastlane-json-key.json ios-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore/NewApp_AppStore.mobileprovision" --force --out-file ./NewApp_AppStore.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore_Notification_Service/NewApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./NewApp_AppStore_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AppStore_Share_Extension/NewApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./NewApp_AppStore_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
+          op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
 
       - name: Get iOS native version
         id: getIOSVersion
@@ -427,50 +442,36 @@ jobs:
   iOS_hybrid:
     name: Build and deploy iOS HybridApp
     needs: prep
-    runs-on: macos-13-xlarge
+    runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.2.0.app/Contents/Developer
-    defaults:
-      run:
-        working-directory: Mobile-Expensify/react-native
+      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: 'Expensify/Mobile-Expensify'
           submodules: true
-          path: 'Mobile-Expensify'
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           # fetch-depth: 0 is required in order to fetch the correct submodule branch
           fetch-depth: 0
 
       - name: Update submodule
         run: |
-          git submodule update --init
-          # Update submodule to latest on staging
-          git fetch
-          git checkout staging
+          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: |
           ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
         id: setup-node
+        uses: ./.github/actions/composite/setupNode
         with:
-          node-version-file: 'Mobile-Expensify/react-native/.nvmrc'
-          cache-dependency-path: 'Mobile-Expensify/react-native'
-
-      - name: Install node modules
-        run: |
-          npm install
-          cd .. && npm install
+          IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        uses: ruby/setup-ruby@v1.204.0
         with:
           bundler-cache: true
-          working-directory: 'Mobile-Expensify/react-native'
 
       - name: Install New Expensify Gems
         run: bundle install
@@ -479,12 +480,12 @@ jobs:
         uses: actions/cache@v4
         id: pods-cache
         with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
+          path: Mobile-Expensify/iOS/Pods
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock', 'firebase.json') }}
 
       - name: Compare Podfile.lock and Manifest.lock
         id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
+        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('Mobile-Expensify/iOS/Podfile.lock') == hashFiles('Mobile-Expensify/iOS/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
 
       - name: Install cocoapods
         uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
@@ -492,7 +493,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd Mobile-Expensify/iOS && pod install
+          command: npm run pod-install
 
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
@@ -501,28 +502,12 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op document get --output ./OldApp_AppStore.mobileprovision OldApp_AppStore
-          op document get --output ./OldApp_AppStore_Share_Extension.mobileprovision OldApp_AppStore_Share_Extension
-
-      - name: Decrypt AppStore profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt AppStore Notification Service profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt certificate
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt App Store Connect API key
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output ios-fastlane-json-key.json ios-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/OldApp_AppStore.mobileprovision" --force --out-file ./OldApp_AppStore.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision" --force --out-file ./OldApp_AppStore_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision" --force --out-file ./OldApp_AppStore_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -549,8 +534,8 @@ jobs:
         run: |
           # Complete the previous version rollout
           bundle exec fastlane ios complete_hybrid_rollout
-          
-          # Submit the new version for review and phased rollout when it's approved 
+
+          # Submit the new version for review and phased rollout when it's approved
           bundle exec fastlane ios submit_hybrid_for_rollout
         env:
           VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
@@ -768,6 +753,7 @@ jobs:
             "./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap.js.map"
             "./android-aab-artifact/app-production-release.aab#android.aab"
             "./android-hybrid-build-artifact/Expensify-release.aab#android-hybrid.aab"
+            "./android-hybrid-apk-artifact/Expensify.apk#android-hybrid.apk"
             "./android-hybrid-sourcemap-artifact/index.android.bundle.map#android-hybrid-sourcemap.js.map"
             "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
             "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"
@@ -934,7 +920,7 @@ jobs:
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ github.ref == 'refs/heads/production' && needs.uploadAndroid.result }}
+      android: ${{ github.ref == 'refs/heads/production' || needs.uploadAndroid.result }}
       android_hybrid: ${{ needs.android_hybrid.result }}
       ios: ${{ needs.iOS.result }}
       ios_hybrid: ${{ needs.iOS_hybrid.result }}

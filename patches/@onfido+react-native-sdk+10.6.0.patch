@@ -1252,7 +1252,7 @@ index a9de0d0..da83d9f 100644
 -  s.dependency "Onfido", "~> 29.6.0"
 +  s.dependency "Onfido", "~> 29.7.0"
 +  
-+  if ENV['USE_FRAMEWORKS'] == '1'
++  if ENV['USE_FRAMEWORKS'] != nil
 +    s.pod_target_xcconfig = {
 +      "OTHER_CFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
 +      "OTHER_CPLUSPLUSFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",

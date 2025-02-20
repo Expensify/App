@@ -76,7 +76,7 @@ function SelectBankStep() {
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
 
@@ -94,12 +94,13 @@ function SelectBankStep() {
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
+                confirmButtonStyles={styles.mt5}
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>
                         <FormHelpMessage
                             isError={hasError}
-                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBankAccount')}
+                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}
                         />
                     </View>
                 )}

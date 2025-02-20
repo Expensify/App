@@ -23,9 +23,11 @@ function EmptyStateComponent({
     title,
     titleStyles,
     subtitle,
+    children,
     headerStyles,
     headerContentStyles,
     lottieWebViewStyles,
+    showsVerticalScrollIndicator,
     minModalHeight = 400,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
@@ -83,6 +85,7 @@ function EmptyStateComponent({
 
     return (
         <ScrollView
+            showsVerticalScrollIndicator={showsVerticalScrollIndicator}
             contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
             style={styles.flex1}
         >
@@ -97,9 +100,10 @@ function EmptyStateComponent({
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
-                        {typeof subtitle === 'string' ? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text> : subtitle}
+                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
+                        {children}
                         <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
-                            {buttons?.map(({buttonText, buttonAction, success}, index) => (
+                            {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}, index) => (
                                 <View
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={index}
@@ -109,7 +113,9 @@ function EmptyStateComponent({
                                         success={success}
                                         onPress={buttonAction}
                                         text={buttonText}
+                                        icon={icon}
                                         large
+                                        isDisabled={isDisabled}
                                     />
                                 </View>
                             ))}

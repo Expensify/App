@@ -1,6 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,7 +8,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar, Plus, RemoveMembers} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -22,19 +20,21 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import * as UserSearchPhraseActions from '@libs/actions/RoomMembersUserSearchPhrase';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {isPolicyEmployee as isPolicyEmployeeUtils, isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {getParticipantsList, getReportName, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import * as Report from '@userActions/Report';
+import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,12 +43,13 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
+type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
 function RoomMembersPage({report, policies}: RoomMembersPageProps) {
-    const route = useRoute<RouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
+    const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate} = useLocalize();
     const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
@@ -56,9 +57,9 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
+    const personalDetails = usePersonalDetails();
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
+    const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
 
     const isFocusedScreen = useIsFocused();
@@ -84,12 +85,12 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         if (!report) {
             return;
         }
-        Report.openRoomMembersPage(report.reportID);
+        openRoomMembersPage(report.reportID);
         setDidLoadRoomMembers(true);
     }, [report]);
 
     useEffect(() => {
-        UserSearchPhraseActions.clearUserSearchPhrase();
+        clearUserSearchPhrase();
         getRoomMembers();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -111,13 +112,13 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
      */
     const removeUsers = () => {
         if (report) {
-            Report.removeFromRoom(report.reportID, selectedMembers);
+            removeFromRoom(report.reportID, selectedMembers);
         }
         setSearchValue('');
         setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
-            UserSearchPhraseActions.clearUserSearchPhrase();
+            clearUserSearchPhrase();
         });
     };
 
@@ -170,13 +171,13 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         }
     };
 
-    const participants = useMemo(() => ReportUtils.getParticipantsList(report, personalDetails, true), [report, personalDetails]);
+    const participants = useMemo(() => getParticipantsList(report, personalDetails, true), [report, personalDetails]);
 
     /** Include the search bar when there are 8 or more active members in the selection list */
     const shouldShowTextInput = useMemo(() => {
         // Get the active chat members by filtering out the pending members with delete action
         const activeParticipants = participants.filter((accountID) => {
-            const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const pendingMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             if (!personalDetails?.[accountID]) {
                 return false;
             }
@@ -184,7 +185,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             return !pendingMember || isOffline || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         });
         return activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    }, [participants, personalDetails, isOffline, report]);
+    }, [participants, reportMetadata?.pendingChatMembers, personalDetails, isOffline]);
 
     useEffect(() => {
         if (!isFocusedScreen || !shouldShowTextInput) {
@@ -194,7 +195,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     }, [isFocusedScreen, shouldShowTextInput, userSearchPhrase]);
 
     useEffect(() => {
-        UserSearchPhraseActions.updateUserSearchPhrase(searchValue);
+        updateUserSearchPhrase(searchValue);
     }, [searchValue]);
 
     useEffect(() => {
@@ -204,23 +205,31 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         if (shouldShowTextInput) {
             setSearchValue(userSearchPhrase ?? '');
         } else {
-            UserSearchPhraseActions.clearUserSearchPhrase();
+            clearUserSearchPhrase();
             setSearchValue('');
         }
     }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedMembers([]),
+        onNavigationCallBack: () => {
+            setSearchValue('');
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+        },
+    });
 
     const data = useMemo((): ListItem[] => {
         let result: ListItem[] = [];
 
         participants.forEach((accountID) => {
-            const details = personalDetails[accountID];
+            const details = personalDetails?.[accountID];
 
             // If search value is provided, filter out members that don't match the search value
-            if (!details || (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue))) {
+            if (!details || (searchValue.trim() && !isSearchStringMatchUserDetails(details, searchValue))) {
                 return;
             }
-            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isAdmin = PolicyUtils.isUserPolicyAdmin(policy, details.login);
+            const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const isAdmin = isUserPolicyAdmin(policy, details.login);
             const isDisabled = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || details.isOptimisticPersonalDetail;
             const isDisabledCheckbox =
                 (isPolicyExpenseChat && isAdmin) ||
@@ -234,11 +243,11 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                 isSelected: selectedMembers.includes(accountID),
                 isDisabled,
                 isDisabledCheckbox,
-                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
-                        source: details.avatar ?? Expensicons.FallbackAvatar,
+                        source: details.avatar ?? FallbackAvatar,
                         name: details.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -252,11 +261,22 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
-    }, [formatPhoneNumber, isPolicyExpenseChat, participants, personalDetails, policy, report.ownerAccountID, report?.pendingChatMembers, searchValue, selectedMembers, session?.accountID]);
+    }, [
+        formatPhoneNumber,
+        isPolicyExpenseChat,
+        participants,
+        personalDetails,
+        policy,
+        report.ownerAccountID,
+        reportMetadata?.pendingChatMembers,
+        searchValue,
+        selectedMembers,
+        session?.accountID,
+    ]);
 
     const dismissError = useCallback(
         (item: ListItem) => {
-            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
+            clearAddRoomMemberError(report.reportID, String(item.accountID));
         },
         [report.reportID],
     );
@@ -265,7 +285,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         if (!report?.policyID || policies === null) {
             return false;
         }
-        return PolicyUtils.isPolicyEmployee(report.policyID, policies);
+        return isPolicyEmployeeUtils(report.policyID, policies);
     }, [report?.policyID, policies]);
 
     const headerMessage = searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '';
@@ -275,7 +295,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             {
                 text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
-                icon: Expensicons.RemoveMembers,
+                icon: RemoveMembers,
                 onSelected: () => setRemoveMembersConfirmModalVisible(true),
             },
         ];
@@ -302,7 +322,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
-                        icon={Expensicons.Plus}
+                        icon={Plus}
                         innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
@@ -314,7 +334,11 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
         (item: ListItem) => {
-            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID ?? -1, backTo));
+            if (!item?.accountID) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID, backTo));
         },
         [report, backTo],
     );
@@ -343,9 +367,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={
-                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || ReportUtils.isDefaultRoom(report)))
-                }
+                shouldShow={isEmptyObject(report) || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
@@ -353,7 +375,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(ReportUtils.getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
                             setSelectedMembers([]);
@@ -374,7 +396,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('roomMembersPage.removeMembersPrompt', {
                         count: selectedMembers.length,
-                        memberName: PersonalDetailsUtils.getPersonalDetailsByIDs(selectedMembers, currentUserAccountID).at(0)?.displayName ?? '',
+                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
@@ -394,9 +416,9 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                         onCheckboxPress={(item) => toggleUser(item)}
                         onSelectRow={openRoomMemberDetails}
                         onSelectAll={() => toggleAllUsers(data)}
-                        showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
+                        showLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
                         showScrollIndicator
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.mt3]}
                         customListHeader={customListHeader}
                         ListItem={TableListItem}

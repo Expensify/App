@@ -7,8 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as FormActions from '@userActions/FormActions';
+import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
+import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AddressUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
@@ -37,7 +37,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const defaultValues = {
         ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
         hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
@@ -59,13 +59,13 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce((acc, fieldName) => {
-                acc[fieldName] = reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined;
+                acc[fieldName] = reimbursementAccountDraft ? String(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
                 return acc;
             }, {} as Record<string, string | undefined>),
         );
 
-        BankAccounts.updateBeneficialOwnersForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
+        updateBeneficialOwnersForBankAccount(
+            Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID),
             {
                 ownsMoreThan25Percent: isUserUBO,
                 beneficialOwners: JSON.stringify(beneficialOwners),
@@ -81,7 +81,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         const newBeneficialOwners = [...beneficialOwnerKeys, beneficialOwnerID];
 
         setBeneficialOwnerKeys(newBeneficialOwners);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
     };
     const handleBeneficialOwnerDetailsFormSubmit = () => {
         const shouldAddBeneficialOwner = !beneficialOwnerKeys.find((beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) && canAddMoreUBOS;

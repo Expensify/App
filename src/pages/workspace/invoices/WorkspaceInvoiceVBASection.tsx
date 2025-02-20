@@ -16,11 +16,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import * as PaymentUtils from '@libs/PaymentUtils';
+import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import variables from '@styles/variables';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {close as closeModal} from '@userActions/Modal';
+import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData} from '@src/types/onyx';
@@ -56,7 +57,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
-    const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID;
+    const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     /**
      * Set position of the payment menu
@@ -87,6 +88,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         icon?: FormattedSelectedPaymentMethodIcon,
         isDefault?: boolean,
         methodID?: string | number,
+        description?: string,
     ) => {
         if (shouldShowAddPaymentMenu) {
             setShouldShowAddPaymentMenu(false);
@@ -108,7 +110,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 formattedSelectedPaymentMethod = {
                     title: account?.addressName ?? '',
                     icon,
-                    description: PaymentUtils.getPaymentMethodDescription(accountType, account),
+                    description: description ?? getPaymentMethodDescription(accountType, account),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             }
@@ -117,7 +119,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 selectedPaymentMethod: account ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
-                methodID: methodID ?? '-1',
+                methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();
@@ -145,17 +147,17 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            BankAccounts.deletePaymentBankAccount(bankAccountID);
+            deletePaymentBankAccount(bankAccountID);
         }
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList ?? {}, {}, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, {}, styles);
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            PaymentMethods.setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? -1, policyID, previousPaymentMethod?.methodID ?? -1);
+            setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID, policyID, previousPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID);
         }
     }, [bankAccountList, styles, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
 
@@ -165,7 +167,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const addPaymentMethodTypePressed = (paymentType: string) => {
         hideAddPaymentMenu();
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            BankAccounts.openPersonalBankAccountSetupView(undefined, isUserValidated);
+            openPersonalBankAccountSetupView(undefined, policyID, 'invoice', isUserValidated);
             return;
         }
 
@@ -231,27 +233,27 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                         <MenuItem
                             title={translate('common.delete')}
                             icon={Expensicons.Trashcan}
-                            onPress={() => setShowConfirmDeleteModal(true)}
+                            onPress={() => closeModal(() => setShowConfirmDeleteModal(true))}
                             wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                         />
                     </View>
                 )}
-                <ConfirmModal
-                    isVisible={showConfirmDeleteModal}
-                    onConfirm={() => {
-                        deletePaymentMethod();
-                        hideDefaultDeleteMenu();
-                    }}
-                    onCancel={hideDefaultDeleteMenu}
-                    title={translate('walletPage.deleteAccount')}
-                    prompt={translate('walletPage.deleteConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    shouldShowCancelButton
-                    danger
-                    onModalHide={resetSelectedPaymentMethodData}
-                />
             </Popover>
+            <ConfirmModal
+                isVisible={showConfirmDeleteModal}
+                onConfirm={() => {
+                    deletePaymentMethod();
+                    hideDefaultDeleteMenu();
+                }}
+                onCancel={hideDefaultDeleteMenu}
+                title={translate('walletPage.deleteAccount')}
+                prompt={translate('walletPage.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                shouldShowCancelButton
+                danger
+                onModalHide={resetSelectedPaymentMethodData}
+            />
             <AddPaymentMethodMenu
                 isVisible={shouldShowAddPaymentMenu}
                 onClose={hideAddPaymentMenu}

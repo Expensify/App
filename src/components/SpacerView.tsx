@@ -22,9 +22,9 @@ function SpacerView({shouldShow, style}: SpacerViewProps) {
     const prevShouldShow = usePrevious(shouldShow);
     const duration = CONST.ANIMATED_TRANSITION;
     const animatedStyles = useAnimatedStyle(() => ({
-        borderBottomWidth: withTiming(borderBottomWidth.value, {duration}),
-        marginTop: withTiming(marginVertical.value, {duration}),
-        marginBottom: withTiming(marginVertical.value, {duration}),
+        borderBottomWidth: withTiming(borderBottomWidth.get(), {duration}),
+        marginTop: withTiming(marginVertical.get(), {duration}),
+        marginBottom: withTiming(marginVertical.get(), {duration}),
     }));
 
     React.useEffect(() => {
@@ -35,9 +35,8 @@ function SpacerView({shouldShow, style}: SpacerViewProps) {
             marginVertical: shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL,
             borderBottomWidth: shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH,
         };
-        // eslint-disable-next-line react-compiler/react-compiler
-        marginVertical.value = values.marginVertical;
-        borderBottomWidth.value = values.borderBottomWidth;
+        marginVertical.set(values.marginVertical);
+        borderBottomWidth.set(values.borderBottomWidth);
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only need to trigger when shouldShow prop is changed
     }, [shouldShow, prevShouldShow]);

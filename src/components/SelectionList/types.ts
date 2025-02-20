@@ -7,12 +7,13 @@ import type {
     NativeSyntheticEvent,
     SectionListData,
     StyleProp,
+    TargetedEvent,
     TextInput,
     TextStyle,
     ViewStyle,
 } from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import type {SearchRouterItem} from '@components/Search/SearchRouter/SearchRouterList';
+import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
@@ -30,6 +31,7 @@ import type ReportListItem from './Search/ReportListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
+import type TravelDomainListItem from './TravelDomainListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -84,11 +86,18 @@ type CommonListItemProps<TItem extends ListItem> = {
     alternateTextNumberOfLines?: number;
 
     /** Handles what to do when the item is focused */
-    onFocus?: () => void;
+    onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
     onLongPressRow?: (item: TItem) => void;
 } & TRightHandSideComponent<TItem>;
+
+type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
+
+type ExtendedTargetedEvent = TargetedEvent & {
+    /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
+    sourceCapabilities?: unknown;
+};
 
 type ListItem = {
     /** Text to display */
@@ -191,6 +200,9 @@ type ListItem = {
 
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
+
+    /** Boolean whether to display the right icon */
+    shouldShowRightIcon?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -297,12 +309,19 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether we highlight all the selected items */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Styles applied for the title */
+    titleStyles?: StyleProp<TextStyle>;
+
+    /** Styles applid for the title container of the list item */
+    titleContainerStyles?: StyleProp<ViewStyle>;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
     shouldPreventEnterKeySubmit?: boolean;
+    shouldShowBlueBorderOnFocus?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
@@ -331,7 +350,10 @@ type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+};
 
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -346,7 +368,8 @@ type ValidListItem =
     | typeof ReportListItem
     | typeof ChatListItem
     | typeof SearchQueryListItem
-    | typeof SearchRouterItem;
+    | typeof SearchRouterItem
+    | typeof TravelDomainListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -446,6 +469,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether the text input should be shown after list header */
     shouldShowTextInputAfterHeader?: boolean;
 
+    /** Whether the header message should be shown after list header */
+    shouldShowHeaderMessageAfterHeader?: boolean;
+
     /** Whether to include padding bottom */
     includeSafeAreaPaddingBottom?: boolean;
 
@@ -461,6 +487,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles to apply to the header message */
     headerMessageStyle?: StyleProp<ViewStyle>;
 
+    /** Styles to apply to submit button */
+    confirmButtonStyles?: StyleProp<ViewStyle>;
+
     /** Text to display on the confirm button */
     confirmButtonText?: string;
 
@@ -475,6 +504,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default confirm button */
     showConfirmButton?: boolean;
+
+    /** Whether to show the default confirm button disabled */
+    isConfirmButtonDisabled?: boolean;
+
+    /** Whether to use the default theme for the confirm button */
+    shouldUseDefaultTheme?: boolean;
 
     /** Whether tooltips should be shown */
     shouldShowTooltips?: boolean;
@@ -554,6 +589,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
 
+    /** Styles applid for the title of the list item */
+    listItemTitleStyles?: StyleProp<TextStyle>;
+
+    /** Styles applid for the title container of the list item */
+    listItemTitleContainerStyles?: StyleProp<ViewStyle>;
+
     /** This may improve scroll performance for large lists */
     removeClippedSubviews?: boolean;
 
@@ -612,6 +653,18 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to prevent the active cell from being virtualized and losing focus in browsers */
     shouldPreventActiveCellVirtualization?: boolean;
+
+    /** Whether to scroll to the focused index */
+    shouldScrollToFocusedIndex?: boolean;
+
+    /** Called when scrollable content view of the ScrollView changes */
+    onContentSizeChange?: (w: number, h: number) => void;
+
+    /** Initial number of items to render */
+    initialNumToRender?: number;
+
+    /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
+    isScreenFocused?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -620,6 +673,8 @@ type SelectionListHandle = {
     scrollToIndex: (index: number, animated?: boolean) => void;
     updateAndScrollToFocusedIndex: (newFocusedIndex: number) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
+    getFocusedOption: () => ListItem | undefined;
+    focusTextInput: () => void;
 };
 
 type ItemLayout = {
@@ -649,10 +704,12 @@ export type {
     BaseSelectionListProps,
     ButtonOrCheckBoxRoles,
     CommonListItemProps,
+    ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ItemLayout,
     ListItem,
+    ListItemFocusEventHandler,
     ListItemProps,
     RadioListItemProps,
     ReportListItemProps,

@@ -6,10 +6,12 @@ import type TransactionListItem from '@components/SelectionList/Search/Transacti
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {ACHAccount} from './Policy';
-import type {InvoiceReceiver} from './Report';
+import type * as OnyxCommon from './OnyxCommon';
+import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
+import type {InvoiceReceiver, Participants} from './Report';
 import type ReportActionName from './ReportActionName';
 import type ReportNameValuePairs from './ReportNameValuePairs';
+import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
@@ -53,6 +55,10 @@ type SearchResultsInfo = {
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
+
+    /** Whether the user has any valid data on the current search type, for instance,
+     * whether they have created any invoice yet when the search type is invoice */
+    hasResults: boolean;
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
@@ -145,11 +151,28 @@ type SearchReport = {
     unheldTotal?: number;
 
     /** Whether the report is archived */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     private_isArchived?: string;
 
     /** Whether the action is loading */
     isActionLoading?: boolean;
+
+    /** Whether the report has violations or errors */
+    errors?: OnyxCommon.Errors;
+
+    /** Collection of report participants, indexed by their accountID */
+    participants?: Participants;
+
+    /** ID of the parent report of the current report, if it exists */
+    parentReportID?: string;
+
+    /** ID of the parent report action of the current report, if it exists */
+    parentReportActionID?: string;
+
+    /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
+    hasOutstandingChildRequest?: boolean;
+
+    /** Whether the user is not an admin of policyExpenseChat chat */
+    isOwnPolicyExpenseChat?: boolean;
 };
 
 /** Model of report action search result */
@@ -183,6 +206,9 @@ type SearchReportAction = {
 
     /** The ID of the report */
     reportID: string;
+
+    /** The name of the report */
+    reportName: string;
 };
 
 /** Model of policy search result */
@@ -190,8 +216,17 @@ type SearchPolicy = {
     /** The policy type */
     type: ValueOf<typeof CONST.POLICY.TYPE>;
 
+    /** The ID of the policy */
+    id: string;
+
+    /** The policy name */
+    name?: string;
+
     /** Whether the auto reporting is enabled */
     autoReporting?: boolean;
+
+    /** Whether the rules feature is enabled */
+    areRulesEnabled?: boolean;
 
     /**
      * The scheduled submit frequency set up on this policy.
@@ -226,6 +261,21 @@ type SearchPolicy = {
 
     /** Whether the self approval or submitting is enabled */
     preventSelfApproval?: boolean;
+
+    /** The email of the policy owner */
+    owner: string;
+
+    /** The approver of the policy */
+    approver?: string;
+
+    /** A set of rules related to the workpsace */
+    rules?: {
+        /** A set of rules related to the workpsace approvals */
+        approvalRules?: ApprovalRule[];
+
+        /** A set of rules related to the workpsace expenses */
+        expenseRules?: ExpenseRule[];
+    };
 };
 
 /** Model of transaction search result */
@@ -303,7 +353,7 @@ type SearchTransaction = {
     hasEReceipt?: boolean;
 
     /** The transaction description */
-    description: string;
+    description?: string;
 
     /** The transaction sender ID */
     accountID: number;
@@ -311,8 +361,8 @@ type SearchTransaction = {
     /** The transaction recipient ID */
     managerID: number;
 
-    /** If the transaction has a Ereceipt */
-    hasViolation: boolean;
+    /** If the transaction has violations */
+    hasViolation?: boolean;
 
     /** The transaction tax amount */
     taxAmount?: number;
@@ -340,6 +390,12 @@ type SearchTransaction = {
 
     /** Whether the action is loading */
     isActionLoading?: boolean;
+
+    /** Whether the transaction has violations or errors */
+    errors?: OnyxCommon.Errors;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Types of searchable transactions */
@@ -363,6 +419,7 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
 
     /** Whether search data is being fetched from server */

@@ -580,4 +580,23 @@ describe('APITests', () => {
                 expect(thirdRequestCommandName).toBe('MockCommandTwo');
             });
     });
+
+    test('Read request should not stuck when SequentialQueue is paused and resumed', async () => {
+        // Given 2 WRITE requests and 1 READ request where the first write request pauses the SequentialQueue
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({previousUpdateID: 1});
+        API.write('MockWriteCommandOne' as WriteCommand, {});
+        API.write('MockWriteCommandTwo' as WriteCommand, {});
+        API.read('MockReadCommand' as ReadCommand, null);
+
+        await waitForBatchedUpdates();
+
+        // When the SequentialQueue is unpaused
+        SequentialQueue.unpause();
+
+        await waitForBatchedUpdates();
+
+        // Then the pending READ command should be called
+        const [thirdCommand] = xhr.mock.calls.at(2) ?? [];
+        expect(thirdCommand).toBe('MockReadCommand');
+    });
 });

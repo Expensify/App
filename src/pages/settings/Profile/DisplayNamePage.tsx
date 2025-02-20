@@ -66,7 +66,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     };
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={DisplayNamePage.displayName}
         >
@@ -98,7 +98,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
+                            autoCapitalize="words"
                         />
                     </View>
                     <View>
@@ -111,7 +111,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
+                            autoCapitalize="words"
                         />
                     </View>
                 </FormProvider>

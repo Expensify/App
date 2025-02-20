@@ -1,10 +1,14 @@
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import * as ReportConnection from '@libs/ReportConnection';
-import * as ReportUtils from '@libs/ReportUtils';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 
 /**
  * This actions file is used to automatically switch a user into #focus mode when they exceed a certain number of reports. We do this primarily for performance reasons.
@@ -68,6 +72,15 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
 function resetHasReadRequiredDataFromStorage() {
     // Create a new promise and a new resolve function
     isReadyPromise = new Promise((resolve) => {
@@ -77,7 +90,7 @@ function resetHasReadRequiredDataFromStorage() {
 }
 
 function checkRequiredData() {
-    if (ReportConnection.getAllReports() === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
+    if (allReports === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
         return;
     }
 
@@ -91,6 +104,15 @@ function tryFocusModeUpdate() {
             return;
         }
 
+        const currentRoute = navigationRef.getCurrentRoute();
+        if (getIsNarrowLayout()) {
+            if (currentRoute?.name !== SCREENS.HOME) {
+                return;
+            }
+        } else if (currentRoute?.name !== SCREENS.REPORT) {
+            return;
+        }
+
         // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
         if ((isInFocusMode ?? false) || hasTriedFocusMode) {
             Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
@@ -98,14 +120,13 @@ function tryFocusModeUpdate() {
         }
 
         const validReports = [];
-        const allReports = ReportConnection.getAllReports();
         Object.keys(allReports ?? {}).forEach((key) => {
             const report = allReports?.[key];
             if (!report) {
                 return;
             }
 
-            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? -1, report)) {
+            if (!isValidReport(report) || !isReportParticipant(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
                 return;
             }
 

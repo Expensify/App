@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
@@ -7,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as IOUUtils from '@libs/IOUUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,13 +40,14 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
-    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO;
+    | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
+    | typeof SCREENS.MONEY_REQUEST.STEP_DESTINATION
+    | typeof SCREENS.MONEY_REQUEST.STEP_TIME
+    | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT
+    | typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE;
 
-type Route<TRouteName extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, TRouteName>;
-
-type WithFullTransactionOrNotFoundProps<TRouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {
-    route: Route<TRouteName>;
-};
+type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
+    PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
 export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
@@ -54,7 +55,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>, ref: ForwardedRef<TRef>) {
         const {route} = props;
-        const transactionID = route.params.transactionID ?? -1;
+        const transactionID = route.params.transactionID;
         const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
         const shouldUseTransactionDraft = IOUUtils.shouldUseTransactionDraft(userAction);

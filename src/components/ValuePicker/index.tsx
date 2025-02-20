@@ -54,6 +54,7 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
                 onItemSelected={updateInput}
                 shouldShowTooltips={shouldShowTooltips}
                 onBackdropPress={Navigation.dismissModal}
+                shouldEnableKeyboardAvoidingView={false}
             />
         </View>
     );

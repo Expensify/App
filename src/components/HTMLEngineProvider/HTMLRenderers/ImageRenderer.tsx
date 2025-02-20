@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
+import {getButtonRole, getButtonStyle} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -11,9 +12,9 @@ import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,11 +54,16 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     //           Concierge responder attachments are uploaded to S3 without any access
     //           control and thus require no authToken to verify access.
     //
-    const attachmentSourceAttribute = htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+    const attachmentSourceAttribute =
+        htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.src) ? htmlAttribs.src : null);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
+    // The backend always returns these thumbnails with a .jpg extension, even for .png images.
+    // As a workaround, we remove the .1024.jpg or .320.jpg suffix only for .png images,
+    // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
+    const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
 
     const alt = htmlAttribs.alt;
@@ -65,19 +71,19 @@ function ImageRenderer({tnode}: ImageRendererProps) {
     const imageHeight = (htmlAttribs['data-expensify-height'] && parseInt(htmlAttribs['data-expensify-height'], 10)) || undefined;
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
-    const fileType = FileUtils.getFileType(attachmentSourceAttribute);
+    const fileType = getFileType(attachmentSourceAttribute);
     const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Expensicons.Document : Expensicons.GalleryNotFound;
     const theme = useTheme();
 
-    let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
-    const fileInfo = FileUtils.splitExtensionFromFileName(fileName);
+    let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
+    const fileInfo = splitExtensionFromFileName(fileName);
     if (!fileInfo.fileExtension) {
         fileName = `${fileInfo?.fileName || CONST.DEFAULT_IMAGE_FILE_NAME}.jpg`;
     }
 
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={previewSource}
+            previewSourceURL={processedPreviewSource}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}
@@ -98,24 +104,24 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
-                            style={[styles.noOutline]}
+                            style={[styles.noOutline, getButtonStyle(styles, true)]}
                             onPress={() => {
                                 if (!source || !type) {
                                     return;
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID ?? '-1', type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
                                 if (isDisabled) {
                                     return;
                                 }
-                                showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
                             }}
                             shouldUseHapticsOnLongPress
-                            accessibilityRole={CONST.ROLE.BUTTON}
+                            role={getButtonRole(true)}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         >
                             {thumbnailImageComponent}

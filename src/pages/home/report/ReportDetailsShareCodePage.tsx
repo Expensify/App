@@ -1,7 +1,7 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -18,7 +18,7 @@ type ReportDetailsShareCodePageOnyxProps = {
 
 type ReportDetailsShareCodePageProps = ReportDetailsShareCodePageOnyxProps &
     WithReportOrNotFoundProps &
-    StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.SHARE_CODE>;
+    PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.SHARE_CODE>;
 
 function ReportDetailsShareCodePage({report, policy, route}: ReportDetailsShareCodePageProps) {
     if (ReportUtils.isSelfDM(report)) {
