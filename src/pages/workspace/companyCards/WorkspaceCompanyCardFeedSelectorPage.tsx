@@ -34,7 +34,7 @@ type CardFeedListItem = ListItem & {
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
 
 function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedSelectorPageProps) {
-    const {policyID, backTo} = route.params;
+    const {policyID} = route.params;
     const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
@@ -73,20 +73,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         clearAddNewCardFlow();
         if (isCollect && feeds.length === 1) {
             Navigation.navigate(
-                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)),
+                ROUTES.WORKSPACE_DOWNGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)),
             );
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
     };
 
-    const goBack = () => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-    };
+    const goBack = () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
     const selectFeed = (feed: CardFeedListItem) => {
         updateSelectedFeed(feed.value, policyID);
