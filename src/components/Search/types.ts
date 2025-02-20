@@ -98,8 +98,6 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID;
 
-type SearchAutocompleteQueryRangeKey = SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RANGE_NAME;
-
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 
 type QueryFilters = Array<{
@@ -132,7 +130,7 @@ type SearchAutocompleteResult = {
 };
 
 type SearchAutocompleteQueryRange = {
-    key: SearchAutocompleteQueryRangeKey;
+    key: SearchFilterKey;
     length: number;
     start: number;
     value: string;
@@ -161,5 +159,4 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
-    SearchAutocompleteQueryRangeKey,
 };
