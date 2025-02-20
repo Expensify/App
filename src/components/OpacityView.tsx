@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
-import Animated, {Easing, FadeOutUp, LinearTransition, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, LinearTransition, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import useThemeStyles from '@hooks/useThemeStyles';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import variables from '@styles/variables';
 
@@ -46,6 +47,19 @@ function OpacityView({
     shouldAnimateOnRemove,
 }: OpacityViewProps) {
     const opacity = useSharedValue(1);
+    const styles = useThemeStyles();
+    const [height, setHeight] = useState(0);
+    const SlideOut = useMemo(() => {
+        return new Keyframe({
+            from: {
+                height,
+            },
+            to: {
+                height: '0',
+            },
+        });
+    }, [height]);
+
     const opacityStyle = useAnimatedStyle(() => ({
         opacity: opacity.get(),
     }));
@@ -56,9 +70,12 @@ function OpacityView({
 
     return (
         <Animated.View
-            style={[opacityStyle, style]}
+            style={[opacityStyle, style, shouldAnimateOnRemove && styles.overflowHidden]}
             needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
-            exiting={shouldAnimateOnRemove ? FadeOutUp.duration(800).easing(Easing.out(Easing.ease)) : undefined}
+            exiting={shouldAnimateOnRemove ? SlideOut.duration(300) : undefined}
+            onLayout={(e) => {
+                setHeight(e.nativeEvent.layout.height);
+            }}
             layout={shouldAnimateOnRemove ? LinearTransition : undefined}
         >
             {children}
