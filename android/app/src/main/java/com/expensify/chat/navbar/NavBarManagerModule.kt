@@ -24,4 +24,13 @@ class NavBarManagerModule(
             }
         }
     }
+
+    @ReactMethod
+    fun setBackgroundColor(color: Int) {
+        UiThreadUtil.runOnUiThread {
+            mReactContext.currentActivity?.window?.let {
+                it.window.navigationBarColor = color
+            }
+        }
+    }
 }

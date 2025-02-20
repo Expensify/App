@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import type {TargetedEvent} from 'react-native';
+import type {ProcessedColorValue, TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
@@ -17,6 +17,7 @@ type RNTextInputResetModule = {
 
 type RNNavBarManagerModule = {
     setButtonStyle: (style: 'light' | 'dark') => void;
+    setBackgroundColor: (color: ProcessedColorValue | null | undefined) => void;
 };
 
 declare module 'react-native' {

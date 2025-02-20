@@ -38,6 +38,8 @@ import * as SessionUtils from '@libs/SessionUtils';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
+// eslint-disable-next-line no-restricted-imports
+import darkTheme from '@styles/theme/themes/dark';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -237,10 +239,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }, [isOnboardingCompleted]);
 
     useEffect(() => {
-        NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
-
+        NavBarManager.setTheme(theme);
         return () => {
-            NavBarManager.setButtonStyle(CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT);
+            NavBarManager.setTheme(darkTheme);
         };
     }, [theme]);
 
