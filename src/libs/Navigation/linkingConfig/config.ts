@@ -30,7 +30,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.SEARCH.ROOT]: {
-            path: ROUTES.SEARCH_CENTRAL_PANE.route,
+            path: ROUTES.SEARCH_ROOT.route,
         },
 
         [SCREENS.NOT_FOUND]: '*',
@@ -157,22 +157,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
                             path: ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
@@ -1566,7 +1550,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
+                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
                 [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
                     path: ROUTES.SETTINGS_PREFERENCES,
                     // exact: true,

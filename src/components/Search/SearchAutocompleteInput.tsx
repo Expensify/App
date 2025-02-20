@@ -1,9 +1,10 @@
+/* eslint-disable rulesdir/no-acc-spread-in-reduce */
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {useSharedValue} from 'react-native-reanimated';
+import Animated, {LinearTransition, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
@@ -13,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
@@ -22,7 +24,10 @@ import shouldDelayFocus from '@libs/shouldDelayFocus';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
+
+const SearchFiltersButtonTransition = getSearchFiltersButtonTransition();
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
@@ -53,10 +58,10 @@ type SearchAutocompleteInputProps = {
     onBlur?: () => void;
 
     /** Any additional styles to apply */
-    wrapperStyle?: StyleProp<ViewStyle>;
+    wrapperStyle?: ViewStyle;
 
     /** Any additional styles to apply when input is focused */
-    wrapperFocusedStyle?: StyleProp<ViewStyle>;
+    wrapperFocusedStyle?: ViewStyle;
 
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
@@ -85,7 +90,7 @@ function SearchAutocompleteInput(
         onBlur,
         caretHidden = false,
         wrapperStyle,
-        wrapperFocusedStyle,
+        wrapperFocusedStyle = {},
         outerWrapperStyle,
         rightComponent,
         isSearchingForReports,
@@ -95,8 +100,8 @@ function SearchAutocompleteInput(
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
-    const [isFocused, setIsFocused] = useState<boolean>(false);
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -122,6 +127,12 @@ function SearchAutocompleteInput(
     const emailListSharedValue = useSharedValue(emailList);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+
+    // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
+    const focusedSharedValue = useSharedValue(false);
+    const wrapperAnimatedStyle = useAnimatedStyle(() => {
+        return focusedSharedValue.get() ? wrapperFocusedStyle : wrapperStyle ?? {};
+    });
 
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
@@ -182,7 +193,10 @@ function SearchAutocompleteInput(
 
     return (
         <View style={[outerWrapperStyle]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, isFocused && wrapperFocusedStyle]}>
+            <Animated.View
+                style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}
+                layout={LinearTransition}
+            >
                 <View
                     style={styles.flex1}
                     fsClass={CONST.FULL_STORY.UNMASK}
@@ -208,16 +222,17 @@ function SearchAutocompleteInput(
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
-                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pr3]}
-                        inputStyle={[inputWidth, styles.pl3, styles.pr3]}
+                        textInputContainerStyles={[styles.borderNone, styles.pb0]}
+                        inputStyle={[inputWidth, styles.pl3, {lineHeight: undefined}]}
+                        placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
-                            setIsFocused(true);
-                            autocompleteListRef?.current?.updateExternalTextInputFocus(true);
                             onFocus?.();
+                            autocompleteListRef?.current?.updateExternalTextInputFocus(true);
+                            focusedSharedValue.set(true);
                         }}
                         onBlur={() => {
-                            setIsFocused(false);
                             autocompleteListRef?.current?.updateExternalTextInputFocus(false);
+                            focusedSharedValue.set(false);
                             onBlur?.();
                         }}
                         isLoading={!!isSearchingForReports}
@@ -229,8 +244,15 @@ function SearchAutocompleteInput(
                         selection={selection}
                     />
                 </View>
-                {!!rightComponent && <View style={styles.pr3}>{rightComponent}</View>}
-            </View>
+                {!!rightComponent && (
+                    <Animated.View
+                        style={styles.pr3}
+                        layout={SearchFiltersButtonTransition}
+                    >
+                        {rightComponent}
+                    </Animated.View>
+                )}
+            </Animated.View>
             <FormHelpMessage
                 style={styles.ph3}
                 isError={false}
