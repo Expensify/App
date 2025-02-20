@@ -58,7 +58,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             return;
         }
         setIsDowngradeWarningModalOpen(false);
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID, Navigation.getActiveRoute()));
     };
 
     if (!canPerformDowngrade) {
