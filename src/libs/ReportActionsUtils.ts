@@ -17,7 +17,7 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -2019,8 +2019,13 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
             newValue,
         });
     }
-    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET) {
-        const getMonthToDisplay = (month: string | number) => {
+    if (
+        updatedField &&
+        updatedField === CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET &&
+        (typeof oldValue === 'string' || typeof oldValue === 'number' || typeof oldValue === 'undefined') &&
+        (typeof newValue === 'string' || typeof newValue === 'number' || typeof newValue === 'undefined')
+    ) {
+        const getMonthToDisplay = (month: string | number | undefined) => {
             if (month === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                 return translateLocal('workflowsPage.frequencies.lastDayOfMonth');
             }

@@ -4862,7 +4862,7 @@ const translations = {
             `changed the maximum expense amount for violations to ${newValue} (previously ${oldValue})`,
         updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `updated "Max expense age (days)" to "${newValue}" (previously "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
-        updateMonthlyOffset: ({oldValue, newValue}) => {
+        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
             if (!oldValue) {
                 return `set the monthly report submission date to "${newValue}"`;
             }
