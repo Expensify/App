@@ -5137,7 +5137,7 @@ const translations = {
                 exportedToCSV: `exported this report to CSV`,
                 exportedToIntegration: {
                     automaticOne: ({label}: ExportedToIntegrationParams) => `automatically exported this report to ${label} via`,
-                    automaticTwo: 'accounting settings',
+                    automaticTwo: 'accounting settings.',
                     manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}.`,
                     reimburseableLink: 'View out-of-pocket expenses.',
                     nonReimbursableLink: 'View company card expenses.',
