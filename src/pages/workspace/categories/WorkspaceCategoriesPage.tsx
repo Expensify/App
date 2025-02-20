@@ -101,14 +101,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
-    const updateNewSelectedOptions = useCallback((newSelectedOptions: string[]) => {
-        setSelectedCategories(
-            newSelectedOptions.reduce((acc: Record<string, boolean>, key: string) => {
-                acc[key] = true;
-                return acc;
-            }, {} as Record<string, boolean>),
-        );
-    }, []);
+    const updateNewSelectedOptions = useCallback(
+        (newSelectedOptions: string[]) => {
+            if (!canSelectMultiple) {
+                return;
+            }
+            setSelectedCategories(
+                newSelectedOptions.reduce((acc: Record<string, boolean>, key: string) => {
+                    acc[key] = true;
+                    return acc;
+                }, {} as Record<string, boolean>),
+            );
+        },
+        [canSelectMultiple],
+    );
     const availableOptions = useMemo(
         () =>
             canSelectMultiple
