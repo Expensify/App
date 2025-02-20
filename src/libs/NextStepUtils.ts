@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep, Session} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getNextApproverAccountID} from './actions/IOU';
@@ -13,11 +13,10 @@ import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import {getLoginsByAccountIDs} from './PersonalDetailsUtils';
 import {getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, isExpenseReport, isInvoiceReport, isPayer as isPayerReportUtils} from './ReportUtils';
+import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';
-let session: Session;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -27,7 +26,6 @@ Onyx.connect({
 
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentUserEmail = value?.email ?? '';
-        session = value;
     },
 });
 
@@ -89,7 +87,6 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     }
 
     const {policyID = '', ownerAccountID = -1} = report ?? {};
-    const isPayer = isPayerReportUtils(session, report);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
@@ -232,7 +229,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             };
-
+            // We want to show pending approval next step for cases where the policy has approvals enabled
             if (autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) {
                 optimisticNextStep.message = [
                     {
@@ -258,14 +255,19 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                     {
                         text: 'Waiting for ',
                     },
-                    isPayer
+                    isPayer(
+                        {
+                            accountID: currentUserAccountID,
+                            email: currentUserEmail,
+                        },
+                        report,
+                    )
                         ? {
                               text: `you`,
                               type: 'strong',
                           }
                         : {
                               text: `an admin`,
-                              type: 'strong',
                           },
                     {
                         text: ' to ',
@@ -298,7 +300,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         case CONST.REPORT.STATUS_NUM.APPROVED:
             if (
                 isInvoiceReport(report) ||
-                !isPayerReportUtils(
+                !isPayer(
                     {
                         accountID: currentUserAccountID,
                         email: currentUserEmail,
