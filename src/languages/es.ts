@@ -493,6 +493,8 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        downloadAsPDF: 'Descargar como PDF',
+        downloadAsCSV: 'Descargar como CSV',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

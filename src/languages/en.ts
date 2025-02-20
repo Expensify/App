@@ -502,6 +502,8 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
+        downloadAsPDF: 'Download as PDF',
+        downloadAsCSV: 'Download as CSV',
     },
     supportalNoAccess: {
         title: 'Not so fast',
