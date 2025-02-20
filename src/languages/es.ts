@@ -107,6 +107,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    NeedCategoryForExportToIntegrationParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -287,6 +288,7 @@ const translations = {
         continue: 'Continuar',
         firstName: 'Nombre',
         lastName: 'Apellidos',
+        scanning: 'Escaneando',
         phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -365,6 +367,9 @@ const translations = {
             enterMerchant: 'Introduce un comerciante.',
             enterAmount: 'Introduce un importe.',
             enterDate: 'Introduce una fecha.',
+            missingMerchantName: 'Falta el nombre del comerciante',
+            missingAmount: 'Falta el importe',
+            missingDate: 'Falta la fecha',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
             pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
             pleaseSelectOne: 'Seleccione una de las opciones.',
@@ -507,6 +512,7 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        expenseReports: 'Informes de Gastos',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -708,8 +714,9 @@ const translations = {
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) =>
             `Este chat es con todos los miembros de Expensify en el dominio ${domainRoom}.`,
         beginningOfChatHistoryDomainRoomPartTwo: ' Úsalo para chatear con colegas, compartir consejos y hacer preguntas.',
-        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) =>
-            `Este chat es con los administradores del espacio de trabajo ${workspaceName}.`,
+        beginningOfChatHistoryAdminRoomPartOneFirst: 'Este chat es con los administradores del espacio de trabajo',
+        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName}`,
+        beginningOfChatHistoryAdminRoomPartOneLast: '.',
         beginningOfChatHistoryAdminRoomPartTwo: ' Úsalo para hablar sobre la configuración del espacio de trabajo y más.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Este chat es con todos en ${workspaceName}.`,
         beginningOfChatHistoryAnnounceRoomPartTwo: ` Úsalo para hablar sobre la configuración del espacio de trabajo y más.`,
@@ -853,17 +860,15 @@ const translations = {
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
-        recordDistance: 'Grabar distancia',
+        recordDistance: 'Gasto de distancia',
         requestMoney: 'Crear gasto',
+        perDiem: 'Crear dietas',
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
         assignTask: 'Assignar tarea',
         header: 'Acción rápida',
-        trackManual: 'Crear gasto',
-        trackScan: 'Escanear recibo',
-        trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
     },
@@ -895,6 +900,7 @@ const translations = {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        pendingMatch: 'Pendiente de coincidencia',
         pendingMatchWithCreditCard: 'Recibo pendiente de adjuntar con la transacción de la tarjeta',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
@@ -948,6 +954,7 @@ const translations = {
             other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
         }),
         settledExpensify: 'Pagado',
+        done: 'Listo',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
         business: 'Empresa',
@@ -1153,6 +1160,9 @@ const translations = {
             `Por favor, elige una imagen más grande que ${minHeightInPx}x${minWidthInPx} píxeles y más pequeña que ${maxHeightInPx}x${maxWidthInPx} píxeles.`,
         notAllowedExtension: ({allowedExtensions}: NotAllowedExtensionParams) => `La foto de perfil debe ser de uno de los siguientes tipos: ${allowedExtensions.join(', ')}.`,
     },
+    modal: {
+        backdropLabel: 'Fondo del Modal',
+    },
     profilePage: {
         profile: 'Perfil',
         preferredPronouns: 'Pronombres preferidos',
@@ -1179,6 +1189,7 @@ const translations = {
     securityPage: {
         title: 'Opciones de seguridad',
         subtitle: 'Activa la autenticación de dos factores para mantener tu cuenta segura.',
+        goToSecurity: 'Volver a la página de seguridad',
     },
     shareCodePage: {
         title: 'Tu código',
@@ -1839,7 +1850,7 @@ const translations = {
         joinAWorkspace: 'Unirse a un espacio de trabajo',
         listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
         whereYouWork: '¿Dónde trabajas?',
-        errorSelection: 'Por favor selecciona una opción para continuar.',
+        errorSelection: 'Selecciona una opción para continuar.',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
@@ -2649,6 +2660,10 @@ const translations = {
         publicDomainError: {
             title: 'Comienza con Expensify Travel',
             message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
+        },
+        maintenance: {
+            title: '¡Expensify Travel está recibiendo una actualización! 🚀',
+            message: `No estará disponible del 23 al 24 de febrero, pero volverá mejor que nunca después de eso. Si necesitas ayuda con un viaje actual, por favor llama al +1 866-296-7768. ¡Gracias!`,
         },
     },
     workspace: {
@@ -3736,7 +3751,8 @@ const translations = {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben clasificar todos los gastos',
-            needCategoryForExportToIntegration: 'Se requiere una categoría en cada gasto para poder exportarlo a',
+            needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) =>
+                `Todos los gastos deben estar categorizados para poder exportar a ${connectionName}.`,
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
@@ -5207,13 +5223,10 @@ const translations = {
                 stripePaid: ({amount, currency}: StripePaidParams) => `pagado ${currency}${amount}`,
                 takeControl: `tomó el control`,
                 integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `no se pudo sincronizar con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'}`,
-                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) =>
-                    `actualizó el rol ${email} a ${newRole === 'miembro' || newRole === 'user' ? 'miembro' : 'administrador'} (previamente ${
-                        currentRole === 'miembro' || currentRole === 'user' ? 'miembro' : 'administrador'
-                    })`,
+                addEmployee: ({email, role}: AddEmployeeParams) => `agregó a ${email} como ${role}`,
+                updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `actualizó el rol ${email} a ${newRole} (previamente ${currentRole})`,
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
-                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role === 'miembro' || role === 'user' ? 'miembro' : 'administrador'} ${email}`,
+                removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
@@ -5966,7 +5979,7 @@ const translations = {
         adminBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en ',
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
-        smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
+        smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
         someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
