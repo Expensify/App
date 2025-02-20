@@ -30,7 +30,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.SEARCH.ROOT]: {
-            path: ROUTES.SEARCH_CENTRAL_PANE.route,
+            path: ROUTES.SEARCH_ROOT.route,
         },
 
         [SCREENS.NOT_FOUND]: '*',
@@ -253,10 +253,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
-                            path: ROUTES.SETTINGS_2FA.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
@@ -975,6 +971,30 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
+                    screens: {
+                        [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
+                            path: ROUTES.SETTINGS_2FA_ROOT.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
+                            path: ROUTES.SETTINGS_2FA_VERIFY.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
+                            path: ROUTES.SETTINGS_2FA_SUCCESS.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.DISABLED]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLED,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.DISABLE]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLE,
+                            exact: true,
                         },
                     },
                 },
