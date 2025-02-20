@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
@@ -9,11 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import type {MenuItemData} from './types';
 import {getAccountingIntegrationData} from './utils';
@@ -22,8 +24,6 @@ type MultiConnectionSelectorPageProps = WithPolicyConnectionsProps & {
     route: {
         params: {
             connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
-            integrationToDisconnect?: ConnectionName;
-            shouldDisconnectIntegrationBeforeConnecting?: boolean;
         };
     };
 };
@@ -32,9 +32,10 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
     const policyID = policy?.id;
 
     const {canUseNSQS} = usePermissions();
+
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const multiConnectionName = getConnectionNameFromRouteParam(route.params.connection);
-    const integrationToDisconnect = route.params.integrationToDisconnect;
-    const shouldDisconnectIntegrationBeforeConnecting = route.params.shouldDisconnectIntegrationBeforeConnecting;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -61,8 +62,8 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
                               onPress: () => {
                                   startIntegrationFlow({
                                       name: integration,
-                                      integrationToDisconnect,
-                                      shouldDisconnectIntegrationBeforeConnecting,
+                                      integrationToDisconnect: connectedIntegration,
+                                      shouldDisconnectIntegrationBeforeConnecting: connectedIntegration ? true : undefined,
                                   });
                               },
                               ref: (ref) => {
@@ -79,7 +80,7 @@ function MultiConnectionSelectorPage({policy, route}: MultiConnectionSelectorPag
                       })
                       .filter(Boolean) as MenuItemData[])
                 : [],
-        [integrations, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policyID, startIntegrationFlow, popoverAnchorRefs, translate],
+        [integrations, connectedIntegration, policyID, startIntegrationFlow, popoverAnchorRefs, translate],
     );
 
     // The multi connector is currently only used for NSQS (which is behind beta)
