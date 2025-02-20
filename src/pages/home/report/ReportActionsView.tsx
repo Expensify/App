@@ -429,8 +429,6 @@ function ReportActionsView({
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
 
-    // We want to disable auto-scroll when loading more actions, as it causes issues when scrolling up.
-    const shouldEnableAutoScrollToTopThreshold = shouldEnableAutoScroll && shouldMaintainVisibleContentPosition(isLoadingInitialReportActions || isLoadingOlderReportActions);
     return (
         <>
             <ReportActionsList
@@ -451,7 +449,8 @@ function ReportActionsView({
                 hasLoadingNewerReportActionsError={hasLoadingNewerReportActionsError}
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
-                shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
+                shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition(isLoadingInitialReportActions || isLoadingOlderReportActions)}
             />
             <UserTypingEventListener report={report} />
             <PopoverReactionList ref={reactionListRef} />

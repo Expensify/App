@@ -126,6 +126,9 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
+
+    /** On iOS, used for unsetting maintainVisibleContentPosition to prevent scroll issues when loading older actions */
+    shouldMaintainVisibleContentPosition: boolean;
 };
 
 const VERTICAL_OFFSET_THRESHOLD = 200;
@@ -174,6 +177,7 @@ function ReportActionsList({
     onContentSizeChange,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
+    shouldMaintainVisibleContentPosition,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -798,6 +802,7 @@ function ReportActionsList({
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                     initialScrollKey={reportActionID}
+                    shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
                 />
             </View>
         </>

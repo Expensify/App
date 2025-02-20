@@ -1,6 +1,4 @@
-import type ShouldMaintainVisibleContentPosition from './types';
-
-function shouldMaintainVisibleContentPosition(isLoading: boolean): ShouldMaintainVisibleContentPosition {
+function shouldMaintainVisibleContentPosition(isLoading: boolean): boolean {
     return !isLoading;
 }
 export default shouldMaintainVisibleContentPosition;

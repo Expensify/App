@@ -3,8 +3,6 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
-import getPlatform from '@libs/getPlatform';
-import CONST from '@src/CONST';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import RenderTaskQueue from './RenderTaskQueue';
 
@@ -31,7 +29,16 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
 
 function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: ForwardedRef<RNFlatList>) {
-    const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
+    const {
+        shouldEnableAutoScrollToTopThreshold,
+        initialScrollKey,
+        data,
+        onStartReached,
+        renderItem,
+        keyExtractor = defaultKeyExtractor,
+        shouldMaintainVisibleContentPosition,
+        ...rest
+    } = props;
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
     // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
@@ -88,6 +95,9 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
     );
 
     const maintainVisibleContentPosition = useMemo(() => {
+        if (!shouldMaintainVisibleContentPosition) {
+            return undefined;
+        }
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
             minIndexForVisible: 1,
@@ -98,13 +108,8 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             return config;
         }
 
-        // When autoscrollToTopThreshold is not set on iOS, we want to set maintainVisibleContentPosition to undefined casue it was causing issues when scrolling up
-        if (getPlatform() === CONST.PLATFORM.IOS) {
-            return undefined;
-        }
-
         return config;
-    }, [shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
+    }, [shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData, shouldMaintainVisibleContentPosition]);
 
     const listRef = useRef<RNFlatList | null>(null);
     useImperativeHandle(ref, () => {
