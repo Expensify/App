@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -14,23 +14,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestErrorField} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
-import withPolicy from '@pages/workspace/withPolicy';
-import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
@@ -39,9 +28,21 @@ import {
     setWorkspaceAutoReportingFrequency,
     setWorkspaceReimbursement,
     updateGeneralSettings,
-} from '@userActions/Policy/Policy';
+} from '@libs/actions/Policy/Policy';
+import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
+import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
-import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -63,7 +64,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const policyApproverEmail = policy?.approver;
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
@@ -95,9 +96,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
         setIsCurrencyModalOpen(false);
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID]);
+    }, [policy, route.params.policyID, setIsCurrencyModalOpen]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
+    const isPolicyAdmin = isPolicyAdminUtil(policy);
 
     useFocusEffect(
         useCallback(() => {
@@ -116,7 +118,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             return;
         }
 
-        Workflow.setApprovalWorkflow({
+        setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
             availableMembers,
             usedApproverEmails,
@@ -296,6 +298,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
+        setIsCurrencyModalOpen,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -320,6 +323,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         </Section>
     );
 
+    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
