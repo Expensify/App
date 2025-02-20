@@ -539,7 +539,7 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.CHAT, 'all')).toStrictEqual(ChatListItem);
         });
 
-        it('should return TransactionListItem when type is EXPENSE and shouldGroupByReports is false', () => {
+        it('should return TransactionListItem when shouldGroupByReports is false', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', false)).toStrictEqual(TransactionListItem);
         });
 
@@ -547,9 +547,12 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', true)).toStrictEqual(ReportListItem);
         });
 
-        it('should return ReportListItem for other types', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, 'all')).toStrictEqual(ReportListItem);
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, 'all')).toStrictEqual(ReportListItem);
+        it('should return ReportListItem when type is TRIP and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, 'all', true)).toStrictEqual(ReportListItem);
+        });
+
+        it('should return ReportListItem when type is INVOICE and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', true)).toStrictEqual(ReportListItem);
         });
     });
 
@@ -558,7 +561,7 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.CHAT, 'all', searchResults.data, searchResults.search)).toStrictEqual(reportActionListItems);
         });
 
-        it('should return getTransactionsSections result when type is EXPENSE and shouldGroupByReports is false', () => {
+        it('should return getTransactionsSections result when shouldGroupByReports is false', () => {
             expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', searchResults.data, searchResults.search, false)).toStrictEqual(transactionsListItems);
         });
 
@@ -566,9 +569,12 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', searchResults.data, searchResults.search, true)).toStrictEqual(reportsListItems);
         });
 
-        it('should return getReportSections result for other types', () => {
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, 'all', searchResults.data, searchResults.search)).toStrictEqual(reportsListItems);
-            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', searchResults.data, searchResults.search)).toStrictEqual(reportsListItems);
+        it('should return getReportSections result when type is TRIP and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.TRIP, 'all', searchResults.data, searchResults.search, true)).toStrictEqual(reportsListItems);
+        });
+
+        it('should return getReportSections result when type is INVOICE and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getSections(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', searchResults.data, searchResults.search, true)).toStrictEqual(reportsListItems);
         });
     });
 
@@ -608,7 +614,7 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
-        it('should return getSortedTransactionData result when type is EXPENSE and shouldGroupByReports is false', () => {
+        it('should return getSortedTransactionData result when shouldGroupByReports is false', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', transactionsListItems, 'date', 'asc', false)).toStrictEqual([
                 {
                     accountID: 18439984,
@@ -910,8 +916,8 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
-        it('should return getSortedReportData result for other types', () => {
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, 'all', reportsListItems)).toStrictEqual([
+        it('should return getSortedReportData result when type is TRIP and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, 'all', reportsListItems, 'date', 'asc', true)).toStrictEqual([
                 {
                     accountID: 18439984,
                     action: 'pay',
@@ -1095,8 +1101,10 @@ describe('SearchUIUtils', () => {
                     unheldTotal: -5000,
                 },
             ]);
+        });
 
-            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', reportsListItems)).toStrictEqual([
+        it('should return getSortedReportData result when type is INVOICE and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', reportsListItems, 'date', 'asc', true)).toStrictEqual([
                 {
                     accountID: 18439984,
                     action: 'pay',
