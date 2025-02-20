@@ -36,7 +36,8 @@ function DirectorsList({directorKeys, onConfirm, onEdit}: DirectorsListProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const error = getLatestErrorMessage(reimbursementAccount);
 
-    const directorData = getValuesForSignerInfo(directorKeys, reimbursementAccountDraft);
+    const additionalDirectorsOnly = directorKeys.filter((director) => director !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY)
+    const directorData = getValuesForSignerInfo(additionalDirectorsOnly, reimbursementAccountDraft);
     const directors =
         reimbursementAccountDraft &&
         directorData.directors.map((director) => {
