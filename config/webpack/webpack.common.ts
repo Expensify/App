@@ -121,7 +121,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'assets/sounds', to: 'sounds'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
-                {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
                 {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                 {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 

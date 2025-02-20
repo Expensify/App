@@ -8,8 +8,7 @@
     overflow: visible;
     border: 9px solid transparent;
     background-clip: content-box;
-    border-image: url(../images/shadow.png) 9 9 repeat;
-    background-color: rgba(255, 255, 255, 1);
+    background-color: transparent !important;
 }
 
 .react-pdf__Page__annotations {
@@ -23,4 +22,7 @@
 }
 .react-pdf__Page__textContent span{
     color: transparent;
+}
+.react-pdf__Page__canvas {
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2);
 }
