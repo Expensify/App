@@ -16,6 +16,9 @@ jobs:
   prep:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Validate that user is an Expensify employee
         uses: ./.github/actions/composite/validateActor
         with:
