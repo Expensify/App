@@ -31,7 +31,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -78,6 +77,7 @@ function IOURequestStepScan({
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
@@ -310,11 +310,11 @@ function IOURequestStepScan({
                         participant,
                     },
                     transactionParams: {
-                        amount: 0,
+                        amount: participant.login === CONST.EMAIL.MANAGER_MCTEST ? 18 : 0,
                         attendees: transaction?.attendees,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
-                        merchant: '',
+                        merchant: participant.login === CONST.EMAIL.MANAGER_MCTEST ? "Taco Todd's" : '',
                         receipt,
                     },
                 });
@@ -552,7 +552,7 @@ function IOURequestStepScan({
                 filename,
                 (file) => {
                     const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined);
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
                     navigateToConfirmationStep(file, source, false);
                 },
                 (error) => {
@@ -568,12 +568,7 @@ function IOURequestStepScan({
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
         !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas),
-        {
-            onConfirm: setTestReceiptAndNavigate,
-            onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
-            },
-        },
+        {onConfirm: setTestReceiptAndNavigate},
     );
 
     const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {

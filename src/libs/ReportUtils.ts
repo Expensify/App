@@ -81,7 +81,6 @@ import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
-import {isSelectedManagerMcTest} from './OptionsListUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getEffectiveDisplayName, getLoginsByAccountIDs, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
@@ -1272,7 +1271,6 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
     if (report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
         return true;
     }
-    console.log(report);
 
     return report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 }
@@ -5711,12 +5709,6 @@ function buildOptimisticReportPreview(
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
-    const childStateAndStatus = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login))
-        ? {
-              childStateNum: CONST.REPORT.STATE_NUM.APPROVED,
-              childStatusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-          }
-        : undefined;
 
     return {
         reportActionID: reportActionID ?? rand64(),
@@ -5744,7 +5736,6 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
-        ...childStateAndStatus,
     };
 }
 
