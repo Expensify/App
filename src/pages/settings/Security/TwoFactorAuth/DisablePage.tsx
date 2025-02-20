@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -32,6 +32,11 @@ function DisablePage() {
 
         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLED);
     }, [account?.requiresTwoFactorAuth]);
+
+    const closeModal = useCallback(() => {
+        clearDisableTwoFactorAuthErrors();
+        Navigation.goBack();
+    }, []);
 
     return (
         <TwoFactorAuthWrapper
@@ -67,10 +72,10 @@ function DisablePage() {
                 title={translate('twoFactorAuth.twoFactorAuthCannotDisable')}
                 prompt={translate('twoFactorAuth.twoFactorAuthRequired')}
                 confirmText={translate('common.buttonConfirm')}
-                onConfirm={clearDisableTwoFactorAuthErrors}
+                onConfirm={closeModal}
                 shouldShowCancelButton={false}
-                onBackdropPress={clearDisableTwoFactorAuthErrors}
-                onCancel={clearDisableTwoFactorAuthErrors}
+                onBackdropPress={closeModal}
+                onCancel={closeModal}
                 isVisible={!isEmpty(account?.errorFields?.disableTwoFactorAuth ?? {})}
             />
         </TwoFactorAuthWrapper>
