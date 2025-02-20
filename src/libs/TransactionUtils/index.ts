@@ -1043,11 +1043,6 @@ function hasWarningTypeViolation(transactionID: string | undefined, transactionV
                 !isViolationDismissed(transaction, violation),
         ) ?? [];
 
-    const hasOnlyDupeDetectionViolation = warningTypeViolations?.every((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-    if (hasOnlyDupeDetectionViolation) {
-        return false;
-    }
-
     return warningTypeViolations.length > 0;
 }
 
