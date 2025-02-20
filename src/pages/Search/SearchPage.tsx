@@ -17,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
@@ -133,6 +134,7 @@ function SearchPage({route}: SearchPageProps) {
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
                                 shouldGroupByReports={shouldGroupByReports}
+                                isSearchScreenFocused={isSearchTopmostFullScreenRoute()}
                             />
                         </ScreenWrapper>
                     </View>
