@@ -154,6 +154,7 @@ import {
     isThreadParentMessage,
     isTrackExpenseAction,
     isTransactionThread,
+    isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
     wasActionTakenByCurrentUser,
@@ -2611,7 +2612,8 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
             )
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
-            .join(', ');
+            .join(', ')
+            .slice(0, CONST.REPORT_NAME_LIMIT);
     }
 
     return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
@@ -4486,10 +4488,9 @@ function getReportNameInternal({
             const modifiedMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: parentReportAction, searchReports: reports});
             return formatReportLastMessageText(modifiedMessage);
         }
-        if (isTripRoom(report)) {
+        if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
             return report?.reportName ?? '';
         }
-
         if (isCardIssuedAction(parentReportAction)) {
             return getCardIssuedMessage({reportAction: parentReportAction, personalDetails});
         }
@@ -6968,7 +6969,7 @@ function hasViolations(
     reportTransactions?: SearchTransaction[],
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, shouldShowInReview));
 }
 
 /**
@@ -7269,10 +7270,19 @@ function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
-function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports, shouldIncludeGroupChats = false): OnyxEntry<Report> {
+function getChatByParticipants(
+    newParticipantList: number[],
+    reports: OnyxCollection<Report> = allReports,
+    shouldIncludeGroupChats = false,
+    shouldExcludeClosedReports = false,
+): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
     return Object.values(reports ?? {}).find((report) => {
         const participantAccountIDs = Object.keys(report?.participants ?? {});
+
+        if (shouldExcludeClosedReports && isArchivedReportWithID(report?.reportID)) {
+            return false;
+        }
 
         // Skip if it's not a 1:1 chat
         if (!shouldIncludeGroupChats && !isOneOnOneChat(report) && !isSystemChat(report)) {
@@ -8440,6 +8450,11 @@ function getAllAncestorReportActions(report: Report | null | undefined, currentU
         const parentReportAction = getReportAction(parentReportID, parentReportActionID);
 
         if (!parentReport || !parentReportAction || (isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction)) || isReportPreviewAction(parentReportAction)) {
+            break;
+        }
+
+        // For threads, we don't want to display trip summary
+        if (isTripPreview(parentReportAction) && allAncestors.length > 0) {
             break;
         }
 
