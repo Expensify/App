@@ -738,6 +738,7 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
+        PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
@@ -1059,6 +1060,7 @@ const CONST = {
         REQUEST_MANUAL: 'requestManual',
         REQUEST_SCAN: 'requestScan',
         REQUEST_DISTANCE: 'requestDistance',
+        PER_DIEM: 'perDiem',
         SPLIT_MANUAL: 'splitManual',
         SPLIT_SCAN: 'splitScan',
         SPLIT_DISTANCE: 'splitDistance',
@@ -1386,6 +1388,12 @@ const CONST = {
             DEFAULT: 'default',
             DELETE: 'delete',
             PRESERVE: 'preserve',
+        },
+        ANIMATION_TIMING: {
+            DEFAULT_IN: 300,
+            DEFAULT_OUT: 200,
+            FAB_IN: 350,
+            FAB_OUT: 200,
         },
     },
     TIMING: {
@@ -4781,12 +4789,12 @@ const CONST = {
         CUSTOM: 'custom',
     },
     TWO_FACTOR_AUTH_STEPS: {
-        CODES: 'CODES',
+        COPY_CODES: 'COPY_CODES',
         VERIFY: 'VERIFY',
         SUCCESS: 'SUCCESS',
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
-        GETCODE: 'GETCODE',
+        DISABLE: 'DISABLE',
     },
     DELEGATE_ROLE: {
         ALL: 'all',
@@ -5135,10 +5143,10 @@ const CONST = {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
                     title: 'Set up categories and tags',
-                    description: ({workspaceSettingsLink, workspaceAccountingLink}) =>
+                    description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                         '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
                         '\n' +
-                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceSettingsLink}).`,
+                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
                 },
                 setupCategoriesTask,
                 {
@@ -6165,12 +6173,16 @@ const CONST = {
             ASC: 'asc',
             DESC: 'desc',
         },
+        GROUP_BY: {
+            REPORTS: 'reports',
+        },
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
+                DONE: 'done',
                 PAID: 'paid',
             },
             INVOICE: {
@@ -6216,7 +6228,6 @@ const CONST = {
             LOWER_THAN: 'lt',
             LOWER_THAN_OR_EQUAL_TO: 'lte',
         },
-        SYNTAX_RANGE_NAME: 'syntax',
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
             STATUS: 'status',

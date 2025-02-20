@@ -481,6 +481,15 @@ function clearAvatarErrors() {
     });
 }
 
+/**
+ * Clear errors for the current user's personal details
+ */
+function clearPersonalDetailsErrors() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errors: null,
+    });
+}
+
 function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string) {
     const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
         legalFirstName: values.legalFirstName?.trim() ?? '',
@@ -502,21 +511,16 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
-                    addresses: [
-                        ...(privatePersonalDetails?.addresses ?? []),
-                        {
-                            street: PersonalDetailsUtils.getFormattedStreet(parameters.addressStreet, parameters.addressStreet2),
-                            city: parameters.addressCity,
-                            state: parameters.addressState,
-                            zip: parameters.addressZip,
-                            country: parameters.addressCountry as Country | '',
-                            current: true,
-                        },
-                    ],
-                    legalFirstName: parameters.legalFirstName,
-                    legalLastName: parameters.legalLastName,
-                    dob: parameters.dob,
-                    phoneNumber: parameters.phoneNumber,
+                    isLoading: true,
+                },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
                 },
             },
         ],
@@ -539,4 +543,5 @@ export {
     updatePronouns,
     updateSelectedTimezone,
     updatePersonalDetailsAndShipExpensifyCards,
+    clearPersonalDetailsErrors,
 };
