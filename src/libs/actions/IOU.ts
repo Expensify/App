@@ -7746,7 +7746,7 @@ function getReportFromHoldRequestsOnyxData(
     };
 }
 
-function hasOutstandingChildRequest(reportID: string, excludedIOUReportID: string) {
+function hasOutstandingChildRequest(reportID: string, excludedIOUReportID?: string) {
     const reportActions = getAllReportActions(reportID);
     return !!Object.values(reportActions).find((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
@@ -7843,8 +7843,7 @@ function getPayMoneyRequestParams(
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        lastVisibleActionCreated: optimisticIOUReportAction.created,
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport.reportID, iouReport?.reportID ?? CONST.DEFAULT_NUMBER_ID),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport.reportID, iouReport?.reportID),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
