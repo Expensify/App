@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {Linking, NativeModules, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -13,12 +13,14 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {acceptSpotnanaTerms, handleProvisioningPermissionDeniedError, openTravelDotAfterProvisioning} from '@libs/actions/Travel';
+import {buildTravelDotURL} from '@libs/actions/Link';
+import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TCS>;
@@ -26,7 +28,7 @@ type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
@@ -35,10 +37,15 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
-            handleProvisioningPermissionDeniedError(domain);
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
+            cleanupTravelProvisioningSession();
         }
         if (travelProvisioning?.spotnanaToken) {
-            openTravelDotAfterProvisioning(travelProvisioning.spotnanaToken);
+            Navigation.closeRHPFlow();
+            cleanupTravelProvisioningSession();
+
+            // TravelDot is a standalone white-labeled implementation of Spotnana so it has to be opened in a new tab
+            Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken, travelProvisioning.isTestAccount ?? false));
         }
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
@@ -73,7 +80,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             shouldEnableMaxHeight
             testID={TravelTerms.displayName}
         >
-            <FullPageNotFoundView shouldShow={!canUseSpotnanaTravel && !NativeModules.HybridAppModule}>
+            <FullPageNotFoundView shouldShow={(!canUseSpotnanaTravel && !NativeModules.HybridAppModule) || (isBlockedFromSpotnanaTravel && !NativeModules.HybridAppModule)}>
                 <HeaderWithBackButton
                     title={translate('travel.termsAndConditions.header')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -84,11 +91,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         <Text style={styles.mt4}>
                             {`${translate('travel.termsAndConditions.subtitle')}`}
                             <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
-                        </Text>
-                        <Text style={styles.mt6}>
-                            {`${translate('travel.termsAndConditions.helpDocIntro')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('travel.termsAndConditions.helpDoc')} `}</TextLink>
-                            {`${translate('travel.termsAndConditions.helpDocOutro')}`}
                         </Text>
                         <CheckboxWithLabel
                             style={styles.mt6}
