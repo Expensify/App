@@ -509,6 +509,7 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        expenseReports: 'Informes de Gastos',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -1844,7 +1845,7 @@ const translations = {
         joinAWorkspace: 'Unirse a un espacio de trabajo',
         listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
         whereYouWork: '¿Dónde trabajas?',
-        errorSelection: 'Por favor selecciona una opción para continuar.',
+        errorSelection: 'Selecciona una opción para continuar.',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
