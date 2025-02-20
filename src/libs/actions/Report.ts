@@ -3129,10 +3129,9 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                               },
                           },
                       }
-                    : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
-                          acc[key] = null;
-                          return acc;
-                      }, {}),
+                    : {
+                          reportName: report.reportName,
+                      },
         },
     ];
 
