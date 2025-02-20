@@ -20,7 +20,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {openPolicyCompanyCardsFeed, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {openAssignFeedCardPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -100,7 +100,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const handleSelectFeed = (feed: CardFeedListItem) => {
         setSelectedFeed(feed.value);
         if (isCustomFeed(feed.value as CompanyCardFeed)) {
-            openPolicyCompanyCardsFeed(policyID, feed.value as CompanyCardFeed);
+            openAssignFeedCardPage(policyID, feed.value as CompanyCardFeed);
         }
         setShouldShowError(false);
     };
