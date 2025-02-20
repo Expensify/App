@@ -566,14 +566,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}
                 onConfirm={() => {
+                    setModalVisible(false);
                     if (NativeModules.HybridAppModule) {
                         NativeModules.HybridAppModule.closeReactNativeApp(false, true);
                         setRootStatusBarEnabled(false);
-                        setModalVisible(false);
                         return;
                     }
-
-                    setModalVisible(false);
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                 }}
                 onCancel={() => setModalVisible(false)}
