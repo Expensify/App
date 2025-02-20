@@ -4982,8 +4982,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     if (action === CONST.IOU.ACTION.SHARE) {
         if (isSearchTopmostFullScreenRoute() && activeReportID) {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID));
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID), {forceReplace: true});
+            });
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID, CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
     }
