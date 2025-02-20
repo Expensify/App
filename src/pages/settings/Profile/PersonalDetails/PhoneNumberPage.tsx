@@ -13,10 +13,9 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEarliestErrorField} from '@libs/ErrorUtils';
-import {appendCountryCode} from '@libs/LoginUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isValidPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
 import {clearPhoneNumberError, updatePhoneNumber as updatePhone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,13 +33,6 @@ function PhoneNumberPage() {
     const validateLoginError = getEarliestErrorField(privatePersonalDetails, 'phoneNumber');
     const currenPhoneNumber = privatePersonalDetails?.phoneNumber ?? '';
 
-    const formatE164PhoneNumber = useCallback((num: string) => {
-        const phoneNumberWithCountryCode = appendCountryCode(num);
-        const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
-
-        return parsedPhoneNumber.number?.e164;
-    }, []);
-
     const updatePhoneNumber = (values: PrivatePersonalDetails) => {
         // Clear the error when the user tries to submit the form
         if (validateLoginError) {
@@ -48,10 +40,8 @@ function PhoneNumberPage() {
         }
 
         // Only call the API if the user has changed their phone number
-        if (phoneNumber !== values?.phoneNumber && values?.phoneNumber) {
-            const e164PhoneNumber = formatE164PhoneNumber(values.phoneNumber);
-
-            updatePhone(e164PhoneNumber ?? '', currenPhoneNumber);
+        if (values?.phoneNumber && phoneNumber !== values.phoneNumber) {
+            updatePhone(formatE164PhoneNumber(values.phoneNumber) ?? '', currenPhoneNumber);
         }
 
         Navigation.goBack();

@@ -3,9 +3,8 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
-import {appendCountryCode} from '@libs/LoginUtils';
-import {isValidPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
 import type {CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,24 +15,16 @@ const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: CustomSubStepProps) {
     const {translate} = useLocalize();
 
-    const formatE164PhoneNumber = useCallback((num: string) => {
-        const phoneNumberWithCountryCode = appendCountryCode(num);
-        const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
-
-        return parsedPhoneNumber.number?.e164;
-    }, []);
-
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
             const phoneNumber = values[INPUT_IDS.PHONE_NUMBER];
+            const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
 
             if (!isRequiredFulfilled(phoneNumber)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
                 return errors;
             }
-
-            const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
 
             if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                 errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');

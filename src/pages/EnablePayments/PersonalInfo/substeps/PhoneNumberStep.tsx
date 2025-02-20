@@ -5,9 +5,8 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
-import {appendCountryCode} from '@libs/LoginUtils';
-import {isValidPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getFieldRequiredErrors, isValidUSPhone} from '@libs/ValidationUtils';
+import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {getFieldRequiredErrors, isValidPhoneNumber} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -21,13 +20,6 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
-    const formatE164PhoneNumber = useCallback((num: string) => {
-        const phoneNumberWithCountryCode = appendCountryCode(num);
-        const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
-
-        return parsedPhoneNumber.number?.e164;
-    }, []);
-
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
             const errors = getFieldRequiredErrors(values, STEP_FIELDS);
@@ -35,14 +27,14 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             if (values.phoneNumber) {
                 const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber);
 
-                if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(formatE164PhoneNumber(phoneNumberWithCountryCode))) {
+                if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
                     errors.phoneNumber = translate('common.error.phoneNumber');
                 }
             }
 
             return errors;
         },
-        [formatE164PhoneNumber, translate],
+        [translate],
     );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({

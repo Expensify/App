@@ -51,13 +51,5 @@ function addSMSDomainIfPhoneNumber(login = ''): string {
     return login;
 }
 
-function isValidPhoneNumber(phoneNumberValue: string): boolean {
-    if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumberValue) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumberValue)) {
-        return false;
-    }
-    const parsedPhoneNumber = parsePhoneNumber(phoneNumberValue);
-    return parsedPhoneNumber.possible;
-}
-
 // eslint-disable-next-line import/prefer-default-export
-export {parsePhoneNumber, addSMSDomainIfPhoneNumber, isValidPhoneNumber};
+export {parsePhoneNumber, addSMSDomainIfPhoneNumber};

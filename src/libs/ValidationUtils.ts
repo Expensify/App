@@ -11,7 +11,7 @@ import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {appendCountryCode, formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
@@ -305,6 +305,14 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
 
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
+}
+
+function isValidPhoneNumber(phoneNumber: string): boolean {
+    if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
+        return false;
+    }
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
+    return parsedPhoneNumber.possible && isValidUSPhone(formatE164PhoneNumber(phoneNumber));
 }
 
 function isValidValidateCode(validateCode: string): boolean {
@@ -660,6 +668,7 @@ export {
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
+    isValidPhoneNumber,
     isValidWebsite,
     validateIdentity,
     isValidTwoFactorCode,
