@@ -3767,7 +3767,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         narrowSearchHeaderStyle: {
-            flex: 1,
+            backgroundColor: theme.appBG,
         },
 
         narrowSearchRouterInactiveStyle: {
