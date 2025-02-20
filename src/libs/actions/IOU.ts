@@ -3941,7 +3941,7 @@ function updateMoneyRequestAttendees(
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    violations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    violations: OnyxEntry<OnyxTypes.TransactionViolations> | undefined,
 ) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -4982,8 +4982,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     if (action === CONST.IOU.ACTION.SHARE) {
         if (isSearchTopmostFullScreenRoute() && activeReportID) {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID));
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID), {forceReplace: true});
+            });
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID, CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
     }
@@ -8173,7 +8174,7 @@ function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report> | SearchReport,
     policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
-    allViolations?: OnyxCollection<OnyxTypes.TransactionViolations>,
+    allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
