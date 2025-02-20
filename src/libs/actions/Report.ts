@@ -3658,7 +3658,7 @@ function prepareOnboardingOnyxData(
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID}
-        : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID]);
+        : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID], allReports, false, true);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     if (!targetChatReportID) {
