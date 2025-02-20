@@ -273,7 +273,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
+                            text: ` on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of the ${format(new Date(), CONST.DATE.MONTH_FORMAT)}`,
                         },
                     ];
 
@@ -285,7 +285,6 @@ describe('libs/NextStepUtils', () => {
                         },
                     }).then(() => {
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
-
                         expect(result).toMatchObject(optimisticNextStep);
                     });
                 });
@@ -311,7 +310,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of each month`,
+                            text: ` on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of the ${format(new Date(), CONST.DATE.MONTH_FORMAT)}`,
                         },
                     ];
 
