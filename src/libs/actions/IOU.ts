@@ -7844,7 +7844,7 @@ function getPayMoneyRequestParams(
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
         lastVisibleActionCreated: optimisticIOUReportAction.created,
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport.reportID, iouReport?.reportID ?? ''),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport.reportID, iouReport?.reportID ?? CONST.DEFAULT_NUMBER_ID),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
