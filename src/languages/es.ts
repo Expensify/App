@@ -367,6 +367,9 @@ const translations = {
             enterMerchant: 'Introduce un comerciante.',
             enterAmount: 'Introduce un importe.',
             enterDate: 'Introduce una fecha.',
+            missingMerchantName: 'Falta el nombre del comerciante',
+            missingAmount: 'Falta el importe',
+            missingDate: 'Falta la fecha',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
             pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
             pleaseSelectOne: 'Seleccione una de las opciones.',
@@ -1185,6 +1188,7 @@ const translations = {
     securityPage: {
         title: 'Opciones de seguridad',
         subtitle: 'Activa la autenticación de dos factores para mantener tu cuenta segura.',
+        goToSecurity: 'Volver a la página de seguridad',
     },
     shareCodePage: {
         title: 'Tu código',
@@ -5968,7 +5972,7 @@ const translations = {
         adminBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en ',
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
-        smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
+        smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
         someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
