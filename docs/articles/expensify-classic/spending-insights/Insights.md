@@ -86,5 +86,3 @@ We offer various custom reports, including:
 - Vendor Spend Analysis
 
 Need something specific? Contact your Account Manager for assistance!
-
----
