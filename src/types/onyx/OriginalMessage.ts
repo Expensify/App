@@ -565,14 +565,6 @@ type OriginalMessageDismissedViolation = {
     violationName: string;
 };
 
-type OriginalMessageResolvedDuplicates = {
-    /** Why the violation was dismissed */
-    reason: string;
-
-    /** Name of the violation */
-    violationName: string;
-};
-
 /** Model of `trip room preview` report action */
 type OriginalMessageTripRoomPreview = {
     /** ID of the report to be previewed */
@@ -768,7 +760,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
-    [CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES]: OriginalMessageResolvedDuplicates;
+    [CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES]: never;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
