@@ -299,7 +299,7 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
     };
@@ -683,10 +683,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {
@@ -756,16 +756,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
-        integrationToDisconnect?: ConnectionName;
-        shouldDisconnectIntegrationBeforeConnecting?: boolean;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
-        backTo?: Routes;
-        forwardTo?: string;
-    };
+    [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
         login: string;
@@ -975,6 +971,23 @@ type SettingsNavigatorParamList = {
     };
 } & ReimbursementAccountNavigatorParamList;
 
+type TwoFactorAuthNavigatorParamList = {
+    [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
+    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
+    [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
+};
+
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: undefined;
@@ -1100,7 +1113,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        backTo: string;
+        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
         action: IOUAction;
@@ -1480,6 +1493,7 @@ type LeftModalNavigatorParamList = {
 
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
@@ -1564,9 +1578,11 @@ type SettingsSplitNavigatorParamList = {
 type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
@@ -1779,6 +1795,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.SEARCH.ROOT]: {
         q: SearchQueryString;
         name?: string;
+        groupBy?: string;
     };
 };
 
@@ -1938,4 +1955,5 @@ export type {
     WorkspaceSplitNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
+    TwoFactorAuthNavigatorParamList,
 };

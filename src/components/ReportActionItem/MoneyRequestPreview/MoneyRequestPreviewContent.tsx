@@ -22,6 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -35,6 +36,7 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {
+    canEditMoneyRequest,
     getTransactionDetails,
     getWorkspaceIcon,
     isPaidGroupPolicy,
@@ -47,7 +49,6 @@ import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     compareDuplicateTransactionFields,
-    getTransactionViolations,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation as hasNoticeTypeViolationTransactionUtils,
     hasPendingRTERViolation,
@@ -111,7 +112,7 @@ function MoneyRequestPreviewContent({
     const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const violations = useTransactionViolations(transaction?.transactionID);
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
@@ -144,9 +145,10 @@ function MoneyRequestPreviewContent({
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = hasViolationTransactionUtils(transaction?.transactionID, transactionViolations, true);
-    const hasNoticeTypeViolations = hasNoticeTypeViolationTransactionUtils(transaction?.transactionID, transactionViolations, true) && isPaidGroupPolicy(iouReport);
-    const hasWarningTypeViolations = hasWarningTypeViolationTransactionUtils(transaction?.transactionID, transactionViolations, true);
+    const hasViolations = hasViolationTransactionUtils(transaction, violations, true);
+    const hasNoticeTypeViolations = hasNoticeTypeViolationTransactionUtils(transaction?.transactionID, violations, true) && isPaidGroupPolicy(iouReport);
+    const hasWarningTypeViolations = hasWarningTypeViolationTransactionUtils(transaction?.transactionID, violations, true);
+
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
@@ -161,13 +163,7 @@ function MoneyRequestPreviewContent({
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
-    const allDuplicates = useMemo(
-        () =>
-            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
-                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-            )?.data?.duplicates ?? [],
-        [transaction?.transactionID, transactionViolations],
-    );
+    const allDuplicates = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
 
     // Remove settled transactions from duplicates
     const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
@@ -176,7 +172,8 @@ function MoneyRequestPreviewContent({
     const shouldShowKeepButton = !!(allDuplicates.length && duplicates.length && allDuplicates.length === duplicates.length);
 
     const shouldShowTag = !!tag && isPolicyExpenseChat;
-    const shouldShowCategoryOrTag = shouldShowTag || !!category;
+    const shouldShowCategory = !!category && isPolicyExpenseChat;
+    const shouldShowCategoryOrTag = shouldShowTag || shouldShowCategory;
     const shouldShowRBR = hasNoticeTypeViolations || hasWarningTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
@@ -237,7 +234,7 @@ function MoneyRequestPreviewContent({
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
 
-        if (hasPendingRTERViolation(getTransactionViolations(transactionID, transactionViolations))) {
+        if (hasPendingRTERViolation(violations)) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pendingMatch')}`;
         }
 
@@ -247,13 +244,13 @@ function MoneyRequestPreviewContent({
         }
 
         if (shouldShowRBR && transaction) {
-            const violations = getTransactionViolations(transaction.transactionID, transactionViolations);
             if (shouldShowHoldMessage) {
                 return `${message} ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
             const firstViolation = violations?.at(0);
             if (firstViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                const canEdit = isMoneyRequestAction && canEditMoneyRequest(action, transaction);
+                const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
                 const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
@@ -285,7 +282,7 @@ function MoneyRequestPreviewContent({
     };
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
-        if (shouldShowBrokenConnectionViolation(transaction ? [transaction.transactionID] : [], iouReport, policy)) {
+        if (shouldShowBrokenConnectionViolation(transaction, iouReport, policy, violations)) {
             return {shouldShow: true, messageIcon: Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         return {shouldShow: false};
@@ -466,7 +463,7 @@ function MoneyRequestPreviewContent({
                                     {shouldShowCategoryOrTag && <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.mt1]} />}
                                     {shouldShowCategoryOrTag && (
                                         <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
-                                            {!!category && (
+                                            {shouldShowCategory && (
                                                 <View
                                                     style={[
                                                         styles.flexRow,
