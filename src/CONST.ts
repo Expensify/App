@@ -6612,7 +6612,6 @@ const CONST = {
         },
     },
 
-
     DEVICE_CONTACT: {
         FIRST_NAME: 'FIRST_NAME',
         LAST_NAME: 'LAST_NAME',
@@ -6666,7 +6665,6 @@ const CONST = {
                 SUCCESS: 6,
             },
         },
-
     },
 
     HYBRID_APP: {

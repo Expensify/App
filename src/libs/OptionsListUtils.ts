@@ -131,6 +131,7 @@ import {
 import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
+import type {AvatarSource} from './UserUtils';
 import {generateAccountID} from './UserUtils';
 
 type SearchOption<T> = OptionData & {
@@ -226,8 +227,9 @@ type GetUserToInviteConfig = {
     lastName?: string;
     email?: string;
     phone?: string;
-    avatar?: UserUtils.AvatarSource;
+    avatar?: AvatarSource;
     shouldAcceptName?: boolean;
+    optionsToExclude?: GetOptionsConfig['selectedOptions'];
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
