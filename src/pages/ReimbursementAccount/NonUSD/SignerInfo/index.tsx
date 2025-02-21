@@ -60,6 +60,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
     const [isAnyoneElseDirector, setIsAnyoneElseDirector] = useState(false);
+    const [isEditingExistingDirector, setIsEditingExistingDirector] = useState(false);
     const [directorBeingModifiedID, setDirectorBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
 
     const submitSignerDetailsForm = () => {
@@ -67,14 +68,13 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     };
 
     const submitDirectorDetailsForm = () => {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        prepareDirectorDetailsForm();
         setIsAnyoneElseDirector(false);
-        setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_DIRECTOR);
+        setCurrentSubStep(isEditingExistingDirector ? SUBSTEP.DIRECTORS_LIST : SUBSTEP.IS_ANYONE_ELSE_DIRECTOR);
+        setIsEditingExistingDirector(false);
     };
 
     const submit = useCallback(() => {
-        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorBeingModifiedID);
+        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorKeys);
 
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
@@ -84,7 +84,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 inputs: JSON.stringify(signerDetails),
                 ...signerFiles,
                 bankAccountID,
-                directorIDs: `${directorBeingModifiedID}`,
+                directorIDs: `${directorKeys.toString()}`,
             });
             onSubmit();
         }
@@ -156,7 +156,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
 
                     // user selected "No" and there is additional director data collected already -> show confirmation page
                     setCurrentSubStep(SUBSTEP.DIRECTORS_LIST);
-                    setDirectorKeys((currentKeys) => currentKeys.slice(0, currentKeys.length - 1));
                     return;
                 }
 
@@ -196,8 +195,10 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         }
     }, [currentSubStep, directorsPrevScreen, directorsScreenIndex, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
-    const handleDirectorEdit = useCallback(() => {
-        // TODO: to be implemented
+    const handleDirectorEdit = useCallback((directorID: string) => {
+        setDirectorBeingModifiedID(directorID);
+        setIsEditingExistingDirector(true);
+        setCurrentSubStep(SUBSTEP.DIRECTOR_DETAILS_FORM);
     }, []);
 
     const handleEmailSubmit = useCallback(() => {

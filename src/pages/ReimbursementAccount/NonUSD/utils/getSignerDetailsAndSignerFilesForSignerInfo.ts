@@ -27,7 +27,7 @@ const {
 const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET, CITY, STATE, ZIP_CODE, DIRECTOR_OCCUPATION, DIRECTOR_FULL_NAME, DIRECTOR_JOB_TITLE];
 const signerFilesFields = [PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, PRD_AND_SFG];
 
-function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>, signerEmail: string, directorID: string) {
+function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>, signerEmail: string, directorIDs: string[]) {
     const signerDetails: Record<string, string | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject> = {};
 
@@ -37,24 +37,26 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
             return;
         }
 
-        if (directorID === 'currentUser') {
+        directorIDs.forEach((directorID: string) => {
             const fieldKey = `${PREFIX}_${directorID}_${fieldName}`;
+            if (directorID === 'currentUser') {
+                if (fieldName === DIRECTOR_FULL_NAME) {
+                    signerDetails[fieldKey] = String(reimbursementAccountDraft?.[FULL_NAME]);
+                    return;
+                }
 
-            if (fieldName === DIRECTOR_FULL_NAME) {
-                signerDetails[fieldKey] = String(reimbursementAccountDraft?.[FULL_NAME]);
-                return;
-            }
+                if (fieldName === DIRECTOR_JOB_TITLE) {
+                    signerDetails[fieldKey] = String(reimbursementAccountDraft?.[JOB_TITLE]);
+                    return;
+                }
 
-            if (fieldName === DIRECTOR_JOB_TITLE) {
-                signerDetails[fieldKey] = String(reimbursementAccountDraft?.[JOB_TITLE]);
-                return;
-            }
-
-            if (fieldName === DIRECTOR_OCCUPATION) {
+                if (fieldName === DIRECTOR_OCCUPATION) {
+                    signerDetails[fieldKey] = String(reimbursementAccountDraft?.[fieldKey]);
+                }
+            } else if (reimbursementAccountDraft?.[fieldKey]) {
                 signerDetails[fieldKey] = String(reimbursementAccountDraft?.[fieldKey]);
-                return;
             }
-        }
+        });
 
         if (!reimbursementAccountDraft?.[fieldName]) {
             return;
