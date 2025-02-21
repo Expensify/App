@@ -75,8 +75,9 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
                     setOnboardingCompanySize(selectedCompanySize);
 
+                    // Redirect is disabled on desktop
                     if (getPlatform() !== CONST.PLATFORM.DESKTOP) {
-                        switchToOldDotOnNonMicroCompanySize(selectedCompanySize); // SHOULD BE DISABLED ON DESKTOP
+                        switchToOldDotOnNonMicroCompanySize(selectedCompanySize);
                     }
 
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
@@ -92,34 +93,32 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         setOnboardingPolicyID(policyID);
                     }
 
-                    // For MICRO companies (1-10 employees), we want to remain on NewDot.
-                    if (selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                    // For MICRO companies (1-10 employees) or desktop app, we want to remain on NewDot.
+                    if (selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || getPlatform() === CONST.PLATFORM.DESKTOP) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                         return;
                     }
 
-                    if (getPlatform() !== CONST.PLATFORM.DESKTOP) {
-                        // For other company sizes we want to complete onboarding here.
-                        // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
-                        if (onboardingPurposeSelected) {
-                            completeOnboarding(
-                                onboardingPurposeSelected,
-                                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                                undefined,
-                                undefined,
-                                adminsChatReportID,
-                                onboardingPolicyID,
-                                undefined,
-                                onboardingCompanySize,
-                            );
-                        }
+                    // For other company sizes we want to complete onboarding here.
+                    // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
+                    if (onboardingPurposeSelected) {
+                        completeOnboarding(
+                            onboardingPurposeSelected,
+                            CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                            undefined,
+                            undefined,
+                            adminsChatReportID,
+                            onboardingPolicyID,
+                            undefined,
+                            onboardingCompanySize,
+                        );
+                    }
 
-                        if (NativeModules.HybridAppModule) {
-                            NativeModules.HybridAppModule.closeReactNativeApp(false, true);
-                            setRootStatusBarEnabled(false);
-                        } else {
-                            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true); // SHOULD BE DISABLED ON DESKTOP
-                        }
+                    if (NativeModules.HybridAppModule) {
+                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        setRootStatusBarEnabled(false);
+                    } else {
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                     }
                 }}
                 pressOnEnter
