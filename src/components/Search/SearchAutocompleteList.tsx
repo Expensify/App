@@ -33,6 +33,7 @@ import {
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getCardFeedNames} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -151,6 +152,9 @@ function SearchAutocompleteList(
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
+
+    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, {}, translate), [translate, workspaceCardFeeds]);
+    const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNames).map(([value, key]) => ({value, key})), [cardFeedNames]);
 
     const participantsAutocompleteList = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -339,6 +343,19 @@ function SearchAutocompleteList(
                     text: expenseType,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
+                const filteredFeeds = feedAutoCompleteList
+                    .filter((feed) => feed.key.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.key))
+                    .sort()
+                    .slice(0, 10);
+
+                return filteredFeeds.map((feed) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
+                    text: feed.key,
+                    autocompleteID: feed.value,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                }));
+            }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
                     .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
@@ -371,6 +388,7 @@ function SearchAutocompleteList(
         typeAutocompleteList,
         statusAutocompleteList,
         expenseTypes,
+        feedAutoCompleteList,
         cardAutocompleteList,
         allCards,
     ]);
@@ -382,7 +400,7 @@ function SearchAutocompleteList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, cardFeedNames) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,

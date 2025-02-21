@@ -23,6 +23,7 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, isCannedSearchQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {getCardFeedNames} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -77,9 +78,10 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
 
+    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, {}, translate), [translate, workspaceCardFeeds]);
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNames);
     const headerText = isCannedQuery ? translate(getHeaderContent(type).titleText) : '';
 
     // The actual input text that the user sees
@@ -113,9 +115,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     }, [queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNames);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allCards, originalInputQuery, personalDetails, reports, taxRates]);
+    }, [cardFeedNames, allCards, originalInputQuery, personalDetails, reports, taxRates]);
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {

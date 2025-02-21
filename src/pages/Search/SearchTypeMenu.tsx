@@ -36,6 +36,7 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import {getCardFeedNames} from './SearchAdvancedFiltersPage/SearchFiltersCardPage';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 type SearchTypeMenuProps = {
@@ -72,6 +73,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
+    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, {}, translate), [translate, workspaceCardFeeds]);
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -122,7 +124,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNames);
             }
 
             return {
@@ -215,7 +217,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards));
+        const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNames));
 
         return (
             <SearchTypeMenuNarrow

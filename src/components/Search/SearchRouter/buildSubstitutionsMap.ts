@@ -30,6 +30,7 @@ function buildSubstitutionsMap(
     reports: OnyxCollection<Report>,
     allTaxRates: Record<string, string[]>,
     cardList: CardList,
+    cardFeedNames: Record<string, string>,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -61,9 +62,10 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList);
+            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeedNames);
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {

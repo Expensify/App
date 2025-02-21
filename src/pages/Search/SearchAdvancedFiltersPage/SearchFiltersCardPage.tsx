@@ -99,6 +99,34 @@ function buildIndividualCardsData(
     return {selected: selectedCardItems, unselected: unselectedCardItems};
 }
 
+function getCardFeedNames(
+    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
+    domainFeedsData: Record<string, DomainFeedData>,
+    translate: LocaleContextProps['translate'],
+): Record<string, string> {
+    const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
+    const names: Record<string, string> = {};
+
+    Object.entries(workspaceCardFeeds)
+        .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
+        .forEach(([cardFeedKey, cardFeed]) => {
+            const cardFeedArray = Object.values(cardFeed ?? {});
+            const representativeCard = cardFeedArray.find((cardFeedItem) => isCard(cardFeedItem));
+            if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && !isCardHiddenFromSearch(cardFeedItem))) {
+                return;
+            }
+            const {domainName, bank} = representativeCard;
+            const isBankRepeating = repeatingBanks.includes(bank);
+            const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
+            const correspondingPolicy = getPolicy(policyID?.toUpperCase());
+            const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
+            const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
+            names[cardFeedKey] = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+        });
+
+    return names;
+}
+
 function createCardFeedItem({
     bank,
     cardFeedLabel,
@@ -186,7 +214,7 @@ function buildCardFeedsData(
                 correspondingCardIDs,
                 cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined,
                 translate,
-                keyForFeed: cardFeedKey.replace('cards_', ''), // what if cards_ is a part of key?
+                keyForFeed: cardFeedKey,
                 keyForList: cardFeedKey,
                 selectedCards,
             });
@@ -212,7 +240,7 @@ function getSelectedCardsFromFeeds(workspaceCardFeeds: Record<string, WorkspaceC
     return Array.from(
         new Set(
             selectedFeeds.flatMap((feedId) => {
-                const feed = workspaceCardFeeds[`cards_${feedId}`];
+                const feed = workspaceCardFeeds[feedId];
                 return !feed ? [] : Object.keys(feed).filter((cardNumber) => feed[cardNumber].state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
             }),
         ),
@@ -394,4 +422,4 @@ function SearchFiltersCardPage() {
 SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
 export default SearchFiltersCardPage;
-export {buildIndividualCardsData, buildCardFeedsData};
+export {buildIndividualCardsData, buildCardFeedsData, getCardFeedNames};
