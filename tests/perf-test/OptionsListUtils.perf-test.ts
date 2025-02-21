@@ -118,14 +118,14 @@ describe('OptionsListUtils', () => {
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, getValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, getValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, ValidOptionsConfig);
         await measureFunction(() => {
             filterAndOrderOptions(formattedOptions, '');
         });
