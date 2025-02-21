@@ -18,13 +18,10 @@ function requestValidationCodeForAccountMerge(email: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                mergeAccount: {
-                    email,
-                    getValidateCodeForAccountMerge: {
-                        isLoading: true,
-                        validateCodeSent: false,
-                        errors: null,
-                    },
+                getValidateCodeForAccountMerge: {
+                    isLoading: true,
+                    validateCodeSent: false,
+                    errors: null,
                 },
             },
         },
@@ -35,13 +32,10 @@ function requestValidationCodeForAccountMerge(email: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                mergeAccount: {
-                    email,
-                    getValidateCodeForAccountMerge: {
-                        isLoading: false,
-                        validateCodeSent: true,
-                        errors: null,
-                    },
+                getValidateCodeForAccountMerge: {
+                    isLoading: false,
+                    validateCodeSent: true,
+                    errors: null,
                 },
             },
         },
@@ -52,12 +46,9 @@ function requestValidationCodeForAccountMerge(email: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                mergeAccount: {
-                    email,
-                    getValidateCodeForAccountMerge: {
-                        isLoading: false,
-                        validateCodeSent: false,
-                    },
+                getValidateCodeForAccountMerge: {
+                    isLoading: false,
+                    validateCodeSent: false,
                 },
             },
         },
@@ -73,10 +64,10 @@ function requestValidationCodeForAccountMerge(email: string) {
 
 function clearRequestValidationCodeForAccountMerge() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
-        mergeAccount: {
-            getValidateCodeForAccountMerge: {
-                errors: null,
-            },
+        getValidateCodeForAccountMerge: {
+            errors: null,
+            validateCodeSent: false,
+            isLoading: false,
         },
     });
 }
@@ -87,13 +78,10 @@ function mergeWithValidateCode(email: string, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                mergeAccount: {
-                    email,
-                    mergeWithValidateCode: {
-                        isLoading: true,
-                        accountMerged: false,
-                        errors: null,
-                    },
+                mergeWithValidateCode: {
+                    isLoading: true,
+                    accountMerged: false,
+                    errors: null,
                 },
             },
         },
@@ -104,13 +92,10 @@ function mergeWithValidateCode(email: string, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                mergeAccount: {
-                    email,
-                    mergeWithValidateCode: {
-                        isLoading: false,
-                        accountMerged: true,
-                        errors: null,
-                    },
+                mergeWithValidateCode: {
+                    isLoading: false,
+                    accountMerged: true,
+                    errors: null,
                 },
             },
         },
@@ -121,12 +106,9 @@ function mergeWithValidateCode(email: string, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                mergeAccount: {
-                    email,
-                    mergeWithValidateCode: {
-                        isLoading: false,
-                        accountMerged: false,
-                    },
+                mergeWithValidateCode: {
+                    isLoading: false,
+                    accountMerged: false,
                 },
             },
         },
@@ -142,10 +124,10 @@ function mergeWithValidateCode(email: string, validateCode: string) {
 
 function clearMergeWithValidateCode() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {
-        mergeAccount: {
-            mergeWithValidateCode: {
-                errors: null,
-            },
+        mergeWithValidateCode: {
+            errors: null,
+            isLoading: false,
+            accountMerged: false,
         },
     });
 }

@@ -4795,6 +4795,11 @@ const CONST = {
         ERR_2FA: 'err_2fa',
         ERR_NO_EXIST: 'err_no_exist',
         ERR_SMART_SCANNER: 'err_smart_scanner',
+        ERR_SAML: 'error_saml',
+        ERR_EMAIL_VERIFICATION: 'err_email_ver',
+        ERR_INVOICING: 'err_invoicing',
+        ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        ERR_DOMAIN: 'err_domain',
     },
     DELEGATE_ROLE: {
         ALL: 'all',

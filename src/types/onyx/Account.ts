@@ -60,36 +60,6 @@ type DelegatedAccess = {
     errorFields?: DelegateErrors;
 };
 
-/** Model of MergeAccount data */
-type MergeAccount = {
-    /** The email of the account that the user tried to merge in */
-    email?: string;
-
-    /** Model of the getValidateCodeForAccountMerge API call */
-    getValidateCodeForAccountMerge?: {
-        /** Whether the validation code was sent */
-        isLoading?: boolean;
-
-        /** Whether the user validation code was sent */
-        validateCodeSent?: boolean;
-
-        /** Errors while requesting the validation code */
-        errors: OnyxCommon.Errors;
-    };
-
-    /** Model of the mergeWithValidateCode API call */
-    mergeWithValidateCode?: {
-        /** Whether the API call is loading */
-        isLoading?: boolean;
-
-        /** Whether the account was merged successfully */
-        accountMerged?: boolean;
-
-        /** Errors while merging the account */
-        errors: OnyxCommon.Errors;
-    };
-};
-
 /** Model of SMS delivery failure status */
 type SMSDeliveryFailureStatus = {
     /** Whether the account is having trouble receiving SMS */
@@ -211,9 +181,30 @@ type Account = {
         calendarLink: string;
     };
 
-    /** Any account that the user tried to merge in */
-    mergeAccount?: MergeAccount;
+    /** Model of the getValidateCodeForAccountMerge API call */
+    getValidateCodeForAccountMerge?: {
+        /** Whether the validation code was sent */
+        isLoading?: boolean;
+
+        /** Whether the user validation code was sent */
+        validateCodeSent?: boolean;
+
+        /** Errors while requesting the validation code */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Model of the mergeWithValidateCode API call */
+    mergeWithValidateCode?: {
+        /** Whether the API call is loading */
+        isLoading?: boolean;
+
+        /** Whether the account was merged successfully */
+        accountMerged?: boolean;
+
+        /** Errors while merging the account */
+        errors: OnyxCommon.Errors;
+    };
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate, MergeAccount};
+export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};

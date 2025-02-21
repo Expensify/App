@@ -108,12 +108,13 @@ type SettingsNavigatorParamList = {
         forwardTo?: Routes;
     };
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
+        login: string;
         backTo?: Routes;
         forwardTo?: Routes;
     };
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
         backTo?: Routes;
-        result: keyof typeof CONST.MERGE_ACCOUNT_RESULTS;
+        result: ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>;
         login: string;
     };
     [SCREENS.SETTINGS.CONSOLE]: {
