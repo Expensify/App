@@ -31,6 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as NumberUtils from '@libs/NumberUtils';
+import NetworkConnection from '@libs/NetworkConnection';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
 import type {PingPongEvent} from '@libs/Pusher/types';
@@ -57,7 +58,6 @@ import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
-import NetworkConnection from '@libs/NetworkConnection';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
