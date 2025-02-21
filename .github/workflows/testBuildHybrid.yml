@@ -103,36 +103,13 @@ jobs:
 
 
   postGitHubCommentBuildStarted:
-    runs-on: ubuntu-latest
+    name: Post build started comment
+    uses: ./.github/workflows/postBuildStartedComment.yml
     needs: [getNewDotRef, getOldDotPR, getOldDotRef]
-    steps:
-      - name: Add build start comment to ND PR
-        if: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER != ''}}
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }},
-              body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
-            });
-
-      - name: Add build start comment to OD PR
-        if: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER != '' || needs.getOldDotPR.outputs.OLD_DOT_PR != '' }}
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          script: |
-            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: 'Mobile-Expensify',
-              issue_number: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }},
-              body: `🚧 @${{ github.actor }} has triggered a test hybrid app build. You can view the [workflow run here](${workflowURL}).`
-            });
+    secrets: inherit
+    with: 
+      APP_PULL_REQUEST_NUMBER: ${{ inputs.APP_PULL_REQUEST_NUMBER }}
+      HYBRIDAPP_PULL_REQUEST_NUMBER: ${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER || needs.getOldDotPR.outputs.OLD_DOT_PR }}
 
   androidHybrid:
     name: Build Android HybridApp
