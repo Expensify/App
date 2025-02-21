@@ -135,7 +135,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID) && !isReportApproved({report: moneyRequestReport});
+    const [showReviewDuplicates, setShowReviewDuplicates] = useState(true);
+    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -351,6 +352,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [isDuplicate, shouldShowSettlementButton, shouldShowExportIntegrationButton, shouldShowSubmitButton, shouldShowMarkAsCashButton],
     );
 
+    const onAnimationFinish = useCallback(() => {
+        stopAnimation();
+        setShowReviewDuplicates(false);
+    }, [stopAnimation]);
+
+    useEffect(() => {
+        setShowReviewDuplicates(true);
+    }, [moneyRequestReport?.reportID]);
+
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
@@ -380,7 +390,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
             >
-                {isDuplicate && !shouldUseNarrowLayout && (
+                {isDuplicate && showReviewDuplicates && !shouldUseNarrowLayout && (
                     <View style={[shouldDuplicateButtonBeSuccess ? styles.ml2 : styles.mh2]}>
                         <Button
                             success={shouldDuplicateButtonBeSuccess}
@@ -397,7 +407,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         <AnimatedSettlementButton
                             isPaidAnimationRunning={isPaidAnimationRunning}
                             isApprovedAnimationRunning={isApprovedAnimationRunning}
-                            onAnimationFinish={stopAnimation}
+                            onAnimationFinish={onAnimationFinish}
                             canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
@@ -452,7 +462,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
-                        {isDuplicate && shouldUseNarrowLayout && (
+                        {isDuplicate && showReviewDuplicates && shouldUseNarrowLayout && (
                             <Button
                                 success={shouldDuplicateButtonBeSuccess}
                                 text={translate('iou.reviewDuplicates')}
@@ -466,7 +476,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             <AnimatedSettlementButton
                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
-                                onAnimationFinish={stopAnimation}
+                                onAnimationFinish={onAnimationFinish}
                                 canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
