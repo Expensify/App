@@ -187,6 +187,7 @@ import type {
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
     UpdatedPolicyFrequencyParams,
+    UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
@@ -4894,6 +4895,8 @@ const translations = {
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `changed the rate of reports randomly routed for manual approval from ${Math.round(oldAuditRate * 100)}% to ${Math.round(newAuditRate * 100)}%`,
+        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
+            `changed the limit for manual approval of all expenses from ${oldLimit} to ${newLimit}`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

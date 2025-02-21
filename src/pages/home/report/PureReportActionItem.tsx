@@ -67,6 +67,7 @@ import {
     getReportActionMessage,
     getReportActionText,
     getUpdatedAuditRateMessage,
+    getUpdatedManualApprovalThresholdMessage,
     getWhisperedTo,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -956,6 +957,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getRemovedConnectionMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);

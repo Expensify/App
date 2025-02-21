@@ -2115,6 +2115,19 @@ function getUpdatedAuditRateMessage(reportAction: OnyxEntry<ReportAction>) {
     return translateLocal('workspaceActions.updatedAuditRate', {oldAuditRate, newAuditRate});
 }
 
+function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<ReportAction>) {
+    const {
+        oldLimit,
+        newLimit,
+        currency = CONST.CURRENCY.USD,
+    } = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD>) ?? {};
+
+    if (typeof oldLimit !== 'number' || typeof oldLimit !== 'number') {
+        return getReportActionText(reportAction);
+    }
+    return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
+}
+
 function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
     return isActionOfType(
         reportAction,
@@ -2347,6 +2360,7 @@ export {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
     getUpdatedAuditRateMessage,
+    getUpdatedManualApprovalThresholdMessage,
 };
 
 export type {LastVisibleMessage};

@@ -410,6 +410,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New approval audit rate */
     newAuditRate?: number;
+
+    /** Old limit of manual approval threshold */
+    oldLimit?: number;
+
+    /** New limit of manual approval threshold */
+    newLimit?: number;
 };
 
 /** Model of `join policy changelog` report action */

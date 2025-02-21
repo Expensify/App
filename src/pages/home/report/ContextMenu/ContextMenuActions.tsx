@@ -40,6 +40,7 @@ import {
     getRenamedAction,
     getReportActionMessageText,
     getUpdatedAuditRateMessage,
+    getUpdatedManualApprovalThresholdMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -605,6 +606,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
                     setClipboardMessage(getUpdatedAuditRateMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
+                    setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {

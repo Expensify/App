@@ -40,6 +40,7 @@ import {
     getReportActionMessageText,
     getSortedReportActions,
     getUpdatedAuditRateMessage,
+    getUpdatedManualApprovalThresholdMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -611,6 +612,8 @@ function getOptionData({
             result.alternateText = getRemovedConnectionMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE) {
             result.alternateText = getUpdatedAuditRateMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
+            result.alternateText = getUpdatedManualApprovalThresholdMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
