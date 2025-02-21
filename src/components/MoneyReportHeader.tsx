@@ -29,6 +29,8 @@ import {
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserSubmitter,
     isInvoiceReport,
+    isReportApproved,
+    isReportManuallyReimbursed,
     navigateBackOnDeleteTransaction,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
@@ -173,9 +175,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
-    const shouldShowMarkAsCashButton =
-        !!transactionThreadReportID &&
-        (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID))));
+    const shouldShowBrokenConnectionMarkAsCashButton =
+        shouldShowBrokenConnectionViolation &&
+        (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID)) &&
+        !isReportApproved({report: moneyRequestReport}) &&
+        !isReportManuallyReimbursed(moneyRequestReport);
+
+    const shouldShowMarkAsCashButton = !!transactionThreadReportID && (hasAllPendingRTERViolations || shouldShowBrokenConnectionMarkAsCashButton);
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
@@ -301,7 +307,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (hasOnlyHeldExpenses) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
         }
-        if (shouldShowBrokenConnectionViolation) {
+        if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (

@@ -12,7 +12,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isCurrentUserSubmitter} from '@libs/ReportUtils';
+import {isCurrentUserSubmitter, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasReceipt,
@@ -84,7 +84,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transaction, parentReport, policy, transactionViolations);
-    const shouldShowMarkAsCashButton = hasPendingRTERViolation || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID)));
+    const shouldShowBrokenConnectionMarkAsCashButton =
+        shouldShowBrokenConnectionViolation &&
+        (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID)) &&
+        !isReportApproved({report: parentReport}) &&
+        !isReportManuallyReimbursed(parentReport);
+    const shouldShowMarkAsCashButton = hasPendingRTERViolation || shouldShowBrokenConnectionMarkAsCashButton;
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
