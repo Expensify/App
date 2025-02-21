@@ -116,4 +116,9 @@ class LiveReloadServer {
     };
 }
 
+if (require.main === module) {
+    const server = new LiveReloadServer();
+    server.start();
+}
+
 export default LiveReloadServer;

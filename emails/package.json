@@ -6,10 +6,10 @@
   "scripts": {
     "build": "webpack --config ../config/webpack/webpack.emails.ts",
     "dev": "./scripts/start.sh",
-    "serve": "nodemon --watch dist/server.bundle.js --exec 'ts-node scripts/bootExpressServer.ts'",
+    "serve": "nodemon --watch dist/server.bundle.js --exec 'node dist/server.bundle.js'",
     "test": "echo 'Error: no test specified' && exit 1",
     "watch": "npm run build -- --watch",
-    "ws": "ts-node scripts/bootLiveReloadServer.ts"
+    "ws": "ts-node LiveReloadServer.ts"
   },
   "keywords": [],
   "author": "",
