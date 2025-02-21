@@ -1269,9 +1269,9 @@ function getAdminsPrivateEmailDomains(policy?: Policy) {
 
     const nonPulicDomains = [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
 
-    // If we have more than one domain we most likely don't want to show Expensify domains so people don't provision Travel under the wrong one
-    if (nonPulicDomains.length > 1) {
-        return nonPulicDomains.filter((domain) => domain !== 'expensify.com' && domain !== 'team.expensify.com');
+    // If the policy is not owned by Expensify there is no point in showing the domain for provisioning.
+    if (!isExpensifyTeam(policy.owner)) {
+        return nonPulicDomains.filter((domain) => domain === CONST.EXPENSIFY_PARTNER_NAME || domain === CONST.EMAIL.GUIDES_DOMAIN);
     }
 
     return nonPulicDomains;
