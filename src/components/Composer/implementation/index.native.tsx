@@ -8,15 +8,12 @@ import type {FileObject} from '@components/AttachmentModal';
 import type {ComposerProps} from '@components/Composer/types';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
-import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -29,8 +26,6 @@ function Composer(
         isDisabled = false,
         maxLines,
         isComposerFullSize = false,
-        setIsFullComposerAvailable = () => {},
-        autoFocus = false,
         style,
         // On native layers we like to have the Text Input not focused so the
         // user can read new chats without the keyboard in the way of the view.
@@ -43,21 +38,30 @@ function Composer(
     ref: ForwardedRef<TextInput>,
 ) {
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
-    const {isFocused, shouldResetFocusRef} = useResetComposerFocus(textInput);
-    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const {inputCallbackRef, inputRef: autoFocusInputRef} = useAutoFocusInput();
-
     useEffect(() => {
-        if (autoFocus === !!autoFocusInputRef.current) {
+        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
             return;
         }
-        inputCallbackRef(autoFocus ? textInput.current : null);
-    }, [autoFocus, inputCallbackRef, autoFocusInputRef]);
+
+        // We need the delay for setSelection to properly work for IOS in bridgeless mode due to a react native
+        // internal bug of dispatching the event before the component is ready for it.
+        // (see https://github.com/Expensify/App/pull/50520#discussion_r1861960311 for more context)
+        const timeoutID = setTimeout(() => {
+            // We are setting selection twice to trigger a scroll to the cursor on toggling to smaller composer size.
+            textInput.current?.setSelection((selection.start || 1) - 1, selection.start);
+            textInput.current?.setSelection(selection.start, selection.start);
+        }, 0);
+
+        return () => clearTimeout(timeoutID);
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isComposerFullSize]);
 
     /**
      * Set the TextInput Ref
@@ -68,10 +72,6 @@ function Composer(
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
-        }
-
-        if (autoFocus) {
-            inputCallbackRef(el);
         }
 
         // This callback prop is used by the parent component using the constructor to
@@ -98,7 +98,7 @@ function Composer(
             const mimeType = clipboardContent?.type ?? '';
             const fileURI = clipboardContent?.data;
             const baseFileName = fileURI?.split('/').pop() ?? 'file';
-            const {fileName: stem, fileExtension: originalFileExtension} = FileUtils.splitExtensionFromFileName(baseFileName);
+            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
             const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
             const fileName = `${stem}.${fileExtension}`;
             const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
@@ -118,24 +118,15 @@ function Composer(
             placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
             value={value}
-            onContentSizeChange={(e) => updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles, true)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
-            autoFocus={autoFocus}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
             onPaste={pasteFile}
-            onBlur={(e) => {
-                if (!isFocused) {
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    shouldResetFocusRef.current = true; // detect the input is blurred when the page is hidden
-                }
-                props?.onBlur?.(e);
-            }}
             onClear={onClear}
         />
     );

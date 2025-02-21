@@ -6,6 +6,8 @@ import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomReport from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -24,8 +26,10 @@ describe('actions/Policy', () => {
         });
     });
 
+    let mockFetch: MockFetch;
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -33,6 +37,9 @@ describe('actions/Policy', () => {
         it('creates a new workspace', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
             await waitForBatchedUpdates();
 
             let adminReportID;
@@ -51,6 +58,19 @@ describe('actions/Policy', () => {
                     },
                 });
             });
+
+            const activePolicyID: OnyxEntry<string> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`,
+                    callback: (id) => {
+                        Onyx.disconnect(connection);
+                        resolve(id);
+                    },
+                });
+            });
+
+            // check if NVP_ACTIVE_POLICY_ID is updated to created policy id
+            expect(activePolicyID).toBe(policyID);
 
             // check if policy was created with correct values
             expect(policy?.id).toBe(policyID);
@@ -73,8 +93,10 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Two reports should be created: #admins and expense report
-            const workspaceReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
+            // These reports should be created: #admins and expense report + task reports of manage team (default) intent
+            const workspaceReports = Object.values(allReports ?? {})
+                .filter((report) => report?.policyID === policyID)
+                .filter((report) => report?.type !== 'task');
             expect(workspaceReports.length).toBe(2);
             workspaceReports.forEach((report) => {
                 expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -109,14 +131,35 @@ describe('actions/Policy', () => {
             let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             let workspaceReportActions: ReportAction[] = adminReportActions.concat(expenseReportActions);
-            [adminReportActions, expenseReportActions].forEach((actions) => {
-                expect(actions.length).toBe(1);
-            });
-            [...adminReportActions, ...expenseReportActions].forEach((reportAction) => {
+            expect(expenseReportActions.length).toBe(1);
+            [...expenseReportActions].forEach((reportAction) => {
                 expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
+            // Created report action and and default MANAGE_TEAM intent tasks (7) assigned to user by guide, signingoff messages (1)
+            expect(adminReportActions.length).toBe(9);
+            let createdTaskReportActions = 0;
+            let signingOffMessage = 0;
+            let taskReportActions = 0;
+            adminReportActions.forEach((reportAction) => {
+                if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                    createdTaskReportActions++;
+                    expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                    expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
+                    return;
+                }
+                if (reportAction.childType === CONST.REPORT.TYPE.TASK) {
+                    taskReportActions++;
+                    expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                    // we dont check actorAccountID as it will be a random account id for the guide
+                    return;
+                }
+                signingOffMessage++;
+            });
+            expect(createdTaskReportActions).toBe(1);
+            expect(signingOffMessage).toBe(1);
+            expect(taskReportActions).toBe(7);
 
             // Check for success data
             (fetch as MockFetch)?.resume?.();
@@ -170,6 +213,163 @@ describe('actions/Policy', () => {
             workspaceReportActions = adminReportActions.concat(expenseReportActions);
             workspaceReportActions.forEach((reportAction) => {
                 expect(reportAction.pendingAction).toBeFalsy();
+            });
+        });
+    });
+
+    describe('upgradeToCorporate', () => {
+        it('upgradeToCorporate should not alter initial values of autoReporting and autoReportingFrequency', async () => {
+            const autoReporting = true;
+            const autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+            // Given that a policy has autoReporting initially set to true and autoReportingFrequency set to instant.
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                autoReporting,
+                autoReportingFrequency,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When a policy is upgradeToCorporate
+            Policy.upgradeToCorporate(fakePolicy.id);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the policy autoReporting and autoReportingFrequency should equal the initial value.
+            expect(policy?.autoReporting).toBe(autoReporting);
+            expect(policy?.autoReportingFrequency).toBe(autoReportingFrequency);
+        });
+    });
+
+    describe('enablePolicyRules', () => {
+        it('should disable preventSelfApproval when the rule feature is turned off', async () => {
+            (fetch as MockFetch)?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areRulesEnabled: true,
+                preventSelfApproval: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // Disable the rule feature
+            Policy.enablePolicyRules(fakePolicy.id, false);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the preventSelfApproval is reset to false
+            expect(policy?.preventSelfApproval).toBeFalsy();
+            expect(policy?.areRulesEnabled).toBeFalsy();
+            expect(policy?.pendingFields?.areRulesEnabled).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the pending action is cleared
+            expect(policy?.pendingFields?.areRulesEnabled).toBeFalsy();
+        });
+    });
+
+    describe('deleteWorkspace', () => {
+        it('should apply failure data when deleteWorkspace fails', async () => {
+            // Given a policy
+            const fakePolicy = createRandomPolicy(0);
+            const fakeReport = {
+                ...createRandomReport(0),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyName: fakePolicy.name,
+            };
+            const fakeReimbursementAccount = {errors: {}};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, fakeReimbursementAccount);
+
+            // When deleting a workspace fails
+            mockFetch?.fail?.();
+            Policy.deleteWorkspace(fakePolicy.id, fakePolicy.name);
+
+            await waitForBatchedUpdates();
+
+            // Then it should apply the correct failure data
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.pendingAction).toBeUndefined();
+                        expect(policy?.avatarURL).toBe(fakePolicy.avatarURL);
+                        resolve();
+                    },
+                });
+            });
+
+            // Unarchive the report (report key)
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.stateNum).toBe(fakeReport.stateNum);
+                        expect(report?.statusNum).toBe(fakeReport.statusNum);
+                        expect(report?.policyName).toBe(fakeReport.policyName);
+                        expect(report?.oldPolicyName).toBe(fakePolicy.name);
+                        resolve();
+                    },
+                });
+            });
+
+            // Unarchive the report (reportNameValuePairs key)
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${fakeReport.reportID}`,
+                    callback: (reportNameValuePairs) => {
+                        Onyx.disconnect(connection);
+                        expect(reportNameValuePairs?.private_isArchived).toBeUndefined();
+                        resolve();
+                    },
+                });
+            });
+
+            // Restore the reimbursement account errors
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                    callback: (reimbursementAccount) => {
+                        Onyx.disconnect(connection);
+                        expect(reimbursementAccount?.errors).not.toBeUndefined();
+                        resolve();
+                    },
+                });
             });
         });
     });

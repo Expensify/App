@@ -1,5 +1,6 @@
 import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
@@ -7,7 +8,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 
-function WorkspaceCompanyCardsFeedAddedEmptyPage() {
+type WorkspaceCompanyCardsFeedAddedEmptyPageProps = {
+    /** Handle assign card action */
+    handleAssignCard: () => void;
+
+    /** Whether to disable assign card button */
+    isDisabledAssignCardButton?: boolean;
+};
+
+function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsFeedAddedEmptyPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -21,6 +30,15 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage() {
             headerContentStyles={styles.emptyStateCardIllustration}
             title={translate('workspace.moreFeatures.companyCards.emptyAddedFeedTitle')}
             subtitle={translate('workspace.moreFeatures.companyCards.emptyAddedFeedDescription')}
+            buttons={[
+                {
+                    buttonText: translate('workspace.companyCards.assignCard'),
+                    buttonAction: handleAssignCard,
+                    icon: Expensicons.Plus,
+                    success: true,
+                    isDisabled: isDisabledAssignCardButton,
+                },
+            ]}
         />
     );
 }

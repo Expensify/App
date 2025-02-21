@@ -1,6 +1,6 @@
 ---
-title: Add Domain Members and Admins
-description: Add members and admins to a domain
+title: Add and remove Domain Members and Admins
+description: Add and remove members and admins to a domain
 ---
 <div id="expensify-classic" markdown="1">
 
@@ -34,7 +34,19 @@ Once the member verifies their email address, all Domain Admins will be notified
 1. Hover over Settings, then click **Domains**.
 2. Click the name of the domain. 
 3. Click the **Domain Members** tab on the left. 
-4. Under the Domain Members section, enter the first part of the member’s email address and click **Invite**. 
+4. Under the Domain Members section, enter the first part of the member’s email address and click **Invite**.
+
+# Close a Domain Member’s account
+
+1. Hover over Settings, then click **Domains**.
+2. Click the name of the domain. 
+3. Click the **Domain Members** tab on the left. 
+4. Find the user account you’d like to close, and select it
+5. Click **Close** to close the account
+
+{% include info.html %}
+Any closed account can be reopened at any time, by reinviting the user via the Domain Member page
+{% include end-info.html %}
 
 # Add Domain Admin
 
@@ -47,4 +59,12 @@ Once the member verifies their email address, all Domain Admins will be notified
 This can be any email address—it does not have to be an email address under the domain. 
 {% include end-info.html %}
 
+# Remove Domain Admin
+
+1. Hover over Settings, then click **Domains**.
+2. Click the name of the domain. 
+3. Click the **Domain Admins** tab on the left.
+4. Under the Domain Admins section, click the red trash can button next to the Domain Admin you’d like to remove
+
 </div>
+

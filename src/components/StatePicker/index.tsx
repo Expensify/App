@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CountryData} from '@libs/searchCountryOptions';
+import type {Option} from '@libs/searchOptions';
 import CONST from '@src/CONST';
 import StateSelectorModal from './StateSelectorModal';
 
@@ -28,7 +28,7 @@ function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerPr
         setIsPickerVisible(false);
     };
 
-    const updateInput = (item: CountryData) => {
+    const updateInput = (item: Option) => {
         onInputChange?.(item.value);
         hidePickerModal();
     };

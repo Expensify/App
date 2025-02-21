@@ -11,7 +11,7 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-export default function getCompanyCardBankConnection(policyID?: string, bankName?: string, scrapeMinDate?: string) {
+export default function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
     if (!bankName || !bankConnection || !policyID) {
@@ -23,12 +23,18 @@ export default function getCompanyCardBankConnection(policyID?: string, bankName
         isNewDot: 'true',
         domainName: PolicyUtils.getDomainNameForPolicy(policyID),
         isCorporate: 'true',
-        scrapeMinDate: scrapeMinDate ?? '',
+        scrapeMinDate: '',
     };
-    const commandURL = getApiRoot({
-        shouldSkipWebProxy: true,
-        command: '',
-    });
     const bank = CONST.COMPANY_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.COMPANY_CARDS.BANK_CONNECTIONS];
+
+    // The Amex connection whitelists only our production servers, so we need to always use the production API for American Express
+    const forceProductionAPI = bank === CONST.COMPANY_CARDS.BANK_CONNECTIONS.AMEX;
+    const commandURL = getApiRoot(
+        {
+            shouldSkipWebProxy: true,
+            command: '',
+        },
+        forceProductionAPI,
+    );
     return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }

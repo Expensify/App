@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -24,18 +25,27 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const existingDelegates = useMemo(() => account?.delegatedAccess?.delegates?.map((delegate) => delegate.email) ?? [], [account?.delegatedAccess?.delegates]);
+    const existingDelegates = useMemo(
+        () =>
+            account?.delegatedAccess?.delegates?.reduce((prev, {email}) => {
+                // eslint-disable-next-line no-param-reassign
+                prev[email] = true;
+                return prev;
+            }, {} as Record<string, boolean>),
+        [account?.delegatedAccess?.delegates],
+    );
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions({
-            reports: optionsList.reports,
-            personalDetails: optionsList.personalDetails,
-            betas,
-
-            excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
-
-            maxRecentReportsToShow: 0,
-        });
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
+            {
+                reports: optionsList.reports,
+                personalDetails: optionsList.personalDetails,
+            },
+            {
+                betas,
+                excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
+            },
+        );
 
         const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
 
@@ -50,15 +60,12 @@ function useOptions() {
             personalDetails,
             currentUserOption,
             headerMessage,
-            categoryOptions: [],
-            tagOptions: [],
-            taxRatesOptions: [],
         };
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: [...CONST.EXPENSIFY_EMAILS, ...existingDelegates],
+        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+            excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -131,24 +138,26 @@ function AddDelegatePage() {
             includeSafeAreaPaddingBottom={false}
             testID={AddDelegatePage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('delegate.addCopilot')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                <SelectionList
-                    sections={areOptionsInitialized ? sections : []}
-                    ListItem={UserListItem}
-                    onSelectRow={onSelectRow}
-                    shouldSingleExecuteRowSelect
-                    onChangeText={setSearchValue}
-                    textInputValue={searchValue}
-                    headerMessage={headerMessage}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    showLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={!!isSearchingForReports}
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('delegate.addCopilot')}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
-            </View>
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <SelectionList
+                        sections={areOptionsInitialized ? sections : []}
+                        ListItem={UserListItem}
+                        onSelectRow={onSelectRow}
+                        shouldSingleExecuteRowSelect
+                        onChangeText={setSearchValue}
+                        textInputValue={searchValue}
+                        headerMessage={headerMessage}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={!areOptionsInitialized}
+                        isLoadingNewOptions={!!isSearchingForReports}
+                    />
+                </View>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }

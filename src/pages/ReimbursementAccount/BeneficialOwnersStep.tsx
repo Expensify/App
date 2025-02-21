@@ -2,14 +2,15 @@ import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as BankAccounts from '@userActions/BankAccounts';
-import * as FormActions from '@userActions/FormActions';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {updateBeneficialOwnersForBankAccount} from '@userActions/BankAccounts';
+import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BeneficialOwnerCheckUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerCheckUBO';
 import AddressUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
 import ConfirmationUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
 import DateOfBirthUBO from './BeneficialOwnerInfo/substeps/BeneficialOwnerDetailsFormSubsteps/DateOfBirthUBO';
@@ -30,12 +31,13 @@ const bodyContent: Array<React.ComponentType<BeneficialOwnerSubStepProps>> = [Le
 
 function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const defaultValues = {
         ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
         hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
@@ -57,13 +59,13 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce((acc, fieldName) => {
-                acc[fieldName] = reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined;
+                acc[fieldName] = reimbursementAccountDraft ? String(reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`]) : undefined;
                 return acc;
             }, {} as Record<string, string | undefined>),
         );
 
-        BankAccounts.updateBeneficialOwnersForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
+        updateBeneficialOwnersForBankAccount(
+            Number(reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID),
             {
                 ownsMoreThan25Percent: isUserUBO,
                 beneficialOwners: JSON.stringify(beneficialOwners),
@@ -79,7 +81,7 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         const newBeneficialOwners = [...beneficialOwnerKeys, beneficialOwnerID];
 
         setBeneficialOwnerKeys(newBeneficialOwners);
-        FormActions.setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
     };
     const handleBeneficialOwnerDetailsFormSubmit = () => {
         const shouldAddBeneficialOwner = !beneficialOwnerKeys.find((beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) && canAddMoreUBOS;
@@ -214,16 +216,20 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {currentUBOSubstep === SUBSTEP.IS_USER_UBO && (
-                <BeneficialOwnerCheckUBO
+                <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
+                    description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
+                    submitButtonStyles={[styles.mb0]}
                     defaultValue={isUserUBO}
                     onSelectedValue={handleNextUBOSubstep}
                 />
             )}
 
             {currentUBOSubstep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
-                <BeneficialOwnerCheckUBO
+                <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent')} ${companyName}?`}
+                    description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
+                    submitButtonStyles={[styles.mb0]}
                     defaultValue={isAnyoneElseUBO}
                     onSelectedValue={handleNextUBOSubstep}
                 />
@@ -240,8 +246,10 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
             )}
 
             {currentUBOSubstep === SUBSTEP.ARE_THERE_MORE_UBOS && (
-                <BeneficialOwnerCheckUBO
+                <YesNoStep
                     title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
+                    description={translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}
+                    submitButtonStyles={[styles.mb0]}
                     onSelectedValue={handleNextUBOSubstep}
                     defaultValue={false}
                 />

@@ -1,8 +1,7 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ForwardedRef} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import {addLeadingZero, amountRegex, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
+import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
@@ -13,20 +12,18 @@ type AmountFormProps = {
 
     /** Callback to update the amount in the FormProvider */
     onInputChange?: (value: string) => void;
+
+    /** Should we allow negative number as valid input */
+    shouldAllowNegative?: boolean;
 } & Partial<BaseTextInputProps>;
 
 function AmountWithoutCurrencyForm(
-    {value: amount, onInputChange, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
+    {value: amount, onInputChange, shouldAllowNegative = false, inputID, name, defaultValue, accessibilityLabel, role, label, ...rest}: AmountFormProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const {toLocaleDigit} = useLocalize();
 
     const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
-    const [selection, setSelection] = useState({
-        start: currentAmount.length,
-        end: currentAmount.length,
-    });
-    const decimals = 2;
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -38,29 +35,21 @@ function AmountWithoutCurrencyForm(
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
             const replacedCommasAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
-            const withLeadingZero = addLeadingZero(replacedCommasAmount);
-            if (!validateAmount(withLeadingZero, decimals)) {
-                // Use a shallow copy of selection to trigger setSelection
-                // More info: https://github.com/Expensify/App/issues/16385
-                setSelection((prevSelection) => ({...prevSelection}));
+            const withLeadingZero = addLeadingZero(replacedCommasAmount, shouldAllowNegative);
+            if (!validateAmount(withLeadingZero, 2, CONST.IOU.AMOUNT_MAX_LENGTH, shouldAllowNegative)) {
                 return;
             }
             onInputChange?.(withLeadingZero);
         },
-        [onInputChange],
+        [onInputChange, shouldAllowNegative],
     );
 
-    const regex = useMemo(() => amountRegex(decimals), [decimals]);
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
 
     return (
         <TextInput
             value={formattedAmount}
             onChangeText={setNewAmount}
-            selection={selection}
-            onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-                setSelection(e.nativeEvent.selection);
-            }}
             inputID={inputID}
             name={name}
             label={label}
@@ -68,8 +57,10 @@ function AmountWithoutCurrencyForm(
             accessibilityLabel={accessibilityLabel}
             role={role}
             ref={ref}
-            keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-            regex={regex}
+            keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
+            // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
+            // See https://github.com/Expensify/App/issues/51868 for more information
+            autoCapitalize="words"
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

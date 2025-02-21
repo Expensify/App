@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,13 +9,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
+import {clearDraftValues} from '@libs/actions/FormActions';
+import {updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -34,6 +35,8 @@ const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
     const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
@@ -44,9 +47,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         if (!values) {
             return;
         }
-        PersonalDetails.updatePersonalDetailsAndShipExpensifyCards(values);
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-        Navigation.goBack();
+        setIsValidateCodeActionModalVisible(true);
     }, [values]);
 
     const {
@@ -57,17 +58,20 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         screenIndex,
         moveTo,
         goToTheLastStep,
+        lastScreenIndex,
     } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             goToTheLastStep();
+            ref.current?.moveTo(lastScreenIndex);
+
             return;
         }
 
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME) {
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.goBack();
             return;
         }
@@ -75,14 +79,30 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         prevScreen();
     };
 
+    const handleSubmitForm = useCallback(
+        (validateCode: string) => {
+            updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
+        },
+        [values],
+    );
+
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
             goToTheLastStep();
+            ref.current?.moveTo(lastScreenIndex);
             return;
         }
         ref.current?.moveNext();
         nextScreen();
-    }, [goToTheLastStep, isEditing, nextScreen]);
+    }, [goToTheLastStep, isEditing, nextScreen, lastScreenIndex]);
+
+    const handleMoveTo = useCallback(
+        (step: number) => {
+            ref.current?.moveTo(step);
+            moveTo(step);
+        },
+        [moveTo],
+    );
 
     return (
         <ScreenWrapper
@@ -104,9 +124,15 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             <SubStep
                 isEditing={isEditing}
                 onNext={handleNextScreen}
-                onMove={moveTo}
+                onMove={handleMoveTo}
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
+            />
+
+            <MissingPersonalDetailsMagicCodeModal
+                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                handleSubmitForm={handleSubmitForm}
             />
         </ScreenWrapper>
     );

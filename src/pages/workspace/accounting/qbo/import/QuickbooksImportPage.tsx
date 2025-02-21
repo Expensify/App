@@ -82,7 +82,6 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
             {sections.map((section) => (
                 <OfflineWithFeedback
@@ -102,6 +101,6 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksImportPage.displayName = 'PolicyQuickbooksImportPage';
+QuickbooksImportPage.displayName = 'QuickbooksImportPage';
 
 export default withPolicyConnections(QuickbooksImportPage);

@@ -9,12 +9,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-const getMockForStatus = (status: IndicatorStatus) =>
+const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
     ({
         [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
             id: '1',
             name: 'Workspace 1',
             owner: 'johndoe12@expensify.com',
+            role: isAdmin ? 'admin' : 'user',
             customUnits:
                 status === CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR
                     ? {
@@ -28,6 +29,7 @@ const getMockForStatus = (status: IndicatorStatus) =>
             id: '2',
             name: 'Workspace 2',
             owner: 'johndoe12@expensify.com',
+            role: isAdmin ? 'admin' : 'user',
             errors:
                 status === CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS
                     ? {
@@ -39,6 +41,7 @@ const getMockForStatus = (status: IndicatorStatus) =>
             id: '3',
             name: 'Workspace 3',
             owner: 'johndoe12@expensify.com',
+            role: isAdmin ? 'admin' : 'user',
             employeeList: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'johndoe12@expensify.com': {
@@ -56,6 +59,7 @@ const getMockForStatus = (status: IndicatorStatus) =>
             id: '4',
             name: 'Workspace 4',
             owner: 'johndoe12@expensify.com',
+            role: isAdmin ? 'admin' : 'auditor',
             connections:
                 status === CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS
                     ? {
@@ -132,7 +136,7 @@ type TestCase = {
     name: string;
     indicatorColor: string;
     status: IndicatorStatus;
-    policyIDWithErrors: string | undefined;
+    policyIDWithErrors?: string;
 };
 
 const TEST_CASES: TestCase[] = [
@@ -210,6 +214,29 @@ const TEST_CASES: TestCase[] = [
     },
 ];
 
+const TEST_CASES_NON_ADMIN: TestCase[] = [
+    {
+        name: 'has custom units error but not an admin so no RBR',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR,
+    },
+    {
+        name: 'has policy errors but not an admin so no RBR',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS,
+    },
+    {
+        name: 'has employee list error but not an admin so no RBR',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_LIST_ERROR,
+    },
+    {
+        name: 'has sync errors but not an admin so no RBR',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS,
+    },
+];
+
 describe('useIndicatorStatusTest', () => {
     beforeAll(() => {
         Onyx.init({
@@ -234,6 +261,16 @@ describe('useIndicatorStatusTest', () => {
             const {result} = renderHook(() => useIndicatorStatus());
             const {policyIDWithErrors} = result.current;
             expect(policyIDWithErrors).toBe(testCase.policyIDWithErrors);
+        });
+    });
+    describe.each(TEST_CASES_NON_ADMIN)('$name', (testCase) => {
+        beforeAll(() => {
+            return Onyx.multiSet(getMockForStatus(testCase.status, false)).then(waitForBatchedUpdates);
+        });
+        it('returns correct indicatorColor', () => {
+            const {result} = renderHook(() => useIndicatorStatus());
+            const {indicatorColor} = result.current;
+            expect(indicatorColor).toBe(testCase.indicatorColor);
         });
     });
 });

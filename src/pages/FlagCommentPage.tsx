@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -13,16 +12,17 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as Report from '@userActions/Report';
-import * as Session from '@userActions/Session';
+import {canFlagReportAction, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
+import {flagComment as flagCommentUtil} from '@userActions/Report';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './home/report/withReportAndReportActionOrNotFound';
 
-type FlagCommentPageNavigationProps = StackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
+type FlagCommentPageNavigationProps = PlatformStackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
 type FlagCommentPageProps = WithReportAndReportActionOrNotFoundProps & FlagCommentPageNavigationProps;
 
@@ -105,12 +105,12 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
         let reportID: string | undefined = getReportID(route);
 
         // Handle threads if needed
-        if (ReportUtils.isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
+        if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
             reportID = parentReport?.reportID;
         }
 
-        if (reportAction && ReportUtils.canFlagReportAction(reportAction, reportID)) {
-            Report.flagComment(reportID ?? '-1', reportAction, severity);
+        if (reportAction && canFlagReportAction(reportAction, reportID)) {
+            flagCommentUtil(reportID, reportAction, severity);
         }
 
         Navigation.dismissModal();
@@ -122,7 +122,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={Session.checkIfActionIsAllowed(() => flagComment(item.severity))}
+            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity))}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}
@@ -135,7 +135,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
             testID={FlagCommentPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(reportAction, report)}>
+                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report)}>
                     <HeaderWithBackButton
                         title={translate('reportActionContextMenu.flagAsOffensive')}
                         onBackButtonPress={() => Navigation.goBack(route.params.backTo)}

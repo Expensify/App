@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Xero from '@libs/actions/connections/Xero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
@@ -59,7 +59,16 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
 
     const updateMapping = useCallback(
         (option: {value: string}) => {
-            if (option.value !== categoryName) {
+            if (option.value !== currentTrackingCategoryValue) {
+                if (option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD && !isControlPolicy(policy)) {
+                    const backToRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(
+                        policyID,
+                        `${CONST.REPORT_FIELDS_FEATURE.xero.mapping}`,
+                        ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID),
+                    );
+                    Navigation.navigate(`${backToRoute}&categoryId=${categoryId}`);
+                    return;
+                }
                 Xero.updateXeroMappings(
                     policyID,
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
@@ -68,7 +77,7 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
-        [categoryId, categoryName, currentTrackingCategoryValue, policyID],
+        [categoryId, currentTrackingCategoryValue, policy, policyID],
     );
 
     return (

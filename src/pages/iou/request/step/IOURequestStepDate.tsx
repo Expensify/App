@@ -117,7 +117,7 @@ function IOURequestStepDate({
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
             testID={IOURequestStepDate.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}

@@ -17,10 +17,11 @@ type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProp
     onTurnOnSelectionMode?: (item: TItem | null) => void;
     shouldAutoTurnOff?: boolean;
     isSelected?: (item: TItem) => boolean;
+    isScreenFocused?: boolean;
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
-    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, sections, shouldAutoTurnOff, isSelected, ...rest}: SelectionListWithModalProps<TItem>,
+    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, isScreenFocused = false, sections, shouldAutoTurnOff, isSelected, ...rest}: SelectionListWithModalProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -79,7 +80,7 @@ function SelectionListWithModal<TItem extends ListItem>(
 
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox) {
+        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
         setLongPressedItem(item);
@@ -105,6 +106,7 @@ function SelectionListWithModal<TItem extends ListItem>(
                 ref={ref}
                 sections={sections}
                 onLongPressRow={handleLongPressRow}
+                isScreenFocused={isScreenFocused}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
@@ -112,6 +114,7 @@ function SelectionListWithModal<TItem extends ListItem>(
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
+                shouldPreventScrollOnFocus
             >
                 <MenuItem
                     title={translate('common.select')}

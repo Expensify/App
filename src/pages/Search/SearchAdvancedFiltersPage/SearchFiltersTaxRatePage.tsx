@@ -28,7 +28,7 @@ function SearchFiltersTaxRatePage() {
             selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
         });
     });
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
+    const policyID = searchAdvancedFiltersForm?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const singlePolicyTaxRates = policy?.taxRates?.taxes;
 
@@ -46,7 +46,6 @@ function SearchFiltersTaxRatePage() {
             testID={SearchFiltersTaxRatePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton

@@ -74,7 +74,9 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(accountOrExportDestination, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
-            title: accountsList.find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name ?? translate('workspace.qbd.notConfigured'),
+            // We use the logical OR (||) here instead of ?? because `reimbursableAccount` can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            title: accountsList.find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name || accountsList.at(0)?.name || translate('workspace.qbd.notConfigured'),
             description: accountDescription,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: account,

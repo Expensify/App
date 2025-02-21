@@ -39,7 +39,7 @@ function getTextMatrix(text: string): string[][] {
  * Validates if the text contains any emoji
  */
 function containsEmoji(text: string): boolean {
-    return CONST.REGEX.EMOJIS.test(text);
+    return CONST.REGEX.ALL_EMOJIS.test(text);
 }
 
 /**

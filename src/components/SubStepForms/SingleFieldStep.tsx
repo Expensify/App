@@ -46,6 +46,9 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** Max length of the field */
     maxLength?: number;
+
+    /** Should the submit button be enabled when offline */
+    enabledWhenOffline?: boolean;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -61,6 +64,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     isEditing,
     shouldShowHelpLinks = true,
     maxLength,
+    enabledWhenOffline,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -73,9 +77,10 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            enabledWhenOffline={enabledWhenOffline}
         >
             <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>
                 {!!formDisclaimer && <Text style={[styles.textSupporting]}>{formDisclaimer}</Text>}
                 <View style={[styles.flex1]}>
                     <InputWrapper
@@ -89,6 +94,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         defaultValue={defaultValue}
                         maxLength={maxLength}
                         shouldSaveDraft={!isEditing}
+                        autoFocus
                     />
                 </View>
                 {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}

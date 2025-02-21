@@ -50,7 +50,7 @@ If Auto Renew is disabled then the last bill at the annual rate will be issued o
 # How to downgrade to a free account from an Individual Plan
 ## Web
 1. Log in to your account through a web browser.
-1. Go to **Settings > Policies > Individual > Subscription**.
+1. Go to **Settings > Workspaces > Individual > Subscription**.
 1. Click "Cancel Subscription" to end your Monthly Subscription.
 
 Note: Your subscription is a pre-purchase for 30 days of unlimited SmartScanning. This means that when you cancel, you do not get a refund and instead get to use the remainder of the month of unlimited SmartScanning you purchased.
@@ -80,7 +80,7 @@ Once you’ve successfully downgraded to a free Expensify account, your Workspac
 ## Will I be charged for a monthly subscription even if I don't use SmartScans?
 Yes, the Monthly Subscription is prepaid and not based on activity, so you'll be charged regardless of usage.
 
-## I'm on a group policy; do I need the monthly subscription too?
-Probably not. Group policy members already have unlimited SmartScans, so there's usually no need to buy the subscription. However, you can use it for personal use if you leave your company's Workspace.
+## I'm on a group workspace; do I need the monthly subscription too?
+Probably not. Group workspace members already have unlimited SmartScans, so there's usually no need to buy the subscription. However, you can use it for personal use if you leave your company's Workspace.
 
 {% include faq-end.md %}

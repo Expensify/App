@@ -1,20 +1,25 @@
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import * as CompanyCards from '@userActions/CompanyCards';
+import variables from '@styles/variables';
+import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -22,15 +27,21 @@ import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
 type DetailsStepProps = {
     /** ID of the current policy */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function DetailsStep({policyID}: DetailsStepProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const {canUseDirectFeeds} = usePermissions();
+
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+
     const feedProvider = addNewCard?.data?.feedType;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const bank = addNewCard?.data?.selectedBank;
@@ -48,21 +59,21 @@ function DetailsStep({policyID}: DetailsStepProps) {
             .map(([key, value]) => `${key}: ${value}`)
             .join(', ');
 
-        CompanyCards.addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails);
+        addNewCompanyCardsFeed(policyID, addNewCard.data.feedType, feedDetails, cardFeeds, lastSelectedFeed);
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
     };
 
     const handleBackButtonPress = () => {
-        if (!canUseDirectFeeds || isOtherBankSelected) {
-            CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_NAME});
+        if (isOtherBankSelected) {
+            setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_NAME});
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS});
     };
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID]);
+            const errors = getFieldRequiredErrors(values, [INPUT_IDS.BANK_ID]);
 
             switch (feedProvider) {
                 case CONST.COMPANY_CARD.FEED_BANK_NAME.VISA:
@@ -158,32 +169,43 @@ function DetailsStep({policyID}: DetailsStepProps) {
     return (
         <ScreenWrapper
             testID={DetailsStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <ScrollView
-                style={styles.pt0}
-                contentContainerStyle={styles.flexGrow1}
+            <FormProvider
+                formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
+                submitButtonText={translate('common.submit')}
+                onSubmit={submit}
+                validate={validate}
+                style={[styles.mh5, styles.flexGrow1]}
+                enabledWhenOffline
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
-                    {feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
+                    {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
-                    submitButtonText={translate('common.submit')}
-                    onSubmit={submit}
-                    validate={validate}
-                    style={[styles.mh5, styles.flexGrow1]}
-                    enabledWhenOffline
-                >
-                    {renderInputs()}
-                </FormProvider>
-            </ScrollView>
+                {renderInputs()}
+                {!!feedProvider && !isStripeFeedProvider && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <Icon
+                            src={Expensicons.QuestionMark}
+                            width={variables.iconSizeExtraSmall}
+                            height={variables.iconSizeExtraSmall}
+                            fill={theme.icon}
+                        />
+                        <TextLink
+                            style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
+                            href={CONST.COMPANY_CARDS_HELP}
+                        >
+                            {translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.helpLabel`)}
+                        </TextLink>
+                    </View>
+                )}
+            </FormProvider>
         </ScreenWrapper>
     );
 }

@@ -8,8 +8,8 @@ import HttpUtils from '@src/libs/HttpUtils';
 import * as MainQueue from '@src/libs/Network/MainQueue';
 import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
+import {sequentialQueueRequestThrottle} from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
-import * as RequestThrottle from '@src/libs/RequestThrottle';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -47,6 +47,7 @@ beforeEach(() => {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
+    sequentialQueueRequestThrottle.clear();
     NetworkStore.checkRequiredData();
 
     // Wait for any Log command to finish and Onyx to fully clear
@@ -242,7 +243,7 @@ describe('APITests', () => {
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
-                        setTimeout(resolve, RequestThrottle.getLastRequestWaitTime());
+                        setTimeout(resolve, sequentialQueueRequestThrottle.getLastRequestWaitTime());
                     });
                 })
                 .then(() => {
@@ -255,7 +256,7 @@ describe('APITests', () => {
 
                     // We let the SequentialQueue process again after its wait time
                     return new Promise((resolve) => {
-                        setTimeout(resolve, RequestThrottle.getLastRequestWaitTime());
+                        setTimeout(resolve, sequentialQueueRequestThrottle.getLastRequestWaitTime());
                     }).then(waitForBatchedUpdates);
                 })
                 .then(() => {
@@ -578,5 +579,24 @@ describe('APITests', () => {
                 const [thirdRequestCommandName] = thirdRequest ?? [];
                 expect(thirdRequestCommandName).toBe('MockCommandTwo');
             });
+    });
+
+    test('Read request should not stuck when SequentialQueue is paused and resumed', async () => {
+        // Given 2 WRITE requests and 1 READ request where the first write request pauses the SequentialQueue
+        const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({previousUpdateID: 1});
+        API.write('MockWriteCommandOne' as WriteCommand, {});
+        API.write('MockWriteCommandTwo' as WriteCommand, {});
+        API.read('MockReadCommand' as ReadCommand, null);
+
+        await waitForBatchedUpdates();
+
+        // When the SequentialQueue is unpaused
+        SequentialQueue.unpause();
+
+        await waitForBatchedUpdates();
+
+        // Then the pending READ command should be called
+        const [thirdCommand] = xhr.mock.calls.at(2) ?? [];
+        expect(thirdCommand).toBe('MockReadCommand');
     });
 });

@@ -1,5 +1,5 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React, {useRef} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Performance from '@libs/Performance';
-import * as Session from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import {useSearchRouterContext} from './SearchRouterContext';
@@ -22,16 +22,21 @@ function SearchButton({style}: SearchButtonProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
+    const pressableRef = useRef<View>(null);
 
     return (
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
+                ref={pressableRef}
                 nativeID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={Session.checkIfActionIsAllowed(() => {
-                    Timing.start(CONST.TIMING.SEARCH_ROUTER_RENDER);
-                    Performance.markStart(CONST.TIMING.SEARCH_ROUTER_RENDER);
+                // eslint-disable-next-line react-compiler/react-compiler
+                onPress={callFunctionIfActionIsAllowed(() => {
+                    pressableRef?.current?.blur();
+
+                    Timing.start(CONST.TIMING.OPEN_SEARCH);
+                    Performance.markStart(CONST.TIMING.OPEN_SEARCH);
 
                     openSearchRouter();
                 })}

@@ -1,4 +1,4 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutRectangle, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -38,6 +38,21 @@ type ThreeDotsMenuProps = {
 
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility?: boolean;
+
+    /** Function to hide the product training tooltip */
+    hideProductTrainingTooltip?: () => void;
+
+    /** Tooltip content to render */
+    renderProductTrainingTooltipContent?: () => React.JSX.Element;
+
+    /** Should we render the tooltip */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Is the menu nested? This prop is used to omit html warning when we are nesting a button inside another button */
+    isNested?: boolean;
 };
 
+type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
+
+export type {LayoutChangeEventWithTarget};
 export default ThreeDotsMenuProps;

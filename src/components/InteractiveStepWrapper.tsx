@@ -20,6 +20,9 @@ type InteractiveStepWrapperProps = {
     // Title of the back button header
     headerTitle: string;
 
+    // Subtitle of the back button header
+    headerSubtitle?: string;
+
     // Index of the highlighted step
     startStepIndex?: number;
 
@@ -48,6 +51,7 @@ function InteractiveStepWrapper(
         wrapperID,
         handleBackButtonPress,
         headerTitle,
+        headerSubtitle,
         startStepIndex,
         stepNames,
         shouldEnableMaxHeight,
@@ -64,7 +68,7 @@ function InteractiveStepWrapper(
         <ScreenWrapper
             ref={ref}
             testID={wrapperID}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
@@ -72,6 +76,7 @@ function InteractiveStepWrapper(
         >
             <HeaderWithBackButton
                 title={headerTitle}
+                subtitle={headerSubtitle}
                 onBackButtonPress={handleBackButtonPress}
                 guidesCallTaskID={guidesCallTaskID}
             />

@@ -38,6 +38,15 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
      * */
     icon?: IconAsset;
 
+    /** Icon Width */
+    iconWidth?: number;
+
+    /** Icon Height */
+    iconHeight?: number;
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles?: StyleProp<ViewStyle>;
+
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
@@ -119,6 +128,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should navigate to report page when the route have a topMostReport  */
     shouldNavigateToTopMostReport?: boolean;
 
+    /** Whether the header should use the headline header style */
+    shouldUseHeadlineHeader?: boolean;
+
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     iconFill?: string;
 
@@ -142,6 +154,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    /** The URL link associated with the attachment's subtitle, if available */
+    subTitleLink?: string;
 };
 
 export type {ThreeDotsMenuItem};

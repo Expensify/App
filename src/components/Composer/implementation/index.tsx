@@ -1,4 +1,5 @@
 import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
+import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -15,10 +16,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as Browser from '@libs/Browser';
-import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {isMobileSafari, isSafari} from '@libs/Browser';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '@src/CONST';
 
@@ -41,7 +41,6 @@ function Composer(
         onClear = () => {},
         onPasteFile = () => {},
         onSelectionChange = () => {},
-        setIsFullComposerAvailable = () => {},
         checkComposerVisibility = () => false,
         selection: selectionProp = {
             start: 0,
@@ -54,7 +53,7 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
-    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
@@ -73,8 +72,10 @@ function Composer(
         end: selectionProp.end,
     });
     const [isRendered, setIsRendered] = useState(false);
+
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
+    const [prevHeight, setPrevHeight] = useState<number | undefined>();
     const isReportFlatListScrolling = useRef(false);
 
     useEffect(() => {
@@ -172,7 +173,7 @@ function Composer(
 
                 if (embeddedImages.length > 0 && embeddedImages[0].src) {
                     const src = embeddedImages[0].src;
-                    const file = FileUtils.base64ToFile(src, 'image.png');
+                    const file = base64ToFile(src, 'image.png');
                     onPasteFile(file);
                     return true;
                 }
@@ -233,6 +234,12 @@ function Composer(
                 e.preventDefault();
                 return;
             }
+
+            // When the composer has no scrollable content, the stopPropagation will prevent the inverted wheel event handler on the Chat body
+            // which defaults to the browser wheel behavior. This causes the chat body to scroll in the opposite direction creating jerky behavior.
+            if (textInput.current && textInput.current.scrollHeight <= textInput.current.clientHeight) {
+                return;
+            }
             e.stopPropagation();
         };
         textInput.current?.addEventListener('wheel', handleWheel, {passive: false});
@@ -243,15 +250,16 @@ function Composer(
     }, []);
 
     useEffect(() => {
-        if (!textInput.current || prevScroll === undefined) {
+        if (!textInput.current || prevScroll === undefined || prevHeight === undefined) {
             return;
         }
         // eslint-disable-next-line react-compiler/react-compiler
-        textInput.current.scrollTop = prevScroll;
+        textInput.current.scrollTop = prevScroll + prevHeight - textInput.current.clientHeight;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
-    useHtmlPaste(textInput, handlePaste, true);
+    const isActive = useIsFocused();
+    useHtmlPaste(textInput, handlePaste, isActive);
 
     useEffect(() => {
         setIsRendered(true);
@@ -325,8 +333,8 @@ function Composer(
     const inputStyleMemo = useMemo(
         () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
-            StyleUtils.getComposeTextAreaPadding(isComposerFullSize),
-            Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
+            StyleUtils.getComposeTextAreaPadding(isComposerFullSize, textContainsOnlyEmojis),
+            isMobileSafari() || isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? {height: '100%', maxHeight: 'none'} : undefined,
@@ -340,7 +348,7 @@ function Composer(
         <RNMarkdownTextInput
             id={CONST.COMPOSER.NATIVE_ID}
             autoComplete="off"
-            autoCorrect={!Browser.isMobileSafari()}
+            autoCorrect={!isMobileSafari()}
             placeholderTextColor={theme.placeholderText}
             ref={(el) => (textInput.current = el)}
             selection={selection}
@@ -353,7 +361,7 @@ function Composer(
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
             onContentSizeChange={(e) => {
-                updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
+                setPrevHeight(e.nativeEvent.contentSize.height);
             }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}

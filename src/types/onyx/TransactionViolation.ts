@@ -1,11 +1,19 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 /**
  * Names of violations.
  * Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
  */
 type ViolationName = ValueOf<typeof CONST.VIOLATIONS>;
+
+/**
+ * Types of violations.
+ * Derived from `CONST.VIOLATION_TYPES` to maintain a single source of truth.
+ */
+type ViolationType = ValueOf<typeof CONST.VIOLATION_TYPES>;
 
 /**
  * Types for the data in the modifiedAmount violation
@@ -80,6 +88,15 @@ type TransactionViolationData = {
 
     /** Type of the RTER violation */
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+
+    /** A generic message to display to the user */
+    message?: string;
+
+    /** Backend-defined override for the violation's target field */
+    field?: string;
+
+    /** Message to display to the user */
+    tooltip?: string;
 };
 
 /** Model of a transaction violation */
@@ -92,10 +109,16 @@ type TransactionViolation = {
 
     /** Additional violation information to provide the user */
     data?: TransactionViolationData;
+
+    /** Indicates if this violation should be shown in review */
+    showInReview?: boolean;
 };
 
 /** Collection of transaction violations */
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, ViolationName, ViolationDataType};
+/** Collection of mock transaction violations, indexed by transactionViolations_${transactionID} */
+type TransactionViolationsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>;
+
+export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationData, TransactionViolationsCollectionDataSet};
 export default TransactionViolations;

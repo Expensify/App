@@ -1,11 +1,32 @@
 import type {ValueOf} from 'type-fest';
+import type {SearchDateFilterKeys} from '@components/Search/types';
+import CONST from '@src/CONST';
 import type Form from './Form';
+
+const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+];
 
 const FILTER_KEYS = {
     TYPE: 'type',
     STATUS: 'status',
     DATE_AFTER: 'dateAfter',
     DATE_BEFORE: 'dateBefore',
+    SUBMITTED_AFTER: 'submittedAfter',
+    SUBMITTED_BEFORE: 'submittedBefore',
+    APPROVED_AFTER: 'approvedAfter',
+    APPROVED_BEFORE: 'approvedBefore',
+    PAID_AFTER: 'paidAfter',
+    PAID_BEFORE: 'paidBefore',
+    EXPORTED_AFTER: 'exportedAfter',
+    EXPORTED_BEFORE: 'exportedBefore',
+    POSTED_AFTER: 'postedAfter',
+    POSTED_BEFORE: 'postedBefore',
     CURRENCY: 'currency',
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
@@ -33,6 +54,16 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.STATUS]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
+        [FILTER_KEYS.SUBMITTED_AFTER]: string;
+        [FILTER_KEYS.SUBMITTED_BEFORE]: string;
+        [FILTER_KEYS.APPROVED_AFTER]: string;
+        [FILTER_KEYS.APPROVED_BEFORE]: string;
+        [FILTER_KEYS.PAID_AFTER]: string;
+        [FILTER_KEYS.PAID_BEFORE]: string;
+        [FILTER_KEYS.EXPORTED_AFTER]: string;
+        [FILTER_KEYS.EXPORTED_BEFORE]: string;
+        [FILTER_KEYS.POSTED_AFTER]: string;
+        [FILTER_KEYS.POSTED_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string;
@@ -54,3 +85,4 @@ type SearchAdvancedFiltersForm = Form<
 
 export type {SearchAdvancedFiltersForm};
 export default FILTER_KEYS;
+export {DATE_FILTER_KEYS};

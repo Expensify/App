@@ -25,9 +25,6 @@ const defaultListOptions = {
     personalDetails: [],
     currentUserOption: null,
     headerMessage: '',
-    categoryOptions: [],
-    tagOptions: [],
-    taxRatesOptions: [],
 };
 
 function getSelectedOptionData(option: Option): OptionData {
@@ -57,25 +54,28 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             return defaultListOptions;
         }
 
-        return OptionsListUtils.getFilteredOptions({
-            reports: options.reports,
-            personalDetails: options.personalDetails,
-            selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
-            maxRecentReportsToShow: 0,
-        });
+        return OptionsListUtils.getValidOptions(
+            {
+                reports: options.reports,
+                personalDetails: options.personalDetails,
+            },
+            {
+                selectedOptions,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            },
+        );
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        return OptionsListUtils.filterOptions(defaultOptions, cleanSearchTerm, {
+        return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
@@ -92,7 +92,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
         if (chatOptions.currentUserOption) {
-            const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
+            const formattedName = ReportUtils.getDisplayNameForParticipant({
+                accountID: chatOptions.currentUserOption.accountID,
+                shouldAddCurrentUserPostfix: true,
+                personalDetailsData: personalDetails,
+            });
             if (selectedCurrentUser) {
                 selectedCurrentUser.text = formattedName;
             } else {

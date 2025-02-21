@@ -2,20 +2,13 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {
-    AcceptWalletTermsParams,
-    AnswerQuestionsForWalletParams,
-    RequestPhysicalExpensifyCardParams,
-    UpdatePersonalDetailsForWalletParams,
-    VerifyIdentityParams,
-} from '@libs/API/parameters';
+import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import {clearErrors} from './FormActions';
 
 type WalletQuestionAnswer = {
     question: string;
@@ -257,44 +250,25 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
     });
 }
 
-function requestPhysicalExpensifyCard(cardID: number, authToken: string, privatePersonalDetails: PrivatePersonalDetails) {
-    const {legalFirstName = '', legalLastName = '', phoneNumber = ''} = privatePersonalDetails;
-    const {city = '', country = '', state = '', street = '', zip = ''} = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails) ?? {};
-
-    const requestParams: RequestPhysicalExpensifyCardParams = {
-        authToken,
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-        addressCity: city,
-        addressCountry: country,
-        addressState: state,
-        addressStreet: street,
-        addressZip: zip,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    state: 4, // NOT_ACTIVATED
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: privatePersonalDetails,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData});
-}
-
 function resetWalletAdditionalDetailsDraft() {
     Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
+}
+
+/**
+ * Clear the error of specific card
+ * @param cardID The card id of the card that you want to clear the errors.
+ */
+function clearPhysicalCardError(cardID?: string) {
+    if (!cardID) {
+        return;
+    }
+
+    clearErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    Onyx.merge(ONYXKEYS.CARD_LIST, {
+        [cardID]: {
+            errors: null,
+        },
+    });
 }
 
 export {
@@ -309,6 +283,6 @@ export {
     verifyIdentity,
     acceptWalletTerms,
     setKYCWallSource,
-    requestPhysicalExpensifyCard,
     resetWalletAdditionalDetailsDraft,
+    clearPhysicalCardError,
 };

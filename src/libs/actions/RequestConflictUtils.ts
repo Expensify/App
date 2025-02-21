@@ -1,6 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {UpdateCommentParams} from '@libs/API/parameters';
+import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -46,6 +46,37 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requ
         conflictAction: {
             type: 'replace',
             index,
+        },
+    };
+}
+
+function resolveOpenReportDuplicationConflictAction(persistedRequests: OnyxRequest[], parameters: OpenReportParams): ConflictActionData {
+    for (let index = 0; index < persistedRequests.length; index++) {
+        const request = persistedRequests.at(index);
+        if (request && request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
+            // If the previous request had guided setup data, we can safely ignore the new request
+            if (request.data.guidedSetupData) {
+                return {
+                    conflictAction: {
+                        type: 'noAction',
+                    },
+                };
+            }
+
+            // In other cases it's safe to replace the previous request with the new one
+            return {
+                conflictAction: {
+                    type: 'replace',
+                    index,
+                },
+            };
+        }
+    }
+
+    // If we didn't find any request to replace, we should push the new request
+    return {
+        conflictAction: {
+            type: 'push',
         },
     };
 }
@@ -144,4 +175,10 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
     } as ConflictActionData;
 }
 
-export {resolveDuplicationConflictAction, resolveCommentDeletionConflicts, resolveEditCommentWithNewAddCommentRequest, createUpdateCommentMatcher};
+export {
+    resolveDuplicationConflictAction,
+    resolveOpenReportDuplicationConflictAction,
+    resolveCommentDeletionConflicts,
+    resolveEditCommentWithNewAddCommentRequest,
+    createUpdateCommentMatcher,
+};

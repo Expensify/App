@@ -6,9 +6,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagNamesFromTagsLists} from '@libs/PolicyUtils';
-import * as SearchActions from '@userActions/Search';
+import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -23,38 +23,35 @@ function SearchFiltersTagPage() {
         if (tag === CONST.SEARCH.EMPTY_VALUE) {
             return {name: translate('search.noTag'), value: tag};
         }
-        return {name: tag, value: tag};
+        return {name: getCleanedTagName(tag), value: tag};
     });
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
-    const [allPoliciesTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
+    const policyID = searchAdvancedFiltersForm?.policyID;
+    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
     const tagItems = useMemo(() => {
         const items = [{name: translate('search.noTag'), value: CONST.SEARCH.EMPTY_VALUE as string}];
-        if (!singlePolicyTagsList) {
+        if (!singlePolicyTagLists) {
             const uniqueTagNames = new Set<string>();
-            const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+            const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
             tagListsUnpacked
-                .map((policyTagLists) => {
-                    return getTagNamesFromTagsLists(policyTagLists);
-                })
+                .map(getTagNamesFromTagsLists)
                 .flat()
                 .forEach((tag) => uniqueTagNames.add(tag));
-            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: tagName, value: tagName})));
+            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
         } else {
-            items.push(...getTagNamesFromTagsLists(singlePolicyTagsList).map((name) => ({name, value: name})));
+            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name: getCleanedTagName(name), value: name})));
         }
         return items;
-    }, [allPoliciesTagsLists, singlePolicyTagsList, translate]);
+    }, [allPolicyTagLists, singlePolicyTagLists, translate]);
 
-    const updateTagFilter = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({tag: values}), []);
+    const updateTagFilter = useCallback((values: string[]) => updateAdvancedFilters({tag: values}), []);
 
     return (
         <ScreenWrapper
             testID={SearchFiltersTagPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton

@@ -52,10 +52,13 @@ type AttachmentCarouselPagerProps = {
 
     /** Sets the visibility of the arrows. */
     setShouldShowArrows: (show?: SetStateAction<boolean>) => void;
+
+    /** The reportID related to the attachment */
+    reportID?: string;
 };
 
 function AttachmentCarouselPager(
-    {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose}: AttachmentCarouselPagerProps,
+    {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
@@ -70,14 +73,13 @@ function AttachmentCarouselPager(
     const pageScrollHandler = usePageScrollHandler((e) => {
         'worklet';
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        activePage.value = e.position;
-        isPagerScrolling.value = e.offset !== 0;
+        activePage.set(e.position);
+        isPagerScrolling.set(e.offset !== 0);
     }, []);
 
     useEffect(() => {
         setActivePageIndex(initialPage);
-        activePage.value = initialPage;
+        activePage.set(initialPage);
     }, [activePage, initialPage]);
 
     /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
@@ -86,11 +88,7 @@ function AttachmentCarouselPager(
         [activePageIndex, items],
     );
 
-    const extractItemKey = useCallback(
-        (item: Attachment, index: number) =>
-            typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}` : `reportActionID-${item.reportActionID}` ?? `index-${index}`,
-        [],
-    );
+    const extractItemKey = useCallback((item: Attachment, index: number) => `reportActionID-${item.reportActionID}-${index}`, []);
 
     const contextValue = useMemo(
         () => ({
@@ -107,7 +105,7 @@ function AttachmentCarouselPager(
     );
 
     const animatedProps = useAnimatedProps(() => ({
-        scrollEnabled: isScrollEnabled.value,
+        scrollEnabled: isScrollEnabled.get(),
     }));
 
     /**
@@ -132,6 +130,7 @@ function AttachmentCarouselPager(
             <CarouselItem
                 item={item}
                 isFocused={index === activePageIndex && activeSource === item.source}
+                reportID={reportID}
             />
         </View>
     ));

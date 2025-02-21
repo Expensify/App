@@ -4,6 +4,8 @@ import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import useThemeStyles from '@hooks/useThemeStyles';
+import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -12,6 +14,7 @@ const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
 
 function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -35,6 +38,7 @@ function DateOfBirth({onNext, onMove, isEditing}: SubStepProps) {
             stepFields={STEP_FIELDS}
             dobInputID={PERSONAL_INFO_DOB_KEY}
             dobDefaultValue={dobDefaultValue}
+            footerComponent={<HelpLinks containerStyles={[styles.mt5]} />}
         />
     );
 }
