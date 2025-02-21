@@ -1,7 +1,8 @@
-import {PortalHost} from '@gorhom/portal';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
+import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import ReactNativeModal from 'react-native-modal';
+import type {ValueOf} from 'type-fest';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -18,9 +19,25 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
+import BottomDockedModal from './BottomDockedModal';
+import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
 import type BaseModalProps from './types';
+
+type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
+    type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+    shouldUseNewModal: boolean;
+};
+
+function ModalComponent({type, shouldUseNewModal, ...props}: ModalComponentProps) {
+    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && shouldUseNewModal) {
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return <BottomDockedModal {...(props as ModalProps)} />;
+    }
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
+}
 
 function BaseModal(
     {
@@ -42,18 +59,22 @@ function BaseModal(
         hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
+        animationInDelay,
         statusBarTranslucent = true,
         navigationBarTranslucent = true,
         onLayout,
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
+        shouldUseNewModal = false,
         onBackdropPress,
         modalId,
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
         initialFocus = false,
+        swipeThreshold = 150,
+        swipeDirection,
         shouldPreventScrollOnFocus = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
@@ -79,7 +100,6 @@ function BaseModal(
         }
         ComposerFocusManager.resetReadyToFocus(uniqueModalId);
     }, [shouldEnableNewFocusManagement, uniqueModalId]);
-
     /**
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
@@ -130,12 +150,12 @@ function BaseModal(
         [],
     );
 
-    const handleShowModal = () => {
+    const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
             setModalVisibility(true);
         }
         onModalShow();
-    };
+    }, [onModalShow, shouldSetModalVisibility]);
 
     const handleBackdropPress = (e?: KeyboardEvent) => {
         if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
@@ -156,7 +176,6 @@ function BaseModal(
     const {
         modalStyle,
         modalContainerStyle,
-        swipeDirection,
         animationIn: modalStyleAnimationIn,
         animationOut: modalStyleAnimationOut,
         shouldAddTopSafeAreaMargin,
@@ -226,7 +245,7 @@ function BaseModal(
                 collapsable={false}
                 style={[styles.pAbsolute, {zIndex: 1}]}
             >
-                <ReactNativeModal
+                <ModalComponent
                     // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
                     onClick={(e) => e.stopPropagation()}
                     onBackdropPress={handleBackdropPress}
@@ -240,6 +259,7 @@ function BaseModal(
                     onDismiss={handleDismissModal}
                     onSwipeComplete={() => onClose?.()}
                     swipeDirection={swipeDirection}
+                    swipeThreshold={swipeThreshold}
                     isVisible={isVisible}
                     backdropColor={theme.overlay}
                     backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
@@ -250,6 +270,7 @@ function BaseModal(
                     deviceHeight={windowHeight}
                     deviceWidth={windowWidth}
                     animationIn={animationIn ?? modalStyleAnimationIn}
+                    animationInDelay={animationInDelay}
                     animationOut={animationOut ?? modalStyleAnimationOut}
                     useNativeDriver={useNativeDriver}
                     useNativeDriverForBackdrop={useNativeDriverForBackdrop}
@@ -261,12 +282,13 @@ function BaseModal(
                     onLayout={onLayout}
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+                    type={type}
+                    shouldUseNewModal={shouldUseNewModal}
                 >
                     <ModalContent
                         onModalWillShow={saveFocusState}
                         onDismiss={handleDismissModal}
                     >
-                        <PortalHost name="modal" />
                         <FocusTrapForModal
                             active={isVisible}
                             initialFocus={initialFocus}
@@ -280,7 +302,7 @@ function BaseModal(
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
-                </ReactNativeModal>
+                </ModalComponent>
             </View>
         </ModalContext.Provider>
     );

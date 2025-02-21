@@ -304,7 +304,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
-    const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil(report) && !isSubmitAndClose(policy);
+    const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil({report}) && !isSubmitAndClose(policy);
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -361,11 +361,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
-    let roomDescription;
+    let roomDescription: string | undefined;
     if (caseID === CASES.MONEY_REQUEST) {
         roomDescription = translate('common.name');
     } else if (isGroupChat) {
-        roomDescription = translate('groupConfirmPage.groupName');
+        roomDescription = translate('newRoomPage.groupName');
     } else {
         roomDescription = translate('newRoomPage.roomName');
     }
@@ -553,7 +553,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
-                icon: Expensicons.Upload,
+                icon: Expensicons.Export,
                 isAnonymousAction: false,
                 action: () => {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID, connectedIntegration, backTo));
@@ -580,11 +580,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     if (!report?.policyID) {
                         return;
                     }
-                    if (isSmallScreenWidth) {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, Navigation.getActiveRoute()));
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
@@ -663,7 +659,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isOffline,
         transactionIDList,
         unapproveExpenseReportOrShowModal,
-        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -969,9 +964,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             Navigation.dismissModal();
         } else {
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-            navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true, report.reportID);
+            navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID, report.reportID]);
+    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, isTransactionDeleted, moneyRequestReport?.reportID]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

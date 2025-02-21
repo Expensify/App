@@ -16,6 +16,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -49,7 +50,6 @@ import {
     getDistanceInMeters,
     getTagForDisplay,
     getTaxName,
-    getTransactionViolations,
     hasMissingSmartscanFields,
     hasReceipt as hasReceiptTransactionUtils,
     hasReservationList,
@@ -134,7 +134,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const transactionViolations = getTransactionViolations(linkedTransactionID);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const {
         created: transactionDate,
@@ -160,7 +160,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCardName(transaction);
     const shouldShowCard = isCardTransaction && cardProgramName;
-    const isApproved = isReportApproved(moneyRequestReport);
+    const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isPaidReport = isPayAction(parentReportAction);
     const taxRates = policy?.taxRates;
@@ -214,7 +214,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true) || !!updatedTransaction?.billable);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -300,15 +300,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
                     isError: transactionAmount === 0,
-                    translationPath: 'common.error.enterAmount',
+                    translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
                 },
                 merchant: {
                     isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
-                    translationPath: 'common.error.enterMerchant',
+                    translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
                 },
                 date: {
                     isError: transactionDate === '',
-                    translationPath: 'common.error.enterDate',
+                    translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
                 },
             };
 
@@ -329,13 +329,29 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 const firstViolation = violations.at(0);
 
                 if (firstViolation) {
-                    return ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                    return ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
                 }
             }
 
             return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField],
+        [
+            transactionAmount,
+            isSettled,
+            isCancelled,
+            isPolicyExpenseChat,
+            isEmptyMerchant,
+            transactionDate,
+            readonly,
+            hasErrors,
+            hasViolations,
+            translate,
+            getViolationsForField,
+            canEditAmount,
+            canEditDate,
+            canEditMerchant,
+            canEdit,
+        ],
     );
 
     const distanceRequestFields = (
@@ -397,7 +413,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.includes(violation.name);
             if (isReceiptFieldViolation || isReceiptImageViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate);
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit);
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation) {
                     imageViolations.push(violationMessage);
@@ -405,13 +421,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate]);
+    }, [transactionViolations, translate, canEdit]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+    const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
     // `!!(receiptViolations.length || didReceiptScanSucceed)` is for not showing `Verified` when `receiptViolations` is empty and `didReceiptScanSucceed` is false.
-    const shouldShowAuditMessage = !isReceiptBeingScanned && (hasReceipt || receiptRequiredViolation) && !!(receiptViolations.length || didReceiptScanSucceed) && isPaidGroupPolicy(report);
+    const shouldShowAuditMessage =
+        !isReceiptBeingScanned && (hasReceipt || !!receiptRequiredViolation || !!customRulesViolation) && !!(receiptViolations.length || didReceiptScanSucceed) && isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
@@ -699,7 +717,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
                         <MenuItemWithTopDescription
-                            title={taxRateTitle}
+                            title={taxRateTitle ?? ''}
                             description={taxRatesDescription}
                             interactive={canEditTaxFields}
                             shouldShowRightIcon={canEditTaxFields}
@@ -796,6 +814,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     containerStyle={[styles.mt1]}
                                     textStyle={[styles.ph0]}
                                     isLast
+                                    canEdit={canEdit}
                                 />
                             )}
                         </View>

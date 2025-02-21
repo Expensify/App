@@ -38,10 +38,10 @@ import type {
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
     TogglePinnedChatParams,
+    UpdateChatNameParams,
     UpdateCommentParams,
     UpdateGroupChatAvatarParams,
     UpdateGroupChatMemberRolesParams,
-    UpdateGroupChatNameParams,
     UpdatePolicyRoomNameParams,
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
@@ -67,18 +67,20 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
+import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
+import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
-import * as Pusher from '@libs/Pusher/pusher';
+import Pusher from '@libs/Pusher';
+import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
 import {
@@ -96,7 +98,6 @@ import {
     buildOptimisticTaskReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     completeShortMention,
-    doesReportBelongToWorkspace,
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
@@ -397,7 +398,7 @@ function getReportChannelName(reportID: string): string {
  *
  * This method makes sure that no matter which we get, we return the "new" format
  */
-function getNormalizedStatus(typingStatus: Pusher.UserIsTypingEvent | Pusher.UserIsLeavingRoomEvent): ReportUserIsTyping {
+function getNormalizedStatus(typingStatus: UserIsTypingEvent | UserIsLeavingRoomEvent): ReportUserIsTyping {
     let normalizedStatus: ReportUserIsTyping;
 
     if (typingStatus.userLogin) {
@@ -462,7 +463,7 @@ function subscribeToReportLeavingEvents(reportID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
 
     const pusherChannelName = getReportChannelName(reportID);
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus: Pusher.UserIsLeavingRoomEvent) => {
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, (leavingStatus: UserIsLeavingRoomEvent) => {
         // If the pusher message comes from OldDot, we expect the leaving status to be keyed by user
         // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
         // since personal details are keyed by accountID.
@@ -725,7 +726,7 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
-function updateGroupChatName(reportID: string, reportName: string) {
+function updateChatName(reportID: string, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -765,8 +766,11 @@ function updateGroupChatName(reportID: string, reportName: string) {
             },
         },
     ];
-    const parameters: UpdateGroupChatNameParams = {reportName, reportID};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData, successData, failureData});
+
+    const command = type === CONST.REPORT.CHAT_TYPE.GROUP ? WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME : WRITE_COMMANDS.UPDATE_TRIP_ROOM_NAME;
+    const parameters: UpdateChatNameParams = {reportName, reportID};
+
+    API.write(command, parameters, {optimisticData, successData, failureData});
 }
 
 function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
@@ -1141,7 +1145,6 @@ function openReport(
 function navigateToAndOpenReport(
     userLogins: string[],
     shouldDismissModal = true,
-    actionType?: string,
     reportName?: string,
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
@@ -1160,7 +1163,7 @@ function navigateToAndOpenReport(
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
             // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
-            newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+            newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         } else {
             newChat = buildOptimisticChatReport(
                 [...participantAccountIDs, currentUserAccountID],
@@ -1172,7 +1175,7 @@ function navigateToAndOpenReport(
                 undefined,
                 undefined,
                 undefined,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             );
         }
     }
@@ -1181,11 +1184,13 @@ function navigateToAndOpenReport(
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(report?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
-        Navigation.dismissModalWithReport(report);
-    } else {
-        Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID), actionType);
+        Navigation.dismissModal();
     }
+
+    // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
+    setTimeout(() => {
+        Navigation.isNavigationReady().then(() => Navigation.navigateToReportWithPolicyCheck({report}));
+    }, 0);
 }
 
 /**
@@ -1383,7 +1388,7 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         return;
     }
 
-    const lastReadTime = DateUtils.getDBTime();
+    const lastReadTime = DateUtils.getDBTimeWithSkew();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1495,7 +1500,7 @@ function saveReportDraftComment(reportID: string, comment: string | null, callba
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const typingStatus: Pusher.UserIsTypingEvent = {
+    const typingStatus: UserIsTypingEvent = {
         [currentUserAccountID]: true,
     };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
@@ -1504,7 +1509,7 @@ function broadcastUserIsTyping(reportID: string) {
 /** Broadcasts to the report's private pusher channel whether a user is leaving a report */
 function broadcastUserIsLeavingRoom(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
-    const leavingStatus: Pusher.UserIsLeavingRoomEvent = {
+    const leavingStatus: UserIsLeavingRoomEvent = {
         [currentUserAccountID]: true,
     };
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM, leavingStatus);
@@ -1541,7 +1546,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(preexistingReportID), CONST.NAVIGATION.TYPE.UP);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(preexistingReportID), {forceReplace: true});
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
@@ -1708,7 +1713,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
     // we should navigate to its report in order to not show not found page
     if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID), true);
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }
 }
 
@@ -2365,7 +2370,7 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true, actionType?: string) {
+function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true, linkToOptions?: LinkToOptions) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     if (!conciergeChatReportID) {
@@ -2376,12 +2381,12 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal, actionType);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), actionType);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), linkToOptions);
     }
 }
 
@@ -2538,8 +2543,10 @@ function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, sh
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.setShouldPopAllStateOnUP(true);
+        Navigation.goBack(undefined, {shouldPopToTop: true});
+    } else {
+        Navigation.goBack();
     }
-    Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
@@ -2723,12 +2730,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () =>
         close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
-            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID) : false;
-            if (!reportBelongsToWorkspace) {
-                Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-            }
-            navigateFromNotification(reportID);
+            navigateFromNotification(reportID, policyID);
         });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
@@ -2942,7 +2944,21 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
-                            Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                            // Check if the report exists in the collection
+                            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                            // If the report does not exist, navigate to the last accessed report or Concierge chat
+                            if (!report) {
+                                const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                if (lastAccessedReportID) {
+                                    const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                    Navigation.navigate(lastAccessedReportRoute);
+                                    return;
+                                }
+                                navigateToConciergeChat(false, () => true);
+                                return;
+                            }
+
+                            Navigation.navigate(route as Route);
                         };
 
                         if (isAnonymousUser()) {
@@ -2980,7 +2996,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(false, () => true, CONST.NAVIGATION.TYPE.UP);
+        navigateToConciergeChat(false, () => true, {forceReplace: true});
     }
 }
 
@@ -3643,7 +3659,7 @@ function prepareOnboardingOnyxData(
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID}
-        : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID]);
+        : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, currentUserAccountID], allReports, false, true);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     if (!targetChatReportID) {
@@ -3661,6 +3677,7 @@ function prepareOnboardingOnyxData(
         assignedGuideAccountID = generateAccountID(assignedGuideEmail);
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [assignedGuideAccountID]: {
+                isOptimisticPersonalDetail: assignedGuideEmail === CONST.SETUP_SPECIALIST_LOGIN,
                 login: assignedGuideEmail,
                 displayName: assignedGuideEmail,
             },
@@ -3731,7 +3748,6 @@ function prepareOnboardingOnyxData(
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                false,
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE : CONST.EMAIL.CONCIERGE;
@@ -4659,6 +4675,7 @@ export {
     broadcastUserIsTyping,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    clearDeleteTransactionNavigateBackUrl,
     clearGroupChat,
     clearIOUError,
     clearNewRoomFormError,
@@ -4676,6 +4693,7 @@ export {
     exportReportToCSV,
     exportToIntegration,
     flagComment,
+    getConciergeReportID,
     getCurrentUserAccountID,
     getDraftPrivateNote,
     getMostRecentReportID,
@@ -4711,6 +4729,7 @@ export {
     saveReportActionDraft,
     saveReportDraftComment,
     searchInServer,
+    setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
     setLastOpenedPublicRoom,
@@ -4728,7 +4747,7 @@ export {
     updateDescription,
     updateGroupChatAvatar,
     updateGroupChatMemberRoles,
-    updateGroupChatName,
+    updateChatName,
     updateLastVisitTime,
     updateLoadingInitialReportAction,
     updateNotificationPreference,
@@ -4738,8 +4757,5 @@ export {
     updateReportName,
     updateRoomVisibility,
     updateWriteCapability,
-    getConciergeReportID,
-    setDeleteTransactionNavigateBackUrl,
-    clearDeleteTransactionNavigateBackUrl,
     prepareOnboardingOnyxData,
 };

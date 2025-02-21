@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -14,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {getActivePolicies, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, getPerDiemCustomUnits} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
@@ -70,13 +71,15 @@ function IOURequestStartPage({
     );
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
-    useEffect(() => {
-        if (transaction?.reportID === reportID || isLoadingSelectedTab) {
-            return;
-        }
-        initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
-    }, [transaction, policy, reportID, iouType, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]);
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
+    useFocusEffect(
+        useCallback(() => {
+            if (transaction?.reportID === reportID || isLoadingSelectedTab) {
+                return;
+            }
+            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
+        }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]),
+    );
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -100,10 +103,7 @@ function IOURequestStartPage({
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element) as HTMLElement[];
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
-    const perDiemCustomUnits = getActivePolicies(allPolicies, session?.email)
-        .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
-        .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled);
-
+    const perDiemCustomUnits = getPerDiemCustomUnits(allPolicies, session?.email);
     const doesPerDiemPolicyExist = perDiemCustomUnits.length > 0;
 
     const moreThanOnePerDiemExist = perDiemCustomUnits.length > 1;
