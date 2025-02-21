@@ -36,6 +36,7 @@ function DatePicker({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
+    const textInputRef = useRef<HTMLFormElement | null>(null);
     const anchorRef = useRef<View>(null);
     const [isInverted, setIsInverted] = useState(false);
 
@@ -67,11 +68,16 @@ function DatePicker({
         setIsModalVisible(true);
     };
 
+    const closeDatePicker = useCallback(() => {
+        textInputRef.current?.blur();
+        setIsModalVisible(false);
+    }, []);
+
     const handleDateSelected = (newDate: string) => {
         onTouched?.();
         onInputChange?.(newDate);
         setSelectedDate(newDate);
-        setIsModalVisible(false);
+        closeDatePicker();
     };
 
     useEffect(() => {
@@ -90,6 +96,7 @@ function DatePicker({
             >
                 <View style={styles.pointerEventsNone}>
                     <TextInput
+                        ref={textInputRef}
                         inputID={inputID}
                         forceActiveLabel
                         icon={Expensicons.Calendar}
@@ -115,7 +122,7 @@ function DatePicker({
                 value={selectedDate}
                 onSelected={handleDateSelected}
                 isVisible={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
+                onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
             />
