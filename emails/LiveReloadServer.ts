@@ -107,7 +107,7 @@ class LiveReloadServer {
      * Keep track of consumers so that we can refresh them as needed.
      */
     private registerConsumer = (ws: WebSocket) => {
-        console.log(`🔗  Registering consumer`);
+        console.log(`🔗 Registering consumer`);
         this.consumerClients.add(ws);
         ws.on('close', () => {
             console.log('🗑️  Deleting consumer');

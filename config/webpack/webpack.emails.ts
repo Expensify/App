@@ -17,7 +17,7 @@ const emailsConfig: Configuration = merge(baseConfig({}), {
     target: 'node',
     plugins: [
         new IgnorePlugin({
-            resourceRegExp: /^express\/lib\/view$/,
+            resourceRegExp: /express\/lib\/view/,
         }),
     ],
     optimization: {

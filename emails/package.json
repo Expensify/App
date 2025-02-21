@@ -19,9 +19,11 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "bufferutil": "^4.0.9",
     "concurrently": "^9.1.2",
     "nodemon": "^3.1.9",
     "open": "^8.4.2",
+    "utf-8-validate": "^6.0.5",
     "ws": "^8.18.0"
   }
 }
