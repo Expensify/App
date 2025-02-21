@@ -1264,9 +1264,17 @@ function getAdminsPrivateEmailDomains(policy?: Policy) {
         domains.push(Str.extractEmailDomain(email).toLowerCase());
         return domains;
     }, [] as string[]);
+
     const ownerDomains = policy.owner ? [Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
 
-    return [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
+    const nonPulicDomains = [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
+
+    // If we have more than one domain we most likely don't want to show Expensify domains so people don't provision Travel under the wrong one
+    if (nonPulicDomains.length > 1) {
+        return nonPulicDomains.filter((domain) => domain !== 'expensify.com' && domain !== 'team.expensify.com');
+    }
+
+    return nonPulicDomains;
 }
 
 /**
