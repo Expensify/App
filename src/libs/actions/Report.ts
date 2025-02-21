@@ -17,6 +17,7 @@ import type {
     CompleteGuidedSetupParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
+    ExportReportPDFParams,
     FlagCommentParams,
     GetNewerActionsParams,
     GetOlderActionsParams,
@@ -49,7 +50,6 @@ import type {
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import type ExportReportCSVParams from '@libs/API/parameters/ExportReportCSVParams';
-import type ExportReportPDFParams from '@libs/API/parameters/ExportReportPDFParams';
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -297,15 +297,6 @@ Onyx.connect({
 
         const reportID = key.replace(ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT, '');
         draftNoteMap[reportID] = value;
-    },
-});
-
-let allReportPDFFiles: OnyxCollection<string>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReportPDFFiles = value;
     },
 });
 
@@ -4664,7 +4655,11 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
 }
 
 function exportReportToPDF({reportID}: ExportReportPDFParams) {
-    console.log(allReportPDFFiles);
+    const params = {
+        reportID,
+    } satisfies ExportReportPDFParams;
+
+    API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params);
 }
 
 function getConciergeReportID() {
