@@ -673,9 +673,8 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * Temporary flag to enable bottom safe area handling in selection list content (Default: false)
      * Bottom safe area padding at the moment is handled in the root view of the selection list.
      * Optimally, we want to add the padding to the scrollable content instead (contentContainerStyle of the <SelectionList />).
-     * This flag can be removed, once all components/screens have switched to this behavior
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
      */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 } & TRightHandSideComponent<TItem>;
 

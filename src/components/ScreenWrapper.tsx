@@ -110,10 +110,10 @@ type ScreenWrapperProps = {
     focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
 
     /**
-     * Temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-     * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * Temporary flag to disable safe area bottom spacing in the ScreenWrapper and to allow edge-to-edge content
+     * The ScreenWrapper should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
      */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
