@@ -283,7 +283,7 @@ export type {default as UpdateNSQSProjectsMappingParams} from './UpdateNSQSProje
 export type {default as UpdateNSQSExporterParams} from './UpdateNSQSExporterParams';
 export type {default as UpdateNSQSExportDateParams} from './UpdateNSQSExportDateParams';
 export type {default as UpdateNSQSAutoSyncParams} from './UpdateNSQSAutoSyncParams';
-export type {default as UpdateNSQSApprovalAccountParams} from './UpdateNSQSApprovalAccountParams';
+export type {default as UpdateNSQSPaymentAccountParams} from './UpdateNSQSPaymentAccountParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
