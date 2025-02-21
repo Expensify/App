@@ -199,7 +199,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         />
                         <TextLink
                             style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
-                            href={CONST.COMPANY_CARDS_AMEX_DELIVERY_FILE_HELP}
+                            href={CONST.COMPANY_CARDS_DELIVERY_FILE_HELP[feedProvider]}
                         >
                             {translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.helpLabel`)}
                         </TextLink>
