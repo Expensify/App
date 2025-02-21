@@ -377,7 +377,7 @@ const WRITE_COMMANDS = {
     UPDATE_NSQS_EXPORTER: 'UpdateNSQSExporter',
     UPDATE_NSQS_EXPORT_DATE: 'UpdateNSQSExportDate',
     UPDATE_NSQS_AUTO_SYNC: 'UpdateNSQSAutoSync',
-    UPDATE_NSQS_APPROVAL_ACCOUNT: 'UpdateNSQSApprovalAccount',
+    UPDATE_NSQS_PAYMENT_ACCOUNT: 'UpdateNSQSPaymentAccount',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
     COPY_EXISTING_POLICY_CONNECTION: 'CopyExistingPolicyConnection',
@@ -878,7 +878,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NSQS_EXPORTER]: Parameters.UpdateNSQSExporterParams;
     [WRITE_COMMANDS.UPDATE_NSQS_EXPORT_DATE]: Parameters.UpdateNSQSExportDateParams;
     [WRITE_COMMANDS.UPDATE_NSQS_AUTO_SYNC]: Parameters.UpdateNSQSAutoSyncParams;
-    [WRITE_COMMANDS.UPDATE_NSQS_APPROVAL_ACCOUNT]: Parameters.UpdateNSQSApprovalAccountParams;
+    [WRITE_COMMANDS.UPDATE_NSQS_PAYMENT_ACCOUNT]: Parameters.UpdateNSQSPaymentAccountParams;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY]: Parameters.UpdateSageIntacctGenericTypeParams<'entity', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_DEPARTMENT_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;

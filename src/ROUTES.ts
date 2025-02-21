@@ -2013,13 +2013,13 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/nsqs/export/date',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/date` as const,
     },
+    POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/export/payment-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/payment-account` as const,
+    },
     POLICY_ACCOUNTING_NSQS_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/nsqs/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/advanced/approval-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced/approval-account` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
