@@ -2231,7 +2231,7 @@ const CONST = {
         },
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
-        APPROVAL_ACCOUNT: 'approvalAccount',
+        PAYMENT_ACCOUNT: 'paymentAccount',
     },
 
     QUICKBOOKS_EXPORT_DATE: {
