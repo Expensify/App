@@ -42,7 +42,6 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [error, setError] = useState('');
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [user] = useOnyx(ONYXKEYS.USER);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
