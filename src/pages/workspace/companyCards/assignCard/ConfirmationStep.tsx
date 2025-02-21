@@ -30,7 +30,7 @@ type ConfirmationStepProps = {
     workspaceMemberAccountID?: string;
 };
 
-function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, backTo, workspaceMemberAccountID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -39,9 +39,6 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
 
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
-    const parts = backTo?.split('/');
-    const membersIndex = parts?.indexOf('members') ?? -1;
-    const workspaceMemberAccountID = parts?.[membersIndex + 1] ?? '';
     const cardholderAccountID = getPersonalDetailByEmail(data?.email ?? '')?.accountID.toString() ?? '';
     const submit = () => {
         if (!policyID) {

@@ -1398,8 +1398,13 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
         route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
-        getRoute: (policyID: string, feed: string, workspaceMemberAccountID: number, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card?workspaceMemberAccountID=${encodeURIComponent(workspaceMemberAccountID)}`, backTo),
+        getRoute: (policyID: string, feed: string, backTo?: string, workspaceMemberAccountID?: number) =>
+            getUrlWithBackToParam(
+                workspaceMemberAccountID
+                    ? `settings/workspaces/${policyID}/company-cards/${feed}/assign-card?workspaceMemberAccountID=${encodeURIComponent(workspaceMemberAccountID)}`
+                    : `settings/workspaces/${policyID}/company-cards/${feed}/assign-card`,
+                backTo,
+            ),
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID',
