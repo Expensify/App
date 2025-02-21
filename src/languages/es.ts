@@ -3456,7 +3456,7 @@ const translations = {
         nsqs: {
             setup: {
                 title: 'NSQS configuración',
-                description: 'Introduce tu ID de cuenta de NSQS',
+                description: 'Introduce tu ID de NSQS',
                 formInputs: {
                     netSuiteAccountID: 'ID de Cuenta NSQS',
                 },
