@@ -2,19 +2,27 @@
   "name": "emails",
   "version": "1.0.0",
   "main": "index.js",
+  "description": "A lightweight set of utilities that render Expensify's react-native-web components in a server, such that they can be used in email communications",
   "scripts": {
     "build": "webpack --config ../config/webpack/webpack.emails.ts",
+    "dev": "concurrently -k 'npm run ws' 'npm run watch' 'npm run serve'",
+    "serve": "nodemon --watch dist/server.bundle.js --exec 'ts-node scripts/bootExpressServer.ts'",
     "start": "npm run build && node dist/server.bundle.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo 'Error: no test specified' && exit 1",
+    "watch": "npm run build -- --watch",
+    "ws": "ts-node scripts/bootLiveReloadServer.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "A lightweight set of utilities that render Expensify's react-native-web components in a server, such that they can be used in email communications",
   "dependencies": {
     "express": "^4.21.2"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0"
+    "@types/express": "^5.0.0",
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.9",
+    "open": "^8.4.2",
+    "ws": "^8.18.0"
   }
 }

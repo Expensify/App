@@ -24,6 +24,7 @@ const emailsConfig: Configuration = merge(baseConfig({}), {
         minimize: false,
         concatenateModules: false, // Ensures modules are not tree-shaken for easier debugging
     },
+    watch: true,
 });
 
 export default emailsConfig;
