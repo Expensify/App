@@ -29,7 +29,6 @@ import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
 
-const AMOUNT_ITEMS_IN_VIEW_PORT = 20;
 const keyExtractor = (item: string) => `report_${item}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
@@ -288,7 +287,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
                     estimatedItemSize={estimatedItemSize}
-                    overrideProps={{estimatedHeightSize: estimatedItemSize * AMOUNT_ITEMS_IN_VIEW_PORT}}
+                    overrideProps={{estimatedHeightSize: estimatedItemSize * CONST.LHN_AMOUNT_ITEMS_IN_VIEW_PORT}}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
