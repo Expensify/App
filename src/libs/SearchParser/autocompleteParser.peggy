@@ -36,34 +36,19 @@ defaultFilter
           start: location().end.offset,
           length: 0,
         };
-        return {
-          key: "syntax",
-          value: key,
-          start: location().start.offset,
-          length: location().end.offset - location().start.offset,
-        };
+        return;
       }
 
       autocomplete = {
         key,
         ...value[value.length - 1],
       };
-      const result = value
+      return value
         .filter((filter) => filter.length > 0)
         .map((filter) => ({
           key,
           ...filter,
         }));
-
-      return [
-        {
-          key: "syntax",
-          value: key,
-          start: location().start.offset,
-          length: result[0].start - location().start.offset,
-        },
-        ...result,
-      ];
     }
 
 freeTextFilter = _ (identifier / ",") _ { autocomplete = null; }
