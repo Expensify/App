@@ -56,6 +56,9 @@ type AddressFormProps = {
 
     /** Indicates if country can be changed by user */
     shouldAllowCountryChange?: boolean;
+
+    /** Indicates if zip code format should be validated */
+    shouldValidateZipCodeFormat: boolean;
 };
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
@@ -83,6 +86,7 @@ function AddressFormFields({
     stateSelectorSearchInputTitle,
     onCountryChange,
     shouldAllowCountryChange = true,
+    shouldValidateZipCodeFormat,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -152,7 +156,7 @@ function AddressFormFields({
                 label={translate('common.zip')}
                 accessibilityLabel={translate('common.zip')}
                 role={CONST.ROLE.PRESENTATION}
-                inputMode={CONST.INPUT_MODE.NUMERIC}
+                inputMode={shouldValidateZipCodeFormat ? CONST.INPUT_MODE.NUMERIC : undefined}
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}

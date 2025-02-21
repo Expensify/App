@@ -146,6 +146,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                     onCountryChange={onCountryChange}
                     shouldAllowCountryChange={shouldAllowCountryChange}
+                    shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                 />
                 {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>

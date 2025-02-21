@@ -65,6 +65,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
                 aria-label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                 role={CONST.ROLE.PRESENTATION}
                 inputID={SIGNER_EMAIL}
+                inputMode={CONST.INPUT_MODE.EMAIL}
                 containerStyles={[styles.mt6]}
             />
             {shouldGatherBothEmails && (
@@ -74,6 +75,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
                     aria-label={`${translate('common.email')} 2`}
                     role={CONST.ROLE.PRESENTATION}
                     inputID={SECOND_SIGNER_EMAIL}
+                    inputMode={CONST.INPUT_MODE.EMAIL}
                     containerStyles={[styles.mt6]}
                 />
             )}

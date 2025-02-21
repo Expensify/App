@@ -42,7 +42,6 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             onSubmit={handleSubmit}
             inputId={TAX_ID_EIN_NUMBER}
             inputLabel={translate('businessInfoStep.taxIDEIN')}
-            inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
         />

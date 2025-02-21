@@ -5,8 +5,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PushRowWithModal from '@components/PushRowWithModal';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -72,51 +70,42 @@ function Confirmation({onNext}: SubStepProps) {
     }, [currency, currencyMappedToCountry]);
 
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <ScrollView
-                    style={styles.pt0}
-                    contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}
+        <FormProvider
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            submitButtonText={translate('common.confirm')}
+            validate={validate}
+            onSubmit={handleSubmit}
+            style={[styles.flexGrow1]}
+            submitButtonStyles={[styles.mh5, styles.pb0]}
+            isSubmitDisabled={disableSubmit}
+        >
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
+            <MenuItemWithTopDescription
+                description={translate('common.currency')}
+                title={currency}
+                interactive={false}
+            />
+            <Text style={[styles.ph5, styles.mb3, styles.mutedTextLabel]}>
+                {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                <TextLink
+                    style={[styles.label]}
+                    onPress={handleSettingsPress}
                 >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
-                    <MenuItemWithTopDescription
-                        description={translate('common.currency')}
-                        title={currency}
-                        interactive={false}
-                    />
-                    <Text style={[styles.ph5, styles.mb3, styles.mutedTextLabel]}>
-                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                        <TextLink
-                            style={[styles.label]}
-                            onPress={handleSettingsPress}
-                        >
-                            {translate('common.settings').toLowerCase()}.
-                        </TextLink>
-                    </Text>
-                    <FormProvider
-                        formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-                        submitButtonText={translate('common.confirm')}
-                        validate={validate}
-                        onSubmit={handleSubmit}
-                        style={[styles.flexGrow1]}
-                        submitButtonStyles={[styles.mh5, styles.pb0, styles.mbn1]}
-                        isSubmitDisabled={disableSubmit}
-                    >
-                        <InputWrapper
-                            InputComponent={PushRowWithModal}
-                            optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
-                            onValueChange={(value) => setSelectedCountry(value as string)}
-                            description={translate('common.country')}
-                            modalHeaderTitle={translate('countryStep.selectCountry')}
-                            searchInputTitle={translate('countryStep.findCountry')}
-                            shouldAllowChange={shouldAllowChange}
-                            value={selectedCountry}
-                            inputID={COUNTRY}
-                        />
-                    </FormProvider>
-                </ScrollView>
-            )}
-        </SafeAreaConsumer>
+                    {translate('common.settings').toLowerCase()}.
+                </TextLink>
+            </Text>
+            <InputWrapper
+                InputComponent={PushRowWithModal}
+                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
+                onValueChange={(value) => setSelectedCountry(value as string)}
+                description={translate('common.country')}
+                modalHeaderTitle={translate('countryStep.selectCountry')}
+                searchInputTitle={translate('countryStep.findCountry')}
+                shouldAllowChange={shouldAllowChange}
+                value={selectedCountry}
+                inputID={COUNTRY}
+            />
+        </FormProvider>
     );
 }
 
