@@ -7,7 +7,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -31,7 +31,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
 
     useEffect(() => {
         return () => {
-            CompanyCards.clearAssignCardStepAndData();
+            clearAssignCardStepAndData();
         };
     }, []);
 
