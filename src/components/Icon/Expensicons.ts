@@ -50,6 +50,7 @@ import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
 import CheckCircle from '@assets/images/check-circle.svg';
+import Checkbox from '@assets/images/checkbox.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
@@ -251,6 +252,7 @@ export {
     Cash,
     ChatBubble,
     ChatBubbles,
+    Checkbox,
     Checkmark,
     Chair,
     Close,
