@@ -66,7 +66,7 @@ class LiveReloadServer {
      * and send a reload event to trigger a refresh of all connected consumer clients.
      */
     public static trigger = (url: string) => {
-        console.log('🚀 Triggering live reload of connected consumers');
+        console.log('🔃 Triggering live reload of connected consumers');
         const wsClient = new WebSocket(this.URL, this.PROTOCOL_CONTROLLER);
         wsClient.on('open', () => {
             console.log('📡 Connected controller to LiveReloadServer, sending reload command...');
@@ -88,9 +88,9 @@ class LiveReloadServer {
                 return;
             }
 
-            console.log('🫡 Received reload command from controller');
+            console.log('👂 Received reload command from controller');
             if (this.consumerClients.size === 0) {
-                console.log(`💻 No consumer clients connected, opening ${event.url} in the browser`);
+                console.log(`🌐 No consumer clients connected, opening ${event.url} in the browser`);
                 open(event.url);
             } else {
                 console.log(`🔄 Broadcasting reload event to ${this.consumerClients.size} connected consumers...`);
@@ -107,7 +107,7 @@ class LiveReloadServer {
      * Keep track of consumers so that we can refresh them as needed.
      */
     private registerConsumer = (ws: WebSocket) => {
-        console.log(`🍽️  Registering consumer`);
+        console.log(`🔗  Registering consumer`);
         this.consumerClients.add(ws);
         ws.on('close', () => {
             console.log('🗑️  Deleting consumer');
