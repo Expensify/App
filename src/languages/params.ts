@@ -321,6 +321,8 @@ type UpdatedPolicyFieldWithValueParam = {value: boolean};
 
 type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
 
+type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number};
+
 type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
@@ -883,4 +885,5 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     NeedCategoryForExportToIntegrationParams,
+    UpdatedPolicyAuditRateParams,
 };

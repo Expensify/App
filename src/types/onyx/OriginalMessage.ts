@@ -404,6 +404,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Old role of user or old value of the category/tag field */
     oldValue?: boolean | string;
+
+    /** Old approval audit rate */
+    oldAuditRate?: number;
+
+    /** New approval audit rate */
+    newAuditRate?: number;
 };
 
 /** Model of `join policy changelog` report action */

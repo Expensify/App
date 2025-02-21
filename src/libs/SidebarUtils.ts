@@ -39,6 +39,7 @@ import {
     getReportAction,
     getReportActionMessageText,
     getSortedReportActions,
+    getUpdatedAuditRateMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -608,6 +609,8 @@ function getOptionData({
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
             result.alternateText = getRemovedConnectionMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE) {
+            result.alternateText = getUpdatedAuditRateMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0
