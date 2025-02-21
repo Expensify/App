@@ -1271,7 +1271,7 @@ function getAdminsPrivateEmailDomains(policy?: Policy) {
 
     // If the policy is not owned by Expensify there is no point in showing the domain for provisioning.
     if (!isExpensifyTeam(policy.owner)) {
-        return nonPulicDomains.filter((domain) => domain === CONST.EXPENSIFY_PARTNER_NAME || domain === CONST.EMAIL.GUIDES_DOMAIN);
+        return nonPulicDomains.filter((domain) => domain !== CONST.EXPENSIFY_PARTNER_NAME && domain !== CONST.EMAIL.GUIDES_DOMAIN);
     }
 
     return nonPulicDomains;
