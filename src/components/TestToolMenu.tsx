@@ -2,10 +2,10 @@ import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ApiUtils from '@libs/ApiUtils';
-import * as Network from '@userActions/Network';
-import * as Session from '@userActions/Session';
-import * as User from '@userActions/User';
+import {isUsingStagingApi} from '@libs/ApiUtils';
+import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
+import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
+import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {User as UserOnyx} from '@src/types/onyx';
@@ -28,7 +28,7 @@ function TestToolMenu() {
     const [network] = useOnyx(ONYXKEYS.NETWORK);
     const [user = USER_DEFAULT] = useOnyx(ONYXKEYS.USER);
     const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
+    const shouldUseStagingServer = user?.shouldUseStagingServer ?? isUsingStagingApi();
     const isDebugModeEnabled = !!user?.isDebugModeEnabled;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -52,7 +52,7 @@ function TestToolMenu() {
                         <Switch
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
                             isOn={isDebugModeEnabled}
-                            onToggle={() => User.setIsDebugModeEnabled(!isDebugModeEnabled)}
+                            onToggle={() => setIsDebugModeEnabled(!isDebugModeEnabled)}
                         />
                     </TestToolRow>
 
@@ -61,7 +61,7 @@ function TestToolMenu() {
                         <Button
                             small
                             text={translate('initialSettingsPage.troubleshoot.invalidate')}
-                            onPress={() => Session.invalidateAuthToken()}
+                            onPress={() => invalidateAuthToken()}
                         />
                     </TestToolRow>
 
@@ -70,7 +70,7 @@ function TestToolMenu() {
                         <Button
                             small
                             text={translate('initialSettingsPage.troubleshoot.destroy')}
-                            onPress={() => Session.invalidateCredentials()}
+                            onPress={() => invalidateCredentials()}
                         />
                     </TestToolRow>
 
@@ -79,7 +79,7 @@ function TestToolMenu() {
                         <Button
                             small
                             text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
-                            onPress={() => Session.expireSessionWithDelay()}
+                            onPress={() => expireSessionWithDelay()}
                         />
                     </TestToolRow>
                 </>
@@ -90,7 +90,7 @@ function TestToolMenu() {
                     <Switch
                         accessibilityLabel="Use Staging Server"
                         isOn={shouldUseStagingServer}
-                        onToggle={() => User.setShouldUseStagingServer(!shouldUseStagingServer)}
+                        onToggle={() => setShouldUseStagingServer(!shouldUseStagingServer)}
                     />
                 </TestToolRow>
             )}
@@ -98,7 +98,7 @@ function TestToolMenu() {
                 <Switch
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
-                    onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
+                    onToggle={() => setShouldForceOffline(!network?.shouldForceOffline)}
                     disabled={!!isUsingImportedState || !!network?.shouldSimulatePoorConnection || network?.shouldFailAllRequests}
                 />
             </TestToolRow>
@@ -106,7 +106,7 @@ function TestToolMenu() {
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
-                    onToggle={() => Network.setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
+                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
                     disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
                 />
             </TestToolRow>
@@ -114,7 +114,7 @@ function TestToolMenu() {
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}
-                    onToggle={() => Network.setShouldFailAllRequests(!network?.shouldFailAllRequests)}
+                    onToggle={() => setShouldFailAllRequests(!network?.shouldFailAllRequests)}
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>

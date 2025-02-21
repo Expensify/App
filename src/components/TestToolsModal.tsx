@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';

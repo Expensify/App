@@ -29,7 +29,7 @@ import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearOnyxAndResetApp} from '@userActions/App';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -126,7 +126,7 @@ function TroubleshootPage() {
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
                                 <TextLink
                                     style={styles.link}
-                                    onPress={() => Report.navigateToConciergeChat()}
+                                    onPress={() => navigateToConciergeChat()}
                                 >
                                     {translate('initialSettingsPage.troubleshoot.submitBug')}
                                 </TextLink>
