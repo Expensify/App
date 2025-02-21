@@ -25,36 +25,35 @@ type BaseImageProps = Pick<ExpoImageProps, 'cachePolicy'> & {
     style?: StyleProp<ImageStyle>;
 };
 
-type ImageOwnProps = BaseImageProps &
-    Pick<ExpoImageProps, 'cachePolicy'> & {
-        /** Should an auth token be included in the image request */
-        isAuthTokenRequired?: boolean;
+type ImageOwnProps = BaseImageProps & {
+    /** Should an auth token be included in the image request */
+    isAuthTokenRequired?: boolean;
 
-        /** How should the image fit within its container */
-        resizeMode?: ImageResizeMode;
+    /** How should the image fit within its container */
+    resizeMode?: ImageResizeMode;
 
-        /** Event for when the image begins loading */
-        onLoadStart?: () => void;
+    /** Event for when the image begins loading */
+    onLoadStart?: () => void;
 
-        /** Event for when the image finishes loading */
-        onLoadEnd?: () => void;
+    /** Event for when the image finishes loading */
+    onLoadEnd?: () => void;
 
-        /** Error handler */
-        onError?: () => void;
+    /** Error handler */
+    onError?: () => void;
 
-        /** Progress events while the image is downloading */
-        onProgress?: () => void;
+    /** Progress events while the image is downloading */
+    onProgress?: () => void;
 
-        /** The object position of image */
-        objectPosition?: ImageObjectPosition;
+    /** The object position of image */
+    objectPosition?: ImageObjectPosition;
 
-        /**
-         *  Called when the image should wait for a valid session to reload
-         *  At the moment this function is called, the image is not in cache anymore
-         *  cf https://github.com/Expensify/App/issues/51888
-         */
-        waitForSession?: () => void;
-    };
+    /**
+     *  Called when the image should wait for a valid session to reload
+     *  At the moment this function is called, the image is not in cache anymore
+     *  cf https://github.com/Expensify/App/issues/51888
+     */
+    waitForSession?: () => void;
+};
 
 type ImageProps = ImageOwnProps;
 
