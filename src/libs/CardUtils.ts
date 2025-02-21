@@ -517,9 +517,9 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
 }
 
 /**
- * Checks if an Expensify Card was issued for a given workspace. The `allCardList` argument was added for testing purposes.
+ * Checks if an Expensify Card was issued for a given workspace.
  */
-function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList?: OnyxCollection<WorkspaceCardsList>): boolean {
+function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): boolean {
     const cards = getAllCardsForWorkspace(workspaceAccountID, allCardList);
     return Object.values(cards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
 }
