@@ -181,8 +181,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const {currentSearchHash} = useSearchContext();
-    console.log('here');
-    console.log(reportPDFFilename);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -242,6 +240,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         return '';
     }, [report]);
+
+    const messagePDF = useMemo(() => {
+        if (reportPDFFilename === undefined) {
+            return 'Please wait while we generate the PDF';
+        }
+        if (reportPDFFilename === 'error') {
+            return 'There was an error when trying to generate your PDF.';
+        }
+        return 'Your report PDF has been generated!';
+    }, [reportPDFFilename]);
+
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
     const isRootGroupChat = useMemo(() => isRootGroupChatUtil(report), [report]);
@@ -1156,7 +1165,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                                 />
                             </View>
                             <View>
-                                <Text>{'Please wait while we generate the PDF'}</Text>
+                                <Text>{messagePDF}</Text>
                                 <ActivityIndicator
                                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                     color={theme.textSupporting}
