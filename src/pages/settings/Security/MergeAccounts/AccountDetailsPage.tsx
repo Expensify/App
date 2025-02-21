@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -104,58 +103,56 @@ function AccountDetailsPage() {
             includeSafeAreaPaddingBottom
             testID={AccountDetailsPage.displayName}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate('mergeAccountsPage.mergeAccount')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
-                    onSubmit={(values) => {
-                        MergeAccounts.requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
-                    }}
-                    style={[styles.flexGrow1, styles.mh5]}
-                    shouldTrimValues
-                    validate={validate}
-                    submitButtonText={translate('common.next')}
-                    isSubmitButtonVisible={false}
-                >
-                    <View style={[styles.flexGrow1]}>
-                        <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountDetails.accountToMergeInto', {email: userEmailOrPhone ?? ''})}</Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
-                            autoCapitalize="none"
-                            label={translate('loginForm.phoneOrEmail')}
-                            aria-label={translate('loginForm.phoneOrEmail')}
-                            role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mt5]}
-                            autoCorrect={false}
-                            shouldSaveDraft
-                        />
-                        <InputWrapper
-                            style={[styles.mt6]}
-                            InputComponent={CheckboxWithLabel}
-                            inputID={INPUT_IDS.CONSENT}
-                            label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
-                            aria-label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
-                        />
-                    </View>
-                    <FixedFooter style={styles.ph0}>
-                        <FormAlertWithSubmitButton
-                            isAlertVisible={!!genericError}
-                            onSubmit={() => {
-                                MergeAccounts.requestValidationCodeForAccountMerge(email);
-                            }}
-                            message={genericError}
-                            buttonText={translate('common.next')}
-                            enabledWhenOffline={false}
-                            containerStyles={styles.mt3}
-                            isLoading={getValidateCodeForAccountMerge?.isLoading}
-                        />
-                    </FixedFooter>
-                </FormProvider>
-            </DelegateNoAccessWrapper>
+            <HeaderWithBackButton
+                title={translate('mergeAccountsPage.mergeAccount')}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <FormProvider
+                formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
+                onSubmit={(values) => {
+                    MergeAccounts.requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
+                }}
+                style={[styles.flexGrow1, styles.mh5]}
+                shouldTrimValues
+                validate={validate}
+                submitButtonText={translate('common.next')}
+                isSubmitButtonVisible={false}
+            >
+                <View style={[styles.flexGrow1]}>
+                    <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountDetails.accountToMergeInto', {email: userEmailOrPhone ?? ''})}</Text>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                        autoCapitalize="none"
+                        label={translate('loginForm.phoneOrEmail')}
+                        aria-label={translate('loginForm.phoneOrEmail')}
+                        role={CONST.ROLE.PRESENTATION}
+                        containerStyles={[styles.mt5]}
+                        autoCorrect={false}
+                        shouldSaveDraft
+                    />
+                    <InputWrapper
+                        style={[styles.mt6]}
+                        InputComponent={CheckboxWithLabel}
+                        inputID={INPUT_IDS.CONSENT}
+                        label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
+                        aria-label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
+                    />
+                </View>
+                <FixedFooter style={styles.ph0}>
+                    <FormAlertWithSubmitButton
+                        isAlertVisible={!!genericError}
+                        onSubmit={() => {
+                            MergeAccounts.requestValidationCodeForAccountMerge(email);
+                        }}
+                        message={genericError}
+                        buttonText={translate('common.next')}
+                        enabledWhenOffline={false}
+                        containerStyles={styles.mt3}
+                        isLoading={getValidateCodeForAccountMerge?.isLoading}
+                    />
+                </FixedFooter>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

@@ -3,7 +3,6 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -79,32 +78,30 @@ function AccountValidatePage() {
             includeSafeAreaPaddingBottom
             testID={AccountValidatePage.displayName}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate('mergeAccountsPage.mergeAccount')}
-                    onBackButtonPress={() => {
-                        MergeAccounts.clearRequestValidationCodeForAccountMerge();
-                        MergeAccounts.clearMergeWithValidateCode();
-                        Navigation.goBack();
+            <HeaderWithBackButton
+                title={translate('mergeAccountsPage.mergeAccount')}
+                onBackButtonPress={() => {
+                    MergeAccounts.clearRequestValidationCodeForAccountMerge();
+                    MergeAccounts.clearMergeWithValidateCode();
+                    Navigation.goBack();
+                }}
+            />
+            <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
+                <Text style={[styles.mt5, styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>
+                <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {email})}</Text>
+                <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.enterMagicCode', {email})}</Text>
+                <ValidateCodeForm
+                    validateCodeAction={validateCodeAction}
+                    handleSubmitForm={(code) => {
+                        MergeAccounts.mergeWithValidateCode(email, code);
                     }}
+                    sendValidateCode={() => MergeAccounts.requestValidationCodeForAccountMerge(email)}
+                    clearError={() => MergeAccounts.clearMergeWithValidateCode()}
+                    validateError={mergeWithValidateCode?.errors}
+                    hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
+                    hideSubmitButton
                 />
-                <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
-                    <Text style={[styles.mt5, styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>
-                    <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {email})}</Text>
-                    <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.enterMagicCode', {email})}</Text>
-                    <ValidateCodeForm
-                        validateCodeAction={validateCodeAction}
-                        handleSubmitForm={(code) => {
-                            MergeAccounts.mergeWithValidateCode(email, code);
-                        }}
-                        sendValidateCode={() => MergeAccounts.requestValidationCodeForAccountMerge(email)}
-                        clearError={() => MergeAccounts.clearMergeWithValidateCode()}
-                        validateError={mergeWithValidateCode?.errors}
-                        hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
-                        hideSubmitButton
-                    />
-                </View>
-            </DelegateNoAccessWrapper>
+            </View>
         </ScreenWrapper>
     );
 }

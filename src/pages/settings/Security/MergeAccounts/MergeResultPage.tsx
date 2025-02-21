@@ -4,7 +4,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -115,24 +114,22 @@ function MergeResultPage() {
             includeSafeAreaPaddingBottom
             testID={MergeResultPage.displayName}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate('mergeAccountsPage.mergeAccount')}
-                    onBackButtonPress={() => {
-                        Navigation.dismissModal();
-                    }}
-                />
-                <ConfirmationPage
-                    heading={heading}
-                    headingStyle={headingStyle}
-                    onButtonPress={onButtonPress}
-                    shouldShowButton={shouldShowButton}
-                    description={description}
-                    descriptionStyle={descriptionStyle}
-                    illustration={illustration}
-                    illustrationStyle={illustrationStyle}
-                />
-            </DelegateNoAccessWrapper>
+            <HeaderWithBackButton
+                title={translate('mergeAccountsPage.mergeAccount')}
+                onBackButtonPress={() => {
+                    Navigation.dismissModal();
+                }}
+            />
+            <ConfirmationPage
+                heading={heading}
+                headingStyle={headingStyle}
+                onButtonPress={onButtonPress}
+                shouldShowButton={shouldShowButton}
+                description={description}
+                descriptionStyle={descriptionStyle}
+                illustration={illustration}
+                illustrationStyle={illustrationStyle}
+            />
         </ScreenWrapper>
     );
 }
