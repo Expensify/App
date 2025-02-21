@@ -57,6 +57,7 @@ import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
+import NetworkConnection from '@libs/NetworkConnection';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -915,6 +916,7 @@ function subscribeToPusherPong() {
 
         // When any PONG event comes in, reset this flag so that checkforLatePongReplies will resume looking for missed PONGs
         pongHasBeenMissed = false;
+        NetworkConnection.setOfflineStatus(false, 'PONG event was recieved from the server so assuming that means the client is back online');
     });
 }
 
@@ -937,6 +939,9 @@ function pingPusher() {
     // Then we can calculate the latency between the client and the server (or if the server never replies)
     const pingID = NumberUtils.rand64();
     const pingTimestamp = Date.now();
+
+    // Reset this flag so that checkforLatePongReplies will resume looking for missed PONGs (in the case we are coming back online after being offline for a bit)
+    pongHasBeenMissed = false;
 
     // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
     // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
@@ -972,6 +977,7 @@ function checkforLatePongReplies() {
         // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
         lastPingSentTimestamp = Date.now();
         pongHasBeenMissed = true;
+        NetworkConnection.setOfflineStatus(true, 'PONG event was no recieved from the server in time so assuming that means the client is offline');
     } else {
         Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
     }
