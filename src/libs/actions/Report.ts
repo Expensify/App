@@ -169,6 +169,8 @@ import {
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
+import {addTrailingForwardSlash} from "@libs/Url";
+import {getOldDotURLFromEnvironment} from "@libs/Environment/Environment";
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -4660,6 +4662,13 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     } satisfies ExportReportPDFParams;
 
     API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params);
+}
+
+function downloadReportPDF(fileName: string, reportName: string) {
+    const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
+    const downloadFileName = `${reportName}.pdf`;
+    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
+    fileDownload(pdfURL, downloadFileName);
 }
 
 function getConciergeReportID() {
