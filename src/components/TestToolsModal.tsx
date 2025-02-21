@@ -25,10 +25,6 @@ function TestToolsModal() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-
-    // Check if the user is authenticated to show the debug console as Right Modal is not visible for unauthenticated users
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     return (
         <Modal
             isVisible={!!isTestToolsModalOpen}
@@ -44,14 +40,14 @@ function TestToolsModal() {
                 </Text>
                 <ProfilingToolMenu />
                 <ClientSideLoggingToolMenu />
-                {!!shouldStoreLogs && isAuthenticated && (
+                {!!shouldStoreLogs && (
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
                         <Button
                             small
                             text={translate('initialSettingsPage.debugConsole.viewConsole')}
                             onPress={() => {
                                 toggleTestToolsModal();
-                                Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(Navigation.getActiveRoute()));
+                                Navigation.navigate(ROUTES.CONSOLE_DEBUG.getRoute(Navigation.getActiveRoute()));
                             }}
                         />
                     </TestToolRow>

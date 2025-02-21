@@ -117,7 +117,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 <>
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE.getRoute())}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.CONSOLE_DEBUG.getRoute())}
                     />
                     <SelectionList
                         ListItem={UserListItem}

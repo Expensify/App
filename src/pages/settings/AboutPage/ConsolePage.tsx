@@ -50,7 +50,9 @@ function ConsolePage() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.CONSOLE_DEBUG>>();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [
@@ -181,14 +183,16 @@ function ConsolePage() {
                     icon={Expensicons.Download}
                     style={[styles.flex1, styles.mr1]}
                 />
-                <Button
-                    text={translate('initialSettingsPage.debugConsole.shareLog')}
-                    onPress={shareLogs}
-                    large
-                    icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
-                    style={[styles.flex1, styles.ml1]}
-                    isLoading={isGeneratingLogsFile}
-                />
+                {isAuthenticated && (
+                    <Button
+                        text={translate('initialSettingsPage.debugConsole.shareLog')}
+                        onPress={shareLogs}
+                        large
+                        icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
+                        style={[styles.flex1, styles.ml1]}
+                        isLoading={isGeneratingLogsFile}
+                    />
+                )}
             </View>
             <View style={[styles.mh5]}>
                 <TextInput
