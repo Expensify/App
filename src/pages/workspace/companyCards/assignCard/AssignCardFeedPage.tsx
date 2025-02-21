@@ -26,6 +26,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const feed = route.params?.feed;
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
+    const workspaceMemberAccountID = route.params?.workspaceMemberAccountID;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
@@ -77,6 +78,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 <ConfirmationStep
                     policyID={policyID}
                     backTo={backTo}
+                    workspaceMemberAccountID={workspaceMemberAccountID}
                 />
             );
         default:

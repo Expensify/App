@@ -25,6 +25,9 @@ type ConfirmationStepProps = {
 
     /** Route to go back to */
     backTo?: Route;
+
+    /** Workspace member account id */
+    workspaceMemberAccountID?: string;
 };
 
 function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
