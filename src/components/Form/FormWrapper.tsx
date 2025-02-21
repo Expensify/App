@@ -167,6 +167,7 @@ function FormWrapper({
             enabledWhenOffline,
             isSubmitActionDangerous,
             disablePressOnEnter,
+            shouldScrollToEnd,
         ],
     );
 
