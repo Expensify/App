@@ -10,7 +10,16 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getFilteredCardList, hasOnlyOneCardToAssign, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import {
+    getCardFeedIcon,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getFilteredCardList,
+    hasCardListObject,
+    hasOnlyOneCardToAssign,
+    isCustomFeed,
+    isSelectedFeedExpired,
+} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getWorkspaceAccountID} from '@libs/PolicyUtils';
@@ -99,7 +108,8 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const handleSelectFeed = (feed: CardFeedListItem) => {
         setSelectedFeed(feed.value);
-        if (isCustomFeed(feed.value as CompanyCardFeed)) {
+        const hasAllCardsData = hasCardListObject(workspaceAccountID, feed.value as CompanyCardFeed);
+        if (isCustomFeed(feed.value as CompanyCardFeed) && !hasAllCardsData) {
             openAssignFeedCardPage(policyID, feed.value as CompanyCardFeed, workspaceAccountID);
         }
         setShouldShowError(false);
