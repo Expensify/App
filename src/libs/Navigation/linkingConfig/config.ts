@@ -255,10 +255,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
-                            path: ROUTES.SETTINGS_2FA.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
                             path: ROUTES.SETTINGS_ADD_DELEGATE,
                             exact: true,
@@ -530,11 +526,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
                             path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_DATE.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
                             path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.route},
@@ -975,6 +971,30 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
+                    screens: {
+                        [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
+                            path: ROUTES.SETTINGS_2FA_ROOT.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
+                            path: ROUTES.SETTINGS_2FA_VERIFY.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
+                            path: ROUTES.SETTINGS_2FA_SUCCESS.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.DISABLED]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLED,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.DISABLE]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLE,
+                            exact: true,
                         },
                     },
                 },

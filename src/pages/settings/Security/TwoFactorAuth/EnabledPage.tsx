@@ -10,17 +10,17 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasPolicyWithXeroConnection} from '@libs/PolicyUtils';
-import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
-import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
-function EnabledStep() {
+function EnabledPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
-    const {setStep} = useTwoFactorAuthContext();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
     const {translate} = useLocalize();
@@ -30,7 +30,11 @@ function EnabledStep() {
     }, []);
 
     return (
-        <StepWrapper title={translate('twoFactorAuth.headerTitle')}>
+        <TwoFactorAuthWrapper
+            stepName={CONST.TWO_FACTOR_AUTH_STEPS.ENABLED}
+            title={translate('twoFactorAuth.headerTitle')}
+            shouldEnableKeyboardAvoidingView={false}
+        >
             <ScrollView>
                 <Section
                     title={translate('twoFactorAuth.twoFactorAuthEnabled')}
@@ -43,7 +47,7 @@ function EnabledStep() {
                                     setIsVisible(true);
                                     return;
                                 }
-                                setStep(CONST.TWO_FACTOR_AUTH_STEPS.GETCODE);
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
                             },
                             icon: Expensicons.Close,
                             iconFill: theme.danger,
@@ -67,10 +71,10 @@ function EnabledStep() {
                     isVisible={isVisible}
                 />
             </ScrollView>
-        </StepWrapper>
+        </TwoFactorAuthWrapper>
     );
 }
 
-EnabledStep.displayName = 'EnabledStep';
+EnabledPage.displayName = 'EnabledPage';
 
-export default EnabledStep;
+export default EnabledPage;
