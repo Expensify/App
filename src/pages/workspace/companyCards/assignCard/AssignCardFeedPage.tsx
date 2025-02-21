@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -7,7 +7,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
+import * as CompanyCards from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -27,17 +27,10 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const [firstValidEmail, setFirstValidEmail] = useState<string | null>(null);
-    useEffect(() => {
-        if (firstValidEmail || !assignCard?.data?.email) {
-            return;
-        }
-        setFirstValidEmail(assignCard.data.email);
-    }, [assignCard?.data?.email, firstValidEmail]);
 
     useEffect(() => {
         return () => {
-            clearAssignCardStepAndData();
+            CompanyCards.clearAssignCardStepAndData();
         };
     }, []);
 
@@ -84,7 +77,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 <ConfirmationStep
                     policyID={policyID}
                     backTo={backTo}
-                    workspaceMemberEmail={firstValidEmail ?? ''}
                 />
             );
         default:
