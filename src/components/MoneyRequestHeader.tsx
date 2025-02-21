@@ -120,7 +120,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 description: (
                     <BrokenConnectionDescription
                         transactionID={transaction?.transactionID}
-                        report={report}
+                        report={parentReport}
                         policy={policy}
                     />
                 ),
