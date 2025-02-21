@@ -411,7 +411,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport, backTo]);
 
-    const beginPDFEXport = useCallback(() => {
+    const beginPDFExport = useCallback(() => {
         setIsPDFModalVisible(true);
         exportReportToPDF({reportID: report.reportID});
     }, [report]);
@@ -582,7 +582,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         if (isOffline) {
                             setOfflineModalVisible(true);
                         }
-                        beginPDFEXport();
+                        beginPDFExport();
                     },
                 },
             );
@@ -1166,11 +1166,13 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             </View>
                             <View>
                                 <Text>{messagePDF}</Text>
-                                <ActivityIndicator
-                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                    color={theme.textSupporting}
-                                    style={styles.mt3}
-                                />
+                                {reportPDFFilename === undefined && (
+                                    <ActivityIndicator
+                                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                        color={theme.textSupporting}
+                                        style={styles.mt3}
+                                    />
+                                )}
                             </View>
                         </View>
                         {reportPDFFilename !== undefined && reportPDFFilename !== 'error' && (
