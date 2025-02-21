@@ -17,7 +17,7 @@ function NSQSAdvancedPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
-    const isAutoSyncEnabled = nsqsConfig?.autoSync.enabled ?? false;
+    const isAutoSyncEnabled = nsqsConfig?.autoSync?.enabled ?? false;
 
     const toggleAutoSync = useCallback(() => {
         if (!policyID) {
