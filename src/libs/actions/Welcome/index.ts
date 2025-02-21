@@ -12,7 +12,7 @@ import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as OnboardingFlow from './OnboardingFlow';
+import {clearInitialPath} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
@@ -207,7 +207,7 @@ function resetAllChecks() {
     });
     isLoadingReportData = true;
     isOnboardingInProgress = false;
-    OnboardingFlow.clearInitialPath();
+    clearInitialPath();
 }
 
 function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
