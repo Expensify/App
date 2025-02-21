@@ -114,8 +114,6 @@ type ScreenWrapperProps = {
 
 type ScreenWrapperStatusContextType = {
     didScreenTransitionEnd: boolean;
-    isSafeAreaTopPaddingApplied: boolean;
-    isSafeAreaBottomPaddingApplied: boolean;
 };
 
 const ScreenWrapperStatusContext = createContext<ScreenWrapperStatusContextType | undefined>(undefined);
