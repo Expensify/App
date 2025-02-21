@@ -70,6 +70,7 @@ function DirectorsList({directorKeys, onConfirm, onEdit}: DirectorsListProps) {
                     style={styles.pt0}
                     contentContainerStyle={[styles.flexGrow1, styles.ph0, safeAreaPaddingBottomStyle]}
                 >
+                    {/* TODO: change translations */}
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
                     <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
                     {areThereDirectors && (
