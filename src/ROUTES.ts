@@ -243,11 +243,25 @@ const ROUTES = {
         route: 'settings/profile/contact-methods/new',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
-    SETTINGS_2FA: {
+
+    SETTINGS_2FA_ROOT: {
         route: 'settings/security/two-factor-auth',
         getRoute: (backTo?: string, forwardTo?: string) =>
             getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
     },
+    SETTINGS_2FA_VERIFY: {
+        route: 'settings/security/two-factor-auth/verify',
+        getRoute: (backTo?: string, forwardTo?: string) =>
+            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/verify', backTo),
+    },
+    SETTINGS_2FA_SUCCESS: {
+        route: 'settings/security/two-factor-auth/success',
+        getRoute: (backTo?: string, forwardTo?: string) =>
+            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth/success?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth/success', backTo),
+    },
+    SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
+    SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
+
     SETTINGS_STATUS: 'settings/profile/status',
 
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
