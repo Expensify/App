@@ -1,4 +1,5 @@
-import {useMemo} from 'react';
+import {useContext, useMemo} from 'react';
+import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
 import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 
@@ -30,17 +31,45 @@ import useStyleUtils from './useStyleUtils';
  *     // Use these values to style your component accordingly
  * }
  */
-function useStyledSafeAreaInsets() {
+function useStyledSafeAreaInsets(enableEdgeToEdgeBottomSafeAreaPadding = false) {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
     const {paddingTop, paddingBottom} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
 
-    const safeAreaPaddingBottomStyle = useMemo(() => ({paddingBottom}), [paddingBottom]);
+    const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
+    const isSafeAreaTopPaddingApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;
+    const isSafeAreaBottomPaddingApplied = screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false;
+
+    const adaptedPaddingBottom = isSafeAreaBottomPaddingApplied ? 0 : paddingBottom;
+    const safeAreaPaddingBottomStyle = useMemo(
+        () => ({paddingBottom: enableEdgeToEdgeBottomSafeAreaPadding ? paddingBottom : adaptedPaddingBottom}),
+        [adaptedPaddingBottom, enableEdgeToEdgeBottomSafeAreaPadding, paddingBottom],
+    );
+
+    if (enableEdgeToEdgeBottomSafeAreaPadding) {
+        return {
+            paddingTop,
+            paddingBottom,
+            unmodifiedPaddings: {},
+            insets,
+            safeAreaPaddingBottomStyle,
+        };
+    }
+
+    const adaptedInsets = {
+        ...insets,
+        top: isSafeAreaTopPaddingApplied ? 0 : insets?.top,
+        bottom: isSafeAreaBottomPaddingApplied ? 0 : insets?.bottom,
+    };
 
     return {
-        paddingTop,
-        paddingBottom,
-        insets,
+        paddingTop: isSafeAreaTopPaddingApplied ? 0 : paddingTop,
+        paddingBottom: adaptedPaddingBottom,
+        unmodifiedPaddings: {
+            top: paddingTop,
+            bottom: paddingBottom,
+        },
+        insets: adaptedInsets,
         safeAreaPaddingBottomStyle,
     };
 }
