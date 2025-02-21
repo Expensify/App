@@ -15,11 +15,9 @@ const emailsConfig: Configuration = merge(baseConfig({}), {
         path: path.resolve('../emails', 'dist'),
     },
     target: 'node',
-    plugins: [
-        new IgnorePlugin({
-            resourceRegExp: /express\/lib\/view/,
-        }),
-    ],
+    externals: {
+        express: 'commonjs express',
+    },
     optimization: {
         minimize: false,
         concatenateModules: false, // Ensures modules are not tree-shaken for easier debugging
