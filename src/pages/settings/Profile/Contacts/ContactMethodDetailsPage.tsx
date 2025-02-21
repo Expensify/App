@@ -312,7 +312,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             />
             <ScrollView
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={themeStyles.flex1}
+                contentContainerStyle={themeStyles.flexGrow1}
+                style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}
             >
                 {isFailedAddContactMethod && (
                     <ErrorMessageRow
