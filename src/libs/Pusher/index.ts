@@ -1,68 +1,24 @@
 import isObject from 'lodash/isObject';
 import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
+import Pusher from 'pusher-js/with-encryption';
 import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {LiteralUnion, ValueOf} from 'type-fest';
 import Log from '@libs/Log';
-import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import TYPE from './EventType';
-import Pusher from './library';
-import type {SocketEventName} from './library/types';
-
-type States = {
-    previous: string;
-    current: string;
-};
-
-type Args = {
-    appKey: string;
-    cluster: string;
-    authEndpoint: string;
-};
-
-type UserIsTypingEvent = ReportUserIsTyping & {
-    userLogin?: string;
-};
-
-type UserIsLeavingRoomEvent = Record<string, boolean> & {
-    userLogin?: string;
-};
-
-type PingPongEvent = Record<string, string | number> & {
-    pingID: string;
-    pingTimestamp: number;
-};
-
-type PusherEventMap = {
-    [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
-    [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
-    [TYPE.PONG]: PingPongEvent;
-};
-
-type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
-    ? PusherEventMap[EventName]
-    : OnyxUpdatesFromServer);
-
-type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number; message?: string}};
-
-type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
-
-type SocketEventCallback = (eventName: SocketEventName, data?: States | EventCallbackError) => void;
-
-type PusherWithAuthParams = InstanceType<typeof Pusher> & {
-    config: {
-        auth?: {
-            params?: unknown;
-        };
-    };
-};
-
-type PusherEventName = LiteralUnion<DeepValueOf<typeof TYPE>, string>;
-
-type PusherSubscribtionErrorData = {type?: string; error?: string; status?: string};
+import type {
+    Args,
+    ChunkedDataEvents,
+    EventCallbackError,
+    EventData,
+    PusherEventName,
+    PusherSubscribtionErrorData,
+    PusherWithAuthParams,
+    SocketEventCallback,
+    SocketEventName,
+    States,
+} from './types';
+import type PusherModule from './types';
 
 let shouldForceOffline = false;
 Onyx.connect({
@@ -98,7 +54,7 @@ function callSocketEventCallbacks(eventName: SocketEventName, data?: EventCallba
  * Initialize our pusher lib
  * @returns resolves when Pusher has connected
  */
-function init(args: Args, params?: unknown): Promise<void> {
+function init(args: Args): Promise<void> {
     return new Promise<void>((resolve) => {
         if (socket) {
             resolve();
@@ -122,15 +78,6 @@ function init(args: Args, params?: unknown): Promise<void> {
         }
 
         socket = new Pusher(args.appKey, options);
-        // If we want to pass params in our requests to api.php we'll need to add it to socket.config.auth.params
-        // as per the documentation
-        // (https://pusher.com/docs/channels/using_channels/connection#channels-options-parameter).
-        // Any param mentioned here will show up in $_REQUEST when we call "AuthenticatePusher". Params passed here need
-        // to pass our inputRules to show up in the request.
-        if (params) {
-            socket.config.auth = {};
-            socket.config.auth.params = params;
-        }
 
         // Listen for connection errors and log them
         socket?.connection.bind('error', (error: EventCallbackError) => {
@@ -431,7 +378,7 @@ if (window) {
     window.getPusherInstance = () => socket;
 }
 
-export {
+const WebPusher: PusherModule = {
     init,
     subscribe,
     unsubscribe,
@@ -447,4 +394,4 @@ export {
     getPusherSocketID,
 };
 
-export type {EventCallbackError, States, UserIsTypingEvent, UserIsLeavingRoomEvent, PingPongEvent};
+export default WebPusher;
