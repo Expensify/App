@@ -29,8 +29,8 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
 
     useEffect(() => {
         if (url && hybridAppSettings) {
-            setInitialURL(url);
             signInAfterTransitionFromOldDot(hybridAppSettings).then(() => {
+                setInitialURL(url);
                 if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
                     return;
                 }
