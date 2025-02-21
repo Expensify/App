@@ -23,7 +23,7 @@ function NSQSCustomersDisplayedAsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
-    const importType = nsqsConfig?.syncOptions.mapping.customers ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const importType = nsqsConfig?.syncOptions?.mapping?.customers ?? CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
     const sectionData: Array<SelectorType<Option>> = Options.map((option) => ({
         keyForList: option,
@@ -50,7 +50,7 @@ function NSQSCustomersDisplayedAsPage({policy}: WithPolicyProps) {
     return (
         <SelectionScreen<Option>
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NSQSCustomersDisplayedAsPage.displayName}
             sections={[{data: sectionData}]}
