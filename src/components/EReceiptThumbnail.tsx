@@ -21,7 +21,7 @@ type IconSize = 'x-small' | 'small' | 'medium' | 'large';
 
 type EReceiptThumbnailProps = {
     /** TransactionID of the transaction this EReceipt corresponds to. */
-    transactionID?: string;
+    transactionID: string;
 
     /** Border radius to be applied on the parent view. */
     borderRadius?: number;

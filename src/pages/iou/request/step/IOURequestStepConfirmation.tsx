@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -24,7 +23,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getBankAccountRoute} from '@libs/ReportUtils';
+import {generateReportID, getBankAccountRoute} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
 import type {GpsPoint} from '@userActions/IOU';
@@ -40,6 +39,7 @@ import {
     setMoneyRequestCategory,
     splitBill,
     splitBillAndOpenReport,
+    startMoneyRequest,
     startSplitBill,
     submitPerDiemExpense as submitPerDiemExpenseIOUActions,
     trackExpense as trackExpenseIOUActions,
@@ -126,7 +126,6 @@ function IOURequestStepConfirmation({
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
     const [isConfirmed, setIsConfirmed] = useState(false);
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -173,6 +172,19 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
+        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
+            return;
+        }
+        startMoneyRequest(
+            CONST.IOU.TYPE.CREATE,
+            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+            // for all of the routes in the creation flow.
+            generateReportID(),
+        );
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, [isLoadingTransaction]);
+
+    useEffect(() => {
         if (!transaction?.category) {
             return;
         }
@@ -204,15 +216,35 @@ function IOURequestStepConfirmation({
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
             return;
         }
-        // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
-        // back to the participants step
-        if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action));
+
+        if (transaction?.isFromGlobalCreate) {
+            // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
+            if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action), {compareParams: false});
+                return;
+            }
+
+            // If the participant was auto-assigned, we need to keep the reportID that is already on the stack.
+            // This will allow the user to edit the participant field after going back and forward.
+            Navigation.goBack();
             return;
         }
+
+        // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [action, isPerDiemRequest, transaction?.participantsAutoAssigned, transaction?.reportID, participantsAutoAssignedFromRoute, requestType, iouType, transactionID, reportID]);
+    }, [
+        action,
+        isPerDiemRequest,
+        transaction?.participantsAutoAssigned,
+        transaction?.isFromGlobalCreate,
+        transaction?.reportID,
+        participantsAutoAssignedFromRoute,
+        requestType,
+        iouType,
+        transactionID,
+        reportID,
+    ]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -279,10 +311,24 @@ function IOURequestStepConfirmation({
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    waypoints: Object.keys(transaction.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+                    customUnitRateID,
                 },
             });
         },
-        [report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories, action],
+        [
+            report,
+            transaction,
+            transactionTaxCode,
+            transactionTaxAmount,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            policy,
+            policyTags,
+            policyCategories,
+            action,
+            customUnitRateID,
+        ],
     );
 
     const submitPerDiemExpense = useCallback(
@@ -314,6 +360,7 @@ function IOURequestStepConfirmation({
                     category: transaction.category,
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
+                    billable: transaction.billable,
                 },
             });
         },
@@ -329,34 +376,40 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
-            trackExpenseIOUActions(
+            trackExpenseIOUActions({
                 report,
-                transaction.amount,
-                transaction.currency,
-                transaction.created,
-                transaction.merchant,
-                currentUserPersonalDetails.login,
-                currentUserPersonalDetails.accountID,
-                participant,
-                trimmedComment,
                 isDraftPolicy,
-                receiptObj,
-                transaction.category,
-                transaction.tag,
-                transactionTaxCode,
-                transactionTaxAmount,
-                transaction.billable,
-                policy,
-                policyTags,
-                policyCategories,
-                gpsPoints,
-                Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
                 action,
-                transaction.actionableWhisperReportActionID,
-                transaction.linkedTrackedExpenseReportAction,
-                transaction.linkedTrackedExpenseReportID,
-                customUnitRateID,
-            );
+                participantParams: {
+                    payeeEmail: currentUserPersonalDetails.login,
+                    payeeAccountID: currentUserPersonalDetails.accountID,
+                    participant,
+                },
+                policyParams: {
+                    policy,
+                    policyCategories,
+                    policyTagList: policyTags,
+                },
+                transactionParams: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    created: transaction.created,
+                    merchant: transaction.merchant,
+                    comment: trimmedComment,
+                    receipt: receiptObj,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    billable: transaction.billable,
+                    gpsPoints,
+                    validWaypoints: Object.keys(transaction?.comment?.waypoints ?? {}).length ? getValidWaypoints(transaction.comment?.waypoints, true) : undefined,
+                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                    customUnitRateID,
+                },
+            });
         },
         [
             report,
@@ -675,68 +728,65 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID={IOURequestStepConfirmation.displayName}
-            headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
-            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver}>
-                <View style={styles.flex1}>
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={
-                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
-                        }
-                        threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                        threeDotsMenuItems={[
-                            {
-                                icon: Expensicons.Receipt,
-                                text: translate('receipt.addReceipt'),
-                                onSelected: navigateToAddReceipt,
-                            },
-                        ]}
+            <View style={styles.flex1}>
+                <HeaderWithBackButton
+                    title={headerTitle}
+                    onBackButtonPress={navigateBack}
+                    shouldShowThreeDotsButton={
+                        requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
+                    }
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Receipt,
+                            text: translate('receipt.addReceipt'),
+                            onSelected: navigateToAddReceipt,
+                        },
+                    ]}
+                />
+                {isLoading && <FullScreenLoadingIndicator />}
+                {!!gpsRequired && (
+                    <LocationPermissionModal
+                        startPermissionFlow={startLocationPermissionFlow}
+                        resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                        onGrant={() => createTransaction(selectedParticipantList, true)}
+                        onDeny={() => {
+                            updateLastLocationPermissionPrompt();
+                            createTransaction(selectedParticipantList, false);
+                        }}
                     />
-                    {isLoading && <FullScreenLoadingIndicator />}
-                    {!!gpsRequired && (
-                        <LocationPermissionModal
-                            startPermissionFlow={startLocationPermissionFlow}
-                            resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                            onGrant={() => createTransaction(selectedParticipantList, true)}
-                            onDeny={() => {
-                                updateLastLocationPermissionPrompt();
-                                createTransaction(selectedParticipantList, false);
-                            }}
-                        />
-                    )}
-                    <MoneyRequestConfirmationList
-                        transaction={transaction}
-                        selectedParticipants={participants}
-                        iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
-                        iouComment={transaction?.comment?.comment ?? ''}
-                        iouCurrencyCode={transaction?.currency}
-                        iouIsBillable={transaction?.billable}
-                        onToggleBillable={setBillable}
-                        iouCategory={transaction?.category}
-                        onConfirm={onConfirm}
-                        onSendMoney={sendMoney}
-                        receiptPath={receiptPath}
-                        receiptFilename={receiptFilename}
-                        iouType={iouType}
-                        reportID={reportID}
-                        isPolicyExpenseChat={isPolicyExpenseChat}
-                        policyID={getIOURequestPolicyID(transaction, report)}
-                        bankAccountRoute={getBankAccountRoute(report)}
-                        iouMerchant={transaction?.merchant}
-                        iouCreated={transaction?.created}
-                        isDistanceRequest={isDistanceRequest}
-                        isPerDiemRequest={isPerDiemRequest}
-                        shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
-                        action={action}
-                        payeePersonalDetails={payeePersonalDetails}
-                        shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
-                        isConfirmed={isConfirmed}
-                    />
-                </View>
-            </DragAndDropProvider>
+                )}
+                <MoneyRequestConfirmationList
+                    transaction={transaction}
+                    selectedParticipants={participants}
+                    iouAmount={Math.abs(transaction?.amount ?? 0)}
+                    iouAttendees={transaction?.attendees ?? []}
+                    iouComment={transaction?.comment?.comment ?? ''}
+                    iouCurrencyCode={transaction?.currency}
+                    iouIsBillable={transaction?.billable}
+                    onToggleBillable={setBillable}
+                    iouCategory={transaction?.category}
+                    onConfirm={onConfirm}
+                    onSendMoney={sendMoney}
+                    receiptPath={receiptPath}
+                    receiptFilename={receiptFilename}
+                    iouType={iouType}
+                    reportID={reportID}
+                    isPolicyExpenseChat={isPolicyExpenseChat}
+                    policyID={getIOURequestPolicyID(transaction, report)}
+                    bankAccountRoute={getBankAccountRoute(report)}
+                    iouMerchant={transaction?.merchant}
+                    iouCreated={transaction?.created}
+                    isDistanceRequest={isDistanceRequest}
+                    isPerDiemRequest={isPerDiemRequest}
+                    shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                    action={action}
+                    payeePersonalDetails={payeePersonalDetails}
+                    shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
+                    isConfirmed={isConfirmed}
+                />
+            </View>
         </ScreenWrapper>
     );
 }

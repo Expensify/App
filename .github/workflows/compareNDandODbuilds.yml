@@ -2,52 +2,111 @@ name: Build and profile Android apps
 
 on:
   workflow_dispatch:
+    inputs:
+      PULL_REQUEST_NUMBER:
+        description: Pull request number to build the app from
+        required: false
+        default: ''
+      OLD_DOT_PULL_REQUEST_NUMBER:
+        description: Old Dot Pull request number to build the app from
+        required: false
+        default: ''
 
 jobs:
-  validateActor:
+  getBranchRef:
     runs-on: ubuntu-latest
     outputs:
-      READY_TO_BUILD: ${{ fromJSON(steps.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
+      REF: ${{ steps.getHeadRef.outputs.REF }}
     steps:
-      - name: Is Expensify employee
-        id: isExpensifyEmployee
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get NewDot PR commit SHA
+        id: getHeadRef
         run: |
-          if gh api /orgs/Expensify/teams/expensify-expensify/memberships/${{ github.actor }} --silent; then
-            echo "IS_EXPENSIFY_EMPLOYEE=true" >> "$GITHUB_OUTPUT"
+          set -e
+          if [[ -z "${{ github.event.inputs.PULL_REQUEST_NUMBER }}" ]]; then
+            echo "REF=" >> "$GITHUB_OUTPUT"
           else
-            echo "IS_EXPENSIFY_EMPLOYEE=false" >> "$GITHUB_OUTPUT"
+            echo "REF=$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+  getOldDotBranchRef:
+    runs-on: ubuntu-latest
+    outputs:
+      OLD_DOT_REF: ${{ steps.getHeadRef.outputs.REF }}
+    steps:
+      - name: Get OD PR commit SHA
+        id: getHeadRef
+        run: |
+          set -e
+          if [[ -z "${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }}" ]]; then
+            echo "REF=" >> "$GITHUB_OUTPUT"
+          else
+            echo "REF=$(gh pr view ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }} -R Expensify/Mobile-Expensify --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - id: hasReadyToBuildLabel
-        name: Set HAS_READY_TO_BUILD_LABEL flag
-        run: |
-          echo "HAS_READY_TO_BUILD_LABEL=$(gh pr view "${{ env.PULL_REQUEST_NUMBER }}" --repo Expensify/App --json labels --jq '.labels[].name' | grep -q 'Ready To Build' && echo 'true')" >> "$GITHUB_OUTPUT"
-          if [[ "$HAS_READY_TO_BUILD_LABEL" != 'true' ]]; then
-            echo "The 'Ready to Build' label is not attached to the PR #${{ env.PULL_REQUEST_NUMBER }}"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
+  
+  
+  postGitHubCommentBuildStarted:
+    runs-on: ubuntu-latest
+    needs: [getBranchRef, getOldDotBranchRef]
+    steps:
+      - name: Add comment to ND PR 
+        if: ${{ github.event.inputs.PULL_REQUEST_NUMBER != ''}}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.inputs.PULL_REQUEST_NUMBER }},
+              body: `🚧 @${{ github.actor }} has triggered build profiling. You can view the [workflow run here](${workflowURL}).`
+            });  
+      
+      - name: Add comment to OD PR 
+        if: ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER != '' }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          script: |
+            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: 'Mobile-Expensify',
+              issue_number: ${{ github.event.inputs.OLD_DOT_PULL_REQUEST_NUMBER }},
+              body: `🚧 @${{ github.actor }} has triggered build profiling. You can view the [workflow run here](${workflowURL}).`
+            });
+       
   buildHybridAppAndroid:
     name: Build HybridApp Android
-    needs: [validateActor]
-    runs-on: macos-15-xlarge
+    needs: [getBranchRef, getOldDotBranchRef]
+    runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ needs.getBranchRef.outputs.REF || 'main' }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          fetch-depth: 0
 
       - name: Update submodule to match main
         run: |
           git submodule update --init --remote
+      
+      - name: Checkout OldDot if PR specified
+        if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
+        run: |
           cd Mobile-Expensify
-          git fetch
-          git checkout main
+          git fetch origin ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
+          git checkout ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF }}
+                
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -58,30 +117,74 @@ jobs:
         with:
           IS_HYBRID_BUILD: 'true'
 
+      - name: Run grunt build
+        run: |
+          cd Mobile-Expensify
+          npm run grunt:build:shared
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.190.0
+        with:
+          bundler-cache: true
+
+      - name: Install New Expensify Gems
+        run: bundle install
+
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
+        working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+          
+          # Copy the keystore to the Android directory for Fullstory
+          cp ./upload-key.keystore Mobile-Expensify/Android 
+
+      - name: Load Android upload keystore credentials from 1Password
+        id: load-credentials
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+
       - name: Build Android Release
         working-directory: Mobile-Expensify/Android
         run: |
-          if ! ./gradlew --profile assembleRelease
-          then
-            echo "❌ Android HybridApp failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
-            exit 1
-          else
-            echo "✅ Build succeeded. Printing Gradle profile report:"
-            # Print the latest generated profile report
-            PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
-            cat "$PROFILE_REPORT"
-          fi
+          ./gradlew --profile assembleRelease \
+            -Pandroid.injected.signing.store.file="./upload-key.keystore" \
+            -Pandroid.injected.signing.store.password=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          
+          echo "Printing Gradle profile report:"
+          # Print the latest generated profile report
+          PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+          cat "$PROFILE_REPORT"
 
   buildStandaloneAndroid:
     name: Build Standalone Android
-    needs: [ validateActor ]
-    runs-on: macos-15-xlarge
+    needs: [getBranchRef]
+    runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ref: ${{ needs.getBranchRef.outputs.REF || 'main' }}
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -91,17 +194,25 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: 'false'
+     
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@v1
+
+      - name: Load files from 1Password
+        working-directory: android/app
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: op read "op://${{ vars.OP_VAULT }}/New Expensify my-upload-key.keystore/my-upload-key.keystore" --force --out-file ./my-upload-key.keystore
 
       - name: Build Android Release
         working-directory: android
+        env:
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
         run: |
-          if ! ./gradlew --profile assembleProductionRelease
-          then
-            echo "❌ Android Standalone failed to build: Please reach out to Contributor+ and/or Expensify engineers for help in #expensify-open-source to resolve."
-            exit 1
-          else
-            echo "✅ Build succeeded. Printing Gradle profile report:"
-            # Print the latest generated profile report
-            PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
-            cat "$PROFILE_REPORT"
-          fi
+          ./gradlew --profile assembleProductionRelease
+
+          echo "Printing Gradle profile report:"
+          # Print the latest generated profile report
+          PROFILE_REPORT=$(find build/reports/profile -maxdepth 1 -type f)
+          cat "$PROFILE_REPORT"
