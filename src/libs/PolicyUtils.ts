@@ -1267,14 +1267,14 @@ function getAdminsPrivateEmailDomains(policy?: Policy) {
 
     const ownerDomains = policy.owner ? [Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
 
-    const nonPulicDomains = [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
+    const privateDomains = [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
 
     // If the policy is not owned by Expensify there is no point in showing the domain for provisioning.
     if (!isExpensifyTeam(policy.owner)) {
-        return nonPulicDomains.filter((domain) => domain !== CONST.EXPENSIFY_PARTNER_NAME && domain !== CONST.EMAIL.GUIDES_DOMAIN);
+        return privateDomains.filter((domain) => domain !== CONST.EXPENSIFY_PARTNER_NAME && domain !== CONST.EMAIL.GUIDES_DOMAIN);
     }
 
-    return nonPulicDomains;
+    return privateDomains;
 }
 
 /**
