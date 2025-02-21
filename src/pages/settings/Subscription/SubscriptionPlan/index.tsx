@@ -109,7 +109,7 @@ function SubscriptionPlan() {
 
         //  If the user has multiple policies as owner and selected plan is corporate, navigate to upgrade page.
         if (ownerPolicies.length > 1 && planType === CONST.POLICY.TYPE.CORPORATE) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute());
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(undefined, undefined, Navigation.getActiveRoute()));
         }
     };
 

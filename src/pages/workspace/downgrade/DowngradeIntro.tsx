@@ -93,7 +93,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID}: Props)
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, {forceReplace: true})}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route, {forceReplace: true})}
                     large
                 />
             )}

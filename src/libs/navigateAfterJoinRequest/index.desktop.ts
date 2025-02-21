@@ -7,6 +7,6 @@ const navigateAfterJoinRequest = () => {
     if (getIsSmallScreenWidth()) {
         Navigation.navigate(ROUTES.SETTINGS);
     }
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
 };
 export default navigateAfterJoinRequest;
