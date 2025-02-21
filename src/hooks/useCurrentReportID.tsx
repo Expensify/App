@@ -50,7 +50,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     const contextValue = useMemo(
         (): CurrentReportIDContextValue => ({
             updateCurrentReportID,
-            currentReportID: lastAccessReportFromPath ?? currentReportID,
+            currentReportID: lastAccessReportFromPath || currentReportID,
         }),
         [updateCurrentReportID, currentReportID, lastAccessReportFromPath],
     );
