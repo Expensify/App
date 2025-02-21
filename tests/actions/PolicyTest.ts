@@ -249,6 +249,39 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('disableWorkflows', () => {
+        it('disableWorkflow should reset autoReportingFrequency to INSTANT', async () => {
+            const autoReporting = true;
+            const autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY;
+            // Given that a policy has autoReporting initially set to true and autoReportingFrequency set to monthly.
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                autoReporting,
+                autoReportingFrequency,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            // When workflows are disabled for the policy 
+            Policy.enablePolicyWorkflows(fakePolicy.id, false);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+            
+            // Then the policy autoReportingFrequency should revert to "INSTANT"
+            expect(policy?.autoReporting).toBe(false);
+            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+            
+        });
+    });
+
     describe('enablePolicyRules', () => {
         it('should disable preventSelfApproval when the rule feature is turned off', async () => {
             (fetch as MockFetch)?.pause?.();
