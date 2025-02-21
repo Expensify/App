@@ -16,16 +16,15 @@ function SidePane() {
     const {translate} = useLocalize();
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
 
-    const resetTriggered = useRef(false);
-
     const onClose = useCallback(
-        (updateNarrow = false) => {
+        (shouldUpdateNarrow = false) => {
             // eslint-disable-next-line rulesdir/prefer-actions-set-data
-            Onyx.merge(ONYXKEYS.NVP_SIDE_PANE, isExtraLargeScreenWidth && !updateNarrow ? {open: false} : {openMobile: false});
+            Onyx.merge(ONYXKEYS.NVP_SIDE_PANE, isExtraLargeScreenWidth && !shouldUpdateNarrow ? {open: false} : {openMobile: false});
         },
         [isExtraLargeScreenWidth],
     );
 
+    const resetTriggered = useRef(false);
     useEffect(() => {
         // Close the side pane when the screen size changes from large to small
         if (!isExtraLargeScreenWidth && !resetTriggered.current) {
