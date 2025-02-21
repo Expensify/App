@@ -11,9 +11,10 @@ import SignerInfo from './SignerInfo';
 type NonUSDVerifiedBankAccountFlowProps = {
     nonUSDBankAccountStep: string;
     setNonUSDBankAccountStep: (step: string | null) => void;
+    setShouldShowContinueSetupButton: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 };
 
-function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAccountStep}: NonUSDVerifiedBankAccountFlowProps) {
+function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAccountStep, setShouldShowContinueSetupButton}: NonUSDVerifiedBankAccountFlowProps) {
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
             case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
@@ -42,6 +43,7 @@ function NonUSDVerifiedBankAccountFlow({nonUSDBankAccountStep, setNonUSDBankAcco
     const nonUSDBankAccountsGoBack = () => {
         switch (nonUSDBankAccountStep) {
             case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
+                setShouldShowContinueSetupButton(true);
                 setNonUSDBankAccountStep(null);
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:

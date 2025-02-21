@@ -406,6 +406,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             <NonUSDVerifiedBankAccountFlow
                 nonUSDBankAccountStep={nonUSDBankAccountStep}
                 setNonUSDBankAccountStep={setNonUSDBankAccountStep}
+                setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
             />
         );
     }
