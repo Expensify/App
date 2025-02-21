@@ -79,7 +79,7 @@ function VerifyPage({route}: VerifyPageProps) {
                 text: translate('twoFactorAuth.stepVerify'),
                 total: 3,
             }}
-            onBackButtonPress={Navigation.goBack}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
         >
             <ScrollView
                 keyboardShouldPersistTaps="handled"
