@@ -31,6 +31,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -167,17 +168,21 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const {reportActions} = usePaginatedReportActions(report.reportID);
     const {currentSearchHash} = useSearchContext();
+    console.log('here');
+    console.log(reportPDFFilename);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -396,6 +401,11 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport, backTo]);
 
+    const downloadReportPDF = useCallback(() => {
+        setIsPDFModalVisible(true);
+        exportReportToPDF({reportID: report.reportID});
+    }, [report]);
+
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
 
@@ -563,7 +573,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             setOfflineModalVisible(true);
                         }
 
-                        setIsPDFModalVisible(true);
+                        downloadReportPDF();
                     },
                 },
             );
@@ -1148,16 +1158,26 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             <View>
                                 <Text>{'Please wait while we generate the PDF'}</Text>
                                 <ActivityIndicator
-                                    size="small"
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                     color={theme.textSupporting}
+                                    style={styles.mt3}
                                 />
                             </View>
                         </View>
-                        <Button
-                            style={[styles.mt3, styles.noSelect]}
-                            onPress={() => setIsPDFModalVisible(false)}
-                            text={"Download"}
-                        />
+                        {reportPDFFilename !== undefined && reportPDFFilename !== 'error' && (
+                            <Button
+                                style={[styles.mt3, styles.noSelect]}
+                                onPress={() => setIsPDFModalVisible(false)}
+                                text={"Download"}
+                            />
+                        )}
+                        {(reportPDFFilename === undefined || reportPDFFilename === 'error') && (
+                            <Button
+                                style={[styles.mt3, styles.noSelect]}
+                                onPress={() => setIsPDFModalVisible(false)}
+                                text={"Close"}
+                            />
+                        )}
                     </View>
                 </Modal>
             </FullPageNotFoundView>

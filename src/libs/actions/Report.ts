@@ -4663,7 +4663,7 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function exportReportToPDF({reportID}: ExportReportPDFParams, onDownloadFailed: () => void) {
+function exportReportToPDF({reportID}: ExportReportPDFParams) {
     console.log(allReportPDFFiles);
 }
 
