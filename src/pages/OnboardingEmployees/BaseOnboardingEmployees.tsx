@@ -18,7 +18,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import * as Link from '@userActions/Link';
 import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID} from '@userActions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,6 +73,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
+                    switchToOldDotOnNonMicroCompanySize(selectedCompanySize);
 
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
