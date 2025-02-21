@@ -21,20 +21,12 @@ Onyx.connect({
 });
 
 let currentUserEmail = '';
-let currentUserAccountID = -1;
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-let isTravelTestAccount = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
-    callback: (value) => {
-        isTravelTestAccount = value?.testAccount ?? false;
     },
 });
 
@@ -87,9 +79,9 @@ function openOldDotLink(url: string, shouldOpenInSameTab = false) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken: string, postLoginPath?: string): string {
-    const environmentURL = isTravelTestAccount ? CONST.STAGING_TRAVEL_DOT_URL : CONST.TRAVEL_DOT_URL;
-    const tmcID = isTravelTestAccount ? CONST.STAGING_SPOTNANA_TMC_ID : CONST.SPOTNANA_TMC_ID;
+function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLoginPath?: string): string {
+    const environmentURL = isTestAccount ? CONST.STAGING_TRAVEL_DOT_URL : CONST.TRAVEL_DOT_URL;
+    const tmcID = isTestAccount ? CONST.STAGING_SPOTNANA_TMC_ID : CONST.SPOTNANA_TMC_ID;
 
     const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
@@ -124,7 +116,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
                         reject(error);
                         throw error;
                     }
-                    const travelURL = buildTravelDotURL(response.spotnanaToken, postLoginPath);
+                    const travelURL = buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false, postLoginPath);
                     resolve(undefined);
                     return travelURL;
                 })
@@ -138,6 +130,9 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
 }
 
 function getInternalNewExpensifyPath(href: string) {
+    if (!href) {
+        return '';
+    }
     const attrPath = Url.getPathFromURL(href);
     return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
         !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => attrPath.startsWith(path))
@@ -146,6 +141,10 @@ function getInternalNewExpensifyPath(href: string) {
 }
 
 function getInternalExpensifyPath(href: string) {
+    if (!href) {
+        return '';
+    }
+
     const attrPath = Url.getPathFromURL(href);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     if (!hasExpensifyOrigin || attrPath.startsWith(CONFIG.EXPENSIFY.CONCIERGE_URL_PATHNAME) || attrPath.startsWith(CONFIG.EXPENSIFY.DEVPORTAL_URL_PATHNAME)) {
