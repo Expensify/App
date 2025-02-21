@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -37,6 +37,8 @@ function AnimatedSettlementButton({
     const buttonMarginTop = useSharedValue<number>(gap);
     const height = useSharedValue<number>(variables.componentSizeNormal);
     const [canShow, setCanShow] = React.useState(true);
+    const [minWidth, setMinWidth] = React.useState<number>(0);
+    const viewRef = useRef<HTMLElement | null>();
 
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),
@@ -85,19 +87,24 @@ function AnimatedSettlementButton({
 
     useEffect(() => {
         if (!isAnimationRunning) {
+            setMinWidth(0);
             setCanShow(true);
             height.set(variables.componentSizeNormal);
             buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
             return;
         }
+        setMinWidth(viewRef.current?.getBoundingClientRect?.().width ?? 0);
         const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY);
         return () => clearTimeout(timer);
     }, [buttonMarginTop, gap, height, isAnimationRunning, shouldAddTopMargin]);
 
     return (
-        <Animated.View style={[containerStyles, wrapperStyle]}>
+        <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
             {isAnimationRunning && canShow && (
-                <Animated.View exiting={buttonAnimation}>
+                <Animated.View
+                    ref={(el) => (viewRef.current = el as HTMLElement | null)}
+                    exiting={buttonAnimation}
+                >
                     <Button
                         text={isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}
                         success
