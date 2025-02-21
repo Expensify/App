@@ -523,6 +523,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
+    /** Whether to subscribe to KeyboardShortcut arrow keys events */
+    shouldSubscribeToArrowKeyEvents?: boolean;
+
     /** Custom content to display in the header */
     headerContent?: ReactNode;
 

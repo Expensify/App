@@ -126,6 +126,7 @@ function BaseSelectionList<TItem extends ListItem>(
         initialNumToRender = 12,
         listItemTitleContainerStyles,
         isScreenFocused = false,
+        shouldSubscribeToArrowKeyEvents = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -339,7 +340,7 @@ function BaseSelectionList<TItem extends ListItem>(
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: isFocused,
+        isActive: shouldSubscribeToArrowKeyEvents && isFocused,
         onFocusedIndexChange: (index: number) => {
             const focusedItem = flattenedSections.allOptions.at(index);
             if (focusedItem) {
