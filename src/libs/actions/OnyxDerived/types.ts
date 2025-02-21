@@ -15,7 +15,7 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
     dependencies: Deps;
     compute: (
         args: {
-            -readonly [Index in keyof Deps]: OnyxValue<Deps[Index]>;
+            [Index in keyof Deps]: OnyxValue<Deps[Index]>;
         },
         currentValue: OnyxValue<Key>,
     ) => OnyxValue<Key>;
