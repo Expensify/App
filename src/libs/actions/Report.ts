@@ -4663,22 +4663,8 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function exportReportToPDF({reportID, transactionIDList}: ExportReportPDFParams, onDownloadFailed: () => void) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, {
-        reportID,
-        transactionIDList,
-    });
-
-    const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-            formData.append(key, value.join(','));
-        } else {
-            formData.append(key, String(value));
-        }
-    });
-
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_PDF}), 'Expensify.pdf', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+function exportReportToPDF({reportID}: ExportReportPDFParams, onDownloadFailed: () => void) {
+    console.log(allReportPDFFiles);
 }
 
 function getConciergeReportID() {

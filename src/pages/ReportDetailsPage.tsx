@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -139,6 +139,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import Header from "@components/Header";
+import Button from "@components/Button";
+import Modal from "@components/Modal";
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -195,6 +198,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+    const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
@@ -559,9 +563,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             setOfflineModalVisible(true);
                         }
 
-                        exportReportToPDF({reportID: report.reportID, transactionIDList}, () => {
-                            setDownloadErrorModalVisible(true);
-                        });
+                        setIsPDFModalVisible(true);
                     },
                 },
             );
@@ -1130,6 +1132,34 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isVisible={downloadErrorModalVisible}
                     onClose={() => setDownloadErrorModalVisible(false)}
                 />
+                <Modal
+                    onClose={() => setIsPDFModalVisible(false)}
+                    isVisible={isPDFModalVisible}
+                    type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+                >
+                    <View style={[styles.m5]}>
+                        <View>
+                            <View style={[styles.flexRow, styles.mb4]}>
+                                <Header
+                                    title={'Generating PDF'}
+                                    containerStyles={[styles.alignItemsCenter]}
+                                />
+                            </View>
+                            <View>
+                                <Text>{'Please wait while we generate the PDF'}</Text>
+                                <ActivityIndicator
+                                    size="small"
+                                    color={theme.textSupporting}
+                                />
+                            </View>
+                        </View>
+                        <Button
+                            style={[styles.mt3, styles.noSelect]}
+                            onPress={() => setIsPDFModalVisible(false)}
+                            text={"Download"}
+                        />
+                    </View>
+                </Modal>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
