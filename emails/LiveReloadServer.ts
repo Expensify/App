@@ -24,10 +24,10 @@ class LiveReloadServer {
      */
     public static readonly clientConnectionScript = `
         <script>
-            const ws = new WebSocket(${this.URL}, ${this.PROTOCOL_CONSUMER});
+            const ws = new WebSocket('${this.URL}', '${this.PROTOCOL_CONSUMER}');
             ws.onmessage = (message) => {
-                const event = JSON.parse(message.toString());
-                if (event.type !== ${this.EVENT_RELOAD}) {
+                const event = JSON.parse(message.data.toString());
+                if (event.type !== '${this.EVENT_RELOAD}') {
                     return;
                 }
                 console.log('🔄 Received reload event, refreshing page...');
@@ -107,8 +107,10 @@ class LiveReloadServer {
      * Keep track of consumers so that we can refresh them as needed.
      */
     private registerConsumer = (ws: WebSocket) => {
+        console.log(`🍽️  Registering consumer`);
         this.consumerClients.add(ws);
         ws.on('close', () => {
+            console.log('🗑️  Deleting consumer');
             this.consumerClients.delete(ws);
         });
     };
