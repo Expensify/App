@@ -728,7 +728,7 @@ const CONST = {
                 SIGNER_DETAILS_FORM: 3,
                 DIRECTOR_DETAILS_FORM: 4,
                 HANG_TIGHT: 5,
-                IS_ANYONE_ELSE_DIRECTOR: 6,
+                ARE_YOU_DIRECTOR: 6,
                 DIRECTORS_LIST: 7,
             },
             SIGNER_INFO_DATA: {

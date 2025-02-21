@@ -63,16 +63,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const [isEditingExistingDirector, setIsEditingExistingDirector] = useState(false);
     const [directorBeingModifiedID, setDirectorBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
 
-    const submitSignerDetailsForm = () => {
-        setCurrentSubStep(SUBSTEP.IS_ANYONE_ELSE_DIRECTOR);
-    };
-
-    const submitDirectorDetailsForm = () => {
-        setIsAnyoneElseDirector(false);
-        setCurrentSubStep(isEditingExistingDirector ? SUBSTEP.DIRECTORS_LIST : SUBSTEP.IS_ANYONE_ELSE_DIRECTOR);
-        setIsEditingExistingDirector(false);
-    };
-
     const submit = useCallback(() => {
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorKeys);
 
@@ -88,7 +78,19 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             });
             onSubmit();
         }
-    }, [account?.primaryLogin, bankAccountID, currency, directorBeingModifiedID, onSubmit, reimbursementAccountDraft]);
+    }, [account?.primaryLogin, bankAccountID, currency, directorKeys, onSubmit, reimbursementAccountDraft]);
+
+    const submitSignerDetailsForm = () => {
+        setCurrentSubStep(SUBSTEP.ARE_YOU_DIRECTOR);
+    };
+
+    const submitDirectorDetailsForm = () => {
+        setIsAnyoneElseDirector(false);
+        setCurrentSubStep(SUBSTEP.DIRECTORS_LIST);
+        if (isEditingExistingDirector) {
+            setIsEditingExistingDirector(false);
+        }
+    };
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
@@ -146,16 +148,10 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 return;
             }
 
-            if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_DIRECTOR) {
-                if (!value) {
-                    if (directorKeys.length === 1) {
-                        // user selected "No" and it's the first time we ask -> we should just submit the step
-                        submit();
-                        return;
-                    }
-
-                    // user selected "No" and there is additional director data collected already -> show confirmation page
-                    setCurrentSubStep(SUBSTEP.DIRECTORS_LIST);
+            if (currentSubStep === SUBSTEP.ARE_YOU_DIRECTOR) {
+                if (value) {
+                    // user selected "Yes" no need to collect anything else -> we should just submit the step
+                    submit();
                     return;
                 }
 
@@ -167,7 +163,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             setIsUserDirector(value);
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         },
-        [currentSubStep, directorKeys.length, prepareDirectorDetailsForm, submit],
+        [currentSubStep, prepareDirectorDetailsForm, submit],
     );
 
     const handleBackButtonPress = useCallback(() => {
@@ -223,10 +219,10 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 />
             )}
 
-            {currentSubStep === SUBSTEP.IS_ANYONE_ELSE_DIRECTOR && (
+            {currentSubStep === SUBSTEP.ARE_YOU_DIRECTOR && (
                 <YesNoStep
-                    title="Is anyone else director?"
-                    description="Some description here"
+                    title="Are you a director?"
+                    description="If you are not director, we need to collect additional information about at least one director in the company"
                     defaultValue={isAnyoneElseDirector}
                     onSelectedValue={handleNextSubStep}
                 />
