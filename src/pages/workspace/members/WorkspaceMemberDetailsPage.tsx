@@ -261,7 +261,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         return <NotFoundPage />;
     }
 
-    const shouldShowCardsSection = !!paymentBankAccountID || hasMultipleFeeds;
+    const shouldShowCardsSection = (!!paymentBankAccountID && !!policy?.areExpensifyCardsEnabled) || hasMultipleFeeds;
 
     return (
         <AccessOrNotFoundWrapper
