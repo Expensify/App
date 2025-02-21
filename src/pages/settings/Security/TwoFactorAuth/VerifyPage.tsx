@@ -72,7 +72,6 @@ function VerifyPage({route}: VerifyPageProps) {
 
     return (
         <TwoFactorAuthWrapper
-            shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.VERIFY}
             title={translate('twoFactorAuth.headerTitle')}
             stepCounter={{
