@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
     canBeExported,
@@ -27,15 +27,13 @@ import {
     isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
     isClosedExpenseReportWithNoExpenses,
-    isCurrentUserSubmitter,
     isInvoiceReport,
-    isReportApproved,
-    isReportManuallyReimbursed,
     navigateBackOnDeleteTransaction,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
+    checkIfShouldShowMarkAsCashButton,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
@@ -175,13 +173,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
-    const shouldShowBrokenConnectionMarkAsCashButton =
-        shouldShowBrokenConnectionViolation &&
-        (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID)) &&
-        !isReportApproved({report: moneyRequestReport}) &&
-        !isReportManuallyReimbursed(moneyRequestReport);
-
-    const shouldShowMarkAsCashButton = !!transactionThreadReportID && (hasAllPendingRTERViolations || shouldShowBrokenConnectionMarkAsCashButton);
+    const shouldShowMarkAsCashButton =
+        !!transactionThreadReportID && checkIfShouldShowMarkAsCashButton(hasAllPendingRTERViolations, shouldShowBrokenConnectionViolation, moneyRequestReport, policy);
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
