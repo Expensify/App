@@ -8,9 +8,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {canModifyPlan, isCollectPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as Policy from '@src/libs/actions/Policy/Policy';
+import {downgradeToTeam as downgradeToTeamPolicyUtils} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import DowngradeConfirmation from './DowngradeConfirmation';
@@ -25,14 +25,14 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {isOffline} = useNetwork();
 
-    const canPerformDowngrade = useMemo(() => PolicyUtils.canModifyPlan(policyID), [policyID]);
-    const isDowngraded = useMemo(() => PolicyUtils.isCollectPolicy(policy), [policy]);
+    const canPerformDowngrade = useMemo(() => canModifyPlan(policyID), [policyID]);
+    const isDowngraded = useMemo(() => isCollectPolicy(policy), [policy]);
 
     const downgradeToTeam = () => {
         if (!canPerformDowngrade || !policy) {
             return;
         }
-        Policy.downgradeToTeam(policy.id);
+        downgradeToTeamPolicyUtils(policy.id);
     };
 
     if (!canPerformDowngrade) {
