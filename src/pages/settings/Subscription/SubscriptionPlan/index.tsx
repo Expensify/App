@@ -103,7 +103,7 @@ function SubscriptionPlan() {
 
         // If the user has multiple policies as owner and selected plan is team, navigate to downgrade page.
         if (ownerPolicies.length > 1 && planType === CONST.POLICY.TYPE.TEAM) {
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute());
+            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(undefined, Navigation.getActiveRoute()));
             return;
         }
 
