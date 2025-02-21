@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Backdrop from '@components/Modal/BottomDockedModal/Backdrop';
-import {PressableWithFeedback} from '@components/Pressable';
+import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+import {isSidePaneHidden} from '@libs/SidePaneUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function SidePane() {
@@ -38,11 +38,7 @@ function SidePane() {
         }
     }, [isExtraLargeScreenWidth, onClose]);
 
-    if (!isExtraLargeScreenWidth && !sidePane?.openMobile) {
-        return null;
-    }
-
-    if (isExtraLargeScreenWidth && !sidePane?.open) {
+    if (isSidePaneHidden(sidePane, isExtraLargeScreenWidth)) {
         return null;
     }
 
@@ -55,20 +51,16 @@ function SidePane() {
                 />
             )}
             <View style={styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth)}>
-                <PressableWithFeedback
-                    onPress={() => onClose(false)}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.close')}
-                >
+                <ScreenWrapper testID={SidePane.displayName}>
                     <HeaderWithBackButton
-                        title="Help"
+                        title={translate('common.help')}
                         onBackButtonPress={() => onClose(false)}
                         onCloseButtonPress={() => onClose(false)}
                         shouldShowBackButton={!isExtraLargeScreenWidth}
                         shouldShowCloseButton={isExtraLargeScreenWidth}
                         shouldDisplayHelpButton={false}
                     />
-                </PressableWithFeedback>
+                </ScreenWrapper>
             </View>
         </>
     );
