@@ -4193,24 +4193,36 @@ function prepareOnboardingOnyxData(
     return {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters};
 }
 
-function completeOnboarding(
-    engagementChoice: OnboardingPurpose,
-    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+function completeOnboarding({
+    engagementChoice,
+    data,
     firstName = '',
     lastName = '',
-    adminsChatReportID?: string,
-    onboardingPolicyID?: string,
-    paymentSelected?: string,
-    companySize?: OnboardingCompanySize,
-    userReportedIntegration?: OnboardingAccounting,
-    wasInvited?: boolean,
+    adminsChatReportID,
+    onboardingPolicyID,
+    paymentSelected,
+    companySize,
+    userReportedIntegration,
+    wasInvited,
+}: {
+    engagementChoice: OnboardingPurpose;
+    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>;
+    firstName: string;
+    lastName: string;
+    adminsChatReportID?: string;
+    onboardingPolicyID?: string;
+    paymentSelected?: string;
+    companySize?: OnboardingCompanySize;
+    userReportedIntegration?: OnboardingAccounting;
+    wasInvited?: boolean;
+    }
 ) {
     const onboardingData = prepareOnboardingOnyxData(engagementChoice, data, adminsChatReportID, onboardingPolicyID, userReportedIntegration, wasInvited);
     if (!onboardingData) {
         return;
     }
 
-    const {optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters} = onboardingData;
+    const { optimisticData, successData, failureData, guidedSetupData, actorAccountID, selfDMParameters } = onboardingData;
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
@@ -4226,7 +4238,7 @@ function completeOnboarding(
         selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
-    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, { optimisticData, successData, failureData });
 }
 
 /** Loads necessary data for rendering the RoomMembersPage */

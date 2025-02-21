@@ -8836,18 +8836,16 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
     }
 
-    completeOnboarding(
-        onboardingPurpose,
-        CONST.ONBOARDING_MESSAGES[onboardingPurpose],
-        personalDetails?.firstName ?? '',
-        personalDetails?.lastName ?? '',
+    completeOnboarding({
+        engagementChoice: onboardingPurpose,
+        data: CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        firstName: personalDetails?.firstName ?? '',
+        lastName: personalDetails?.lastName ?? '',
         adminsChatReportID,
         onboardingPolicyID,
         paymentSelected,
-        undefined,
-        undefined,
-        true,
-    );
+        wasInvited: true,
+    });
 }
 function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
