@@ -758,6 +758,8 @@ const ONYXKEYS = {
         DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
         WORKSPACE_PER_DIEM_FORM: 'workspacePerDiemForm',
         WORKSPACE_PER_DIEM_FORM_DRAFT: 'workspacePerDiemFormDraft',
+        CUSTOM_APPROVAL_WORKFLOW_FORM: 'customApprovalWorkflowForm',
+        CUSTOM_APPROVAL_WORKFLOW_FORM_DRAFT: 'customApprovalWorkflowFormDraft',
     },
 } as const;
 
@@ -857,6 +859,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
+    [ONYXKEYS.FORMS.CUSTOM_APPROVAL_WORKFLOW_FORM]: FormTypes.CustomApprovalWorkflowForm;
 };
 
 type OnyxFormDraftValuesMapping = {

@@ -51,6 +51,10 @@ import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
+import TextInput from "@components/TextInput";
+import INPUT_IDS from "@src/types/form/CustomApprovalWorkflowForm";
+import InputWrapper from "@components/Form/InputWrapper";
+import FormProvider from "@components/Form/FormProvider";
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -128,6 +132,16 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
     }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
 
+    const [draftPrompt] = useOnyx(ONYXKEYS.FORMS.CUSTOM_APPROVAL_WORKFLOW_FORM_DRAFT);
+    const setCustomPrompt = useCallback(() => {
+        console.debug('~~Monil is here');
+        if (!policy) {
+            return;
+        }
+        console.debug(draftPrompt?.customPrompt)
+        Policy.setCustomApprovalWorkflowPrompt(policy.id, draftPrompt?.customPrompt);
+    }, [policy]);
+
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const {addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
         const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -204,6 +218,41 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
                 onCloseError: () => clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+            },
+            {
+                title: translate('workflowsPage.customWorkflowTitle'),
+                subtitle: translate('workflowsPage.customWorkflowDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
+                onToggle: () => {},
+                disabled: true,
+                showLockIcon: true,
+                subMenuItems: (
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.CUSTOM_APPROVAL_WORKFLOW_FORM}
+                        isSubmitButtonVisible={true}
+                        submitButtonText={translate('common.save')}
+                        scrollContextEnabled
+                        onSubmit={setCustomPrompt}
+                        style={[styles.mh5, styles.mt5, styles.flex1]}
+                    >
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.CUSTOM_PROMPT}
+                            label={translate('customApprovalWorkflow.placeholder')}
+                            role={CONST.ROLE.PRESENTATION}
+                            maxLength={10000}
+                            shouldSaveDraft={true}
+                            multiline={true}
+                            numberOfLines={5}
+                            defaultValue={policy?.customApprovalWorkflowPrompt}
+                        />
+                    </FormProvider>
+                ),
+                isActive:
+                    ([CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL].some((approvalMode) => approvalMode === policy?.approvalMode) && policy?.dynamicExternalWorkflowRulesProcessor === 'EXPENSIFY_AI' && !hasApprovalError) ?? false,
+                pendingAction: policy?.pendingFields?.approvalMode,
+                errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                onCloseError: () => Policy.clearPolicyErrorField(route.params.policyID, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
             },
             {
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),

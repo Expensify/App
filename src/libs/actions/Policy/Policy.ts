@@ -100,6 +100,7 @@ import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuit
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticPolicyCategories} from './Category';
+import SetCustomApprovalWorkflowPromptParams from "@libs/API/parameters/SetCustomApprovalWorkflowPromptParams";
 
 type ReportCreationData = Record<
     string,
@@ -226,6 +227,11 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let customApprovalWorkflowPrompt: OnyxEntry<string>;
+Onyx.connect({
+   key: ONYXKEYS.CUSTOM_STATUS_DRAFT
 });
 
 /**
@@ -4891,6 +4897,14 @@ function getAssignedSupportData(policyID: string) {
     API.read(READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA, parameters);
 }
 
+function setCustomApprovalWorkflowPrompt(policyID: string, prompt: string) {
+    const parameters: SetCustomApprovalWorkflowPromptParams = {
+        policyID,
+        prompt,
+    }
+    API.write(WRITE_COMMANDS.SET_CUSTOM_APPROVAL_WORKFLOW_PROMPT, parameters);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -4991,6 +5005,7 @@ export {
     updateDefaultPolicy,
     getAssignedSupportData,
     downgradeToTeam,
+    setCustomApprovalWorkflowPrompt,
 };
 
 export type {NewCustomUnit};

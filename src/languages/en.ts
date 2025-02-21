@@ -1613,6 +1613,8 @@ const translations = {
             expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
             approverSubtitle: 'All approvers belong to an existing workflow.',
         },
+        customWorkflowTitle: 'Custom Workflows',
+        customWorkflowDescription: 'Write how you want your complex approval workflows to function, which you cannot set up in "Add approvals" section above',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
@@ -5955,6 +5957,9 @@ const translations = {
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
     },
+    customApprovalWorkflow:{
+        placeholder: 'Enter how would you like your approval workflows to work for complex cases',
+    }
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;
