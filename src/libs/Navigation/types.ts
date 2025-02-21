@@ -53,6 +53,7 @@ type NavigationStateRoute = NavigationState['routes'][number];
 type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<Route<TRouteName>>;
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
+type NavigationRoute = NavigationStateRoute | NavigationPartialRoute;
 
 type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 
@@ -683,10 +684,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {
@@ -1912,6 +1913,7 @@ export type {
     NavigationRef,
     NavigationRoot,
     NavigationStateRoute,
+    NavigationRoute,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     OnboardingFlowName,

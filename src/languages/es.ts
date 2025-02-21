@@ -714,8 +714,9 @@ const translations = {
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) =>
             `Este chat es con todos los miembros de Expensify en el dominio ${domainRoom}.`,
         beginningOfChatHistoryDomainRoomPartTwo: ' Úsalo para chatear con colegas, compartir consejos y hacer preguntas.',
-        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) =>
-            `Este chat es con los administradores del espacio de trabajo ${workspaceName}.`,
+        beginningOfChatHistoryAdminRoomPartOneFirst: 'Este chat es con los administradores del espacio de trabajo',
+        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName}`,
+        beginningOfChatHistoryAdminRoomPartOneLast: '.',
         beginningOfChatHistoryAdminRoomPartTwo: ' Úsalo para hablar sobre la configuración del espacio de trabajo y más.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `Este chat es con todos en ${workspaceName}.`,
         beginningOfChatHistoryAnnounceRoomPartTwo: ` Úsalo para hablar sobre la configuración del espacio de trabajo y más.`,
@@ -3507,13 +3508,12 @@ const translations = {
                 expense: 'Gasto',
                 reimbursableExpenses: 'Exportar gastos reembolsables como',
                 nonReimbursableExpenses: 'Exportar gastos no reembolsables como',
+                defaultPaymentAccount: 'Preferencia predeterminada de NSQS',
+                paymentAccount: 'Cuenta de pago',
+                paymentAccountDescription: 'Elige la cuenta que se utilizará como cuenta de pago para las transacciones NSQS.',
             },
             advanced: {
                 autoSyncDescription: 'Sincroniza NSQS y Expensify automáticamente, todos los días. Exporta el informe finalizado en tiempo real',
-                defaultApprovalAccount: 'Preferencia predeterminada de NSQS',
-                approvalAccount: 'Cuenta de aprobación de cuentas por pagar',
-                approvalAccountDescription:
-                    'Elija la cuenta con la que se aprobarán las transacciones en NSQS. Si está sincronizando informes reembolsados, esta es también la cuenta con la que se crearán los pagos de facturas.',
             },
         },
         intacct: {
