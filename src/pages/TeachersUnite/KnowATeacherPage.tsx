@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -13,33 +12,27 @@ import TextInput from '@components/TextInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LoginUtils from '@libs/LoginUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidDisplayName} from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IKnowTeacherForm';
-import type {LoginList} from '@src/types/onyx';
 
-type KnowATeacherPageOnyxProps = {
-    loginList: OnyxEntry<LoginList>;
-};
-
-type KnowATeacherPageProps = KnowATeacherPageOnyxProps;
-
-function KnowATeacherPage(props: KnowATeacherPageProps) {
+function KnowATeacherPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-        const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
-        const validateIfnumber = LoginUtils.validateNumber(phoneLogin);
+        const phoneLogin = getPhoneLogin(values.partnerUserID);
+        const validateIfnumber = validateNumber(phoneLogin);
         const contactMethod = (validateIfnumber || values.partnerUserID).trim().toLowerCase();
         const firstName = values.firstName.trim();
         const lastName = values.lastName.trim();
@@ -55,28 +48,46 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
             const errors = {};
-            const phoneLogin = LoginUtils.getPhoneLogin(values.partnerUserID);
-            const validateIfNumber = LoginUtils.validateNumber(phoneLogin);
+            const phoneLogin = getPhoneLogin(values.partnerUserID);
+            const validateIfNumber = validateNumber(phoneLogin);
 
-            if (!values.firstName || !ValidationUtils.isValidDisplayName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+            if (!values.firstName || !isValidDisplayName(values.firstName)) {
+                addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+            } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+                addErrorMessage(
+                    errors,
+                    'firstName',
+                    translate('common.error.characterLimitExceedCounter', {
+                        length: values.firstName.length,
+                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                    }),
+                );
             }
-            if (!values.lastName || !ValidationUtils.isValidDisplayName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+            if (!values.lastName || !isValidDisplayName(values.lastName)) {
+                addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+            } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+                addErrorMessage(
+                    errors,
+                    'lastName',
+                    translate('common.error.characterLimitExceedCounter', {
+                        length: values.lastName.length,
+                        limit: CONST.DISPLAY_NAME.MAX_LENGTH,
+                    }),
+                );
             }
             if (!values.partnerUserID) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
+                addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
             }
-            if (values.partnerUserID && props.loginList?.[validateIfNumber || values.partnerUserID.toLowerCase()]) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+            if (values.partnerUserID && loginList?.[validateIfNumber || values.partnerUserID.toLowerCase()]) {
+                addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
             }
             if (values.partnerUserID && !(validateIfNumber || Str.isValidEmail(values.partnerUserID))) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('contacts.genericFailureMessages.invalidContactMethod'));
+                addErrorMessage(errors, 'partnerUserID', translate('contacts.genericFailureMessages.invalidContactMethod'));
             }
 
             return errors;
         },
-        [props.loginList, translate],
+        [loginList, translate],
     );
 
     return (
@@ -105,7 +116,6 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                         label={translate('common.firstName')}
                         accessibilityLabel={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
@@ -117,7 +127,6 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
                         label={translate('common.lastName')}
                         accessibilityLabel={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
@@ -140,6 +149,4 @@ function KnowATeacherPage(props: KnowATeacherPageProps) {
 
 KnowATeacherPage.displayName = 'KnowATeacherPage';
 
-export default withOnyx<KnowATeacherPageProps, KnowATeacherPageOnyxProps>({
-    loginList: {key: ONYXKEYS.LOGIN_LIST},
-})(KnowATeacherPage);
+export default KnowATeacherPage;

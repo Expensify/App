@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -30,6 +30,17 @@ function SearchFiltersDescriptionPage() {
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     };
 
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM> = {};
+        const descriptionValue = values.description.trim();
+
+        if (descriptionValue.length > CONST.DESCRIPTION_LIMIT) {
+            errors.description = translate('common.error.characterLimitExceedCounter', {length: descriptionValue.length, limit: CONST.DESCRIPTION_LIMIT});
+        }
+
+        return errors;
+    };
+
     return (
         <ScreenWrapper
             testID={SearchFiltersDescriptionPage.displayName}
@@ -47,6 +58,7 @@ function SearchFiltersDescriptionPage() {
             <FormProvider
                 style={[styles.flex1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM}
+                validate={validate}
                 onSubmit={updateDescriptionFilter}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
@@ -57,7 +69,6 @@ function SearchFiltersDescriptionPage() {
                         inputID={FILTER_KEYS.DESCRIPTION}
                         name={FILTER_KEYS.DESCRIPTION}
                         defaultValue={description}
-                        maxLength={CONST.DESCRIPTION_LIMIT}
                         label={translate('common.description')}
                         accessibilityLabel={translate('common.description')}
                         role={CONST.ROLE.PRESENTATION}

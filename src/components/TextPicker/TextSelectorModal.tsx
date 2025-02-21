@@ -4,6 +4,7 @@ import type {TextInput as TextInputType} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,7 +17,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TextSelectorModalProps} from './types';
 
-function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, shouldClearOnClose, ...rest}: TextSelectorModalProps) {
+function TextSelectorModal({
+    value,
+    description = '',
+    subtitle,
+    onValueSelected,
+    isVisible,
+    onClose,
+    shouldClearOnClose,
+    maxLength = CONST.CATEGORY_NAME_LIMIT,
+    ...rest
+}: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -36,6 +47,20 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
             setValue('');
         }
     }, [onClose, shouldClearOnClose]);
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM> = {};
+            const formValue = values[rest.inputID];
+
+            if (formValue.length > maxLength) {
+                errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
+            }
+
+            return errors;
+        },
+        [maxLength, rest.inputID, translate],
+    );
 
     // In TextPicker, when the modal is hidden, it is not completely unmounted, so when it is shown again, the currentValue is not updated with the value prop.
     // Therefore, we need to update the currentValue with the value prop when the modal is shown. This is done once when the modal is shown again.
@@ -90,27 +115,25 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM}
+                    validate={validate}
                     onSubmit={(data) => {
                         Keyboard.dismiss();
-                        onValueSelected?.(data[rest.inputID ?? ''] ?? '');
+                        onValueSelected?.(data[rest.inputID] ?? '');
                     }}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                 >
                     <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
-                    {!!rest.inputID && (
-                        <InputWrapper
-                            ref={inputCallbackRef}
-                            InputComponent={TextInput}
-                            maxLength={CONST.CATEGORY_NAME_LIMIT}
-                            value={currentValue}
-                            onValueChange={(changedValue) => setValue(changedValue.toString())}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...rest}
-                            inputID={rest.inputID}
-                        />
-                    )}
+                    <InputWrapper
+                        ref={inputCallbackRef}
+                        InputComponent={TextInput}
+                        value={currentValue}
+                        onValueChange={(changedValue) => setValue(changedValue.toString())}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...rest}
+                        inputID={rest.inputID}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </Modal>

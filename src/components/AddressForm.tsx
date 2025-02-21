@@ -2,7 +2,6 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addErrorMessage} from '@libs/ErrorUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -109,14 +108,33 @@ function AddressForm({
                 errors[fieldKey] = translate('common.error.fieldRequired');
             });
 
+            if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
+                errors.addressLine2 = translate('common.error.characterLimitExceedCounter', {
+                    length: values.addressLine2.length,
+                    limit: CONST.FORM_CHARACTER_LIMIT,
+                });
+            }
+
+            if (values.city.length > CONST.FORM_CHARACTER_LIMIT) {
+                errors.city = translate('common.error.characterLimitExceedCounter', {
+                    length: values.city.length,
+                    limit: CONST.FORM_CHARACTER_LIMIT,
+                });
+            }
+
+            if (values.country !== CONST.COUNTRY.US && values.state.length > CONST.STATE_CHARACTER_LIMIT) {
+                errors.state = translate('common.error.characterLimitExceedCounter', {
+                    length: values.state.length,
+                    limit: CONST.STATE_CHARACTER_LIMIT,
+                });
+            }
+
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
             const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
 
             // The postal code system might not exist for a country, so no regex either for them.
             const countrySpecificZipRegex = countryRegexDetails?.regex;
             const countryZipFormat = countryRegexDetails?.samples ?? '';
-
-            addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
 
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values.zipPostCode?.trim().toUpperCase())) {
@@ -173,7 +191,6 @@ function AddressForm({
                 aria-label={translate('common.addressLine', {lineNumber: 2})}
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={street2}
-                maxLength={CONST.FORM_CHARACTER_LIMIT}
                 spellCheck={false}
                 shouldSaveDraft={shouldSaveDraft}
             />
@@ -206,7 +223,6 @@ function AddressForm({
                     aria-label={translate('common.stateOrProvince')}
                     role={CONST.ROLE.PRESENTATION}
                     value={state}
-                    maxLength={CONST.STATE_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={onAddressChanged}
                     shouldSaveDraft={shouldSaveDraft}
@@ -220,7 +236,6 @@ function AddressForm({
                 aria-label={translate('common.city')}
                 role={CONST.ROLE.PRESENTATION}
                 defaultValue={city}
-                maxLength={CONST.FORM_CHARACTER_LIMIT}
                 spellCheck={false}
                 onValueChange={onAddressChanged}
                 shouldSaveDraft={shouldSaveDraft}
@@ -234,7 +249,6 @@ function AddressForm({
                 role={CONST.ROLE.PRESENTATION}
                 autoCapitalize="characters"
                 defaultValue={zip}
-                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                 hint={zipFormat}
                 onValueChange={onAddressChanged}
                 shouldSaveDraft={shouldSaveDraft}

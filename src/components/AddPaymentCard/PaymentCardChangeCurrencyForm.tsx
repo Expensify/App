@@ -10,7 +10,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidSecurityCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
@@ -33,9 +33,9 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     const [currency, setCurrency] = useState<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>(initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
-        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+        if (values.securityCode && !isValidSecurityCode(values.securityCode)) {
             errors.securityCode = translate('addPaymentCardPage.error.securityCode');
         }
 
@@ -102,7 +102,6 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                         label={translate('addDebitCardPage.cvv')}
                         aria-label={translate('addDebitCardPage.cvv')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={4}
                         containerStyles={[styles.mt5]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                     />

@@ -8,8 +8,8 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
@@ -39,7 +39,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
             const newCategoryName = values.categoryName.trim();
 
-            if (!ValidationUtils.isRequiredFulfilled(newCategoryName)) {
+            if (!isRequiredFulfilled(newCategoryName)) {
                 errors.categoryName = translate('workspace.categories.categoryRequiredError');
             } else if (policyCategories?.[newCategoryName]) {
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
@@ -47,11 +47,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
                 errors.categoryName = translate('workspace.categories.invalidCategoryName');
             } else if ([...newCategoryName].length > CONST.CATEGORY_NAME_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(
-                    errors,
-                    'categoryName',
-                    translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}),
-                );
+                addErrorMessage(errors, 'categoryName', translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}));
             }
 
             return errors;
@@ -80,7 +76,6 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             <InputWrapper
                 ref={inputCallbackRef}
                 InputComponent={TextInput}
-                maxLength={CONST.CATEGORY_NAME_LIMIT}
                 defaultValue={categoryName}
                 label={translate('common.name')}
                 accessibilityLabel={translate('common.name')}

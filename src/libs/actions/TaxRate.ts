@@ -50,7 +50,12 @@ const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
     const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
 
     const name = values[INPUT_IDS.NAME];
-    if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
+    if (name.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
+        errors[INPUT_IDS.NAME] = translateLocal('common.error.characterLimitExceedCounter', {
+            length: name.length,
+            limit: CONST.TAX_RATES.NAME_MAX_LENGTH,
+        });
+    } else if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
         errors[INPUT_IDS.NAME] = translateLocal('workspace.taxes.error.taxRateAlreadyExists');
     }
 
@@ -61,7 +66,12 @@ const validateTaxCode = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
     const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS_TAX_CODE.TAX_CODE]);
 
     const taxCode = values[INPUT_IDS_TAX_CODE.TAX_CODE];
-    if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxCode(taxCode, policy.taxRates.taxes)) {
+    if (taxCode.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
+        errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('common.error.characterLimitExceedCounter', {
+            length: taxCode.length,
+            limit: CONST.TAX_RATES.NAME_MAX_LENGTH,
+        });
+    } else if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxCode(taxCode, policy.taxRates.taxes)) {
         errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('workspace.taxes.error.taxCodeAlreadyExists');
     }
 

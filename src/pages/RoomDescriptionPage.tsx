@@ -27,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReportDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type RoomDescriptionPageProps = {
     /** Policy for the current report */
@@ -62,6 +63,18 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         goBack();
     }, [report.reportID, report.description, description, goBack]);
 
+    const validate = useCallback((): Errors => {
+        const errors: Errors = {};
+        if (description.trim().length > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+            errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
+                length: description.trim().length,
+                limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
+            });
+        }
+
+        return errors;
+    }, [description, translate]);
+
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
@@ -92,6 +105,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.REPORT_DESCRIPTION_FORM}
                     onSubmit={submitForm}
+                    validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
@@ -105,7 +119,6 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                             ref={(el: BaseTextInputRef | null): void => {
                                 if (!el) {
                                     return;
