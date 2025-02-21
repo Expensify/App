@@ -122,6 +122,7 @@ import {
     isInvoiceReport as isInvoiceReportReportUtils,
     isInvoiceRoom,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isOneOnOneChat,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isOptimisticPersonalDetail,
@@ -5280,7 +5281,7 @@ function createSplitsAndOnyxData(
         // or, if the split is being made from the workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
         // in this case existingSplitChatReport will belong to the policy expense chat and we won't be
         // entering code that creates optimistic personal details
-        if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat) {
+        if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat || isOneOnOneChat(splitChatReport)) {
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && !personalDetailExists;
         } else {
