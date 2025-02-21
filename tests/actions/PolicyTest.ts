@@ -261,7 +261,7 @@ describe('actions/Policy', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
-            // When workflows are disabled for the policy 
+            // When workflows are disabled for the policy
             Policy.enablePolicyWorkflows(fakePolicy.id, false);
             await waitForBatchedUpdates();
 
@@ -274,11 +274,10 @@ describe('actions/Policy', () => {
                     },
                 });
             });
-            
+
             // Then the policy autoReportingFrequency should revert to "INSTANT"
             expect(policy?.autoReporting).toBe(false);
             expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-            
         });
     });
 
