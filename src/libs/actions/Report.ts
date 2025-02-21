@@ -4706,6 +4706,7 @@ export {
     deleteReportComment,
     deleteReportField,
     dismissTrackExpenseActionableWhisper,
+    downloadReportPDF,
     editReportComment,
     expandURLPreview,
     exportReportToCSV,

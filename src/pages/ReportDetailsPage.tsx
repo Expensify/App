@@ -117,6 +117,7 @@ import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
     clearReportFieldKeyErrors,
+    downloadReportPDF,
     exportReportToCSV,
     exportReportToPDF,
     getReportPrivateNote,
@@ -410,7 +411,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport, backTo]);
 
-    const downloadReportPDF = useCallback(() => {
+    const beginPDFEXport = useCallback(() => {
         setIsPDFModalVisible(true);
         exportReportToPDF({reportID: report.reportID});
     }, [report]);
@@ -581,8 +582,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         if (isOffline) {
                             setOfflineModalVisible(true);
                         }
-
-                        downloadReportPDF();
+                        beginPDFEXport();
                     },
                 },
             );
@@ -1176,7 +1176,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         {reportPDFFilename !== undefined && reportPDFFilename !== 'error' && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
-                                onPress={() => setIsPDFModalVisible(false)}
+                                onPress={() => downloadReportPDF(reportPDFFilename, reportName)}
                                 text={"Download"}
                             />
                         )}
