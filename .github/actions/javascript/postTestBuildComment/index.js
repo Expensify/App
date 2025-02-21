@@ -11558,6 +11558,10 @@ async function commentPR(repo, PR, message) {
 async function run() {
     const PR_NUMBER = Number(core.getInput('PR_NUMBER', { required: true }));
     const REPO = String(core.getInput('REPO', { required: true }));
+    if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
+        core.setFailed(`Invalid repo: ${REPO}`);
+        return;
+    }
     const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {
         owner: CONST_1.default.GITHUB_OWNER,
         repo: REPO,
@@ -11599,6 +11603,7 @@ const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\
 const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
     APP_REPO: process.env.GITHUB_REPOSITORY.split('/').at(1) ?? '',
+    MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
 };
 const CONST = {
     ...GIT_CONST,

@@ -71,6 +71,11 @@ async function run() {
     const PR_NUMBER = Number(core.getInput('PR_NUMBER', {required: true}));
     const REPO = String(core.getInput('REPO', {required: true}));
 
+    if (REPO !== CONST.APP_REPO && REPO !== CONST.MOBILE_EXPENSIFY_REPO) {
+        core.setFailed(`Invalid repo: ${REPO}`);
+        return;
+    }
+
     const comments = await GithubUtils.paginate(
         GithubUtils.octokit.issues.listComments,
         {
