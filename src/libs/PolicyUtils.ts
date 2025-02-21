@@ -56,6 +56,7 @@ type ConnectionWithLastSyncData = {
 
 let allPolicies: OnyxCollection<Policy>;
 let activePolicyId: OnyxEntry<string>;
+let isLoadingReportData = true;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -66,6 +67,12 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyId = value),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
+    callback: (value) => (isLoadingReportData = value ?? false),
 });
 
 /**
@@ -79,6 +86,16 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
             !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
     );
 }
+
+function getPerDiemCustomUnits(policies: OnyxCollection<Policy> | null, email: string | undefined): Array<{policyID: string; customUnit: CustomUnit}> {
+    return (
+        getActivePolicies(policies, email)
+            .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
+            // We filter out custom units that are undefine but ts cant' figure it out.
+            .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled) as Array<{policyID: string; customUnit: CustomUnit}>
+    );
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -997,6 +1014,10 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return syncSuccessfulDate;
 }
 
+function getNSQSCompanyID(policy: Policy) {
+    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
+}
+
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
     if (!currentEntityID) {
@@ -1078,6 +1099,12 @@ function goBackWhenEnableFeature(policyID: string) {
     setTimeout(() => {
         Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+}
+
+function navigateToExpensifyCardPage(policyID: string) {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+    });
 }
 
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
@@ -1190,6 +1217,17 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
 }
 
+// eslint-disable-next-line rulesdir/no-negated-variables
+function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
+    const policy = getPolicy(policyID);
+
+    if (!policy) {
+        return false;
+    }
+
+    return !isPolicyAccessible(policy) && !isLoadingReportData;
+}
+
 function hasOtherControlWorkspaces(currentPolicyID: string) {
     const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
     return otherControlWorkspaces.length > 0;
@@ -1275,11 +1313,43 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
+/**
+ * Returns an array of user emails who are currently self-approving:
+ * i.e. user.submitsTo === their own email.
+ */
+function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
+    const defaultApprover = policy?.approver ?? policy?.owner;
+    if (!policy?.employeeList || !defaultApprover) {
+        return [];
+    }
+    return Object.keys(policy.employeeList).filter((email) => {
+        const employee = policy?.employeeList?.[email] ?? {};
+        return employee?.submitsTo === email && employee?.email !== defaultApprover;
+    });
+}
+
+/**
+ * Checks if the workspace has only one user and if there no approver for the policy.
+ * If so, we can't enable the "Prevent Self Approvals" feature.
+ */
+function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
+    if (!policy?.employeeList || !policy.approver) {
+        return false;
+    }
+
+    const employeeEmails = Object.keys(policy.employeeList);
+
+    return employeeEmails.length > 1;
+}
+
 export {
     canEditTaxRate,
+    canEnablePreventSelfApprovals,
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
+    getPerDiemCustomUnits,
+    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
@@ -1358,6 +1428,7 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
+    getNSQSCompanyID,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
@@ -1368,6 +1439,7 @@ export {
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     goBackWhenEnableFeature,
+    navigateToExpensifyCardPage,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
@@ -1399,6 +1471,7 @@ export {
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
+    shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,

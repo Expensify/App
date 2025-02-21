@@ -41,7 +41,7 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" npx jest --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
+        run: NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
 
   storybookTests:
     if: ${{ github.actor != 'OSBotify' && github.actor != 'imgbot[bot]' || github.event_name == 'workflow_call' }}
