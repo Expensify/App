@@ -3878,6 +3878,10 @@ const translations = {
                 updating: 'Actualizando...',
                 noAccountsFound: 'No se han encontrado cuentas',
                 defaultCard: 'Tarjeta predeterminada',
+                downgradeTitle: 'No se puede degradar el espacio de trabajo',
+                downgradeSubTitleFirstPart: `No es posible cambiar a una versión inferior de este espacio de trabajo porque hay varias fuentes de tarjetas conectadas (excluidas las tarjetas Expensify). Por favor`,
+                downgradeSubTitleMiddlePart: 'mantenga solo una tarjeta',
+                downgradeSubTitleLastPart: 'para continuar.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Añade la cuenta en ${connection} y sincroniza la conexión de nuevo.`,
                 expensifyCardBannerTitle: 'Obtén la Tarjeta Expensify',
                 expensifyCardBannerSubtitle:
@@ -4629,9 +4633,9 @@ const translations = {
                 onlyAvailableOnPlan: 'Los código de impuesto mayor solo están disponibles en el plan Controlar, a partir de ',
             },
             companyCards: {
-                title: 'Tarjetas de empresa',
-                description: `Conecta tus tarjetas corporativas existentes a Expensify, asígnalas a empleados e importa transacciones automáticamente.`,
-                onlyAvailableOnPlan: 'Las tarjetas de empresa solo están disponibles en el plan Controlar, a partir de ',
+                title: 'Tarjetas de empresa ilimitadas',
+                description: `¿Necesita agregar más canales de tarjetas? Desbloquee tarjetas de empresa ilimitadas para sincronizar transacciones de todos los principales emisores de tarjetas.`,
+                onlyAvailableOnPlan: 'Esto solo está disponible en el plan Control, a partir de ',
             },
             rules: {
                 title: 'Reglas',
