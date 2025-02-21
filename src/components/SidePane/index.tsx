@@ -27,11 +27,13 @@ function SidePane() {
     );
 
     useEffect(() => {
+        // Close the side pane when the screen size changes from large to small
         if (!isExtraLargeScreenWidth && !resetTriggered.current) {
             onClose(true);
             resetTriggered.current = true;
         }
 
+        // Reset the trigger when the screen size changes back to large
         if (isExtraLargeScreenWidth) {
             resetTriggered.current = false;
         }
