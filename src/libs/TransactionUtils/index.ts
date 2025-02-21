@@ -26,7 +26,7 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportTransactions, isOpenExpenseReport, isProcessingReport, isReportIDApproved, isSettled, isThread} from '@libs/ReportUtils';
+import {getReportTransactions, isCurrentUserSubmitter, isOpenExpenseReport, isProcessingReport, isReportIDApproved, isSettled, isThread} from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -830,7 +830,16 @@ function shouldShowBrokenConnectionViolation(
     }
 
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
-    return brokenConnectionViolations.length > 0 && (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)));
+
+    if (brokenConnectionViolations.length > 0) {
+        if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
+            return true;
+        }
+
+        return isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy));
+    }
+
+    return false;
 }
 
 /**
