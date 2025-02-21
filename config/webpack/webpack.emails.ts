@@ -1,6 +1,5 @@
 import path from 'path';
 import type {Configuration} from 'webpack';
-import {IgnorePlugin} from 'webpack';
 import {merge} from 'webpack-merge';
 import baseConfig from './webpack.base';
 
