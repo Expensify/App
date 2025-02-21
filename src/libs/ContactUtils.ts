@@ -1,7 +1,8 @@
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
-import * as OptionsListUtils from './OptionsListUtils';
+import {getUserToInviteContactOption} from './OptionsListUtils';
+import type {SearchOption} from './OptionsListUtils';
 import {getAvatarForContact} from './RandomAvatarUtils';
 
 function sortEmailObjects(emails?: StringHolder[]): string[] {
@@ -23,7 +24,7 @@ function sortEmailObjects(emails?: StringHolder[]): string[] {
         });
 }
 
-const getContacts = (deviceContacts: DeviceContact[] | []): Array<OptionsListUtils.SearchOption<PersonalDetails>> => {
+const getContacts = (deviceContacts: DeviceContact[] | []): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [])?.at(0) ?? '';
@@ -33,7 +34,7 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<OptionsListUti
             const firstName = contact?.firstName ?? '';
             const lastName = contact?.lastName ?? '';
 
-            return OptionsListUtils.getUserToInviteContactOption({
+            return getUserToInviteContactOption({
                 selectedOptions: [],
                 optionsToExclude: [],
                 searchValue: email || phoneNumber || firstName || '',
@@ -44,7 +45,7 @@ const getContacts = (deviceContacts: DeviceContact[] | []): Array<OptionsListUti
                 avatar: avatarSource,
             });
         })
-        .filter((contact): contact is OptionsListUtils.SearchOption<PersonalDetails> => contact !== null);
+        .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);
 };
 
 export default getContacts;
