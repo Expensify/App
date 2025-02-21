@@ -172,6 +172,7 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
         <ScrollView
             onScroll={onScroll}
             ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
         >
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                 {typeMenuItems.map((item, index) => {
