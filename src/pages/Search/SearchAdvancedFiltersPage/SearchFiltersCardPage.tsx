@@ -13,7 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
-import {getBankName, getCardFeedIcon, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getCardFeedKey, getWorkspaceCardFeedKey, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -214,7 +214,7 @@ function buildCardFeedsData(
                 correspondingCardIDs,
                 cardFeedLabel: isBankRepeating ? correspondingPolicy?.name : undefined,
                 translate,
-                keyForFeed: cardFeedKey,
+                keyForFeed: getCardFeedKey(cardFeedKey),
                 keyForList: cardFeedKey,
                 selectedCards,
             });
@@ -240,7 +240,8 @@ function getSelectedCardsFromFeeds(workspaceCardFeeds: Record<string, WorkspaceC
     return Array.from(
         new Set(
             selectedFeeds.flatMap((feedId) => {
-                const feed = workspaceCardFeeds[feedId];
+                const key = getWorkspaceCardFeedKey(feedId);
+                const feed = workspaceCardFeeds[key];
                 return !feed ? [] : Object.keys(feed).filter((cardNumber) => feed[cardNumber].state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
             }),
         ),
@@ -341,7 +342,7 @@ function SearchFiltersCardPage() {
 
         updateAdvancedFilters({
             cardID: IDs,
-            feed: feeds,
+            feed: feeds.map((feed) => getCardFeedKey(feed)),
         });
 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);

@@ -69,6 +69,17 @@ function isCorporateCard(cardID: number) {
     return !!allCards[cardID];
 }
 
+function getCardFeedKey(cardID: string): string {
+    return cardID.replace('cards_', '');
+}
+
+function getWorkspaceCardFeedKey(cardID: string) {
+    if (cardID.indexOf('cards_') === -1) {
+        return `cards_${cardID}`;
+    }
+    return cardID;
+}
+
 /**
  * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
@@ -549,4 +560,6 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    getCardFeedKey,
+    getWorkspaceCardFeedKey,
 };

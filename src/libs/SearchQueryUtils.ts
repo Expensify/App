@@ -8,7 +8,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import {getCardDescription} from './CardUtils';
+import {getCardDescription, getWorkspaceCardFeedKey} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import localeCompare from './LocaleCompare';
 import Log from './Log';
@@ -569,7 +569,8 @@ function getFilterDisplayValue(
         return getCleanedTagName(filterValue);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        return cardFeedNames[`${filterValue}`] ?? filterValue;
+        const key = getWorkspaceCardFeedKey(filterValue);
+        return cardFeedNames[key] ?? filterValue;
     }
     return filterValue;
 }

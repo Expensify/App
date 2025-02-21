@@ -17,7 +17,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
-import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardDescription, getCardFeedKey, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -352,7 +352,7 @@ function SearchAutocompleteList(
                 return filteredFeeds.map((feed) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
                     text: feed.key,
-                    autocompleteID: feed.value,
+                    autocompleteID: getCardFeedKey(feed.value),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 }));
             }
