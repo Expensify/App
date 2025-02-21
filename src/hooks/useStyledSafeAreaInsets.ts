@@ -33,7 +33,7 @@ import useStyleUtils from './useStyleUtils';
 function useStyledSafeAreaInsets() {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingTop, paddingBottom} = StyleUtils.getPlatformSafeAreaPadding(insets);
+    const {paddingTop, paddingBottom} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const safeAreaPaddingBottomStyle = useMemo(() => ({paddingBottom}), [paddingBottom]);
 

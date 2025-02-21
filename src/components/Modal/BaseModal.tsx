@@ -5,6 +5,7 @@ import ReactNativeModal from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import NavigationBar from '@components/NavigationBar';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -303,6 +304,7 @@ function BaseModal(
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
+                    <NavigationBar />
                 </ModalComponent>
             </View>
         </ModalContext.Provider>
