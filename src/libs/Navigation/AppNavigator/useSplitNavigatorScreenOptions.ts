@@ -1,4 +1,6 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
+import {useMemo} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -6,6 +8,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
@@ -23,8 +26,16 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 const useSplitNavigatorScreenOptions = () => {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const shouldShowSidePane = isExtraLargeScreenWidth && !!sidePane?.open;
+    const centralScreenPaddingRight = useMemo(() => {
+        if (shouldUseNarrowLayout) {
+            return 0;
+        }
+        return shouldShowSidePane ? variables.sideBarWidth * 2 : variables.sideBarWidth;
+    }, [shouldUseNarrowLayout, shouldShowSidePane]);
 
     return {
         sidebarScreen: {
@@ -55,7 +66,7 @@ const useSplitNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
-                    paddingRight: shouldUseNarrowLayout ? 0 : variables.sideBarWidth,
+                    paddingRight: centralScreenPaddingRight,
                 },
             },
         },
