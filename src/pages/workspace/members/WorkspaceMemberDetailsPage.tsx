@@ -87,7 +87,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const hasMultipleFeeds = Object.values(getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
-    const hasWorkspaceCardsAssigned = !!workspaceCards && !!Object.values(workspaceCards).length;
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
