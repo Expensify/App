@@ -2,9 +2,8 @@ import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import CONST from '@src/CONST';
 import {authenticatePusher} from './actions/Session';
 import Log from './Log';
-import type {SocketEventName} from './Pusher/library/types';
-import {reconnect, registerCustomAuthorizer, registerSocketEventCallback} from './Pusher/pusher';
-import type {EventCallbackError, States} from './Pusher/pusher';
+import Pusher from './Pusher';
+import type {EventCallbackError, SocketEventName, States} from './Pusher/types';
 
 function init() {
     /**
@@ -13,13 +12,13 @@ function init() {
      * current valid token to generate the signed auth response
      * needed to subscribe to Pusher channels.
      */
-    registerCustomAuthorizer((channel) => ({
+    Pusher.registerCustomAuthorizer?.((channel) => ({
         authorize: (socketId: string, callback: ChannelAuthorizationCallback) => {
             authenticatePusher(socketId, channel.name, callback);
         },
     }));
 
-    registerSocketEventCallback((eventName: SocketEventName, error?: EventCallbackError | States) => {
+    Pusher.registerSocketEventCallback((eventName: SocketEventName, error?: EventCallbackError | States) => {
         switch (eventName) {
             case 'error': {
                 if (error && 'type' in error) {
@@ -35,7 +34,7 @@ function init() {
                         // On the advice from Pusher directly, they suggested to manually reconnect in those scenarios.
                         if (errorMessage) {
                             Log.hmmm('[PusherConnectionManager] Channels Error 1006 message', {errorMessage});
-                            reconnect();
+                            Pusher.reconnect();
                         }
                     } else if (errorType === CONST.ERROR.PUSHER_ERROR && code === 4201) {
                         // This means the connection was closed because Pusher did not receive a reply from the client when it pinged them for a response

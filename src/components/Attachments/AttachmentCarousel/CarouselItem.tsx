@@ -25,9 +25,12 @@ type CarouselItemProps = {
 
     /** Whether the attachment is currently being viewed in the carousel */
     isFocused: boolean;
+
+    /** The reportID related to the attachment */
+    reportID?: string;
 };
 
-function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemProps) {
+function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -85,6 +88,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
                     isFocused={isFocused}
                     duration={item.duration}
                     fallbackSource={Expensicons.AttachmentNotFound}
+                    reportID={reportID}
                 />
             </View>
 
