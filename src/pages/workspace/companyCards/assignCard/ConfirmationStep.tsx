@@ -39,7 +39,7 @@ function ConfirmationStep({policyID, backTo, workspaceMemberAccountID}: Confirma
 
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
-    const cardholderAccountID = getPersonalDetailByEmail(data?.email ?? '')?.accountID.toString() ?? '';
+    const cardholderAccountID = getPersonalDetailByEmail(data?.email ?? '')?.accountID?.toString() ?? '';
     const submit = () => {
         if (!policyID) {
             return;
