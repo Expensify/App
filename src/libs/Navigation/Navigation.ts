@@ -25,6 +25,7 @@ import getPolicyIDFromState from './helpers/getPolicyIDFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
 import type {LinkToOptions} from './helpers/linkTo/types';
@@ -481,12 +482,12 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
-        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID ?? '-1', reportActionID, referrer));
+        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer));
         return;
     }
 
-    const params: Record<string, string> = {
-        reportID: targetReport?.reportID ?? '-1',
+    const params: Record<string, string | undefined> = {
+        reportID: targetReport?.reportID,
     };
 
     if (reportActionID) {
