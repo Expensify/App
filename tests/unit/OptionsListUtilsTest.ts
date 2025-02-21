@@ -29,6 +29,19 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 describe('OptionsListUtils', () => {
+    const policyID = 'ABC123';
+
+    const POLICY: Policy = {
+        id: policyID,
+        name: 'Hero Policy',
+        role: 'user',
+        type: CONST.POLICY.TYPE.TEAM,
+        owner: 'reedrichards@expensify.com',
+        outputCurrency: '',
+        isPolicyExpenseChatEnabled: false,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+    };
+
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS: OnyxCollection<Report> = {
         '1': {
@@ -177,10 +190,11 @@ describe('OptionsListUtils', () => {
                 10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
             },
             reportName: '',
-            oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            policyName: POLICY.name,
         },
     };
 
@@ -482,17 +496,6 @@ describe('OptionsListUtils', () => {
             login: CONST.EMAIL.MANAGER_MCTEST,
             reportID: '',
         },
-    };
-    const policyID = 'ABC123';
-
-    const POLICY: Policy = {
-        id: policyID,
-        name: 'Hero Policy',
-        role: 'user',
-        type: CONST.POLICY.TYPE.TEAM,
-        owner: '',
-        outputCurrency: '',
-        isPolicyExpenseChatEnabled: false,
     };
 
     const reportNameValuePairs = {
@@ -1224,6 +1227,17 @@ describe('OptionsListUtils', () => {
             });
 
             expect(canCreate).toBe(false);
+        });
+
+        it('createOptionList() localization', () => {
+            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
+            return waitForBatchedUpdates()
+                .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
+                .then(() => {
+                    const newReports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                    expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
+                });
         });
     });
 

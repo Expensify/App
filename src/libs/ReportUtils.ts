@@ -4588,7 +4588,7 @@ function getReportSubtitlePrefix(report: OnyxEntry<Report>): string {
         return '';
     }
 
-    const policyName = getPolicyName({report});
+    const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     if (!policyName) {
         return '';
     }
