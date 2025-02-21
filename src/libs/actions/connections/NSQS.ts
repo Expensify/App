@@ -173,15 +173,15 @@ function updateNSQSAutoSync(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_NSQS_AUTO_SYNC, params, onyxData);
 }
 
-function updateNSQSApprovalAccount(policyID: string, value: string, oldValue: string) {
-    const onyxData = buildOnyxDataForNSQSConfiguration(policyID, 'approvalAccount', value, oldValue, CONST.NSQS_CONFIG.APPROVAL_ACCOUNT);
+function updateNSQSPaymentAccount(policyID: string, value: string, oldValue: string) {
+    const onyxData = buildOnyxDataForNSQSConfiguration(policyID, 'paymentAccount', value, oldValue, CONST.NSQS_CONFIG.PAYMENT_ACCOUNT);
 
     const params = {
         policyID,
         value,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_NSQS_APPROVAL_ACCOUNT, params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NSQS_PAYMENT_ACCOUNT, params, onyxData);
 }
 
-export {connectPolicyToNSQS, updateNSQSCustomersMapping, updateNSQSProjectsMapping, updateNSQSExporter, updateNSQSExportDate, updateNSQSAutoSync, updateNSQSApprovalAccount};
+export {connectPolicyToNSQS, updateNSQSCustomersMapping, updateNSQSProjectsMapping, updateNSQSExporter, updateNSQSExportDate, updateNSQSAutoSync, updateNSQSPaymentAccount};
