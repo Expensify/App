@@ -112,7 +112,7 @@ import {
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
 
-type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; messageText?: string; messageHtml?: string};
+type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
 const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -342,6 +342,10 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     const errors = getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
+
+    if (isArchivedReportWithID(report.reportID)) {
+        return null;
+    }
 
     if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
         return {
@@ -699,19 +703,16 @@ function getWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>)
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
     const displayNamesWithTooltipsText = displayNamesWithTooltips
-        .map(({displayName, pronouns}, index) => {
-            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
-
+        .map(({displayName}, index) => {
             if (index === displayNamesWithTooltips.length - 1) {
-                return `${formattedText}.`;
+                return `${displayName}.`;
             }
             if (index === displayNamesWithTooltips.length - 2) {
-                return `${formattedText} ${translateLocal('common.and')}`;
+                return `${displayName} ${translateLocal('common.and')}`;
             }
             if (index < displayNamesWithTooltips.length - 2) {
-                return `${formattedText},`;
+                return `${displayName},`;
             }
-
             return '';
         })
         .join(' ');
@@ -741,9 +742,11 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report?.reportName ?? ''});
         welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
     } else if (isAdminRoom(report)) {
-        welcomeMessage.showReportName = false;
-        welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
-        welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+        welcomeMessage.showReportName = true;
+        welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOneFirst');
+        welcomeMessage.phrase2 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomWorkspaceName', {workspaceName});
+        welcomeMessage.phrase3 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOneLast');
+        welcomeMessage.phrase4 = translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.showReportName = false;
         welcomeMessage.phrase1 = translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});

@@ -53,11 +53,11 @@ function clearAddNewCardFlow() {
     });
 }
 
-function addNewCompanyCardsFeed(policyID: string, cardFeed: CompanyCardFeed, feedDetails: string, cardFeeds: OnyxEntry<CardFeeds>, lastSelectedFeed?: CompanyCardFeed) {
+function addNewCompanyCardsFeed(policyID: string | undefined, cardFeed: CompanyCardFeed, feedDetails: string, cardFeeds: OnyxEntry<CardFeeds>, lastSelectedFeed?: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
-    if (!authToken) {
+    if (!authToken || !policyID) {
         return;
     }
 
