@@ -1827,9 +1827,9 @@ describe('actions/IOU', () => {
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                    callback: (report) => {
+                    callback: (reportVal) => {
                         Onyx.disconnect(connection);
-                        resolve(report);
+                        resolve(reportVal);
                     },
                 });
             });
