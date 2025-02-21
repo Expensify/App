@@ -234,7 +234,7 @@ function Expensify() {
         if (!isAuthenticated) {
             return;
         }
-        setCrashlyticsUserId(session?.accountID ?? -1);
+        setCrashlyticsUserId(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     }, [isAuthenticated, session?.accountID]);
 
     // Display a blank page until the onyx migration completes
@@ -275,7 +275,7 @@ function Expensify() {
                         <RequireTwoFactorAuthenticationModal
                             onSubmit={() => {
                                 setShouldShowRequire2FAModal(false);
-                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.HOME));
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.HOME));
                             }}
                             isVisible
                             description={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}
