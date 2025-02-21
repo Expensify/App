@@ -1,9 +1,9 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {ScrollView as RNScrollView, StyleSheet} from 'react-native';
-import type {ScrollViewProps as RNScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import {ScrollView as RNScrollView} from 'react-native';
+import type {ScrollViewProps as RNScrollViewProps} from 'react-native';
+import useContentContainerStyleWithBottomSafeAreaPadding from '@hooks/useContentContainerStyleWithBottomSafeAreaPadding';
 
 type ScrollViewProps = RNScrollViewProps & {
     /**
@@ -16,16 +16,7 @@ function ScrollView(
     {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPaddingToContent = false, ...props}: ScrollViewProps,
     ref: ForwardedRef<RNScrollView>,
 ) {
-    const {paddingBottom: safeAreaPaddingBottom} = useStyledSafeAreaInsets();
-
-    const contentContainerStyle: StyleProp<ViewStyle> = useMemo(() => {
-        if (addBottomSafeAreaPaddingToContent) {
-            const contentContainerStyleFlattened = StyleSheet.flatten(contentContainerStyleProp);
-            const paddingBottom = contentContainerStyleFlattened.paddingBottom ?? 0;
-            return [contentContainerStyleProp, {paddingBottom: typeof paddingBottom === 'number' ? safeAreaPaddingBottom + paddingBottom : safeAreaPaddingBottom}];
-        }
-        return contentContainerStyleProp;
-    }, [addBottomSafeAreaPaddingToContent, contentContainerStyleProp, safeAreaPaddingBottom]);
+    const contentContainerStyle = useContentContainerStyleWithBottomSafeAreaPadding(addBottomSafeAreaPaddingToContent, contentContainerStyleProp);
 
     return (
         <RNScrollView

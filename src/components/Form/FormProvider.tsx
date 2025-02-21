@@ -75,6 +75,11 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Whether the form is loading */
     isLoading?: boolean;
+
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPaddingToContent?: boolean;
 };
 
 function FormProvider(

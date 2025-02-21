@@ -39,6 +39,11 @@ type FormWrapperProps = ChildrenProps &
 
         /** Whether the form is loading */
         isLoading?: boolean;
+
+        /**
+         * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+         */
+        addBottomSafeAreaPaddingToContent?: boolean;
     };
 
 function FormWrapper({
@@ -61,6 +66,7 @@ function FormWrapper({
     disablePressOnEnter = false,
     isSubmitDisabled = false,
     isLoading = false,
+    addBottomSafeAreaPaddingToContent = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
@@ -168,6 +174,7 @@ function FormWrapper({
             style={[styles.w100, styles.flex1]}
             contentContainerStyle={styles.flexGrow1}
             keyboardShouldPersistTaps="handled"
+            addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
             ref={formRef}
         >
             {scrollViewContent()}
@@ -177,6 +184,7 @@ function FormWrapper({
             style={[styles.w100, styles.flex1]}
             contentContainerStyle={styles.flexGrow1}
             keyboardShouldPersistTaps="handled"
+            addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
             ref={formRef}
         >
             {scrollViewContent()}

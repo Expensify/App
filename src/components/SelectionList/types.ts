@@ -670,12 +670,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     isScreenFocused?: boolean;
 
     /**
-     * Temporary flag to enable bottom safe area handling in selection list content (Default: false)
-     * Bottom safe area padding at the moment is handled in the root view of the selection list.
-     * Optimally, we want to add the padding to the scrollable content instead (contentContainerStyle of the <SelectionList />).
-     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
-    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+    addBottomSafeAreaPaddingToContent?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
