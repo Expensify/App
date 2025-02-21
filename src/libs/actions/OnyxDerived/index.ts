@@ -27,7 +27,7 @@ function init() {
             } else {
                 OnyxUtils.tupleGet(dependencies).then((values) => {
                     dependencyValues = values;
-                    derivedValue = compute(values);
+                    derivedValue = compute(values, derivedValue);
                     Onyx.set(key, derivedValue ?? null);
                 });
             }
@@ -37,7 +37,7 @@ function init() {
             };
 
             const recomputeDerivedValue = () => {
-                const newDerivedValue = compute(dependencyValues);
+                const newDerivedValue = compute(dependencyValues, derivedValue);
                 if (newDerivedValue !== derivedValue) {
                     Log.info(`[OnyxDerived] value for key ${key} changed, updating it in Onyx`, false, {old: derivedValue, new: newDerivedValue});
                     derivedValue = newDerivedValue;
