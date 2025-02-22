@@ -130,15 +130,18 @@ function FormWrapper({
                         styles.mh0,
                         styles.mt5,
                         submitFlexEnabled ? styles.flex1 : {},
-                        shouldSubmitButtonStickToBottom
-                            ? {
-                                  position: 'absolute',
-                                  left: 0,
-                                  right: 0,
-                                  bottom: styles.pb5.paddingBottom + paddingBottom,
-                              }
-                            : {},
                         submitButtonStyles,
+                        shouldSubmitButtonStickToBottom
+                            ? [
+                                  {
+                                      position: 'absolute',
+                                      left: 0,
+                                      right: 0,
+                                      bottom: styles.pb5.paddingBottom + paddingBottom,
+                                  },
+                                  style,
+                              ]
+                            : {},
                     ]}
                     enabledWhenOffline={enabledWhenOffline}
                     isSubmitActionDangerous={isSubmitActionDangerous}
