@@ -166,6 +166,7 @@ function FormWrapper({
             paddingBottom,
             shouldHideFixErrorsAlert,
             shouldSubmitButtonStickToBottom,
+            style,
             styles.flex1,
             styles.mh0,
             styles.mt5,
