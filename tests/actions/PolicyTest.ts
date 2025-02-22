@@ -385,7 +385,7 @@ describe('actions/Policy', () => {
     const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
     const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
-    describe('generateDefaultWorkspaceName - English', () => {
+    describe('generateDefaultWorkspaceName', () => {
         beforeAll(() => {
             Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
         });
