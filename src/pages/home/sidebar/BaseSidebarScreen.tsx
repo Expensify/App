@@ -39,20 +39,17 @@ function BaseSidebarScreen() {
     }, []);
 
     useEffect(() => {
-        if (!!activeWorkspace || activeWorkspaceID === undefined || isLoading) {
-            return;
-        }
+        const topmostReportSplit = getTopmostReportsSplitNavigator();
+        const topmostReportSplitPolicyID = topmostReportSplit?.params && `policyID` in topmostReportSplit.params ? topmostReportSplit.params.policyID : undefined;
+        const hasWorkspaceBeenDeleted = !activeWorkspace && activeWorkspaceResult.status === 'loaded' && !!topmostReportSplitPolicyID;
 
-        // Otherwise, if the workspace is already loaded, we don't need to do anything
-        const topmostReport = getTopmostReportsSplitNavigator();
-
-        if (!topmostReport) {
+        if (!topmostReportSplit || !hasWorkspaceBeenDeleted || isLoading) {
             return;
         }
 
         // Switching workspace to global should only be performed from the currently opened sidebar screen
-        const topmostReportState = topmostReport?.state ?? getPreservedSplitNavigatorState(topmostReport?.key);
-        const isCurrentSidebar = topmostReportState?.routes.some((route) => currentRoute.key === route.key);
+        const topmostReportSplitState = topmostReportSplit?.state ?? getPreservedSplitNavigatorState(topmostReportSplit?.key);
+        const isCurrentSidebar = topmostReportSplitState?.routes.some((route) => currentRoute.key === route.key);
 
         if (!isCurrentSidebar) {
             return;
@@ -61,7 +58,7 @@ function BaseSidebarScreen() {
         const reportsSplitNavigatorWithoutPolicyID = getInitialSplitNavigatorState({name: SCREENS.HOME}, {name: SCREENS.REPORT});
         Navigation.replaceWithSplitNavigator(reportsSplitNavigatorWithoutPolicyID);
         updateLastAccessedWorkspace(undefined);
-    }, [activeWorkspace, activeWorkspaceID, isLoading, currentRoute.key]);
+    }, [activeWorkspace, isLoading, currentRoute.key, activeWorkspaceResult]);
 
     const shouldDisplaySearch = shouldUseNarrowLayout;
 
