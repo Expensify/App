@@ -394,7 +394,7 @@ type SkeletonViewProps = {
     shouldAnimate: boolean;
 };
 
-type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
+type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
@@ -672,7 +672,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
-    addBottomSafeAreaPaddingToContent?: boolean;
+    addBottomSafeAreaPadding?: boolean;
+
+    /**
+     * Whether the footer content should stick to the bottom of the screen.
+     */
+    shouldFooterContentStickToBottom?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -709,7 +714,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 export type {
     BaseListItemProps,
-    BaseSelectionListProps,
+    SelectionListProps,
     ButtonOrCheckBoxRoles,
     CommonListItemProps,
     ExtendedTargetedEvent,

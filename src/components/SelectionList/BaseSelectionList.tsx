@@ -32,7 +32,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
-import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
+import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle, SelectionListProps} from './types';
 
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
@@ -126,8 +126,9 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleContainerStyles,
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
-        addBottomSafeAreaPaddingToContent = false,
-    }: BaseSelectionListProps<TItem>,
+        addBottomSafeAreaPadding = false,
+        shouldFooterContentStickToBottom = false,
+    }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -830,7 +831,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
     // TODO: test _every_ component that uses SelectionList
     return (
-        <View style={[styles.flex1, !addBottomSafeAreaPaddingToContent && paddingBottomStyle, containerStyle]}>
+        <View style={[styles.flex1, !addBottomSafeAreaPadding && paddingBottomStyle, containerStyle]}>
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
             {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
             {/* This is misleading because we might be in the process of loading fresh options from the server. */}
@@ -886,7 +887,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
-                        addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
+                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                         contentContainerStyle={contentContainerStyle}
                         CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
                     />
@@ -894,7 +895,11 @@ function BaseSelectionList<TItem extends ListItem>(
                 </>
             )}
             {showConfirmButton && (
-                <FixedFooter style={[styles.mtAuto]}>
+                <FixedFooter
+                    style={styles.mtAuto}
+                    shouldStickToBottom={shouldFooterContentStickToBottom}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                >
                     <Button
                         success={!shouldUseDefaultTheme}
                         large
@@ -907,7 +912,15 @@ function BaseSelectionList<TItem extends ListItem>(
                     />
                 </FixedFooter>
             )}
-            {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
+            {!!footerContent && (
+                <FixedFooter
+                    style={styles.mtAuto}
+                    shouldStickToBottom={shouldFooterContentStickToBottom}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                >
+                    {footerContent}
+                </FixedFooter>
+            )}
         </View>
     );
 }

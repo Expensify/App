@@ -43,7 +43,7 @@ type FormWrapperProps = ChildrenProps &
         /**
          * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
          */
-        addBottomSafeAreaPaddingToContent?: boolean;
+        addBottomSafeAreaPadding?: boolean;
 
         /**
          * Whether the submit button should stick to the bottom of the screen.
@@ -71,7 +71,7 @@ function FormWrapper({
     disablePressOnEnter = false,
     isSubmitDisabled = false,
     isLoading = false,
-    addBottomSafeAreaPaddingToContent = false,
+    addBottomSafeAreaPadding = false,
     shouldSubmitButtonStickToBottom = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
@@ -166,6 +166,7 @@ function FormWrapper({
             paddingBottom,
             shouldHideFixErrorsAlert,
             shouldSubmitButtonStickToBottom,
+            style,
             styles.flex1,
             styles.mh0,
             styles.mt5,
@@ -210,7 +211,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
-                    addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                     ref={formRef}
                 >
                     {scrollViewContent()}
@@ -220,7 +221,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
-                    addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                     ref={formRef}
                 >
                     {scrollViewContent()}
