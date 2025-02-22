@@ -449,6 +449,13 @@ function removeMembers(accountIDs: number[], policyID: string) {
                     pendingChatMembers,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+                value: {
+                    private_isArchived: true,
+                },
+            },
         );
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -457,13 +464,22 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 pendingChatMembers: null,
             },
         });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
-            value: {
-                pendingChatMembers: null,
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
+                value: {
+                    pendingChatMembers: null,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+                value: {
+                    private_isArchived: false,
+                },
+            },
+        );
     });
     // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
     // optimisticClosedReportActions.forEach((reportAction, index) => {

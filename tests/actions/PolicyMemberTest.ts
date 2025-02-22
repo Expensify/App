@@ -392,5 +392,37 @@ describe('actions/PolicyMember', () => {
             });
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
+
+        it('should optimistically archive the member workspace chat', async () => {
+            // Given a workspace chat
+            const policyID = '1';
+            const workspaceReportID = '1';
+            const userAccountID = 1236;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
+                ...createRandomReport(Number(workspaceReportID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: userAccountID,
+            });
+
+            // When removing a member from the workspace
+            mockFetch?.pause?.();
+            Member.removeMembers([userAccountID], policyID);
+
+            await waitForBatchedUpdates();
+
+            // Then the member workspace chat should be archived optimistically
+            const isArchived = await new Promise<Boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isArchived).toBe(true);
+        });
     });
 });
