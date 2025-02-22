@@ -185,6 +185,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={() => Navigation.goBack(backTo)}
+            addBottomSafeAreaPaddingToContent
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
