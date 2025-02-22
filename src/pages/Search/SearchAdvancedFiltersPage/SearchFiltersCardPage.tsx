@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
-import {getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, getCardFeedItemText, isCard, isCardClosed, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -122,7 +122,7 @@ function createCardFeedItem({
     illustrations: IllustrationsType;
 }): CardFilterItem {
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
-    const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+    const text = getCardFeedItemText(cardFeedBankName, cardFeedLabel);
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
 
     const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations);

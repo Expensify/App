@@ -332,14 +332,14 @@ function getBankName(feedType: CompanyCardFeed): string {
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK]: 'Citibank',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.WELLS_FARGO]: 'Wells Fargo',
         [CONST.COMPANY_CARD.FEED_BANK_NAME.BREX]: 'Brex',
-        [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: 'CSV',
+        [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE.CSV,
     };
 
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
     const feedKey = (Object.keys(feedNamesMapping) as CompanyCardFeed[]).find((feed) => feedType.startsWith(feed));
 
     if (feedType.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)) {
-        return 'CSV';
+        return CONST.COMPANY_CARDS.CARD_TYPE.CSV;
     }
 
     if (!feedKey) {
@@ -527,6 +527,15 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
     return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
 }
 
+function getCardFeedItemText(cardFeedBankName: string, cardFeedLabel: string | undefined) {
+    switch (cardFeedBankName) {
+        case CONST.COMPANY_CARDS.CARD_TYPE.CSV:
+            return translateLocal('search.filters.card.cardFeedNameCSV', {cardFeedLabel});
+        default:
+            return translateLocal('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+    }
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -565,4 +574,5 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    getCardFeedItemText,
 };

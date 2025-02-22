@@ -3013,6 +3013,7 @@ const CONST = {
             VISA: 'visa',
             MASTERCARD: 'mastercard',
             STRIPE: 'stripe',
+            CSV: 'CSV',
         },
         FEED_TYPE: {
             CUSTOM: 'customFeed',
