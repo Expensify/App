@@ -1579,11 +1579,11 @@ function generateDefaultWorkspaceName(email = ''): string {
     const displayName = userDetails?.displayName?.trim();
     let displayNameForWorkspace = '';
 
-    if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain)) {
+    if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
         displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
     } else if (displayName) {
         displayNameForWorkspace = Str.UCFirst(displayName);
-    } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain)) {
+    } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
         displayNameForWorkspace = Str.UCFirst(username);
     } else {
         displayNameForWorkspace = userDetails?.phoneNumber ?? '';
@@ -1605,7 +1605,7 @@ function generateDefaultWorkspaceName(email = ''): string {
     const workspaceNumbers = Object.values(allPolicies)
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
         .filter(Boolean) // Remove null matches
-        .map((match) => Number(match?.[1] ?? '0'));
+        .map((match) => Number(match?.[1]));
     const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
 
     return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
