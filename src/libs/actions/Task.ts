@@ -547,7 +547,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     // const reportName = (title ?? report?.reportName)?.trim();
-    const reportName = title ? ReportUtils.getParsedComment(title) : report?.reportName ?? '';
+    const reportName = title ? ReportUtils.getParsedComment(title, undefined, [...CONST.TASK_TITLE_ESCAPE_RULES]) : report?.reportName ?? '';
     const parsedTitle = (reportName ?? '').trim();
 
     // Description can be unset, so we default to an empty string if so
