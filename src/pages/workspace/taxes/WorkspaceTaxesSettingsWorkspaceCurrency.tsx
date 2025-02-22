@@ -49,26 +49,22 @@ function WorkspaceTaxesSettingsWorkspaceCurrency({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxesSettingsWorkspaceCurrency.displayName}
                 style={styles.defaultModalContainer}
             >
-                {({insets}) => (
-                    <>
-                        <HeaderWithBackButton title={translate('workspace.taxes.workspaceDefault')} />
+                <HeaderWithBackButton title={translate('workspace.taxes.workspaceDefault')} />
 
-                        <View style={[styles.mb4, styles.flex1]}>
-                            <TaxPicker
-                                selectedTaxRate={selectedTaxRate}
-                                policyID={policyID}
-                                insets={insets}
-                                onSubmit={submit}
-                                onDismiss={dismiss}
-                            />
-                        </View>
-                    </>
-                )}
+                <View style={[styles.mb4, styles.flex1]}>
+                    <TaxPicker
+                        selectedTaxRate={selectedTaxRate}
+                        policyID={policyID}
+                        onSubmit={submit}
+                        onDismiss={dismiss}
+                        addBottomSafeAreaPadding
+                    />
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

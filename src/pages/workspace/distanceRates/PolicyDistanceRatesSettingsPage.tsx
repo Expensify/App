@@ -90,7 +90,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRatesSettingsPage.displayName}
             >
@@ -99,6 +99,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                     <ScrollView
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="always"
+                        addBottomSafeAreaPadding
                     >
                         <View>
                             {!!defaultUnit && (

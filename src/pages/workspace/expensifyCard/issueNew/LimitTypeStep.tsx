@@ -91,6 +91,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={2}
             stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>
             <SelectionList
@@ -101,14 +102,16 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
                 initiallyFocusedOptionKey={typeSelected}
                 shouldUpdateFocusedIndex
                 isAlternateTextMultilineSupported
-            />
-            <Button
-                success
-                large
-                pressOnEnter
-                text={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onPress={submit}
-                style={styles.m5}
+                addBottomSafeAreaPadding
+                footerContent={
+                    <Button
+                        success
+                        large
+                        pressOnEnter
+                        text={translate(isEditing ? 'common.confirm' : 'common.next')}
+                        onPress={submit}
+                    />
+                }
             />
         </InteractiveStepWrapper>
     );

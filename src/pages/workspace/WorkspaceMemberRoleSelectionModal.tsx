@@ -48,6 +48,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
             <ScreenWrapper
                 testID={WorkspaceMemberDetailsRoleSelectionModal.displayName}
                 includePaddingTop={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('common.role')}
@@ -61,6 +62,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
                         isAlternateTextMultilineSupported
                         shouldSingleExecuteRowSelect
                         initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
+                        addBottomSafeAreaPadding
                     />
                 </View>
             </ScreenWrapper>
