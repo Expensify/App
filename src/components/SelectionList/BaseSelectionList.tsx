@@ -127,6 +127,7 @@ function BaseSelectionList<TItem extends ListItem>(
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
+        shouldFooterContentStickToBottom = false,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -895,7 +896,8 @@ function BaseSelectionList<TItem extends ListItem>(
             )}
             {showConfirmButton && (
                 <FixedFooter
-                    style={[styles.mtAuto]}
+                    style={styles.mtAuto}
+                    shouldStickToBottom={shouldFooterContentStickToBottom}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 >
                     <Button
@@ -912,7 +914,8 @@ function BaseSelectionList<TItem extends ListItem>(
             )}
             {!!footerContent && (
                 <FixedFooter
-                    style={[styles.mtAuto]}
+                    style={styles.mtAuto}
+                    shouldStickToBottom={shouldFooterContentStickToBottom}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 >
                     {footerContent}
