@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
-import {Keyboard} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
@@ -44,6 +44,11 @@ type FormWrapperProps = ChildrenProps &
          * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
          */
         addBottomSafeAreaPaddingToContent?: boolean;
+
+        /**
+         * Whether the submit button should stick to the bottom of the screen.
+         */
+        shouldSubmitButtonStickToBottom?: boolean;
     };
 
 function FormWrapper({
@@ -67,9 +72,9 @@ function FormWrapper({
     isSubmitDisabled = false,
     isLoading = false,
     addBottomSafeAreaPaddingToContent = false,
+    shouldSubmitButtonStickToBottom = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
@@ -108,87 +113,118 @@ function FormWrapper({
         focusInput?.focus?.();
     }, [errors, formState?.errorFields, inputRefs]);
 
+    const {paddingBottom} = useStyledSafeAreaInsets(true);
+    const SubmitButton = useMemo(
+        () =>
+            isSubmitButtonVisible && (
+                <FormAlertWithSubmitButton
+                    buttonText={submitButtonText}
+                    isDisabled={isSubmitDisabled}
+                    isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
+                    isLoading={!!formState?.isLoading || isLoading}
+                    message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+                    onSubmit={onSubmit}
+                    footerContent={footerContent}
+                    onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
+                    containerStyles={[
+                        styles.mh0,
+                        styles.mt5,
+                        submitFlexEnabled ? styles.flex1 : {},
+                        shouldSubmitButtonStickToBottom
+                            ? {
+                                  position: 'absolute',
+                                  left: 0,
+                                  right: 0,
+                                  bottom: styles.pb5.paddingBottom + paddingBottom,
+                              }
+                            : {},
+                        submitButtonStyles,
+                    ]}
+                    enabledWhenOffline={enabledWhenOffline}
+                    isSubmitActionDangerous={isSubmitActionDangerous}
+                    disablePressOnEnter={disablePressOnEnter}
+                    enterKeyEventListenerPriority={1}
+                />
+            ),
+        [
+            disablePressOnEnter,
+            enabledWhenOffline,
+            errorMessage,
+            errors,
+            footerContent,
+            formState?.errorFields,
+            formState?.isLoading,
+            isLoading,
+            isSubmitActionDangerous,
+            isSubmitButtonVisible,
+            isSubmitDisabled,
+            onFixTheErrorsLinkPressed,
+            onSubmit,
+            paddingBottom,
+            shouldHideFixErrorsAlert,
+            shouldSubmitButtonStickToBottom,
+            styles.flex1,
+            styles.mh0,
+            styles.mt5,
+            styles.pb5.paddingBottom,
+            submitButtonStyles,
+            submitButtonText,
+            submitFlexEnabled,
+        ],
+    );
+
     const scrollViewContent = useCallback(
         () => (
             <FormElement
                 key={formID}
                 ref={formContentRef}
-                // Note: the paddingBottom is only grater 0 if no parent has applied the inset yet:
-                style={[style, {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
+                style={[style, styles.pb5]}
             >
                 {children}
-                {isSubmitButtonVisible && (
-                    <FormAlertWithSubmitButton
-                        buttonText={submitButtonText}
-                        isDisabled={isSubmitDisabled}
-                        isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
-                        isLoading={!!formState?.isLoading || isLoading}
-                        message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
-                        onSubmit={onSubmit}
-                        footerContent={footerContent}
-                        onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles]}
-                        enabledWhenOffline={enabledWhenOffline}
-                        isSubmitActionDangerous={isSubmitActionDangerous}
-                        disablePressOnEnter={disablePressOnEnter}
-                        enterKeyEventListenerPriority={1}
-                    />
-                )}
+                {!shouldSubmitButtonStickToBottom && SubmitButton}
             </FormElement>
         ),
-        [
-            formID,
-            style,
-            safeAreaInsetPaddingBottom,
-            styles.pb5.paddingBottom,
-            styles.mh0,
-            styles.mt5,
-            styles.flex1,
-            children,
-            isSubmitButtonVisible,
-            submitButtonText,
-            isSubmitDisabled,
-            errors,
-            formState?.errorFields,
-            formState?.isLoading,
-            shouldHideFixErrorsAlert,
-            errorMessage,
-            isLoading,
-            onSubmit,
-            footerContent,
-            onFixTheErrorsLinkPressed,
-            submitFlexEnabled,
-            submitButtonStyles,
-            enabledWhenOffline,
-            isSubmitActionDangerous,
-            disablePressOnEnter,
-        ],
+        [formID, style, styles.pb5, children, shouldSubmitButtonStickToBottom, SubmitButton],
     );
 
     if (!shouldUseScrollView) {
+        if (shouldSubmitButtonStickToBottom) {
+            return (
+                <View style={styles.flex1}>
+                    {scrollViewContent()}
+                    {SubmitButton}
+                </View>
+            );
+        }
+
         return scrollViewContent();
     }
 
-    return scrollContextEnabled ? (
-        <ScrollViewWithContext
-            style={[styles.w100, styles.flex1]}
-            contentContainerStyle={styles.flexGrow1}
-            keyboardShouldPersistTaps="handled"
-            addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
-            ref={formRef}
-        >
-            {scrollViewContent()}
-        </ScrollViewWithContext>
-    ) : (
-        <ScrollView
-            style={[styles.w100, styles.flex1]}
-            contentContainerStyle={styles.flexGrow1}
-            keyboardShouldPersistTaps="handled"
-            addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
-            ref={formRef}
-        >
-            {scrollViewContent()}
-        </ScrollView>
+    return (
+        <View style={styles.flex1}>
+            {scrollContextEnabled ? (
+                <ScrollViewWithContext
+                    style={[styles.w100, styles.flex1]}
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                    addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
+                    ref={formRef}
+                >
+                    {scrollViewContent()}
+                </ScrollViewWithContext>
+            ) : (
+                <ScrollView
+                    style={[styles.w100, styles.flex1]}
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                    addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
+                    ref={formRef}
+                >
+                    {scrollViewContent()}
+                </ScrollView>
+            )}
+            {shouldSubmitButtonStickToBottom && SubmitButton}
+        </View>
     );
 }
 
