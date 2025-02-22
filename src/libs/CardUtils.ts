@@ -527,15 +527,6 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
     return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
 }
 
-function getCardFeedItemText(cardFeedBankName: string, cardFeedLabel: string | undefined) {
-    switch (cardFeedBankName) {
-        case CONST.COMPANY_CARDS.CARD_TYPE.CSV:
-            return translateLocal('search.filters.card.cardFeedNameCSV', {cardFeedLabel});
-        default:
-            return translateLocal('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
-    }
-}
-
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -574,5 +565,4 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
-    getCardFeedItemText,
 };
