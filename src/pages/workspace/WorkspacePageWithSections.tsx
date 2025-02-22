@@ -62,9 +62,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
 
-        /** Whether to include safe area padding bottom or not */
-        includeSafeAreaPaddingBottom?: boolean;
-
         /** Makes firstRender ref display loading page before isLoading is change to true */
         showLoadingAsFirstRender?: boolean;
 
@@ -90,7 +87,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /**
          * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
          */
-        addBottomSafeAreaPaddingToContent?: boolean;
+        addBottomSafeAreaPadding?: boolean;
     };
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
@@ -117,7 +114,6 @@ function WorkspacePageWithSections({
     shouldShowBackButton = false,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
-    includeSafeAreaPaddingBottom = false,
     shouldShowNonAdmin = false,
     headerContent,
     testID,
@@ -127,7 +123,7 @@ function WorkspacePageWithSections({
     shouldShowThreeDotsButton,
     threeDotsMenuItems,
     threeDotsAnchorPosition,
-    addBottomSafeAreaPaddingToContent = false,
+    addBottomSafeAreaPadding = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
@@ -173,7 +169,6 @@ function WorkspacePageWithSections({
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -208,7 +203,7 @@ function WorkspacePageWithSections({
                         {shouldUseScrollView ? (
                             <ScrollViewWithContext
                                 keyboardShouldPersistTaps="handled"
-                                addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
+                                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
                                 <View style={[styles.w100, styles.flex1]}>{content}</View>

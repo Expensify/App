@@ -62,7 +62,8 @@ function WorkspaceNamePage({policy}: Props) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
+                keyboardShouldCompensateForBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceNamePage.displayName}
             >
@@ -79,6 +80,7 @@ function WorkspaceNamePage({policy}: Props) {
                     validate={validate}
                     onSubmit={submit}
                     enabledWhenOffline
+                    shouldSubmitButtonStickToBottom
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

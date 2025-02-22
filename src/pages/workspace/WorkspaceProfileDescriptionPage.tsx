@@ -71,7 +71,6 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
                 keyboardShouldCompensateForBottomSafeAreaPadding
@@ -90,7 +89,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                     onSubmit={submit}
                     validate={validate}
                     enabledWhenOffline
-                    addBottomSafeAreaPaddingToContent
+                    addBottomSafeAreaPadding
                     shouldSubmitButtonStickToBottom
                 >
                     <View style={styles.mb4}>
