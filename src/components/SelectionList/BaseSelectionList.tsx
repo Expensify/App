@@ -894,7 +894,10 @@ function BaseSelectionList<TItem extends ListItem>(
                 </>
             )}
             {showConfirmButton && (
-                <FixedFooter style={[styles.mtAuto]}>
+                <FixedFooter
+                    style={[styles.mtAuto]}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                >
                     <Button
                         success={!shouldUseDefaultTheme}
                         large
@@ -907,7 +910,14 @@ function BaseSelectionList<TItem extends ListItem>(
                     />
                 </FixedFooter>
             )}
-            {!!footerContent && <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>}
+            {!!footerContent && (
+                <FixedFooter
+                    style={[styles.mtAuto]}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                >
+                    {footerContent}
+                </FixedFooter>
+            )}
         </View>
     );
 }
