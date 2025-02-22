@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {translateLocal} from '@libs/Localize';
 import BaseLocaleListener from '@libs/Localize/LocaleListener/BaseLocaleListener';
+// eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
