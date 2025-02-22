@@ -86,6 +86,11 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
+
+        /**
+         * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+         */
+        addBottomSafeAreaPaddingToContent?: boolean;
     };
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
@@ -122,6 +127,7 @@ function WorkspacePageWithSections({
     shouldShowThreeDotsButton,
     threeDotsMenuItems,
     threeDotsAnchorPosition,
+    addBottomSafeAreaPaddingToContent = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
@@ -168,6 +174,7 @@ function WorkspacePageWithSections({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             testID={testID ?? WorkspacePageWithSections.displayName}
@@ -201,6 +208,7 @@ function WorkspacePageWithSections({
                         {shouldUseScrollView ? (
                             <ScrollViewWithContext
                                 keyboardShouldPersistTaps="handled"
+                                addBottomSafeAreaPaddingToContent={addBottomSafeAreaPaddingToContent}
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
                                 <View style={[styles.w100, styles.flex1]}>{content}</View>
