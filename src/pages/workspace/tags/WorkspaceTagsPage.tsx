@@ -209,7 +209,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
+                rightHeaderText={translate(isMultiLevelTags ? 'common.required' : 'common.enabled')}
             />
         );
     };
