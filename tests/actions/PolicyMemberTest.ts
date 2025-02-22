@@ -413,7 +413,7 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             // Then the member workspace chat should be archived optimistically
-            const isArchived = await new Promise<Boolean>((resolve) => {
+            const isArchived = await new Promise<boolean>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
                     callback: (nvp) => {
