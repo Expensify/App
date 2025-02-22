@@ -87,6 +87,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={5}
             stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScrollView
                 style={styles.pt0}
