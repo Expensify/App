@@ -67,6 +67,9 @@ type SearchAutocompleteListProps = {
 
     /** Callback to call when the list of autocomplete substitutions should be updated */
     updateAutocompleteSubstitutions: (item: SearchQueryItem) => void;
+
+    /** Whether to subscribe to KeyboardShortcut arrow keys events */
+    shouldSubscribeToArrowKeyEvents?: boolean;
 };
 
 const defaultListOptions = {
@@ -118,7 +121,15 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchAutocompleteList(
-    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchAutocompleteListProps,
+    {
+        autocompleteQueryValue,
+        searchQueryItem,
+        getAdditionalSections,
+        onListItemPress,
+        setTextQuery,
+        updateAutocompleteSubstitutions,
+        shouldSubscribeToArrowKeyEvents,
+    }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -490,6 +501,7 @@ function SearchAutocompleteList(
             ref={ref}
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
+            shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
         />
     );
 }
