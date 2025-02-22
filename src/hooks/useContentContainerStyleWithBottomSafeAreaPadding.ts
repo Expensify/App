@@ -4,7 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import useStyledSafeAreaInsets from './useStyledSafeAreaInsets';
 
 function useContentContainerStyleWithBottomSafeAreaPadding(addBottomSafeAreaPaddingToContent: boolean, contentContainerStyleProp: StyleProp<ViewStyle> | undefined) {
-    const {paddingBottom: safeAreaPaddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom: safeAreaPaddingBottom} = useStyledSafeAreaInsets(true);
 
     return useMemo<StyleProp<ViewStyle>>(() => {
         if (addBottomSafeAreaPaddingToContent) {
