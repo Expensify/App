@@ -9,14 +9,14 @@ type ScrollViewProps = RNScrollViewProps & {
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
-    addBottomSafeAreaPaddingToContent?: boolean;
+    addBottomSafeAreaPadding?: boolean;
 };
 
 function ScrollView(
-    {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPaddingToContent = false, ...props}: ScrollViewProps,
+    {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPadding = false, ...props}: ScrollViewProps,
     ref: ForwardedRef<RNScrollView>,
 ) {
-    const contentContainerStyle = useContentContainerStyleWithBottomSafeAreaPadding(addBottomSafeAreaPaddingToContent, contentContainerStyleProp);
+    const contentContainerStyle = useContentContainerStyleWithBottomSafeAreaPadding(addBottomSafeAreaPadding, contentContainerStyleProp);
 
     return (
         <RNScrollView
