@@ -6,11 +6,11 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import BaseKeyboardAvoidingView from './BaseKeyboardAvoidingView';
 import type {KeyboardAvoidingViewProps} from './types';
 
-function KeyboardAvoidingView({shouldCompensateBottomSafeAreaPadding = false, keyboardVerticalOffset: keyboardVerticalOffsetProp, ...restProps}: KeyboardAvoidingViewProps) {
+function KeyboardAvoidingView({shouldOffsetBottomSafeAreaPadding = false, keyboardVerticalOffset: keyboardVerticalOffsetProp, ...restProps}: KeyboardAvoidingViewProps) {
     const {paddingBottom} = useStyledSafeAreaInsets(true);
     const keyboardVerticalOffset = useMemo(
-        () => (keyboardVerticalOffsetProp ?? 0) + (shouldCompensateBottomSafeAreaPadding ? -paddingBottom : 0),
-        [keyboardVerticalOffsetProp, paddingBottom, shouldCompensateBottomSafeAreaPadding],
+        () => (keyboardVerticalOffsetProp ?? 0) + (shouldOffsetBottomSafeAreaPadding ? -paddingBottom : 0),
+        [keyboardVerticalOffsetProp, paddingBottom, shouldOffsetBottomSafeAreaPadding],
     );
     return (
         <BaseKeyboardAvoidingView
