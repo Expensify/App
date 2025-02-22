@@ -281,7 +281,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const footerContent = useMemo(
         () => (
             <FormAlertWithSubmitButton
-                // shouldBlendOpacity
+                shouldBlendOpacity
                 isDisabled={!selectedOptions.length}
                 isAlertVisible={shouldShowAlertPrompt}
                 buttonText={translate('common.next')}
