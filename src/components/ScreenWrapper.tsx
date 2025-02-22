@@ -120,7 +120,7 @@ type ScreenWrapperProps = {
      * Whether the KeyboardAvoidingView should compensate for the bottom safe area padding.
      * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
      */
-    keyboardShouldCompensateForBottomSafeAreaPadding?: boolean;
+    shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
 };
 
 type ScreenWrapperStatusContextType = {
@@ -155,7 +155,7 @@ function ScreenWrapper(
         focusTrapSettings,
         bottomContent,
         enableEdgeToEdgeBottomSafeAreaPadding = false,
-        keyboardShouldCompensateForBottomSafeAreaPadding = false,
+        shouldKeyboardOffsetBottomSafeAreaPadding = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -348,7 +348,7 @@ function ScreenWrapper(
                         style={[styles.w100, styles.h100, !isBlurred ? {maxHeight} : undefined, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                         behavior={keyboardAvoidingViewBehavior}
                         enabled={shouldEnableKeyboardAvoidingView}
-                        shouldCompensateBottomSafeAreaPadding={keyboardShouldCompensateForBottomSafeAreaPadding}
+                        shouldOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
                     >
                         <PickerAvoidingView
                             style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
