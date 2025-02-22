@@ -37,6 +37,12 @@ type PressableWithFeedbackProps = PressableProps & {
 
     /** The color of the underlay that will show through when the Pressable is active. */
     underlayColor?: Color;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
 };
 
 function PressableWithFeedback(
@@ -47,6 +53,7 @@ function PressableWithFeedback(
         pressDimmingValue = variables.pressDimValue,
         hoverDimmingValue = variables.hoverDimValue,
         dimAnimationDuration,
+        shouldBlendOpacity,
         ...rest
     }: PressableWithFeedbackProps,
     ref: PressableRef,
@@ -56,7 +63,7 @@ function PressableWithFeedback(
 
     return (
         <OpacityView
-            shouldDim={!!(!rest.disabled && (isPressed || isHovered))}
+            shouldDim={!shouldBlendOpacity && !!(!rest.disabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? pressDimmingValue : hoverDimmingValue}
             dimAnimationDuration={dimAnimationDuration}
             style={wrapperStyle}
