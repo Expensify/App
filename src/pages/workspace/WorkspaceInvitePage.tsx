@@ -281,6 +281,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const footerContent = useMemo(
         () => (
             <FormAlertWithSubmitButton
+                // shouldBlendOpacity
                 isDisabled={!selectedOptions.length}
                 isAlertVisible={shouldShowAlertPrompt}
                 buttonText={translate('common.next')}
@@ -307,7 +308,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
                 testID={WorkspaceInvitePage.displayName}
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldKeyboardOffsetBottomSafeAreaPadding
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton
@@ -337,6 +339,9 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
+                    contentContainerStyle={{paddingBottom: 80}}
+                    addBottomSafeAreaPadding
+                    shouldFooterContentStickToBottom
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
