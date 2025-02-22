@@ -3,7 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
 import usePrevious from '@hooks/usePrevious';
-import getInitialPaginationSize from './getInitialPaginationSize';
+import CONST from '@src/CONST';
 import RenderTaskQueue from './RenderTaskQueue';
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
@@ -46,7 +46,7 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         if (currentDataIndex <= 0) {
             return data;
         }
-        return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : getInitialPaginationSize)));
+        return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : CONST.PAGINATION_SIZE)));
     }, [currentDataIndex, data, isInitialData]);
 
     const isLoadingData = data.length > displayedData.length;
@@ -111,12 +111,31 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             });
         };
 
+        const scrollToIndexFn: RNFlatList['scrollToIndex'] = (params) => {
+            const actualIndex = params.index - dataIndexDifference;
+            try {
+                listRef.current?.scrollToIndex({...params, index: actualIndex});
+            } catch (ex) {
+                // It is possible that scrolling fails since the item we are trying to scroll to
+                // has not been rendered yet. In this case, we call the onScrollToIndexFailed.
+                props.onScrollToIndexFailed?.({
+                    index: actualIndex,
+                    // These metrics are not implemented.
+                    averageItemLength: 0,
+                    highestMeasuredFrameIndex: 0,
+                });
+            }
+        };
+
         return new Proxy(
             {},
             {
                 get: (_target, prop) => {
                     if (prop === 'scrollToOffset') {
                         return scrollToOffsetFn;
+                    }
+                    if (prop === 'scrollToIndex') {
+                        return scrollToIndexFn;
                     }
                     return listRef.current?.[prop as keyof RNFlatList];
                 },
