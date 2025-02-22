@@ -394,7 +394,7 @@ type SkeletonViewProps = {
     shouldAnimate: boolean;
 };
 
-type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
+type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
@@ -709,7 +709,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 export type {
     BaseListItemProps,
-    BaseSelectionListProps,
+    SelectionListProps,
     ButtonOrCheckBoxRoles,
     CommonListItemProps,
     ExtendedTargetedEvent,

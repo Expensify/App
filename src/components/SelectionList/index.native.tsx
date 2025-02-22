@@ -2,9 +2,9 @@ import React, {forwardRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
 import BaseSelectionList from './BaseSelectionList';
-import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './types';
+import type {ListItem, SelectionListHandle, SelectionListProps} from './types';
 
-function SelectionList<TItem extends ListItem>(props: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
+function SelectionList<TItem extends ListItem>(props: SelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading

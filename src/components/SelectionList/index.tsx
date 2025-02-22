@@ -5,9 +5,9 @@ import * as Browser from '@libs/Browser';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import BaseSelectionList from './BaseSelectionList';
-import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './types';
+import type {ListItem, SelectionListHandle, SelectionListProps} from './types';
 
-function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
+function SelectionList<TItem extends ListItem>({onScroll, ...props}: SelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
