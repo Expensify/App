@@ -425,7 +425,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
             value: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: null,
             },
         });

@@ -328,33 +328,33 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
-                <ShowContextMenuContext.Provider value={contextMenuContextValue}>
-                    <MentionReportContext.Provider
-                        key={translate('common.description')}
-                        value={mentionReportContextValue}
-                    >
-                        <MenuItemWithTopDescription
-                            key={translate('common.description')}
-                            shouldShowRightIcon={!isReadOnly}
-                            shouldParseTitle
-                            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                            title={iouComment}
-                            description={translate('common.description')}
-                            onPress={() => {
-                                if (!transactionID) {
-                                    return;
-                                }
+                <View key={translate('common.description')}>
+                    <ShowContextMenuContext.Provider value={contextMenuContextValue}>
+                        <MentionReportContext.Provider value={mentionReportContextValue}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={!isReadOnly}
+                                shouldParseTitle
+                                excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                                title={iouComment}
+                                description={translate('common.description')}
+                                onPress={() => {
+                                    if (!transactionID) {
+                                        return;
+                                    }
 
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            numberOfLinesTitle={2}
-                        />
-                    </MentionReportContext.Provider>
-                </ShowContextMenuContext.Provider>
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                    );
+                                }}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                disabled={didConfirm}
+                                interactive={!isReadOnly}
+                                numberOfLinesTitle={2}
+                            />
+                        </MentionReportContext.Provider>
+                    </ShowContextMenuContext.Provider>
+                </View>
             ),
             shouldShow: true,
             isSupplementary: false,
@@ -806,7 +806,7 @@ function MoneyRequestConfirmationListFooter({
                             if (!transactionID) {
                                 return;
                             }
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID));
                         }}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
