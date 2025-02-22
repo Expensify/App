@@ -672,7 +672,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
-    addBottomSafeAreaPaddingToContent?: boolean;
+    addBottomSafeAreaPadding?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

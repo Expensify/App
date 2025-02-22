@@ -5,7 +5,7 @@ type SectionListProps<ItemT, SectionT> = RNSectionListProps<ItemT, SectionT> & {
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
-    addBottomSafeAreaPaddingToContent?: boolean;
+    addBottomSafeAreaPadding?: boolean;
 };
 
 type SectionListRef<ItemT, SectionT> = ForwardedRef<SectionList<ItemT, SectionT>>;
