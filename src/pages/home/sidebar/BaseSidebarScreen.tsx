@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import getTopmostReportsSplitNavigator from '@libs/Navigation/helpers/getTopmostReportsSplitNavigator';
@@ -65,7 +65,7 @@ function BaseSidebarScreen() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+            style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
             bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.HOME} />}
         >
