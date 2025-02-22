@@ -73,6 +73,8 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
                 shouldEnableMaxHeight
+                enableEdgeToEdgeBottomSafeAreaPadding
+                keyboardShouldCompensateForBottomSafeAreaPadding
                 testID={WorkspaceProfileDescriptionPage.displayName}
             >
                 <HeaderWithBackButton
@@ -88,6 +90,8 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                     onSubmit={submit}
                     validate={validate}
                     enabledWhenOffline
+                    addBottomSafeAreaPaddingToContent
+                    shouldSubmitButtonStickToBottom
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
