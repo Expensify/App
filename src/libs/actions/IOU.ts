@@ -8850,7 +8850,7 @@ function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT
         true,
     );
 }
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true, usedPolicyID?: string) {
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true, paymentPolicyID?: string) {
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
@@ -8870,8 +8870,14 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     API.write(apiCommand, params, {optimisticData, successData, failureData});
     notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
 
-    if (usedPolicyID && iouReport?.reportID) {
-        savePreferredPaymentMethod(iouReport?.reportID, usedPolicyID, 'lastUsed');
+    // Save the payment method used for the report
+    // If the report is from a workspace, we use the policyID
+    // Otherwise, we use the policyID from the iouReport
+    // Otherwise, we use the paymentSelected
+    if (iouReport && iouReport?.policyID) {
+        const usedPaymentOption = paymentPolicyID ?? paymentSelected;
+        const reportType = iouReport?.type ?? 'lastUsed';
+        savePreferredPaymentMethod(iouReport?.policyID, usedPaymentOption, reportType as ValueOf<typeof CONST.LAST_PAYMENT_METHOD>);
     }
 }
 

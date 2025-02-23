@@ -117,7 +117,7 @@ function KYCWall({
                         const {reportID} = moveIOUToExistingPolicy(policy, iouReport) ?? {};
                         if (reportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                            savePreferredPaymentMethod(iouReport?.reportID ?? '', policy.id, 'Iou');
+                            savePreferredPaymentMethod(iouReport?.policyID ?? '', policy.id, 'Iou');
                         }
 
                         Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy.id));

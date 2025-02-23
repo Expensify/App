@@ -81,10 +81,9 @@ function SettlementButton({
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
-    const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
-    const lastPaymentMethodSelector = policyIDKey === CONST.POLICY.ID_FAKE && iouReport?.reportID ? iouReport?.reportID : policyIDKey;
+    const policyIDKey = reportBelongsToWorkspace ? policyID : iouReport?.policyID ?? CONST.POLICY.ID_FAKE;
     const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
-        selector: (paymentMethod) => getLastPolicyPaymentMethod(lastPaymentMethodSelector, paymentMethod, iouReport?.type as keyof LastPaymentMethodType),
+        selector: (paymentMethod) => getLastPolicyPaymentMethod(policyIDKey, paymentMethod, iouReport?.type as keyof LastPaymentMethodType),
     });
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
