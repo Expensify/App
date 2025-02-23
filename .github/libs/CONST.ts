@@ -1,8 +1,8 @@
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 
 const GIT_CONST = {
-    GITHUB_OWNER: 'Expensify',
-    APP_REPO: 'App',
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
+    APP_REPO: process.env.GITHUB_REPOSITORY.split('/').at(1) ?? '',
 } as const;
 
 const CONST = {

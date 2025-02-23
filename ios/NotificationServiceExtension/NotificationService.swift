@@ -9,6 +9,7 @@ import AirshipServiceExtension
 import os.log
 import Intents
 import AppLogs
+import Gzip
 
 class NotificationService: UANotificationServiceExtension {
   
@@ -93,10 +94,39 @@ class NotificationService: UANotificationServiceExtension {
     }
   }
   
-  func parsePayload(notificationContent: UNMutableNotificationContent) throws -> NotificationData  {
-    guard let payload = notificationContent.userInfo["payload"] as? NSDictionary else {
-      throw ExpError.runtimeError("payload missing")
+  private func processPayload(rawPayload: Any) throws -> NSDictionary {
+    // Handle valid objects first
+    if let dictPayload = rawPayload as? NSDictionary {
+      return dictPayload
     }
+    
+    guard let stringPayload = rawPayload as? String else {
+      throw ExpError.runtimeError("Failed to read payload as string")
+    }
+    
+    guard let decoded = Data(base64Encoded: stringPayload) else {
+      throw ExpError.runtimeError("Failed to decode payload string")
+    }
+    
+    guard decoded.isGzipped else {
+      throw ExpError.runtimeError("Decoded string not gzipped")
+    }
+    
+    let decompressedData = try decoded.gunzipped()
+    
+    guard let jsonDict = try JSONSerialization.jsonObject(with: decompressedData) as? NSDictionary else {
+      throw ExpError.runtimeError("Failed to parse JSON into dictionary")
+    }
+    
+    return jsonDict
+  }
+  
+  func parsePayload(notificationContent: UNMutableNotificationContent) throws -> NotificationData {
+    guard let rawPayload = notificationContent.userInfo["payload"] else {
+        throw ExpError.runtimeError("payload missing")
+    }
+  
+    let payload = try processPayload(rawPayload: rawPayload)
     
     guard let reportID = payload["reportID"] as? Int64 else {
       throw ExpError.runtimeError("payload.reportID missing")

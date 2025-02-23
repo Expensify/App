@@ -553,7 +553,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
                 translationKey: 'common.export',
-                icon: Expensicons.Upload,
+                icon: Expensicons.Export,
                 isAnonymousAction: false,
                 action: () => {
                     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID, connectedIntegration, backTo));
@@ -580,11 +580,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     if (!report?.policyID) {
                         return;
                     }
-                    if (isSmallScreenWidth) {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, Navigation.getActiveRoute()));
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
@@ -663,7 +659,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isOffline,
         transactionIDList,
         unapproveExpenseReportOrShowModal,
-        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {

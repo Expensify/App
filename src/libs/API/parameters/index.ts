@@ -51,7 +51,6 @@ export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachers
 export type {default as ReportVirtualExpensifyCardFraudParams} from './ReportVirtualExpensifyCardFraudParams';
 export type {default as RequestContactMethodValidateCodeParams} from './RequestContactMethodValidateCodeParams';
 export type {default as RequestNewValidateCodeParams} from './RequestNewValidateCodeParams';
-export type {default as RequestPhysicalExpensifyCardParams} from './RequestPhysicalExpensifyCardParams';
 export type {default as RequestReplacementExpensifyCardParams} from './RequestReplacementExpensifyCardParams';
 export type {default as RequestUnlinkValidationLinkParams} from './RequestUnlinkValidationLinkParams';
 export type {default as RequestAccountValidationLinkParams} from './RequestAccountValidationLinkParams';
@@ -185,6 +184,7 @@ export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
 export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as SwitchToOldDotOnCompanySizeParams} from './SwitchToOldDotOnCompanySizeParams';
 export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
@@ -283,7 +283,7 @@ export type {default as UpdateNSQSProjectsMappingParams} from './UpdateNSQSProje
 export type {default as UpdateNSQSExporterParams} from './UpdateNSQSExporterParams';
 export type {default as UpdateNSQSExportDateParams} from './UpdateNSQSExportDateParams';
 export type {default as UpdateNSQSAutoSyncParams} from './UpdateNSQSAutoSyncParams';
-export type {default as UpdateNSQSApprovalAccountParams} from './UpdateNSQSApprovalAccountParams';
+export type {default as UpdateNSQSPaymentAccountParams} from './UpdateNSQSPaymentAccountParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';
@@ -307,6 +307,7 @@ export type {default as EnablePolicyDefaultReportTitleParams} from './EnablePoli
 export type {default as SetPolicyExpenseMaxAmountNoReceipt} from './SetPolicyExpenseMaxAmountNoReceipt';
 export type {default as SetPolicyExpenseMaxAmount} from './SetPolicyExpenseMaxAmount';
 export type {default as SetPolicyExpenseMaxAge} from './SetPolicyExpenseMaxAge';
+export type {default as UpdateCustomRules} from './UpdateCustomRules';
 export type {default as SetPolicyBillableModeParams} from './SetPolicyBillableModeParams';
 export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBillableModeParams';
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
@@ -376,3 +377,4 @@ export type {default as QueueExpensifyCardForBillingParams} from './QueueExpensi
 export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboardingFieldsParams';
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
+export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
