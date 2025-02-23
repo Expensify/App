@@ -33,11 +33,11 @@ const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> |
     }
 
     if (err.includes('401')) {
-        return CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML;
+        return CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_PRIMARY_LOGIN;
     }
 
     if (err.includes('402')) {
-        return CONST.MERGE_ACCOUNT_RESULTS.ERR_EMAIL_VERIFICATION;
+        return CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED;
     }
 
     return null;

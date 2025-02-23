@@ -25,7 +25,7 @@ const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> |
     }
 
     if (err.includes('401 Not authorized - domain under control')) {
-        return CONST.MERGE_ACCOUNT_RESULTS.ERR_DOMAIN;
+        return CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_DOMAIN_CONTROL;
     }
 
     if (err.includes('405 Cannot merge account under invoicing')) {

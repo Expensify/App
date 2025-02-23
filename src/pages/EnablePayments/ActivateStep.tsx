@@ -42,9 +42,9 @@ function ActivateStep({userWallet, walletTerms}: ActivateStepProps) {
                 illustration={animation}
                 heading={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}
                 description={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
-                shouldShowButton={isActivatedWallet}
-                buttonText={continueButtonText}
-                onButtonPress={() => PaymentMethods.continueSetup()}
+                shouldShowPrimaryButton={isActivatedWallet}
+                primaryButtonText={continueButtonText}
+                onPrimaryButtonPress={() => PaymentMethods.continueSetup()}
             />
         </>
     );

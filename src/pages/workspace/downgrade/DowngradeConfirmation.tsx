@@ -18,9 +18,9 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
             heading={translate('workspace.downgrade.completed.headline')}
             description={hasOtherControlWorkspaces ? translate('workspace.downgrade.completed.description') : undefined}
             illustration={MushroomTopHat}
-            shouldShowButton
-            onButtonPress={onConfirmDowngrade}
-            buttonText={translate('workspace.downgrade.completed.gotIt')}
+            shouldShowPrimaryButton
+            onPrimaryButtonPress={onConfirmDowngrade}
+            primaryButtonText={translate('workspace.downgrade.completed.gotIt')}
         />
     );
 }

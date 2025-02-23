@@ -1388,6 +1388,8 @@ const translations = {
             },
             goToExpensifyClassic: 'Go to Expensify Classic',
         },
+        mergeFailureSAMLDomainControl: ({email}: MergeAccountGenericParams) =>
+            `You can't merge ${email} because it's controlled by ${email.split('@').at(0)}. Please [reach out to Concierge] for assistance.`,
         mergeFailureSAMLAccount: ({email}: MergeAccountGenericParams) =>
             `You can’t merge ${email} into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.`,
         mergeFailure2FA: {
@@ -1395,6 +1397,7 @@ const translations = {
                 `You can’t merge accounts because ${email} has two-factor authentication (2FA) enabled. Please disable 2FA for ${email} and try again.`,
             learnMore: 'Learn more about merging accounts.',
         },
+        mergeFailureAccountLocked: ({email}: MergeAccountGenericParams) => `You can't merge ${email} because it's locked. Please [reach out to Concierge] for assistance.`,
         mergeFailureUncreatedAccount: {
             noExpensifyAccount: ({email}: MergeAccountGenericParams) => `You can’t merge accounts because ${email} doesn’t have an Expensify account.`,
             addContactMethod: {

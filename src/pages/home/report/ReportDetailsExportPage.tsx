@@ -90,9 +90,9 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     illustration={Illustrations.LaptopwithSecondScreenandHourglass}
                     heading={translate('workspace.export.notReadyHeading')}
                     description={translate('workspace.export.notReadyDescription')}
-                    shouldShowButton
-                    buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={() => Navigation.goBack()}
+                    shouldShowPrimaryButton
+                    primaryButtonText={translate('common.buttonConfirm')}
+                    onPrimaryButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}
                 />
             </ScreenWrapper>
