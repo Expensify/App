@@ -2815,7 +2815,11 @@ function moveIOUToExistingPolicy(policy: Policy, iouReport: OnyxEntry<Report>): 
         return;
     }
 
-    const employeeEmail = allPersonalDetails?.[employeeAccountID]?.login ?? '';
+    const employeeEmail = allPersonalDetails?.[employeeAccountID]?.login;
+    if (!employeeEmail) {
+        return;
+    }
+
     let employeeWorkspaceChatReportID = ReportUtils.getWorkspaceChats(policyID, [employeeAccountID])?.at(0)?.reportID;
 
     const optimisticData: OnyxUpdate[] = [];
@@ -2955,7 +2959,7 @@ function moveIOUToExistingPolicy(policy: Policy, iouReport: OnyxEntry<Report>): 
     }
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, employeeWorkspaceChatReportID ?? '', iouReportID ?? '', policy.name);
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, employeeWorkspaceChatReportID, iouReportID, policy.name);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
