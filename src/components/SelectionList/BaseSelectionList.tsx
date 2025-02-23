@@ -834,7 +834,7 @@ function BaseSelectionList<TItem extends ListItem>(
     // If the default confirm button is visible and it is bottom-sticky,
     // we need to add additional padding bottom to the content container.
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding,
+        addBottomSafeAreaPadding: false, // Bottom safe area padding is already applied in the SectionList
         style: contentContainerStyleProp,
         paddingBottom: showConfirmButton && shouldFooterContentStickToBottom ? DEFAULT_CONFIRM_BUTTON_CONTENT_PADDING : 0,
     });
