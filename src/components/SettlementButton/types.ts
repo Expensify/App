@@ -96,6 +96,9 @@ type SettlementButtonProps = {
 
     /** Whether to use short form for the button */
     shouldUseShortForm?: boolean;
+
+    /** Whether we the report has only held expenses */
+    hasOnlyHeldExpenses?: boolean;
 };
 
 export default SettlementButtonProps;

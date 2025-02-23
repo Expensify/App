@@ -250,6 +250,9 @@ type TransactionListItemType = ListItem &
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
+
+        /** IOUs report */
+        iouReportID?: string | undefined;
     };
 
 type ReportActionListItemType = ListItem &

@@ -458,6 +458,8 @@ function TransactionListItemRow({
                         parentAction={parentAction}
                         goToItem={onButtonPress}
                         isLoading={isLoading}
+                        policyID={item.policyID}
+                        iouReportID={item?.iouReportID}
                     />
                 </View>
             </View>

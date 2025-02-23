@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
@@ -35,8 +37,8 @@ type ActionCellProps = {
     parentAction?: string;
     isLoading?: boolean;
     policyID?: string;
-    currency?: string;
     bankAccountRoute?: Route;
+    iouReportID?: string;
 };
 
 function ActionCell({
@@ -48,8 +50,8 @@ function ActionCell({
     parentAction = '',
     isLoading = false,
     policyID = '-1',
-    currency = CONST.CURRENCY.USD,
     bankAccountRoute = ROUTES.BANK_ACCOUNT as Route,
+    iouReportID = '',
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -57,6 +59,7 @@ function ActionCell({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
 
@@ -103,13 +106,14 @@ function ActionCell({
         ) : null;
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.PAY && !!policyID) {
+    if (action === CONST.SEARCH.ACTION_TYPES.PAY && policyID != '-1') {
         return (
             <SettlementButton
                 shouldUseShortForm
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                currency={currency}
+                currency={iouReport?.currency}
                 policyID={policyID}
+                iouReport={iouReport}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
                 onPress={goToItem}

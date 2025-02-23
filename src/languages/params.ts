@@ -189,6 +189,8 @@ type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
 
+type BankAccountLastFourParams = {lastFour: string};
+
 type NotYouParams = {user: string};
 
 type DateShouldBeBeforeParams = {dateString: string};
@@ -889,4 +891,5 @@ export type {
     SettlementDateParams,
     BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
+    BankAccountLastFourParams
 };
