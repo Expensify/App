@@ -15,9 +15,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as Link from '@userActions/Link';
-import * as MergeAccounts from '@userActions/MergeAccounts';
-import * as Report from '@userActions/Report';
+import {openOldDotLink} from '@userActions/Link';
+import {clearMergeWithValidateCode, clearRequestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,7 +89,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.beforeLink', {email: login})}
                         <TextLink
                             onPress={() => {
-                                Report.navigateToConciergeChat();
+                                navigateToConciergeChat();
                             }}
                         >
                             {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.linkText')}
@@ -109,7 +109,7 @@ function MergeResultPage() {
                             {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.beforeLink')}
                             <TextLink
                                 onPress={() => {
-                                    Report.navigateToConciergeChat();
+                                    navigateToConciergeChat();
                                 }}
                             >
                                 {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.linkText')}
@@ -119,7 +119,7 @@ function MergeResultPage() {
                     </>
                 ),
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
-                onSecondaryButtonPress: () => Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX, true),
+                onSecondaryButtonPress: () => openOldDotLink(CONST.OLDDOT_URLS.INBOX, true),
                 shouldShowSecondaryButton: true,
                 primaryButtonText: translate('common.buttonConfirm'),
                 illustration: Illustrations.RunningTurtle,
@@ -138,7 +138,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureAccountLocked.beforeLink', {email: login})}
                         <TextLink
                             onPress={() => {
-                                Report.navigateToConciergeChat();
+                                navigateToConciergeChat();
                             }}
                         >
                             {translate('mergeAccountsPage.mergeFailureAccountLocked.linkText')}
@@ -174,8 +174,8 @@ function MergeResultPage() {
 
     useEffect(() => {
         return () => {
-            MergeAccounts.clearRequestValidationCodeForAccountMerge();
-            MergeAccounts.clearMergeWithValidateCode();
+            clearRequestValidationCodeForAccountMerge();
+            clearMergeWithValidateCode();
         };
     }, []);
 

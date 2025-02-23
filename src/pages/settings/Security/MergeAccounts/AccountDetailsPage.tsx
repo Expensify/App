@@ -15,12 +15,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LoginUtils from '@libs/LoginUtils';
+import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as MergeAccounts from '@userActions/MergeAccounts';
+import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
+import {requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,7 +50,7 @@ function AccountDetailsPage() {
     const email = form?.[INPUT_IDS.PHONE_OR_EMAIL] ?? '';
 
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
-    const latestError = ErrorUtils.getLatestErrorMessage(getValidateCodeForAccountMerge);
+    const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
     const errorKey = getErrorKey(latestError);
     const genericError = !errorKey ? latestError : undefined;
 
@@ -78,22 +78,22 @@ function AccountDetailsPage() {
         const login = values[INPUT_IDS.PHONE_OR_EMAIL];
 
         if (!login) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.pleaseEnterEmailOrPhoneNumber'));
+            addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.pleaseEnterEmailOrPhoneNumber'));
         } else {
-            const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(login));
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
             if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
-                if (ValidationUtils.isNumericWithSpecialChars(login)) {
-                    ErrorUtils.addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.phoneNumber'));
+                if (isNumericWithSpecialChars(login)) {
+                    addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.phoneNumber'));
                 } else {
-                    ErrorUtils.addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('loginForm.error.invalidFormatEmailLogin'));
+                    addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('loginForm.error.invalidFormatEmailLogin'));
                 }
             }
         }
 
         if (!values[INPUT_IDS.CONSENT]) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.CONSENT, translate('common.error.fieldRequired'));
+            addErrorMessage(errors, INPUT_IDS.CONSENT, translate('common.error.fieldRequired'));
         }
         return errors;
     };
@@ -110,7 +110,7 @@ function AccountDetailsPage() {
             <FormProvider
                 formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
                 onSubmit={(values) => {
-                    MergeAccounts.requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
+                    requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
                 }}
                 style={[styles.flexGrow1, styles.mh5]}
                 shouldTrimValues
@@ -143,7 +143,7 @@ function AccountDetailsPage() {
                     <FormAlertWithSubmitButton
                         isAlertVisible={!!genericError}
                         onSubmit={() => {
-                            MergeAccounts.requestValidationCodeForAccountMerge(email);
+                            requestValidationCodeForAccountMerge(email);
                         }}
                         message={genericError}
                         buttonText={translate('common.next')}

@@ -9,11 +9,16 @@ import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as MergeAccounts from '@userActions/MergeAccounts';
+import {
+    clearMergeWithValidateCode,
+    clearRequestValidationCodeForAccountMerge,
+    mergeWithValidateCode as mergeWithValidateCodeAction,
+    requestValidationCodeForAccountMerge,
+} from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,7 +58,7 @@ function AccountValidatePage() {
 
     const accountMerged = mergeWithValidateCode?.accountMerged;
 
-    const latestError = ErrorUtils.getLatestErrorMessage(mergeWithValidateCode);
+    const latestError = getLatestErrorMessage(mergeWithValidateCode);
     const errorKey = getErrorKey(latestError);
 
     const styles = useThemeStyles();
@@ -81,8 +86,8 @@ function AccountValidatePage() {
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => {
-                    MergeAccounts.clearRequestValidationCodeForAccountMerge();
-                    MergeAccounts.clearMergeWithValidateCode();
+                    clearRequestValidationCodeForAccountMerge();
+                    clearMergeWithValidateCode();
                     Navigation.goBack();
                 }}
             />
@@ -93,10 +98,10 @@ function AccountValidatePage() {
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
-                        MergeAccounts.mergeWithValidateCode(email, code);
+                        mergeWithValidateCodeAction(email, code);
                     }}
-                    sendValidateCode={() => MergeAccounts.requestValidationCodeForAccountMerge(email)}
-                    clearError={() => MergeAccounts.clearMergeWithValidateCode()}
+                    sendValidateCode={() => requestValidationCodeForAccountMerge(email)}
+                    clearError={() => clearMergeWithValidateCode()}
                     validateError={mergeWithValidateCode?.errors}
                     hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
                     hideSubmitButton
