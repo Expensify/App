@@ -451,6 +451,25 @@ type CreateDistanceRequestInformation = {
     policyParams?: RequestMoneyPolicyParams;
 };
 
+type CreateSplitsAndOnyxDataParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    amount: number;
+    comment: string;
+    currency: string;
+    merchant: string;
+    created: string;
+    category: string;
+    tag: string;
+    splitShares: SplitShares;
+    existingSplitChatReportID?: string;
+    billable?: boolean;
+    iouRequestType?: IOURequestType;
+    taxCode?: string;
+    taxAmount?: number;
+};
+
 type TrackExpenseTransactionParams = {
     amount: number;
     currency: string;
@@ -5051,24 +5070,25 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
  * @param amount - always in the smallest unit of the currency
  * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a workspace chat
  */
-function createSplitsAndOnyxData(
-    participants: Participant[],
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    amount: number,
-    comment: string,
-    currency: string,
-    merchant: string,
-    created: string,
-    category: string,
-    tag: string,
-    splitShares: SplitShares = {},
-    existingSplitChatReportID = '',
-    billable = false,
-    iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-    taxCode = '',
-    taxAmount = 0,
-): SplitsAndOnyxData {
+function createSplitsAndOnyxData(createSplitsParams: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
+    const {
+        participants,
+        currentUserLogin,
+        currentUserAccountID,
+        amount,
+        comment,
+        currency,
+        merchant,
+        created,
+        category,
+        tag,
+        splitShares = {},
+        existingSplitChatReportID = '',
+        billable = false,
+        iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+        taxCode = '',
+        taxAmount = 0,
+    } = createSplitsParams;
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
@@ -5515,7 +5535,7 @@ function splitBill({
     taxCode = '',
     taxAmount = 0,
 }: SplitBillActionsParams) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData({
         participants,
         currentUserLogin,
         currentUserAccountID,
@@ -5532,7 +5552,7 @@ function splitBill({
         iouRequestType,
         taxCode,
         taxAmount,
-    );
+    });
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
@@ -5583,7 +5603,7 @@ function splitBillAndOpenReport({
     taxCode = '',
     taxAmount = 0,
 }: SplitBillActionsParams) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData({
         participants,
         currentUserLogin,
         currentUserAccountID,
@@ -5595,12 +5615,12 @@ function splitBillAndOpenReport({
         category,
         tag,
         splitShares,
-        '',
+        existingSplitChatReportID: '',
         billable,
         iouRequestType,
         taxCode,
         taxAmount,
-    );
+    });
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
@@ -6260,24 +6280,24 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             splitData,
             splits,
             onyxData: splitOnyxData,
-        } = createSplitsAndOnyxData(
+        } = createSplitsAndOnyxData({
             participants,
-            currentUserLogin ?? '',
+            currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             amount,
             comment,
             currency,
             merchant,
             created,
-            category ?? '',
-            tag ?? '',
+            category: category ?? '',
+            tag: tag ?? '',
             splitShares,
-            report?.reportID,
+            existingSplitChatReportID: report?.reportID,
             billable,
-            CONST.IOU.REQUEST_TYPE.DISTANCE,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
             taxCode,
             taxAmount,
-        );
+        });
         onyxData = splitOnyxData;
 
         // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
