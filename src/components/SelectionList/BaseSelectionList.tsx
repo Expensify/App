@@ -836,7 +836,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: false, // Bottom safe area padding is already applied in the SectionList
         style: contentContainerStyleProp,
-        paddingBottom: showConfirmButton && shouldFooterContentStickToBottom ? DEFAULT_CONFIRM_BUTTON_CONTENT_PADDING : 0,
+        additionalPaddingBottom: showConfirmButton && shouldFooterContentStickToBottom ? DEFAULT_CONFIRM_BUTTON_CONTENT_PADDING : 0,
     });
 
     // TODO: test _every_ component that uses SelectionList
