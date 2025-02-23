@@ -375,6 +375,9 @@ const translations = {
             invalidCharacter: 'Invalid character.',
             enterMerchant: 'Enter a merchant name.',
             enterAmount: 'Enter an amount.',
+            missingMerchantName: 'Missing merchant name',
+            missingAmount: 'Missing amount',
+            missingDate: 'Missing date',
             enterDate: 'Enter a date.',
             invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
             pleaseCompleteForm: 'Please complete the form above to continue.',
@@ -518,6 +521,7 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
+        expenseReports: 'Expense Reports',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -716,7 +720,9 @@ const translations = {
         beginningOfArchivedRoomPartTwo: ", there's nothing to see here.",
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) => `This chat is with all Expensify members on the ${domainRoom} domain.`,
         beginningOfChatHistoryDomainRoomPartTwo: ' Use it to chat with colleagues, share tips, and ask questions.',
-        beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => `This chat is with ${workspaceName} admins.`,
+        beginningOfChatHistoryAdminRoomPartOneFirst: 'This chat is with',
+        beginningOfChatHistoryAdminRoomPartOneLast: 'admin.',
+        beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName} `,
         beginningOfChatHistoryAdminRoomPartTwo: ' Use it to chat about workspace setup and more.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) => `This chat is with everyone in ${workspaceName}.`,
         beginningOfChatHistoryAnnounceRoomPartTwo: ` Use it for the most important announcements.`,
@@ -1186,6 +1192,7 @@ const translations = {
     securityPage: {
         title: 'Security options',
         subtitle: 'Enable two-factor authentication to keep your account safe.',
+        goToSecurity: 'Go back to security page',
     },
     shareCodePage: {
         title: 'Your code',
@@ -1841,7 +1848,7 @@ const translations = {
         listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
         workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
-        errorSelection: 'Please make a selection to continue.',
+        errorSelection: 'Select an option to move forward.',
         purpose: {
             title: 'What do you want to do today?',
             errorContinue: 'Please press continue to get set up.',
@@ -3462,13 +3469,12 @@ const translations = {
                 expense: 'Expense',
                 reimbursableExpenses: 'Export reimbursable expenses as',
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as',
+                defaultPaymentAccount: 'NSQS default',
+                paymentAccount: 'Payment account',
+                paymentAccountDescription: 'Choose the account that will be used as the payment account for transactions NSQS.',
             },
             advanced: {
                 autoSyncDescription: 'Sync NSQS and Expensify automatically, every day. Export finalized report in realtime',
-                defaultApprovalAccount: 'NSQS default',
-                approvalAccount: 'A/P approval account',
-                approvalAccountDescription:
-                    'Choose the account that transactions will be approved against in NSQS. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
             },
         },
         intacct: {
@@ -3827,6 +3833,10 @@ const translations = {
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
+                downgradeTitle: `Can't downgrade workspace`,
+                downgradeSubTitleFirstPart: `This workspace can't be downgraded because multiple card feeds are connected (excluding Expensify Cards). Please`,
+                downgradeSubTitleMiddlePart: `keep only one card feed`,
+                downgradeSubTitleLastPart: 'to proceed.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
                 expensifyCardBannerTitle: 'Get the Expensify Card',
                 expensifyCardBannerSubtitle: 'Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more.',
@@ -4555,9 +4565,9 @@ const translations = {
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
             },
             companyCards: {
-                title: 'Company cards',
-                description: `Connect your existing corporate cards to Expensify, assign them to employees, and automatically import transactions.`,
-                onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
+                title: 'Unlimited Company cards',
+                description: `Need to add more card feeds? Unlock unlimited company cards to sync transactions from all major card issuers.`,
+                onlyAvailableOnPlan: 'This is only available on the Control plan, starting at ',
             },
             rules: {
                 title: 'Rules',
@@ -5003,6 +5013,7 @@ const translations = {
             card: {
                 expensify: 'Expensify',
                 individualCards: 'Individual cards',
+                closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
@@ -5449,7 +5460,7 @@ const translations = {
         adminBrokenConnectionError: 'Receipt pending due to broken bank connection. Please resolve in ',
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
-        smartscanFailed: 'Receipt scanning failed. Enter details manually.',
+        smartscanFailed: ({canEdit = true}) => `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`,
         someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
