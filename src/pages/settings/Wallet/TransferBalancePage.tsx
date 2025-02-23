@@ -90,7 +90,7 @@ function TransferBalancePage() {
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
             const account = filteredMethods.at(0);
-            saveWalletTransferAccountTypeAndID(filterPaymentMethodType, account?.methodID?.toString() ?? '-1');
+            saveWalletTransferAccountTypeAndID(filterPaymentMethodType, account?.methodID?.toString() ?? CONST.DEFAULT_STRING_NEGATIVE_ID);
             return;
         }
 
@@ -106,7 +106,7 @@ function TransferBalancePage() {
             return;
         }
 
-        saveWalletTransferAccountTypeAndID(selectedAccount?.accountType, selectedAccount?.methodID?.toString() ?? '-1');
+        saveWalletTransferAccountTypeAndID(selectedAccount?.accountType, selectedAccount?.methodID?.toString() ?? CONST.DEFAULT_STRING_NEGATIVE_ID);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
