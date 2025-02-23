@@ -15,17 +15,20 @@ function useBottomSafeSafeAreaPaddingStyle(params?: UseBottomSafeAreaPaddingStyl
     const {addBottomSafeAreaPadding, style, paddingBottom} = params ?? {};
 
     return useMemo<StyleProp<ViewStyle>>(() => {
+        let totalPaddingBottom = paddingBottom ?? 0;
         if (addBottomSafeAreaPadding) {
-            let totalPaddingBottom = safeAreaPaddingBottom + (paddingBottom ?? 0);
-            if (style) {
-                const contentContainerStyleFlattened = style === undefined ? undefined : StyleSheet.flatten(style);
-                const stylePaddingBottom = contentContainerStyleFlattened?.paddingBottom;
-                totalPaddingBottom += typeof stylePaddingBottom === 'number' ? stylePaddingBottom : 0;
-            }
+            totalPaddingBottom += safeAreaPaddingBottom;
+        }
+
+        if (style) {
+            const contentContainerStyleFlattened = style === undefined ? undefined : StyleSheet.flatten(style);
+            const stylePaddingBottom = contentContainerStyleFlattened?.paddingBottom;
+            totalPaddingBottom += typeof stylePaddingBottom === 'number' ? stylePaddingBottom : 0;
 
             return [style, {paddingBottom: totalPaddingBottom}];
         }
-        return style;
+
+        return {paddingBottom: totalPaddingBottom};
     }, [addBottomSafeAreaPadding, style, paddingBottom, safeAreaPaddingBottom]);
 }
 
