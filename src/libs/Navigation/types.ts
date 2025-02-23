@@ -865,7 +865,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         feed: CompanyCardFeed;
         backTo?: Routes;
-        workspaceMemberAccountID?: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;

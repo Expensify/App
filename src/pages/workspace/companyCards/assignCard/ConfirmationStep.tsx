@@ -25,12 +25,9 @@ type ConfirmationStepProps = {
 
     /** Route to go back to */
     backTo?: Route;
-
-    /** Workspace member account id */
-    workspaceMemberAccountID?: string;
 };
 
-function ConfirmationStep({policyID, backTo, workspaceMemberAccountID}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -39,19 +36,13 @@ function ConfirmationStep({policyID, backTo, workspaceMemberAccountID}: Confirma
 
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
-    const cardholderAccountID = getPersonalDetailByEmail(data?.email ?? '')?.accountID?.toString() ?? '';
+
     const submit = () => {
         if (!policyID) {
             return;
         }
         assignWorkspaceCompanyCard(policyID, data);
-
-        if (backTo) {
-            Navigation.navigate(workspaceMemberAccountID === cardholderAccountID ? backTo : ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-        }
-
+        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         clearAssignCardStepAndData();
     };
 
