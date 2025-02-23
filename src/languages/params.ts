@@ -891,5 +891,5 @@ export type {
     SettlementDateParams,
     BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
-    BankAccountLastFourParams
+    BankAccountLastFourParams,
 };

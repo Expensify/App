@@ -274,7 +274,7 @@ function ReportPreview({
     }, []);
 
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, policyID?: string) => {
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, usedPolicyID?: string) => {
             if (!type) {
                 return;
             }
@@ -290,7 +290,7 @@ function ReportPreview({
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice(type, chatReport, iouReport, payAsBusiness);
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, undefined, policyID);
+                    payMoneyRequest(type, chatReport, iouReport, undefined, usedPolicyID);
                 }
             }
         },

@@ -87,7 +87,7 @@ function getLastPolicyPaymentMethod(
     }
 
     const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID];
-    const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : lastPolicyPaymentMethod?.[reportType || 'lastUsed'];
+    const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : lastPolicyPaymentMethod?.[reportType ?? 'lastUsed'];
 
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }

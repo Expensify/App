@@ -219,7 +219,9 @@ function ButtonWithDropdownMenu<IValueType>({
                         onSelected: item.onSelected
                             ? () => {
                                   item.onSelected?.();
-                                  item.shouldUpdateSelectedIndex && setSelectedItemIndex(index);
+                                  if (item.shouldUpdateSelectedIndex) {
+                                      setSelectedItemIndex(index);
+                                  }
                               }
                             : () => {
                                   onOptionSelected?.(item);

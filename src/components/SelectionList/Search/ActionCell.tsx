@@ -106,7 +106,7 @@ function ActionCell({
         ) : null;
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.PAY && policyID != '-1') {
+    if (action === CONST.SEARCH.ACTION_TYPES.PAY && policyID !== '-1') {
         return (
             <SettlementButton
                 shouldUseShortForm
