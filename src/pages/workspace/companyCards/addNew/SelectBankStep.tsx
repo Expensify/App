@@ -71,7 +71,7 @@ function SelectBankStep() {
     return (
         <ScreenWrapper
             testID={SelectBankStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -95,6 +95,8 @@ function SelectBankStep() {
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
                 confirmButtonStyles={styles.mt5}
+                addBottomSafeAreaPadding
+                shouldFooterContentStickToBottom
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>

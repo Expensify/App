@@ -86,7 +86,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     {!!shouldShowAssignCardButton && (
                         <Button
                             success
-                            isDisabled={!currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken}
+                            isDisabled={false}
                             onPress={handleAssignCard}
                             icon={Expensicons.Plus}
                             text={translate('workspace.companyCards.assignCard')}
