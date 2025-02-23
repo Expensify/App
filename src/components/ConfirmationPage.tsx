@@ -48,6 +48,9 @@ type ConfirmationPageProps = {
 
     /** Additional style for the description */
     descriptionStyle?: TextStyle;
+
+    /** Additional style for the footer */
+    footerStyle?: ViewStyle;
 };
 
 function ConfirmationPage({
@@ -63,6 +66,7 @@ function ConfirmationPage({
     headingStyle,
     illustrationStyle,
     descriptionStyle,
+    footerStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const isLottie = isIllustrationLottieAnimation(illustration);
@@ -89,7 +93,7 @@ function ConfirmationPage({
                 <Text style={[styles.textAlignCenter, descriptionStyle]}>{description}</Text>
             </View>
             {(shouldShowSecondaryButton || shouldShowPrimaryButton) && (
-                <FixedFooter>
+                <FixedFooter style={footerStyle}>
                     {shouldShowSecondaryButton && (
                         <Button
                             large

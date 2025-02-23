@@ -139,7 +139,7 @@ function AccountDetailsPage() {
                         aria-label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
                     />
                 </View>
-                <FixedFooter style={styles.ph0}>
+                <FixedFooter style={[styles.ph0, styles.pb0]}>
                     <FormAlertWithSubmitButton
                         isAlertVisible={!!genericError}
                         onSubmit={() => {

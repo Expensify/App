@@ -203,6 +203,7 @@ function MergeResultPage() {
                 descriptionStyle={descriptionStyle}
                 illustration={illustration}
                 illustrationStyle={illustrationStyle}
+                footerStyle={styles.pb0}
             />
         </ScreenWrapper>
     );
