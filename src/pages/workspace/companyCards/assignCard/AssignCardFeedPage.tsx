@@ -28,9 +28,12 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const firstAssigneeEmail = useRef(assignCard?.data?.email);
+    // eslint-disable-next-line react-compiler/react-compiler
     if (!firstAssigneeEmail.current) {
+        // eslint-disable-next-line react-compiler/react-compiler
         firstAssigneeEmail.current = assignCard?.data?.email;
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     const shouldUseBackToParam = !firstAssigneeEmail.current || firstAssigneeEmail.current === assignCard?.data?.email;
     useEffect(() => {
         return () => {
@@ -80,6 +83,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <ConfirmationStep
                     policyID={policyID}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     backTo={shouldUseBackToParam ? backTo : undefined}
                 />
             );
