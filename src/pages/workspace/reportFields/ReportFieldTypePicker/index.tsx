@@ -48,6 +48,7 @@ function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldType
             sections={typeSections}
             ListItem={RadioListItem}
             onSelectRow={onOptionSelected}
+            addBottomSafeAreaPadding
             initiallyFocusedOptionKey={typeSections.at(0)?.data?.find((reportField) => reportField.isSelected)?.keyForList}
         />
     );

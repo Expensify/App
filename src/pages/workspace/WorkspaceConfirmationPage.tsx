@@ -26,7 +26,8 @@ function WorkspaceConfirmationPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldKeyboardOffsetBottomSafeAreaPadding
             shouldEnableMaxHeight
             testID={WorkspaceConfirmationPage.displayName}
         >
