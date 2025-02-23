@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView as RNScrollView} from 'react-native';
 import type {ScrollViewProps as RNScrollViewProps} from 'react-native';
-import useContentContainerStyleWithBottomSafeAreaPadding from '@hooks/useContentContainerStyleWithBottomSafeAreaPadding';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 
 type ScrollViewProps = RNScrollViewProps & {
     /**
@@ -16,7 +16,7 @@ function ScrollView(
     {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPadding = false, ...props}: ScrollViewProps,
     ref: ForwardedRef<RNScrollView>,
 ) {
-    const contentContainerStyle = useContentContainerStyleWithBottomSafeAreaPadding(addBottomSafeAreaPadding, contentContainerStyleProp);
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: contentContainerStyleProp});
 
     return (
         <RNScrollView
