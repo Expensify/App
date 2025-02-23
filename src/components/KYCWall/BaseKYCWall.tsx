@@ -5,7 +5,7 @@ import type {EmitterSubscription, GestureResponderEvent, View} from 'react-nativ
 import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {completePaymentOnboarding} from '@libs/actions/IOU';
+import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,6 +17,7 @@ import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import viewRef from '@src/types/utils/viewRef';
 import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
@@ -101,15 +102,27 @@ function KYCWall({
     }, [getAnchorPosition]);
 
     const selectPaymentMethod = useCallback(
-        (paymentMethod: PaymentMethod) => {
-            onSelectPaymentMethod(paymentMethod);
+        (paymentMethod?: PaymentMethod, policy?: Policy) => {
+            if (paymentMethod) {
+                onSelectPaymentMethod(paymentMethod);
+            }
 
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 openPersonalBankAccountSetupView();
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
-            } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+            } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
+                    if (policy) {
+                        const {reportID} = moveIOUToExistingPolicy(policy, iouReport) ?? {};
+                        if (reportID) {
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                            savePreferredPaymentMethod(iouReport?.reportID ?? '', policy.id, 'Iou');
+                        }
+
+                        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policy.id));
+                        return;
+                    }
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
                     completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
@@ -133,7 +146,7 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType, paymentMethod?: PaymentMethod) => {
+        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType, paymentMethod?: PaymentMethod, policy?: Policy) => {
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -170,9 +183,9 @@ function KYCWall({
                 const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
                 const position = getAnchorPosition(clickedElementLocation);
 
-                if (paymentMethod) {
+                if (paymentMethod || !!policy) {
                     setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(paymentMethod);
+                    selectPaymentMethod(paymentMethod, policy);
                     return;
                 }
 

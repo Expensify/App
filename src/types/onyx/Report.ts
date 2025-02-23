@@ -134,7 +134,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         writeCapability?: WriteCapability;
 
         /** The report type */
-        type?: string;
+        type?: ValueOf<typeof CONST.REPORT.TYPE>;
 
         /** The report visibility */
         visibility?: RoomVisibility;
