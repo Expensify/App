@@ -1,5 +1,5 @@
+import type {NavigationBarType} from '@libs/NavBarManager/types';
 import CONST from '@src/CONST';
-import type {NavigationBarType} from './types';
 
 function getNavigationBarType(): NavigationBarType {
     // On web, there is no navigation bar.
