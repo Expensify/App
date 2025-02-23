@@ -147,6 +147,7 @@ function FormWrapper({
                     isSubmitActionDangerous={isSubmitActionDangerous}
                     disablePressOnEnter={disablePressOnEnter}
                     enterKeyEventListenerPriority={1}
+                    shouldBlendOpacity={shouldSubmitButtonStickToBottom}
                 />
             ),
         [
