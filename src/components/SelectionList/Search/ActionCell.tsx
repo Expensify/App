@@ -38,7 +38,7 @@ type ActionCellProps = {
     isLoading?: boolean;
     policyID?: string;
     bankAccountRoute?: Route;
-    iouReportID?: string;
+    reportID?: string;
 };
 
 function ActionCell({
@@ -51,7 +51,7 @@ function ActionCell({
     isLoading = false,
     policyID = '-1',
     bankAccountRoute = ROUTES.BANK_ACCOUNT as Route,
-    iouReportID = '',
+    reportID = '',
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -59,7 +59,7 @@ function ActionCell({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
 

@@ -9560,7 +9560,10 @@ function navigateToStartStepIfScanFileCannotBeRead(
 }
 
 /** Save the preferred payment method for a policy or report */
-function savePreferredPaymentMethod(id: string, paymentMethod: string, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+function savePreferredPaymentMethod(id: string | undefined, paymentMethod: string, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+    if (!id) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[id]: type ? {[type]: paymentMethod, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: paymentMethod} : paymentMethod});
 }
 

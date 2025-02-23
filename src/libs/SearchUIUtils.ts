@@ -288,9 +288,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             const transactionItem = data[key];
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
-            const isPolicyExpenseChat = reports.find((report) => report.policyID === transactionItem.policyID && report.isPolicyExpenseChat);
-            const iouReport = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
-
+            const isPolicyExpenseChat = !!reports.find((report) => report.policyID === transactionItem.policyID && report.isPolicyExpenseChat);
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
             return {
@@ -310,7 +308,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
                 isPolicyExpenseChat,
-                iouReportID: iouReport?.reportID,
             };
         });
 }

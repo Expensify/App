@@ -459,7 +459,7 @@ function TransactionListItemRow({
                         goToItem={onButtonPress}
                         isLoading={isLoading}
                         policyID={item.policyID}
-                        iouReportID={item?.iouReportID}
+                        reportID={item?.reportID}
                     />
                 </View>
             </View>
