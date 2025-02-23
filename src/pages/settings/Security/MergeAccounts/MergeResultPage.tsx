@@ -84,7 +84,19 @@ function MergeResultPage() {
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_DOMAIN_CONTROL]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
-                description: translate('mergeAccountsPage.mergeFailureSAMLDomainControl', {email: login}),
+                description: (
+                    <>
+                        {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.beforeLink', {email: login})}
+                        <TextLink
+                            onPress={() => {
+                                Report.navigateToConciergeChat();
+                            }}
+                        >
+                            {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.linkText')}
+                        </TextLink>
+                        {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.afterLink')}
+                    </>
+                ),
                 primaryButtonText: translate('common.buttonConfirm'),
                 illustration: Illustrations.LockClosedOrange,
             },
@@ -121,7 +133,19 @@ function MergeResultPage() {
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_ACCOUNT_LOCKED]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
-                description: 'mergeAccountsPage.mergeFailureAccountLocked',
+                description: (
+                    <>
+                        {translate('mergeAccountsPage.mergeFailureAccountLocked.beforeLink', {email: login})}
+                        <TextLink
+                            onPress={() => {
+                                Report.navigateToConciergeChat();
+                            }}
+                        >
+                            {translate('mergeAccountsPage.mergeFailureAccountLocked.linkText')}
+                        </TextLink>
+                        {translate('mergeAccountsPage.mergeFailureAccountLocked.afterLink')}
+                    </>
+                ),
                 primaryButtonText: translate('common.buttonConfirm'),
                 illustration: Illustrations.LockClosedOrange,
             },
