@@ -58,7 +58,7 @@ function CategoryDefaultTaxRatePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryDefaultTaxRatePage.displayName}
                 shouldEnableMaxHeight
@@ -86,6 +86,7 @@ function CategoryDefaultTaxRatePage({
                     shouldSingleExecuteRowSelect
                     containerStyle={[styles.pt3]}
                     initiallyFocusedOptionKey={selectedTaxRate}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -77,7 +77,8 @@ function EditTagPage({route}: EditTagPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={EditTagPage.displayName}
                 shouldEnableMaxHeight
@@ -99,6 +100,8 @@ function EditTagPage({route}: EditTagPageProps) {
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
+                    shouldSubmitButtonStickToBottom
                 >
                     <InputWrapper
                         InputComponent={TextInput}
