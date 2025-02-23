@@ -213,6 +213,7 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
+import CrossX from '@assets/images/x-letter.svg';
 import Zoom from '@assets/images/zoom.svg';
 
 export {
@@ -432,4 +433,5 @@ export {
     Train,
     boltSlash,
     MagnifyingGlassSpyMouthClosed,
+    CrossX,
 };
