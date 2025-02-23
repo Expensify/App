@@ -3,10 +3,10 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import useResponsiveLayout from '@hooks/useisReportApprovedResponsiveLayout';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -30,6 +30,7 @@ import {
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserSubmitter,
     isInvoiceReport,
+    isReportApproved,
     navigateBackOnDeleteTransaction,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
@@ -126,6 +127,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
 
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
@@ -134,8 +136,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
-    const [showReviewDuplicates, setShowReviewDuplicates] = useState(true);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
+    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID) && (!isReportApproved({report: moneyRequestReport}) || isApprovedAnimationRunning);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -165,7 +166,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -351,15 +351,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [isDuplicate, shouldShowSettlementButton, shouldShowExportIntegrationButton, shouldShowSubmitButton, shouldShowMarkAsCashButton],
     );
 
-    const onAnimationFinish = useCallback(() => {
-        stopAnimation();
-        setShowReviewDuplicates(false);
-    }, [stopAnimation]);
-
-    useEffect(() => {
-        setShowReviewDuplicates(true);
-    }, [moneyRequestReport?.reportID]);
-
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isLoadingHoldUseExplained || dismissedHoldUseExplanation || !isOnHold) {
@@ -389,7 +380,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
             >
-                {isDuplicate && showReviewDuplicates && !shouldUseNarrowLayout && (
+                {isDuplicate && !shouldUseNarrowLayout && (
                     <View style={[shouldDuplicateButtonBeSuccess ? styles.ml2 : styles.mh2]}>
                         <Button
                             success={shouldDuplicateButtonBeSuccess}
@@ -406,7 +397,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         <AnimatedSettlementButton
                             isPaidAnimationRunning={isPaidAnimationRunning}
                             isApprovedAnimationRunning={isApprovedAnimationRunning}
-                            onAnimationFinish={onAnimationFinish}
+                            onAnimationFinish={stopAnimation}
                             canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
