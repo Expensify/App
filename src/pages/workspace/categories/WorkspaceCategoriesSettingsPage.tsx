@@ -97,7 +97,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceCategoriesSettingsPage.displayName}
             >
@@ -123,6 +123,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                     <View style={[styles.containerWithSpaceBetween]}>
                         {!!currentPolicy && (sections.at(0)?.data?.length ?? 0) > 0 && (
                             <SelectionList
+                                addBottomSafeAreaPadding
                                 headerContent={
                                     <View style={[styles.mh5, styles.mt2, styles.mb1]}>
                                         <Text style={[styles.headerText]}>{translate('workspace.categories.defaultSpendCategories')}</Text>

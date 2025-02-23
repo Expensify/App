@@ -34,6 +34,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 shouldSkipVBBACall={false}
                 route={route}
                 icon={Illustrations.InvoiceBlue}
+                addBottomSafeAreaPadding
             >
                 {(_hasVBA?: boolean, policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
