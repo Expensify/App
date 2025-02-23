@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -34,6 +35,7 @@ import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle, SelectionListProps} from './types';
 
+const DEFAULT_CONFIRM_BUTTON_CONTENT_PADDING = 80;
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
 function BaseSelectionList<TItem extends ListItem>(
@@ -114,7 +116,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemWrapperStyle,
         shouldIgnoreFocus = false,
         scrollEventThrottle,
-        contentContainerStyle,
+        contentContainerStyle: contentContainerStyleProp,
         shouldHighlightSelectedItem = false,
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
@@ -828,6 +830,14 @@ function BaseSelectionList<TItem extends ListItem>(
         () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
         [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
     );
+
+    // If the default confirm button is visible and it is bottom-sticky,
+    // we need to add additional padding bottom to the content container.
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding,
+        style: contentContainerStyleProp,
+        paddingBottom: showConfirmButton && shouldFooterContentStickToBottom ? DEFAULT_CONFIRM_BUTTON_CONTENT_PADDING : 0,
+    });
 
     // TODO: test _every_ component that uses SelectionList
     return (
