@@ -452,7 +452,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
-                        {isDuplicate && showReviewDuplicates && shouldUseNarrowLayout && (
+                        {isDuplicate && shouldUseNarrowLayout && (
                             <Button
                                 success={shouldDuplicateButtonBeSuccess}
                                 text={translate('iou.reviewDuplicates')}
@@ -466,7 +466,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             <AnimatedSettlementButton
                                 isPaidAnimationRunning={isPaidAnimationRunning}
                                 isApprovedAnimationRunning={isApprovedAnimationRunning}
-                                onAnimationFinish={onAnimationFinish}
+                                onAnimationFinish={stopAnimation}
                                 canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
