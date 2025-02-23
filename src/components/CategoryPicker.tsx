@@ -18,21 +18,15 @@ type CategoryPickerProps = {
     policyID: string | undefined;
     selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+    contentContainerStyle?: StyleProp<ViewStyle>;
 
     /**
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
     addBottomSafeAreaPadding?: boolean;
-
-    /**
-     * Temporarily needed until modal safe area handling is enabled
-     * TODO BottomSafeArea: remove both of these props
-     */
-    includeSafeAreaPaddingBottom?: boolean;
-    contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false, includeSafeAreaPaddingBottom, contentContainerStyle}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false, contentContainerStyle}: CategoryPickerProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
@@ -90,7 +84,6 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             contentContainerStyle={contentContainerStyle}
         />
     );
