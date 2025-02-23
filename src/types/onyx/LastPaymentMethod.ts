@@ -2,7 +2,7 @@
  * The new lastPaymentMethod object
  */
 type LastPaymentMethodType = {
-    /** The default last payment method, this one holds the existing data of the old lastPaymentMethod value which is string */
+    /** The default last payment method */
     lastUsed: string;
     /** The lastPaymentMethod of an IOU */
     Iou: string;
