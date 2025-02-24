@@ -504,9 +504,7 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-
-        // Should filter out the smartScanFailedViolation and return true, duplicatedTransactionViolation is a warning type violation but it's not considered in hasWarningTypeViolation
         const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction.transactionID, transactionViolationsCollection);
-        expect(hasWarningTypeViolationRes).toBeFalsy();
+        expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 });

@@ -8,14 +8,14 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineSyncClasses, updateQuickbooksOnlineSyncCustomers, updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
-import {enablePerDiem} from '@libs/actions/Policy/PerDiem';
-import {enableCompanyCards, enablePolicyReportFields, enablePolicyRules, upgradeToCorporate as upgradeToCorporatePolicyUtils} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canModifyPlan, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
+import {enableCompanyCards, enablePolicyReportFields, enablePolicyRules, upgradeToCorporate} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -79,8 +79,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         return;
                     }
                 }
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)));
+                return;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
@@ -88,12 +90,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
     }, [feature, policyID, route.params?.backTo, route.params?.featureName]);
 
-    const upgradeToCorporate = () => {
+    const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
             return;
         }
 
-        upgradeToCorporatePolicyUtils(policy.id, feature?.name);
+        upgradeToCorporate(policy.id, feature?.name);
     };
 
     const confirmUpgrade = useCallback(() => {
@@ -194,7 +196,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 <UpgradeIntro
                     policyID={policyID}
                     feature={feature}
-                    onUpgrade={upgradeToCorporate}
+                    onUpgrade={onUpgradeToCorporate}
                     buttonDisabled={isOffline}
                     loading={policy?.isPendingUpgrade}
                     backTo={route.params.backTo}
