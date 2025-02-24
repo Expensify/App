@@ -58,7 +58,7 @@ type AddressFormProps = {
     shouldAllowCountryChange?: boolean;
 
     /** Indicates if zip code format should be validated */
-    shouldValidateZipCodeFormat: boolean;
+    shouldValidateZipCodeFormat?: boolean;
 };
 
 const PROVINCES_LIST_OPTIONS = (Object.keys(COMMON_CONST.PROVINCES) as Array<keyof typeof COMMON_CONST.PROVINCES>).reduce((acc, key) => {
@@ -86,7 +86,7 @@ function AddressFormFields({
     stateSelectorSearchInputTitle,
     onCountryChange,
     shouldAllowCountryChange = true,
-    shouldValidateZipCodeFormat,
+    shouldValidateZipCodeFormat = true,
 }: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

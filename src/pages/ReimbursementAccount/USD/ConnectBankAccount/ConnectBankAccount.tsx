@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import ConnectedVerifiedBankAccount from '@pages/ReimbursementAccount/ConnectedVerifiedBankAccount';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
@@ -34,7 +34,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}}`);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;

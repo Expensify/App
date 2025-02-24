@@ -1,4 +1,4 @@
-function resetNonUSDBankAccountFlow(bankAccountID: number | undefined) {
+function resetNonUSDBankAccountFlow() {
     return () => {};
 }
 
