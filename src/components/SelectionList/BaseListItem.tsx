@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import {getButtonRole, getButtonStyle} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -88,8 +89,12 @@ function BaseListItem<TItem extends ListItem>({
     }, [onLongPressRow, item]);
 
     const computedPressableStyle = useMemo(
-        () => [pressableStyle, isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)],
-        [pressableStyle, isFocused, item.isSelected, item.isDisabled, theme, StyleUtils],
+        () => [
+            pressableStyle,
+            isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+            getButtonStyle(styles, true),
+        ],
+        [pressableStyle, isFocused, StyleUtils, item.isSelected, item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG, styles],
     );
 
     const computedWrapperStyle = useMemo(
@@ -114,7 +119,7 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
-                role={CONST.ROLE.BUTTON}
+                role={getButtonRole(true)}
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}

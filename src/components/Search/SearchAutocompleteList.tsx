@@ -67,6 +67,9 @@ type SearchAutocompleteListProps = {
 
     /** Callback to call when the list of autocomplete substitutions should be updated */
     updateAutocompleteSubstitutions: (item: SearchQueryItem) => void;
+
+    /** Whether to subscribe to KeyboardShortcut arrow keys events */
+    shouldSubscribeToArrowKeyEvents?: boolean;
 };
 
 const defaultListOptions = {
@@ -118,7 +121,15 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchAutocompleteList(
-    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchAutocompleteListProps,
+    {
+        autocompleteQueryValue,
+        searchQueryItem,
+        getAdditionalSections,
+        onListItemPress,
+        setTextQuery,
+        updateAutocompleteSubstitutions,
+        shouldSubscribeToArrowKeyEvents,
+    }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -147,9 +158,9 @@ function SearchAutocompleteList(
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
-    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
 
     const participantsAutocompleteList = useMemo(() => {
@@ -490,6 +501,7 @@ function SearchAutocompleteList(
             ref={ref}
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
+            shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
         />
     );
 }
