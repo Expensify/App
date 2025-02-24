@@ -13,5 +13,18 @@ function isSidePaneHidden(sidePane: OnyxEntry<OnyxTypes.SidePane>, isExtraLargeS
     return false;
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {isSidePaneHidden};
+function substituteRouteParameters(route: string, params: Record<string, string>) {
+    let updatedRoute = route;
+
+    if (params.policyID && route.includes(params.policyID)) {
+        updatedRoute = updatedRoute.replace(params.policyID, ':policyID');
+    }
+
+    if (params.reportID && route.includes(params.reportID)) {
+        updatedRoute = updatedRoute.replace(params.reportID, ':reportID');
+    }
+
+    return updatedRoute;
+}
+
+export {isSidePaneHidden, substituteRouteParameters};
