@@ -30,7 +30,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
-const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
+const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
 const MAX_DATE = dateAdd(new Date(), {years: 1});
@@ -538,7 +538,7 @@ const CONST = {
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
-        IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
+        IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
