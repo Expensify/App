@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import * as OptionsListUtils from './OptionsListUtils';
 
 /**
@@ -15,11 +16,11 @@ export default function tokenizedSearch<T>(items: T[], searchValue: string, getT
 
     const normalizedSearchValue = shouldNormalize ? OptionsListUtils.getSearchValueForPhoneOrEmail(searchValue) : searchValue;
 
-    const searchTokens = normalizedSearchValue.trim().toLowerCase().split(/\s+/);
+    const searchTokens = normalizedSearchValue.trim().toLowerCase().split(CONST.REGEX.WHITESPACE);
 
     return items.filter((item) => {
         const textTokens = getTextTokens(item)
-            .map((token) => token.toLowerCase().split(/\s+/))
+            .map((token) => token.toLowerCase().split(CONST.REGEX.WHITESPACE))
             .flat();
 
         return searchTokens.every((searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)));
