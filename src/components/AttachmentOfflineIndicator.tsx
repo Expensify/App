@@ -13,7 +13,6 @@ type AttachmentOfflineIndicatorProps = {
     /** Whether the offline indicator is displayed for the attachment preview. */
     isPreview?: boolean;
 
-
     /** Whether the offline indicator should always have a background color set. */
     shouldAlwaysHaveBackground?: boolean;
 };

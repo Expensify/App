@@ -26,8 +26,8 @@ import shouldReplayVideo from './shouldReplayVideo';
 import type {VideoPlayerProps, VideoWithOnFullScreenUpdate} from './types';
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
 import * as VideoUtils from './utils';
-import VideoPlayerControls from './VideoPlayerControls';
 import VideoErrorIndicator from './VideoErrorIndicator';
+import VideoPlayerControls from './VideoPlayerControls';
 
 function BaseVideoPlayer({
     url,
@@ -492,7 +492,9 @@ function BaseVideoPlayer({
                                                 }}
                                                 onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                                 onFullscreenUpdate={handleFullscreenUpdate}
-                                                onError={() => {setHasError(true)}}
+                                                onError={() => {
+                                                    setHasError(true);
+                                                }}
                                             />
                                             {!hasError && ((isLoading && !isOffline) || (isBuffering && !isPlaying)) && (
                                                 <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
@@ -502,7 +504,9 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+                            {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && (
+                                <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
+                            )}
                             {isLoading && (isOffline || !isBuffering) && (
                                 <AttachmentOfflineIndicator
                                     isPreview={isPreview}
