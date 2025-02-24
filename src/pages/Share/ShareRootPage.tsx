@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +18,7 @@ import SubmitTab from './SubmitTab';
 
 function ShareRootPage() {
     const appState = useRef(AppState.currentState);
+    const [isFileReady, setIsFileReady] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,6 +45,7 @@ function ShareRootPage() {
                     } else {
                         setIsFileScannable(false);
                     }
+                    setIsFileReady(true);
                 }
 
                 addTempShareFile(tempFile);
@@ -82,13 +85,17 @@ function ShareRootPage() {
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
                 />
-                <OnyxTabNavigator
-                    id={CONST.TAB.SHARE.NAVIGATOR_ID}
-                    tabBar={TabSelector}
-                >
-                    <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab />}</TopTab.Screen>
-                    {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>}
-                </OnyxTabNavigator>
+                {isFileReady ? (
+                    <OnyxTabNavigator
+                        id={CONST.TAB.SHARE.NAVIGATOR_ID}
+                        tabBar={TabSelector}
+                    >
+                        <TopTab.Screen name={CONST.TAB.SHARE.SHARE}>{() => <ShareTab />}</TopTab.Screen>
+                        {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab />}</TopTab.Screen>}
+                    </OnyxTabNavigator>
+                ) : (
+                    <TabNavigatorSkeleton />
+                )}
             </View>
         </ScreenWrapper>
     );
