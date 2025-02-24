@@ -25,6 +25,7 @@ function TestToolsModal() {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     return (
         <Modal
             isVisible={!!isTestToolsModalOpen}

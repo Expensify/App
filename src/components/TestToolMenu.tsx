@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {useOnyx} from 'react-native-onyx';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
@@ -32,10 +33,9 @@ function TestToolMenu() {
     const isDebugModeEnabled = !!user?.isDebugModeEnabled;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // Check if the user is authenticated to show options that require authentication
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
+    const isAuthenticated = useIsAuthenticated();
 
     return (
         <>
@@ -47,7 +47,7 @@ function TestToolMenu() {
             </Text>
             {isAuthenticated && (
                 <>
-                    {/* Authenticated options */}
+                    {/* When toggled the app will be put into debug mode. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
                         <Switch
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
@@ -84,7 +84,10 @@ function TestToolMenu() {
                     </TestToolRow>
                 </>
             )}
-            {/* Options available regardless of authentication */}
+
+            {/* Option to switch between staging and default api endpoints.
+            This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
+             This toggle is not rendered for internal devs as they make environment changes directly to the .env file. */}
             {!CONFIG.IS_USING_LOCAL_WEB && (
                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.useStagingServer')}>
                     <Switch
@@ -94,6 +97,8 @@ function TestToolMenu() {
                     />
                 </TestToolRow>
             )}
+
+            {/* When toggled the app will be forced offline. */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.forceOffline')}>
                 <Switch
                     accessibilityLabel="Force offline"
@@ -102,6 +107,8 @@ function TestToolMenu() {
                     disabled={!!isUsingImportedState || !!network?.shouldSimulatePoorConnection || network?.shouldFailAllRequests}
                 />
             </TestToolRow>
+
+            {/* When toggled the app will randomly change internet connection every 2-5 seconds */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}>
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
@@ -110,6 +117,8 @@ function TestToolMenu() {
                     disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
                 />
             </TestToolRow>
+
+            {/* When toggled all network requests will fail. */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatFailingNetworkRequests')}>
                 <Switch
                     accessibilityLabel="Simulate failing network requests"

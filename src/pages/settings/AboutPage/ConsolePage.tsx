@@ -14,6 +14,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -51,8 +52,7 @@ function ConsolePage() {
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.CONSOLE_DEBUG>>();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
+    const isAuthenticated = useIsAuthenticated();
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [

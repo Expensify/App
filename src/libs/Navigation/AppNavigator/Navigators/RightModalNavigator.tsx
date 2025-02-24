@@ -1,8 +1,8 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
@@ -17,7 +17,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -31,8 +30,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const isExecutingRef = useRef<boolean>(false);
     const customInterpolator = useModalCardStyleInterpolator();
     const modalNavigatorOptions = useSideModalStackScreenOptions();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
+    const isAuthenticated = useIsAuthenticated();
 
     const screenOptions = useMemo(() => {
         // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator

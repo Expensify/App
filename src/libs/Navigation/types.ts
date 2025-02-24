@@ -77,6 +77,7 @@ type BackToAndForwardToParms = {
 type ConsoleNavigatorParamList = {
     [SCREENS.CONSOLE_DEBUG]: undefined;
 };
+
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: undefined;
