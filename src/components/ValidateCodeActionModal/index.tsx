@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -30,6 +31,7 @@ function ValidateCodeActionModal({
     hasMagicCodeBeenSent,
     isLoading,
     shouldHandleNavigationBack,
+    disableAnimation,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
 }: ValidateCodeActionModalProps) {
@@ -70,6 +72,7 @@ function ValidateCodeActionModal({
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
+            animationInTiming={disableAnimation ? 1 : undefined}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
@@ -88,22 +91,28 @@ function ValidateCodeActionModal({
                     onThreeDotsButtonPress={onThreeDotsButtonPress}
                 />
 
-                <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-                    <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-                    {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
-                    <ValidateCodeForm
-                        isLoading={isLoading}
-                        validateCodeAction={validateCodeAction}
-                        validatePendingAction={validatePendingAction}
-                        validateError={validateError}
-                        handleSubmitForm={handleSubmitForm}
-                        sendValidateCode={sendValidateCode}
-                        clearError={clearError}
-                        buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
-                        ref={validateCodeFormRef}
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    />
-                </View>
+                <ScrollView
+                    style={[styles.w100, styles.h100, styles.flex1]}
+                    contentContainerStyle={styles.flexGrow1}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
+                        <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
+                        {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+                        <ValidateCodeForm
+                            isLoading={isLoading}
+                            validateCodeAction={validateCodeAction}
+                            validatePendingAction={validatePendingAction}
+                            validateError={validateError}
+                            handleSubmitForm={handleSubmitForm}
+                            sendValidateCode={sendValidateCode}
+                            clearError={clearError}
+                            buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
+                            ref={validateCodeFormRef}
+                            hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        />
+                    </View>
+                </ScrollView>
                 {footer?.()}
             </ScreenWrapper>
         </Modal>
