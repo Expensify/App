@@ -83,7 +83,7 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`reportActions_${reportID}`]: {
             test: {
-                accountID,
+                accountID: adminAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 created: '2024-12-21 13:05:20',
                 message: [
