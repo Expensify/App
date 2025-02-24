@@ -19,7 +19,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {openReport} from './Report';
 
@@ -77,8 +77,22 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
     }
 }
 
+function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
+    if (!policyID) {
+        return null;
+    }
+    let lastPolicyPaymentMethod = null;
+    if (typeof lastPaymentMethods?.[policyID] === 'string') {
+        lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    } else {
+        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.lastUsed as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    }
+
+    return lastPolicyPaymentMethod;
+}
+
 function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
-    const lastPolicyPaymentMethod = item.policyID ? (lastPaymentMethod?.[item.policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) : null;
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
     if (!lastPolicyPaymentMethod) {
         goToItem();
@@ -421,4 +435,5 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
+    getLastPolicyPaymentMethod,
 };

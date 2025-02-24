@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import './index.css';
-import type {OnfidoElement, OnfidoError, OnfidoProps} from './types';
+import type {OnfidoElement, OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
@@ -94,7 +94,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             }
             onSuccess(data);
         },
-        onError: (error: OnfidoError) => {
+        onError: (error) => {
             const errorType = error.type;
             const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});

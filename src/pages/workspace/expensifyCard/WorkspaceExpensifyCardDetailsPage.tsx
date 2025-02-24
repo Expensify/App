@@ -146,7 +146,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                     shouldShowRightIcon
                                     onPress={() =>
                                         Navigation.navigate(
-                                            isWorkspaceCardRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID),
+                                            isWorkspaceCardRhp
+                                                ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID, Navigation.getActiveRoute())
+                                                : ROUTES.EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID, Navigation.getActiveRoute()),
                                         )
                                     }
                                 />
@@ -159,8 +161,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                     onPress={() =>
                                         Navigation.navigate(
                                             isWorkspaceCardRhp
-                                                ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID)
-                                                : ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID),
+                                                ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID, Navigation.getActiveRoute())
+                                                : ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID, Navigation.getActiveRoute()),
                                         )
                                     }
                                 />
@@ -172,7 +174,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                     shouldShowRightIcon
                                     onPress={() =>
                                         Navigation.navigate(
-                                            isWorkspaceCardRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_NAME.getRoute(policyID, cardID),
+                                            isWorkspaceCardRhp
+                                                ? ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID, Navigation.getActiveRoute())
+                                                : ROUTES.EXPENSIFY_CARD_NAME.getRoute(policyID, cardID, Navigation.getActiveRoute()),
                                         )
                                     }
                                 />
@@ -183,7 +187,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 style={styles.mt3}
                                 onPress={() => {
                                     Navigation.navigate(
-                                        ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                        ROUTES.SEARCH_ROOT.getRoute({
                                             query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
                                         }),
                                     );

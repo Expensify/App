@@ -14,12 +14,13 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
-function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
+function isBlockedFromSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
+    // Don't check for all betas or nobody can use test travel on dev
+    return !!betas?.includes(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 }
 
-function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
+function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
 function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
@@ -57,8 +58,8 @@ export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseSpotnanaTravel,
+    isBlockedFromSpotnanaTravel,
     canUseNetSuiteUSATax,
-    canUseCategoryAndTagApprovers,
     canUsePerDiem,
     canUseMergeAccounts,
     canUseManagerMcTest,

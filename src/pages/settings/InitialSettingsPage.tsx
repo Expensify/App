@@ -212,7 +212,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 brickRoadIndicator: !!privateSubscription?.errors || hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 badgeText: freeTrialText,
                 badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION),
+                action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
             });
         }
 

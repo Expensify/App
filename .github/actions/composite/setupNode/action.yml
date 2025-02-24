@@ -6,6 +6,10 @@ inputs:
     description: "Indicates if node is set up for hybrid app"
     required: false
     default: 'false'
+  IS_DESKTOP_BUILD:
+    description: "Indicates if node is set up for desktop app"
+    required: false
+    default: 'false'
 
 outputs:
   cache-hit:
@@ -41,6 +45,7 @@ runs:
         key: ${{ runner.os }}-node-modules-${{ hashFiles('Mobile-Expensify/package-lock.json', 'Mobile-Expensify/patches/**') }}
 
     - id: cache-desktop-node-modules
+      if: inputs.IS_DESKTOP_BUILD == 'true'
       uses: actions/cache@v4
       with:
         path: desktop/node_modules
@@ -60,7 +65,7 @@ runs:
         command: npm ci
 
     - name: Install node packages for desktop submodule
-      if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
+      if: inputs.IS_DESKTOP_BUILD == 'true' && steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
       uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
       with:
         timeout_minutes: 30

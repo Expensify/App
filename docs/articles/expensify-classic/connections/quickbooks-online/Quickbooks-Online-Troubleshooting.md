@@ -36,22 +36,6 @@ _Please note: Self Employed is not supported:_
 
 ![QuickBooks Online - Subscription types]({{site.url}}/assets/images/QBO1.png){:width="100%"}
 
-# ExpensiError QBO056: Expenses are not categorized with a QuickBooks Online account
-
-**Why does this happen?**
-
-QuickBooks Online requires all expenses exported from Expensify to use a category matching an account in your chart of accounts. If a category from another source is used, QuickBooks Online will reject the expense. This error occurs when an expense on the report has a category applied that is not valid in QuickBooks Online.
-
-## How to fix it
-
-1. Sync your QuickBooks Online connection in Expensify from Settings > Workspaces > Workspace Name > Connections, and click the **Sync Now** button.
-2. Review the expenses on the report. If any appear with a red _Category no longer valid_ violation, recategorize the expense until all expenses are violation-free.
-3. Click the **Export t**o button and then the **QuickBooks Online** option.
-    - If you receive the same error, continue.
-4. Note the categories used on the expenses and check the Settings > Workspaces > Workspace Name > Categories page to confirm the exact categories used on the report are enabled and connected to QuickBooks Online (you'll see a green QB icon next to all connected categories). 
-5. Confirm the categories used on the expenses in the report match exactly the accounts in your QuickBooks Online chart of accounts.
-6. If you make any changes in QuickBooks Online or in Expensify, always sync the connection and then try to export again. 
-
 # ExpensiError QBO088: Error Creating Vendor
 
 **Why does this happen?**

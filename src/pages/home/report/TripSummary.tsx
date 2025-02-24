@@ -1,39 +1,32 @@
 import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useTripTransactions from '@hooks/useTripTransactions';
-import type * as OnyxTypes from '@src/types/onyx';
-import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
-import RepliesDivider from './RepliesDivider';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type TripSummaryProps = {
-    /** The current report is displayed */
-    report: OnyxEntry<OnyxTypes.Report>;
+    /** The report ID */
+    reportID: string | undefined;
 };
 
-function TripSummary({report}: TripSummaryProps) {
-    const styles = useThemeStyles();
-    const tripTransactions = useTripTransactions(report?.reportID);
+function TripSummary({reportID}: TripSummaryProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const tripTransactions = useTripTransactions(reportID);
 
-    if (!report?.reportID) {
+    if (!reportID || tripTransactions.length === 0) {
         return null;
     }
 
     return (
-        <View style={[styles.pRelative]}>
-            <AnimatedEmptyStateBackground />
-            <OfflineWithFeedback pendingAction={report.pendingAction}>
-                <TripDetailsView
-                    tripRoomReportID={report.reportID}
-                    tripTransactions={tripTransactions}
-                    shouldShowHorizontalRule={false}
-                />
-            </OfflineWithFeedback>
-            <RepliesDivider shouldHideThreadDividerLine={false} />
-        </View>
+        <OfflineWithFeedback pendingAction={report?.pendingAction}>
+            <TripDetailsView
+                tripRoomReportID={reportID}
+                tripTransactions={tripTransactions}
+                shouldShowHorizontalRule={false}
+            />
+        </OfflineWithFeedback>
     );
 }
 

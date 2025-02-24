@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {getButtonRole, getButtonStyle} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -91,7 +92,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
     let source = transactionItem?.receipt?.source ?? '';
-    if (source) {
+    if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);
@@ -298,10 +299,10 @@ function TransactionListItemRow({
                     {canSelectMultiple && !!shouldShowTransactionCheckbox && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
+                            role={getButtonRole(true)}
                             disabled={isDisabled}
                             onPress={onCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1, getButtonStyle(styles, true)]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!isDisabled)]}>
                                 {!!item.isSelected && (

@@ -12,9 +12,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import colors from '@styles/theme/colors';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import WorkspaceCompanyCardExpensifyCardPromotionBanner from './WorkspaceCompanyCardExpensifyCardPromotionBanner';
 
 const companyCardFeatures: FeatureListItem[] = [
     {
@@ -40,16 +41,20 @@ function WorkspaceCompanyCardPageEmptyState({policy}: WithPolicyAndFullscreenLoa
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const handleCtaPress = useCallback(() => {
+        if (!policy?.id) {
+            return;
+        }
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
             return;
         }
-        CompanyCards.clearAddNewCardFlow();
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy?.id ?? '-1'));
+        clearAddNewCardFlow();
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy.id));
     }, [policy, isActingAsDelegate]);
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <WorkspaceCompanyCardExpensifyCardPromotionBanner policy={policy} />
             <FeatureList
                 menuItems={companyCardFeatures}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}

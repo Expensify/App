@@ -111,6 +111,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Used to locate the component in the tests */
     testID?: string;
+
+    /** The second line text displays under the first line */
+    secondLineText?: string;
 };
 
 export type {

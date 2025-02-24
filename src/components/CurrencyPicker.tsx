@@ -72,6 +72,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
                 hideModalContentWhileAnimating
+                shouldEnableNewFocusManagement
                 useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
             >

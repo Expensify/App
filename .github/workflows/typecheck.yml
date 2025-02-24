@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: true
 
       - name: Type check with TypeScript
         run: npm run typecheck

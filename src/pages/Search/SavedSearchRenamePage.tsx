@@ -8,9 +8,9 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchActions from '@libs/actions/Search';
+import {clearAdvancedFilters, saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,10 +24,10 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     const {inputCallbackRef} = useAutoFocusInput();
 
     const applyFiltersAndNavigate = () => {
-        SearchActions.clearAdvancedFilters();
+        clearAdvancedFilters();
         Navigation.dismissModal();
         Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+            ROUTES.SEARCH_ROOT.getRoute({
                 query: q,
                 name: newName?.trim(),
             }),
@@ -35,9 +35,9 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     };
 
     const onSaveSearch = () => {
-        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(q || SearchQueryUtils.buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
+        const queryJSON = buildSearchQueryJSON(q || buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
 
-        SearchActions.saveSearch({
+        saveSearch({
             queryJSON,
             newName: newName?.trim() || q,
         });

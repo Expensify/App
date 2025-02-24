@@ -150,8 +150,14 @@ module.exports = {
             {
                 selector: ['variable', 'property'],
                 format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+                // This filter excludes variables and properties that start with "private_" to make them valid.
+                //
+                // Examples:
+                // - "private_a" → valid
+                // - "private_test" → valid
+                // - "private_" → not valid
                 filter: {
-                    regex: '^private_[a-z][a-zA-Z0-9]+$',
+                    regex: '^private_[a-z][a-zA-Z0-9]*$',
                     match: false,
                 },
             },

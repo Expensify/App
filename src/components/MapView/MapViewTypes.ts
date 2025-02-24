@@ -2,6 +2,8 @@ import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {Unit} from '@src/types/onyx/Policy';
 
+type Coordinate = [number, number];
+
 type MapViewProps = {
     // Public access token to be used to fetch map data from Mapbox.
     accessToken: string;
@@ -18,7 +20,7 @@ type MapViewProps = {
     // Locations on which to put markers
     waypoints?: WayPoint[];
     // List of coordinates which together forms a direction.
-    directionCoordinates?: Array<[number, number]>;
+    directionCoordinates?: Coordinate[];
     // Callback to call when the map is idle / ready.
     onMapReady?: () => void;
     // Whether the map is interactable or not
@@ -33,7 +35,7 @@ type MapViewProps = {
 
 type DirectionProps = {
     // Coordinates of points that constitute the direction
-    coordinates: Array<[number, number]>;
+    coordinates: Coordinate[];
 };
 
 type PendingMapViewProps = {
@@ -53,14 +55,14 @@ type PendingMapViewProps = {
 // Initial state of the map
 type InitialState = {
     // Coordinate on which to center the map
-    location: [number, number];
+    location: Coordinate;
     zoom: number;
 };
 
 // Waypoint to be displayed on the map
 type WayPoint = {
     id: string;
-    coordinate: [number, number];
+    coordinate: Coordinate;
     markerComponent: () => ReactNode;
 };
 
@@ -73,9 +75,9 @@ type DirectionStyle = {
 // Represents a handle to interact with a map view.
 type MapViewHandle = {
     // Fly to a location on the map
-    flyTo: (location: [number, number], zoomLevel: number, animationDuration?: number) => void;
+    flyTo: (location: Coordinate, zoomLevel: number, animationDuration?: number) => void;
     // Fit the map view to a bounding box
-    fitBounds: (ne: [number, number], sw: [number, number], paddingConfig?: number | number[], animationDuration?: number) => void;
+    fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {DirectionStyle, WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle};
+export type {DirectionStyle, WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};

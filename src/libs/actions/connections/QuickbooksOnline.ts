@@ -289,10 +289,13 @@ function updateQuickbooksOnlineNonReimbursableBillDefaultVendor<TSettingValue ex
 }
 
 function updateQuickbooksOnlineReceivableAccount<TSettingValue extends QBOConnectionConfig['receivableAccount']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const {optimisticData, failureData, successData} = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -383,10 +386,13 @@ function updateQuickbooksOnlineReimbursementAccountID<TSettingValue extends Conn
 }
 
 function updateQuickbooksOnlinePreferredExporter<TSettingValue extends Connections['quickbooksOnline']['config']['export']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT, settingValue, oldSettingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {

@@ -1,13 +1,12 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {TransactionViolation} from '@src/types/onyx';
 
@@ -17,7 +16,7 @@ type DebugTransactionViolationsProps = {
 };
 
 function DebugTransactionViolations({transactionID}: DebugTransactionViolationsProps) {
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const transactionViolations = useTransactionViolations(transactionID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

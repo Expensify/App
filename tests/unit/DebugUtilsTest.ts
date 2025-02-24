@@ -786,7 +786,6 @@ describe('DebugUtils', () => {
         });
         it('returns correct reason when report is archived', async () => {
             const reportNameValuePairs = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
             };
             await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
@@ -1068,6 +1067,11 @@ describe('DebugUtils', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     type: CONST.POLICY.TYPE.CORPORATE,
+                },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID: '2',
                 },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,

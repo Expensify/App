@@ -2,19 +2,20 @@ import React, {useCallback, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,11 +38,13 @@ import {
     isPolicyExpenseChat,
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {SearchReportAction} from '@src/types/onyx/SearchResults';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
@@ -73,6 +76,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being actived */
     isActive?: boolean;
+
+    /** Callback to be called on onPress */
+    onPress?: () => void;
 };
 
 const showUserDetails = (accountID: number | undefined) => {
@@ -97,12 +103,13 @@ function ReportActionItemSingle({
     iouReport,
     isHovered = false,
     isActive = false,
+    onPress = undefined,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
@@ -112,7 +119,7 @@ function ReportActionItemSingle({
         `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
 
-    let displayName = getDisplayNameForParticipant({accountID: actorAccountID});
+    let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -121,6 +128,7 @@ function ReportActionItemSingle({
     const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
+    const {isOnSearch} = useSearchState();
 
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
@@ -168,7 +176,7 @@ function ReportActionItemSingle({
     } else if (!isWorkspaceActor) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const avatarIconIndex = report?.isOwnPolicyExpenseChat || isPolicyExpenseChat(report) ? 0 : 1;
-        const reportIcons = getIcons(report, {});
+        const reportIcons = getIcons(report, personalDetails, undefined, undefined, undefined, policy);
 
         secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else if (isInvoiceReportUtils(iouReport)) {
@@ -281,8 +289,8 @@ function ReportActionItemSingle({
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
-    return (
-        <View style={[styles.chatItem, wrapperStyle]}>
+    const reportActionContent = (
+        <>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
@@ -334,6 +342,30 @@ function ReportActionItemSingle({
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
+            </View>
+        </>
+    );
+
+    if (!isOnSearch) {
+        return <View style={[styles.chatItem, wrapperStyle]}>{reportActionContent}</View>;
+    }
+
+    return (
+        <View style={[styles.p4, wrapperStyle]}>
+            <View style={styles.webViewStyles.tagStyles.ol}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                    <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
+                    <TextLink
+                        fontSize={variables.fontSizeSmall}
+                        onPress={() => {
+                            onPress?.();
+                        }}
+                        numberOfLines={1}
+                    >
+                        {(action as SearchReportAction).reportName}
+                    </TextLink>
+                </View>
+                <View style={styles.flexRow}>{reportActionContent}</View>
             </View>
         </View>
     );

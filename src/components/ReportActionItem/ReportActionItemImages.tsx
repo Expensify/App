@@ -79,11 +79,11 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
                     return (
-                        <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={numberOfShownImages === 1 ? true : Str.isPDF(filename ?? '')}>
-                            <View
-                                key={`${index}-${image}`}
-                                style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
-                            >
+                        <ImageBehaviorContextProvider
+                            key={`${index}-${image}`}
+                            shouldSetAspectRatioInStyle={numberOfShownImages === 1 ? true : Str.isPDF(filename ?? '')}
+                        >
+                            <View style={[styles.reportActionItemImage, borderStyle, hoverStyle]}>
                                 <ReportActionItemImage
                                     thumbnail={thumbnail}
                                     fileExtension={fileExtension}

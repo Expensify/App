@@ -31,7 +31,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
                 {translate('workspace.upgrade.completed.successMessage', {policyName})}{' '}
                 <TextLink
                     style={styles.link}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 >
                     {translate('workspace.upgrade.completed.viewSubscription')}
                 </TextLink>{' '}

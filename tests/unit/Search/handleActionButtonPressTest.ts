@@ -2,6 +2,8 @@
 import type {ReportListItemType} from '@components/SelectionList/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 const mockReportItemWithHold = {
     shouldAnimateInHighlight: false,
     accountID: 1206,

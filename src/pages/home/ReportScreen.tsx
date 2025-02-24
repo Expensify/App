@@ -5,7 +5,6 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -22,12 +21,14 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -311,7 +312,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
+
+    useEffect(() => {
+        if (!prevIsFocused || isFocused) {
+            return;
+        }
+        hideEmojiPicker(true);
+    }, [prevIsFocused, isFocused]);
 
     useEffect(() => {
         if (!report?.reportID || shouldHideReport) {
@@ -808,7 +815,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={(isTopMostReportId || isInNarrowPaneModal) && (!isComposerFocus || showSoftInputOnFocus)}
+                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
                     testID={`report-screen-${reportID}`}
                 >
                     <FullPageNotFoundView
@@ -899,8 +906,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
-                                        showSoftInputOnFocus={showSoftInputOnFocus}
-                                        setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                     />
                                 ) : null}
                             </View>

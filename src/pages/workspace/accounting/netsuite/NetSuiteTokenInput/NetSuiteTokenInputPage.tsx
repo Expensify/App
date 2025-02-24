@@ -6,11 +6,11 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import usePermissions from '@hooks/usePermissions';
 import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -19,13 +19,11 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 
-type SubStepWithPolicy = SubStepProps & {policyID: string};
-
 const staticContentSteps = Array<ComponentType<SubStepWithPolicy>>(4).fill(NetSuiteTokenSetupContent);
 const tokenInputSteps: Array<ComponentType<SubStepWithPolicy>> = [...staticContentSteps, NetSuiteTokenInputForm];
 
 function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
     const {canUseNSQS} = usePermissions();
@@ -47,7 +45,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         if (screenIndex === 0) {
             if (canUseNSQS) {
                 const multiConnectionName = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
-                if (!multiConnectionName) {
+                if (!policyID || !multiConnectionName) {
                     Navigation.goBack();
                     return;
                 }

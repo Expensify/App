@@ -20,7 +20,7 @@ To enable and issue Expensify Cards for your workspace, complete the steps below
 
 # Step 1: Enable Expensify Cards
 
-1. Click your profile image or icon in the bottom left menu.
+1. Click **Settings** in the bottom left menu.
 2. Scroll down and click **Workspaces** in the left menu.
 3. Select the workspace you want to enable Expensify Cards for.
 4. Click **More features** in the left menu.
@@ -40,7 +40,7 @@ Before you can issue your Expensify Cards, you must connect your cards with the 
 
 # Step 3: Issue cards
 
-You can issue an unlimited amount of physical and/or virtual cards to employees.
+Issue physical and/or virtual cards to employees.
 
 1. Click **Issue card** in the top right.
 2. Select the employee that you want to issue the card to.
@@ -66,9 +66,9 @@ At this time, the Expensify Card requires a US business bank account opened in t
 
 You can use the Expensify Card on every workspace you create. However, a settlement account can only be used with the Expensify Card on one workspace. For example, if you’re using the Expensify Card on three workspaces, you need three settlement accounts.
 
-**Can I issue multiple cards to the same employee?**
+**Can I issue multiple cards to the same employee??**
 
-You can issue an unlimited number of both physical and virtual cards to employees. This supports a wide variety of different use cases, ranging from each employee only having one card, to employees having numerous cards for things like individual trips, specific purchases, etc.
+Yes, you can issue unlimited **virtual cards** to employees. However, each employee can only have **one physical card** at a time. This allows flexibility for various use cases, such as providing employees with multiple virtual cards for specific trips, purchases, or projects while maintaining a single physical card per person.
 {% include faq-end.md %}
 
 </div>

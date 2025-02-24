@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -9,7 +10,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCell from './UserInfoCell';
@@ -60,7 +60,7 @@ function ExpenseItemHeaderNarrow({
                 {!!canSelectMultiple && (
                     <PressableWithFeedback
                         accessibilityLabel={text ?? ''}
-                        role={CONST.ROLE.BUTTON}
+                        role={getButtonRole(true)}
                         disabled={isDisabled}
                         onPress={() => handleCheckboxPress?.()}
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}

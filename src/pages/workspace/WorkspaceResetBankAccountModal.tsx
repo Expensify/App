@@ -1,32 +1,46 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {cancelResetFreePlanBankAccount, resetFreePlanBankAccount} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceResetBankAccountModalOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<OnyxTypes.Session>;
-};
-
-type WorkspaceResetBankAccountModalProps = WorkspaceResetBankAccountModalOnyxProps & {
+type WorkspaceResetBankAccountModalProps = {
     /** Reimbursement account data */
     reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+
+    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    setUSDBankAccountStep?: (step: string | null) => void;
 };
 
-function WorkspaceResetBankAccountModal({reimbursementAccount, session}: WorkspaceResetBankAccountModalProps) {
+function WorkspaceResetBankAccountModal({reimbursementAccount, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
+
+    const handleConfirm = () => {
+        resetFreePlanBankAccount(bankAccountID, session, achData?.policyID);
+
+        if (setShouldShowConnectedVerifiedBankAccount) {
+            setShouldShowConnectedVerifiedBankAccount(false);
+        }
+
+        if (setUSDBankAccountStep) {
+            setUSDBankAccountStep(null);
+        }
+    };
 
     return (
         <ConfirmModal
@@ -45,8 +59,8 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
                 )
             }
             danger
-            onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '-1')}
+            onCancel={cancelResetFreePlanBankAccount}
+            onConfirm={handleConfirm}
             shouldShowCancelButton
             isVisible
         />
@@ -55,8 +69,4 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session}: Workspa
 
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';
 
-export default withOnyx<WorkspaceResetBankAccountModalProps, WorkspaceResetBankAccountModalOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(WorkspaceResetBankAccountModal);
+export default WorkspaceResetBankAccountModal;

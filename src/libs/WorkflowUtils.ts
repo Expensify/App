@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -157,7 +158,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
             return 1;
         }
 
-        return (a.approvers.at(0)?.displayName ?? '-1').localeCompare(b.approvers.at(0)?.displayName ?? '-1');
+        return (a.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString().localeCompare((b.approvers.at(0)?.displayName ?? CONST.DEFAULT_NUMBER_ID).toString());
     });
 
     // Add a default workflow if one doesn't exist (no employees submit to the default approver)
@@ -199,6 +200,32 @@ type ConvertApprovalWorkflowToPolicyEmployeesParams = {
      */
     type: ValueOf<typeof CONST.APPROVAL_WORKFLOW.TYPE>;
 };
+
+type UpdateWorkflowDataOnApproverRemovalParams = {
+    /**
+     * An array of approval workflows that need to be updated.
+     */
+    approvalWorkflows: ApprovalWorkflow[];
+    /**
+     * The email of the approver being removed
+     */
+    removedApprover: PersonalDetails;
+    /**
+     * The email of the workspace owner
+     */
+    ownerDetails: PersonalDetails;
+};
+
+type UpdateWorkflowDataOnApproverRemovalResult = Array<
+    ApprovalWorkflow & {
+        /**
+         * @property {boolean} [removeApprovalWorkflow] - A flag that determines if the approval workflow should be removed.
+         *   - `true`: Indicates the approval workflow needs to be removed.
+         *   - `false` or `undefined`: No removal is required; the workflow will be updated instead.
+         */
+        removeApprovalWorkflow?: boolean;
+    }
+>;
 
 /**
  * This function converts an approval workflow into a list of policy employees.
@@ -281,5 +308,114 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     return updatedEmployeeList;
 }
+function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover, ownerDetails}: UpdateWorkflowDataOnApproverRemovalParams): UpdateWorkflowDataOnApproverRemovalResult {
+    const defaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault);
+    const removedApproverEmail = removedApprover.login;
+    const ownerEmail = ownerDetails.login;
+    const ownerAvatar = ownerDetails.avatar ?? '';
+    const ownerDisplayName = ownerDetails.displayName ?? '';
 
-export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW};
+    return approvalWorkflows.flatMap((workflow) => {
+        const [currentApprover] = workflow.approvers;
+        const isSingleApprover = workflow.approvers.length === 1;
+        const isMultipleApprovers = workflow.approvers.length > 1;
+        const isApproverToRemove = currentApprover?.email === removedApproverEmail;
+        const defaultHasOwner = defaultWorkflow?.approvers.some((approver) => approver.email === ownerEmail);
+
+        if (workflow.isDefault) {
+            // Handle default workflow
+            if (isSingleApprover && isApproverToRemove && currentApprover?.email !== ownerEmail) {
+                return {
+                    ...workflow,
+                    approvers: [
+                        {
+                            ...currentApprover,
+                            avatar: ownerAvatar,
+                            displayName: ownerDisplayName,
+                            email: ownerEmail ?? '',
+                        },
+                    ],
+                };
+            }
+            return workflow;
+        }
+
+        if (isSingleApprover) {
+            // Remove workflows with a single approver when owner is the approver
+            if (currentApprover?.email === ownerEmail) {
+                return {
+                    ...workflow,
+                    removeApprovalWorkflow: true,
+                };
+            }
+
+            // Handle case where the approver is to be removed
+            if (isApproverToRemove) {
+                // Remove workflow if the default workflow includes the owner or approver is to be replaced
+                if (defaultHasOwner) {
+                    return {
+                        ...workflow,
+                        removeApprovalWorkflow: true,
+                    };
+                }
+
+                // Replace the approver with owner details
+                return {
+                    ...workflow,
+                    approvers: [
+                        {
+                            ...currentApprover,
+                            avatar: ownerAvatar,
+                            displayName: ownerDisplayName,
+                            email: ownerEmail ?? '',
+                        },
+                    ],
+                };
+            }
+        }
+
+        if (isMultipleApprovers && workflow.approvers.some((item) => item.email === removedApproverEmail)) {
+            const removedApproverIndex = workflow.approvers.findIndex((item) => item.email === removedApproverEmail);
+
+            // If the removed approver is the first in the list, return an empty array
+            if (removedApproverIndex === 0) {
+                return {
+                    ...workflow,
+                    removeApprovalWorkflow: true,
+                };
+            }
+
+            const updateApprovers = workflow.approvers.slice(0, removedApproverIndex);
+            const updateApproversHasOwner = updateApprovers.some((approver) => approver.email === ownerEmail);
+
+            // If the owner is already in the approvers list, return the workflow with the updated approvers
+            if (updateApproversHasOwner) {
+                return {
+                    ...workflow,
+                    approvers: updateApprovers,
+                };
+            }
+
+            // Update forwardsTo if necessary and prepare the new approver object
+            const updatedApprovers = updateApprovers.flatMap((item) => (item.forwardsTo === removedApproverEmail ? {...item, forwardsTo: ownerEmail} : item));
+
+            const newApprover = {
+                email: ownerEmail ?? '',
+                forwardsTo: undefined,
+                avatar: ownerDetails?.avatar ?? '',
+                displayName: ownerDetails?.displayName ?? '',
+                isCircularReference: workflow.approvers.at(removedApproverIndex)?.isCircularReference,
+            };
+
+            return {
+                ...workflow,
+                approvers: [...updatedApprovers, newApprover],
+            };
+        }
+
+        // Return the unchanged workflow in other cases
+        return workflow;
+    });
+}
+
+export {calculateApprovers, convertPolicyEmployeesToApprovalWorkflows, convertApprovalWorkflowToPolicyEmployees, INITIAL_APPROVAL_WORKFLOW, updateWorkflowDataOnApproverRemoval};

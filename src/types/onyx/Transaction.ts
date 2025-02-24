@@ -82,7 +82,7 @@ type Comment = {
     splits?: Split[];
 
     /** Violations that were dismissed */
-    dismissedViolations?: Record<ViolationName, Record<string, string | number>>;
+    dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 };
 
 /** Model of transaction custom unit */

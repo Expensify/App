@@ -6,10 +6,9 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {getAdminEmployees} from '@libs/PolicyUtils';
+import {updateQuickbooksOnlinePreferredExporter} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -28,7 +27,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const data: CardListItem[] = useMemo(
         () =>
             exporters?.reduce<CardListItem[]>((options, exporter) => {
@@ -37,7 +36,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
                 }
 
                 // Don't show guides if the current user is not a guide themselves or an Expensify employee
-                if (PolicyUtils.isExpensifyTeam(exporter.email) && !PolicyUtils.isExpensifyTeam(policy?.owner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+                if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policy?.owner) && !isExpensifyTeam(currentUserLogin)) {
                     return options;
                 }
                 options.push({
@@ -54,9 +53,9 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== qboConfig?.export?.exporter) {
-                QuickbooksOnline.updateQuickbooksOnlinePreferredExporter(policyID, {exporter: row.value}, {exporter: qboConfig?.export.exporter ?? ''});
+                updateQuickbooksOnlinePreferredExporter(policyID, {exporter: row.value}, {exporter: qboConfig?.export?.exporter ?? ''});
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
         },
         [qboConfig?.export, policyID],
     );
@@ -86,8 +85,8 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.accounting.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT], qboConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORT)}
+            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT], qboConfig?.pendingFields)}
+            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT)}
         />

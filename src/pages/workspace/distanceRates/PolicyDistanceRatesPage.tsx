@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
@@ -96,11 +96,11 @@ function PolicyDistanceRatesPage({
 
     const {isOffline} = useNetwork({onReconnect: fetchDistanceRates});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchDistanceRates();
-        }, [fetchDistanceRates]),
-    );
+    useEffect(() => {
+        fetchDistanceRates();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (isFocused) {

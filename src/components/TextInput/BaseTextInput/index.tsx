@@ -76,6 +76,7 @@ function BaseTextInput(
         contentWidth,
         loadingSpinnerStyle,
         uncontrolled = false,
+        placeholderTextColor,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -83,11 +84,10 @@ function BaseTextInput(
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
-
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
-    const {hasError = false} = inputProps;
+    const {hasError = false, markdownStyle: propsMarkdownStyle} = inputProps;
+    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles, propsMarkdownStyle);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -352,7 +352,7 @@ function BaseTextInput(
                                 {...inputProps}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={newPlaceholder}
-                                placeholderTextColor={theme.placeholderText}
+                                placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,

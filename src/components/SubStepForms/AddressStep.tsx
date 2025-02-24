@@ -6,9 +6,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 type AddressValues = {
@@ -95,16 +95,16 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields);
 
             const street = values[inputFieldsIDs.street as keyof typeof values];
-            if (street && !ValidationUtils.isValidAddress(street as FormValue)) {
+            if (street && !isValidAddress(street as FormValue)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.street] = translate('bankAccount.error.addressStreet');
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (zipCode && (shouldDisplayCountrySelector ? !ValidationUtils.isValidZipCodeInternational(zipCode as string) : !ValidationUtils.isValidZipCode(zipCode as string))) {
+            if (zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,6 +11,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {NSQSPaymentAccount} from '@src/types/onyx/Policy';
 
 function NSQSExportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -20,6 +21,21 @@ function NSQSExportPage({policy}: WithPolicyProps) {
     const nsqsConfig = policy?.connections?.netsuiteQuickStart?.config;
     const exporter = nsqsConfig?.exporter ?? policyOwner;
     const exportDate = nsqsConfig?.exportDate ?? CONST.NSQS_EXPORT_DATE.LAST_EXPENSE;
+    const paymentAccount = nsqsConfig?.paymentAccount ?? '';
+    const nsqsData = policy?.connections?.netsuiteQuickStart?.data;
+    const paymentAccounts: NSQSPaymentAccount[] = useMemo(() => nsqsData?.paymentAccounts ?? [], [nsqsData?.paymentAccounts]);
+
+    const defaultPaymentAccount: NSQSPaymentAccount = useMemo(
+        () => ({
+            id: '',
+            name: translate(`workspace.nsqs.export.defaultPaymentAccount`),
+            displayName: translate(`workspace.nsqs.export.defaultPaymentAccount`),
+            number: '',
+            type: '',
+        }),
+        [translate],
+    );
+    const selectedPaymentAccount = [defaultPaymentAccount, ...paymentAccounts].find((account) => account.id === paymentAccount);
 
     return (
         <ConnectionLayout
@@ -66,6 +82,16 @@ function NSQSExportPage({policy}: WithPolicyProps) {
                 description={translate('workspace.nsqs.export.nonReimbursableExpenses')}
                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
             />
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.NSQS_CONFIG.PAYMENT_ACCOUNT], nsqsConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={selectedPaymentAccount?.displayName}
+                    description={translate(`workspace.nsqs.export.paymentAccount`)}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    shouldShowRightIcon
+                    onPress={policyID ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT.getRoute(policyID)) : undefined}
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.NSQS_CONFIG.PAYMENT_ACCOUNT], nsqsConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
         </ConnectionLayout>
     );
 }

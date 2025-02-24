@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import {translateLocal} from '@libs/Localize';
+import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomReportAction from '../../utils/collections/reportActions';
@@ -22,6 +23,14 @@ jest.mock('@rnmapbox/maps', () => {
 jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
 }));
+
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useRoute: () => jest.fn(),
+    };
+});
 
 describe('ReportPreview', () => {
     afterEach(() => {

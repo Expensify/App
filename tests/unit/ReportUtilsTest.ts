@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {
+    buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
@@ -1753,6 +1754,13 @@ describe('ReportUtils', () => {
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
             expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
+        });
+    });
+
+    describe('buildOptimisticChatReport', () => {
+        it('should always set isPinned to false', () => {
+            const result = buildOptimisticChatReport([1, 2, 3]);
+            expect(result.isPinned).toBe(false);
         });
     });
 

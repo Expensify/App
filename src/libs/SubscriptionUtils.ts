@@ -206,7 +206,7 @@ function hasCardExpiredError() {
  * @returns Whether there is an insufficient funds error.
  */
 function hasInsufficientFundsError() {
-    return billingStatus?.declineReason === 'insufficient_funds' && amountOwed !== 0;
+    return billingStatus?.declineReason === 'insufficient_funds' && getAmountOwed() !== 0;
 }
 
 function shouldShowPreTrialBillingBanner(): boolean {

@@ -12,11 +12,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
-import Confirmation from './substeps/Confirmation';
-import DateOfBirth from './substeps/DateOfBirth';
-import JobTitle from './substeps/JobTitle';
-import Name from './substeps/Name';
-import UploadDocuments from './substeps/UploadDocuments';
+import Confirmation from './subSteps/Confirmation';
+import DateOfBirth from './subSteps/DateOfBirth';
+import JobTitle from './subSteps/JobTitle';
+import Name from './subSteps/Name';
+import UploadDocuments from './subSteps/UploadDocuments';
 
 type SignerInfoProps = {
     /** Handles back button press */
@@ -40,13 +40,13 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
     // TODO set this based on param from redirect or BE response
     const isSecondSigner = false;
-    const isUserOwner = reimbursementAccount?.achData?.additionalData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const companyName = reimbursementAccount?.achData?.additionalData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
+    const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
+    const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
 
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);

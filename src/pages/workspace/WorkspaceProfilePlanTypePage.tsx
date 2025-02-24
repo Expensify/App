@@ -118,7 +118,10 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
                                     count: privateSubscription?.userCount ?? 1,
                                     annualSubscriptionEndDate: autoRenewalDate,
                                 })}{' '}
-                                <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}>{translate('workspace.planTypePage.subscriptions')}</TextLink>.
+                                <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}>
+                                    {translate('workspace.planTypePage.subscriptions')}
+                                </TextLink>
+                                .
                             </Text>
                         ) : (
                             <Text style={[styles.mh5, styles.mv3]}>

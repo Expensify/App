@@ -293,7 +293,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate']): string {
+    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], canEdit = true): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -380,7 +380,7 @@ const ViolationsUtils = {
                     rterType,
                 });
             case 'smartscanFailed':
-                return translate('violations.smartscanFailed');
+                return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
                 return translate('violations.someTagLevelsRequired', {tagName});
             case 'tagOutOfPolicy':

@@ -11,14 +11,14 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {updateExpensifyCardLimitType} from '@libs/actions/Card';
+import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getApprovalWorkflow, getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Card from '@userActions/Card';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,8 +30,8 @@ type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
 >;
 
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
-    const {policyID, cardID} = route.params;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const {policyID, cardID, backTo} = route.params;
+    const workspaceAccountID = getWorkspaceAccountID(policyID);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -40,7 +40,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const card = cardsList?.[cardID];
-    const areApprovalsConfigured = PolicyUtils.getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
     const initialLimitType = card?.nameValuePairs?.limitType ?? defaultLimitType;
     const promptTranslationKey =
@@ -53,13 +53,16 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE;
 
-    const goBack = useCallback(
-        () => Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)),
-        [isWorkspaceRhp, policyID, cardID],
-    );
+    const goBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+    }, [backTo, isWorkspaceRhp, policyID, cardID]);
 
     const fetchCardLimitTypeData = useCallback(() => {
-        Policy.openPolicyEditCardLimitTypePage(policyID, Number(cardID));
+        openPolicyEditCardLimitTypePage(policyID, Number(cardID));
     }, [policyID, cardID]);
 
     useFocusEffect(fetchCardLimitTypeData);
@@ -67,7 +70,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const updateCardLimitType = () => {
         setIsConfirmModalVisible(false);
 
-        Card.updateExpensifyCardLimitType(workspaceAccountID, Number(cardID), typeSelected, card?.nameValuePairs?.limitType);
+        updateExpensifyCardLimitType(workspaceAccountID, Number(cardID), typeSelected, card?.nameValuePairs?.limitType);
 
         goBack();
     };
@@ -176,7 +179,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                         isVisible={isConfirmModalVisible}
                         onConfirm={updateCardLimitType}
                         onCancel={() => setIsConfirmModalVisible(false)}
-                        prompt={translate(promptTranslationKey, {limit: CurrencyUtils.convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD)})}
+                        prompt={translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD)})}
                         confirmText={translate('workspace.expensifyCard.changeLimitType')}
                         cancelText={translate('common.cancel')}
                         danger

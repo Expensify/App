@@ -19,7 +19,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
         with:
           OP_VAULT: ${{ vars.OP_VAULT }}
@@ -86,7 +86,7 @@ jobs:
 
       - name: Setup git for OSBotify
         id: setupGitForOSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         with:
           OP_VAULT: ${{ vars.OP_VAULT }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
@@ -128,7 +128,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         with:
           OP_VAULT: ${{ vars.OP_VAULT }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
