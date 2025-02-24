@@ -12,6 +12,11 @@ on:
         required: false
         default: ''
 
+ 
+env:
+  # This variable is needed for fastlane to construct correct path
+  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER  }}
+
 jobs:
   prep:
     runs-on: ubuntu-latest
