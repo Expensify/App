@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import DistanceMapView from '@components/DistanceMapView';
+import MapView from '@components/MapView';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
@@ -109,7 +109,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                 </View>
             )}
             <View style={styles.mapViewContainer}>
-                <DistanceMapView
+                <MapView
                     accessToken={mapboxAccessToken?.token ?? ''}
                     mapPadding={CONST.MAPBOX.PADDING}
                     pitchEnabled={false}
@@ -121,7 +121,6 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     style={[styles.mapView, styles.mapEditView]}
                     waypoints={waypointMarkers}
                     styleURL={CONST.MAPBOX.STYLE_URL}
-                    overlayStyle={styles.mapEditView}
                     distanceInMeters={getDistanceInMeters(transaction, undefined)}
                     unit={unit}
                 />

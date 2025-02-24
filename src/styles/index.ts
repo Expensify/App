@@ -4741,18 +4741,6 @@ const styles = (theme: ThemeColors) =>
         },
         currentPositionDot: {backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16},
 
-        mapViewOverlay: {
-            flex: 1,
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            borderRadius: variables.componentBorderRadiusLarge,
-            overflow: 'hidden',
-            backgroundColor: theme.highlightBG,
-            ...sizing.w100,
-            ...sizing.h100,
-        },
-
         confirmationListMapItem: {
             ...spacing.mv2,
             ...spacing.mh5,
