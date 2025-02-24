@@ -87,6 +87,7 @@ jest.mock('react-native-app-logs', () => require<typeof RNAppLogs>('react-native
 jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
+    clearData: jest.fn(),
 }));
 
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
