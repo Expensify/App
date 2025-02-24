@@ -268,7 +268,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: {
+    CONSOLE_DEBUG: {
         route: 'settings/troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
     },
@@ -357,14 +357,18 @@ const ROUTES = {
             isAuthTokenRequired?: boolean,
             fileName?: string,
             attachmentLink?: string,
+            hashKey?: number,
         ) => {
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+            const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${type as string}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}&type=${
+                type as string
+            }${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
@@ -1390,7 +1394,7 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/add-card-feed` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/add-card-feed`, backTo),
     },
     WORKSPACE_COMPANY_CARDS_SELECT_FEED: {
         route: 'settings/workspaces/:policyID/company-cards/select-feed',
@@ -2013,13 +2017,13 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/nsqs/export/date',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/date` as const,
     },
+    POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/export/payment-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/payment-account` as const,
+    },
     POLICY_ACCOUNTING_NSQS_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/nsqs/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/advanced/approval-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced/approval-account` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',

@@ -33,7 +33,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import switchPolicyID from './helpers/switchPolicyID';
 import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
-import type {NavigationPartialRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
+import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
 
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
@@ -481,12 +481,12 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
-        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID ?? '-1', reportActionID, referrer));
+        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer));
         return;
     }
 
     const params: Record<string, string> = {
-        reportID: targetReport?.reportID ?? '-1',
+        reportID: targetReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
     };
 
     if (reportActionID) {
@@ -504,6 +504,24 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
             params,
         }),
     );
+}
+
+function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navigationRef.getRootState().routes): NavigationRoute | null {
+    if (!reportID || !routes?.length) {
+        return null;
+    }
+    for (const route of routes) {
+        if (route.name === SCREENS.REPORT && !!route.params && 'reportID' in route.params && route.params.reportID === reportID) {
+            return route;
+        }
+        if (route.state?.routes) {
+            const partialRoute = getReportRouteByID(reportID, route.state.routes);
+            if (partialRoute) {
+                return partialRoute;
+            }
+        }
+    }
+    return null;
 }
 
 /**
@@ -555,6 +573,19 @@ function removeScreenFromNavigationState(screen: string) {
     });
 }
 
+function removeScreenByKey(key: string) {
+    isNavigationReady().then(() => {
+        navigationRef.current?.dispatch((state) => {
+            const routes = state.routes?.filter((item) => item.key !== key);
+            return CommonActions.reset({
+                ...state,
+                routes,
+                index: routes.length < state.routes.length ? state.index - 1 : state.index,
+            });
+        });
+    });
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -580,6 +611,8 @@ export default {
     navigateToReportWithPolicyCheck,
     popToTop,
     removeScreenFromNavigationState,
+    removeScreenByKey,
+    getReportRouteByID,
     switchPolicyID,
     replaceWithSplitNavigator,
 };
