@@ -2019,27 +2019,22 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
             newValue,
         });
     }
-    if (
-        updatedField &&
-        updatedField === CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET &&
-        (typeof oldValue === 'string' || typeof oldValue === 'number' || typeof oldValue === 'undefined') &&
-        (typeof newValue === 'string' || typeof newValue === 'number' || typeof newValue === 'undefined')
-    ) {
-        const getMonthToDisplay = (month: string | number | undefined) => {
-            if (month === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET) {
+        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number | undefined) => {
+            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                 return translateLocal('workflowsPage.frequencies.lastDayOfMonth');
             }
-            if (month === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                 return translateLocal('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
-            if (typeof month === 'number') {
-                return toLocaleOrdinal(preferredLocale, month, false);
+            if (typeof autoReportingOffset === 'number') {
+                return toLocaleOrdinal(preferredLocale, autoReportingOffset, false);
             }
             return '';
         };
         return translateLocal('workspaceActions.updateMonthlyOffset', {
-            newValue: getMonthToDisplay(newValue),
-            oldValue: getMonthToDisplay(oldValue),
+            newValue: getAutoReportingOffsetToDisplay(newValue),
+            oldValue: getAutoReportingOffsetToDisplay(oldValue),
         });
     }
     return getReportActionText(action);
