@@ -3,12 +3,12 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import {SectionList} from 'react-native';
 import BaseSelectionList from '@components/SelectionList/BaseSelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {BaseSelectionListProps, ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
 import type Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 type BaseSelectionListSections<TItem extends ListItem> = {
-    sections: BaseSelectionListProps<TItem>['sections'];
+    sections: SelectionListProps<TItem>['sections'];
     canSelectMultiple?: boolean;
 };
 

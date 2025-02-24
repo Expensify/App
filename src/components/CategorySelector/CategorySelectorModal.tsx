@@ -38,6 +38,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
@@ -55,6 +56,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
                     policyID={policyID}
                     selectedCategory={currentCategory}
                     onSubmit={onCategorySelected}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>

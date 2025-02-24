@@ -5,6 +5,7 @@ import ReactNativeModal from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import NavigationBar from '@components/NavigationBar';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -75,6 +76,7 @@ function BaseModal(
         swipeThreshold = 150,
         swipeDirection,
         shouldPreventScrollOnFocus = false,
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -203,7 +205,7 @@ function BaseModal(
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = StyleUtils.getSafeAreaPadding(safeAreaInsets);
+    } = StyleUtils.getPlatformSafeAreaPadding(safeAreaInsets);
 
     const modalPaddingStyles = shouldUseModalPaddingStyle
         ? StyleUtils.getModalPaddingStyles({
@@ -213,7 +215,8 @@ function BaseModal(
               safeAreaPaddingRight,
               shouldAddBottomSafeAreaMargin,
               shouldAddTopSafeAreaMargin,
-              shouldAddBottomSafeAreaPadding: (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
+              // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
+              shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue?.isKeyboardShown) && shouldAddBottomSafeAreaPadding,
               shouldAddTopSafeAreaPadding,
               modalContainerStyleMarginTop: modalContainerStyle.marginTop,
               modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
@@ -301,6 +304,7 @@ function BaseModal(
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
+                    <NavigationBar />
                 </ModalComponent>
             </View>
         </ModalContext.Provider>
