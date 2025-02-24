@@ -10,7 +10,7 @@
 #import "RCTStartupTimer.h"
 #import <HardwareShortcuts.h>
 #import <BackgroundTasks/BackgroundTasks.h>
-#import <expensify_react_native_background_task/RNBackgroundTaskManager.h>
+#import <expensify-react-native-background-task/RNBackgroundTaskManager.h>
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate>
 
