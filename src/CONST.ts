@@ -68,7 +68,7 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-// Hide not issued or not activated cards (states 2 and 4) from card filter options in search, as no transactions can be made on cards in these states
+// Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
@@ -680,6 +680,14 @@ const CONST = {
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
+        },
+        BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
+            ACCOUNT_HOLDER_NAME: 'addressName',
+            ACCOUNT_HOLDER_REGION: 'addressState',
+            ACCOUNT_HOLDER_CITY: 'addressCity',
+            ACCOUNT_HOLDER_ADDRESS: 'addressStreet',
+            ACCOUNT_HOLDER_POSTAL_CODE: 'addressZipCode',
+            ROUTING_CODE: 'routingNumber',
         },
         BUSINESS_INFO_STEP: {
             PICKLIST: {
@@ -2232,7 +2240,7 @@ const CONST = {
         },
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
-        APPROVAL_ACCOUNT: 'approvalAccount',
+        PAYMENT_ACCOUNT: 'paymentAccount',
     },
 
     QUICKBOOKS_EXPORT_DATE: {
@@ -6709,6 +6717,12 @@ const CONST = {
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
         },
+    },
+    LAST_PAYMENT_METHOD: {
+        LAST_USED: 'lastUsed',
+        IOU: 'Iou',
+        EXPENSE: 'Expense',
+        INVOICE: 'Invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
