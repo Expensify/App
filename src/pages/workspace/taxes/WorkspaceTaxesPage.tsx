@@ -16,7 +16,6 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useAutoUpdateSelectedOptions from '@hooks/useAutoUpdateSelectedOptions';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -108,7 +107,29 @@ function WorkspaceTaxesPage({
                 : [],
         [policy, canSelectMultiple],
     );
-    useAutoUpdateSelectedOptions(availableOptions, canSelectMultiple ? selectedTaxesIDs : {}, updateNewSelectedOptions);
+
+    useEffect(() => {
+        if (selectedTaxesIDs.length === 0 || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedTaxesIDs((prevSelectedTaxesIDs) => {
+            const newSelectedTaxesIDs = [];
+
+            for (const taxID of prevSelectedTaxesIDs) {
+                if (
+                    policy?.taxRates?.taxes?.[taxID] &&
+                    policy?.taxRates?.taxes?.[taxID].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                    canEditTaxRatePolicyUtils(policy, taxID)
+                ) {
+                    newSelectedTaxesIDs.push(taxID);
+                }
+            }
+
+            return newSelectedTaxesIDs;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policy?.taxRates?.taxes]);
 
     useSearchBackPress({
         onClearSelection: () => {

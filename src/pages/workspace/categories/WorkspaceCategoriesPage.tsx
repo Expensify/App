@@ -22,7 +22,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
-import useAutoUpdateSelectedOptions from '@hooks/useAutoUpdateSelectedOptions';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -51,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
@@ -100,30 +100,26 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
-    const updateNewSelectedOptions = useCallback(
-        (newSelectedOptions: string[]) => {
-            if (!canSelectMultiple) {
-                return;
+
+    useEffect(() => {
+        if (isEmptyObject(selectedCategories) || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedCategories((prevSelectedCategories) => {
+            const keys = Object.keys(prevSelectedCategories);
+            const newSelectedCategories: Record<string, boolean> = {};
+
+            for (const key of keys) {
+                if (policyCategories?.[key] && policyCategories[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedCategories[key] = prevSelectedCategories[key];
+                }
             }
-            setSelectedCategories(
-                newSelectedOptions.reduce((acc: Record<string, boolean>, key: string) => {
-                    acc[key] = true;
-                    return acc;
-                }, {} as Record<string, boolean>),
-            );
-        },
-        [canSelectMultiple],
-    );
-    const availableOptions = useMemo(
-        () =>
-            canSelectMultiple
-                ? Object.values(policyCategories ?? {})
-                      ?.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                      .map((o) => o.name)
-                : [],
-        [policyCategories, canSelectMultiple],
-    );
-    useAutoUpdateSelectedOptions(availableOptions, canSelectMultiple ? selectedCategories : {}, updateNewSelectedOptions);
+
+            return newSelectedCategories;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policyCategories]);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedCategories({}),

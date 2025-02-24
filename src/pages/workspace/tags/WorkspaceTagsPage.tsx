@@ -21,7 +21,6 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useAutoUpdateSelectedOptions from '@hooks/useAutoUpdateSelectedOptions';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -57,6 +56,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 
 type WorkspaceTagsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
@@ -124,7 +124,26 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 : [],
         [policyTagLists, canSelectMultiple],
     );
-    useAutoUpdateSelectedOptions(availableOptions, canSelectMultiple ? selectedTags : {}, updateNewSelectedOptions);
+    useEffect(() => {
+        if (isEmptyObject(selectedTags) || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedTags((prevSelectedTags) => {
+            const keys = Object.keys(prevSelectedTags);
+            const newSelectedTags: Record<string, boolean> = {};
+            const policyTagList = policyTagLists.at(0);
+
+            for (const key of keys) {
+                if (policyTagList?.tags?.[key] && policyTagList?.tags?.[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedTags[key] = prevSelectedTags[key];
+                }
+            }
+
+            return newSelectedTags;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policyTagLists]);
 
     useSearchBackPress({
         onClearSelection: () => {
