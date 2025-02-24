@@ -15,6 +15,7 @@ import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('NewChatPage', () => {
     beforeAll(() => {

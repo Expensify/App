@@ -48,7 +48,7 @@ function TestToolsModal() {
                             text={translate('initialSettingsPage.debugConsole.viewConsole')}
                             onPress={() => {
                                 toggleTestToolsModal();
-                                Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(Navigation.getActiveRoute()));
+                                Navigation.navigate(ROUTES.CONSOLE_DEBUG.getRoute(Navigation.getActiveRoute()));
                             }}
                         />
                     </TestToolRow>
