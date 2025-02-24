@@ -4622,6 +4622,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
     Navigation.dismissModal(isSearchTopmostFullScreenRoute() ? undefined : activeReportID);
+
+    const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
+    if (trackReport?.key) {
+        Navigation.removeScreenByKey(trackReport.key);
+    }
+
     if (activeReportID) {
         notifyNewAction(activeReportID, payeeAccountID);
     }
