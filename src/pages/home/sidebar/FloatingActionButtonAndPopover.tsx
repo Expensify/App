@@ -1,11 +1,13 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useState} from 'react';
+import {NativeModules} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import {FABPopoverContext} from '@components/FABPopoverProvider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -193,6 +195,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu}: FloatingActionButton
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
+
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON,
@@ -532,6 +536,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu}: FloatingActionButton
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
+                    if (NativeModules.HybridAppModule) {
+                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        setRootStatusBarEnabled(false);
+                        return;
+                    }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                 }}
                 onCancel={() => setModalVisible(false)}

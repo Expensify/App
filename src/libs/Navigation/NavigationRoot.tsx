@@ -5,6 +5,7 @@ import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FABPopoverProvider from '@components/FABPopoverProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -90,6 +91,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const currentReportIDValue = useCurrentReportID();
+    const {updateCurrentPlayingReportID} = usePlaybackContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [user] = useOnyx(ONYXKEYS.USER);
     const isPrivateDomain = Session.isUserOnPrivateDomain();
@@ -201,6 +203,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
             currentReportIDValue?.updateCurrentReportID(state);
+            updateCurrentPlayingReportID(state);
         }, 0);
         parseAndLogRoute(state);
 
