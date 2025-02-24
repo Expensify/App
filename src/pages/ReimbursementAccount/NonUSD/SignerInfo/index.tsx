@@ -16,13 +16,13 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import DirectorsList from './DirectorsList';
 import EnterEmail from './EnterEmail';
 import HangTight from './HangTight';
-import Address from './substeps/Address';
-import Confirmation from './substeps/Confirmation';
-import DateOfBirth from './substeps/DateOfBirth';
-import JobTitle from './substeps/JobTitle';
-import Name from './substeps/Name';
-import Occupation from './substeps/Occupation';
-import UploadDocuments from './substeps/UploadDocuments';
+import Address from './subSteps/Address';
+import Confirmation from './subSteps/Confirmation';
+import DateOfBirth from './subSteps/DateOfBirth';
+import JobTitle from './subSteps/JobTitle';
+import Name from './subSteps/Name';
+import Occupation from './subSteps/Occupation';
+import UploadDocuments from './subSteps/UploadDocuments';
 
 type SignerInfoProps = {
     /** Handles back button press */

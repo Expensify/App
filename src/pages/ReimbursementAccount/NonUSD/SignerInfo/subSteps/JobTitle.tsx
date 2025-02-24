@@ -13,15 +13,13 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 type JobTitleProps = SubStepProps & {directorID?: string};
 
 const {SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {PREFIX, DIRECTOR_JOB_TITLE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function JobTitle({onNext, onMove, isEditing, directorID}: JobTitleProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const inputID =
-        directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY
-            ? `${CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA.PREFIX}_${directorID}_${CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA.DIRECTOR_JOB_TITLE}`
-            : SIGNER_JOB_TITLE;
+    const inputID = directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? `${PREFIX}_${directorID}_${DIRECTOR_JOB_TITLE}` : SIGNER_JOB_TITLE;
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(

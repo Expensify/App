@@ -41,8 +41,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const defaultValues = {
         [`signer_${COPY_OF_ID}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_COPY_OF_ID] ?? reimbursementAccountDraft?.[`signer_${COPY_OF_ID}`] ?? [],
         [`signer_${ADDRESS_PROOF}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_ADDRESS_PROOF] ?? reimbursementAccountDraft?.[`signer_${ADDRESS_PROOF}`] ?? [],
-        [`signer_${PROOF_OF_DIRECTORS}`]:
-            reimbursementAccount?.achData?.corpay?.[SIGNER_PROOF_OF_DIRECTORS] ?? reimbursementAccountDraft?.[`signer_${PROOF_OF_DIRECTORS}`] ?? [],
+        [`signer_${PROOF_OF_DIRECTORS}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_PROOF_OF_DIRECTORS] ?? reimbursementAccountDraft?.[`signer_${PROOF_OF_DIRECTORS}`] ?? [],
         [`signer_${CODICE_FISCALE}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_CODICE_FISCALE] ?? reimbursementAccountDraft?.[`signer_${CODICE_FISCALE}`] ?? [],
         [`signer_${PRD_AND_SFG}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_PRD_AND_SFG] ?? reimbursementAccountDraft?.[`signer_${PRD_AND_SFG}`] ?? [],
     };
