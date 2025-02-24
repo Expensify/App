@@ -248,13 +248,13 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const messagePDF = useMemo(() => {
         if (!isReportPDFReady) {
-            return 'Please wait while we generate the PDF';
+            return translate('reportDetailsPage.waitForPDF');
         }
         if (reportPDFFilename === 'error') {
-            return 'There was an error when trying to generate your PDF.';
+            return translate('reportDetailsPage.errorPDF');
         }
-        return 'Your report PDF has been generated!';
-    }, [reportPDFFilename]);
+        return translate('reportDetailsPage.generatedPDF');
+    }, [isReportPDFReady, reportPDFFilename, translate]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
@@ -1164,7 +1164,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         <View>
                             <View style={[styles.flexRow, styles.mb4]}>
                                 <Header
-                                    title={'Generating PDF'}
+                                    title={translate('reportDetailsPage.generatingPDF')}
                                     containerStyles={[styles.alignItemsCenter]}
                                 />
                             </View>
@@ -1182,15 +1182,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         {isReportPDFReady && reportPDFFilename !== 'error' && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
-                                onPress={() => downloadReportPDF(reportPDFFilename, reportName)}
-                                text={"Download"}
+                                onPress={() => downloadReportPDF(reportPDFFilename ?? '', reportName)}
+                                text={translate('common.download')}
                             />
                         )}
                         {(!isReportPDFReady || reportPDFFilename === 'error') && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={() => setIsPDFModalVisible(false)}
-                                text={"Close"}
+                                text={translate('common.close')}
                             />
                         )}
                     </View>
