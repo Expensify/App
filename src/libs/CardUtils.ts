@@ -98,6 +98,10 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
+function isCardClosed(card: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
+}
+
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
     const feedCards: CardList = {};
     Object.values(cardList).forEach((card) => {
@@ -512,6 +516,11 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
     return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
 }
 
+function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed): boolean {
+    const workspaceCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${feedName}`] ?? {};
+    return !!workspaceCards.cardList;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -537,6 +546,7 @@ export {
     getSelectedFeed,
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
+    isCardClosed,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
@@ -549,4 +559,5 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    hasCardListObject,
 };

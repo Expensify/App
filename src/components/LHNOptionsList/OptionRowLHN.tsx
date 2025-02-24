@@ -36,6 +36,7 @@ import {
     isOneOnOneChat,
     isPolicyExpenseChat,
     isSystemChat,
+    isThread,
     requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -61,7 +62,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
     const session = useSession();
-    const shouldShowWokspaceChatTooltip = isPolicyExpenseChat(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
+    const shouldShowWokspaceChatTooltip = isPolicyExpenseChat(report) && !isThread(report) && activePolicyID === report?.policyID && session?.accountID === report?.ownerAccountID;
     const isOnboardingGuideAssigned = introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, introSelected?.choice);
     const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
