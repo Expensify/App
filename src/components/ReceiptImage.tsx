@@ -148,7 +148,7 @@ function ReceiptImage({
             <View style={[styles.mw100, styles.h100]}>
                 <View
                     onLayout={onParentLayout}
-                    style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}]}
+                    style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}, styles.overflowHidden]}
                 >
                     <EReceipt
                         transactionID={transactionID}
