@@ -35,6 +35,8 @@ import type SCREENS from '@src/SCREENS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+const FOOTER_BUTTON_CONTENT_PADDING = 80;
+
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
 
@@ -202,6 +204,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 onSubmit={nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
+                shouldBlendOpacity
             />
         );
     }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
@@ -250,12 +253,17 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <ScreenWrapper testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}>
+            <ScreenWrapper
+                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldKeyboardOffsetBottomSafeAreaPadding
+            >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                     onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                    addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPage.approver')}
@@ -279,6 +287,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
                         shouldHighlightSelectedItem
                         shouldShowTextInput={shouldShowTextInput}
+                        addBottomSafeAreaPadding
+                        contentContainerStyle={{paddingBottom: FOOTER_BUTTON_CONTENT_PADDING}}
+                        shouldFooterContentStickToBottom
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
