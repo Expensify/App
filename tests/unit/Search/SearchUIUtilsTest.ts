@@ -1,3 +1,4 @@
+import Onyx from 'react-native-onyx';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -5,10 +6,19 @@ import type {ReportActionListItemType, ReportListItemType, TransactionListItemTy
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const accountID = 18439984;
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
+const adminAccountID = 18439984;
+const adminEmail = 'admin@policy.com';
+const approverAccountID = 1111111;
+const approverEmail = 'approver@policy.com';
+const overlimitApproverAccountID = 222222;
+const overlimitApproverEmail = 'overlimit@policy.com';
 const policyID = 'A1B2C3';
 const reportID = '123456789';
 const reportID2 = '11111';
@@ -19,16 +29,28 @@ const transactionID2 = '2';
 const searchResults: OnyxTypes.SearchResults = {
     data: {
         personalDetailsList: {
-            [accountID]: {
-                accountID,
+            [adminAccountID]: {
+                accountID: adminAccountID,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                displayName: 'test',
-                login: 'test1234@gmail.com',
+                displayName: 'Admin',
+                login: adminEmail,
+            },
+            [approverAccountID]: {
+                accountID: approverAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Approver',
+                login: approverEmail,
+            },
+            [overlimitApproverAccountID]: {
+                accountID: overlimitApproverAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Overlimit Approver',
+                login: overlimitApproverEmail,
             },
         },
         [`policy_${policyID}`]: {
-            id: 'test',
-            approvalMode: 'OPTIONAL',
+            id: 'Admin',
+            approvalMode: 'ADVANCED',
             autoReimbursement: {
                 limit: 0,
             },
@@ -36,14 +58,34 @@ const searchResults: OnyxTypes.SearchResults = {
             autoReporting: true,
             autoReportingFrequency: 'instant',
             preventSelfApproval: false,
-            owner: 'test1234@gmail.com',
+            owner: adminEmail,
             reimbursementChoice: 'reimburseManual',
             role: 'admin',
             type: 'team',
+            employeeList: {
+                [adminEmail]: {
+                    email: adminEmail,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    forwardsTo: '',
+                    submitsTo: approverEmail,
+                },
+                [approverEmail]: {
+                    email: approverEmail,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalLimit: 100,
+                    submitsTo: adminEmail,
+                    overLimitForwardsTo: overlimitApproverEmail,
+                },
+                [overlimitApproverEmail]: {
+                    email: overlimitApproverEmail,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    submitsTo: approverEmail,
+                },
+            },
         },
         [`reportActions_${reportID}`]: {
             test: {
-                accountID,
+                accountID: adminAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 created: '2024-12-21 13:05:20',
                 message: [
@@ -59,13 +101,13 @@ const searchResults: OnyxTypes.SearchResults = {
                         html: '<p>Please review this expense.</p>',
                     },
                 ],
-                reportActionID: 'test',
+                reportActionID: 'Admin',
                 reportID,
-                reportName: 'test',
+                reportName: 'Admin',
             },
         },
         [`report_${reportID}`]: {
-            accountID,
+            accountID: adminAccountID,
             action: 'view',
             chatReportID: '1706144653204915',
             created: '2024-12-21 13:05:20',
@@ -73,9 +115,9 @@ const searchResults: OnyxTypes.SearchResults = {
             isOneTransactionReport: true,
             isPolicyExpenseChat: false,
             isWaitingOnBankAccount: false,
-            managerID: accountID,
+            managerID: adminAccountID,
             nonReimbursableTotal: 0,
-            ownerAccountID: accountID,
+            ownerAccountID: adminAccountID,
             policyID,
             reportID,
             reportName: 'Expense Report #123',
@@ -86,7 +128,7 @@ const searchResults: OnyxTypes.SearchResults = {
             unheldTotal: -5000,
         },
         [`report_${reportID2}`]: {
-            accountID,
+            accountID: adminAccountID,
             action: 'view',
             chatReportID: '1706144653204915',
             created: '2024-12-21 13:05:20',
@@ -94,9 +136,9 @@ const searchResults: OnyxTypes.SearchResults = {
             isOneTransactionReport: true,
             isPolicyExpenseChat: false,
             isWaitingOnBankAccount: false,
-            managerID: accountID,
+            managerID: adminAccountID,
             nonReimbursableTotal: 0,
-            ownerAccountID: accountID,
+            ownerAccountID: adminAccountID,
             policyID,
             reportID: reportID2,
             reportName: 'Expense Report #123',
@@ -107,7 +149,7 @@ const searchResults: OnyxTypes.SearchResults = {
             unheldTotal: -5000,
         },
         [`transactions_${transactionID}`]: {
-            accountID,
+            accountID: adminAccountID,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -121,7 +163,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: accountID,
+            managerID: adminAccountID,
             description: '',
             hasViolation: false,
             merchant: 'Expense',
@@ -139,7 +181,7 @@ const searchResults: OnyxTypes.SearchResults = {
             transactionType: 'cash',
         },
         [`transactions_${transactionID2}`]: {
-            accountID,
+            accountID: adminAccountID,
             action: 'view',
             amount: -5000,
             canDelete: true,
@@ -153,7 +195,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             isFromOneTransactionReport: true,
-            managerID: accountID,
+            managerID: adminAccountID,
             description: '',
             hasViolation: true,
             merchant: 'Expense',
@@ -198,14 +240,14 @@ const reportActionListItems = [
         actionName: 'ADDCOMMENT',
         created: '2024-12-21 13:05:20',
         date: '2024-12-21 13:05:20',
-        formattedFrom: 'test',
+        formattedFrom: 'Admin',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
-        keyForList: 'test',
+        keyForList: 'Admin',
         message: [
             {
                 type: 'text',
@@ -219,7 +261,7 @@ const reportActionListItems = [
                 html: '<p>Please review this expense.</p>',
             },
         ],
-        reportActionID: 'test',
+        reportActionID: 'Admin',
         reportID: '123456789',
         reportName: 'Unavailable workspace owes $50.00',
     },
@@ -239,15 +281,15 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         description: '',
-        formattedFrom: 'test',
+        formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
-        formattedTo: 'test',
+        formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
         hasEReceipt: false,
         hasViolation: false,
@@ -272,8 +314,8 @@ const transactionsListItems = [
         to: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
         transactionID: '1',
         transactionThreadReportID: '456',
@@ -292,15 +334,15 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         description: '',
-        formattedFrom: 'test',
+        formattedFrom: 'Admin',
         formattedMerchant: 'Expense',
-        formattedTo: 'test',
+        formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
         hasEReceipt: false,
         hasViolation: true,
@@ -325,8 +367,8 @@ const transactionsListItems = [
         to: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
         transactionID: '2',
         transactionThreadReportID: '456',
@@ -344,8 +386,8 @@ const reportsListItems = [
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
         isOneTransactionReport: true,
         isPolicyExpenseChat: false,
@@ -362,8 +404,8 @@ const reportsListItems = [
         to: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
         total: -5000,
         transactions: [
@@ -380,15 +422,15 @@ const reportsListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 description: '',
-                formattedFrom: 'test',
+                formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
-                formattedTo: 'test',
+                formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
                     accountID: 18439984,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                    displayName: 'test',
-                    login: 'test1234@gmail.com',
+                    displayName: 'Admin',
+                    login: adminEmail,
                 },
                 hasEReceipt: false,
                 hasViolation: false,
@@ -413,8 +455,8 @@ const reportsListItems = [
                 to: {
                     accountID: 18439984,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                    displayName: 'test',
-                    login: 'test1234@gmail.com',
+                    displayName: 'Admin',
+                    login: adminEmail,
                 },
                 transactionID: '1',
                 transactionThreadReportID: '456',
@@ -433,8 +475,8 @@ const reportsListItems = [
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
         isOneTransactionReport: true,
         isPolicyExpenseChat: false,
@@ -451,8 +493,8 @@ const reportsListItems = [
         to: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'test',
-            login: 'test1234@gmail.com',
+            displayName: 'Admin',
+            login: adminEmail,
         },
         total: -5000,
         transactions: [
@@ -469,15 +511,15 @@ const reportsListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 description: '',
-                formattedFrom: 'test',
+                formattedFrom: 'Admin',
                 formattedMerchant: 'Expense',
-                formattedTo: 'test',
+                formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
                     accountID: 18439984,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                    displayName: 'test',
-                    login: 'test1234@gmail.com',
+                    displayName: 'Admin',
+                    login: adminEmail,
                 },
                 hasEReceipt: false,
                 hasViolation: true,
@@ -502,8 +544,8 @@ const reportsListItems = [
                 to: {
                     accountID: 18439984,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                    displayName: 'test',
-                    login: 'test1234@gmail.com',
+                    displayName: 'Admin',
+                    login: adminEmail,
                 },
                 transactionID: '2',
                 transactionThreadReportID: '456',
@@ -586,14 +628,14 @@ describe('SearchUIUtils', () => {
                     actionName: 'ADDCOMMENT',
                     created: '2024-12-21 13:05:20',
                     date: '2024-12-21 13:05:20',
-                    formattedFrom: 'test',
+                    formattedFrom: 'Admin',
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
-                    keyForList: 'test',
+                    keyForList: 'Admin',
                     message: [
                         {
                             html: '<p>Payment has been processed.</p>',
@@ -607,7 +649,7 @@ describe('SearchUIUtils', () => {
                             type: 'comment',
                         },
                     ],
-                    reportActionID: 'test',
+                    reportActionID: 'Admin',
                     reportID: '123456789',
                     reportName: 'Unavailable workspace owes $50.00',
                 },
@@ -631,15 +673,15 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     date: '2024-12-21',
                     description: '',
-                    formattedFrom: 'test',
+                    formattedFrom: 'Admin',
                     formattedMerchant: 'Expense',
-                    formattedTo: 'test',
+                    formattedTo: 'Admin',
                     formattedTotal: 5000,
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     hasEReceipt: false,
                     hasViolation: false,
@@ -664,8 +706,8 @@ describe('SearchUIUtils', () => {
                     to: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     transactionID: '1',
                     transactionThreadReportID: '456',
@@ -686,15 +728,15 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     date: '2024-12-21',
                     description: '',
-                    formattedFrom: 'test',
+                    formattedFrom: 'Admin',
                     formattedMerchant: 'Expense',
-                    formattedTo: 'test',
+                    formattedTo: 'Admin',
                     formattedTotal: 5000,
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     hasEReceipt: false,
                     hasViolation: true,
@@ -719,8 +761,8 @@ describe('SearchUIUtils', () => {
                     to: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     transactionID: '2',
                     transactionThreadReportID: '456',
@@ -740,8 +782,8 @@ describe('SearchUIUtils', () => {
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     isOneTransactionReport: true,
                     isPolicyExpenseChat: false,
@@ -758,8 +800,8 @@ describe('SearchUIUtils', () => {
                     to: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     total: -5000,
                     transactions: [
@@ -778,15 +820,15 @@ describe('SearchUIUtils', () => {
                             currency: 'USD',
                             date: '2024-12-21',
                             description: '',
-                            formattedFrom: 'test',
+                            formattedFrom: 'Admin',
                             formattedMerchant: 'Expense',
-                            formattedTo: 'test',
+                            formattedTo: 'Admin',
                             formattedTotal: 5000,
                             from: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             hasEReceipt: false,
                             hasViolation: false,
@@ -811,8 +853,8 @@ describe('SearchUIUtils', () => {
                             to: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             transactionID: '1',
                             transactionThreadReportID: '456',
@@ -831,8 +873,8 @@ describe('SearchUIUtils', () => {
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     isOneTransactionReport: true,
                     isPolicyExpenseChat: false,
@@ -849,8 +891,8 @@ describe('SearchUIUtils', () => {
                     to: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     total: -5000,
                     transactions: [
@@ -869,15 +911,15 @@ describe('SearchUIUtils', () => {
                             currency: 'USD',
                             date: '2024-12-21',
                             description: '',
-                            formattedFrom: 'test',
+                            formattedFrom: 'Admin',
                             formattedMerchant: 'Expense',
-                            formattedTo: 'test',
+                            formattedTo: 'Admin',
                             formattedTotal: 5000,
                             from: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             hasEReceipt: false,
                             hasViolation: true,
@@ -902,8 +944,8 @@ describe('SearchUIUtils', () => {
                             to: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             transactionID: '2',
                             transactionThreadReportID: '456',
@@ -927,8 +969,8 @@ describe('SearchUIUtils', () => {
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     isOneTransactionReport: true,
                     isPolicyExpenseChat: false,
@@ -945,8 +987,8 @@ describe('SearchUIUtils', () => {
                     to: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     total: -5000,
                     transactions: [
@@ -965,15 +1007,15 @@ describe('SearchUIUtils', () => {
                             currency: 'USD',
                             date: '2024-12-21',
                             description: '',
-                            formattedFrom: 'test',
+                            formattedFrom: 'Admin',
                             formattedMerchant: 'Expense',
-                            formattedTo: 'test',
+                            formattedTo: 'Admin',
                             formattedTotal: 5000,
                             from: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             hasEReceipt: false,
                             hasViolation: false,
@@ -998,8 +1040,8 @@ describe('SearchUIUtils', () => {
                             to: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             transactionID: '1',
                             transactionThreadReportID: '456',
@@ -1018,8 +1060,8 @@ describe('SearchUIUtils', () => {
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     isOneTransactionReport: true,
                     isPolicyExpenseChat: false,
@@ -1036,8 +1078,8 @@ describe('SearchUIUtils', () => {
                     to: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     total: -5000,
                     transactions: [
@@ -1056,15 +1098,15 @@ describe('SearchUIUtils', () => {
                             currency: 'USD',
                             date: '2024-12-21',
                             description: '',
-                            formattedFrom: 'test',
+                            formattedFrom: 'Admin',
                             formattedMerchant: 'Expense',
-                            formattedTo: 'test',
+                            formattedTo: 'Admin',
                             formattedTotal: 5000,
                             from: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             hasEReceipt: false,
                             hasViolation: true,
@@ -1089,8 +1131,8 @@ describe('SearchUIUtils', () => {
                             to: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             transactionID: '2',
                             transactionThreadReportID: '456',
@@ -1114,8 +1156,8 @@ describe('SearchUIUtils', () => {
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     isOneTransactionReport: true,
                     isPolicyExpenseChat: false,
@@ -1132,8 +1174,8 @@ describe('SearchUIUtils', () => {
                     to: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     total: -5000,
                     transactions: [
@@ -1152,15 +1194,15 @@ describe('SearchUIUtils', () => {
                             currency: 'USD',
                             date: '2024-12-21',
                             description: '',
-                            formattedFrom: 'test',
+                            formattedFrom: 'Admin',
                             formattedMerchant: 'Expense',
-                            formattedTo: 'test',
+                            formattedTo: 'Admin',
                             formattedTotal: 5000,
                             from: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             hasEReceipt: false,
                             hasViolation: false,
@@ -1185,8 +1227,8 @@ describe('SearchUIUtils', () => {
                             to: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             transactionID: '1',
                             transactionThreadReportID: '456',
@@ -1205,8 +1247,8 @@ describe('SearchUIUtils', () => {
                     from: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     isOneTransactionReport: true,
                     isPolicyExpenseChat: false,
@@ -1223,8 +1265,8 @@ describe('SearchUIUtils', () => {
                     to: {
                         accountID: 18439984,
                         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                        displayName: 'test',
-                        login: 'test1234@gmail.com',
+                        displayName: 'Admin',
+                        login: adminEmail,
                     },
                     total: -5000,
                     transactions: [
@@ -1243,15 +1285,15 @@ describe('SearchUIUtils', () => {
                             currency: 'USD',
                             date: '2024-12-21',
                             description: '',
-                            formattedFrom: 'test',
+                            formattedFrom: 'Admin',
                             formattedMerchant: 'Expense',
-                            formattedTo: 'test',
+                            formattedTo: 'Admin',
                             formattedTotal: 5000,
                             from: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             hasEReceipt: false,
                             hasViolation: true,
@@ -1276,8 +1318,8 @@ describe('SearchUIUtils', () => {
                             to: {
                                 accountID: 18439984,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-                                displayName: 'test',
-                                login: 'test1234@gmail.com',
+                                displayName: 'Admin',
+                                login: adminEmail,
                             },
                             transactionID: '2',
                             transactionThreadReportID: '456',
@@ -1334,6 +1376,18 @@ describe('SearchUIUtils', () => {
             menuItems.forEach((item, index) => {
                 expect(item.getRoute()).toStrictEqual(expectedRoutes.at(index));
             });
+        });
+    });
+
+    test('Should show `View` to overlimit approver', () => {
+        Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
+        searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
+        return waitForBatchedUpdates().then(() => {
+            let action = SearchUIUtils.getAction(searchResults.data, `report_${reportID2}`);
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+
+            action = SearchUIUtils.getAction(searchResults.data, `transactions_${transactionID2}`);
+            expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
 });

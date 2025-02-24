@@ -30,7 +30,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({report}) => (
                 <AttachmentContext.Consumer>
-                    {({accountID, type}) => (
+                    {({accountID, type, hashKey}) => (
                         <VideoPlayerPreview
                             key={key}
                             videoUrl={sourceURL}
@@ -44,7 +44,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                 if (!sourceURL || !type) {
                                     return;
                                 }
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, type, sourceURL, accountID);
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, type, sourceURL, accountID, undefined, undefined, undefined, hashKey);
                                 Navigation.navigate(route);
                             }}
                         />

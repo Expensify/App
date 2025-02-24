@@ -1264,9 +1264,17 @@ function getAdminsPrivateEmailDomains(policy?: Policy) {
         domains.push(Str.extractEmailDomain(email).toLowerCase());
         return domains;
     }, [] as string[]);
+
     const ownerDomains = policy.owner ? [Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
 
-    return [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
+    const privateDomains = [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
+
+    // If the policy is not owned by Expensify there is no point in showing the domain for provisioning.
+    if (!isExpensifyTeam(policy.owner)) {
+        return privateDomains.filter((domain) => domain !== CONST.EXPENSIFY_PARTNER_NAME && domain !== CONST.EMAIL.GUIDES_DOMAIN);
+    }
+
+    return privateDomains;
 }
 
 /**

@@ -48,7 +48,7 @@ function VerifyPage({route}: VerifyPageProps) {
         if (!account?.requiresTwoFactorAuth || !account.codesAreCopied) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute(route.params?.backTo, route.params?.forwardTo));
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute(route.params?.backTo, route.params?.forwardTo), {forceReplace: true});
     }, [account?.codesAreCopied, account?.requiresTwoFactorAuth, route.params?.backTo, route.params?.forwardTo]);
 
     /**
