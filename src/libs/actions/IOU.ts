@@ -481,22 +481,30 @@ type CreateTrackExpenseParams = {
 };
 
 type BuildOnyxDataForInvoiceParams = {
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-    iouReport: OnyxTypes.Report;
-    transaction: OnyxTypes.Transaction;
-    chatCreatedAction: OptimisticCreatedReportAction;
-    iouCreatedAction: OptimisticCreatedReportAction;
-    iouAction: OptimisticIOUReportAction;
+    chat: {
+        chatReport: OnyxEntry<OnyxTypes.Report>;
+        chatCreatedAction: OptimisticCreatedReportAction;
+        reportPreviewAction: ReportAction;
+        isNewChatReport: boolean;
+    };
+    iou: {
+        iouCreatedAction: OptimisticCreatedReportAction;
+        iouAction: OptimisticIOUReportAction;
+        iouReport: OnyxTypes.Report;
+    };
+    transactionParams: {
+        transaction: OnyxTypes.Transaction;
+        transactionThreadReport: OptimisticChatReport;
+        transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
+    };
+    policyParams: {
+        policy?: OnyxEntry<OnyxTypes.Policy>;
+        policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+        policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+        optimisticPolicyRecentlyUsedCategories: string[];
+        optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags;
+    };
     optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList;
-    reportPreviewAction: ReportAction;
-    optimisticPolicyRecentlyUsedCategories: string[];
-    optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags;
-    isNewChatReport: boolean;
-    transactionThreadReport: OptimisticChatReport;
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
-    policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     optimisticRecentlyUsedCurrencies?: string[];
     companyName?: string;
     companyWebsite?: string;
@@ -1485,26 +1493,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 /** Builds the Onyx data for an invoice */
 function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {
-        chatReport,
-        iouReport,
-        transaction,
-        chatCreatedAction,
-        iouCreatedAction,
-        iouAction,
+        chat: {chatReport, chatCreatedAction, reportPreviewAction, isNewChatReport},
+        iou: {iouCreatedAction, iouAction, iouReport},
+        transactionParams: {transaction, transactionThreadReport, transactionThreadCreatedReportAction},
+        policyParams: {policy, policyTagList, policyCategories, optimisticPolicyRecentlyUsedCategories, optimisticPolicyRecentlyUsedTags},
         optimisticPersonalDetailListAction,
-        reportPreviewAction,
-        optimisticPolicyRecentlyUsedCategories,
-        optimisticPolicyRecentlyUsedTags,
-        isNewChatReport,
-        transactionThreadReport,
-        transactionThreadCreatedReportAction,
-        policy,
-        policyTagList,
-        policyCategories,
         optimisticRecentlyUsedCurrencies,
         companyName,
         companyWebsite,
     } = invoiceParams;
+
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2601,22 +2599,15 @@ function getSendInvoiceInformation(
 
     // STEP 6: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForInvoice({
-        chatReport,
-        iouReport: optimisticInvoiceReport,
-        transaction: optimisticTransaction,
-        chatCreatedAction: optimisticCreatedActionForChat,
-        iouCreatedAction: optimisticCreatedActionForIOUReport,
-        iouAction,
+        chat: {chatReport, chatCreatedAction: optimisticCreatedActionForChat, reportPreviewAction, isNewChatReport},
+        iou: {iouCreatedAction: optimisticCreatedActionForIOUReport, iouAction, iouReport: optimisticInvoiceReport},
+        transactionParams: {
+            transaction: optimisticTransaction,
+            transactionThreadReport: optimisticTransactionThread,
+            transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+        },
+        policyParams: {policy, policyTagList, policyCategories, optimisticPolicyRecentlyUsedCategories, optimisticPolicyRecentlyUsedTags},
         optimisticPersonalDetailListAction,
-        reportPreviewAction,
-        optimisticPolicyRecentlyUsedCategories,
-        optimisticPolicyRecentlyUsedTags,
-        isNewChatReport,
-        transactionThreadReport: optimisticTransactionThread,
-        transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
-        policy,
-        policyTagList,
-        policyCategories,
         optimisticRecentlyUsedCurrencies,
         companyName,
         companyWebsite,
