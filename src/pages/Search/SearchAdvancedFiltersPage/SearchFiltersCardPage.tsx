@@ -13,7 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
-import {getBankName, getCardFeedIcon, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -43,7 +43,7 @@ function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Re
     return Object.keys(bankFrequency).filter((bank) => bankFrequency[bank] > 1);
 }
 
-function createIndividualCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[]): CardFilterItem {
+function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[]): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = getCardFeedIcon(card?.bank as CompanyCardFeed);
@@ -66,23 +66,26 @@ function createIndividualCardFilterItem(card: Card, personalDetailsList: Persona
     };
 }
 
-function buildIndividualCardsData(
+function buildCardsData(
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
     userCardList: CardList,
     personalDetailsList: PersonalDetailsList,
     selectedCards: string[],
+    isClosedCards = false,
 ): ItemsGroupedBySelection {
+    // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
+    const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
-        .filter((card) => !isCardHiddenFromSearch(card))
-        .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
+        .filter((card) => filterCondition(card))
+        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
-                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && !isCardHiddenFromSearch(card))
-                .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
+                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
+                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards));
         });
 
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
@@ -172,6 +175,7 @@ function buildCardFeedsData(
             const isBankRepeating = repeatingBanks.includes(bank);
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = getPolicy(policyID?.toUpperCase());
+            // We need to assign correspondingCardIDs for closed cards as well, because we need to be able to select on "all" both closed and individual cards
             const correspondingCardIDs = Object.entries(cardFeed ?? {})
                 .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
                 .map(([cardKey]) => cardKey);
@@ -211,7 +215,12 @@ function SearchFiltersCardPage() {
     }, []);
 
     const individualCardsSectionData = useMemo(
-        () => buildIndividualCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards),
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, false),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards],
+    );
+
+    const closedCardsSectionData = useMemo(
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, true),
         [workspaceCardFeeds, userCardList, personalDetails, selectedCards],
     );
 
@@ -251,7 +260,7 @@ function SearchFiltersCardPage() {
 
     const sections = useMemo(() => {
         const newSections = [];
-        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected];
+        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected];
 
         newSections.push({
             title: undefined,
@@ -268,8 +277,22 @@ function SearchFiltersCardPage() {
             data: individualCardsSectionData.unselected.filter(searchFunction),
             shouldShow: individualCardsSectionData.unselected.length > 0,
         });
+        newSections.push({
+            title: translate('search.filters.card.closedCards'),
+            data: closedCardsSectionData.unselected.filter(searchFunction),
+            shouldShow: closedCardsSectionData.unselected.length > 0,
+        });
         return newSections;
-    }, [cardFeedsSectionData.selected, cardFeedsSectionData.unselected, individualCardsSectionData.selected, individualCardsSectionData.unselected, searchFunction, translate]);
+    }, [
+        cardFeedsSectionData.selected,
+        cardFeedsSectionData.unselected,
+        individualCardsSectionData.selected,
+        individualCardsSectionData.unselected,
+        closedCardsSectionData.selected,
+        closedCardsSectionData.unselected,
+        searchFunction,
+        translate,
+    ]);
 
     const handleConfirmSelection = useCallback(() => {
         updateAdvancedFilters({
@@ -354,4 +377,4 @@ function SearchFiltersCardPage() {
 SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
 export default SearchFiltersCardPage;
-export {buildIndividualCardsData, buildCardFeedsData};
+export {buildCardsData, buildCardFeedsData};

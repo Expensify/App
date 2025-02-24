@@ -174,6 +174,9 @@ type SearchReport = {
 
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
+
+    /** The policy name to use for an archived report */
+    oldPolicyName?: string;
 };
 
 /** Model of report action search result */
