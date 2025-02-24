@@ -27,7 +27,7 @@ function DisablePage() {
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLED);
+        Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLED, {forceReplace: true});
     }, [account?.requiresTwoFactorAuth]);
 
     return (
