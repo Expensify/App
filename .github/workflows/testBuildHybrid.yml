@@ -11,6 +11,10 @@ on:
         description: Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both specified. If nothing is specified defaults to Mobile-Expensify's main
         required: false
         default: ''
+ 
+env:
+  # This variable is needed for fastlane to construct correct path
+  PULL_REQUEST_NUMBER: ${{ github.event.inputs.APP_PULL_REQUEST_NUMBER || github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER }}
 
 jobs:
   prep:
