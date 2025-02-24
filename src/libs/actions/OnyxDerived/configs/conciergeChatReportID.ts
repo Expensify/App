@@ -6,7 +6,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.CONCIERGE_REPORT_ID],
-    compute: ([reports, conciergeChatReportID]) => {
+    compute: ([reports, conciergeChatReportID], currentValue) => {
+        // if we have a value for conciergeChatReportID, return it immediately since we know the conciergeChatReportID won't change
+        if (currentValue) {
+            return currentValue;
+        }
+
         if (!reports) {
             return undefined;
         }
