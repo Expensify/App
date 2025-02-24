@@ -3,6 +3,7 @@ import React from 'react';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {
     AddPersonalBankAccountNavigatorParamList,
+    ConsoleNavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -226,6 +227,10 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_AM_A_TEACHER]: () => require<ReactComponentModule>('../../../../pages/TeachersUnite/ImTeacherPage').default,
 });
 
+const ConsoleModalStackNavigator = createModalStackNavigator<ConsoleNavigatorParamList>({
+    [SCREENS.CONSOLE_DEBUG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ConsolePage').default,
+});
+
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
     [SCREENS.SETTINGS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/ShareCodePage').default,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PronounsPage').default,
@@ -247,7 +252,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/ThemePage').default,
     [SCREENS.SETTINGS.CLOSE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/CloseAccountPage').default,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require<ReactComponentModule>('../../../../pages/settings/AppDownloadLinks').default,
-    [SCREENS.SETTINGS.CONSOLE]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ConsolePage').default,
+    [SCREENS.CONSOLE_DEBUG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ConsolePage').default,
     [SCREENS.SETTINGS.SHARE_LOG]: () => require<ReactComponentModule>('../../../../pages/settings/AboutPage/ShareLogPage').default,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PersonalAddressPage').default,
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ExpensifyCardPage').default,
@@ -761,4 +766,5 @@ export {
     MissingPersonalDetailsModalStackNavigator,
     DebugModalStackNavigator,
     WorkspaceConfirmationModalStackNavigator,
+    ConsoleModalStackNavigator,
 };

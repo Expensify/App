@@ -62,6 +62,7 @@ const SCREENS = {
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
     },
+    CONSOLE_DEBUG: 'Console_Debug',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -77,7 +78,6 @@ const SCREENS = {
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
-        CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
 
         PROFILE: {
