@@ -3,7 +3,7 @@ import React, {createContext, useCallback, useMemo, useRef, useState} from 'reac
 import type {View} from 'react-native';
 import getPlatform from '@libs/getPlatform';
 import type FloatingActionButtonPopoverMenuRef from '@pages/home/sidebar/BottomTabBarFloatingActionButton/types';
-import FloatingActionButtonAndPopover from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import FloatingActionButtonAndPopover from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 
 type FABPopoverContextValue = {
