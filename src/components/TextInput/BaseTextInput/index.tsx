@@ -86,9 +86,8 @@ function BaseTextInput(
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
     const {hasError = false, markdownStyle: propsMarkdownStyle} = inputProps;
-    const mergedMarkdownStyle = useMemo(() => ({...markdownStyle, ...propsMarkdownStyle}), [markdownStyle, propsMarkdownStyle]);
+    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles, propsMarkdownStyle);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -392,7 +391,7 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
-                                markdownStyle={mergedMarkdownStyle}
+                                markdownStyle={markdownStyle}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>

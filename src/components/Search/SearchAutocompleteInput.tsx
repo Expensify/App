@@ -12,7 +12,6 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -175,16 +174,13 @@ function SearchAutocompleteInput(
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
-    const defaultMarkdownStyle = useMarkdownStyle(undefined);
-
-    const markdownStyle = useMemo(() => {
-        const mentionStyles = {
-            mentionHere: {...defaultMarkdownStyle.mentionHere, ...styles.br1},
-            mentionUser: {...defaultMarkdownStyle.mentionUser, ...styles.br1},
-        };
-
-        return {...defaultMarkdownStyle, ...mentionStyles};
-    }, [defaultMarkdownStyle, styles.br1]);
+    const additionalMarkdownStyle = useMemo(
+        () => ({
+            mentionHere: styles.br1,
+            mentionUser: styles.br1,
+        }),
+        [styles.br1],
+    );
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
@@ -218,7 +214,7 @@ function SearchAutocompleteInput(
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
                         disabled={disabled}
-                        markdownStyle={markdownStyle}
+                        markdownStyle={additionalMarkdownStyle}
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
