@@ -1,9 +1,9 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
-import React, {useLayoutEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
@@ -197,7 +198,8 @@ function PopoverMenu({
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const {windowHeight} = useWindowDimensions();
-
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
     const selectItem = (index: number) => {
@@ -319,6 +321,21 @@ function PopoverMenu({
         },
         {isActive: isVisible},
     );
+
+    const keyboardShortcutSpaceCallback = useCallback(
+        (e?: GestureResponderEvent | KeyboardEvent) => {
+            if (shouldUseScrollView) {
+                return;
+            }
+
+            e?.preventDefault();
+        },
+        [shouldUseScrollView],
+    );
+
+    // On web and desktop, pressing the space bar after interacting with the parent view
+    // can cause the parent view to scroll when the space bar is pressed.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWebOrDesktop && isVisible, shouldPreventDefault: false});
 
     const onModalHide = () => {
         setFocusedIndex(currentMenuItemsFocusedIndex);

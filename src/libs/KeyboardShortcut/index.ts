@@ -42,6 +42,7 @@ const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow?.toString() ?? 'k
 const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow?.toString() ?? 'keyInputDownArrow';
 const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow?.toString() ?? 'keyInputLeftArrow';
 const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow?.toString() ?? 'keyInputRightArrow';
+const keyInputSpace = ' ';
 
 /**
  * Generates the normalized display name for keyboard shortcuts.
@@ -66,6 +67,9 @@ function getDisplayName(key: string, modifiers: string | string[]): string {
         }
         if (key.toLowerCase() === keyInputRightArrow.toLowerCase()) {
             return ['ARROWRIGHT'];
+        }
+        if (key === keyInputSpace) {
+            return ['SPACE'];
         }
         return [key.toUpperCase()];
     })();

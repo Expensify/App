@@ -253,6 +253,7 @@ PODS:
     - AppAuth/Core (~> 1.7)
     - GTMSessionFetcher/Core (< 4.0, >= 3.3)
   - GTMSessionFetcher/Core (3.5.0)
+  - GzipSwift (5.1.1)
   - hermes-engine (0.76.3):
     - hermes-engine/Pre-built (= 0.76.3)
   - hermes-engine/Pre-built (0.76.3)
@@ -310,6 +311,7 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
+  - NWWebSocket (0.5.4)
   - Onfido (29.7.2)
   - onfido-react-native-sdk (10.6.0):
     - DoubleConversion
@@ -335,6 +337,12 @@ PODS:
     - Yoga
   - Plaid (5.6.0)
   - PromisesObjC (2.4.0)
+  - pusher-websocket-react-native (1.3.1):
+    - PusherSwift (~> 10.1.5)
+    - React
+  - PusherSwift (10.1.5):
+    - NWWebSocket (~> 0.5.4)
+    - TweetNacl (~> 1.0.0)
   - RCT-Folly (2024.01.01.00):
     - boost
     - DoubleConversion
@@ -2514,7 +2522,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.230):
+  - RNLiveMarkdown (0.1.233):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2534,10 +2542,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.230)
+    - RNLiveMarkdown/newarch (= 0.1.233)
     - RNReanimated/worklets
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.230):
+  - RNLiveMarkdown/newarch (0.1.233):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2842,6 +2850,7 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.7.1)
   - Turf (2.8.0)
+  - TweetNacl (1.0.2)
   - VisionCamera (4.6.1):
     - VisionCamera/Core (= 4.6.1)
     - VisionCamera/React (= 4.6.1)
@@ -2869,9 +2878,11 @@ DEPENDENCIES:
   - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
+  - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -2999,6 +3010,7 @@ SPEC REPOS:
     - GoogleUtilities
     - GTMAppAuth
     - GTMSessionFetcher
+    - GzipSwift
     - libavif
     - libdav1d
     - libwebp
@@ -3008,15 +3020,18 @@ SPEC REPOS:
     - MapboxMaps
     - MapboxMobileEvents
     - nanopb
+    - NWWebSocket
     - Onfido
     - Plaid
     - PromisesObjC
+    - PusherSwift
     - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
     - SocketRocket
     - Turf
+    - TweetNacl
 
 EXTERNAL SOURCES:
   AppLogs:
@@ -3060,6 +3075,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/lottie-react-native"
   onfido-react-native-sdk:
     :path: "../node_modules/@onfido/react-native-sdk"
+  pusher-websocket-react-native:
+    :path: "../node_modules/@pusher/pusher-websocket-react-native"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTDeprecation:
@@ -3275,8 +3292,8 @@ SPEC CHECKSUMS:
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
-  boost: d7090b1a93a9798c029277a8288114f2948f471c
-  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
+  boost: 26992d1adf73c1c7676360643e687aee6dda994b
+  DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXAV: 9773c9799767c9925547b05e41a26a0240bb8ef2
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   expensify-react-native-background-task: 6f797cf470b627912c246514b1631a205794775d
@@ -3296,17 +3313,18 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 40bd9054049b2eae9a2c38ef1c3dd213df3605cd
   FirebasePerformance: 0c01a7a496657d7cea86d40c0b1725259d164c6c
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
-  fmt: 10c6e61f4be25dc963c36bd73fc7b1705fe975be
+  fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
   FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
   fullstory_react-native: 63a803cca04b0447a71daa73e4df3f7b56e1919d
-  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
+  glog: 69ef571f3de08433d766d614c73a9838a06bf7eb
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: 0555a84ea495e8e3b4bde71b597cd87fbb382888
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
@@ -3318,11 +3336,14 @@ SPEC CHECKSUMS:
   MapboxMaps: 05822ab0ee74f7d626e6471572439afe35c1c116
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
+  NWWebSocket: 040d22f23438cc09aaeabf537beff67699c3c76d
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
   onfido-react-native-sdk: 4ccfdeb10f9ccb4a5799d2555cdbc2a068a42c0d
   Plaid: c32f22ffce5ec67c9e6147eaf6c4d7d5f8086d89
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  RCT-Folly: bf5c0376ffe4dd2cf438dcf86db385df9fdce648
+  pusher-websocket-react-native: e40c49a1e4ec96d4157375aebcf44943f0f8f62f
+  PusherSwift: cad631bad86cfff4b8458dce1310a7774e469b1f
+  RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
   RCTDeprecation: 2c5e1000b04ab70b53956aa498bf7442c3c6e497
   RCTRequired: 5f785a001cf68a551c5f5040fb4c415672dbb481
   RCTTypeSafety: 6b98db8965005d32449605c0d005ecb4fee8a0f7
@@ -3412,7 +3433,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 364e6862a112045bb5c5d35601f0bdb0304af979
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 3887f27df3e002a4d008488df0ef62d7bcc526eb
+  RNLiveMarkdown: 763a9c03a90435770c2d49f9e99a7fc72ea49552
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: d184c8d3213acf4c97ec71fbbb6f9d4954552d80
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
@@ -3428,9 +3449,10 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
+  TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 3deb2471faa9916c8a82dda2a22d3fba2620ad37
 
-PODFILE CHECKSUM: 6fc95cc1e80a55665a376c27ca23105e1eda8c64
+PODFILE CHECKSUM: a5d166a2e749f6a67badc7a7c90ac596a94c2099
 
 COCOAPODS: 1.15.2
