@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextStyle, ViewStyle} from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -97,7 +98,9 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 ...baseMenuItem,
                 onSelected: () => {
                     clearAllFilters();
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                    });
                 },
                 rightComponent: (
                     <ThreeDotsMenu
@@ -142,7 +145,9 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 text: translate(item.translationPath),
                 onSelected: singleExecution(() => {
                     clearAllFilters();
-                    Navigation.navigate(item.getRoute(policyID));
+                    InteractionManager.runAfterInteractions(() => {
+                        Navigation.navigate(item.getRoute(policyID));
+                    });
                 }),
                 isSelected,
                 icon: item.icon,
