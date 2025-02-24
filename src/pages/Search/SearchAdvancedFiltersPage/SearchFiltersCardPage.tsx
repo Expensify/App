@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { translateLocal } from "@libs/Localize";
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; keyForFeed: string};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
@@ -102,10 +103,11 @@ function buildIndividualCardsData(
 function getCardFeedNames(
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
     domainFeedsData: Record<string, DomainFeedData>,
-    translate: LocaleContextProps['translate'],
+    propsTranslate?: LocaleContextProps['translate'],
 ): Record<string, string> {
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
     const names: Record<string, string> = {};
+    const translate = propsTranslate ?? translateLocal;
 
     Object.entries(workspaceCardFeeds)
         .filter(([, cardFeed]) => !isEmptyObject(cardFeed))

@@ -30,9 +30,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report} from '@src/types/onyx';
+import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report, WorkspaceCardsList} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getCardFeedNames} from './SearchAdvancedFiltersPage/SearchFiltersCardPage';
 
 const baseFilterConfig = {
     date: {
@@ -213,13 +214,26 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
 };
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
-    const filterValue = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID];
-    return filterValue
-        ? Object.values(cards)
-              .filter((card) => filterValue.includes(card.cardID.toString()))
-              .map((card) => getCardDescription(card.cardID, cards))
-              .join(', ')
-        : undefined;
+    const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
+    const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
+
+    const groupedCards: Record<string, WorkspaceCardsList> = {};
+    Object.entries(cards).forEach(([cardKey, card]) => {
+        const groupKey = `${card.fundID}_${card.bank}`;
+        groupedCards[groupKey] ??= {};
+        groupedCards[groupKey][cardKey] = card;
+    });
+
+    const cardNames = Object.values(cards)
+        .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(`${card.fundID}_${card.bank}`))
+        .map((card) => getCardDescription(card.cardID, cards));
+
+    const cardFeedNames = getCardFeedNames(groupedCards, {});
+    const feedNames = Object.keys(cardFeedNames)
+        .filter((feedKey) => feedFilter.includes(feedKey))
+        .map((feedKey) => cardFeedNames[feedKey]);
+
+    return [...feedNames, ...cardNames].join(', ');
 }
 
 function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails: PersonalDetailsList | undefined) {
@@ -453,6 +467,10 @@ function AdvancedSearchFilters() {
         .map((section) => {
             return section
                 .map((key) => {
+                    // visually feeds resist within cards, so they cannot be pressed directly and does not redirect anywhere
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+                        return;
+                    }
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
                     let filterTitle;
                     if (
