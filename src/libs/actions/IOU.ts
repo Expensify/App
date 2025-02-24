@@ -1858,23 +1858,40 @@ function buildOnyxDataForInvoice(
     return [optimisticData, successData, failureData];
 }
 
+type BuildOnyxDataForTrackExpenseParams = {
+    chatReport: OnyxInputValue<OnyxTypes.Report>;
+    iouReport: OnyxInputValue<OnyxTypes.Report>;
+    transaction: OnyxTypes.Transaction;
+    iouCreatedAction: OptimisticCreatedReportAction;
+    iouAction: OptimisticIOUReportAction;
+    reportPreviewAction: OnyxInputValue<ReportAction>;
+    transactionThreadReport: OptimisticChatReport | null;
+    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
+    shouldCreateNewMoneyRequestReport: boolean;
+    policy?: OnyxInputValue<OnyxTypes.Policy>;
+    policyTagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxInputValue<OnyxTypes.PolicyCategories>;
+    existingTransactionThreadReportID?: string;
+    actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>;
+};
+
 /** Builds the Onyx data for track expense */
-function buildOnyxDataForTrackExpense(
-    chatReport: OnyxInputValue<OnyxTypes.Report>,
-    iouReport: OnyxInputValue<OnyxTypes.Report>,
-    transaction: OnyxTypes.Transaction,
-    iouCreatedAction: OptimisticCreatedReportAction,
-    iouAction: OptimisticIOUReportAction,
-    reportPreviewAction: OnyxInputValue<ReportAction>,
-    transactionThreadReport: OptimisticChatReport | null,
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null,
-    shouldCreateNewMoneyRequestReport: boolean,
-    policy?: OnyxInputValue<OnyxTypes.Policy>,
-    policyTagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxInputValue<OnyxTypes.PolicyCategories>,
-    existingTransactionThreadReportID?: string,
-    actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>,
-): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+function buildOnyxDataForTrackExpense({
+    chatReport,
+    iouReport,
+    transaction,
+    iouCreatedAction,
+    iouAction,
+    reportPreviewAction,
+    transactionThreadReport,
+    transactionThreadCreatedReportAction,
+    shouldCreateNewMoneyRequestReport,
+    policy,
+    policyTagList,
+    policyCategories,
+    existingTransactionThreadReportID,
+    actionableTrackExpenseWhisper,
+}: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
@@ -3256,22 +3273,21 @@ function getTrackExpenseInformation(
     }
 
     // STEP 5: Build Onyx Data
-    const trackExpenseOnyxData = buildOnyxDataForTrackExpense(
+    const trackExpenseOnyxData = buildOnyxDataForTrackExpense({
         chatReport,
         iouReport,
-        optimisticTransaction,
-        optimisticCreatedActionForIOUReport,
+        transaction: optimisticTransaction,
+        iouCreatedAction: optimisticCreatedActionForIOUReport,
         iouAction,
         reportPreviewAction,
-        optimisticTransactionThread ?? {},
-        optimisticCreatedActionForTransactionThread,
+        transactionThreadReport: optimisticTransactionThread ?? {},
+        transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
         shouldCreateNewMoneyRequestReport,
         policy,
         policyTagList,
         policyCategories,
-        undefined,
         actionableTrackExpenseWhisper,
-    );
+    });
 
     return {
         createdWorkspaceParams,
