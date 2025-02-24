@@ -53,6 +53,7 @@ type NavigationStateRoute = NavigationState['routes'][number];
 type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<Route<TRouteName>>;
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
+type NavigationRoute = NavigationStateRoute | NavigationPartialRoute;
 
 type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 
@@ -1592,6 +1593,7 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PER_DIEM]: {
         policyID: string;
@@ -1912,6 +1914,7 @@ export type {
     NavigationRef,
     NavigationRoot,
     NavigationStateRoute,
+    NavigationRoute,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     OnboardingFlowName,
