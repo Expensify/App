@@ -451,10 +451,7 @@ type CreateDistanceRequestInformation = {
     policyParams?: RequestMoneyPolicyParams;
 };
 
-type CreateSplitsAndOnyxDataParams = {
-    participants: Participant[];
-    currentUserLogin: string;
-    currentUserAccountID: number;
+type CreateSplitsTranasactionParams = {
     amount: number;
     comment: string;
     currency: string;
@@ -463,11 +460,18 @@ type CreateSplitsAndOnyxDataParams = {
     category: string;
     tag: string;
     splitShares: SplitShares;
-    existingSplitChatReportID?: string;
     billable?: boolean;
     iouRequestType?: IOURequestType;
     taxCode?: string;
     taxAmount?: number;
+};
+
+type CreateSplitsAndOnyxDataParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    existingSplitChatReportID?: string;
+    transactionParams: CreateSplitsTranasactionParams;
 };
 
 type TrackExpenseTransactionParams = {
@@ -5075,19 +5079,21 @@ function createSplitsAndOnyxData(createSplitsParams: CreateSplitsAndOnyxDataPara
         participants,
         currentUserLogin,
         currentUserAccountID,
-        amount,
-        comment,
-        currency,
-        merchant,
-        created,
-        category,
-        tag,
-        splitShares = {},
         existingSplitChatReportID = '',
-        billable = false,
-        iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-        taxCode = '',
-        taxAmount = 0,
+        transactionParams: {
+            amount,
+            comment,
+            currency,
+            merchant,
+            created,
+            category,
+            tag,
+            splitShares = {},
+            billable = false,
+            iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+            taxCode = '',
+            taxAmount = 0,
+        },
     } = createSplitsParams;
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -5539,19 +5545,21 @@ function splitBill({
         participants,
         currentUserLogin,
         currentUserAccountID,
-        amount,
-        comment,
-        currency,
-        merchant,
-        created,
-        category,
-        tag,
-        splitShares,
         existingSplitChatReportID,
-        billable,
-        iouRequestType,
-        taxCode,
-        taxAmount,
+        transactionParams: {
+            amount,
+            comment,
+            currency,
+            merchant,
+            created,
+            category,
+            tag,
+            splitShares,
+            billable,
+            iouRequestType,
+            taxCode,
+            taxAmount,
+        },
     });
 
     const parameters: SplitBillParams = {
@@ -5607,19 +5615,21 @@ function splitBillAndOpenReport({
         participants,
         currentUserLogin,
         currentUserAccountID,
-        amount,
-        comment,
-        currency,
-        merchant,
-        created,
-        category,
-        tag,
-        splitShares,
         existingSplitChatReportID: '',
-        billable,
-        iouRequestType,
-        taxCode,
-        taxAmount,
+        transactionParams: {
+            amount,
+            comment,
+            currency,
+            merchant,
+            created,
+            category,
+            tag,
+            splitShares,
+            billable,
+            iouRequestType,
+            taxCode,
+            taxAmount,
+        },
     });
 
     const parameters: SplitBillParams = {
@@ -6284,19 +6294,21 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             participants,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
-            amount,
-            comment,
-            currency,
-            merchant,
-            created,
-            category: category ?? '',
-            tag: tag ?? '',
-            splitShares,
             existingSplitChatReportID: report?.reportID,
-            billable,
-            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-            taxCode,
-            taxAmount,
+            transactionParams: {
+                amount,
+                comment,
+                currency,
+                merchant,
+                created,
+                category: category ?? '',
+                tag: tag ?? '',
+                splitShares,
+                billable,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                taxCode,
+                taxAmount,
+            },
         });
         onyxData = splitOnyxData;
 
