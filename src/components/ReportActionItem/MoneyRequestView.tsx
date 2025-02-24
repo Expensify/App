@@ -18,6 +18,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -136,7 +137,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
     const {
         created: transactionDate,
@@ -302,15 +303,15 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
                     isError: transactionAmount === 0,
-                    translationPath: 'common.error.enterAmount',
+                    translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
                 },
                 merchant: {
                     isError: !isSettled && !isCancelled && isPolicyExpenseChat && isEmptyMerchant,
-                    translationPath: 'common.error.enterMerchant',
+                    translationPath: canEditMerchant ? 'common.error.enterMerchant' : 'common.error.missingMerchantName',
                 },
                 date: {
                     isError: transactionDate === '',
-                    translationPath: 'common.error.enterDate',
+                    translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
                 },
             };
 
@@ -331,13 +332,29 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 const firstViolation = violations.at(0);
 
                 if (firstViolation) {
-                    return ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                    return ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
                 }
             }
 
             return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, readonly, hasErrors, hasViolations, translate, getViolationsForField],
+        [
+            transactionAmount,
+            isSettled,
+            isCancelled,
+            isPolicyExpenseChat,
+            isEmptyMerchant,
+            transactionDate,
+            readonly,
+            hasErrors,
+            hasViolations,
+            translate,
+            getViolationsForField,
+            canEditAmount,
+            canEditDate,
+            canEditMerchant,
+            canEdit,
+        ],
     );
 
     const distanceRequestFields = (
@@ -399,7 +416,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             const isReceiptFieldViolation = receiptFieldViolationNames.includes(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.includes(violation.name);
             if (isReceiptFieldViolation || isReceiptImageViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate);
+                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit);
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation) {
                     imageViolations.push(violationMessage);
@@ -407,7 +424,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate]);
+    }, [transactionViolations, translate, canEdit]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
@@ -815,6 +832,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     containerStyle={[styles.mt1]}
                                     textStyle={[styles.ph0]}
                                     isLast
+                                    canEdit={canEdit}
                                 />
                             )}
                         </View>
