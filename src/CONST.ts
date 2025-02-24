@@ -48,6 +48,7 @@ const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow ?? 'keyInputUpArr
 const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow ?? 'keyInputDownArrow';
 const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow ?? 'keyInputLeftArrow';
 const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInputRightArrow';
+const keyInputSpace = ' ';
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
@@ -943,6 +944,14 @@ const CONST = {
             descriptionKey: null,
             shortcutKey: 'Backspace',
             modifiers: [],
+        },
+        SPACE: {
+            descriptionKey: null,
+            shortcutKey: 'Space',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputSpace},
+            },
         },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
