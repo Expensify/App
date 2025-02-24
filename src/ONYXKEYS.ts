@@ -1084,7 +1084,7 @@ type OnyxValuesMapping = {
 };
 
 type OnyxDerivedValuesMapping = {
-    [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string;
+    [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string | undefined;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
