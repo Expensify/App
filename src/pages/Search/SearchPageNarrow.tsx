@@ -19,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
@@ -34,9 +35,10 @@ type SearchPageBottomTabProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
     searchName?: string;
+    shouldGroupByReports?: boolean;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTabProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageBottomTabProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -137,26 +139,31 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.narrowSearchHeaderStyle]}>
-                                <SearchPageHeader
-                                    queryJSON={queryJSON}
-                                    searchRouterListVisible={searchRouterListVisible}
-                                    hideSearchRouterList={() => {
-                                        setSearchRouterListVisible(false);
-                                    }}
-                                    onSearchRouterFocus={() => {
-                                        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                        setSearchRouterListVisible(true);
-                                    }}
-                                />
-                                {!searchRouterListVisible && (
-                                    <SearchStatusBar
+                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
+                                <View style={[styles.narrowSearchHeaderStyle]}>
+                                    <SearchPageHeader
                                         queryJSON={queryJSON}
-                                        onStatusChange={() => {
-                                            topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                                        searchRouterListVisible={searchRouterListVisible}
+                                        hideSearchRouterList={() => {
+                                            setSearchRouterListVisible(false);
                                         }}
+                                        onSearchRouterFocus={() => {
+                                            topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                            setSearchRouterListVisible(true);
+                                        }}
+                                        shouldGroupByReports={shouldGroupByReports}
                                     />
-                                )}
+                                </View>
+                                <View style={[styles.appBG]}>
+                                    {!searchRouterListVisible && (
+                                        <SearchStatusBar
+                                            queryJSON={queryJSON}
+                                            onStatusChange={() => {
+                                                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                                            }}
+                                        />
+                                    )}
+                                </View>
                             </Animated.View>
                         </View>
                     </View>
@@ -172,6 +179,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                         <SearchPageHeader
                             queryJSON={queryJSON}
                             searchName={searchName}
+                            shouldGroupByReports={shouldGroupByReports}
                         />
                     </>
                 )}
@@ -183,6 +191,8 @@ function SearchPageNarrow({queryJSON, policyID, searchName}: SearchPageBottomTab
                             onSearchListScroll={scrollHandler}
                             onContentSizeChange={onContentSizeChange}
                             contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+                            shouldGroupByReports={shouldGroupByReports}
+                            isSearchScreenFocused={isSearchTopmostFullScreenRoute()}
                         />
                     </View>
                 )}
