@@ -54,6 +54,7 @@ function SidePane() {
                 <ScreenWrapper testID={SidePane.displayName}>
                     <HeaderWithBackButton
                         title={translate('common.help')}
+                        style={styles.headerBarDesktopHeight}
                         onBackButtonPress={() => onClose(false)}
                         onCloseButtonPress={() => onClose(false)}
                         shouldShowBackButton={!isExtraLargeScreenWidth}
