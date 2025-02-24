@@ -2,7 +2,7 @@
 import type {TargetedEvent} from 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
-import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
+import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/types';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 import type StartupTimer from '@libs/StartupTimer/types';
 
@@ -18,6 +18,7 @@ type RNTextInputResetModule = {
 
 type RNNavBarManagerModule = {
     setButtonStyle: (style: NavBarButtonStyle) => void;
+    getType(): NavigationBarType;
 };
 
 declare module 'react-native' {
