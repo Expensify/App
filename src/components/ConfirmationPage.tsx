@@ -22,14 +22,23 @@ type ConfirmationPageProps = {
     /** Description of the confirmation page */
     description: React.ReactNode;
 
-    /** The text for the button label */
-    buttonText?: string;
+    /** The text for the primary button label */
+    primaryButtonText?: string;
 
-    /** A function that is called when the button is clicked on */
-    onButtonPress?: () => void;
+    /** A function that is called when the primary button is clicked on */
+    onPrimaryButtonPress?: () => void;
 
-    /** Whether we should show a confirmation button */
-    shouldShowButton?: boolean;
+    /** Whether we should show a primary confirmation button */
+    shouldShowPrimaryButton?: boolean;
+
+    /** The text for the secondary button label */
+    secondaryButtonText?: string;
+
+    /** A function that is called when the secondary button is clicked on */
+    onSecondaryButtonPress?: () => void;
+
+    /** Whether we should show a secondary confirmation button */
+    shouldShowSecondaryButton?: boolean;
 
     /** Additional style for the heading */
     headingStyle?: TextStyle;
@@ -39,18 +48,25 @@ type ConfirmationPageProps = {
 
     /** Additional style for the description */
     descriptionStyle?: TextStyle;
+
+    /** Additional style for the footer */
+    footerStyle?: ViewStyle;
 };
 
 function ConfirmationPage({
     illustration = LottieAnimations.Fireworks,
     heading,
     description,
-    buttonText = '',
-    onButtonPress = () => {},
-    shouldShowButton = false,
+    primaryButtonText = '',
+    onPrimaryButtonPress = () => {},
+    shouldShowPrimaryButton = false,
+    secondaryButtonText = '',
+    onSecondaryButtonPress = () => {},
+    shouldShowSecondaryButton = false,
     headingStyle,
     illustrationStyle,
     descriptionStyle,
+    footerStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const isLottie = isIllustrationLottieAnimation(illustration);
@@ -76,17 +92,28 @@ function ConfirmationPage({
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
                 <Text style={[styles.textAlignCenter, descriptionStyle]}>{description}</Text>
             </View>
-            {shouldShowButton && (
-                <FixedFooter>
-                    <Button
-                        success
-                        large
-                        text={buttonText}
-                        testID="confirmation-button"
-                        style={styles.mt6}
-                        pressOnEnter
-                        onPress={onButtonPress}
-                    />
+            {(shouldShowSecondaryButton || shouldShowPrimaryButton) && (
+                <FixedFooter style={footerStyle}>
+                    {shouldShowSecondaryButton && (
+                        <Button
+                            large
+                            text={secondaryButtonText}
+                            testID="confirmation-secondary-button"
+                            style={styles.mt3}
+                            onPress={onSecondaryButtonPress}
+                        />
+                    )}
+                    {shouldShowPrimaryButton && (
+                        <Button
+                            success
+                            large
+                            text={primaryButtonText}
+                            testID="confirmation-primary-button"
+                            style={styles.mt3}
+                            pressOnEnter
+                            onPress={onPrimaryButtonPress}
+                        />
+                    )}
                 </FixedFooter>
             )}
         </>
@@ -96,3 +123,5 @@ function ConfirmationPage({
 ConfirmationPage.displayName = 'ConfirmationPage';
 
 export default ConfirmationPage;
+
+export type {ConfirmationPageProps};

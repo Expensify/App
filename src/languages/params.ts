@@ -650,6 +650,10 @@ type SettlementDateParams = {
     settlementDate: string;
 };
 
+type MergeAccountGenericParams = {
+    email: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -882,5 +886,6 @@ export type {
     UpdatedPolicyReportFieldDefaultValueParams,
     SubmitsToParams,
     SettlementDateParams,
+    MergeAccountGenericParams,
     NeedCategoryForExportToIntegrationParams,
 };

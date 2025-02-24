@@ -31,9 +31,9 @@ function SuccessPage({route}: SuccessPageProps) {
                 illustration={LottieAnimations.Fireworks}
                 heading={translate('twoFactorAuth.enabled')}
                 description={translate('twoFactorAuth.congrats')}
-                shouldShowButton
-                buttonText={translate('common.buttonConfirm')}
-                onButtonPress={() => {
+                shouldShowPrimaryButton
+                primaryButtonText={translate('common.buttonConfirm')}
+                onPrimaryButtonPress={() => {
                     quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
 
                     if (route.params?.forwardTo) {

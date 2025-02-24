@@ -10,9 +10,9 @@ function Confirmation({onNext}: CustomSubStepProps) {
         <ConfirmationPage
             heading={translate('addPersonalBankAccountPage.successTitle')}
             description={translate('addPersonalBankAccountPage.successMessage')}
-            shouldShowButton
-            buttonText={translate('common.continue')}
-            onButtonPress={onNext}
+            shouldShowPrimaryButton
+            primaryButtonText={translate('common.continue')}
+            onPrimaryButtonPress={onNext}
         />
     );
 }
