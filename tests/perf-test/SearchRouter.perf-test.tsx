@@ -69,7 +69,6 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
     const runOnLiveMarkdownRuntime = <Args extends unknown[], ReturnValue>(worklet: (...args: Args) => ReturnValue) => worklet;
     return runOnLiveMarkdownRuntime;
