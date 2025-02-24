@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -10,6 +11,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -18,6 +21,7 @@ import {updateXeroExportBillStatus} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.XERO_CONFIG.INVOICE_STATUS>;
@@ -29,6 +33,12 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
     const styles = useThemeStyles();
     const {config} = policy?.connections?.xero ?? {};
     const invoiceStatus = config?.export?.billStatus?.purchase;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_STATUS_SELECTOR>>();
+    const backTo = route.params?.backTo;
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
+    }, [policyID, backTo]);
 
     const data: MenuListItem[] = Object.values(CONST.XERO_CONFIG.INVOICE_STATUS).map((status) => ({
         value: status,
@@ -61,9 +71,9 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
                     config?.export?.billStatus,
                 );
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
+            goBack();
         },
-        [config?.export?.billStatus, invoiceStatus, policyID],
+        [config?.export?.billStatus, invoiceStatus, policyID, goBack],
     );
 
     return (
@@ -78,7 +88,7 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
+            onBackButtonPress={goBack}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={PolicyUtils.settingsPendingAction([CONST.XERO_CONFIG.BILL_STATUS], config?.pendingFields)}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.BILL_STATUS)}

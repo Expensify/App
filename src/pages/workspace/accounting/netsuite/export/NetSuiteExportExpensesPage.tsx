@@ -6,8 +6,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
-import type {ExpenseRouteParams, MenuItem} from '@pages/workspace/accounting/netsuite/types';
+import type {MenuItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     exportExpensesDestinationSettingName,
     shouldHideJournalPostingPreference,
@@ -20,6 +22,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'description' | 'title' | 'onPress' | 'shouldHide' | 'onCloseError' | 'helperText' | 'shouldParseHelperText'> & {
     subscribedSettings?: string[];
@@ -29,8 +32,8 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
-    const route = useRoute();
-    const params = route.params as ExpenseRouteParams;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES>>();
+    const params = route.params;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const config = policy?.connections?.netsuite?.options.config;
@@ -99,7 +102,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     return (
         <ConnectionLayout
             displayName={NetSuiteExportExpensesPage.displayName}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(params.backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             headerTitle={`workspace.accounting.${isReimbursable ? 'exportOutOfPocket' : 'exportCompanyCard'}`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
