@@ -72,6 +72,7 @@ function BaseTextInput(
         contentWidth,
         loadingSpinnerStyle,
         uncontrolled,
+        placeholderTextColor,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -347,7 +348,7 @@ function BaseTextInput(
                                 autoFocus={autoFocus && !shouldDelayFocus}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
-                                placeholderTextColor={theme.placeholderText}
+                                placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,

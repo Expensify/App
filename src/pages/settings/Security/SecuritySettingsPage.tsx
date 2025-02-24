@@ -27,14 +27,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate} from '@libs/actions/Delegate';
+import {clearDelegateErrorsByField, removeDelegate, openSecuritySettingsPage} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {AnchorPosition} from '@styles/index';
-import {close} from '@userActions/Modal';
+import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,7 +115,7 @@ function SecuritySettingsPage() {
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
+                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
             },
             {
                 translationKey: 'closeAccountPage.closeAccount',
@@ -213,7 +213,7 @@ function SecuritySettingsPage() {
             icon: Expensicons.Pencil,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    close(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
@@ -227,10 +227,10 @@ function SecuritySettingsPage() {
             icon: Expensicons.Trashcan,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    close(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
                     return;
                 }
-                close(() => {
+                modalClose(() => {
                     setShouldShowDelegatePopoverMenu(false);
                     setShouldShowRemoveDelegateModal(true);
                     setSelectedEmail(undefined);
