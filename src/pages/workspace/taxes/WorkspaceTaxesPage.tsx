@@ -89,24 +89,6 @@ function WorkspaceTaxesPage({
 
     const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
-    const updateNewSelectedOptions = useCallback(
-        (newSelectedOptions: string[]) => {
-            if (!canSelectMultiple) {
-                return;
-            }
-            setSelectedTaxesIDs(newSelectedOptions);
-        },
-        [canSelectMultiple],
-    );
-    const availableOptions = useMemo(
-        () =>
-            canSelectMultiple && policy
-                ? Object.keys(policy?.taxRates?.taxes ?? {})?.filter(
-                      (key) => (policy?.taxRates?.taxes ?? {})?.[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && canEditTaxRatePolicyUtils(policy, key),
-                  )
-                : [],
-        [policy, canSelectMultiple],
-    );
 
     useEffect(() => {
         if (selectedTaxesIDs.length === 0 || !canSelectMultiple) {

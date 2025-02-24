@@ -101,29 +101,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const cleanupSelectedOption = useCallback(() => setSelectedTags({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
-    const updateNewSelectedOptions = useCallback(
-        (newSelectedOptions: string[]) => {
-            if (!canSelectMultiple) {
-                return;
-            }
-            setSelectedTags(
-                newSelectedOptions.reduce((acc: Record<string, boolean>, key: string) => {
-                    acc[key] = true;
-                    return acc;
-                }, {} as Record<string, boolean>),
-            );
-        },
-        [canSelectMultiple],
-    );
-    const availableOptions = useMemo(
-        () =>
-            canSelectMultiple && policyTagLists
-                ? Object.values(policyTagLists.at(0)?.tags ?? {})
-                      ?.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-                      .map((o) => o.name)
-                : [],
-        [policyTagLists, canSelectMultiple],
-    );
+
     useEffect(() => {
         if (isEmptyObject(selectedTags) || !canSelectMultiple) {
             return;
