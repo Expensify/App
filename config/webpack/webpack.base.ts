@@ -33,6 +33,45 @@ const includeModules = [
     'expo-modules-core',
 ].join('|');
 
+/**
+ * Get the platform-specific list of imported file extensions.
+ *
+ * React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
+ * without this, web will try to use native implementations and break in not very obvious ways.
+ * This is also why we have to use .website.js for our own web-specific files...
+ * Because desktop also relies on "web-specific" module implementations
+ * This also skips packing web only dependencies to desktop and vice versa
+ */
+function getFileExtensions(platform: Environment['platform']) {
+    const extensions = [
+        '.web.js',
+        ...(platform === 'desktop' ? ['.desktop.js'] : []),
+        ...(platform === 'web' ? ['.website.js'] : []),
+        '.js',
+        '.jsx',
+        '.web.ts',
+        ...(platform === 'desktop' ? ['.desktop.ts'] : []),
+        ...(platform === 'web' ? ['.website.ts'] : []),
+        ...(platform === 'desktop' ? ['.desktop.tsx'] : []),
+        ...(platform === 'web' ? ['website.tsx'] : []),
+        '.ts',
+        '.web.tsx',
+        '.tsx',
+    ];
+    switch (platform) {
+        case 'desktop':
+            extensions.push('desktop.js', 'desktop.ts', 'desktop.tsx');
+            break;
+        case 'ssr':
+            extensions.push('ssr.ts', 'ssr.tsx');
+            break;
+        case 'web':
+        default:
+            extensions.push('website.js', 'website.ts', 'website.tsx');
+    }
+    return extensions;
+}
+
 const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => ({
     mode: 'production',
     devtool: 'source-map',
@@ -155,26 +194,7 @@ const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): C
             '@desktop': path.resolve(__dirname, '../../desktop'),
         },
 
-        // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
-        // without this, web will try to use native implementations and break in not very obvious ways.
-        // This is also why we have to use .website.js for our own web-specific files...
-        // Because desktop also relies on "web-specific" module implementations
-        // This also skips packing web only dependencies to desktop and vice versa
-        extensions: [
-            '.web.js',
-            ...(platform === 'desktop' ? ['.desktop.js'] : []),
-            ...(platform === 'web' ? ['.website.js'] : []),
-            '.js',
-            '.jsx',
-            '.web.ts',
-            ...(platform === 'desktop' ? ['.desktop.ts'] : []),
-            ...(platform === 'web' ? ['.website.ts'] : []),
-            ...(platform === 'desktop' ? ['.desktop.tsx'] : []),
-            ...(platform === 'web' ? ['website.tsx'] : []),
-            '.ts',
-            '.web.tsx',
-            '.tsx',
-        ],
+        extensions: getFileExtensions(platform),
         fallback: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'process/browser': require.resolve('process/browser'),

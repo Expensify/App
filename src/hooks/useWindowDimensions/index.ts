@@ -1,3 +1,4 @@
+import {isWindowAvailable} from 'expensify-common/dist/utils';
 import {useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
@@ -9,7 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type WindowDimensions from './types';
 
-const initalViewportHeight = window.visualViewport?.height ?? window.innerHeight;
+const initalViewportHeight = isWindowAvailable() ? window.visualViewport?.height ?? window.innerHeight : 800;
 const tagNamesOpenKeyboard = ['INPUT', 'TEXTAREA'];
 const isMobile = Browser.isMobile();
 

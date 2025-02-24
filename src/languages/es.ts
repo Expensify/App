@@ -6481,6 +6481,9 @@ const translations = {
         body: '¿Estás seguro de que quieres descartar los cambios que hiciste?',
         confirmText: 'Descartar cambios',
     },
+    notifications: {
+        replyOrOpenInExpensify: (url: string) => `Responde a este mensaje o <a href="${url}" target="_blank">ábrelo en Expensify.</a>`,
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;

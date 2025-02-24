@@ -5959,6 +5959,9 @@ const translations = {
         body: 'Are you sure you want to discard the changes you made?',
         confirmText: 'Discard changes',
     },
+    notifications: {
+        replyOrOpenInExpensify: (url: string) => `Reply to this message or <a href="${url}" target="_blank">open it in Expensify.</a>`,
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;

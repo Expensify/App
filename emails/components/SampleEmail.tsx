@@ -1,20 +1,14 @@
 import React from 'react';
-import {View} from 'react-native';
-import Icon from '@components/Icon';
-import {ExpensifyWordmark} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import variables from '../../src/styles/variables';
+import useTheme from '@hooks/useTheme';
+import EmailWrapper from './EmailWrapper';
 
 const SampleEmail: React.FC = () => {
+    const theme = useTheme();
     return (
-        <View style={{alignItems: 'center', padding: 20}}>
-            <Icon
-                src={ExpensifyWordmark}
-                width={variables.modalWordmarkWidth}
-                height={variables.modalWordmarkHeight}
-            />
-            <Text>We're glad to have you on board.</Text>
-        </View>
+        <EmailWrapper>
+            <Text color={theme.text}>We're glad to have you on board.</Text>
+        </EmailWrapper>
     );
 };
 

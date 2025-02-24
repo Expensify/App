@@ -2,7 +2,7 @@ import * as API from '@libs/API';
 import type {SendPerformanceTimingParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
-import Firebase from '@libs/Firebase';
+import Firebase from '@libs/Firebase/index.ssr';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import pkg from '../../../package.json';

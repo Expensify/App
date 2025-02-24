@@ -6,7 +6,7 @@ import baseConfig from './webpack.base';
 /**
  * Webpack configuration for server-side rendering emails.
  */
-const emailsConfig: Configuration = merge(baseConfig({}), {
+const emailsConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
     mode: 'development',
     entry: '../emails/server.ts',
     output: {
