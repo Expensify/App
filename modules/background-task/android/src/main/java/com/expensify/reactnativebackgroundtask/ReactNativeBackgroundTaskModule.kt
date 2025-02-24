@@ -41,6 +41,16 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
     return NAME
   }
 
+  override fun invalidate() {
+    super.invalidate()
+    try {
+          reactApplicationContext.unregisterReceiver(taskReceiver)
+          Log.d("ReactNativeBackgroundTaskModule", "BroadcastReceiver unregistered")
+      } catch (e: IllegalArgumentException) {
+          Log.w("ReactNativeBackgroundTaskModule", "Receiver not registered or already unregistered")
+      }
+  }
+
   @ReactMethod
   override fun defineTask(taskName: String, taskExecutor: Callback, promise: Promise) {
     try {
