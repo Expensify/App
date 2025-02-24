@@ -516,6 +516,11 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
     return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
 }
 
+function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed): boolean {
+    const workspaceCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${feedName}`] ?? {};
+    return !!workspaceCards.cardList;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -554,4 +559,5 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    hasCardListObject,
 };
