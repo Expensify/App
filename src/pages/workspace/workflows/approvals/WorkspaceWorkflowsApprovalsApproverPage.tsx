@@ -131,7 +131,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
         const filteredApprovers =
             debouncedSearchTerm !== ''
-                ? tokenizedSearch(approvers, OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? ''], false)
+                ? tokenizedSearch(approvers, OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? ''])
                 : approvers;
 
         const data = OptionsListUtils.sortAlphabetically(filteredApprovers, 'text');

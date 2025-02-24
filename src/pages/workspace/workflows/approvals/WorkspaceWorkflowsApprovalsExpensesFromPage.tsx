@@ -118,7 +118,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         const filteredMembers =
             debouncedSearchTerm !== ''
-                ? tokenizedSearch(members, OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? ''], false)
+                ? tokenizedSearch(members, OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? ''])
                 : members;
 
         return [

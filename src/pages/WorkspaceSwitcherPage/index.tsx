@@ -120,7 +120,7 @@ function WorkspaceSwitcherPage() {
     }, [policies, isOffline, currentUserLogin, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(() => {
-        return tokenizedSearch(usersWorkspaces, debouncedSearchTerm, (policy) => [policy.text ?? ''], false).sort((policy1, policy2) =>
+        return tokenizedSearch(usersWorkspaces, debouncedSearchTerm, (policy) => [policy.text ?? '']).sort((policy1, policy2) =>
             sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID),
         );
     }, [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID]);

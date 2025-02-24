@@ -112,7 +112,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
         if (searchTerm !== '') {
             const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
-            const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? ''], false);
+            const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? '']);
 
             return [
                 {

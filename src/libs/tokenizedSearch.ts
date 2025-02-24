@@ -1,22 +1,18 @@
 import CONST from '@src/CONST';
-import * as OptionsListUtils from './OptionsListUtils';
 
 /**
  * Tokenized search utility function
  * @param items - Array of items to search through
  * @param searchValue - The search term
  * @param getTextTokens - A function that returns an array of text tokens for each item
- * @param shouldNormalize - Whether to normalize the search value using getSearchValueForPhoneOrEmail
  * @returns Filtered array of items that match the search term
  */
-export default function tokenizedSearch<T>(items: T[], searchValue: string, getTextTokens: (item: T) => string[], shouldNormalize = true): T[] {
+export default function tokenizedSearch<T>(items: T[], searchValue: string, getTextTokens: (item: T) => string[]): T[] {
     if (!searchValue.trim()) {
         return items;
     }
 
-    const normalizedSearchValue = shouldNormalize ? OptionsListUtils.getSearchValueForPhoneOrEmail(searchValue) : searchValue;
-
-    const searchTokens = normalizedSearchValue.trim().toLowerCase().split(CONST.REGEX.WHITESPACE);
+    const searchTokens = searchValue.trim().toLowerCase().split(CONST.REGEX.WHITESPACE);
 
     return items.filter((item) => {
         const textTokens = getTextTokens(item)

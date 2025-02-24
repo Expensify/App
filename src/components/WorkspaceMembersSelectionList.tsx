@@ -73,7 +73,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             approvers.push(...availableApprovers);
         }
 
-        const filteredApprovers = tokenizedSearch(approvers, debouncedSearchTerm, (approver) => [approver.text ?? '', approver.login ?? '']);
+        const filteredApprovers = tokenizedSearch(approvers, OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm), (approver) => [approver.text ?? '', approver.login ?? '']);
 
         return [
             {

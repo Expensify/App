@@ -116,7 +116,7 @@ describe('tokenizedSearch', () => {
             },
         ];
 
-        const tokenizeSearchResult = tokenizedSearch(items, tokenizeSearch, (option) => [option.text ?? ''], false);
+        const tokenizeSearchResult = tokenizedSearch(items, tokenizeSearch, (option) => [option.text ?? '']);
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
     });
 
@@ -159,7 +159,7 @@ describe('tokenizedSearch', () => {
             },
         ];
 
-        const tokenizeSearchResult = tokenizedSearch(items, tokenizeSearch, (option) => [option.text ?? ''], false);
+        const tokenizeSearchResult = tokenizedSearch(items, tokenizeSearch, (option) => [option.text ?? '']);
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
     });
 

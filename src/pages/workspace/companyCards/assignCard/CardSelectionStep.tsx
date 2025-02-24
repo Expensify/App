@@ -100,7 +100,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     }));
 
     const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text], false);
+        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
     }, [searchText, cardListOptions]);
 
     return (
