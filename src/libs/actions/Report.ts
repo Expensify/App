@@ -4659,9 +4659,9 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
 function exportReportToPDF({reportID}: ExportReportPDFParams) {
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${reportID}`,
-            value: undefined,
+            value: null,
         },
     ];
 

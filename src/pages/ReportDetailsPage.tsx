@@ -176,7 +176,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDFFILENAME}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`) ?? null;
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
     const [parentReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
@@ -242,8 +242,12 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         return '';
     }, [report]);
 
+    const isReportPDFReady = useMemo(() => {
+        return reportPDFFilename !== undefined && reportPDFFilename !== null;
+    }, [reportPDFFilename]);
+
     const messagePDF = useMemo(() => {
-        if (reportPDFFilename === undefined) {
+        if (!isReportPDFReady) {
             return 'Please wait while we generate the PDF';
         }
         if (reportPDFFilename === 'error') {
@@ -1166,7 +1170,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             </View>
                             <View>
                                 <Text>{messagePDF}</Text>
-                                {reportPDFFilename === undefined && (
+                                {!isReportPDFReady && (
                                     <ActivityIndicator
                                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                         color={theme.textSupporting}
@@ -1175,14 +1179,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                                 )}
                             </View>
                         </View>
-                        {reportPDFFilename !== undefined && reportPDFFilename !== 'error' && (
+                        {isReportPDFReady && reportPDFFilename !== 'error' && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={() => downloadReportPDF(reportPDFFilename, reportName)}
                                 text={"Download"}
                             />
                         )}
-                        {(reportPDFFilename === undefined || reportPDFFilename === 'error') && (
+                        {(!isReportPDFReady || reportPDFFilename === 'error') && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={() => setIsPDFModalVisible(false)}
