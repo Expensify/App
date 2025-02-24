@@ -3117,24 +3117,26 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
+    const successData: OnyxUpdate[] = [];
+    if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value:
-                isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
-                    ? {
-                          participants: {
-                              [currentUserAccountID]: {
-                                  notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                              },
-                          },
-                      }
-                    : {
-                          reportName: report.reportName,
-                      },
-        },
-    ];
+            value: {
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            },
+        });
+    } else {
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {reportName: report.reportName},
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
