@@ -14,12 +14,13 @@ import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/util
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 
 type ConfirmationProps = SubStepProps & {ownerBeingModifiedID: string};
 
 const {PREFIX, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-function Confirmation({onNext, onMove, ownerBeingModifiedID}: ConfirmationProps) {
+function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -136,6 +137,9 @@ function Confirmation({onNext, onMove, ownerBeingModifiedID}: ConfirmationProps)
             )}
         </SafeAreaConsumer>
     );
+
+    // TODO fix confirmation step in this step
+    return <ConfirmationStep isEditing={} onNext={} onMove={} pageTitle={} summaryItems={} showOnfidoLinks={} />
 }
 
 Confirmation.displayName = 'Confirmation';
