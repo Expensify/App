@@ -23,11 +23,10 @@ function HelpButton({style}: HelpButtonProps) {
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
     return (
-        <Tooltip text={translate('initialSettingsPage.help')}>
+        <Tooltip text={translate('common.help')}>
             <PressableWithoutFeedback
-                nativeID="helpButton"
-                accessibilityLabel={translate('initialSettingsPage.help')}
-                style={[styles.flexRow, styles.touchableButtonImage, style]}
+                accessibilityLabel={translate('common.help')}
+                style={[styles.flexRow, styles.touchableButtonImage, styles.pr2, style]}
                 onPress={() => {
                     // eslint-disable-next-line rulesdir/prefer-actions-set-data
                     Onyx.merge(ONYXKEYS.NVP_SIDE_PANE, isExtraLargeScreenWidth ? {open: !sidePane?.open} : {open: !sidePane?.openMobile, openMobile: !sidePane?.openMobile});
