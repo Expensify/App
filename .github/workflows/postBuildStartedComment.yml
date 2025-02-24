@@ -4,14 +4,13 @@ on:
   workflow_call:
     inputs:
       APP_PULL_REQUEST_NUMBER:
-        description: Pull Request number from App repo for correct placement of ND app. If not specified defaults to main branch.
+        description: Number of the Pull Request in the App repository where the comment will be posted
         type: string
         required: false
       HYBRIDAPP_PULL_REQUEST_NUMBER:
-        description: Pull Request number from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both specified. If nothing is specified defaults to Mobile-Expensify's main
+        description: Number of the Pull Request in the Mobile-Expensify repository where the comment will be posted
         type: string
         required: false
-
 
 jobs:
     postGitHubCommentBuildStarted:
