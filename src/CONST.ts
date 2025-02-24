@@ -68,7 +68,7 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-// Hide not issued or not activated cards (states 2 and 4) from card filter options in search, as no transactions can be made on cards in these states
+// Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
