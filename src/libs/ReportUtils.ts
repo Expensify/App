@@ -3253,6 +3253,10 @@ function getPolicyExpenseChatName({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login;
 
+    if (reportOwnerDisplayName) {
+        return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName});
+    }
+
     let policyExpenseChatRole = 'user';
 
     const policyItem = policies ? policies.find((p) => p.id === report?.policyID) : allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -3268,10 +3272,6 @@ function getPolicyExpenseChatName({
         if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
             return getPolicyName({report, policy, policies, reports});
         }
-    }
-
-    if (reportOwnerDisplayName) {
-        return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName});
     }
     return report?.reportName;
 }
