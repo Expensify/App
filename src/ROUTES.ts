@@ -1390,7 +1390,7 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
         route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/add-card-feed` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/add-card-feed`, backTo),
     },
     WORKSPACE_COMPANY_CARDS_SELECT_FEED: {
         route: 'settings/workspaces/:policyID/company-cards/select-feed',
@@ -2013,13 +2013,13 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/nsqs/export/date',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/date` as const,
     },
+    POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/nsqs/export/payment-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/payment-account` as const,
+    },
     POLICY_ACCOUNTING_NSQS_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/nsqs/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/advanced/approval-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced/approval-account` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
