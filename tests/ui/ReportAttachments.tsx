@@ -175,12 +175,12 @@ describe('ReportAttachments', () => {
         };
 
         // And ReportAttachmments is opened
-        const screen = renderPage(SCREENS.ATTACHMENTS, params);
+        const {queryByText} = renderPage(SCREENS.ATTACHMENTS, params);
 
         await waitForBatchedUpdatesWithAct();
 
         // Then the blocking view or not here page should not appear.
-        expect(screen.queryByText(translateLocal('notFound.notHere'))).toBeNull();
+        expect(queryByText(translateLocal('notFound.notHere'))).toBeNull();
     });
     it('should fetch the report id, if the report has not yet been opened by the user', async () => {
         // Given the report attachments params
