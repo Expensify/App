@@ -18,7 +18,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const values = useMemo(() => getValuesForSignerInfo(['currentUser'], reimbursementAccountDraft), []);
+    const values = useMemo(() => getValuesForSignerInfo(['currentUser'], reimbursementAccountDraft), [reimbursementAccountDraft]);
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);

@@ -9,7 +9,6 @@ type NeededDocumentsStatusForBeneficialOwner = {
 };
 
 function getNeededDocumentsStatusForSignerInfo(workspaceCurrency: string, accountCountry: string): NeededDocumentsStatusForBeneficialOwner {
-    console.log(accountCountry, accountCountry === CONST.COUNTRY.CA || accountCountry === CONST.COUNTRY.AU);
     return {
         isProofOfDirecorsNeeded: accountCountry === CONST.COUNTRY.CA || accountCountry === CONST.COUNTRY.AU,
         isCopyOfIDNeeded: workspaceCurrency === CONST.CURRENCY.EUR || accountCountry === CONST.COUNTRY.AU,

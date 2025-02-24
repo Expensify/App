@@ -36,6 +36,8 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
 
     const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
+    console.log('currency', currency);
+    console.log('country', countryStepCountryValue);
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
     const defaultValues = {

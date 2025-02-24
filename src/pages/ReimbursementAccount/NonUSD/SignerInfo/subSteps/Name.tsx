@@ -20,9 +20,6 @@ function Name({onNext, onMove, isEditing, directorID}: NameProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const inputID = directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? `${PREFIX}_${directorID}_${DIRECTOR_FULL_NAME}` : SIGNER_FULL_NAME;
-
-    console.log('input', inputID);
-
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(

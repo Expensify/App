@@ -9,7 +9,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -56,7 +56,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const currency = policy?.outputCurrency ?? '';
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? reimbursementAccountDraft?.[COMPANY_NAME] ?? '';
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSubStep, setCurrentSubStep] = useState<number>(SUBSTEP.IS_DIRECTOR);
     const [isUserDirector, setIsUserDirector] = useState(false);
     const [isAnyoneElseDirector, setIsAnyoneElseDirector] = useState(false);
@@ -69,8 +69,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
         } else {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            BankAccounts.saveCorpayOnboardingDirectorInformation({
+            saveCorpayOnboardingDirectorInformation({
                 inputs: JSON.stringify(signerDetails),
                 ...signerFiles,
                 bankAccountID,
