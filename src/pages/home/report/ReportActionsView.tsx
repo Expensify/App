@@ -1,5 +1,4 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -73,7 +72,7 @@ let listOldID = Math.round(Math.random() * 100);
 function ReportActionsView({
     report,
     parentReportAction,
-    reportActions: allReportActions = [],
+    reportActions: allReportActions,
     isLoadingInitialReportActions,
     transactionThreadReportID,
     hasNewerActions,
@@ -132,7 +131,7 @@ function ReportActionsView({
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
-        if (!isMoneyRequestReport(report) || !allReportActions.length) {
+        if (!isMoneyRequestReport(report) || !allReportActions?.length) {
             return allReportActions;
         }
 
@@ -189,7 +188,7 @@ function ReportActionsView({
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const reportActions = useMemo(
-        () => getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []),
+        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, transactionThreadReportID ?? null, transactionThreadReportActions ?? []) : []),
         [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID],
     );
 
@@ -197,7 +196,7 @@ function ReportActionsView({
         () =>
             isEmptyObject(transactionThreadReportActions)
                 ? undefined
-                : (allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID) as OnyxEntry<OnyxTypes.ReportAction>),
+                : (allReportActions?.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID) as OnyxEntry<OnyxTypes.ReportAction>),
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
@@ -213,10 +212,10 @@ function ReportActionsView({
     );
 
     const reportActionIDMap = useMemo(() => {
-        const reportActionIDs = allReportActions.map((action) => action.reportActionID);
+        const reportActionIDs = allReportActions?.map((action) => action.reportActionID);
         return reportActions.map((action) => ({
             reportActionID: action.reportActionID,
-            reportID: reportActionIDs.includes(action.reportActionID) ? reportID : transactionThreadReport?.reportID,
+            reportID: reportActionIDs?.includes(action.reportActionID) ? reportID : transactionThreadReport?.reportID,
         }));
     }, [allReportActions, reportID, transactionThreadReport, reportActions]);
 
@@ -227,6 +226,7 @@ function ReportActionsView({
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
     const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
+    const isLoading = isLoadingInitialReportActions !== false && !visibleReportActions.length;
 
     useEffect(() => {
         // update ref with current state
@@ -245,7 +245,7 @@ function ReportActionsView({
     const loadOlderChats = useCallback(
         (force = false) => {
             // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
-            if (!force && (isOffline || isLoadingInitialReportActions)) {
+            if (!force && isOffline) {
                 return;
             }
 
@@ -269,7 +269,7 @@ function ReportActionsView({
                 getOlderActions(reportID, oldestReportAction.reportActionID);
             }
         },
-        [isOffline, isLoadingInitialReportActions, oldestReportAction, reportID, reportActionIDMap, transactionThreadReport, hasOlderActions],
+        [isOffline, oldestReportAction, reportID, reportActionIDMap, transactionThreadReport, hasOlderActions],
     );
 
     const loadNewerChats = useCallback(
@@ -279,7 +279,6 @@ function ReportActionsView({
                 (!reportActionID ||
                     !isFocused ||
                     !newestReportAction ||
-                    !!isLoadingInitialReportActions ||
                     !hasNewerActions ||
                     isOffline ||
                     // If there was an error only try again once on initial mount. We should also still load
@@ -305,7 +304,7 @@ function ReportActionsView({
                 getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [reportActionID, isFocused, newestReportAction, isLoadingInitialReportActions, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
+        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
     );
 
     /**
@@ -353,7 +352,11 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((visibleReportActions.length === 0 && !isLoadingInitialReportActions && !isOffline) || (visibleReportActions.length === 0 && isOffline)) {
+    if (isLoading && !isOffline) {
+        return <ReportActionsSkeletonView />;
+    }
+
+    if (visibleReportActions.length === 0) {
         return (
             <EmptyStateComponent
                 SkeletonComponent={SearchRowSkeleton}
@@ -364,10 +367,6 @@ function ReportActionsView({
                 headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
             />
         );
-    }
-
-    if (!visibleReportActions.length && isLoadingInitialReportActions) {
-        return <ReportActionsSkeletonView />;
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction
@@ -397,30 +396,4 @@ function ReportActionsView({
 
 ReportActionsView.displayName = 'ReportActionsView';
 
-function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
-    if (!lodashIsEqual(oldProps.reportActions, newProps.reportActions)) {
-        return false;
-    }
-
-    if (!lodashIsEqual(oldProps.parentReportAction, newProps.parentReportAction)) {
-        return false;
-    }
-
-    if (oldProps.isLoadingInitialReportActions !== newProps.isLoadingInitialReportActions) {
-        return false;
-    }
-
-    if (oldProps.hasNewerActions !== newProps.hasNewerActions) {
-        return false;
-    }
-
-    if (oldProps.hasOlderActions !== newProps.hasOlderActions) {
-        return false;
-    }
-
-    return lodashIsEqual(oldProps.report, newProps.report);
-}
-
-const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
-
-export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(MemoizedReportActionsView);
+export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(ReportActionsView);
