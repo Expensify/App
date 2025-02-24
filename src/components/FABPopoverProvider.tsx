@@ -42,16 +42,6 @@ function FABPopoverProvider({children}: FABPopoverProviderProps) {
     }, []);
 
     /**
-     * Method create event listener
-     */
-    const createDragoverListener = () => {
-        if (platform !== CONST.PLATFORM.WEB) {
-            return;
-        }
-        document.addEventListener('dragover', hidePopoverOnDragOver);
-    };
-
-    /**
      * Method remove event listener.
      */
     const removeDragoverListener = () => {
@@ -65,7 +55,6 @@ function FABPopoverProvider({children}: FABPopoverProviderProps) {
         <FABPopoverContext.Provider value={value}>
             <FloatingActionButtonAndPopover
                 ref={popoverModal}
-                onShowCreateMenu={createDragoverListener}
                 onHideCreateMenu={removeDragoverListener}
             />
             {children}

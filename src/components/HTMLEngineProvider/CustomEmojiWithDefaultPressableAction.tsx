@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import React, {useContext, useRef} from 'react';
-import type {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
 import {FABPopoverContext} from '@components/FABPopoverProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
@@ -17,11 +18,13 @@ type CustomEmojiWithDefaultPressableActionProps = {
 function CustomEmojiWithDefaultPressableAction({emojiKey, children}: CustomEmojiWithDefaultPressableActionProps) {
     const {isCreateMenuActive, setIsCreateMenuActive, fabRef} = useContext(FABPopoverContext);
     const {translate} = useLocalize();
-    const buttonRef = fabRef;
+    const buttonRef = useRef<HTMLDivElement | View | Text | null>(fabRef.current);
     const fabPressable = useRef<HTMLDivElement | View | Text | null>(null);
     const toggleFabAction = () => {
         // Drop focus to avoid blue focus ring.
-        fabPressable.current?.blur();
+        if (fabPressable.current instanceof HTMLDivElement || fabPressable.current instanceof HTMLInputElement) {
+            fabPressable.current.blur();
+        }
         setIsCreateMenuActive(!isCreateMenuActive);
     };
 

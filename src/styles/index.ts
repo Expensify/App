@@ -1714,7 +1714,6 @@ const styles = (theme: ThemeColors) =>
             // `fontSizeNormal` value for scale factor 1 is 15
             ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -(variables.fontSizeNormal - 15) - variables.fontSizeNormal / 8} : {}),
             ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginRight: -(variables.fontSizeNormal - 15)} : {}),
-        
         },
 
         sidebarFooterUsername: {
