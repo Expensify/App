@@ -184,6 +184,7 @@ export type {default as SetPolicyRequiresTag} from './SetPolicyRequiresTag';
 export type {default as SetPolicyTagsRequired} from './SetPolicyTagsRequired';
 export type {default as RenamePolicyTaglistParams} from './RenamePolicyTaglistParams';
 export type {default as SwitchToOldDotParams} from './SwitchToOldDotParams';
+export type {default as SwitchToOldDotOnCompanySizeParams} from './SwitchToOldDotOnCompanySizeParams';
 export type {default as TrackExpenseParams} from './TrackExpenseParams';
 export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCategoriesParams';
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
@@ -282,7 +283,7 @@ export type {default as UpdateNSQSProjectsMappingParams} from './UpdateNSQSProje
 export type {default as UpdateNSQSExporterParams} from './UpdateNSQSExporterParams';
 export type {default as UpdateNSQSExportDateParams} from './UpdateNSQSExportDateParams';
 export type {default as UpdateNSQSAutoSyncParams} from './UpdateNSQSAutoSyncParams';
-export type {default as UpdateNSQSApprovalAccountParams} from './UpdateNSQSApprovalAccountParams';
+export type {default as UpdateNSQSPaymentAccountParams} from './UpdateNSQSPaymentAccountParams';
 export type {default as UpdateSageIntacctGenericTypeParams} from './UpdateSageIntacctGenericTypeParams';
 export type {default as UpdateNetSuiteCustomersJobsParams} from './UpdateNetSuiteCustomersJobsParams';
 export type {default as CopyExistingPolicyConnectionParams} from './CopyExistingPolicyConnectionParams';

@@ -53,6 +53,7 @@ type NavigationStateRoute = NavigationState['routes'][number];
 type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<Route<TRouteName>>;
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
+type NavigationRoute = NavigationStateRoute | NavigationPartialRoute;
 
 type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 
@@ -71,6 +72,10 @@ type BackToParams = {
 type BackToAndForwardToParms = {
     backTo?: Routes;
     forwardTo?: Routes;
+};
+
+type ConsoleNavigatorParamList = {
+    [SCREENS.CONSOLE_DEBUG]: undefined;
 };
 
 type SettingsNavigatorParamList = {
@@ -104,7 +109,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
-    [SCREENS.SETTINGS.CONSOLE]: {
+    [SCREENS.CONSOLE_DEBUG]: {
         backTo: Routes;
     };
     [SCREENS.SETTINGS.SHARE_LOG]: {
@@ -299,7 +304,7 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
     };
@@ -683,10 +688,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {
@@ -756,16 +761,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {
         policyID: string;
         connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
-        integrationToDisconnect?: ConnectionName;
-        shouldDisconnectIntegrationBeforeConnecting?: boolean;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
-        backTo?: Routes;
-        forwardTo?: string;
-    };
+    [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: undefined;
     [SCREENS.SETTINGS.DELEGATE.DELEGATE_ROLE]: {
         login: string;
@@ -975,6 +976,23 @@ type SettingsNavigatorParamList = {
     };
 } & ReimbursementAccountNavigatorParamList;
 
+type TwoFactorAuthNavigatorParamList = {
+    [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
+    [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
+    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
+    [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
+};
+
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: undefined;
@@ -1100,7 +1118,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
-        backTo: string;
+        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
         action: IOUAction;
@@ -1480,6 +1498,7 @@ type LeftModalNavigatorParamList = {
 
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: NavigatorScreenParams<TwoFactorAuthNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
@@ -1515,6 +1534,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
     [SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS]: NavigatorScreenParams<MissingPersonalDetailsParamList>;
     [SCREENS.RIGHT_MODAL.DEBUG]: NavigatorScreenParams<DebugParamList>;
+    [SCREENS.CONSOLE_DEBUG]: NavigatorScreenParams<ConsoleNavigatorParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -1564,9 +1584,11 @@ type SettingsSplitNavigatorParamList = {
 type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PROFILE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
         policyID: string;
@@ -1576,6 +1598,7 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.PER_DIEM]: {
         policyID: string;
@@ -1727,6 +1750,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
+    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
@@ -1741,6 +1765,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         isAuthTokenRequired?: string;
         fileName?: string;
         attachmentLink?: string;
+        hashKey?: number;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
@@ -1779,6 +1804,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.SEARCH.ROOT]: {
         q: SearchQueryString;
         name?: string;
+        groupBy?: string;
     };
 };
 
@@ -1895,6 +1921,7 @@ export type {
     NavigationRef,
     NavigationRoot,
     NavigationStateRoute,
+    NavigationRoute,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     OnboardingFlowName,
@@ -1938,4 +1965,6 @@ export type {
     WorkspaceSplitNavigatorParamList,
     MigratedUserModalNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
+    TwoFactorAuthNavigatorParamList,
+    ConsoleNavigatorParamList,
 };

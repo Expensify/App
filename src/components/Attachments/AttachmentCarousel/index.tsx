@@ -5,18 +5,18 @@ import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import type {ComposedGesture, GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -63,7 +63,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     const pagerRef = useRef<GestureType>(null);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
-    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+    const canUseTouchScreen = canUseTouchScreenUtil();
 
     const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const cellWidth = useMemo(
@@ -230,10 +230,11 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
                     isFocused={activeSource === item.source}
                     onPress={canUseTouchScreen ? handleTap : undefined}
                     isModalHovered={shouldShowArrows}
+                    reportID={report.reportID}
                 />
             </View>
         ),
-        [activeSource, canUseTouchScreen, cellWidth, handleTap, shouldShowArrows, styles.h100],
+        [activeSource, canUseTouchScreen, cellWidth, handleTap, report.reportID, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(

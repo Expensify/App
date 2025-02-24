@@ -31,7 +31,8 @@ import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransaction
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -65,11 +66,13 @@ import FormHelpMessage from './FormHelpMessage';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
+import {useProductTrainingContext} from './ProductTrainingContext';
 import SelectionList from './SelectionList';
 import type {SectionListDataType} from './SelectionList/types';
 import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
+import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type MoneyRequestConfirmationListProps = {
     /** Callback to inform parent modal of success */
@@ -215,6 +218,11 @@ function MoneyRequestConfirmationList({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
+        Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login)),
+    );
 
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -797,7 +805,8 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, transactionID, transaction.reportID));
+        const newIOUType = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(newIOUType, transactionID, transaction.reportID, Navigation.getActiveRoute()));
     };
 
     /**
@@ -965,11 +974,37 @@ function MoneyRequestConfirmationList({
                         message={errorMessage}
                     />
                 )}
-
-                {button}
+                <EducationalTooltip
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    }}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    shouldHideOnNavigate
+                    shiftVertical={-10}
+                >
+                    <View>{button}</View>
+                </EducationalTooltip>
             </>
         );
-    }, [isReadOnly, iouType, confirm, isConfirmed, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, styles.ph1, styles.mb2, errorMessage]);
+    }, [
+        isReadOnly,
+        iouType,
+        confirm,
+        bankAccountRoute,
+        iouCurrencyCode,
+        policyID,
+        isConfirmed,
+        splitOrRequestOptions,
+        errorMessage,
+        styles.ph1,
+        styles.mb2,
+        styles.productTrainingTooltipWrapper,
+        shouldShowProductTrainingTooltip,
+        renderProductTrainingTooltip,
+    ]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter

@@ -36,7 +36,7 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
-import * as Pusher from '@libs/Pusher/pusher';
+import Pusher from '@libs/Pusher';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
@@ -54,7 +54,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -826,19 +825,11 @@ function clearSignInData() {
 }
 
 /**
- * Reset all current params of the Home route
+ * Reset navigation state after logout
  */
-function resetHomeRouteParams() {
+function resetNavigationState() {
     Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState()?.routes;
-        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
-
-        const emptyParams: Record<string, undefined> = {};
-        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
-            emptyParams[paramKey] = undefined;
-        });
-
-        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
+        navigationRef.resetRoot(navigationRef.getRootState());
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     });
 }
@@ -858,7 +849,7 @@ function cleanupSession() {
     PersistedRequests.clear();
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
-    resetHomeRouteParams();
+    resetNavigationState();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
@@ -895,7 +886,7 @@ const reauthenticatePusher = throttle(
     {trailing: false},
 );
 
-function authenticatePusher(socketID: string, channelName: string, callback: ChannelAuthorizationCallback) {
+function authenticatePusher(socketID: string, channelName: string, callback?: ChannelAuthorizationCallback) {
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
     const params: AuthenticatePusherParams = {
@@ -909,11 +900,11 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
 
     // We use makeRequestWithSideEffects here because we need to authorize to Pusher (an external service) each time a user connects to any channel.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params)
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params)
         .then((response) => {
             if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
-                callback(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
+                callback?.(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
 
                 // Attempt to refresh the authToken then reconnect to Pusher
                 reauthenticatePusher();
@@ -922,16 +913,24 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
 
             if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
-                callback(new Error(`Pusher failed to authenticate because code: ${response?.jsonCode} message: ${response?.message}`), {auth: ''});
+                callback?.(new Error(`Pusher failed to authenticate because code: ${response?.jsonCode} message: ${response?.message}`), {auth: ''});
                 return;
             }
 
             Log.info('[PusherAuthorizer] Pusher authenticated successfully', false, {channelName});
-            callback(null, response as ChannelAuthorizationData);
+            if (callback) {
+                callback(null, response as ChannelAuthorizationData);
+            } else {
+                return {
+                    auth: response.auth,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    shared_secret: response.shared_secret,
+                };
+            }
         })
         .catch((error: unknown) => {
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
-            callback(new Error('AuthenticatePusher request failed'), {auth: ''});
+            callback?.(new Error('AuthenticatePusher request failed'), {auth: ''});
         });
 }
 
@@ -1048,9 +1047,6 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-
-                // When disabling 2FA, the user needs to end up on the step that confirms the setting was disabled
-                twoFactorAuthStep: enable ? undefined : CONST.TWO_FACTOR_AUTH_STEPS.DISABLED,
             },
         },
     ];

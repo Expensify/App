@@ -34,6 +34,7 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchState from '@hooks/useSearchState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -154,6 +155,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import TripSummary from './TripSummary';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -369,7 +371,7 @@ function PureReportActionItem({
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const reportID = report?.reportID;
+    const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -412,6 +414,7 @@ function PureReportActionItem({
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
 
+    const {isOnSearch, hashKey} = useSearchState();
     const onClose = () => {
         let transactionID;
         if (isMoneyRequestAction(action)) {
@@ -581,9 +584,14 @@ function PureReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
     );
 
-    const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
+    const attachmentContextValue = useMemo(() => {
+        if (isOnSearch) {
+            return {type: CONST.ATTACHMENT_TYPE.SEARCH, hashKey};
+        }
+        return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+    }, [reportID, isOnSearch, hashKey]);
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID}), [report?.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: reportID}), [reportID]);
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (isActionableAddPaymentCard(action) && userBillingFundID === undefined && shouldRenderAddPaymentCard()) {
             return [
@@ -1034,7 +1042,7 @@ function PureReportActionItem({
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
                             reportAction={action}
-                            emojiReactions={emojiReactions}
+                            emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
                                 if (isAnonymousUser()) {
@@ -1098,6 +1106,7 @@ function PureReportActionItem({
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
                     }
+                    onPress={onPress}
                 >
                     {content}
                 </ReportActionItemSingle>
@@ -1120,6 +1129,11 @@ function PureReportActionItem({
             />
         );
     }
+
+    if (isTripPreview(action) && isThreadReportParentAction) {
+        return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
+    }
+
     if (isChronosOOOListAction(action)) {
         return (
             <ChronosOOOListActions
