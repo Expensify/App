@@ -20,12 +20,15 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -78,12 +81,23 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
-    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const ownerDetails = useMemo(() => personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails), [personalDetails, policy?.ownerAccountID]);
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.values(getCompanyFeeds(cardFeeds)).filter((feed) => !feed.pending).length > 0;
 
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
     const hasWorkspaceCardsAssigned = !!workspaceCards && !!Object.values(workspaceCards).length;
+
+    const policyApproverEmail = policy?.approver;
+    const {approvalWorkflows} = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                employees: policy?.employeeList ?? {},
+                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                personalDetails: personalDetails ?? {},
+            }),
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+    );
 
     useEffect(() => {
         openPolicyCompanyCardsPage(policyID, workspaceAccountID);
@@ -145,10 +159,48 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         setIsRemoveMemberConfirmModalVisible(true);
     };
 
-    const removeUser = useCallback(() => {
+    // Function to remove a member and close the modal
+    const removeMemberAndCloseModal = useCallback(() => {
         removeMembers([accountID], policyID);
+        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
+        const remainingEmployeeCount = previousEmployeesCount - 1;
+        if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
+            // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
+            setPolicyPreventSelfApproval(route.params.policyID, false);
+        }
         setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, policyID]);
+    }, [accountID, policy?.employeeList, policy?.preventSelfApproval, policyID, route.params.policyID]);
+
+    const removeUser = useCallback(() => {
+        const ownerEmail = ownerDetails?.login;
+        const removedApprover = personalDetails?.[accountID];
+
+        // If the user is not an approver, proceed with member removal
+        if (!isApproverUserAction(policy, accountID) || !removedApprover?.login || !ownerEmail) {
+            removeMemberAndCloseModal();
+            return;
+        }
+
+        // Update approval workflows after approver removal
+        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+            approvalWorkflows,
+            removedApprover,
+            ownerDetails,
+        });
+
+        updatedWorkflows.forEach((workflow) => {
+            if (workflow?.removeApprovalWorkflow) {
+                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+
+                removeApprovalWorkflowAction(policyID, updatedWorkflow);
+            } else {
+                updateApprovalWorkflow(policyID, workflow, [], []);
+            }
+        });
+
+        // Remove the member and close the modal
+        removeMemberAndCloseModal();
+    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, policyID, removeMemberAndCloseModal]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));

@@ -98,15 +98,18 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
+function isCardClosed(card: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
+}
+
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
     const feedCards: CardList = {};
-    Object.keys(cardList).forEach((cardKey) => {
-        const card = cardList[cardKey];
-        if (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card)) {
+    Object.values(cardList).forEach((card) => {
+        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
             return;
         }
 
-        feedCards[cardKey] = card;
+        feedCards[card.cardID] = card;
     });
 
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
@@ -538,6 +541,7 @@ export {
     getSelectedFeed,
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
+    isCardClosed,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,

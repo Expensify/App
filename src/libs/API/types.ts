@@ -87,7 +87,6 @@ const WRITE_COMMANDS = {
     VERIFY_IDENTITY: 'VerifyIdentity',
     ACCEPT_WALLET_TERMS: 'AcceptWalletTerms',
     ANSWER_QUESTIONS_FOR_WALLET: 'AnswerQuestionsForWallet',
-    REQUEST_PHYSICAL_EXPENSIFY_CARD: 'RequestPhysicalExpensifyCard',
     LOG_OUT: 'LogOut',
     REQUEST_ACCOUNT_VALIDATION_LINK: 'RequestAccountValidationLink',
     REQUEST_NEW_VALIDATE_CODE: 'RequestNewValidateCode',
@@ -215,6 +214,7 @@ const WRITE_COMMANDS = {
     CANCEL_PAYMENT: 'CancelPayment',
     ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
     SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
+    SWITCH_TO_OLD_DOT_ON_COMPANY_SIZE: 'SwitchToOldDotOnCompanySize',
     TRACK_EXPENSE: 'TrackExpense',
     ENABLE_POLICY_CATEGORIES: 'EnablePolicyCategories',
     ENABLE_POLICY_CONNECTIONS: 'EnablePolicyConnections',
@@ -378,7 +378,7 @@ const WRITE_COMMANDS = {
     UPDATE_NSQS_EXPORTER: 'UpdateNSQSExporter',
     UPDATE_NSQS_EXPORT_DATE: 'UpdateNSQSExportDate',
     UPDATE_NSQS_AUTO_SYNC: 'UpdateNSQSAutoSync',
-    UPDATE_NSQS_APPROVAL_ACCOUNT: 'UpdateNSQSApprovalAccount',
+    UPDATE_NSQS_PAYMENT_ACCOUNT: 'UpdateNSQSPaymentAccount',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
     COPY_EXISTING_POLICY_CONNECTION: 'CopyExistingPolicyConnection',
@@ -533,7 +533,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.VERIFY_IDENTITY]: Parameters.VerifyIdentityParams;
     [WRITE_COMMANDS.ACCEPT_WALLET_TERMS]: Parameters.AcceptWalletTermsParams;
     [WRITE_COMMANDS.ANSWER_QUESTIONS_FOR_WALLET]: Parameters.AnswerQuestionsForWalletParams;
-    [WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD]: Parameters.RequestPhysicalExpensifyCardParams;
     [WRITE_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
     [WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK]: Parameters.RequestAccountValidationLinkParams;
     [WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE]: Parameters.RequestNewValidateCodeParams;
@@ -677,6 +676,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_DEFAULT_REPORT_TITLE]: Parameters.EnablePolicyDefaultReportTitleParams;
     [WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY]: Parameters.SetWorkspaceDefaultSpendCategoryParams;
     [WRITE_COMMANDS.SWITCH_TO_OLD_DOT]: Parameters.SwitchToOldDotParams;
+    [WRITE_COMMANDS.SWITCH_TO_OLD_DOT_ON_COMPANY_SIZE]: Parameters.SwitchToOldDotOnCompanySizeParams;
     [WRITE_COMMANDS.TRACK_EXPENSE]: Parameters.TrackExpenseParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES]: Parameters.EnablePolicyCategoriesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS]: Parameters.EnablePolicyConnectionsParams;
@@ -878,7 +878,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NSQS_EXPORTER]: Parameters.UpdateNSQSExporterParams;
     [WRITE_COMMANDS.UPDATE_NSQS_EXPORT_DATE]: Parameters.UpdateNSQSExportDateParams;
     [WRITE_COMMANDS.UPDATE_NSQS_AUTO_SYNC]: Parameters.UpdateNSQSAutoSyncParams;
-    [WRITE_COMMANDS.UPDATE_NSQS_APPROVAL_ACCOUNT]: Parameters.UpdateNSQSApprovalAccountParams;
+    [WRITE_COMMANDS.UPDATE_NSQS_PAYMENT_ACCOUNT]: Parameters.UpdateNSQSPaymentAccountParams;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY]: Parameters.UpdateSageIntacctGenericTypeParams<'entity', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_DEPARTMENT_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
@@ -1077,7 +1077,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
     OPEN_REPORT: 'OpenReport',
     RECONNECT_APP: 'ReconnectApp',
-    ADD_PAYMENT_CARD_GBP: 'AddPaymentCardGBP',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
     CONNECT_AS_DELEGATE: 'ConnectAsDelegate',
@@ -1101,7 +1100,6 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP]: Parameters.AddPaymentCardParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE]: Parameters.ConnectAsDelegateParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE]: EmptyObject;
