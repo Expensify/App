@@ -3471,13 +3471,12 @@ const translations = {
                 expense: 'Expense',
                 reimbursableExpenses: 'Export reimbursable expenses as',
                 nonReimbursableExpenses: 'Export non-reimbursable expenses as',
+                defaultPaymentAccount: 'NSQS default',
+                paymentAccount: 'Payment account',
+                paymentAccountDescription: 'Choose the account that will be used as the payment account for transactions NSQS.',
             },
             advanced: {
                 autoSyncDescription: 'Sync NSQS and Expensify automatically, every day. Export finalized report in realtime',
-                defaultApprovalAccount: 'NSQS default',
-                approvalAccount: 'A/P approval account',
-                approvalAccountDescription:
-                    'Choose the account that transactions will be approved against in NSQS. If you’re syncing reimbursed reports, this is also the account that bill payments will be created against.',
             },
         },
         intacct: {
@@ -3836,6 +3835,10 @@ const translations = {
                 updating: 'Updating...',
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
+                downgradeTitle: `Can't downgrade workspace`,
+                downgradeSubTitleFirstPart: `This workspace can't be downgraded because multiple card feeds are connected (excluding Expensify Cards). Please`,
+                downgradeSubTitleMiddlePart: `keep only one card feed`,
+                downgradeSubTitleLastPart: 'to proceed.',
                 noAccountsFoundDescription: ({connection}: ConnectionParams) => `Please add the account in ${connection} and sync the connection again.`,
                 expensifyCardBannerTitle: 'Get the Expensify Card',
                 expensifyCardBannerSubtitle: 'Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more.',
@@ -4564,9 +4567,9 @@ const translations = {
                 onlyAvailableOnPlan: 'Tax codes are only available on the Control plan, starting at ',
             },
             companyCards: {
-                title: 'Company cards',
-                description: `Connect your existing corporate cards to Expensify, assign them to employees, and automatically import transactions.`,
-                onlyAvailableOnPlan: 'Company cards are only available on the Control plan, starting at ',
+                title: 'Unlimited Company cards',
+                description: `Need to add more card feeds? Unlock unlimited company cards to sync transactions from all major card issuers.`,
+                onlyAvailableOnPlan: 'This is only available on the Control plan, starting at ',
             },
             rules: {
                 title: 'Rules',
@@ -5012,6 +5015,7 @@ const translations = {
             card: {
                 expensify: 'Expensify',
                 individualCards: 'Individual cards',
+                closedCards: 'Closed cards',
                 cardFeeds: 'Card feeds',
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
