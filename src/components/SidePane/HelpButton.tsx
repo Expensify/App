@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {triggerSidePane} from '@libs/actions/SidePane';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type HelpButtonProps = {
@@ -27,10 +28,7 @@ function HelpButton({style}: HelpButtonProps) {
             <PressableWithoutFeedback
                 accessibilityLabel={translate('common.help')}
                 style={[styles.flexRow, styles.touchableButtonImage, styles.pr2, style]}
-                onPress={() => {
-                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                    Onyx.merge(ONYXKEYS.NVP_SIDE_PANE, isExtraLargeScreenWidth ? {open: !sidePane?.open} : {open: !sidePane?.openMobile, openMobile: !sidePane?.openMobile});
-                }}
+                onPress={() => triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openMobile, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth})}
             >
                 <Icon
                     src={Expensicons.QuestionMark}

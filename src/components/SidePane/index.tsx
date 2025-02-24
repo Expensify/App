@@ -1,56 +1,69 @@
+import {CHILD_STATE} from '@react-navigation/core';
+import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import Animated, {Easing, SlideInRight} from 'react-native-reanimated';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Backdrop from '@components/Modal/BottomDockedModal/Backdrop';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSidePaneHidden} from '@libs/SidePaneUtils';
+import {triggerSidePane} from '@libs/actions/SidePane';
+import Navigation from '@libs/Navigation/Navigation';
+import {isSidePaneHidden, substituteRouteParameters} from '@libs/SidePaneUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getHelpContent from './getHelpContent';
 
 function SidePane() {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth);
 
     const onClose = useCallback(
         (shouldUpdateNarrow = false) => {
-            // eslint-disable-next-line rulesdir/prefer-actions-set-data
-            Onyx.merge(ONYXKEYS.NVP_SIDE_PANE, isExtraLargeScreenWidth && !shouldUpdateNarrow ? {open: false} : {openMobile: false});
+            triggerSidePane(false, {shouldOnlyUpdateNarrowLayout: !isExtraLargeScreenWidth || shouldUpdateNarrow});
         },
         [isExtraLargeScreenWidth],
     );
 
-    const resetTriggered = useRef(false);
+    const sizeChangedFromLargeToNarrow = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {
         // Close the side pane when the screen size changes from large to small
-        if (!isExtraLargeScreenWidth && !resetTriggered.current) {
+        if (!isExtraLargeScreenWidth && !sizeChangedFromLargeToNarrow.current) {
             onClose(true);
-            resetTriggered.current = true;
+            sizeChangedFromLargeToNarrow.current = true;
         }
 
         // Reset the trigger when the screen size changes back to large
         if (isExtraLargeScreenWidth) {
-            resetTriggered.current = false;
+            sizeChangedFromLargeToNarrow.current = false;
         }
     }, [isExtraLargeScreenWidth, onClose]);
 
-    if (isSidePaneHidden(sidePane, isExtraLargeScreenWidth)) {
+    const activeRoute = Navigation.getActiveRouteWithoutParams();
+    const params = useNavigationState((state) => (findFocusedRoute(state)?.params as Record<string, string>) ?? {});
+    const route = substituteRouteParameters(activeRoute, params);
+
+    if (isPaneHidden) {
         return null;
     }
 
     return (
         <>
-            {!isExtraLargeScreenWidth && (
+            {!isExtraLargeScreenWidth && !shouldUseNarrowLayout && (
                 <Backdrop
                     onBackdropPress={onClose}
                     style={styles.sidePaneOverlay}
                 />
             )}
-            <View style={styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth)}>
+            <Animated.View
+                style={styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth)}
+                entering={isExtraLargeScreenWidth ? undefined : SlideInRight.duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN).easing(Easing.inOut(Easing.quad))}
+            >
                 <ScreenWrapper testID={SidePane.displayName}>
                     <HeaderWithBackButton
                         title={translate('common.help')}
@@ -61,8 +74,9 @@ function SidePane() {
                         shouldShowCloseButton={isExtraLargeScreenWidth}
                         shouldDisplayHelpButton={false}
                     />
+                    {getHelpContent(styles, route)}
                 </ScreenWrapper>
-            </View>
+            </Animated.View>
         </>
     );
 }
