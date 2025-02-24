@@ -524,6 +524,11 @@ function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCol
     return Object.values(cards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
 }
 
+function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed): boolean {
+    const workspaceCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${feedName}`] ?? {};
+    return !!workspaceCards.cardList;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -563,4 +568,5 @@ export {
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
     hasIssuedExpensifyCard,
+    hasCardListObject,
 };

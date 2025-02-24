@@ -15,14 +15,24 @@ type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
 /** Model of Corpay data */
 type Corpay = {
+    /** Account holder address - country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
     /** Swift code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_CODE]?: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE]: string;
     /** Bank name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_NAME]: string;
     /** Bank address - city */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CITY]: string;
     /** Bank address - street and zip code */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_ADDRESS_LINE_1]: string;
+    /** Bank region */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_REGION]: string;
+    /** Bank postal code */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_POSTAL]: string;
+    /** Bank country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_COUNTRY]: string;
+    /** Bank currency */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CURRENCY]: string;
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
     /** Company address - street */
@@ -125,37 +135,12 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE]: boolean;
     /** Checkbox - authorized to bind to client to agreement */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
-    /** Bank statement */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
-
     /** Is user also an owner */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
-
     /** Are the more owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE]: boolean;
-
     /** Stringified array of owners data */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]?: string;
-};
-
-/** Model of Additional data */
-type AdditionalData = {
-    /** Account holder name */
-    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
-    /** Account holder address - street */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STREET]: string;
-    /** Account holder address - city */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_CITY]: string;
-    /** Account holder address - state (US and CA only) */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STATE]?: string;
-    /** Account holder address - zip code */
-    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]: string;
-    /** Account holder address - country */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: string;
-    /** Country user selects in first step */
-    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
-    /** Corpay fields */
-    corpay: Corpay;
 };
 
 /** Model of ACH data */
@@ -181,9 +166,6 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Bank account name */
     bankName?: BankName;
 
-    /** Bank account owner name */
-    addressName?: string;
-
     /** Policy ID of the workspace the bank account is being set up on */
     policyID?: string;
 
@@ -199,8 +181,39 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
     /** Bank Account setup type (plaid or manual) */
     setupType?: string;
 
-    /** Additional data for the non USD account in setup */
-    additionalData?: AdditionalData;
+    /** Account holder name - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]?: string;
+    /** Account holder name - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_NAME]?: string;
+
+    /** Account holder street - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_ADDRESS_1]?: string;
+    /** Account holder street - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STREET]?: string;
+
+    /** Account holder city - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_CITY]?: string;
+    /** Account holder city - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_CITY]?: string;
+
+    /** Account holder state (US and CA only) - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_REGION]?: string;
+    /** Account holder state (US and CA only) - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STATE]?: string;
+
+    /** Account holder zip code - Corpay name */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_POSTAL]?: string;
+    /** Account holder zip code - BE name */
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]?: string;
+
+    /** Country user selects in first step */
+    [INPUT_IDS.ADDITIONAL_DATA.COUNTRY]: Country | '';
+
+    /** Corpay fields */
+    corpay: Corpay;
+
+    /** Date the corpay bank account was created */
+    created?: string;
 };
 
 /** The step in an reimbursement account's ach data */
@@ -261,4 +274,4 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 export default ReimbursementAccount;
-export type {BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {Corpay, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};

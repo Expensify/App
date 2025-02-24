@@ -107,8 +107,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
+
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
+                [SCREENS.CONSOLE_DEBUG]: {
+                    path: ROUTES.CONSOLE_DEBUG.route,
+                    exact: true,
+                },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
@@ -213,10 +218,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: {
                             path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.CONSOLE]: {
-                            path: ROUTES.SETTINGS_CONSOLE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,
@@ -1538,7 +1539,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.HOME,
                     exact: true,
                 },
-                [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+                [SCREENS.REPORT]: {
+                    path: ROUTES.REPORT_WITH_ID.route,
+                    // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
+                    // We want to avoid that situation, so we will return an empty string instead.
+                    parse: {
+                        // eslint-disable-next-line
+                        reportID: (reportID: string | undefined) => reportID ?? '',
+                    },
+                    stringify: {
+                        // eslint-disable-next-line
+                        reportID: (reportID: string | undefined) => reportID ?? '',
+                    },
+                },
             },
         },
 
