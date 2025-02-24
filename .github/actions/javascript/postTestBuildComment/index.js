@@ -11542,11 +11542,11 @@ function getTestBuildMessage() {
     return message;
 }
 /** Comment on a single PR */
-async function commentPR(repo, PR, message) {
+async function commentPR(REPO, PR, message) {
     console.log(`Posting test build comment on #${PR}`);
     try {
-        await GithubUtils_1.default.createComment(repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
+        await GithubUtils_1.default.createComment(REPO, PR, message);
+        console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
     }
     catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
@@ -11559,7 +11559,7 @@ async function run() {
     const PR_NUMBER = Number(core.getInput('PR_NUMBER', { required: true }));
     const REPO = String(core.getInput('REPO', { required: true }));
     if (REPO !== CONST_1.default.APP_REPO && REPO !== CONST_1.default.MOBILE_EXPENSIFY_REPO) {
-        core.setFailed(`Invalid repo: ${REPO}`);
+        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
         return;
     }
     const comments = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.issues.listComments, {

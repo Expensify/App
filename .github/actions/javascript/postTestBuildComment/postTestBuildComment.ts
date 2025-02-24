@@ -53,11 +53,11 @@ function getTestBuildMessage(): string {
 }
 
 /** Comment on a single PR */
-async function commentPR(repo: string, PR: number, message: string) {
+async function commentPR(REPO: string, PR: number, message: string) {
     console.log(`Posting test build comment on #${PR}`);
     try {
-        await GithubUtils.createComment(repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
+        await GithubUtils.createComment(REPO, PR, message);
+        console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
     } catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
 
@@ -72,7 +72,7 @@ async function run() {
     const REPO = String(core.getInput('REPO', {required: true}));
 
     if (REPO !== CONST.APP_REPO && REPO !== CONST.MOBILE_EXPENSIFY_REPO) {
-        core.setFailed(`Invalid repo: ${REPO}`);
+        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
         return;
     }
 
