@@ -31,13 +31,14 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIsUserSubmittedExpenseOrScannedReceipt, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getIsUserSubmittedExpenseOrScannedReceipt, getParticipantsOption, getReportOption, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -310,11 +311,11 @@ function IOURequestStepScan({
                         participant,
                     },
                     transactionParams: {
-                        amount: participant.login === CONST.EMAIL.MANAGER_MCTEST ? 18 : 0,
+                        amount: 0,
                         attendees: transaction?.attendees,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
-                        merchant: participant.login === CONST.EMAIL.MANAGER_MCTEST ? "Taco Todd's" : '',
+                        merchant: '',
                         receipt,
                     },
                 });
@@ -552,7 +553,7 @@ function IOURequestStepScan({
                 filename,
                 (file) => {
                     const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing);
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined, true);
                     navigateToConfirmationStep(file, source, false);
                 },
                 (error) => {
@@ -567,8 +568,13 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas),
-        {onConfirm: setTestReceiptAndNavigate},
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive,
+        {
+            onConfirm: setTestReceiptAndNavigate,
+            onDismiss: () => {
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
+            },
+        },
     );
 
     const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
