@@ -2019,7 +2019,12 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
             newValue,
         });
     }
-    if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET) {
+    if (
+        updatedField &&
+        updatedField === CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET &&
+        (typeof oldValue === 'string' || typeof oldValue === 'number' || typeof oldValue === 'undefined') &&
+        (typeof newValue === 'string' || typeof newValue === 'number' || typeof newValue === 'undefined')
+    ) {
         const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number | undefined) => {
             if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                 return translateLocal('workflowsPage.frequencies.lastDayOfMonth');
