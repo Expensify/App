@@ -919,6 +919,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         pressOnEnter
                         enterKeyEventListenerPriority={1}
                         isDisabled={isConfirmButtonDisabled}
+                        shouldBlendOpacity={shouldFooterContentStickToBottom}
                     />
                 </FixedFooter>
             )}
