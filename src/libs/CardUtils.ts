@@ -70,11 +70,15 @@ function isCorporateCard(cardID: number) {
 }
 
 function getCardFeedKey(cardID: string): string {
-    return cardID.replace('cards_', '');
+    const splittedCardID = cardID.split('_');
+    if (splittedCardID.at(0) === 'cards') {
+        return splittedCardID.slice(1).join('_');
+    }
+    return cardID;
 }
 
 function getWorkspaceCardFeedKey(cardID: string) {
-    if (cardID.indexOf('cards_') === -1) {
+    if (cardID.split('_').at(0) !== 'cards') {
         return `cards_${cardID}`;
     }
     return cardID;
