@@ -18,7 +18,7 @@ import {ReportAttachmentsProvider} from '@pages/home/report/ReportAttachmentsCon
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
-import {buildPersonalDetails, getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
+import {getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
