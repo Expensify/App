@@ -30,7 +30,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
         [SCREENS.SEARCH.ROOT]: {
-            path: ROUTES.SEARCH_CENTRAL_PANE.route,
+            path: ROUTES.SEARCH_ROOT.route,
         },
 
         [SCREENS.NOT_FOUND]: '*',
@@ -253,10 +253,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
-                            path: ROUTES.SETTINGS_2FA.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
@@ -530,11 +526,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
                             path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_DATE.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
                             path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.route},
@@ -975,6 +971,30 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
+                    screens: {
+                        [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
+                            path: ROUTES.SETTINGS_2FA_ROOT.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
+                            path: ROUTES.SETTINGS_2FA_VERIFY.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
+                            path: ROUTES.SETTINGS_2FA_SUCCESS.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.DISABLED]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLED,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.DISABLE]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLE,
+                            exact: true,
                         },
                     },
                 },
@@ -1550,7 +1570,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
+                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {path: ROUTES.SETTINGS_SUBSCRIPTION.route},
                 [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
                     path: ROUTES.SETTINGS_PREFERENCES,
                     // exact: true,
