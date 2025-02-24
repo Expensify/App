@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -93,11 +92,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchCategories});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchCategories();
-        }, [fetchCategories]),
-    );
+    useEffect(() => {
+        fetchCategories();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
