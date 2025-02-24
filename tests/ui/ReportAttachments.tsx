@@ -6,7 +6,9 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
+import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
@@ -16,17 +18,20 @@ import {ReportAttachmentsProvider} from '@pages/home/report/ReportAttachmentsCon
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
-import {setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
+import {buildPersonalDetails, getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 const Stack = createPlatformStackNavigator<AuthScreensParamList>();
 
 setupGlobalFetchMock();
 
+jest.mock('@src/components/Attachments/AttachmentCarousel/Pager/usePageScrollHandler', () => jest.fn());
+
 const renderPage = (initialRouteName: typeof SCREENS.ATTACHMENTS, initialParams: AuthScreensParamList[typeof SCREENS.ATTACHMENTS]) => {
     return render(
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider, CurrentReportIDContextProvider, PortalProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider, CurrentReportIDContextProvider, PortalProvider, PlaybackContextProvider]}>
             <NavigationContainer>
                 <Stack.Navigator initialRouteName={initialRouteName}>
                     <Stack.Screen
@@ -40,8 +45,11 @@ const renderPage = (initialRouteName: typeof SCREENS.ATTACHMENTS, initialParams:
     );
 };
 
-// // Given report attachment data results consisting of involved report id, report and reportActions
+// // Given report attachment data results consisting of involved user login, user account id, report & report action + attachment id
+const TEST_USER_LOGIN = 'test@test.com';
+const TEST_USER_ACCOUNT_ID = 1;
 const reportAttachmentID = '7487537791562875';
+const reportActionAttachmentID = '7006877151048865417';
 const reportAttachmentOnyx: Report = {
     reportName: 'Chat Report',
     currency: 'USD',
@@ -54,7 +62,7 @@ const reportAttachmentOnyx: Report = {
     isPinned: false,
     isWaitingOnBankAccount: false,
     lastActionType: 'ADDCOMMENT',
-    lastActorAccountID: 2,
+    lastActorAccountID: TEST_USER_ACCOUNT_ID,
     lastMessageHtml:
         '<img src="https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png.1024.jpg" data-expensify-source="https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png" data-name="Screenshot_2025-02-05_at_13.03.32.png" data-expensify-height="408" data-expensify-width="980" />',
     lastMessageText: '[Attachment]',
@@ -67,10 +75,7 @@ const reportAttachmentOnyx: Report = {
     oldPolicyName: '',
     ownerAccountID: 0,
     participants: {
-        '1': {
-            notificationPreference: 'always',
-        },
-        '2': {
+        [TEST_USER_ACCOUNT_ID]: {
             notificationPreference: 'always',
         },
     },
@@ -87,15 +92,15 @@ const reportAttachmentOnyx: Report = {
     writeCapability: 'all',
 };
 const reportActionsAttachmentOnyx: ReportActions = {
-    '7006877151048865417': {
+    [reportActionAttachmentID]: {
         person: [
             {
                 type: 'TEXT',
                 style: 'strong',
-                text: 'test123@gmail.com',
+                text: TEST_USER_LOGIN,
             },
         ],
-        actorAccountID: 2,
+        actorAccountID: TEST_USER_ACCOUNT_ID,
         message: [
             {
                 type: 'COMMENT',
@@ -122,44 +127,27 @@ const reportActionsAttachmentOnyx: ReportActions = {
         lastModified: '2025-02-05 07:29:21.593',
         whisperedToAccountIDs: [],
     },
-    '1496162603975400831': {
-        reportActionID: '1496162603975400831',
-        actionName: 'CREATED',
-        created: '2025-02-05 07:29:12.575',
-        reportActionTimestamp: 1738740552575,
-        avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_1.png',
-        message: [
-            {
-                type: 'TEXT',
-                style: 'strong',
-                text: '__fake__',
-            },
-            {
-                type: 'TEXT',
-                style: 'normal',
-                text: ' created this report',
-            },
-        ],
-        person: [
-            {
-                type: 'TEXT',
-                style: 'strong',
-                text: '__fake__',
-            },
-        ],
-        automatic: false,
-        sequenceNumber: 0,
-        shouldShow: true,
-        lastModified: '2025-02-05 07:29:12.575',
-    },
 };
 
 describe('ReportAttachments', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN}},
+            },
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+    });
+    beforeEach(async () => {
+        global.fetch = getGlobalFetchMock();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+
+        // Given a test user is signed in with Onyx setup and some initial data
+        await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await waitForBatchedUpdates();
     });
 
     afterEach(async () => {
@@ -170,9 +158,7 @@ describe('ReportAttachments', () => {
 
         jest.clearAllMocks();
     });
-    it('it should display the attachment if the source link is origin url', async () => {
-        await signInWithTestUser();
-
+    it('should display the attachment if the source link is origin url', async () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportAttachmentID}`, reportAttachmentOnyx);
@@ -185,14 +171,39 @@ describe('ReportAttachments', () => {
             reportID: '7487537791562875',
             isAuthTokenRequired: 'true',
             fileName: 'Screenshot_2025-02-05_at_13.03.32.png',
-            accountID: '1',
+            accountID: TEST_USER_ACCOUNT_ID.toString(),
         };
 
         // And ReportAttachmments is opened
-        const {queryByText} = renderPage(SCREENS.ATTACHMENTS, params);
+        const screen = renderPage(SCREENS.ATTACHMENTS, params);
 
         await waitForBatchedUpdatesWithAct();
+
         // Then the blocking view or not here page should not appear.
-        expect(queryByText("Hmm... it's not hereOops, this page cannot be foundGo back to home page")).toBeNull();
+        expect(screen.queryByText(translateLocal('notFound.notHere'))).toBeNull();
+    });
+    it('should fetch the report id, if the report has not yet been opened by the user', async () => {
+        // Given the report attachments params
+        const params: AuthScreensParamList[typeof SCREENS.ATTACHMENTS] = {
+            source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
+            type: 'r',
+            reportID: '7487537791562875',
+            isAuthTokenRequired: 'true',
+            fileName: 'Screenshot_2025-02-05_at_13.03.32.png',
+            accountID: TEST_USER_ACCOUNT_ID.toString(),
+        };
+
+        // And ReportAttachmments is opened
+        renderPage(SCREENS.ATTACHMENTS, params);
+        await waitForBatchedUpdates();
+
+        const openReportRequest = getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).find((request) => {
+            const body = request[1]?.body;
+            const requestParams = body instanceof FormData ? Object.fromEntries(body) : {};
+            return requestParams?.reportID === params.reportID;
+        });
+
+        // Then the report should fetched by OpenReport API command
+        expect(openReportRequest).toBeDefined();
     });
 });

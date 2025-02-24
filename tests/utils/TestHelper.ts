@@ -284,6 +284,7 @@ function getFetchMockCalls(commandName: ApiCommand) {
  * Assertion helper to validate that a command has been called a specific number of times.
  */
 function expectAPICommandToHaveBeenCalled(commandName: ApiCommand, expectedCalls: number) {
+    console.log('lika liku', getFetchMockCalls(commandName));
     expect(getFetchMockCalls(commandName)).toHaveLength(expectedCalls);
 }
 
@@ -344,6 +345,7 @@ export {
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
+    getFetchMockCalls,
     getGlobalFetchMock,
     setPersonalDetails,
     signInWithTestUser,
