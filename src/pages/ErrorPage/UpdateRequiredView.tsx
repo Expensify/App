@@ -1,5 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
 import HeaderGap from '@components/HeaderGap';
@@ -12,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AppUpdate from '@libs/actions/AppUpdate';
+import {updateApp} from '@userActions/AppUpdate';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();
@@ -22,7 +23,7 @@ function UpdateRequiredView() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {isProduction} = useEnvironment();
-    const isStandaloneNewAppProduction = isProduction && !NativeModules.HybridAppModule;
+    const isStandaloneNewAppProduction = isProduction && !HybridAppModule.isHybridApp();
 
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
@@ -56,7 +57,7 @@ function UpdateRequiredView() {
                 <Button
                     success
                     large
-                    onPress={() => AppUpdate.updateApp(isProduction)}
+                    onPress={() => updateApp(isProduction)}
                     text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
                 />

@@ -1,6 +1,7 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useState} from 'react';
-import {Linking, NativeModules, View} from 'react-native';
+import {Linking, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -80,7 +81,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             shouldEnableMaxHeight
             testID={TravelTerms.displayName}
         >
-            <FullPageNotFoundView shouldShow={(!canUseSpotnanaTravel && !NativeModules.HybridAppModule) || (isBlockedFromSpotnanaTravel && !NativeModules.HybridAppModule)}>
+            <FullPageNotFoundView shouldShow={(!canUseSpotnanaTravel && !HybridAppModule.isHybridApp()) || (isBlockedFromSpotnanaTravel && !HybridAppModule.isHybridApp())}>
                 <HeaderWithBackButton
                     title={translate('travel.termsAndConditions.header')}
                     onBackButtonPress={() => Navigation.goBack()}

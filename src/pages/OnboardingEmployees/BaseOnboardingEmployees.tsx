@@ -1,5 +1,5 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React, {useContext, useMemo, useState} from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
@@ -110,8 +110,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         );
                     }
 
-                    if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                    if (HybridAppModule.isHybridApp()) {
+                        HybridAppModule.closeReactNativeApp(false, true);
                         setRootStatusBarEnabled(false);
                     } else {
                         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);

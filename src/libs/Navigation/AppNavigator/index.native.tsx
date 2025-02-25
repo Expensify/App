@@ -1,5 +1,5 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React, {memo, useContext, useEffect} from 'react';
-import {NativeModules} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -13,7 +13,7 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     const {initialURL, setInitialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initialURL) {
+        if (!HybridAppModule.isHybridApp() || !initialURL) {
             return;
         }
 
