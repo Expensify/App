@@ -3410,6 +3410,12 @@ const CONST = {
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
 
+    // Test receipt data
+    TEST_RECEIPT: {
+        AMOUNT: 1800,
+        CURRENCY: 'USD',
+    },
+
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.

@@ -1205,11 +1205,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    total: 1800,
-                    currency: 'USD',
+                    total: CONST.TEST_RECEIPT.AMOUNT,
+                    currency: CONST.TEST_RECEIPT.CURRENCY,
                     lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
                     lastMessageText: getReportActionText(optimisticIOUReportAction),
-                    lastActionType: 'MARKEDREIMBURSED',
+                    lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                     statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                     hasOutstandingChildRequest: false,
                     pendingFields: {
