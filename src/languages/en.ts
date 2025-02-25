@@ -1113,6 +1113,7 @@ const translations = {
         attendees: 'Attendees',
         paymentComplete: 'Payment complete',
         time: 'Time',
+        updatedTheDistanceOptimistically: 'Updated the distance',
         startDate: 'Start date',
         endDate: 'End date',
         startTime: 'Start time',
