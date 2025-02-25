@@ -315,6 +315,127 @@ function removeOptimisticRoomMembers(
 
     return roomMembers;
 }
+/** This function will reset the preferred exporter to the owner of the workspace
+ * if the current preferred exporter is removed from the admin role.
+ */
+function resetAccountingPreferredExporter(policyID: string, loginList: string[]) {
+    const policy = getPolicy(policyID);
+    const owner = ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+
+    if (policy?.connections?.xero?.config.export.exporter && loginList.includes(policy?.connections?.xero?.config.export.exporter)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {xero: {config: {export: {exporter: owner}, pendingFields: {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {xero: {config: {pendingFields: {exporter: null}}}},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {connections: {xero: {config: {export: {exporter: policy?.connections?.xero?.config.export.exporter}, pendingFields: {exporter: null}}}}},
+        });
+    } else if (policy?.connections?.netsuite?.options.config.exporter && loginList.includes(policy?.connections?.netsuite?.options.config.exporter)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {netsuite: {options: {config: {exporter: owner, pendingFields: {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}}},
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {netsuite: {options: {config: {pendingFields: {exporter: null}}}}},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {connections: {netsuite: {options: {config: {exporter: policy?.connections?.netsuite?.options.config.exporter, pendingFields: {exporter: null}}}}}},
+        });
+    } else if (policy?.connections?.quickbooksOnline?.config.export.exporter && loginList.includes(policy?.connections?.quickbooksOnline?.config.export.exporter)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {quickbooksOnline: {config: {export: {exporter: owner}, pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {quickbooksOnline: {config: {pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {
+                    quickbooksOnline: {
+                        config: {export: {exporter: policy?.connections?.quickbooksOnline?.config.export.exporter}, pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+                    },
+                },
+            },
+        });
+    } else if (policy?.connections?.intacct?.config.export.exporter && loginList.includes(policy?.connections?.intacct?.config.export.exporter)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {intacct: {config: {export: {exporter: owner}, pendingFields: {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {intacct: {config: {pendingFields: {exporter: null}}}},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {connections: {intacct: {config: {export: {exporter: policy?.connections?.intacct?.config.export.exporter}, pendingFields: {exporter: null}}}}},
+        });
+    } else if (policy?.connections?.quickbooksDesktop?.config.export.exporter && loginList.includes(policy?.connections?.quickbooksDesktop?.config.export.exporter)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {quickbooksDesktop: {config: {export: {exporter: owner}, pendingFields: {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {quickbooksDesktop: {config: {pendingFields: {exporter: null}}}},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {connections: {quickbooksDesktop: {config: {export: {exporter: policy?.connections?.quickbooksDesktop?.config.export.exporter}, pendingFields: {exporter: null}}}}},
+        });
+    }
+
+    return {optimisticData, successData, failureData};
+}
 
 /**
  * Remove the passed members from the policy employeeList
@@ -430,6 +551,14 @@ function removeMembers(accountIDs: number[], policyID: string) {
     ];
     failureData.push(...announceRoomMembers.onyxFailureData, ...adminRoomMembers.onyxFailureData);
 
+    const previousAdminLogins = emailList.filter((login) => policy?.employeeList?.[login]?.role === CONST.POLICY.ROLE.ADMIN);
+    if (previousAdminLogins.length) {
+        const preferredExporterOnyxData = resetAccountingPreferredExporter(policyID, previousAdminLogins);
+        optimisticData.push(...preferredExporterOnyxData.optimisticData);
+        successData.push(...preferredExporterOnyxData.successData);
+        failureData.push(...preferredExporterOnyxData.failureData);
+    }
+
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     workspaceChats.forEach((report) => {
@@ -529,7 +658,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
 }
 
 function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
-    const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
+    const previousEmployeeList = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
         if (!allPersonalDetails?.[accountID]?.login) {
             return result;
@@ -588,6 +717,14 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             },
         },
     ];
+
+    if (newRole !== CONST.POLICY.ROLE.ADMIN) {
+        const previousAdminLogins = memberRoles.filter((member) => previousEmployeeList[member.email]?.role === CONST.POLICY.ROLE.ADMIN).map((member) => member.email);
+        const preferredExporterOnyxData = resetAccountingPreferredExporter(policyID, previousAdminLogins);
+        optimisticData.push(...preferredExporterOnyxData.optimisticData);
+        successData.push(...preferredExporterOnyxData.successData);
+        failureData.push(...preferredExporterOnyxData.failureData);
+    }
 
     const adminRoom = ReportUtils.getAllPolicyReports(policyID).find(ReportUtils.isAdminRoom);
     if (adminRoom) {
