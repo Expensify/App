@@ -101,4 +101,11 @@ function handleSAMLLoginError(errorMessage: string, cleanSignInData: boolean) {
     Navigation.goBack(ROUTES.HOME);
 }
 
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, postSAMLLogin, handleSAMLLoginError};
+function formatE164PhoneNumber(phoneNumber: string) {
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+
+    return parsedPhoneNumber.number?.e164;
+}
+
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, postSAMLLogin, handleSAMLLoginError, formatE164PhoneNumber};

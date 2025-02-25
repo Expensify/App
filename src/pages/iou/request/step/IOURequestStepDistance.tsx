@@ -24,6 +24,7 @@ import {
     createDistanceRequest,
     getIOURequestPolicyID,
     resetSplitShares,
+    setCustomUnitRateID,
     setMoneyRequestAmount,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,
@@ -379,6 +380,8 @@ function IOURequestStepDistance({
         if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
             setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(activePolicyExpenseChat?.reportID);
+            setCustomUnitRateID(transactionID, rateID);
             Navigation.navigate(
                 ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                     CONST.IOU.ACTION.CREATE,

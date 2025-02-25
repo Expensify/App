@@ -209,11 +209,13 @@ function disconnect() {
         .then((response) => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
+                restoreDelegateSession(stashedSession);
                 return;
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
+                restoreDelegateSession(stashedSession);
                 return;
             }
 
@@ -532,10 +534,9 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                         delegate.email === email
                             ? {
                                   ...delegate,
-                                  role,
+                                  isLoading: true,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                                  isLoading: true,
                               }
                             : delegate,
                     ),
@@ -560,9 +561,9 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                             ? {
                                   ...delegate,
                                   role,
+                                  isLoading: false,
                                   pendingAction: null,
                                   pendingFields: {role: null},
-                                  isLoading: false,
                               }
                             : delegate,
                     ),
