@@ -342,6 +342,7 @@ function SearchPageHeaderInput({
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
+                        shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                     />
                 </View>
             </View>
