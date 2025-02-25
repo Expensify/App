@@ -3415,10 +3415,31 @@ const CONST = {
     WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH: 256,
     REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
+    TASK_TITLE_CHARACTER_LIMIT: 10000,
     DESCRIPTION_LIMIT: 1000,
     SEARCH_QUERY_LIMIT: 1000,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     STATE_CHARACTER_LIMIT: 32,
+
+    TASK_TITLE_ESCAPE_RULES: [
+        'emoji',
+        'codeFence',
+        'video',
+        'email',
+        'heading1',
+        'image',
+        'hereMentions',
+        'reportMentions',
+        'userMentions',
+        'hereMentionAfterUserMentions',
+        'quote',
+        'italic',
+        'autoEmail',
+        'bold',
+        'strikethrough',
+        'replacepre',
+        'replaceh1br',
+    ],
 
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.

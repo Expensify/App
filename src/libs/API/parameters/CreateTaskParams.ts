@@ -3,7 +3,7 @@ type CreateTaskParams = {
     parentReportID?: string;
     taskReportID?: string;
     createdTaskReportActionID?: string;
-    title?: string;
+    htmlTitle?: string | {text: string; html: string};
     description?: string;
     assignee?: string;
     assigneeAccountID?: number;

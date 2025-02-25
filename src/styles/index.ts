@@ -228,7 +228,8 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
-                fontSize: variables.fontSizeLarge,
+                fontSize: undefined,
+                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -273,6 +274,13 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            marginBottom: 8,
         },
 
         autoCompleteSuggestionContainer: {
