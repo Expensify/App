@@ -25,7 +25,7 @@ description: Add a photo to your Expensify account
 
 {% include end-selector.html %}
 
-![The Account Details page is displayed on the right side of the screen and the edit photo button is highlighted by an orange icon. The edit photo button should be clicked.]({{site.url}}/assets/images/Edit_Photo.png){:width="100%"}
+![The Account Details page is displayed on the right side of the screen and the edit photo button is highlighted by an orange icon. Click the Edit Photo button to select a new image to add.]({{site.url}}/assets/images/Edit_Photo.png){:width="100%"}
 
 
 # FAQs
