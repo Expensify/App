@@ -1,17 +1,12 @@
 import {Image as ExpoImage} from 'expo-image';
 import type {ImageLoadEventData} from 'expo-image';
-import {useCallback, useEffect, useRef} from 'react';
+import {useCallback, useRef} from 'react';
 import type {BaseImageProps} from './types';
 
 function BaseImage({onLoad, ...props}: BaseImageProps) {
-    const loadTimeRef = useRef(0);
     const isLoadedRef = useRef(false);
-
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
-            const endTime = Date.now();
-            console.debug('[dev] Load time:', endTime - loadTimeRef.current);
-
             if (!onLoad) {
                 return;
             }
@@ -26,14 +21,6 @@ function BaseImage({onLoad, ...props}: BaseImageProps) {
         },
         [onLoad],
     );
-
-    useEffect(() => {
-        loadTimeRef.current = Date.now();
-
-        return () => {
-            loadTimeRef.current = 0;
-        };
-    }, []);
 
     return (
         <ExpoImage
