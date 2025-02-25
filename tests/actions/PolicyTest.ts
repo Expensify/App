@@ -215,6 +215,55 @@ describe('actions/Policy', () => {
                 expect(reportAction.pendingAction).toBeFalsy();
             });
         });
+
+        it('create a new workspace with enabled workflow if the onboarding purpose is newDotManageTeam or newDotLookingAround', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to TRACK_WORKSPACE
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the workflows feature is enabled
+            expect(policy?.areWorkflowsEnabled).toBeTruthy();
+
+            // And the delay submission is manually
+            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+        });
+
+        it('create a new workspace with disabled workflow if the onboarding purpose is not newDotManageTeam or newDotLookingAround', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to TRACK_WORKSPACE
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the workflows feature is disabled
+            expect(policy?.areWorkflowsEnabled).toBeFalsy();
+        });
     });
 
     describe('upgradeToCorporate', () => {
@@ -371,6 +420,39 @@ describe('actions/Policy', () => {
                     },
                 });
             });
+        });
+    });
+
+    describe('enablePolicyWorkflows', () => {
+        it('should update delay submission to instant when disabling the workflows feature', async () => {
+            (fetch as MockFetch)?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areWorkflowsEnabled: true,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // Disable the workflow feature
+            Policy.enablePolicyWorkflows(fakePolicy.id, false);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Chekck if the autoReportingFrequency is updated to instand
+            expect(policy?.areWorkflowsEnabled).toBeFalsy();
+            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
         });
     });
 });
