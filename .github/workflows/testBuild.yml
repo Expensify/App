@@ -316,6 +316,7 @@ jobs:
 
   postGithubComment:
     runs-on: ubuntu-latest
+    if: always()
     name: Post a GitHub comment with app download links for testing
     needs: [prep, uploadAndroid, iOS, desktop, web, buildHybridApps]
     steps:
