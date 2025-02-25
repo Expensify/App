@@ -1,4 +1,4 @@
-import type {ImageSource} from 'expo-image';
+import type {ImageProps as ExpoImageProps, ImageSource} from 'expo-image';
 import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -14,7 +14,7 @@ type ImageOnLoadEvent = {
     };
 };
 
-type BaseImageProps = {
+type BaseImageProps = Pick<ExpoImageProps, 'cachePolicy'> & {
     /** The static asset or URI source of the image */
     source: ExpoImageSource | Omit<ImageURISource, 'cache'> | ImageRequireSource | undefined;
 
