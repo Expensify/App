@@ -501,12 +501,18 @@ type GetTrackExpenseInformationParticipantParams = {
     participant: Participant;
 };
 
+type GetTrackExpenseInformationPolicyParams = {
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 type GetTrackExpenseInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     moneyRequestReportID?: string;
     existingTransactionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
-    policyParams: RequestMoneyPolicyParams;
+    policyParams: GetTrackExpenseInformationPolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
 };
 
