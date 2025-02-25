@@ -317,11 +317,7 @@ function ScreenWrapper(
         };
     }, [enableEdgeToEdgeBottomSafeAreaPadding, ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings.bottom]);
 
-    const offlineIndicatorContainerStyle = useMemo(
-        () =>
-            includeSafeAreaPaddingBottom ? [styles.offlineIndicatorMobile] : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + styles.offlineIndicatorMobile.paddingBottom}],
-        [includeSafeAreaPaddingBottom, paddingBottom, styles.offlineIndicatorMobile],
-    );
+    const addOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : !includeSafeAreaPaddingBottom;
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -371,7 +367,7 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             style={[offlineIndicatorStyle]}
-                                            containerStyles={offlineIndicatorContainerStyle}
+                                            addBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
