@@ -287,7 +287,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
                     estimatedItemSize={estimatedItemSize}
-                    overrideProps={{estimatedHeightSize: estimatedItemSize * CONST.LHN_AMOUNT_ITEMS_IN_VIEW_PORT}}
+                    overrideProps={{estimatedHeightSize: estimatedItemSize * CONST.LHN_VIEWPORT_ITEM_COUNT}}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
