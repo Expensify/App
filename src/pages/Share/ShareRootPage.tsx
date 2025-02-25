@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
@@ -33,7 +34,7 @@ function ShareRootPage() {
                 Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'), [
                     {
                         onPress: () => {
-                            Navigation.navigate('');
+                            Navigation.navigate(ROUTES.HOME);
                         },
                     },
                 ]);
