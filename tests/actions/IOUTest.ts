@@ -174,7 +174,7 @@ describe('actions/IOU', () => {
             };
 
             // Given a policyExpenseChat report
-            const expenseReport = {
+            const policyExpenseChat = {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
@@ -290,7 +290,7 @@ describe('actions/IOU', () => {
 
             // When the user confirms the category for the tracked expense
             trackExpense({
-                report: expenseReport,
+                report: policyExpenseChat,
                 isDraftPolicy: false,
                 action: CONST.IOU.ACTION.CATEGORIZE,
                 participantParams: {
@@ -334,6 +334,21 @@ describe('actions/IOU', () => {
                         // Then the transaction category must match the original category
                         expect(categorizedTransaction?.category).toBe(Object.keys(fakeCategories).at(0) ?? '');
                         resolve();
+                    },
+                });
+            });
+
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                    callback: (quickAction) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+
+                        // Then the quickAction.action should be set to REQUEST_DISTANCE
+                        expect(quickAction?.action).toBe(CONST.QUICK_ACTIONS.REQUEST_DISTANCE);
+                        // Then the quickAction.chatReportID should be set to the given policyExpenseChat reportID
+                        expect(quickAction?.chatReportID).toBe(policyExpenseChat.reportID);
                     },
                 });
             });
