@@ -10,10 +10,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import {
+    checkIfShouldShowMarkAsCashButton,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasReceipt,
     isDuplicate as isDuplicateTransactionUtils,
@@ -83,8 +82,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transaction, report, policy, transactionViolations);
-    const shouldShowMarkAsCashButton = hasPendingRTERViolation || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(parentReport?.reportID)));
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transaction, parentReport, policy, transactionViolations);
+    const shouldShowMarkAsCashButton = checkIfShouldShowMarkAsCashButton(hasPendingRTERViolation, shouldShowBrokenConnectionViolation, parentReport, policy);
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID);
@@ -115,7 +114,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 description: (
                     <BrokenConnectionDescription
                         transactionID={transaction?.transactionID}
-                        report={report}
+                        report={parentReport}
                         policy={policy}
                     />
                 ),

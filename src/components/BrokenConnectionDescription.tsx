@@ -3,8 +3,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {isInstantSubmitEnabled, isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
-import {isCurrentUserSubmitter, isProcessingReport, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
+import {isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
+import {isCurrentUserSubmitter, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -52,7 +52,7 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
         );
     }
 
-    if (isReportApproved({report}) || isReportManuallyReimbursed(report) || (isProcessingReport(report) && !isInstantSubmitEnabled(policy))) {
+    if (isReportApproved({report}) || isReportManuallyReimbursed(report)) {
         return translate('violations.memberBrokenConnectionError');
     }
 
