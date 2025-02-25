@@ -90,7 +90,7 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boo
  * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
  * @returns nextStep
  */
-function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, isUnapprove?: boolean): ReportNextStep | null {
+function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, shouldFixViolations?: boolean, isUnapprove?: boolean): ReportNextStep | null {
     if (!isExpenseReport(report)) {
         return null;
     }
@@ -152,6 +152,29 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
+            if (shouldFixViolations) {
+                optimisticNextStep = {
+                    type,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    message: [
+                        {
+                            text: 'Waiting for ',
+                        },
+                        {
+                            text: `${ownerDisplayName}`,
+                            type: 'strong',
+                            clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
+                        },
+                        {
+                            text: ' to ',
+                        },
+                        {
+                            text: 'fix the issue(s)',
+                        },
+                    ],
+                };
+                break;
+            }
             // Self review
             optimisticNextStep = {
                 type,
