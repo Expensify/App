@@ -100,11 +100,14 @@ describe('actions/PolicyMember', () => {
                     },
                 },
             };
+            const adminRoom: Report = {...createRandomReport(1), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID: fakePolicy.id};
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`, adminRoom);
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
+            // When a user's role is set as admin on a policy
             Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
@@ -114,9 +117,21 @@ describe('actions/PolicyMember', () => {
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
+                        // Then the policy employee role of the user should be set to admin.
                         expect(employee?.role).toBe(CONST.POLICY.ROLE.ADMIN);
 
                         resolve();
+                    },
+                });
+            });
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                        // Then the user's notification preference on the admin room should be set to always.
+                        expect(report?.participants?.[fakeUser2.accountID].notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
                     },
                 });
             });
@@ -131,6 +146,34 @@ describe('actions/PolicyMember', () => {
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
                         expect(employee?.pendingAction).toBeFalsy();
                         resolve();
+                    },
+                });
+            });
+            await waitForBatchedUpdates();
+            // When an admin is demoted from their admin role to a user role
+            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                        const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
+                        // Then the policy employee role of the user should be set to user.
+                        expect(employee?.role).toBe(CONST.POLICY.ROLE.USER);
+                    },
+                });
+            });
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                        // Then the user should be removed from the admin room participants list of the policy.
+                        expect(report?.participants?.[fakeUser2.accountID]).toBeUndefined();
                     },
                 });
             });
