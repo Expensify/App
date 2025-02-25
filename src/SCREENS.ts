@@ -62,6 +62,7 @@ const SCREENS = {
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
     },
+    CONSOLE_DEBUG: 'Console_Debug',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -77,7 +78,6 @@ const SCREENS = {
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
-        CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
 
         PROFILE: {
@@ -440,8 +440,8 @@ const SCREENS = {
             NSQS_EXPORT: 'Policy_Accounting_NSQS_Export',
             NSQS_EXPORT_PREFERRED_EXPORTER: 'Policy_Accounting_NSQS_Export_Preferred_Exporter',
             NSQS_EXPORT_DATE: 'Policy_Accounting_NSQS_Export_Date',
+            NSQS_EXPORT_PAYMENT_ACCOUNT: 'Policy_Accounting_NSQS_Export_Payment_Account',
             NSQS_ADVANCED: 'Policy_Accounting_NSQS_Advanced',
-            NSQS_ADVANCED_APPROVAL_ACCOUNT: 'Policy_Accounting_NSQS_Advanced_Approval_Account',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
