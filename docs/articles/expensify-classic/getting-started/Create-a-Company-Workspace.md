@@ -3,6 +3,21 @@ title: Create a Company Workspace
 description: Get started with Expensify by creating a workspace for your company.
 ---
 
+A workspace is the set of rules, settings, and spending limits for expense reports in your organization. This includes the unique expense categories and tags, budgets, currency and tax settings, etc. that all workspace members will use. A workspace also defines the approval workflow for your employees and the accounting connection if using an accounting software integration.
+
+Here are a couple of examples of when you’d want to create different workspaces:
+- You have employees with expense reports in different currencies. For example, you may have a workspace for employees who live in the US and submit their reports in USD and a workspace for employees who live in Canada and submit in CAD.
+- You want to limit specific groups of people to their own set of expense coding options (categories/tags) then they can separate their employees by Sales, Marketing, Support, etc.
+
+To create a group workspace:
+1. Hover over **Settings**, then click **Workspaces**.
+2. Click the Group tab on the left.
+3. Click New Workspace.
+4. Enter the workspace name and select a workspace type.
+     - **Collect:** Ideal for small groups who only need basic features like expense approvals, reimbursement, corporate card management, and integration options.
+     - **Control:** This is the most popular option for groups that need a deeper level of control and configurations, such as multi-stage approval workflows, corporate card management, integrations, and more.
+5. Set up your workspace details including the workspace name, expense rules, categories, and more.
+
 Setting up a company workspace in Expensify helps streamline expense management, reimbursements, and accounting integrations. Follow this step-by-step guide to create a workspace and configure essential settings for your business.
 
 **Need help?** Schedule a free onboarding session with a Setup Specialist! Check your email and Expensify notifications for your unique signup link.
@@ -131,3 +146,24 @@ Enable Two-Factor Authentication (2FA) to protect your account.
    - Enter the 6-digit code into Expensify and click **Verify**.
 
 At future logins, Expensify will send a **magic code** to your email. You must also enter a new 6-digit code from your authenticator app.
+
+---
+
+# Navigating Multiple Workspaces
+
+If you have multiple workspaces (whether an individual workspace and a group workspace or multiple group workspaces), you’ll want to ensure employees set a default workspace before creating an expense report to ensure it’s posted to the correct workspace.
+
+## To Set Default Workspace:
+1. Hover over **Settings**, then click **Workspaces**.
+2. Click the Group tab on the left.
+3. To the right of the desired workspace, click **Make Default**.
+
+## Ensure Employees Select the Correct Workspace
+
+As an admin, it’s important to ensure employees are submitting expenses and reports to the correct workspace. Instruct your team to check their selected workspace before adding expenses or creating reports.
+
+- Employees should click their profile image.
+- From the dropdown menu, they must select the correct workspace from the list at the bottom.
+- If an employee frequently switches between workspaces, remind them to always verify the workspace selection before submitting an expense or report.
+
+By reinforcing this process, you help prevent expense reports from being miscategorized and ensure accurate financial tracking.
