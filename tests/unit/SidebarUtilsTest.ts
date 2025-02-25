@@ -5,9 +5,10 @@ import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -367,7 +368,7 @@ describe('SidebarUtils', () => {
         it('returns the last action message as an alternate text if the action is POLICYCHANGELOG_LEAVEROOM type', async () => {
             // When a report has last action of POLICYCHANGELOG_LEAVEROOM type
             const report: Report = {
-                ...createRandomReport(1),
+                ...createRandomReport(4),
                 chatType: 'policyAdmins',
                 lastMessageHtml: 'removed 0 user',
                 lastMessageText: 'removed 0 user',
@@ -417,6 +418,115 @@ describe('SidebarUtils', () => {
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
             expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
+        });
+        describe('Alternative text', () => {
+            afterEach(async () => {
+                Onyx.clear();
+                await waitForBatchedUpdates();
+            });
+            it('The text should not contain the policy name at prefix if the report is not related to a workspace', async () => {
+                const preferredLocale = 'en';
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
+                const report: Report = {
+                    ...createRandomReport(1),
+                    chatType: undefined,
+                    policyID: CONST.POLICY.ID_FAKE,
+                };
+                const reportNameValuePairs = {};
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                });
+
+                const optionData = SidebarUtils.getOptionData({
+                    report,
+                    reportNameValuePairs,
+                    reportActions: {},
+                    personalDetails: {},
+                    preferredLocale,
+                    policy,
+                    parentReportAction: undefined,
+                    hasViolations: false,
+                    lastMessageTextFromReport: 'test message',
+                });
+
+                expect(optionData?.alternateText).toBe(`test message`);
+            });
+            it('The text should not contain the policy name at prefix if we only have a workspace', async () => {
+                const preferredLocale = 'en';
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
+                const report: Report = {
+                    ...createRandomReport(2),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                const reportNameValuePairs = {};
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+                const optionData = SidebarUtils.getOptionData({
+                    report,
+                    reportNameValuePairs,
+                    reportActions: {},
+                    personalDetails: {},
+                    preferredLocale,
+                    policy,
+                    parentReportAction: undefined,
+                    hasViolations: false,
+                    lastMessageTextFromReport: 'test message',
+                });
+
+                expect(optionData?.alternateText).toBe(`test message`);
+            });
+            it('The text should contain the policy name at prefix if we have multiple workspace and the report is related to a workspace', async () => {
+                const preferredLocale = 'en';
+                const policy: Policy = {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
+                const report: Report = {
+                    ...createRandomReport(3),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID: '1',
+                    policyName: policy.name,
+                };
+                const reportNameValuePairs = {};
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                });
+
+                const optionData = SidebarUtils.getOptionData({
+                    report,
+                    reportNameValuePairs,
+                    reportActions: {},
+                    personalDetails: {},
+                    preferredLocale,
+                    policy,
+                    parentReportAction: undefined,
+                    hasViolations: false,
+                    lastMessageTextFromReport: 'test message',
+                });
+
+                expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
+            });
         });
     });
 });

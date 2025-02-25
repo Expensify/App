@@ -209,11 +209,13 @@ function disconnect() {
         .then((response) => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
+                restoreDelegateSession(stashedSession);
                 return;
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
+                restoreDelegateSession(stashedSession);
                 return;
             }
 
