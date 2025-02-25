@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import getButtonRole from '@components/Button/utils';
+import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';

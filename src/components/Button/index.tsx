@@ -17,7 +17,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
-import getButtonRole from './utils';
+import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonProps = Partial<ChildrenProps> & {

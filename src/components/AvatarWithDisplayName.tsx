@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import getButtonRole from './Button/utils';
+import {getButtonRole} from './Button/utils';
 import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import {FallbackAvatar} from './Icon/Expensicons';
