@@ -9,7 +9,6 @@ import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-master
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
-import OtherCompanyCardDetail from '@assets/images/companyCards/card=-generic.svg';
 import CompanyCardsEmptyState from '@assets/images/companyCards/emptystate__card-pos.svg';
 import AmexCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-amex-large.svg';
 import BankOfAmericaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-bofa-large.svg';
@@ -17,7 +16,6 @@ import BrexCompanyCardDetailLarge from '@assets/images/companyCards/large/card-b
 import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/card-capital_one-large.svg';
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
-import OtherCompanyCardDetailLarge from '@assets/images/companyCards/large/card-generic-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
 import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
 import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
@@ -290,7 +288,6 @@ export {
     CapitalOneCompanyCardDetail,
     ChaseCompanyCardDetail,
     CitibankCompanyCardDetail,
-    OtherCompanyCardDetail,
     StripeCompanyCardDetail,
     WellsFargoCompanyCardDetail,
     PerDiem,
@@ -300,7 +297,6 @@ export {
     CapitalOneCompanyCardDetailLarge,
     ChaseCompanyCardDetailLarge,
     CitibankCompanyCardDetailLarge,
-    OtherCompanyCardDetailLarge,
     MasterCardCompanyCardDetailLarge,
     StripeCompanyCardDetailLarge,
     VisaCompanyCardDetailLarge,
