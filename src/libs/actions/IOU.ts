@@ -481,6 +481,34 @@ type CreateTrackExpenseParams = {
     transactionParams: TrackExpenseTransactionParams;
 };
 
+type BuildOnyxDataForInvoiceParams = {
+    chat: {
+        chatReport: OnyxEntry<OnyxTypes.Report>;
+        chatCreatedAction: OptimisticCreatedReportAction;
+        reportPreviewAction: ReportAction;
+        isNewChatReport: boolean;
+    };
+    iou: {
+        iouCreatedAction: OptimisticCreatedReportAction;
+        iouAction: OptimisticIOUReportAction;
+        iouReport: OnyxTypes.Report;
+    };
+    transactionParams: {
+        transaction: OnyxTypes.Transaction;
+        transactionThreadReport: OptimisticChatReport;
+        transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
+    };
+    policyParams: RequestMoneyPolicyParams;
+    optimisticData: {
+        optimisticRecentlyUsedCurrencies?: string[];
+        optimisticPolicyRecentlyUsedCategories: string[];
+        optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags;
+        optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList;
+    };
+    companyName?: string;
+    companyWebsite?: string;
+};
+
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1462,27 +1490,17 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 }
 
 /** Builds the Onyx data for an invoice */
-function buildOnyxDataForInvoice(
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    iouReport: OnyxTypes.Report,
-    transaction: OnyxTypes.Transaction,
-    chatCreatedAction: OptimisticCreatedReportAction,
-    iouCreatedAction: OptimisticCreatedReportAction,
-    iouAction: OptimisticIOUReportAction,
-    optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList,
-    reportPreviewAction: ReportAction,
-    optimisticPolicyRecentlyUsedCategories: string[],
-    optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags,
-    isNewChatReport: boolean,
-    transactionThreadReport: OptimisticChatReport,
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    optimisticRecentlyUsedCurrencies?: string[],
-    companyName?: string,
-    companyWebsite?: string,
-): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+    const {
+        chat: {chatReport, chatCreatedAction, reportPreviewAction, isNewChatReport},
+        iou: {iouCreatedAction, iouAction, iouReport},
+        transactionParams: {transaction, transactionThreadReport, transactionThreadCreatedReportAction},
+        policyParams: {policy, policyTagList, policyCategories},
+        optimisticData: {optimisticPolicyRecentlyUsedCategories, optimisticPolicyRecentlyUsedTags, optimisticPersonalDetailListAction, optimisticRecentlyUsedCurrencies},
+        companyName,
+        companyWebsite,
+    } = invoiceParams;
+
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2579,27 +2597,24 @@ function getSendInvoiceInformation(
         );
 
     // STEP 6: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForInvoice(
-        chatReport,
-        optimisticInvoiceReport,
-        optimisticTransaction,
-        optimisticCreatedActionForChat,
-        optimisticCreatedActionForIOUReport,
-        iouAction,
-        optimisticPersonalDetailListAction,
-        reportPreviewAction,
-        optimisticPolicyRecentlyUsedCategories,
-        optimisticPolicyRecentlyUsedTags,
-        isNewChatReport,
-        optimisticTransactionThread,
-        optimisticCreatedActionForTransactionThread,
-        policy,
-        policyTagList,
-        policyCategories,
-        optimisticRecentlyUsedCurrencies,
+    const [optimisticData, successData, failureData] = buildOnyxDataForInvoice({
+        chat: {chatReport, chatCreatedAction: optimisticCreatedActionForChat, reportPreviewAction, isNewChatReport},
+        iou: {iouCreatedAction: optimisticCreatedActionForIOUReport, iouAction, iouReport: optimisticInvoiceReport},
+        transactionParams: {
+            transaction: optimisticTransaction,
+            transactionThreadReport: optimisticTransactionThread,
+            transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+        },
+        policyParams: {policy, policyTagList, policyCategories},
+        optimisticData: {
+            optimisticPersonalDetailListAction,
+            optimisticRecentlyUsedCurrencies,
+            optimisticPolicyRecentlyUsedCategories,
+            optimisticPolicyRecentlyUsedTags,
+        },
         companyName,
         companyWebsite,
-    );
+    });
 
     return {
         createdIOUReportActionID: optimisticCreatedActionForIOUReport.reportActionID,
