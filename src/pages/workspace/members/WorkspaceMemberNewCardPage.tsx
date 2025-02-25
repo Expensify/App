@@ -18,7 +18,7 @@ import {
     hasCardListObject,
     hasOnlyOneCardToAssign,
     isCustomFeed,
-    isExpensifyCardFullySetup,
+    isExpensifyCardFullySetUp,
     isSelectedFeedExpired,
 } from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -66,7 +66,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
 
-    const shouldShowExpensifyCard = isExpensifyCardFullySetup(policy, cardSettings);
+    const shouldShowExpensifyCard = isExpensifyCardFullySetUp(policy, cardSettings);
 
     const handleSubmit = () => {
         if (!selectedFeed) {

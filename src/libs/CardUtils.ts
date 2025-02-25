@@ -522,13 +522,13 @@ function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed
 }
 
 /**
- * Check if the Expensify Card is fully setup and a new card can be issued
+ * Check if the Expensify Card is fully set up and a new card can be issued
  *
  * @param policy the policy object
  * @param cardSettings the card settings object
  * @returns boolean
  */
-function isExpensifyCardFullySetup(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
+function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
@@ -571,5 +571,5 @@ export {
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
     hasCardListObject,
-    isExpensifyCardFullySetup,
+    isExpensifyCardFullySetUp,
 };

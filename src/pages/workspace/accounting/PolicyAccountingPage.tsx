@@ -34,7 +34,7 @@ import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {getConciergeReportID} from '@libs/actions/Report';
-import {isExpensifyCardFullySetup} from '@libs/CardUtils';
+import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -119,7 +119,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption = isExpensifyCardFullySetup(policy, cardSettings);
+    const shouldShowCardReconciliationOption = isExpensifyCardFullySetUp(policy, cardSettings);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
