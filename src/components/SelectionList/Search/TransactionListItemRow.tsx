@@ -29,6 +29,8 @@ import {
     getDescription as getTransactionDescription,
     hasReceipt,
     isReceiptBeingScanned,
+    isExpensifyCardTransaction,
+    isPending,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
@@ -183,15 +185,22 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
 
 function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.transactionType);
+    const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
+    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(transactionItem.transactionType);
+
+    const tooltipText = isPendingExpensifyCardTransaction ? translate('iou.pending') : '';
 
     return (
-        <Icon
-            src={typeIcon}
-            fill={theme.icon}
-            height={isLargeScreenWidth ? 20 : 12}
-            width={isLargeScreenWidth ? 20 : 12}
-        />
+        <Tooltip text={tooltipText}>
+            <View>
+                <Icon
+                    src={typeIcon}
+                    fill={theme.icon}
+                    height={isLargeScreenWidth ? 20 : 12}
+                    width={isLargeScreenWidth ? 20 : 12}
+                />
+            </View>
+        </Tooltip>
     );
 }
 
