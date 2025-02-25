@@ -570,6 +570,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
+        borderRadiusComponentNormal: {
+            borderRadius: variables.componentBorderRadiusNormal,
+        },
+
         topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
@@ -4183,8 +4187,8 @@ const styles = (theme: ThemeColors) =>
 
         eReceiptWaypointAddress: {
             ...FontUtils.fontFamily.platform.MONOSPACE,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.lineHeightNormal,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightSmall,
             color: theme.textColorfulBackground,
         },
 
@@ -4222,10 +4226,27 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContainer: {
-            width: 335,
-            minHeight: 540,
-            borderRadius: 20,
+            minWidth: variables.eReceiptBGHWidth,
+            minHeight: variables.eReceiptBGHeight,
             overflow: 'hidden',
+        },
+
+        eReceiptContentContainer: {
+            ...positioning.pRelative,
+            width: variables.eReceiptBodyWidth,
+            minHeight: variables.eReceiptBodyHeight,
+        },
+
+        eReceiptBody: {
+            ...positioning.pAbsolute,
+            ...sizing.w100,
+            top: 0,
+        },
+
+        eReceiptContentWrapper: {
+            ...positioning.pAbsolute,
+            ...sizing.w100,
+            top: 40,
         },
 
         loginHeroBody: {
@@ -4688,7 +4709,7 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 2,
             borderColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
-            height: 200,
+            height: 176,
             maxWidth: 400,
         },
 
