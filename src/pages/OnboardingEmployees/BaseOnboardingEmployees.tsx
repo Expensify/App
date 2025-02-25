@@ -13,11 +13,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {openOldDotLink} from '@userActions/Link';
 import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID} from '@userActions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,6 +75,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
                     setOnboardingCompanySize(selectedCompanySize);
 
+                    // Redirect is disabled on desktop
+                    if (getPlatform() !== CONST.PLATFORM.DESKTOP) {
+                        switchToOldDotOnNonMicroCompanySize(selectedCompanySize);
+                    }
+
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
                     // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
@@ -86,8 +93,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         setOnboardingPolicyID(policyID);
                     }
 
-                    // For MICRO companies (1-10 employees), we want to remain on NewDot.
-                    if (!NativeModules.HybridAppModule || selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                    // For MICRO companies (1-10 employees) or desktop app, we want to remain on NewDot.
+                    if (selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || getPlatform() === CONST.PLATFORM.DESKTOP) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                         return;
                     }
@@ -107,8 +114,12 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         );
                     }
 
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, true);
-                    setRootStatusBarEnabled(false);
+                    if (NativeModules.HybridAppModule) {
+                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        setRootStatusBarEnabled(false);
+                    } else {
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                    }
                 }}
                 pressOnEnter
             />

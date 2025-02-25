@@ -28,7 +28,6 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {clearAllFilters} from './actions/Search';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
@@ -524,7 +523,7 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, shouldGroupByR
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
+    if (!shouldGroupByReports) {
         return TransactionListItem;
     }
     return ReportListItem;
@@ -537,7 +536,7 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
+    if (!shouldGroupByReports) {
         return getTransactionsSections(data, metadata);
     }
     return getReportSections(data, metadata);
@@ -557,7 +556,7 @@ function getSortedSections(
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
-    if (type === CONST.SEARCH.DATA_TYPES.EXPENSE && !shouldGroupByReports) {
+    if (!shouldGroupByReports) {
         return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
     }
     return getSortedReportData(data as ReportListItemType[]);
@@ -768,10 +767,6 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
         query: item.query,
         shouldShowRightComponent: true,
         focused: Number(key) === hash,
-        onPress: () => {
-            clearAllFilters();
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
-        },
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         shouldIconUseAutoWidthStyle: true,

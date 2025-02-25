@@ -5,13 +5,14 @@ import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as OnboardingFlow from './OnboardingFlow';
+import {clearInitialPath} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
@@ -149,6 +150,29 @@ function completeHybridAppOnboarding() {
     });
 }
 
+/*
+ * Decides whether we should set dismissed key to `true` or `false` based on company size
+ */
+function switchToOldDotOnNonMicroCompanySize(onboardingCompanySize: OnboardingCompanySize) {
+    if (onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRYNEWDOT,
+            value: {
+                classicRedirect: {
+                    dismissed: true,
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SWITCH_TO_OLD_DOT_ON_COMPANY_SIZE, {onboardingCompanySize}, {optimisticData});
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => {
@@ -183,7 +207,7 @@ function resetAllChecks() {
     });
     isLoadingReportData = true;
     isOnboardingInProgress = false;
-    OnboardingFlow.clearInitialPath();
+    clearInitialPath();
 }
 
 function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
@@ -230,6 +254,7 @@ export {
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
+    switchToOldDotOnNonMicroCompanySize,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
     setSelfTourViewed,
