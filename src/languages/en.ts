@@ -2510,6 +2510,11 @@ const translations = {
         sendReminder: 'Send a reminder',
         chooseFile: 'Choose file',
         weAreWaiting: "We're waiting for others to verify their identities as directors or senior officers of the business.",
+        occupation: 'Occupation',
+        whatsYourOccupation: "What's your occupation?",
+        proofOfDirectors: 'Proof of directors',
+        codiceFiscale: 'Codice fiscale',
+        PRDandSFD: 'PRD and SFD',
     },
     agreementsStep: {
         agreements: 'Agreements',

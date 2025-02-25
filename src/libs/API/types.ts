@@ -461,6 +461,7 @@ const WRITE_COMMANDS = {
     RESET_SMS_DELIVERY_FAILURE_STATUS: 'ResetSMSDeliveryFailureStatus',
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
+    SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION: 'SaveCorpayOnboardingDirectorInformation',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -790,10 +791,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
     [WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
+    [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
+    [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION]: Parameters.SaveCorpayOnboardingDirectorInformationParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT]: Parameters.UpdateWorkspaceCustomUnitParams;
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
-    [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
@@ -998,8 +1000,8 @@ const READ_COMMANDS = {
     START_ISSUE_NEW_CARD_FLOW: 'StartIssueNewCardFlow',
     OPEN_CARD_DETAILS_PAGE: 'OpenCardDetailsPage',
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
-    OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
+    OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1067,8 +1069,8 @@ type ReadCommandParameters = {
     [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: Parameters.GetAssignedSupportDataParams;
-    [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
+    [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

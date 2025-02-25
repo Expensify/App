@@ -8,18 +8,16 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type NameProps = SubStepProps & {directorID?: string};
+type OccupationProps = SubStepProps & {directorID?: string};
 
-const {SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {PREFIX, DIRECTOR_FULL_NAME} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {PREFIX, DIRECTOR_OCCUPATION} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function Name({onNext, onMove, isEditing, directorID}: NameProps) {
+function Occupation({onNext, onMove, isEditing, directorID}: OccupationProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const inputID = directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? `${PREFIX}_${directorID}_${DIRECTOR_FULL_NAME}` : SIGNER_FULL_NAME;
+    const inputID = `${PREFIX}_${directorID}_${DIRECTOR_OCCUPATION}`;
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(
@@ -47,11 +45,11 @@ function Name({onNext, onMove, isEditing, directorID}: NameProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('signerInfoStep.whatsYourName')}
+            formTitle={translate('signerInfoStep.whatsYourOccupation')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}
-            inputLabel={translate('signerInfoStep.fullName')}
+            inputLabel={translate('signerInfoStep.occupation')}
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
@@ -59,6 +57,6 @@ function Name({onNext, onMove, isEditing, directorID}: NameProps) {
     );
 }
 
-Name.displayName = 'Name';
+Occupation.displayName = 'Occupation';
 
-export default Name;
+export default Occupation;
