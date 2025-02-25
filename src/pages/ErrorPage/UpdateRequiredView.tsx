@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AppUpdate from '@libs/actions/AppUpdate';
+import {updateApp} from '@userActions/AppUpdate';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();
@@ -57,7 +57,7 @@ function UpdateRequiredView() {
                 <Button
                     success
                     large
-                    onPress={() => AppUpdate.updateApp(isProduction)}
+                    onPress={() => updateApp(isProduction)}
                     text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
                 />
