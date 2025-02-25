@@ -26,7 +26,7 @@ function CustomEmojiWithDefaultPressableAction({emojiKey, children}: CustomEmoji
             <PressableWithoutFeedback
                 onPress={() => setIsCreateMenuActive(!isFabActionActive)}
                 onLongPress={() => {}}
-                style={{verticalAlign: 'bottom'}}
+                style={{verticalAlign: 'bottom', userSelect: 'none'}}
                 role={CONST.ROLE.BUTTON}
                 shouldUseHapticsOnLongPress={false}
                 accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}

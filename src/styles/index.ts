@@ -1709,11 +1709,10 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             verticalAlign: 'bottom',
-            ...(getPlatform() === CONST.PLATFORM.WEB || getPlatform() === CONST.PLATFORM.DESKTOP ? {marginBottom: variables.fontSizeNormalHeight / 8} : {}),
             ...(getPlatform() === CONST.PLATFORM.IOS ? {marginBottom: -variables.fontSizeNormalHeight / 4} : {}),
             // `fontSizeNormal` value for scale factor 1 is 15
-            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -(variables.fontSizeNormal - 15) - variables.fontSizeNormal / 8} : {}),
-            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginRight: -(variables.fontSizeNormal - 15)} : {}),
+            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -(variables.fontSizeEmojiNormal - 10)} : {}),
+            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginRight: -(variables.fontSizeEmojiNormal - 15)} : {}),
         },
 
         sidebarFooterUsername: {
