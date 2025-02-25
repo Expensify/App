@@ -5,6 +5,7 @@ import Breadcrumbs from '@components/Breadcrumbs';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import HelpButton from '@components/SidePane/HelpButton';
 import Text from '@components/Text';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
@@ -19,15 +20,17 @@ type TopBarProps = {
     breadcrumbLabel: string;
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
+    shouldDisplaySidePane?: boolean;
     cancelSearch?: () => void;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, cancelSearch}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplaySidePane = true, cancelSearch}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const isAnonymousUser = isAnonymousUserUtil(session);
 
     const headerBreadcrumb = policy?.name
@@ -37,6 +40,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
           };
 
     const displaySignIn = isAnonymousUser;
+    const displayHelp = shouldDisplaySidePane && !!sidePane;
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
@@ -71,6 +75,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
+                {displayHelp && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
             <LoadingBar shouldShow={isLoadingReportData ?? false} />

@@ -16,6 +16,7 @@ import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import HelpButton from '@components/SidePane/HelpButton';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -111,6 +112,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -200,6 +202,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
+    const shouldDisplaySidePane = !!sidePane;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
@@ -346,7 +349,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
+                                {shouldDisplaySidePane && <HelpButton style={styles.ml2} />}
+                                {shouldDisplaySearchRouter && <SearchButton style={!shouldDisplaySidePane && styles.ml2} />}
                             </View>
                             <ConfirmModal
                                 isVisible={isDeleteTaskConfirmModalVisible}

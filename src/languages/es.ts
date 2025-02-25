@@ -513,6 +513,7 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
     },
     supportalNoAccess: {
