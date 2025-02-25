@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,7 +27,14 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-
+    const firstAssigneeEmail = useRef(assignCard?.data?.email);
+    // eslint-disable-next-line react-compiler/react-compiler
+    if (!firstAssigneeEmail.current) {
+        // eslint-disable-next-line react-compiler/react-compiler
+        firstAssigneeEmail.current = assignCard?.data?.email;
+    }
+    // eslint-disable-next-line react-compiler/react-compiler
+    const shouldUseBackToParam = !firstAssigneeEmail.current || firstAssigneeEmail.current === assignCard?.data?.email;
     useEffect(() => {
         return () => {
             clearAssignCardStepAndData();
@@ -76,7 +83,8 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <ConfirmationStep
                     policyID={policyID}
-                    backTo={backTo}
+                    // eslint-disable-next-line react-compiler/react-compiler
+                    backTo={shouldUseBackToParam ? backTo : undefined}
                 />
             );
         default:
