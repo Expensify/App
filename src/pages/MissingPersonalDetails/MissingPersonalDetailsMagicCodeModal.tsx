@@ -26,7 +26,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
     const privateDetailsErrors = privatePersonalDetails?.errors ?? undefined;
     const validateLoginError = getLatestError(privateDetailsErrors);
     const primaryLogin = account?.primaryLogin ?? '';
-    const isAllCardsShipped = Object.values(cardList).every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+    const isAllCardsShipped = Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 
     const missingDetails =
         !privatePersonalDetails?.legalFirstName ||
