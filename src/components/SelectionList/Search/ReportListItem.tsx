@@ -63,6 +63,7 @@ function ReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    shouldAnimateOnRemove,
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
 
@@ -70,7 +71,7 @@ function ReportListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, isAllStatus} = useSearchContext();
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -95,7 +96,7 @@ function ReportListItem<TItem extends ListItem>({
     ];
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
+        handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item), isAllStatus);
     };
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
@@ -132,6 +133,7 @@ function ReportListItem<TItem extends ListItem>({
                 onLongPressRow={onLongPressRow}
                 shouldSyncFocus={shouldSyncFocus}
                 isLoading={reportItem.isActionLoading}
+                shouldAnimateOnRemove={shouldAnimateOnRemove}
             />
         );
     }
@@ -155,6 +157,7 @@ function ReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            shouldAnimateOnRemove={shouldAnimateOnRemove}
         >
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (

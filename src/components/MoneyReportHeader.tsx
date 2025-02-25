@@ -80,6 +80,7 @@ import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
+import {useSearchContext} from './Search/SearchContext';
 import SettlementButton from './SettlementButton';
 
 type MoneyReportHeaderProps = {
@@ -163,6 +164,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
+    const {currentSearchHash, isAllStatus} = useSearchContext();
+    const hash = isAllStatus ? undefined : currentSearchHash;
 
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
@@ -236,10 +239,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             } else if (isInvoiceReport(moneyRequestReport)) {
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
             } else {
-                payMoneyRequest(type, chatReport, moneyRequestReport, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, true, hash);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
+        [chatReport, hash, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
     );
 
     const confirmApproval = () => {
@@ -249,7 +252,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
-            approveMoneyRequest(moneyRequestReport, true);
+            approveMoneyRequest(moneyRequestReport, true, hash);
         }
     };
 
@@ -418,7 +421,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
-                            onPress={() => submitReport(moneyRequestReport)}
+                            onPress={() => submitReport(moneyRequestReport, hash)}
                             isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
@@ -479,7 +482,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 success={isWaitingForSubmissionFromCurrentUser}
                                 text={translate('common.submit')}
                                 style={[styles.flex1, styles.pr0]}
-                                onPress={() => submitReport(moneyRequestReport)}
+                                onPress={() => submitReport(moneyRequestReport, hash)}
                                 isDisabled={shouldDisableSubmitButton}
                             />
                         )}
