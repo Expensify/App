@@ -20,6 +20,7 @@ import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import shouldReplayVideo from './shouldReplayVideo';
@@ -89,6 +90,7 @@ function BaseVideoPlayer({
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
     const videoPlayerElementRef = useRef<View | HTMLDivElement | null>(null);
     const sharedVideoPlayerParentRef = useRef<View | HTMLDivElement | null>(null);
+    const isReadyForDisplayRef = useRef(false);
     const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
@@ -351,7 +353,13 @@ function BaseVideoPlayer({
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
             return;
         }
-        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
+        // On mobile safari, we need to auto-play when sharing video element here
+        shareVideoPlayerElements(
+            videoPlayerRef.current,
+            videoPlayerElementParentRef.current,
+            videoPlayerElementRef.current,
+            isUploading || isFullScreenRef.current || (!isReadyForDisplayRef.current && !isMobileSafari()),
+        );
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentlyPlayingURLReportID]);
 
     // Call bindFunctions() through the refs to avoid adding it to the dependency array of the DOM mutation effect, as doing so would change the DOM when the functions update.
@@ -409,7 +417,7 @@ function BaseVideoPlayer({
     }, [shouldPlay, updateCurrentlyPlayingURL, url]);
 
     useEffect(() => {
-        videoPlayerRef.current?.setStatusAsync({volume: 0});
+        videoPlayerRef.current?.setStatusAsync({isMuted: true});
     }, []);
 
     return (
@@ -478,6 +486,7 @@ function BaseVideoPlayer({
                                             resizeMode={resizeMode as ResizeMode}
                                             isLooping={isLooping}
                                             onReadyForDisplay={(e) => {
+                                                isReadyForDisplayRef.current = true;
                                                 if (isCurrentlyURLSet && !isUploading) {
                                                     playVideo();
                                                 }
