@@ -39,7 +39,7 @@ function DisablePage() {
                 <View style={[styles.ph5, styles.mt3]}>
                     <Text>{translate('twoFactorAuth.explainProcessToRemove')}</Text>
                 </View>
-                <View style={[styles.mh5, styles.mb4, styles.mt5]}>
+                <View style={[styles.mh5, styles.mb4, styles.mt3]}>
                     <TwoFactorAuthForm
                         innerRef={formRef}
                         validateInsteadOfDisable={false}
