@@ -632,7 +632,6 @@ function ReportPreview({
                                         onlyShowPayElsewhere={onlyShowPayElsewhere}
                                         isPaidAnimationRunning={isPaidAnimationRunning}
                                         isApprovedAnimationRunning={isApprovedAnimationRunning}
-                                        isSubmitAnimationRunning={isSubmitAnimationRunning}
                                         canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
                                         formattedAmount={getSettlementAmount() ?? ''}
