@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {InteractionManager} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,7 +42,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     }, [isOn, offsetX]);
 
     const handleSwitchPress = () => {
-        InteractionManager.runAfterInteractions(() => {
+        requestAnimationFrame(() => {
             if (disabled) {
                 disabledAction?.();
                 return;

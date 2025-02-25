@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
-import * as PerDiem from '@libs/actions/Policy/PerDiem';
+import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,9 +35,9 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
             subRates: [],
         };
         perDiemUnits[perDiemDestination[i]].subRates?.push({
-            id: PerDiem.generateCustomUnitID(),
+            id: generateCustomUnitID(),
             name: perDiemSubRate.at(i) ?? '',
-            rate: Number(perDiemAmount.at(i)) ?? 0,
+            rate: (Number(perDiemAmount.at(i)) ?? 0) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
         });
     }
     return Object.values(perDiemUnits);
@@ -95,7 +95,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         return errors;
     }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
 
-    const importPerDiemRates = useCallback(() => {
+    const importRates = useCallback(() => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0 || !perDiemCustomUnit?.customUnitID) {
@@ -122,7 +122,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
 
         if (perDiemUnits) {
             setIsImportingPerDiemRates(true);
-            PerDiem.importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
+            importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
         }
     }, [validate, spreadsheet?.columns, spreadsheet?.data, containsHeader, policyID, perDiemCustomUnit?.customUnitID]);
 
@@ -149,7 +149,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
                 columnNames={columnNames}
-                importFunction={importPerDiemRates}
+                importFunction={importRates}
                 errors={isValidationEnabled ? validate() : undefined}
                 columnRoles={columnRoles}
                 isButtonLoading={isImportingPerDiemRates}

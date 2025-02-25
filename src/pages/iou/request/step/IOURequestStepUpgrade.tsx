@@ -10,7 +10,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
-import * as IOU from '@userActions/IOU';
+import {setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ROUTES from '@src/ROUTES';
@@ -46,18 +46,18 @@ function IOURequestStepUpgrade({
             {!!isUpgraded && (
                 <UpgradeConfirmation
                     onConfirmUpgrade={() => {
-                        IOU.setMoneyRequestParticipants(transactionID, [
+                        setMoneyRequestParticipants(transactionID, [
                             {
                                 selected: true,
                                 accountID: 0,
                                 isPolicyExpenseChat: true,
-                                reportID: policyDataRef.current?.expenseChatReportID ?? '-1',
+                                reportID: policyDataRef.current?.expenseChatReportID,
                                 policyID: policyDataRef.current?.policyID,
                                 searchText: policyDataRef.current?.policyName,
                             },
                         ]);
                         Navigation.goBack();
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID ?? '-1'));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, policyDataRef.current?.expenseChatReportID));
                     }}
                     policyName=""
                     isCategorizing
@@ -67,7 +67,7 @@ function IOURequestStepUpgrade({
                 <UpgradeIntro
                     feature={feature}
                     onUpgrade={() => {
-                        const policyData = Policy.createWorkspace();
+                        const policyData = Policy.createWorkspace('', false, '', undefined, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
                         setIsUpgraded(true);
                         policyDataRef.current = policyData;
                     }}

@@ -2,6 +2,7 @@ import lodashCloneDeep from 'lodash/cloneDeep';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {PartialDeep} from 'type-fest';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
@@ -27,7 +28,7 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getPolicy, navigateWhenEnableFeature} from '@libs/PolicyUtils';
+import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {getAllPolicyReports} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -215,7 +216,6 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
     const optimisticPolicyCategoriesData = {
         ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
             acc[key] = {
-                ...policyCategories[key],
                 ...categoriesToUpdate[key],
                 errors: null,
                 pendingFields: {
@@ -241,10 +241,8 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: {
-                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
+                    ...Object.keys(categoriesToUpdate).reduce<PartialDeep<PolicyCategories>>((acc, key) => {
                         acc[key] = {
-                            ...policyCategories[key],
-                            ...categoriesToUpdate[key],
                             errors: null,
                             pendingFields: {
                                 enabled: null,
@@ -265,7 +263,6 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                     ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
                         acc[key] = {
                             ...policyCategories[key],
-                            ...categoriesToUpdate[key],
                             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                             pendingFields: {
                                 enabled: null,
@@ -958,7 +955,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
 }
 
-function enablePolicyCategories(policyID: string, enabled: boolean, shouldNavigate = true) {
+function enablePolicyCategories(policyID: string, enabled: boolean, shouldGoBack = true) {
     const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
     if (!enabled) {
         onyxUpdatesToDisableCategories.push(
@@ -1029,8 +1026,8 @@ function enablePolicyCategories(policyID: string, enabled: boolean, shouldNaviga
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout() && shouldNavigate) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
+        goBackWhenEnableFeature(policyID);
     }
 }
 

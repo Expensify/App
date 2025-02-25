@@ -137,6 +137,10 @@ export default {
         flexBasis: 'auto',
     },
 
+    flexBasis100: {
+        flexBasis: '100%',
+    },
+
     flexBasis0: {
         flexBasis: 0,
     },

@@ -10,7 +10,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
-import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
@@ -26,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import InputComponentMap from './implementations';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
@@ -62,7 +62,7 @@ function BaseTextInput(
         prefixCharacter = '',
         suffixCharacter = '',
         inputID,
-        isMarkdownEnabled = false,
+        type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         prefixContainerStyle = [],
@@ -71,11 +71,14 @@ function BaseTextInput(
         suffixStyle = [],
         contentWidth,
         loadingSpinnerStyle,
+        uncontrolled,
+        placeholderTextColor,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+    const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
+    const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
 
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
@@ -105,18 +108,14 @@ function BaseTextInput(
 
     useHtmlPaste(input, undefined, isMarkdownEnabled);
 
-    // AutoFocus which only works on mount:
+    // AutoFocus with delay is executed manually, otherwise it's handled by the TextInput's autoFocus native prop
     useEffect(() => {
-        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!autoFocus || !input.current) {
+        if (!autoFocus || !shouldDelayFocus || !input.current) {
             return;
         }
 
-        if (shouldDelayFocus) {
-            const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => clearTimeout(focusTimeout);
-        }
-        input.current.focus();
+        const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
+        return () => clearTimeout(focusTimeout);
         // We only want this to run on mount
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -266,6 +265,9 @@ function BaseTextInput(
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
+
+    // Height fix is needed only for Text single line inputs
+    const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
     return (
         <>
             <View style={[containerStyles]}>
@@ -307,7 +309,7 @@ function BaseTextInput(
                                 />
                             </>
                         ) : null}
-                        <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                        <View style={[styles.textInputAndIconContainer(isMarkdownEnabled), isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon
@@ -343,9 +345,10 @@ function BaseTextInput(
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                autoFocus={autoFocus && !shouldDelayFocus}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
-                                placeholderTextColor={theme.placeholderText}
+                                placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
                                     styles.flex1,
@@ -356,7 +359,9 @@ function BaseTextInput(
                                     inputPaddingRight,
                                     inputProps.secureTextEntry && styles.secureInput,
 
-                                    !isMultiline && {height, lineHeight: undefined},
+                                    // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
+                                    // once it exceeds the input space on iOS (See https://github.com/Expensify/App/issues/13802)
+                                    shouldApplyHeight && {height, lineHeight: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight && !isAutoGrowHeightMarkdown
@@ -377,7 +382,7 @@ function BaseTextInput(
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}
                                 inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
-                                value={value}
+                                value={uncontrolled ? undefined : value}
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}

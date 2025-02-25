@@ -10,10 +10,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 type NotFoundPageProps = {
     onBackButtonPress?: () => void;
     isReportRelatedPage?: boolean;
+    shouldShowOfflineIndicator?: boolean;
 } & FullPageNotFoundViewProps;
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRelatedPage, ...fullPageNotFoundViewProps}: NotFoundPageProps) {
+function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRelatedPage, shouldShowOfflineIndicator, ...fullPageNotFoundViewProps}: NotFoundPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to go back to the not found page on large screens and to the home page on small screen
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -21,7 +22,10 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
 
     return (
-        <ScreenWrapper testID={NotFoundPage.displayName}>
+        <ScreenWrapper
+            testID={NotFoundPage.displayName}
+            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+        >
             <FullPageNotFoundView
                 shouldShow
                 onBackButtonPress={() => {

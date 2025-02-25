@@ -36,7 +36,7 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
-import * as Pusher from '@libs/Pusher/pusher';
+import Pusher from '@libs/Pusher';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
@@ -272,6 +272,9 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 [ONYXKEYS.SESSION]: stashedSession,
             };
         }
+        if (isSupportal && !shouldStashSession && !hasStashedSession()) {
+            Log.info('No stashed session found for supportal access, clearing the session');
+        }
         redirectToSignIn().then(() => {
             Onyx.multiSet(onyxSetParams);
         });
@@ -298,7 +301,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function checkIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
+function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }
@@ -591,7 +594,7 @@ function signInAfterTransitionFromOldDot(transitionURL: string) {
                 Log.hmmm('[HybridApp] Initialization of HybridApp has failed. Forcing transition', {error});
             })
             .finally(() => {
-                resolve(`${route}?singleNewDotEntry=${isSingleNewDotEntry}` as Route);
+                resolve(`${route}${isSingleNewDotEntry === 'true' ? '?singleNewDotEntry=true' : ''}` as Route);
             });
     });
 
@@ -892,7 +895,7 @@ const reauthenticatePusher = throttle(
     {trailing: false},
 );
 
-function authenticatePusher(socketID: string, channelName: string, callback: ChannelAuthorizationCallback) {
+function authenticatePusher(socketID: string, channelName: string, callback?: ChannelAuthorizationCallback) {
     Log.info('[PusherAuthorizer] Attempting to authorize Pusher', false, {channelName});
 
     const params: AuthenticatePusherParams = {
@@ -906,11 +909,11 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
 
     // We use makeRequestWithSideEffects here because we need to authorize to Pusher (an external service) each time a user connects to any channel.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params)
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER, params)
         .then((response) => {
             if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher because authToken is expired');
-                callback(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
+                callback?.(new Error('Pusher failed to authenticate because authToken is expired'), {auth: ''});
 
                 // Attempt to refresh the authToken then reconnect to Pusher
                 reauthenticatePusher();
@@ -919,16 +922,24 @@ function authenticatePusher(socketID: string, channelName: string, callback: Cha
 
             if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 Log.hmmm('[PusherAuthorizer] Unable to authenticate Pusher for reason other than expired session');
-                callback(new Error(`Pusher failed to authenticate because code: ${response?.jsonCode} message: ${response?.message}`), {auth: ''});
+                callback?.(new Error(`Pusher failed to authenticate because code: ${response?.jsonCode} message: ${response?.message}`), {auth: ''});
                 return;
             }
 
             Log.info('[PusherAuthorizer] Pusher authenticated successfully', false, {channelName});
-            callback(null, response as ChannelAuthorizationData);
+            if (callback) {
+                callback(null, response as ChannelAuthorizationData);
+            } else {
+                return {
+                    auth: response.auth,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    shared_secret: response.shared_secret,
+                };
+            }
         })
         .catch((error: unknown) => {
             Log.hmmm('[PusherAuthorizer] Unhandled error: ', {channelName, error});
-            callback(new Error('AuthenticatePusher request failed'), {auth: ''});
+            callback?.(new Error('AuthenticatePusher request failed'), {auth: ''});
         });
 }
 
@@ -1045,9 +1056,6 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-
-                // When disabling 2FA, the user needs to end up on the step that confirms the setting was disabled
-                twoFactorAuthStep: enable ? undefined : CONST.TWO_FACTOR_AUTH_STEPS.DISABLED,
             },
         },
     ];
@@ -1296,7 +1304,7 @@ export {
     beginAppleSignIn,
     beginGoogleSignIn,
     setSupportAuthToken,
-    checkIfActionIsAllowed,
+    callFunctionIfActionIsAllowed,
     signIn,
     signInWithValidateCode,
     handleExitToNavigation,

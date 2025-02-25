@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type React from 'react';
-import type {LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -42,6 +42,9 @@ type SharedTooltipProps = {
 
     /** Whether the tooltip should teleport to the modal layer */
     shouldTeleportPortalToModalLayer?: boolean;
+
+    /** Callback when tooltip is clicked */
+    onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 };
 
 type GenericTooltipState = {

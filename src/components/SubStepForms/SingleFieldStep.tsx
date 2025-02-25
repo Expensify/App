@@ -9,7 +9,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -46,6 +46,9 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** Max length of the field */
     maxLength?: number;
+
+    /** Should the submit button be enabled when offline */
+    enabledWhenOffline?: boolean;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -61,6 +64,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     isEditing,
     shouldShowHelpLinks = true,
     maxLength,
+    enabledWhenOffline,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -73,6 +77,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            enabledWhenOffline={enabledWhenOffline}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>

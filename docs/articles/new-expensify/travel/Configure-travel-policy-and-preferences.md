@@ -158,8 +158,16 @@ Flight preferences include multiple sections with different settings:
 
 # FAQ
 
-How do travel policy rules interact with Expensify’s [approval flows](https://help.expensify.com/articles/expensify-classic/travel/Approve-travel-expenses)?
+## How do travel policy rules interact with Expensify’s [approval flows](https://help.expensify.com/articles/expensify-classic/travel/Approve-travel-expenses)?
 
 Travel policy rules define what can and can’t be booked by your employees while they’re making the booking. Once a booking is placed and the travel itself is [approved](https://help.expensify.com/articles/expensify-classic/travel/Approve-travel-expenses), the expense will appear in Expensify. It will then be coded, submitted, pushed through the existing expense approval process as defined by your workspace, and exported to your preferred accounting platform (if applicable).
+
+## Why are some policies not selectable? 
+
+If the travel policy you want to configure is greyed out, it might be linked to a parent policy. To unlink it from the default policy:
+
+1. Look for the “link” icon next to the dropdown menu. 
+2. Click the icon to unlink the policy from the parent policy. 
+3. Once unlinked, you’ll be able to make your selection.
 
 </div>

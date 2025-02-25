@@ -1,12 +1,12 @@
 import {StyleSheet} from 'react-native';
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import type ImageSVGProps from '@components/ImageSVG/types';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
-import * as UserUtils from '@libs/UserUtils';
+import {hashText} from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
@@ -29,7 +29,8 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import searchHeaderHeight from './searchHeaderHeight';
+import getSearchBottomTabHeaderStyles from './searchBottomTabHeaderStyles.ts';
+import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
 import type {
     AllStyles,
     AvatarSize,
@@ -275,7 +276,7 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
  * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
-    const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
+    const colorHash = hashText(text.trim(), workspaceColorOptions.length);
     return workspaceColorOptions.at(colorHash) ?? {backgroundColor: colors.blue200, fill: colors.blue700};
 }
 
@@ -296,7 +297,7 @@ function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColo
         return CONST.ERECEIPT_COLORS.YELLOW;
     }
 
-    const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
+    const colorHash = hashText(transactionID.trim(), eReceiptColors.length);
 
     return eReceiptColors.at(colorHash) ?? CONST.ERECEIPT_COLORS.YELLOW;
 }
@@ -747,28 +748,30 @@ function getMaximumWidth(maxWidth: number): ViewStyle {
     };
 }
 
-/**
- * Return style for opacity animation.
- */
-function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        opacity: fadeAnimation,
-    };
-}
-
 type AvatarBorderStyleParams = {
     theme: ThemeColors;
     isHovered: boolean;
     isPressed: boolean;
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
+    isActive?: boolean;
 };
 
-function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleParams): ViewStyle {
+function getHorizontalStackedAvatarBorderStyle({
+    theme,
+    isHovered,
+    isPressed,
+    isInReportAction = false,
+    shouldUseCardBackground = false,
+    isActive = false,
+}: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
+    }
+    if (isActive) {
+        borderColor = theme.messageHighlightBG;
     }
 
     if (isPressed) {
@@ -953,25 +956,28 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
 }
 
 /**
- * Returns padding vertical based on number of lines
+ * Returns vertical padding based on number of lines.
  */
-function getComposeTextAreaPadding(isComposerFullSize: boolean): TextStyle {
-    let paddingValue = 5;
+function getComposeTextAreaPadding(isComposerFullSize: boolean, textContainsOnlyEmojis: boolean): TextStyle {
+    let paddingTop = 8;
+    let paddingBottom = 8;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
-        paddingValue = 8;
+        paddingTop = 8;
+        paddingBottom = 8;
     }
-    return {
-        paddingTop: paddingValue,
-        paddingBottom: paddingValue,
-    };
+    // We need to reduce the top padding because emojis have a bigger font height.
+    if (textContainsOnlyEmojis) {
+        paddingTop = 3;
+    }
+    return {paddingTop, paddingBottom};
 }
 
 /**
  * Returns style object for the mobile on WEB
  */
 function getOuterModalStyle(windowHeight: number, viewportOffsetTop: number): ViewStyle {
-    return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
+    return isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
 /**
@@ -1170,7 +1176,7 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
 
 const staticStyleUtils = {
     positioning,
-    searchHeaderHeight,
+    searchHeaderDefaultOffset,
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1192,7 +1198,6 @@ const staticStyleUtils = {
     getMinimumWidth,
     getMaximumHeight,
     getMaximumWidth,
-    fade,
     getHorizontalStackedAvatarBorderStyle,
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
@@ -1235,6 +1240,7 @@ const staticStyleUtils = {
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
+    getSearchBottomTabHeaderStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,

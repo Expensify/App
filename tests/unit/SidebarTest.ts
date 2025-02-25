@@ -6,6 +6,7 @@ import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {ReportNameValuePairsCollectionDataSet} from '@src/types/onyx/ReportNameValuePairs';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -13,9 +14,8 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
-jest.mock('@src/hooks/useIsCurrentRouteHome');
 jest.mock('@src/components/Icon/Expensicons');
+jest.mock('@src/hooks/useRootNavigationState');
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'email1@test.com';
@@ -45,10 +45,6 @@ describe('Sidebar', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3, true),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                private_isArchived: DateUtils.getDBTime(),
                 lastMessageText: 'test',
             };
 
@@ -58,6 +54,10 @@ describe('Sidebar', () => {
                 originalMessage: {
                     reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
                 },
+            };
+
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
             };
 
             // Given the user is in all betas
@@ -75,11 +75,16 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
                         } as ReportActionsCollectionDataSet;
 
+                        const reportNameValuePairsCollection: ReportNameValuePairsCollectionDataSet = {
+                            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
+                        };
+
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            ...reportNameValuePairsCollection,
                             ...reportCollection,
                             ...reportAction,
                         });
@@ -102,7 +107,6 @@ describe('Sidebar', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 private_isArchived: DateUtils.getDBTime(),
                 lastMessageText: 'test',
             };
@@ -113,6 +117,9 @@ describe('Sidebar', () => {
                     policyName: 'Vikings Policy',
                     reason: 'policyDeleted',
                 },
+            };
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
             };
 
             // Given the user is in all betas
@@ -130,11 +137,16 @@ describe('Sidebar', () => {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action},
                         } as ReportActionsCollectionDataSet;
 
+                        const reportNameValuePairsCollection: ReportNameValuePairsCollectionDataSet = {
+                            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: reportNameValuePairs,
+                        };
+
                         return Onyx.multiSet({
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
+                            ...reportNameValuePairsCollection,
                             ...reportCollection,
                             ...reportAction,
                         });

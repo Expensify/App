@@ -3,6 +3,7 @@ import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {
+    canApproveIOU,
     cancelPayment,
     deleteMoneyRequest,
     payMoneyRequest,
@@ -77,7 +78,18 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),
     setNavigationActionToMicrotaskQueue: jest.fn(),
+    removeScreenByKey: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getReportRouteByID: jest.fn(),
 }));
+
+jest.mock('@src/libs/Navigation/navigationRef', () => ({
+    getRootState: () => ({
+        routes: [],
+    }),
+}));
+
+jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -88,7 +100,7 @@ jest.mock('@src/libs/actions/Report', () => {
         notifyNewAction: jest.fn(),
     };
 });
-jest.mock('@src/libs/Navigation/isSearchTopmostCentralPane', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -190,34 +202,28 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
 
             // When the user submits the transaction to the selfDM report
-            trackExpense(
-                selfDMReport,
-                fakeTransaction.amount,
-                fakeTransaction.currency,
-                format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                fakeTransaction.merchant,
-                participant.login,
-                participant.accountID,
-                participant,
-                '',
-                true,
-                undefined,
-                '',
-                undefined,
-                '',
-                0,
-                false,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                fakeWayPoints,
-                CONST.IOU.ACTION.CREATE,
-                fakeTransaction?.actionableWhisperReportActionID,
-                fakeTransaction?.linkedTrackedExpenseReportAction,
-                fakeTransaction?.linkedTrackedExpenseReportID,
-                CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-            );
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: participant.login,
+                    payeeAccountID: participant.accountID,
+                    participant,
+                },
+                transactionParams: {
+                    amount: fakeTransaction.amount,
+                    currency: fakeTransaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: fakeTransaction.merchant,
+                    billable: false,
+                    validWaypoints: fakeWayPoints,
+                    actionableWhisperReportActionID: fakeTransaction?.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: fakeTransaction?.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: fakeTransaction?.linkedTrackedExpenseReportID,
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
 
@@ -283,34 +289,32 @@ describe('actions/IOU', () => {
             const transactionDraft = allTransactionsDraft?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`];
 
             // When the user confirms the category for the tracked expense
-            trackExpense(
-                expenseReport,
-                transactionDraft?.amount ?? fakeTransaction.amount,
-                transactionDraft?.currency ?? fakeTransaction.currency,
-                format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-                transactionDraft?.merchant ?? fakeTransaction.merchant,
-                participant.login,
-                participant.accountID,
-                {...participant, isPolicyExpenseChat: true},
-                '',
-                false,
-                undefined,
-                Object.keys(fakeCategories).at(0) ?? '',
-                '',
-                '',
-                0,
-                undefined,
-                fakePolicy,
-                undefined,
-                fakeCategories,
-                undefined,
-                Object.keys(transactionDraft?.comment?.waypoints ?? {}).length ? getValidWaypoints(transactionDraft?.comment?.waypoints, true) : undefined,
-                CONST.IOU.ACTION.CATEGORIZE,
-                transactionDraft?.actionableWhisperReportActionID,
-                transactionDraft?.linkedTrackedExpenseReportAction,
-                transactionDraft?.linkedTrackedExpenseReportID,
-                CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-            );
+            trackExpense({
+                report: expenseReport,
+                isDraftPolicy: false,
+                action: CONST.IOU.ACTION.CATEGORIZE,
+                participantParams: {
+                    payeeEmail: participant.login,
+                    payeeAccountID: participant.accountID,
+                    participant: {...participant, isPolicyExpenseChat: true},
+                },
+                policyParams: {
+                    policy: fakePolicy,
+                    policyCategories: fakeCategories,
+                },
+                transactionParams: {
+                    amount: transactionDraft?.amount ?? fakeTransaction.amount,
+                    currency: transactionDraft?.currency ?? fakeTransaction.currency,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: transactionDraft?.merchant ?? fakeTransaction.merchant,
+                    category: Object.keys(fakeCategories).at(0) ?? '',
+                    validWaypoints: Object.keys(transactionDraft?.comment?.waypoints ?? {}).length ? getValidWaypoints(transactionDraft?.comment?.waypoints, true) : undefined,
+                    actionableWhisperReportActionID: transactionDraft?.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transactionDraft?.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transactionDraft?.linkedTrackedExpenseReportID,
+                    customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
+                },
+            });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
 
@@ -1737,6 +1741,49 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+
+        it('should update split chat report lastVisibleActionCreated to the report preview action', async () => {
+            // Given a workspace chat with no expenses
+            const workspaceReportID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
+
+            // When the user split bill on the workspace
+            splitBill({
+                participants: [{reportID: workspaceReportID}],
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                comment: '',
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'test',
+                created: '',
+                existingSplitChatReportID: workspaceReportID,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the workspace chat lastVisibleActionCreated should be updated to the report preview action created
+            const reportPreviewAction = await new Promise<OnyxEntry<ReportAction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        resolve(Object.values(reportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW));
+                    },
+                });
+            });
+
+            await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        expect(report?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
+                        resolve(report);
+                    },
+                });
+            });
         });
     });
 
@@ -4398,37 +4445,30 @@ describe('actions/IOU', () => {
             [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, CONST.IOU.ACTION.SHARE],
         ])('%s', async (expectedCommand: ApiCommand, action: IOUAction) => {
             // When a track expense is created
-            trackExpense(
-                {reportID: ''},
-                10000,
-                CONST.CURRENCY.USD,
-                '2024-10-30',
-                'KFC',
-                RORY_EMAIL,
-                RORY_ACCOUNT_ID,
-                {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                '',
-                false,
-                {},
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
+            trackExpense({
+                report: {reportID: ''},
+                isDraftPolicy: false,
                 action,
-                '1',
-                {
-                    reportActionID: '',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                    created: '2024-10-30',
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
                 },
-                '1',
-            );
+                transactionParams: {
+                    amount: 10000,
+                    currency: CONST.CURRENCY.USD,
+                    created: '2024-10-30',
+                    merchant: 'KFC',
+                    receipt: {},
+                    actionableWhisperReportActionID: '1',
+                    linkedTrackedExpenseReportAction: {
+                        reportActionID: '',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        created: '2024-10-30',
+                    },
+                    linkedTrackedExpenseReportID: '1',
+                },
+            });
 
             await waitForBatchedUpdates();
 
@@ -4442,6 +4482,182 @@ describe('actions/IOU', () => {
             Object.values(params as Record<string, unknown>).forEach((value) => {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             });
+        });
+    });
+
+    describe('canApproveIOU', () => {
+        it('should return false if we have only pending card transactions', async () => {
+            const policyID = '2';
+            const reportID = '1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID)),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+            };
+            const fakeTransaction1: Transaction = {
+                ...createRandomTransaction(0),
+                reportID,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                status: CONST.TRANSACTION.STATUS.PENDING,
+            };
+            const fakeTransaction2: Transaction = {
+                ...createRandomTransaction(1),
+                reportID,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                status: CONST.TRANSACTION.STATUS.PENDING,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction1.transactionID}`, fakeTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction2.transactionID}`, fakeTransaction2);
+
+            await waitForBatchedUpdates();
+
+            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+        });
+        it('should return false if we have only scan failure transactions', async () => {
+            const policyID = '2';
+            const reportID = '1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID)),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction1: Transaction = {
+                ...createRandomTransaction(0),
+                reportID,
+                amount: 0,
+                modifiedAmount: 0,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                },
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: undefined,
+            };
+            const fakeTransaction2: Transaction = {
+                ...createRandomTransaction(1),
+                reportID,
+                amount: 0,
+                modifiedAmount: 0,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                },
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: undefined,
+            };
+
+            await Onyx.set(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`]: fakeReport,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction1.transactionID}`, fakeTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction2.transactionID}`, fakeTransaction2);
+
+            await waitForBatchedUpdates();
+
+            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+        });
+        it('should return false if all transactions are pending card or scan failure transaction', async () => {
+            const policyID = '2';
+            const reportID = '1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID)),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction1: Transaction = {
+                ...createRandomTransaction(0),
+                reportID,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                status: CONST.TRANSACTION.STATUS.PENDING,
+            };
+            const fakeTransaction2: Transaction = {
+                ...createRandomTransaction(1),
+                reportID,
+                amount: 0,
+                modifiedAmount: 0,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                },
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: undefined,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction1.transactionID}`, fakeTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction2.transactionID}`, fakeTransaction2);
+
+            await waitForBatchedUpdates();
+
+            expect(canApproveIOU(fakeReport, fakePolicy)).toBeFalsy();
+        });
+        it('should return true if at least one transactions is not pending card or scan failure transaction', async () => {
+            const policyID = '2';
+            const reportID = '1';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID)),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction1: Transaction = {
+                ...createRandomTransaction(0),
+                reportID,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                status: CONST.TRANSACTION.STATUS.PENDING,
+            };
+            const fakeTransaction2: Transaction = {
+                ...createRandomTransaction(1),
+                reportID,
+                amount: 0,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANFAILED,
+                },
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                modifiedMerchant: undefined,
+            };
+            const fakeTransaction3: Transaction = {
+                ...createRandomTransaction(2),
+                reportID,
+                amount: 100,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction1.transactionID}`, fakeTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction2.transactionID}`, fakeTransaction2);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction3.transactionID}`, fakeTransaction3);
+
+            await waitForBatchedUpdates();
+
+            expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
         });
     });
 });

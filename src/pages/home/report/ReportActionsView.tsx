@@ -13,7 +13,7 @@ import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import {
@@ -93,7 +93,7 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
         selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report), true),
@@ -118,7 +118,7 @@ function ReportActionsView({
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const openReportIfNecessary = () => {
-        if (!shouldFetchReport(report, reportMetadata)) {
+        if (!shouldFetchReport(report, reportMetadata?.isOptimisticReport)) {
             return;
         }
 
@@ -243,8 +243,10 @@ function ReportActionsView({
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const hasNewestReportAction =
-        visibleReportActions.at(0)?.created === report.lastVisibleActionCreated || visibleReportActions.at(0)?.created === transactionThreadReport?.lastVisibleActionCreated;
+    const lastActionCreated = visibleReportActions.at(0)?.created;
+    const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
+        actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
+    const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
 
     useEffect(() => {

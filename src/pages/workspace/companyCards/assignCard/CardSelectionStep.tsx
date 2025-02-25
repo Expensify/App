@@ -132,6 +132,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 <>
                     <SelectionList
                         sections={[{data: searchedListOptions}]}
+                        headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
                         shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchText}
@@ -157,6 +158,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             </View>
                         }
                         shouldShowTextInputAfterHeader
+                        shouldShowHeaderMessageAfterHeader
                         includeSafeAreaPaddingBottom={false}
                         shouldShowListEmptyContent={false}
                         shouldUpdateFocusedIndex

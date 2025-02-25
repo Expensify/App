@@ -61,7 +61,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             },
             {
                 selectedOptions,
-                excludeLogins: CONST.EXPENSIFY_EMAILS,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
     }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
@@ -69,7 +69,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const chatOptions = useMemo(() => {
         return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
     }, [defaultOptions, cleanSearchTerm, selectedOptions]);
@@ -92,7 +92,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
         if (chatOptions.currentUserOption) {
-            const formattedName = ReportUtils.getDisplayNameForParticipant(chatOptions.currentUserOption.accountID, false, true, true, personalDetails);
+            const formattedName = ReportUtils.getDisplayNameForParticipant({
+                accountID: chatOptions.currentUserOption.accountID,
+                shouldAddCurrentUserPostfix: true,
+                personalDetailsData: personalDetails,
+            });
             if (selectedCurrentUser) {
                 selectedCurrentUser.text = formattedName;
             } else {

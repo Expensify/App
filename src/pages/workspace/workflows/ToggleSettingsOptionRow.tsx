@@ -1,12 +1,14 @@
 import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -46,6 +48,9 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the Subtitle */
     subtitleStyle?: StyleProp<TextStyle>;
 
+    /** Used to apply styles to the Accordion */
+    accordionStyle?: StyleProp<ViewStyle>;
+
     /** Whether the option is enabled or not */
     isActive: boolean;
 
@@ -81,6 +86,7 @@ function ToggleSettingOptionRow({
     customTitle,
     subtitle,
     subtitleStyle,
+    accordionStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
     shouldEscapeText = undefined,
@@ -98,6 +104,11 @@ function ToggleSettingOptionRow({
     showLockIcon = false,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isActive);
+
+    useEffect(() => {
+        isAccordionExpanded.set(isActive);
+    }, [isAccordionExpanded, isActive]);
 
     const subtitleHtml = useMemo(() => {
         if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
@@ -171,14 +182,23 @@ function ToggleSettingOptionRow({
                     <Switch
                         disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
-                        onToggle={onToggle}
+                        onToggle={(isOn) => {
+                            shouldAnimateAccordionSection.set(true);
+                            onToggle(isOn);
+                        }}
                         isOn={isActive}
                         disabled={disabled}
                         showLockIcon={showLockIcon}
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                {isActive && subMenuItems}
+                <Accordion
+                    isExpanded={isAccordionExpanded}
+                    style={accordionStyle}
+                    isToggleTriggered={shouldAnimateAccordionSection}
+                >
+                    {subMenuItems}
+                </Accordion>
             </View>
         </OfflineWithFeedback>
     );

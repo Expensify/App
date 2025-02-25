@@ -11,6 +11,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.PersistableBundle
 import android.util.Log
 
@@ -27,7 +28,13 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
 
   init {
     val filter = IntentFilter("com.expensify.reactnativebackgroundtask.TASK_ACTION")
-    reactApplicationContext.registerReceiver(taskReceiver, filter)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        reactApplicationContext.registerReceiver(
+          taskReceiver,
+          filter,
+          Context.RECEIVER_EXPORTED
+        )
+    }
   }
 
   override fun getName(): String {

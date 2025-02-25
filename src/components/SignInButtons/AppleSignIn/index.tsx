@@ -1,11 +1,10 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import getUserLanguage from '@components/SignInButtons/GetUserLanguage';
-import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
-import withNavigationFocus from '@components/withNavigationFocus';
+import {beginAppleSignIn} from '@libs/actions/Session';
 import Log from '@libs/Log';
-import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
@@ -19,11 +18,9 @@ type AppleSignInDivProps = {
     onPointerDown?: () => void;
 };
 
-type SingletonAppleSignInButtonProps = AppleSignInDivProps & {
-    isFocused: boolean;
-};
+type SingletonAppleSignInButtonProps = AppleSignInDivProps;
 
-type AppleSignInProps = WithNavigationFocusProps & {
+type AppleSignInProps = {
     isDesktopFlow?: boolean;
     onPointerDown?: () => void;
     // eslint-disable-next-line react/no-unused-prop-types
@@ -49,7 +46,7 @@ const config = {
 
 const successListener = (event: AppleIDSignInOnSuccessEvent) => {
     const token = event.detail.authorization.id_token;
-    Session.beginAppleSignIn(token);
+    beginAppleSignIn(token);
 };
 
 const failureListener = (event: AppleIDSignInOnFailureEvent) => {
@@ -110,7 +107,8 @@ function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
 // The Sign in with Apple script may fail to render button if there are multiple
 // of these divs present in the app, as it matches based on div id. So we'll
 // only mount the div when it should be visible.
-function SingletonAppleSignInButton({isFocused, isDesktopFlow, onPointerDown}: SingletonAppleSignInButtonProps) {
+function SingletonAppleSignInButton({isDesktopFlow, onPointerDown}: SingletonAppleSignInButtonProps) {
+    const isFocused = useIsFocused();
     if (!isFocused) {
         return null;
     }
@@ -121,9 +119,6 @@ function SingletonAppleSignInButton({isFocused, isDesktopFlow, onPointerDown}: S
         />
     );
 }
-
-// withNavigationFocus is used to only render the button when it is visible.
-const SingletonAppleSignInButtonWithFocus = withNavigationFocus(SingletonAppleSignInButton);
 
 function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
     const [scriptLoaded, setScriptLoaded] = useState(false);
@@ -146,7 +141,7 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
     }
 
     return (
-        <SingletonAppleSignInButtonWithFocus
+        <SingletonAppleSignInButton
             isDesktopFlow={isDesktopFlow}
             onPointerDown={onPointerDown}
         />
@@ -154,5 +149,5 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
 }
 
 AppleSignIn.displayName = 'AppleSignIn';
-export default withNavigationFocus(AppleSignIn);
+export default AppleSignIn;
 export type {AppleSignInProps};
