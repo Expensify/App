@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import {submitReport} from '@libs/actions/IOU';
