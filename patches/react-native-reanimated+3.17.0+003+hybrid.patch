@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-reanimated/scripts/reanimated_utils.rb b/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
-index 9fc7b15..e453d84 100644
+index ec240a0..7b6a690 100644
 --- a/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
 +++ b/node_modules/react-native-reanimated/scripts/reanimated_utils.rb
 @@ -17,7 +17,11 @@ def find_config()
