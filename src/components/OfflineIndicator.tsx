@@ -34,12 +34,12 @@ function OfflineIndicator({style, containerStyles, addBottomSafeAreaPadding = fa
 
     const computedStyles = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
-        style: containerStyles ?? shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator,
+        style: containerStyles ?? (shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator),
     });
 
-    // if (!isOffline) {
-    //     return null;
-    // }
+    if (!isOffline) {
+        return null;
+    }
 
     return (
         <View style={[computedStyles, styles.flexRow, styles.alignItemsCenter, style]}>

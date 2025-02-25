@@ -5,6 +5,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -292,19 +293,9 @@ function ScreenWrapper(
     }, [ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
 
     const showBottomContent = enableEdgeToEdgeBottomSafeAreaPadding ? !!bottomContent : true;
-    const bottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
+    const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const legacyBottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
         const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
-        let bottomStyle: StyleProp<ViewStyle> = {};
-
-        if (enableEdgeToEdgeBottomSafeAreaPadding) {
-            bottomStyle = safeAreaPaddingBottomStyle;
-            if (shouldUseUnmodifiedPaddings) {
-                // eslint-disable-next-line react-compiler/react-compiler
-                bottomStyle.paddingBottom = unmodifiedPaddings.bottom;
-            }
-            return bottomStyle;
-        }
-
         if (shouldUseUnmodifiedPaddings) {
             return {
                 paddingBottom: unmodifiedPaddings.bottom,
@@ -315,9 +306,14 @@ function ScreenWrapper(
             // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
             paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
         };
-    }, [enableEdgeToEdgeBottomSafeAreaPadding, ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings.bottom]);
+    }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
+    const bottomContentStyle = useMemo(
+        () => (enableEdgeToEdgeBottomSafeAreaPadding ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle),
+        [enableEdgeToEdgeBottomSafeAreaPadding, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
+    );
 
-    const addOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : !includeSafeAreaPaddingBottom;
+    const addMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : !includeSafeAreaPaddingBottom;
+    const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -367,7 +363,8 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             style={[offlineIndicatorStyle]}
-                                            addBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
+                                            containerStyles={styles.offlineIndicatorMobile}
+                                            addBottomSafeAreaPadding={addMobileOfflineIndicatorBottomSafeAreaPadding}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
@@ -378,6 +375,7 @@ function ScreenWrapper(
                                         <OfflineIndicator
                                             containerStyles={[]}
                                             style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                            addBottomSafeAreaPadding={addWidescreenOfflineIndicatorBottomSafeAreaPadding}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
