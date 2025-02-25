@@ -1795,7 +1795,6 @@ function buildPolicyData(
                     },
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
-                reimbursementChoice: shouldEnableWorkflowsByDefault ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingFields: {
                     autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
