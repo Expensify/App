@@ -1,7 +1,7 @@
-import {useFocusEffect} from '@react-navigation/core';
+import {useFocusEffect, useIsFocused} from '@react-navigation/core';
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
+import {ActivityIndicator, Alert, AppState, Image, InteractionManager, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
@@ -10,6 +10,7 @@ import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequ
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import type {TupleToUnion} from 'type-fest';
+import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
@@ -22,12 +23,15 @@ import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import {readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -36,7 +40,8 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getIsUserSubmittedExpenseOrScannedReceipt, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -44,6 +49,7 @@ import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
+import variables from '@styles/variables';
 import {
     replaceReceipt,
     requestMoney,
@@ -76,6 +82,7 @@ function IOURequestStepScan({
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
+    const [elementTop, setElementTop] = useState(0);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
@@ -89,12 +96,14 @@ function IOURequestStepScan({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
+    const isTabActive = useIsFocused();
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -459,6 +468,55 @@ function IOURequestStepScan({
     );
 
     /**
+     * Sets a test receipt from CONST.TEST_RECEIPT_URL and navigates to the confirmation step
+     */
+    const setTestReceiptAndNavigate = useCallback(() => {
+        try {
+            const filename = `test_receipt_${Date.now()}.png`;
+            const path = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/${filename}`;
+            const source = Image.resolveAssetSource(TestReceipt).uri;
+
+            ReactNativeBlobUtil.config({
+                fileCache: true,
+                appendExt: 'png',
+                path,
+            })
+                .fetch('GET', source)
+                .then(() => {
+                    const file: FileObject = {
+                        uri: `file://${path}`,
+                        name: filename,
+                        type: 'image/png',
+                        size: 0,
+                    };
+
+                    if (!file.uri) {
+                        return;
+                    }
+
+                    setMoneyRequestReceipt(transactionID, file.uri, filename, !isEditing, file.type, true);
+                    navigateToConfirmationStep(file, file.uri, false);
+                })
+                .catch((error) => {
+                    Log.warn('Error downloading test receipt:', {message: error});
+                });
+        } catch (error) {
+            Log.warn('Error in setTestReceiptAndNavigate:', {message: error});
+        }
+    }, [transactionID, isEditing, navigateToConfirmationStep]);
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive,
+        {
+            onConfirm: setTestReceiptAndNavigate,
+            onDismiss: () => {
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
+            },
+        },
+    );
+
+    /**
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
@@ -617,137 +675,159 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo || isEditing}
             testID={IOURequestStepScan.displayName}
         >
-            {isLoadingReceipt && <FullScreenLoadingIndicator />}
-            {!!pdfFile && (
-                <PDFThumbnail
-                    style={styles.invisiblePDF}
-                    previewSourceURL={pdfFile?.uri ?? ''}
-                    onLoadSuccess={() => {
-                        setPdfFile(null);
-                        if (pdfFile) {
-                            setReceiptAndNavigate(pdfFile, true);
-                        }
-                    }}
-                    onPassword={() => {
-                        setPdfFile(null);
-                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
-                    }}
-                    onLoadError={() => {
-                        setPdfFile(null);
-                        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                    }}
-                />
-            )}
-            {cameraPermissionStatus !== RESULTS.GRANTED && (
-                <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Hand}
-                        width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                        height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                        style={styles.pb5}
+            <View
+                style={styles.flex1}
+                onLayout={(e) => {
+                    setElementTop(e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + 12) * 2);
+                }}
+            >
+                {isLoadingReceipt && <FullScreenLoadingIndicator />}
+                {!!pdfFile && (
+                    <PDFThumbnail
+                        style={styles.invisiblePDF}
+                        previewSourceURL={pdfFile?.uri ?? ''}
+                        onLoadSuccess={() => {
+                            setPdfFile(null);
+                            if (pdfFile) {
+                                setReceiptAndNavigate(pdfFile, true);
+                            }
+                        }}
+                        onPassword={() => {
+                            setPdfFile(null);
+                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                        }}
+                        onLoadError={() => {
+                            setPdfFile(null);
+                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                        }}
                     />
+                )}
+                <EducationalTooltip
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    shouldHideOnNavigate
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    shiftVertical={-elementTop}
+                >
+                    <View style={[styles.flex1]}>
+                        {cameraPermissionStatus !== RESULTS.GRANTED && (
+                            <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
+                                <ImageSVG
+                                    contentFit="contain"
+                                    src={Hand}
+                                    width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                    height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                    style={styles.pb5}
+                                />
 
-                    <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                    <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                    <Button
-                        success
-                        text={translate('common.continue')}
-                        accessibilityLabel={translate('common.continue')}
-                        style={[styles.p9, styles.pt5]}
+                                <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                                <Button
+                                    success
+                                    text={translate('common.continue')}
+                                    accessibilityLabel={translate('common.continue')}
+                                    style={[styles.p9, styles.pt5]}
+                                    onPress={capturePhoto}
+                                />
+                            </View>
+                        )}
+                        {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
+                            <View style={[styles.cameraView]}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    style={[styles.flex1]}
+                                    color={theme.textSupporting}
+                                />
+                            </View>
+                        )}
+                        {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                            <View style={[styles.cameraView]}>
+                                <GestureDetector gesture={tapGesture}>
+                                    <View style={styles.flex1}>
+                                        <NavigationAwareCamera
+                                            ref={camera}
+                                            device={device}
+                                            style={styles.flex1}
+                                            zoom={device.neutralZoom}
+                                            photo
+                                            cameraTabIndex={1}
+                                        />
+                                        <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
+                                    </View>
+                                </GestureDetector>
+                            </View>
+                        )}
+                    </View>
+                </EducationalTooltip>
+
+                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
+                    <AttachmentPicker>
+                        {({openPicker}) => (
+                            <PressableWithFeedback
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('receipt.gallery')}
+                                style={[styles.alignItemsStart]}
+                                onPress={() => {
+                                    openPicker({
+                                        onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
+                                    });
+                                }}
+                            >
+                                <Icon
+                                    height={32}
+                                    width={32}
+                                    src={Expensicons.Gallery}
+                                    fill={theme.textSupporting}
+                                />
+                            </PressableWithFeedback>
+                        )}
+                    </AttachmentPicker>
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.shutter')}
+                        style={[styles.alignItemsCenter]}
                         onPress={capturePhoto}
-                    />
-                </View>
-            )}
-            {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
-                <View style={[styles.cameraView]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        color={theme.textSupporting}
-                    />
-                </View>
-            )}
-            {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                <View style={[styles.cameraView]}>
-                    <GestureDetector gesture={tapGesture}>
-                        <View style={styles.flex1}>
-                            <NavigationAwareCamera
-                                ref={camera}
-                                device={device}
-                                style={styles.flex1}
-                                zoom={device.neutralZoom}
-                                photo
-                                cameraTabIndex={1}
-                            />
-                            <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                        </View>
-                    </GestureDetector>
-                </View>
-            )}
-            <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker>
-                    {({openPicker}) => (
+                    >
+                        <ImageSVG
+                            contentFit="contain"
+                            src={Shutter}
+                            width={CONST.RECEIPT.SHUTTER_SIZE}
+                            height={CONST.RECEIPT.SHUTTER_SIZE}
+                        />
+                    </PressableWithFeedback>
+                    {hasFlash && (
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.gallery')}
-                            style={[styles.alignItemsStart]}
-                            onPress={() => {
-                                openPicker({
-                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
-                                });
-                            }}
+                            accessibilityLabel={translate('receipt.flash')}
+                            style={[styles.alignItemsEnd]}
+                            disabled={cameraPermissionStatus !== RESULTS.GRANTED}
+                            onPress={() => setFlash((prevFlash) => !prevFlash)}
                         >
                             <Icon
                                 height={32}
                                 width={32}
-                                src={Expensicons.Gallery}
+                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
                                 fill={theme.textSupporting}
                             />
                         </PressableWithFeedback>
                     )}
-                </AttachmentPicker>
-                <PressableWithFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.shutter')}
-                    style={[styles.alignItemsCenter]}
-                    onPress={capturePhoto}
-                >
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Shutter}
-                        width={CONST.RECEIPT.SHUTTER_SIZE}
-                        height={CONST.RECEIPT.SHUTTER_SIZE}
+                </View>
+                {startLocationPermissionFlow && !!fileResize && (
+                    <LocationPermissionModal
+                        startPermissionFlow={startLocationPermissionFlow}
+                        resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                        onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
+                        onDeny={() => {
+                            updateLastLocationPermissionPrompt();
+                            navigateToConfirmationStep(fileResize, fileSource, false);
+                        }}
                     />
-                </PressableWithFeedback>
-                {hasFlash && (
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.flash')}
-                        style={[styles.alignItemsEnd]}
-                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                        onPress={() => setFlash((prevFlash) => !prevFlash)}
-                    >
-                        <Icon
-                            height={32}
-                            width={32}
-                            src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
-                            fill={theme.textSupporting}
-                        />
-                    </PressableWithFeedback>
                 )}
             </View>
-            {startLocationPermissionFlow && !!fileResize && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                    onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
-                        navigateToConfirmationStep(fileResize, fileSource, false);
-                    }}
-                />
-            )}
         </StepScreenWrapper>
     );
 }
