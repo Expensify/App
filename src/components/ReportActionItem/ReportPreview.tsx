@@ -4,7 +4,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
-import Button from '@components/Button';
 import {getButtonRole, getButtonStyle} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
@@ -82,8 +81,9 @@ import {
 } from '@libs/TransactionUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
+import SubmitButtonWithAnimation from '@src/components/SubmitButtonWithAnimation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -245,10 +245,17 @@ function ReportPreview({
         formattedMerchant = null;
     }
 
+    const [isSubmitAnimationRunning, setIsSubmitAnimationRunning] = useState(false);
+
+    const startSubmitAnimation = useCallback(() => {
+        setIsSubmitAnimationRunning(true);
+        HapticFeedback.longPress();
+    }, []);
+
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
+    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations) || isSubmitAnimationRunning;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
@@ -263,6 +270,7 @@ function ReportPreview({
     const stopAnimation = useCallback(() => {
         setIsPaidAnimationRunning(false);
         setIsApprovedAnimationRunning(false);
+        setIsSubmitAnimationRunning(false);
     }, []);
     const startAnimation = useCallback(() => {
         setIsPaidAnimationRunning(true);
@@ -272,7 +280,6 @@ function ReportPreview({
         setIsApprovedAnimationRunning(true);
         HapticFeedback.longPress();
     }, []);
-
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
             if (!type) {
@@ -416,7 +423,8 @@ function ReportPreview({
 
     const bankAccountRoute = getBankAccountRoute(chatReport);
 
-    const shouldShowSettlementButton = !shouldShowSubmitButton && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation;
+    const shouldShowSettlementButton =
+        !shouldShowSubmitButton && (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage && !shouldShowBrokenConnectionViolation && !isSubmitAnimationRunning;
 
     const shouldPromptUserToAddBankAccount = (hasMissingPaymentMethod(userWallet, iouReportID) || hasMissingInvoiceBankAccount(iouReportID)) && !isSettled(iouReportID);
     const shouldShowRBR = hasErrors && !iouSettled;
@@ -664,11 +672,13 @@ function ReportPreview({
                                     />
                                 )}
                                 {shouldShowSubmitButton && (
-                                    <Button
-                                        success={isWaitingForSubmissionFromCurrentUser}
-                                        text={translate('common.submit')}
-                                        onPress={() => iouReport && submitReport(iouReport)}
-                                        isDisabled={shouldDisableSubmitButton}
+                                    <SubmitButtonWithAnimation
+                                        isWaitingForSubmissionFromCurrentUser={isWaitingForSubmissionFromCurrentUser}
+                                        shouldDisableSubmitButton={shouldDisableSubmitButton}
+                                        iouReport={iouReport}
+                                        startSubmitAnimation={startSubmitAnimation}
+                                        isSubmitAnimationRunning={isSubmitAnimationRunning}
+                                        onAnimationFinish={stopAnimation}
                                     />
                                 )}
                             </View>
