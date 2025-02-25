@@ -238,7 +238,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
 
             {currentSubStep === SUBSTEP.DIRECTOR_DETAILS_FORM && (
                 <DirectorDetailsForm
-                    isEditing={directorsBeingEditing}
+                    isEditing={isEditingExistingDirector}
                     onNext={directorsNextScreen}
                     onMove={directorsMoveTo}
                     directorID={directorBeingModifiedID}

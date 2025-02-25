@@ -43,14 +43,14 @@ function DirectorsList({directorKeys, onConfirm, onEdit}: DirectorsListProps) {
         directorData.directors.map((director) => {
             return (
                 <MenuItem
-                    key={director.directorKey}
+                    key={director.directorID}
                     title={director.fullName}
                     description={`${director.jobTitle}, ${director.occupation}`}
                     wrapperStyle={[styles.ph5]}
                     icon={FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     onPress={() => {
-                        onEdit(director.directorKey);
+                        onEdit(director.directorID);
                     }}
                     iconWidth={40}
                     iconHeight={40}
