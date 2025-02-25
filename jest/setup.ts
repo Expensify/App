@@ -95,7 +95,7 @@ jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () =
 }));
 
 jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
-    isHybridApp: false,
+    isHybridApp: jest.fn(),
     closeReactNativeApp: jest.fn(),
     completeOnboarding: jest.fn(),
     switchAccount: jest.fn(),
