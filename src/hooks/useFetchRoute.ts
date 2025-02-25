@@ -1,5 +1,5 @@
 import isEqual from 'lodash/isEqual';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as TransactionAction from '@userActions/Transaction';
@@ -18,6 +18,7 @@ export default function useFetchRoute(
     transactionState: TransactionState = CONST.TRANSACTION.STATE.CURRENT,
 ) {
     const {isOffline} = useNetwork();
+    const [isInitialMount, setIsInitialMount] = useState(true);
     const hasRouteError = !!transaction?.errorFields?.route;
     const hasRoute = TransactionUtils.hasRoute(transaction);
     const isRouteAbsentWithoutErrors = !hasRoute && !hasRouteError;
@@ -26,15 +27,31 @@ export default function useFetchRoute(
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const shouldFetchRoute = isDistanceRequest && (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
+    const shouldFetchRoute =
+        isDistanceRequest &&
+        (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged || (isInitialMount && hasRouteError)) &&
+        (!isLoadingRoute || haveValidatedWaypointsChanged) &&
+        Object.keys(validatedWaypoints).length > 1;
 
     useEffect(() => {
+        // Handle offline scenario with route error on initial mount
+        if (isOffline && hasRouteError && isDistanceRequest && isInitialMount) {
+            const waypointValues = Object.values(waypoints ?? {});
+            const allWaypointsServerValidated = waypointValues.every((waypoint) => waypoint.lat !== 0 && waypoint.lng !== 0 && waypoint.name);
+
+            if (allWaypointsServerValidated) {
+                TransactionAction.clearError(transaction.transactionID, transactionState);
+            }
+            return;
+        }
+
         if (isOffline || !shouldFetchRoute || !transaction?.transactionID) {
             return;
         }
 
         TransactionAction.getRoute(transaction.transactionID, validatedWaypoints, transactionState);
-    }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState]);
+        setIsInitialMount(false);
+    }, [shouldFetchRoute, transaction?.transactionID, validatedWaypoints, isOffline, action, transactionState, hasRouteError, isDistanceRequest, isInitialMount, waypoints]);
 
     return {shouldFetchRoute, validatedWaypoints};
 }
