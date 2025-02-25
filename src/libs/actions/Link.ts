@@ -196,7 +196,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
 function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
     const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-    const exitTo = `exitTo=${url}`;
+    const exitTo = `exitTo=${encodeURIComponent(url)}`;
     const accountID = `accountID=${currentUserAccountID}`;
     const referrer = 'referrer=desktop';
     const paramsArray = [accountID, emailParam, authTokenParam, exitTo, referrer];
