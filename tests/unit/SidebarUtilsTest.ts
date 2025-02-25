@@ -414,6 +414,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 preferredLocale: CONST.LOCALES.EN,
+                oneTransactionThreadReport: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -455,6 +456,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -487,6 +489,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -523,6 +526,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);

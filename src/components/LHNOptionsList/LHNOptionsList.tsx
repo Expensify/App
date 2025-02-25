@@ -13,13 +13,14 @@ import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
 import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -33,6 +34,7 @@ const keyExtractor = (item: string) => `report_${item}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
+    const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashList<string>>(null);
     const route = useRoute();
 
@@ -125,6 +127,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(reportID, itemReportActions, isOffline)}`];
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
             const itemParentReportAction = itemFullReport?.parentReportActionID ? itemParentReportActions?.[itemFullReport?.parentReportActionID] : undefined;
 
@@ -175,6 +178,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
+                    oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
@@ -210,12 +214,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactions,
             transactionViolations,
             onLayoutItem,
+            isOffline,
         ],
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
-        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale],
+        () => [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale, isOffline],
+        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale, isOffline],
     );
 
     const previousOptionMode = usePrevious(optionMode);
