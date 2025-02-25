@@ -10,6 +10,7 @@ const {
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
+    WORKSPACE_EXPENSE_SUBMIT,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
@@ -66,6 +67,11 @@ type DismissedProductTraining = {
      * When user dismisses the globalCreateTooltip product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_TOOLTIP]: string;
+
+    /**
+     * When user dismisses the workspaceExpenseTooltip product training tooltip, we store the timestamp here.
+     */
+    [WORKSPACE_EXPENSE_SUBMIT]: string;
 
     /**
      * When user dismisses the test manager tooltip product training tooltip, we store the timestamp here.

@@ -5955,6 +5955,10 @@ const translations = {
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
+        workspaceExpenseSubmit: {
+            part1: 'Submit expenses',
+            part2: ' to your company here',
+        },
     },
     discardChangesConfirmation: {
         title: 'Discard changes?',

@@ -6477,6 +6477,10 @@ const translations = {
             tryItOut: 'Prueba esto',
             noThanks: 'No, gracias',
         },
+        workspaceExpenseSubmit: {
+            part1: 'Envía gastos',
+            part2: ' a tu empresa aquí',
+        },
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
