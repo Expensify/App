@@ -17,7 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {generateDomainFeedsData, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -78,7 +78,8 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
 
-    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, {}, translate), [translate, workspaceCardFeeds]);
+    const domainFeeds = useMemo(() => generateDomainFeedsData(userCardList), [userCardList]);
+    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, domainFeeds, translate), [domainFeeds, translate, workspaceCardFeeds]);
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNames);

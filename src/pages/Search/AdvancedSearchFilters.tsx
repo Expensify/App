@@ -16,7 +16,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAllFilters, saveSearch} from '@libs/actions/Search';
-import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {generateDomainFeedsData, getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -216,19 +216,21 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
-
     const groupedCards: Record<string, WorkspaceCardsList> = {};
+    const domainFeeds = generateDomainFeedsData(cards);
+
     Object.entries(cards).forEach(([cardKey, card]) => {
         const groupKey = `${card.fundID}_${card.bank}`;
         groupedCards[groupKey] ??= {};
         groupedCards[groupKey][cardKey] = card;
     });
 
+    const cardFeedNames = getCardFeedNames(groupedCards, domainFeeds);
+
     const cardNames = Object.values(cards)
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(`${card.fundID}_${card.bank}`))
         .map((card) => getCardDescription(card.cardID, cards));
 
-    const cardFeedNames = getCardFeedNames(groupedCards, {});
     const feedNames = Object.keys(cardFeedNames)
         .filter((feedKey) => feedFilter.includes(feedKey))
         .map((feedKey) => cardFeedNames[feedKey]);
@@ -467,7 +469,7 @@ function AdvancedSearchFilters() {
         .map((section) => {
             return section
                 .map((key) => {
-                    // visually feeds resist within cards, so they cannot be pressed directly and does not redirect anywhere
+                    // visually feeds resist into cards so they cannot be pressed directly and are not redirecting anywhere
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
                         return;
                     }

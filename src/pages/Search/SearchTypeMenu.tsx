@@ -20,7 +20,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {generateDomainFeedsData, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getAllTaxRates} from '@libs/PolicyUtils';
 import {hasInvoiceReports} from '@libs/ReportUtils';
@@ -73,7 +73,8 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
-    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, {}, translate), [translate, workspaceCardFeeds]);
+    const domainFeeds = useMemo(() => generateDomainFeedsData(userCardList), [userCardList]);
+    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, domainFeeds, translate), [domainFeeds, translate, workspaceCardFeeds]);
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {

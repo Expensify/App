@@ -13,7 +13,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
-import {getBankName, getCardFeedIcon, getCardFeedKey, getWorkspaceCardFeedKey, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
+import type {DomainFeedData} from '@libs/CardUtils';
+import {generateDomainFeedsData, getBankName, getCardFeedIcon, getCardFeedKey, getWorkspaceCardFeedKey, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {translateLocal} from '@libs/Localize';
 import {getDescriptionForPolicyDomainCard, getPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -26,8 +27,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; keyForFeed: string};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
-
-type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
 
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
@@ -298,16 +297,12 @@ function SearchFiltersCardPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const personalDetails = usePersonalDetails();
 
-    const getSelectedCards = useCallback(
-        () => generateSelectedCards(workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID),
-        [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds],
-    );
-
-    const [selectedCards, setSelectedCards] = useState<string[]>(getSelectedCards);
+    const [selectedCards, setSelectedCards] = useState<string[]>([]);
 
     useEffect(() => {
-        setSelectedCards(getSelectedCards());
-    }, [getSelectedCards]);
+        const generatedCards = generateSelectedCards(workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID);
+        setSelectedCards(generatedCards);
+    }, [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds]);
 
     useEffect(() => {
         openSearchFiltersCardPage();
@@ -318,27 +313,7 @@ function SearchFiltersCardPage() {
         [workspaceCardFeeds, userCardList, personalDetails, selectedCards],
     );
 
-    const domainFeedsData = useMemo(
-        () =>
-            Object.values(userCardList ?? {}).reduce((accumulator, currentCard) => {
-                // Cards in cardList can also be domain cards, we use them to compute domain feed
-                if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
-                    if (accumulator[currentCard.domainName]) {
-                        accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
-                    } else {
-                        // if the cards belongs to the same domain, every card of it should have the same fundID
-                        accumulator[currentCard.domainName] = {
-                            fundID: currentCard.fundID,
-                            domainName: currentCard.domainName,
-                            bank: currentCard.bank,
-                            correspondingCardIDs: [currentCard.cardID.toString()],
-                        };
-                    }
-                }
-                return accumulator;
-            }, {} as Record<string, DomainFeedData>),
-        [userCardList],
-    );
+    const domainFeedsData = useMemo(() => generateDomainFeedsData(userCardList), [userCardList]);
 
     const cardFeedsSectionData = useMemo(
         () => buildCardFeedsData(workspaceCardFeeds ?? {}, domainFeedsData, selectedCards, translate),

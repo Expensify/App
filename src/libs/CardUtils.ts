@@ -69,6 +69,10 @@ function isCorporateCard(cardID: number) {
     return !!allCards[cardID];
 }
 
+/**
+ * @param cardID
+ * @returns string with the 'cards_' part removed from the beginning
+ */
 function getCardFeedKey(cardID: string): string {
     const splittedCardID = cardID.split('_');
     if (splittedCardID.at(0) === 'cards') {
@@ -77,6 +81,10 @@ function getCardFeedKey(cardID: string): string {
     return cardID;
 }
 
+/**
+ * @param cardID
+ * @returns string with added 'cards_' substring at the beginning
+ */
 function getWorkspaceCardFeedKey(cardID: string) {
     if (cardID.split('_').at(0) !== 'cards') {
         return `cards_${cardID}`;
@@ -99,6 +107,32 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     const cardDescriptor = card.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
     const humanReadableBankName = card.bank === CONST.EXPENSIFY_CARD.BANK ? CONST.EXPENSIFY_CARD.BANK : getBankName(card.bank as CompanyCardFeed);
     return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
+}
+
+type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
+
+/**
+ * @param cardList - The list of cards to process. Can be undefined.
+ * @returns a record where keys are domain names and values contain domain feed data.
+ */
+function generateDomainFeedsData(cardList: CardList | undefined): Record<string, DomainFeedData> {
+    return Object.values(cardList ?? {}).reduce((accumulator, currentCard) => {
+        // Cards in cardList can also be domain cards, we use them to compute domain feed
+        if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
+            if (accumulator[currentCard.domainName]) {
+                accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
+            } else {
+                // if the cards belongs to the same domain, every card of it should have the same fundID
+                accumulator[currentCard.domainName] = {
+                    fundID: currentCard.fundID,
+                    domainName: currentCard.domainName,
+                    bank: currentCard.bank,
+                    correspondingCardIDs: [currentCard.cardID.toString()],
+                };
+            }
+        }
+        return accumulator;
+    }, {} as Record<string, DomainFeedData>);
 }
 
 function isCard(item: Card | Record<string, string>): item is Card {
@@ -566,4 +600,7 @@ export {
     checkIfFeedConnectionIsBroken,
     getCardFeedKey,
     getWorkspaceCardFeedKey,
+    generateDomainFeedsData,
 };
+
+export type {DomainFeedData};
