@@ -312,7 +312,8 @@ function ScreenWrapper(
         [enableEdgeToEdgeBottomSafeAreaPadding, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
     );
 
-    const addOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : !includeSafeAreaPaddingBottom;
+    const addMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : !includeSafeAreaPaddingBottom;
+    const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -362,7 +363,8 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             style={[offlineIndicatorStyle]}
-                                            addBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
+                                            containerStyles={styles.offlineIndicatorMobile}
+                                            addBottomSafeAreaPadding={addMobileOfflineIndicatorBottomSafeAreaPadding}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
@@ -370,7 +372,11 @@ function ScreenWrapper(
                                 )}
                                 {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
                                     <>
-                                        <OfflineIndicator style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]} />
+                                        <OfflineIndicator
+                                            containerStyles={[]}
+                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                            addBottomSafeAreaPadding={addWidescreenOfflineIndicatorBottomSafeAreaPadding}
+                                        />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
                                     </>
