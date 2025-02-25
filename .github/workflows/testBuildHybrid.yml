@@ -95,7 +95,7 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v4
 
-        - name: Check if pull request number is correct
+        - name: Check if pull request number is correct 
           id: getHeadRef
           run: |
             set -e
