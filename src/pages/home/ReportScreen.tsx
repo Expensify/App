@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import {getDisplayNameOrDefault, isPersonalDetailsEmpty} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
@@ -320,6 +321,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
 
+    const renderCount = useRef(0);
+    useEffect(() => {
+        renderCount.current += 1;
+        console.log(`+++++++++++ Unique rerenders: SCREEN #${renderCount.current}`);
+    });
     useEffect(() => {
         if (!report?.reportID || shouldHideReport) {
             wasReportAccessibleRef.current = false;
@@ -919,4 +925,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 }
 
 ReportScreen.displayName = 'ReportScreen';
-export default memo(ReportScreen, (prevProps, nextProps) => lodashIsEqual(prevProps.route, nextProps.route));
+
+const MemoizedReportScreen = memo(ReportScreen, (prevProps, nextProps) => lodashIsEqual(prevProps.route, nextProps.route));
+export default Performance.withRenderTrace({id: CONST.PERFORMANCE.SCREEN_KEYS.REPORT_SCREEN})(MemoizedReportScreen);
+export type {ReportScreenProps, ReportScreenNavigationProps};

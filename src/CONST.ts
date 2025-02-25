@@ -6691,7 +6691,14 @@ const CONST = {
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
+    PERFORMANCE: {
+        SCREEN_KEYS: {
+            REPORT_SCREEN: '<ReportScreen> rendering',
+        },
+    },
+
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
+
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
         CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
