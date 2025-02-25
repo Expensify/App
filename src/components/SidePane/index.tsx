@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import getHelpContent from './getHelpContent';
 
-function SidePane() {
+function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -53,7 +53,7 @@ function SidePane() {
 
     return (
         <>
-            {!isExtraLargeScreenWidth && !shouldUseNarrowLayout && (
+            {shouldShowOverlay && !isExtraLargeScreenWidth && !shouldUseNarrowLayout && (
                 <Backdrop
                     onBackdropPress={onClose}
                     style={styles.sidePaneOverlay}
@@ -80,6 +80,11 @@ function SidePane() {
     );
 }
 
+function SidePaneWithOverlay() {
+    return <SidePane shouldShowOverlay />;
+}
+
 SidePane.displayName = 'SidePane';
 
 export default SidePane;
+export {SidePaneWithOverlay};
