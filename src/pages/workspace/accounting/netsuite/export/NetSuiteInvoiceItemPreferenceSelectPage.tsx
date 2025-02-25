@@ -11,15 +11,15 @@ import type {ListItem} from '@components/SelectionList/types';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteInvoiceItemPreference} from '@libs/actions/connections/NetSuiteCommands';
+import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, findSelectedInvoiceItemWithDefaultSelect, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -31,7 +31,7 @@ type MenuListItem = ListItem & {
 function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const config = policy?.connections?.netsuite.options.config;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT>>();
 
@@ -48,13 +48,13 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     }));
 
     const goBack = useCallback(() => {
-        Navigation.goBack(route.params.backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+        Navigation.goBack(route.params.backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)));
     }, [route.params.backTo, policyID]);
 
     const selectInvoicePreference = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.invoiceItemPreference) {
-                Connections.updateNetSuiteInvoiceItemPreference(policyID, row.value, config?.invoiceItemPreference);
+            if (row.value !== config?.invoiceItemPreference && policyID) {
+                updateNetSuiteInvoiceItemPreference(policyID, row.value, config?.invoiceItemPreference);
             }
             if (row.value === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
                 goBack();
@@ -79,9 +79,14 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
         >
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE], config?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
+                errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
                 errorRowStyles={[styles.ph5, styles.pv3]}
-                onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE)}
+                onClose={() => {
+                    if (!policyID) {
+                        return;
+                    }
+                    clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE);
+                }}
                 style={[styles.flexGrow1, styles.flexShrink1]}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
             >
@@ -106,7 +111,12 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                             title={selectedItem ? selectedItem.name : undefined}
                             interactive
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID));
+                            }}
                             brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>

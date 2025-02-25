@@ -9,15 +9,15 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteExportDate} from '@libs/actions/connections/NetSuiteCommands';
+import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,7 +28,7 @@ type MenuListItem = ListItem & {
 
 function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_DATE_SELECT>>();
     const backTo = route.params?.backTo;
@@ -52,13 +52,13 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)));
     }, [backTo, policyID]);
 
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.exportDate) {
-                Connections.updateNetSuiteExportDate(policyID, row.value, config?.exportDate);
+            if (row.value !== config?.exportDate && policyID) {
+                updateNetSuiteExportDate(policyID, row.value, config?.exportDate);
             }
             goBack();
         },
@@ -80,9 +80,14 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={goBack}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_DATE], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
+            onClose={() => {
+                if (!policyID) {
+                    return;
+                }
+                clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE);
+            }}
         />
     );
 }
