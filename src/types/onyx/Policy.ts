@@ -1073,9 +1073,9 @@ type NetSuiteConnection = {
 };
 
 /**
- *  NSQS Payable account
+ *  NSQS Payment account
  */
-type NSQSPayableAccount = {
+type NSQSPaymentAccount = {
     /** ID assigned to the account in NSQS */
     id: string;
 
@@ -1096,8 +1096,8 @@ type NSQSPayableAccount = {
  * Connection data for NSQS
  */
 type NSQSConnectionData = {
-    /** Collection of the payable accounts */
-    payableAccounts: NSQSPayableAccount[];
+    /** Collection of the payments accounts */
+    paymentAccounts: NSQSPaymentAccount[];
 };
 
 /**
@@ -1155,8 +1155,8 @@ type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the connection is configured */
     isConfigured: boolean;
 
-    /** The account used for approvals in NSQS */
-    approvalAccount: string;
+    /** The account used for payments in NSQS */
+    paymentAccount: string;
 
     /** Collections of form field errors */
     errorFields?: OnyxCommon.ErrorFields;
@@ -2027,7 +2027,7 @@ export type {
     NetSuiteTaxAccount,
     NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
-    NSQSPayableAccount,
+    NSQSPaymentAccount,
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,

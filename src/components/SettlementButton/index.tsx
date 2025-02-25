@@ -23,6 +23,7 @@ import {approveMoneyRequest, savePreferredPaymentMethod as savePreferredPaymentM
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {LastPaymentMethodType} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -77,7 +78,14 @@ function SettlementButton({
     const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
     const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(chatReport, policyEmployeeAccountIDs, policyID) : false;
     const policyIDKey = reportBelongsToWorkspace ? policyID : CONST.POLICY.ID_FAKE;
-    const [lastPaymentMethod = '-1', lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {selector: (paymentMethod) => paymentMethod?.[policyIDKey]});
+    const [lastPaymentMethod, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {
+        selector: (paymentMethod) => {
+            if (typeof paymentMethod?.[policyIDKey] === 'string') {
+                return paymentMethod?.[policyIDKey];
+            }
+            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed;
+        },
+    });
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -257,6 +265,10 @@ function SettlementButton({
         onPress(iouPaymentType);
     };
 
+    const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {
+        savePreferredPaymentMethodIOU(id, value, undefined);
+    };
+
     return (
         <KYCWall
             onSuccessfulKYC={(paymentType) => onPress(paymentType)}
@@ -288,7 +300,7 @@ function SettlementButton({
                         if (policyID === '-1') {
                             return;
                         }
-                        savePreferredPaymentMethodIOU(policyIDKey, option.value);
+                        savePreferredPaymentMethod(policyIDKey, option.value);
                     }}
                     style={style}
                     wrapperStyle={wrapperStyle}
