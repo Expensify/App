@@ -13,16 +13,22 @@ function isSidePaneHidden(sidePane: OnyxEntry<OnyxTypes.SidePane>, isExtraLargeS
     return false;
 }
 
-function substituteRouteParameters(route: string, params: Record<string, string>) {
+function substituteRouteParameters(route: string, params: Record<string, unknown>) {
     let updatedRoute = route;
 
-    if (params.policyID && route.includes(params.policyID)) {
-        updatedRoute = updatedRoute.replace(params.policyID, ':policyID');
+    function searchAndReplace(obj: Record<string, unknown>) {
+        // eslint-disable-next-line guard-for-in
+        for (const key in obj) {
+            const value = obj[key];
+            if (typeof value === 'object' && value !== null) {
+                searchAndReplace(value as Record<string, unknown>);
+            } else if (typeof value === 'string' && route.includes(value)) {
+                updatedRoute = updatedRoute.replace(value, `:${key}`);
+            }
+        }
     }
 
-    if (params.reportID && route.includes(params.reportID)) {
-        updatedRoute = updatedRoute.replace(params.reportID, ':reportID');
-    }
+    searchAndReplace(params);
 
     return updatedRoute;
 }

@@ -1,5 +1,4 @@
-import {CHILD_STATE} from '@react-navigation/core';
-import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
+import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {Easing, SlideInRight} from 'react-native-reanimated';
