@@ -11,13 +11,22 @@ class ReactNativeHybridAppModule(reactContext: ReactApplicationContext) :
     return NAME
   }
 
-  // Example method
-  // See https://reactnative.dev/docs/native-modules-android
-  override fun multiply(a: Double, b: Double): Double {
-    return a * b
+  override fun isHybridApp(): Boolean {
+    return false
   }
 
+  override fun closeReactNativeApp(shouldSignOut: Boolean, shouldSetNVP: Boolean) {}
+
+  override fun completeOnboarding(status: Boolean) {}
+
+  override fun switchAccount(
+    newDotCurrentAccountEmail: String?,
+    authToken: String?,
+    policyID: String?,
+    accountID: String?
+  ) {}
+
   companion object {
-    const val NAME = "NOT_USED"
+    const val NAME = "ReactNativeHybridAppModule"
   }
 }

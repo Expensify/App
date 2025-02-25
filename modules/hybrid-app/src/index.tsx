@@ -1,5 +1,10 @@
 import ReactNativeHybridApp from './NativeReactNativeHybridApp';
 
-export function multiply(a: number, b: number): number {
-  return ReactNativeHybridApp.multiply(a, b);
-}
+const HybridAppModule = {
+    isHybridApp: ReactNativeHybridApp.isHybridApp,
+    closeReactNativeApp: ReactNativeHybridApp.closeReactNativeApp,
+    completeOnboarding: ReactNativeHybridApp.completeOnboarding,
+    switchAccount: ReactNativeHybridApp.switchAccount,
+};
+
+export default HybridAppModule;
