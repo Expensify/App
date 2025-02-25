@@ -225,21 +225,17 @@ describe('actions/Policy', () => {
             Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 
-            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then the workflows feature is enabled
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+
+                    // And the delay submission is manually
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                },
             });
-
-            // Then the workflows feature is enabled
-            expect(policy?.areWorkflowsEnabled).toBeTruthy();
-
-            // And the delay submission is manually
-            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
         });
 
         it('create a new workspace with disabled workflow if the onboarding purpose is not newDotManageTeam or newDotLookingAround', async () => {
@@ -251,18 +247,14 @@ describe('actions/Policy', () => {
             Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 
-            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Chekck if the autoReportingFrequency is updated to instand
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                },
             });
-
-            // Then the workflows feature is disabled
-            expect(policy?.areWorkflowsEnabled).toBeFalsy();
         });
     });
 
@@ -440,19 +432,15 @@ describe('actions/Policy', () => {
             Policy.enablePolicyWorkflows(fakePolicy.id, false);
             await waitForBatchedUpdates();
 
-            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (workspace) => {
-                        Onyx.disconnect(connection);
-                        resolve(workspace);
-                    },
-                });
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Chekck if the autoReportingFrequency is updated to instand
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+                },
             });
-
-            // Chekck if the autoReportingFrequency is updated to instand
-            expect(policy?.areWorkflowsEnabled).toBeFalsy();
-            expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
         });
     });
 });
