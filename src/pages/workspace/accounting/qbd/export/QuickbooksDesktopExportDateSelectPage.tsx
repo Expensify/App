@@ -43,7 +43,7 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
             if (row.value !== exportDate) {
                 QuickbooksDesktop.updateQuickbooksDesktopExportDate(policyID, row.value, exportDate);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
         },
         [policyID, exportDate],
     );

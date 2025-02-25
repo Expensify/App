@@ -59,7 +59,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             if (row.value !== currentExporter) {
                 QuickbooksDesktop.updateQuickbooksDesktopPreferredExporter(policyID, row.value, currentExporter);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
         },
         [currentExporter, policyID],
     );
