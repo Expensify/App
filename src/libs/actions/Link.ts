@@ -21,20 +21,12 @@ Onyx.connect({
 });
 
 let currentUserEmail = '';
-let currentUserAccountID = -1;
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-let isTravelTestAccount = false;
-Onyx.connect({
-    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
-    callback: (value) => {
-        isTravelTestAccount = value?.testAccount ?? false;
     },
 });
 
@@ -87,9 +79,9 @@ function openOldDotLink(url: string, shouldOpenInSameTab = false) {
     );
 }
 
-function buildTravelDotURL(spotnanaToken: string, postLoginPath?: string): string {
-    const environmentURL = isTravelTestAccount ? CONST.STAGING_TRAVEL_DOT_URL : CONST.TRAVEL_DOT_URL;
-    const tmcID = isTravelTestAccount ? CONST.STAGING_SPOTNANA_TMC_ID : CONST.SPOTNANA_TMC_ID;
+function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLoginPath?: string): string {
+    const environmentURL = isTestAccount ? CONST.STAGING_TRAVEL_DOT_URL : CONST.TRAVEL_DOT_URL;
+    const tmcID = isTestAccount ? CONST.STAGING_SPOTNANA_TMC_ID : CONST.SPOTNANA_TMC_ID;
 
     const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
@@ -124,7 +116,7 @@ function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) 
                         reject(error);
                         throw error;
                     }
-                    const travelURL = buildTravelDotURL(response.spotnanaToken, postLoginPath);
+                    const travelURL = buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false, postLoginPath);
                     resolve(undefined);
                     return travelURL;
                 })

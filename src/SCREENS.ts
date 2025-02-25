@@ -62,6 +62,7 @@ const SCREENS = {
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
     },
+    CONSOLE_DEBUG: 'Console_Debug',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -75,10 +76,8 @@ const SCREENS = {
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_US_BANK_ACCOUNT: 'Settings_Add_US_Bank_Account',
         CLOSE: 'Settings_Close',
-        TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         TROUBLESHOOT: 'Settings_Troubleshoot',
-        CONSOLE: 'Settings_Console',
         SHARE_LOG: 'Share_Log',
 
         PROFILE: {
@@ -145,6 +144,13 @@ const SCREENS = {
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
         },
     },
+    TWO_FACTOR_AUTH: {
+        ROOT: 'Settings_TwoFactorAuth_Root',
+        VERIFY: 'Settings_TwoFactorAuth_Verify',
+        SUCCESS: 'Settings_TwoFactorAuth_Success',
+        DISABLED: 'Settings_TwoFactorAuth_Disabled',
+        DISABLE: 'Settings_TwoFactorAuth_Disable',
+    },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
@@ -153,6 +159,7 @@ const SCREENS = {
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
+        TWO_FACTOR_AUTH: 'TwoFactorAuth',
         NEW_CHAT: 'NewChat',
         DETAILS: 'Details',
         PROFILE: 'Profile',
@@ -433,8 +440,8 @@ const SCREENS = {
             NSQS_EXPORT: 'Policy_Accounting_NSQS_Export',
             NSQS_EXPORT_PREFERRED_EXPORTER: 'Policy_Accounting_NSQS_Export_Preferred_Exporter',
             NSQS_EXPORT_DATE: 'Policy_Accounting_NSQS_Export_Date',
+            NSQS_EXPORT_PAYMENT_ACCOUNT: 'Policy_Accounting_NSQS_Export_Payment_Account',
             NSQS_ADVANCED: 'Policy_Accounting_NSQS_Advanced',
-            NSQS_ADVANCED_APPROVAL_ACCOUNT: 'Policy_Accounting_NSQS_Advanced_Approval_Account',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
