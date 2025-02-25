@@ -80,8 +80,8 @@ function InviteMemberListItem<TItem extends ListItem>({
         if (shouldShowExpenseSubmitTooltip) {
             return {
                 shouldRender: shouldShowExpenseSubmitTooltip,
-                shiftHorizontal: 4,
-                shiftVertical: variables.composerTooltipShiftVertical,
+                shiftHorizontal: variables.rhnOptionsTooltipShiftHorizontal,
+                shiftVertical: variables.rhnOptionsTooltipShiftVertical,
                 renderTooltipContent: renderExpenseSubmitTooltip,
                 onTooltipPress: hideExpenseSubmitTooltip,
             };
