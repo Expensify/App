@@ -18,7 +18,7 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? -1;
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
 
     const shouldDisableCompanyName = !!(bankAccountID && defaultCompanyName && reimbursementAccount?.achData?.state !== 'SETUP');
 

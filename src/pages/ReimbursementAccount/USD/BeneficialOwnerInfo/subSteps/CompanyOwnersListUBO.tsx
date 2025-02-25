@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -62,7 +62,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                     title={`${beneficialOwnerData.firstName} ${beneficialOwnerData.lastName}`}
                     description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
                     wrapperStyle={[styles.ph5]}
-                    icon={Expensicons.FallbackAvatar}
+                    icon={FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     onPress={() => {
                         handleUBOEdit(ownerKey);
@@ -90,7 +90,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                         title={`${requestorData.firstName} ${requestorData.lastName}`}
                         description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
                         wrapperStyle={[styles.ph5]}
-                        icon={Expensicons.FallbackAvatar}
+                        icon={FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         iconWidth={40}
                         iconHeight={40}
