@@ -5,7 +5,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -22,9 +22,9 @@ function Occupation({onNext, onMove, isEditing, directorID}: OccupationProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, [inputID]);
+            const errors = getFieldRequiredErrors(values, [inputID]);
 
-            if (values[inputID] && !ValidationUtils.isValidLegalName(String(values[inputID]))) {
+            if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
                 errors[inputID] = translate('bankAccount.error.fullName');
             }
 
