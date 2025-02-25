@@ -31,23 +31,36 @@ import useStyleUtils from './useStyleUtils';
  *     // Use these values to style your component accordingly
  * }
  */
-function useStyledSafeAreaInsets() {
+function useStyledSafeAreaInsets(enableEdgeToEdgeBottomSafeAreaPadding = false) {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
+    const {paddingTop, paddingBottom} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
     const isSafeAreaTopPaddingApplied = screenWrapperStatusContext?.isSafeAreaTopPaddingApplied ?? false;
     const isSafeAreaBottomPaddingApplied = screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false;
+
+    const adaptedPaddingBottom = isSafeAreaBottomPaddingApplied ? 0 : paddingBottom;
+    const safeAreaPaddingBottomStyle = useMemo(
+        () => ({paddingBottom: enableEdgeToEdgeBottomSafeAreaPadding ? paddingBottom : adaptedPaddingBottom}),
+        [adaptedPaddingBottom, enableEdgeToEdgeBottomSafeAreaPadding, paddingBottom],
+    );
+
+    if (enableEdgeToEdgeBottomSafeAreaPadding) {
+        return {
+            paddingTop,
+            paddingBottom,
+            unmodifiedPaddings: {},
+            insets,
+            safeAreaPaddingBottomStyle,
+        };
+    }
 
     const adaptedInsets = {
         ...insets,
         top: isSafeAreaTopPaddingApplied ? 0 : insets?.top,
         bottom: isSafeAreaBottomPaddingApplied ? 0 : insets?.bottom,
     };
-    const adaptedPaddingBottom = isSafeAreaBottomPaddingApplied ? 0 : paddingBottom;
-
-    const safeAreaPaddingBottomStyle = useMemo(() => ({paddingBottom: adaptedPaddingBottom}), [adaptedPaddingBottom]);
 
     return {
         paddingTop: isSafeAreaTopPaddingApplied ? 0 : paddingTop,

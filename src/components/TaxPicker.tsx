@@ -1,9 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
@@ -25,12 +23,6 @@ type TaxPickerProps = {
     /** ID of the transaction */
     transactionID?: string;
 
-    /**
-     * Safe area insets required for reflecting the portion of the view,
-     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
-     */
-    insets?: EdgeInsets;
-
     /** Callback to fire when a tax is pressed */
     onSubmit: (tax: TaxOptionsListUtils.TaxRatesOption) => void;
 
@@ -41,10 +33,14 @@ type TaxPickerProps = {
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
 
     onDismiss: () => void;
+
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSubmit, action, iouType, onDismiss}: TaxPickerProps) {
-    const StyleUtils = useStyleUtils();
+function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss, addBottomSafeAreaPadding}: TaxPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -120,7 +116,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSub
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
-            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }

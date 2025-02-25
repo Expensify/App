@@ -34,7 +34,7 @@ type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & Platfor
 
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
-function CreateReportFieldsPage({
+function WorkspaceCreateReportFieldsPage({
     policy,
     route: {
         params: {policyID},
@@ -102,9 +102,10 @@ function CreateReportFieldsPage({
             shouldBeBlocked={PolicyUtils.hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={CreateReportFieldsPage.displayName}
+                testID={WorkspaceCreateReportFieldsPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -121,6 +122,8 @@ function CreateReportFieldsPage({
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
                     disablePressOnEnter={!!modal?.isVisible}
+                    addBottomSafeAreaPadding
+                    shouldSubmitButtonStickToBottom
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -194,6 +197,6 @@ function CreateReportFieldsPage({
     );
 }
 
-CreateReportFieldsPage.displayName = 'CreateReportFieldsPage';
+WorkspaceCreateReportFieldsPage.displayName = 'WorkspaceCreateReportFieldsPage';
 
-export default withPolicyAndFullscreenLoading(CreateReportFieldsPage);
+export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldsPage);

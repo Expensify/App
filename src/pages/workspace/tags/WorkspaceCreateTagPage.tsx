@@ -26,7 +26,7 @@ import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
 type CreateTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
 
-function CreateTagPage({route}: CreateTagPageProps) {
+function WorkspaceCreateTagPage({route}: CreateTagPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -72,9 +72,10 @@ function CreateTagPage({route}: CreateTagPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateTagPage.displayName}
+                testID={WorkspaceCreateTagPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -88,6 +89,8 @@ function CreateTagPage({route}: CreateTagPageProps) {
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
+                    shouldSubmitButtonStickToBottom
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -104,6 +107,6 @@ function CreateTagPage({route}: CreateTagPageProps) {
     );
 }
 
-CreateTagPage.displayName = 'CreateTagPage';
+WorkspaceCreateTagPage.displayName = 'WorkspaceCreateTagPage';
 
-export default CreateTagPage;
+export default WorkspaceCreateTagPage;

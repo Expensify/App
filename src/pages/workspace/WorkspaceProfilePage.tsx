@@ -185,6 +185,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={() => Navigation.goBack(backTo)}
+            addBottomSafeAreaPadding
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -219,7 +220,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
                                 styles.sectionMenuItemTopDescription,
                             ]}
                             editIconStyle={styles.smallEditIconWorkspace}
-                            isUsingDefaultAvatar={!policy?.avatarURL ?? false}
+                            isUsingDefaultAvatar={!policy?.avatarURL}
                             onImageSelected={(file) => {
                                 if (!policy?.id) {
                                     return;
