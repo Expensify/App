@@ -1,5 +1,5 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {Easing, SlideInRight} from 'react-native-reanimated';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,10 +17,17 @@ import getHelpContent from './getHelpContent';
 
 function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     const styles = useThemeStyles();
-    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
+
+    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth);
+
+    const route = useNavigationState((state) => {
+        const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
+        const activeRoute = Navigation.getActiveRouteWithoutParams();
+        return substituteRouteParameters(activeRoute, params);
+    });
 
     const onClose = useCallback(
         (shouldUpdateNarrow = false) => {
@@ -43,9 +50,7 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
         }
     }, [isExtraLargeScreenWidth, onClose]);
 
-    const activeRoute = Navigation.getActiveRouteWithoutParams();
-    const params = useNavigationState((state) => (findFocusedRoute(state)?.params as Record<string, string>) ?? {});
-    const route = substituteRouteParameters(activeRoute, params);
+    console.log(`%%% lastRoute`, route);
 
     if (isPaneHidden) {
         return null;

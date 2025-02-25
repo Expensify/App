@@ -17,8 +17,12 @@ function substituteRouteParameters(route: string, params: Record<string, unknown
     let updatedRoute = route;
 
     function searchAndReplace(obj: Record<string, unknown>) {
-        // eslint-disable-next-line guard-for-in
         for (const key in obj) {
+            if (key === 'path') {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
             const value = obj[key];
             if (typeof value === 'object' && value !== null) {
                 searchAndReplace(value as Record<string, unknown>);
