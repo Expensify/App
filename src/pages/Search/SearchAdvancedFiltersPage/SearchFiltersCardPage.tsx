@@ -456,4 +456,4 @@ function SearchFiltersCardPage() {
 SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
 export default SearchFiltersCardPage;
-export {buildIndividualCardsData, buildCardFeedsData, getCardFeedNames};
+export {buildIndividualCardsData, buildCardFeedsData, getCardFeedNames, getSelectedCardsFromFeeds};
