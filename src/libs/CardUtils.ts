@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -521,6 +521,17 @@ function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed
     return !!workspaceCards.cardList;
 }
 
+/**
+ * Check if the Expensify Card is fully setup and a new card can be issued
+ *
+ * @param policy the policy object
+ * @param cardSettings the card settings object
+ * @returns boolean
+ */
+function isExpensifyCardFullySetup(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
+    return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -560,4 +571,5 @@ export {
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
     hasCardListObject,
+    isExpensifyCardFullySetup,
 };
