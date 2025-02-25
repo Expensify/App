@@ -3548,7 +3548,8 @@ describe('actions/IOU', () => {
             let chatReport: OnyxEntry<Report>;
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    const {policyID, ownerEmail} = createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    setWorkspaceApprovalMode(policyID, ownerEmail, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -3615,10 +3616,10 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
+                                    resolve();
                                     // Verify report is a draft
                                     expect(expenseReport?.stateNum).toBe(0);
                                     expect(expenseReport?.statusNum).toBe(0);
-                                    resolve();
                                 },
                             });
                         }),
@@ -3639,10 +3640,10 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
 
+                                    resolve();
                                     // Report is closed since the default policy settings is Submit and Close
                                     expect(expenseReport?.stateNum).toBe(2);
                                     expect(expenseReport?.statusNum).toBe(2);
-                                    resolve();
                                 },
                             });
                         }),
