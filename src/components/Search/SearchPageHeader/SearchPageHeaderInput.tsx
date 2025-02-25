@@ -258,7 +258,7 @@ function SearchPageHeaderInput({
                         {showPopupButton && (
                             <Animated.View
                                 entering={FadeInRight}
-                                exiting={FadeOutRight}
+                                exiting={isFocused ? FadeOutRight : undefined}
                                 style={[styles.pl3]}
                             >
                                 <SearchTypeMenuPopover
