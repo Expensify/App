@@ -482,6 +482,9 @@ function ReportActionsList({
                     return;
                 }
                 if (!hasNewestReportActionRef.current) {
+                    if (Navigation.getReportRHPActiveRoute()) {
+                        return;
+                    }
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
                     return;
                 }
