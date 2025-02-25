@@ -1,0 +1,15 @@
+diff --git a/node_modules/expo/src/winter/runtime.native.ts b/node_modules/expo/src/winter/runtime.native.ts
+index a3c0b73..638a1ab 100644
+--- a/node_modules/expo/src/winter/runtime.native.ts
++++ b/node_modules/expo/src/winter/runtime.native.ts
+@@ -30,6 +30,10 @@ install('URL', () => require('./url').URL);
+ // https://url.spec.whatwg.org/#urlsearchparams
+ install('URLSearchParams', () => require('./url').URLSearchParams);
+ 
++jest.mock('./FormData', () => ({
++  installFormDataPatch: jest.fn(),
++}));
++
+ installFormDataPatch(FormData);
+ 
+ // Polyfill async iterator symbol for Hermes.
