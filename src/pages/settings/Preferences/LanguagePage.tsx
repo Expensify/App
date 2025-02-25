@@ -1,3 +1,4 @@
+import {background} from '@storybook/theming';
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -48,6 +49,7 @@ function LanguagePage() {
                 onSelectRow={updateLanguage}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedOptionKey={localesToLanguages.find((locale) => locale.isSelected)?.keyForList}
+                listItemTitleStyles={{fontFamily: 'INTER'}}
             />
         </ScreenWrapper>
     );

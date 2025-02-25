@@ -239,6 +239,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        translate: 'Translate',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
         yes: 'Yes',
@@ -1756,13 +1757,24 @@ const translations = {
     languagePage: {
         language: 'Language',
         languages: {
-            en: {
-                label: 'English',
-            },
-            es: {
-                label: 'Spanish',
-            },
+            en: {label: 'English'},
+            es: {label: 'Español'},
+            pt: {label: 'Português'},
+            it: {label: 'Italiano'},
+            de: {label: 'Deutsch'},
+            fr: {label: 'Français'},
+            nl: {label: 'Nederlands'},
+            pl: {label: 'Polski'},
+            ru: {label: 'Русский'},
+            tr: {label: 'Türkçe'},
+            ko: {label: '한국어'},
+            ch: {label: '中文'},
+            ja: {label: '日本語'},
+            ro: {label: 'Română'},
         },
+        translateMessage: 'Translate messages',
+        viewOriginal: 'View original',
+        showTranslation: 'Show translation',
     },
     themePage: {
         theme: 'Theme',

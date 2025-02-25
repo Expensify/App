@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTranslateLive from '@hooks/useTranslateLive';
 import convertToLTR from '@libs/convertToLTR';
 import isReportMessageAttachment from '@libs/isReportMessageAttachment';
 import CONST from '@src/CONST';
@@ -63,6 +64,10 @@ type ReportActionItemFragmentProps = {
     actionName?: ReportActionName;
 
     moderationDecision?: DecisionName;
+
+    reportAction?: string;
+    reportID?: string;
+    showOriginal?: boolean;
 };
 
 const MUTED_ACTIONS = [
@@ -76,6 +81,8 @@ const MUTED_ACTIONS = [
 ] as ReportActionName[];
 
 function ReportActionItemFragment({
+    reportID,
+    reportAction,
     pendingAction,
     actionName,
     fragment,
@@ -92,10 +99,13 @@ function ReportActionItemFragment({
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
     moderationDecision,
+    showOriginal = false,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    useTranslateLive(reportID, reportAction);
+    const displayText = showOriginal ? fragment?.html ?? '' : fragment?.translatedText ?? fragment?.html ?? '';
 
     switch (fragment?.type) {
         case 'COMMENT': {
@@ -117,7 +127,7 @@ function ReportActionItemFragment({
                 return (
                     <AttachmentCommentFragment
                         source={source}
-                        html={fragment?.html ?? ''}
+                        html={displayText}
                         addExtraMargin={!displayAsGroup}
                         styleAsDeleted={!!(isOffline && isPendingDelete)}
                     />
@@ -127,6 +137,7 @@ function ReportActionItemFragment({
             return (
                 <TextCommentFragment
                     source={source}
+                    showOriginal={showOriginal}
                     fragment={fragment}
                     styleAsDeleted={!!(isOffline && isPendingDelete)}
                     styleAsMuted={!!actionName && MUTED_ACTIONS.includes(actionName)}
@@ -143,7 +154,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage, styles.colorMuted]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
+                        {isFragmentContainingDisplayName ? convertToLTR(displayText) : fragment?.text}
                     </Text>
                 );
             }
@@ -154,7 +165,7 @@ function ReportActionItemFragment({
                         numberOfLines={isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessage]}
                     >
-                        {isFragmentContainingDisplayName ? convertToLTR(fragment?.text ?? '') : fragment?.text}
+                        {isFragmentContainingDisplayName ? convertToLTR(displayText) : fragment?.text}
                     </Text>
                 );
             }
@@ -163,7 +174,7 @@ function ReportActionItemFragment({
                 <ReportActionItemMessageHeaderSender
                     accountID={accountID}
                     delegateAccountID={delegateAccountID}
-                    fragmentText={fragment.text}
+                    fragmentText={fragment?.text}
                     actorIcon={actorIcon}
                     isSingleLine={isSingleLine}
                 />
