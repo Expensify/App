@@ -1,5 +1,7 @@
+import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/onyx/Response';
 import * as Delegate from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
@@ -20,6 +22,14 @@ type Parameters = {
     email?: string;
     authToken?: string;
 };
+
+let isAuthenticatingWithShortLiveToken = false;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        isAuthenticatingWithShortLiveToken = !!value?.isAuthenticatingWithShortLiveToken;
+    },
+});
 
 function Authenticate(parameters: Parameters): Promise<Response> {
     const commandName = 'Authenticate';
@@ -51,7 +61,12 @@ function Authenticate(parameters: Parameters): Promise<Response> {
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  * @param [command] command name for logging purposes
  */
-function reauthenticate(command = ''): Promise<void> {
+function reauthenticate(command = ''): Promise<void> | undefined {
+    // Prevent re-authentication if authentication with shortLiveToken is in progress
+    if (isAuthenticatingWithShortLiveToken) {
+        return;
+    }
+
     // Prevent any more requests from being processed while authentication happens
     NetworkStore.setIsAuthenticating(true);
 

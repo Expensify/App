@@ -48,15 +48,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             return;
         }
 
-        // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
-        // and their authToken stored in Onyx becomes invalid.
-        // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
-        // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
-        const shouldForceLogin = route.params.shouldForceLogin === 'true';
-        if (shouldForceLogin) {
-            const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
-            SessionActions.signInWithShortLivedAuthToken(shortLivedAuthToken);
-        }
+        // Even if the user was already authenticated in NewDot, we need to sign in and fetch a new authToken,
+        // because their authToken stored in Onyx can be invalid.
+        const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
+        SessionActions.signInWithShortLivedAuthToken(shortLivedAuthToken);
+
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [initialURL]);
