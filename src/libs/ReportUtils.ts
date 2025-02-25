@@ -3205,8 +3205,8 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to “offset” future expenses
-            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
-            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
+            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : nonReimbursableSpend;
+            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : totalSpend;
 
             const totalDisplaySpend = totalSpend;
             const reimbursableSpend = totalDisplaySpend - nonReimbursableSpend;
