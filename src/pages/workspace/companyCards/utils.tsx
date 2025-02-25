@@ -155,7 +155,7 @@ function getExportMenuItem(
 
             switch (netSuiteConfig) {
                 case CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL: {
-                    const vendors = policy?.connections?.netsuite.options.data.vendors;
+                    const vendors = policy?.connections?.netsuite?.options.data.vendors;
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     defaultAccount = config?.defaultVendor || vendors?.[0]?.id;
                     isDefaultTitle = !!(
@@ -177,7 +177,7 @@ function getExportMenuItem(
                     break;
                 }
                 case CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY: {
-                    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+                    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     defaultAccount = config?.payableAcct || payableAccounts?.[0]?.id;
                     isDefaultTitle = !!(
