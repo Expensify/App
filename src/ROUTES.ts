@@ -1473,7 +1473,7 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/settings/account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/account` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/settings/account`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
