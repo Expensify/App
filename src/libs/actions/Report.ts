@@ -3131,7 +3131,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
             },
         });
     } else {
-        // use Onyx.set method to remove all other key values besides reportName to prevent showing room name as random numbers.
+        // Use the Onyx.set method to remove all other key values except reportName to prevent showing the room name as random numbers after leaving it.
         // See https://github.com/Expensify/App/issues/55676 for more information.
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
