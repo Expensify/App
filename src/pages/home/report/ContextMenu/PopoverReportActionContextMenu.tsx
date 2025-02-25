@@ -176,6 +176,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         isOverflowMenu = false,
         isThreadReportParentActionParam = false,
     ) => {
+        isContextMenuOpeningRef.current = true;
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
