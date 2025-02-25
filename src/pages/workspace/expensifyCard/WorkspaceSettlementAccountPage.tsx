@@ -95,7 +95,13 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
             >
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.settlementAccount')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.goBack(route.params.backTo);
+                            return;
+                        }
+                        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
+                    }}
                 />
                 <SelectionList
                     sections={[{data}]}
