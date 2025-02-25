@@ -392,7 +392,7 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
-type IntegrationSyncFailedParams = {label: string; errorMessage: string};
+type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string};
 
 type AddEmployeeParams = {email: string; role: string};
 
@@ -417,6 +417,8 @@ type AmountWithCurrencyParams = {amountWithCurrency: string};
 type LowerUpperParams = {lower: string; upper: string};
 
 type CategoryNameParams = {categoryName: string};
+
+type NeedCategoryForExportToIntegrationParams = {connectionName: string};
 
 type TaxAmountParams = {taxAmount: number};
 
@@ -538,6 +540,11 @@ type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
 };
 
+type DemotedFromWorkspaceParams = {
+    policyName: string;
+    oldRole: string;
+};
+
 type IntegrationExportParams = {
     integration: string;
     type?: string;
@@ -643,6 +650,10 @@ type SettlementDateParams = {
     settlementDate: string;
 };
 
+type PolicyExpenseChatNameParams = {
+    displayName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -654,6 +665,7 @@ export type {
     ConnectionParams,
     IntegrationExportParams,
     RemovedFromApprovalWorkflowParams,
+    DemotedFromWorkspaceParams,
     DefaultAmountParams,
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
@@ -874,4 +886,6 @@ export type {
     UpdatedPolicyReportFieldDefaultValueParams,
     SubmitsToParams,
     SettlementDateParams,
+    PolicyExpenseChatNameParams,
+    NeedCategoryForExportToIntegrationParams,
 };

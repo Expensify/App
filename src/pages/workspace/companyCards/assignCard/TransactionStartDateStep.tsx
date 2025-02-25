@@ -10,8 +10,8 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TransactionStartDateSelectorModal from './TransactionStartDateSelectorModal';
@@ -23,21 +23,21 @@ function TransactionStartDateStep() {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
-    const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
     const [isModalOpened, setIsModalOpened] = useState(false);
-    const [startDate, setStartDate] = useState(() => format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+    const [startDate, setStartDate] = useState(() => data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({
+            setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
             return;
         }
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
     };
 
     const handleSelectDate = (date: string) => {
@@ -54,7 +54,7 @@ function TransactionStartDateStep() {
     const submit = () => {
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
 
-        CompanyCards.setAssignCardStepAndData({
+        setAssignCardStepAndData({
             currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
             data: {
                 dateOption: dateOptionSelected,
