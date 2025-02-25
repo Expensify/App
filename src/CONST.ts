@@ -3328,7 +3328,7 @@ const CONST = {
     GUIDES_CALL_TASK_IDS: {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_PROFILE: 'WorkspaceProfile',
+        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',

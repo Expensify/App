@@ -95,7 +95,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
                     Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
                     return;
                 }
-                Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined);
+                Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID) : undefined);
             }}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}

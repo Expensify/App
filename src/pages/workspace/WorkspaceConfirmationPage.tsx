@@ -9,14 +9,14 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import ROUTES from '@src/ROUTES';
 
 function WorkspaceConfirmationPage() {
-    // It is necessary to use here isSmallScreenWidth because on a wide layout we should always navigate to ROUTES.WORKSPACE_PROFILE.
+    // It is necessary to use here isSmallScreenWidth because on a wide layout we should always navigate to ROUTES.WORKSPACE_OVERVIEW.
     // shouldUseNarrowLayout cannot be used to determine that as this screen is displayed in RHP and shouldUseNarrowLayout always returns true.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
-        const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_PROFILE.getRoute(policyID);
+        const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
         createWorkspaceWithPolicyDraftAndNavigateToIt('', params.name, false, false, '', policyID, params.currency, params.avatarFile as File, routeToNavigate);
     };
     const currentUrl = getCurrentUrl();

@@ -809,35 +809,35 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/invite-message',
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite-message`, backTo)}` as const,
     },
-    WORKSPACE_PROFILE: {
-        route: 'settings/workspaces/:policyID/profile',
+    WORKSPACE_OVERVIEW: {
+        route: 'settings/workspaces/:policyID/overview',
         getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE route');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW route');
             }
-            return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile` as const, backTo);
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/overview` as const, backTo);
         },
     },
-    WORKSPACE_PROFILE_ADDRESS: {
-        route: 'settings/workspaces/:policyID/profile/address',
+    WORKSPACE_OVERVIEW_ADDRESS: {
+        route: 'settings/workspaces/:policyID/overview/address',
         getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE_ADDRESS route');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW_ADDRESS route');
             }
-            return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/overview/address` as const, backTo);
         },
     },
-    WORKSPACE_PROFILE_PLAN: {
-        route: 'settings/workspaces/:policyID/profile/plan',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/plan` as const, backTo),
+    WORKSPACE_OVERVIEW_PLAN: {
+        route: 'settings/workspaces/:policyID/overview/plan',
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/overview/plan` as const, backTo),
     },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
     },
-    WORKSPACE_PROFILE_CURRENCY: {
-        route: 'settings/workspaces/:policyID/profile/currency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/currency` as const,
+    WORKSPACE_OVERVIEW_CURRENCY: {
+        route: 'settings/workspaces/:policyID/overview/currency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/overview/currency` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
@@ -987,22 +987,22 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/items',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/items` as const,
     },
-    WORKSPACE_PROFILE_NAME: {
-        route: 'settings/workspaces/:policyID/profile/name',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/name` as const,
+    WORKSPACE_OVERVIEW_NAME: {
+        route: 'settings/workspaces/:policyID/overview/name',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/overview/name` as const,
     },
-    WORKSPACE_PROFILE_DESCRIPTION: {
-        route: 'settings/workspaces/:policyID/profile/description',
+    WORKSPACE_OVERVIEW_DESCRIPTION: {
+        route: 'settings/workspaces/:policyID/overview/description',
         getRoute: (policyID: string | undefined) => {
             if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_PROFILE_DESCRIPTION route');
+                Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW_DESCRIPTION route');
             }
-            return `settings/workspaces/${policyID}/profile/description` as const;
+            return `settings/workspaces/${policyID}/overview/description` as const;
         },
     },
-    WORKSPACE_PROFILE_SHARE: {
-        route: 'settings/workspaces/:policyID/profile/share',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/share` as const,
+    WORKSPACE_OVERVIEW_SHARE: {
+        route: 'settings/workspaces/:policyID/overview/share',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/overview/share` as const,
     },
     WORKSPACE_AVATAR: {
         route: 'settings/workspaces/:policyID/avatar',

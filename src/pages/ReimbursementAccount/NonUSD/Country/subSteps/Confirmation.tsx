@@ -46,7 +46,7 @@ function Confirmation({onNext}: SubStepProps) {
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
 
     const handleSelectingCountry = (country: string) => {
