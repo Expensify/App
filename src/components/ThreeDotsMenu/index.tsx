@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {getButtonRole, getButtonStyle} from '@components/Button/utils';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -106,8 +106,9 @@ function ThreeDotsMenu({
                             e.preventDefault();
                         }}
                         ref={buttonRef}
-                        style={[styles.touchableButtonImage, iconStyles, getButtonStyle(styles, isNested)]}
+                        style={[styles.touchableButtonImage, iconStyles]}
                         role={getButtonRole(isNested)}
+                        isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon

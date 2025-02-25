@@ -37,6 +37,7 @@ function GenericPressable(
         accessible = true,
         fullDisabled = false,
         interactive = true,
+        isNested = false,
         ...rest
     }: PressableProps,
     ref: PressableRef,
@@ -74,11 +75,11 @@ function GenericPressable(
         if (shouldUseDisabledCursor) {
             return styles.cursorDisabled;
         }
-        if ([rest.accessibilityRole, rest.role].includes(CONST.ROLE.PRESENTATION)) {
+        if ([rest.accessibilityRole, rest.role].includes(CONST.ROLE.PRESENTATION) && !isNested) {
             return styles.cursorText;
         }
         return styles.cursorPointer;
-    }, [styles, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, interactive]);
+    }, [interactive, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, isNested, styles.cursorPointer, styles.cursorDefault, styles.cursorDisabled, styles.cursorText]);
 
     const onLongPressHandler = useCallback(
         (event: GestureResponderEvent) => {

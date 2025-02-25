@@ -1,7 +1,6 @@
-import type {Role, StyleProp, ViewStyle} from 'react-native';
-
-type GetButtonStyle = (styles: {cursorPointer: ViewStyle}, isNested: boolean) => StyleProp<ViewStyle> | undefined;
+import type {Role} from 'react-native';
 
 type GetButtonRole = (isNested: boolean) => Role | undefined;
 
-export type {GetButtonStyle, GetButtonRole};
+// eslint-disable-next-line import/prefer-default-export
+export type {GetButtonRole};
