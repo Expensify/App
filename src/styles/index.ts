@@ -3142,6 +3142,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             opacity: 0,
             left: -9999,
+            top: -9999,
         },
 
         containerWithSpaceBetween: {
