@@ -459,6 +459,10 @@ function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCo
     return cards;
 }
 
+function isSmartLimitEnable(cards: CardList) {
+    return Object.values(cards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+}
+
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
@@ -567,6 +571,7 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    isSmartLimitEnable,
     hasIssuedExpensifyCard,
     hasCardListObject,
 };
