@@ -29,6 +29,7 @@ type ProductTrainingContextConfig = {
      * Callback to be called when the tooltip is dismissed
      */
     onDismiss?: () => void;
+
     /**
      * Callback to be called when the tooltip is confirmed
      */
