@@ -25,7 +25,7 @@ import {getDefaultVendorName} from './utils';
 
 function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {data: intacctData, config} = policy?.connections?.intacct ?? {};
     const {reimbursable, reimbursableExpenseReportDefaultVendor} = policy?.connections?.intacct?.config?.export ?? {};
@@ -59,6 +59,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : translate('workspace.sageIntacct.notConfigured'),
             description: translate('workspace.accounting.exportAs'),
             onPress: () => {
+                if (!policyID) {
+                    return;
+                }
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION.getRoute(policyID));
             },
             subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE],
@@ -71,12 +74,20 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
             onToggle: (enabled) => {
-                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
-                updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor, config?.export.reimbursableExpenseReportDefaultVendor);
+                if (!policyID) {
+                    return;
+                }
+                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id : '';
+                updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor ?? '', config?.export.reimbursableExpenseReportDefaultVendor);
                 isAccordionExpanded.set(enabled);
                 shouldAnimateAccordionSection.set(true);
             },
-            onCloseError: () => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR),
+            onCloseError: () => {
+                if (!policyID) {
+                    return;
+                }
+                clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR);
+            },
             pendingAction: settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR], config?.pendingFields),
             errors: getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR),
             shouldHide: reimbursable !== CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT,
@@ -89,6 +100,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                     title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
                     description: translate('workspace.sageIntacct.defaultVendor'),
                     onPress: () => {
+                        if (!policyID) {
+                            return;
+                        }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE));
                     },
                     subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR],
@@ -106,7 +120,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             displayName={SageIntacctReimbursableExpensesPage.displayName}
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.sageIntacct.reimbursableExpenses.description"
-            onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

@@ -25,7 +25,7 @@ import {getDefaultVendorName} from './utils';
 
 function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {data: intacctData, config} = policy?.connections?.intacct ?? {};
 
@@ -65,6 +65,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                 : translate('workspace.sageIntacct.notConfigured'),
             description: translate('workspace.accounting.exportAs'),
             onPress: () => {
+                if (!policyID) {
+                    return;
+                }
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION.getRoute(policyID));
             },
             subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE],
@@ -74,6 +77,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
             description: translate('workspace.sageIntacct.creditCardAccount'),
             onPress: () => {
+                if (!policyID) {
+                    return;
+                }
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID));
             },
             subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT],
@@ -87,12 +93,25 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             isActive: !!config?.export.nonReimbursableCreditCardChargeDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
             onToggle: (enabled) => {
-                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? '' : '';
-                updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor, config?.export.nonReimbursableCreditCardChargeDefaultVendor);
+                if (!policyID) {
+                    return;
+                }
+                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id : '';
+                updateSageIntacctDefaultVendor(
+                    policyID,
+                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
+                    vendor ?? '',
+                    config?.export.nonReimbursableCreditCardChargeDefaultVendor,
+                );
                 isAccordionExpanded.set(enabled);
                 shouldAnimateAccordionSection.set(true);
             },
-            onCloseError: () => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
+            onCloseError: () => {
+                if (!policyID) {
+                    return;
+                }
+                clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR);
+            },
             pendingAction: settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields),
             errors: getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
             shouldHide: config?.export.nonReimbursable !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
@@ -105,6 +124,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
                     title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : translate('workspace.sageIntacct.notConfigured'),
                     description: translate('workspace.sageIntacct.defaultVendor'),
                     onPress: () => {
+                        if (!policyID) {
+                            return;
+                        }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase()));
                     },
                     subscribedSettings: [
@@ -129,7 +151,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             displayName={SageIntacctNonReimbursableExpensesPage.displayName}
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
-            onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

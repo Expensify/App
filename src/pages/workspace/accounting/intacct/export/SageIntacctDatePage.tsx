@@ -9,7 +9,8 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -17,7 +18,6 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateSageIntacctExportDate} from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,7 +28,7 @@ type MenuListItem = ListItem & {
 
 function SageIntacctDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig, pendingFields} = policy?.connections?.intacct?.config ?? {};
@@ -43,7 +43,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const backTo = route.params?.backTo;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
+        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)));
     }, [policyID, backTo]);
 
     const headerContent = useMemo(
@@ -57,7 +57,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
 
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== exportConfig?.exportDate) {
+            if (row.value !== exportConfig?.exportDate && policyID) {
                 updateSageIntacctExportDate(policyID, row.value, exportConfig?.exportDate);
             }
             goBack();
@@ -80,9 +80,14 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
             onBackButtonPress={goBack}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE], pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
+            errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
+            onClose={() => {
+                if (!policyID) {
+                    return;
+                }
+                clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE);
+            }}
         />
     );
 }
