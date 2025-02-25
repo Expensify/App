@@ -101,6 +101,9 @@ type MoneyRequestAmountInputProps = {
 
     /** Function to clear the negative amount */
     clearNegative?: () => void;
+
+    /** Whether to allow flipping amount */
+    allowFlippingAmount?: boolean;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
@@ -139,6 +142,7 @@ function MoneyRequestAmountInput(
         autoGrowExtraSpace,
         contentWidth,
         isNegative = false,
+        allowFlippingAmount = false,
         toggleNegative,
         clearNegative,
         ...props
@@ -171,7 +175,7 @@ function MoneyRequestAmountInput(
      */
     const setNewAmount = useCallback(
         (newAmount: string) => {
-            if (newAmount.startsWith('-') && toggleNegative) {
+            if (allowFlippingAmount && newAmount.startsWith('-') && toggleNegative) {
                 toggleNegative();
             }
 
@@ -203,7 +207,7 @@ function MoneyRequestAmountInput(
                 return strippedAmount;
             });
         },
-        [decimals, onAmountChange, toggleNegative],
+        [allowFlippingAmount, decimals, onAmountChange, toggleNegative],
     );
 
     useImperativeHandle(moneyRequestAmountInputRef, () => ({
