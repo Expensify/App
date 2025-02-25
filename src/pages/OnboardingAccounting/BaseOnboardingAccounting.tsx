@@ -172,17 +172,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         return;
                     }
 
-                    completeOnboarding(
-                        onboardingPurposeSelected,
-                        CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                        undefined,
-                        undefined,
-                        onboardingAdminsChatReportID ?? undefined,
+                    completeOnboarding({
+                        engagementChoice: onboardingPurposeSelected,
+                        data: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                        adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
                         onboardingPolicyID,
-                        undefined,
-                        onboardingCompanySize,
+                        companySize: onboardingCompanySize,
                         userReportedIntegration,
-                    );
+                    });
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
                         setOnboardingAdminsChatReportID();
