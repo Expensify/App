@@ -113,6 +113,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 styles: [styles.textSupporting],
                 isSelected: false,
                 shouldCallAfterModalHide: true,
+                icon: Expensicons.Bookmark,
             };
         },
         [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards],
