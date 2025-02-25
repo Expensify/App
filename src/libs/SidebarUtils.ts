@@ -77,6 +77,7 @@ import {
     getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
+    getReportSubtitlePrefix,
     getWorkspaceNameUpdatedMessage,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
@@ -343,6 +344,10 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     const errors = getAllReportErrors(report, reportActions);
     const hasErrors = Object.keys(errors).length !== 0;
 
+    if (isArchivedReportWithID(report.reportID)) {
+        return null;
+    }
+
     if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
@@ -523,6 +528,7 @@ function getOptionData({
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
+        const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
             result.alternateText = getRenamedAction(lastAction);
@@ -613,10 +619,12 @@ function getOptionData({
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
                     : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
+
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
             }
         }
+        result.alternateText = prefix + result.alternateText;
     } else {
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
