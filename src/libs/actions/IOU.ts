@@ -497,15 +497,13 @@ type BuildOnyxDataForInvoiceParams = {
         transactionThreadReport: OptimisticChatReport;
         transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
     };
-    policyParams: {
-        policy?: OnyxEntry<OnyxTypes.Policy>;
-        policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-        policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyParams: RequestMoneyPolicyParams;
+    optimisticData: {
+        optimisticRecentlyUsedCurrencies?: string[];
         optimisticPolicyRecentlyUsedCategories: string[];
         optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags;
+        optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList;
     };
-    optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList;
-    optimisticRecentlyUsedCurrencies?: string[];
     companyName?: string;
     companyWebsite?: string;
 };
@@ -1496,9 +1494,8 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         chat: {chatReport, chatCreatedAction, reportPreviewAction, isNewChatReport},
         iou: {iouCreatedAction, iouAction, iouReport},
         transactionParams: {transaction, transactionThreadReport, transactionThreadCreatedReportAction},
-        policyParams: {policy, policyTagList, policyCategories, optimisticPolicyRecentlyUsedCategories, optimisticPolicyRecentlyUsedTags},
-        optimisticPersonalDetailListAction,
-        optimisticRecentlyUsedCurrencies,
+        policyParams: {policy, policyTagList, policyCategories},
+        optimisticData: {optimisticPolicyRecentlyUsedCategories, optimisticPolicyRecentlyUsedTags, optimisticPersonalDetailListAction, optimisticRecentlyUsedCurrencies},
         companyName,
         companyWebsite,
     } = invoiceParams;
@@ -2606,9 +2603,13 @@ function getSendInvoiceInformation(
             transactionThreadReport: optimisticTransactionThread,
             transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
         },
-        policyParams: {policy, policyTagList, policyCategories, optimisticPolicyRecentlyUsedCategories, optimisticPolicyRecentlyUsedTags},
-        optimisticPersonalDetailListAction,
-        optimisticRecentlyUsedCurrencies,
+        policyParams: {policy, policyTagList, policyCategories},
+        optimisticData: {
+            optimisticPersonalDetailListAction,
+            optimisticRecentlyUsedCurrencies,
+            optimisticPolicyRecentlyUsedCategories,
+            optimisticPolicyRecentlyUsedTags,
+        },
         companyName,
         companyWebsite,
     });
