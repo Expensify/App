@@ -1,6 +1,7 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,26 +18,28 @@ type OfflineIndicatorProps = {
 
     /** Optional styles for the container */
     style?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether to add bottom safe area padding to the view.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
+function OfflineIndicator({style, containerStyles, addBottomSafeAreaPadding = false}: OfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const computedStyles = useMemo((): StyleProp<ViewStyle> => {
-        if (containerStyles) {
-            return containerStyles;
-        }
+    const computedStyles = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding,
+        style: containerStyles ?? shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator,
+    });
 
-        return shouldUseNarrowLayout ? styles.offlineIndicatorMobile : styles.offlineIndicator;
-    }, [containerStyles, shouldUseNarrowLayout, styles.offlineIndicatorMobile, styles.offlineIndicator]);
-
-    if (!isOffline) {
-        return null;
-    }
+    // if (!isOffline) {
+    //     return null;
+    // }
 
     return (
         <View style={[computedStyles, styles.flexRow, styles.alignItemsCenter, style]}>
