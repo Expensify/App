@@ -64,6 +64,7 @@ type KYCWallProps = {
     /** Children to build the KYC */
     children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
 
+    /** The policy used for payment */
     policy?: Policy;
 };
 

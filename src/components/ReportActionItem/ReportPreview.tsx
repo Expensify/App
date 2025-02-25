@@ -274,7 +274,7 @@ function ReportPreview({
     }, []);
 
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, usedPolicyID?: string) => {
+        (type: PaymentMethodType | undefined, payAsBusiness: boolean | undefined, usedPolicyID: string | undefined) => {
             if (!type) {
                 return;
             }

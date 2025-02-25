@@ -80,14 +80,14 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | R
 function getLastPolicyPaymentMethod(
     policyID: string | undefined,
     lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
-    reportType?: keyof LastPaymentMethodType,
+    reportType: keyof LastPaymentMethodType = 'lastUsed',
 ): ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined {
     if (!policyID) {
         return undefined;
     }
 
     const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID];
-    const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : lastPolicyPaymentMethod?.[reportType ?? 'lastUsed'];
+    const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : lastPolicyPaymentMethod?.[reportType];
 
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }

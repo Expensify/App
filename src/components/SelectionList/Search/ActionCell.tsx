@@ -49,7 +49,7 @@ function ActionCell({
     isChildListItem = false,
     parentAction = '',
     isLoading = false,
-    policyID = '-1',
+    policyID = '',
     bankAccountRoute = ROUTES.BANK_ACCOUNT as Route,
     reportID = '',
 }: ActionCellProps) {
@@ -106,7 +106,7 @@ function ActionCell({
         ) : null;
     }
 
-    if (action === CONST.SEARCH.ACTION_TYPES.PAY && policyID !== '-1') {
+    if (action === CONST.SEARCH.ACTION_TYPES.PAY && !!policyID) {
         return (
             <SettlementButton
                 shouldUseShortForm
@@ -118,7 +118,7 @@ function ActionCell({
                 addBankAccountRoute={bankAccountRoute}
                 onPress={goToItem}
                 style={[styles.w100]}
-                shouldShowPersonalBankAccountOption={policyID === '-1'}
+                shouldShowPersonalBankAccountOption={!policyID}
             />
         );
     }

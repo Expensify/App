@@ -96,11 +96,12 @@ function SettlementButton({
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = policies?.[policyID];
     const isLastPaymentPolicy = !Object.values({...CONST.PAYMENT_METHODS, ...CONST.IOU.PAYMENT_TYPE}).includes(lastPaymentMethod as PaymentMethod);
     const lastPaymentPolicy = isLastPaymentPolicy ? getPolicy(lastPaymentMethod) : undefined;
     const bankAccountList = getBankAccountList() ?? {};
     const bankAccount = Object.values(bankAccountList).at(0);
+    // whether the user has single policy and the expense isn't inside a workspace
     const hasSinglePolicy = !policy && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !policy && activeAdminPolicies.length > 1;
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
