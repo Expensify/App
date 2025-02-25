@@ -68,7 +68,6 @@ function OpacityView({
             onLayout={(e) => {
                 setHeight(e.nativeEvent.layout.height);
             }}
-            layout={shouldAnimateOnRemove ? LinearTransition : undefined}
         >
             {children}
         </Animated.View>
