@@ -155,6 +155,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             videoResumeTryNumberRef,
+            resetVideoPlayerData,
             updateCurrentPlayingReportID,
         }),
         [
@@ -168,6 +169,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             setCurrentlyPlayingURL,
+            resetVideoPlayerData,
             updateCurrentPlayingReportID,
         ],
     );
