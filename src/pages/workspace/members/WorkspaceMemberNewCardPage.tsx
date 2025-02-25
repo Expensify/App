@@ -54,6 +54,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
@@ -133,7 +134,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     }));
 
     const feeds =
-        workspaceAccountID && policy?.areExpensifyCardsEnabled
+        policy?.areExpensifyCardsEnabled && expensifyCardSettings?.paymentBankAccountID
             ? [
                   ...companyCardFeeds,
                   {
