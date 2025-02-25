@@ -2125,7 +2125,7 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card)
         isEmptyObject(privatePersonalDetails?.addresses) ||
         privatePersonalDetails.addresses.length === 0;
 
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (card?.state === 2 || missingDetails);
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED || missingDetails);
 }
 
 function getCardIssuedMessage({
