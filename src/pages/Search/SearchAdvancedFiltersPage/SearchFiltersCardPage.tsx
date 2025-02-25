@@ -283,6 +283,11 @@ function getSelectedCardsFromFeeds(workspaceCardFeeds: Record<string, WorkspaceC
     );
 }
 
+const generateSelectedCards = (workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined, feeds: string[] | undefined, cards: string[] | undefined) => {
+    const selectedCards = getSelectedCardsFromFeeds(workspaceCardFeeds, feeds);
+    return [...new Set([...selectedCards, ...(cards ?? [])])];
+};
+
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -291,13 +296,18 @@ function SearchFiltersCardPage() {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const initiallySelectedFeeds = useMemo(() => getSelectedCardsFromFeeds(workspaceCardFeeds, searchAdvancedFiltersForm?.feed), [workspaceCardFeeds, searchAdvancedFiltersForm?.feed]);
-    const initiallySelectedCards = useMemo(() => {
-        const selectedCards = new Set([...initiallySelectedFeeds, ...(searchAdvancedFiltersForm?.cardID ?? [])]);
-        return [...selectedCards];
-    }, [initiallySelectedFeeds, searchAdvancedFiltersForm?.cardID]);
-    const [selectedCards, setSelectedCards] = useState(initiallySelectedCards ?? []);
     const personalDetails = usePersonalDetails();
+
+    const getSelectedCards = useCallback(
+        () => generateSelectedCards(workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID),
+        [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds],
+    );
+
+    const [selectedCards, setSelectedCards] = useState<string[]>(getSelectedCards);
+
+    useEffect(() => {
+        setSelectedCards(getSelectedCards());
+    }, [getSelectedCards]);
 
     useEffect(() => {
         openSearchFiltersCardPage();
@@ -349,6 +359,10 @@ function SearchFiltersCardPage() {
     );
 
     const sections = useMemo(() => {
+        if (searchAdvancedFiltersForm === undefined) {
+            return [];
+        }
+
         const newSections = [];
         const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected];
 
@@ -368,7 +382,15 @@ function SearchFiltersCardPage() {
             shouldShow: individualCardsSectionData.unselected.length > 0,
         });
         return newSections;
-    }, [cardFeedsSectionData.selected, cardFeedsSectionData.unselected, individualCardsSectionData.selected, individualCardsSectionData.unselected, searchFunction, translate]);
+    }, [
+        searchAdvancedFiltersForm,
+        cardFeedsSectionData.selected,
+        cardFeedsSectionData.unselected,
+        individualCardsSectionData.selected,
+        individualCardsSectionData.unselected,
+        searchFunction,
+        translate,
+    ]);
 
     const handleConfirmSelection = useCallback(() => {
         const feeds = getSelectedFeeds(cardFeedsSectionData.selected);
@@ -449,6 +471,7 @@ function SearchFiltersCardPage() {
                     onChangeText={(value) => {
                         setSearchTerm(value);
                     }}
+                    showLoadingPlaceholder
                 />
             </View>
         </ScreenWrapper>
