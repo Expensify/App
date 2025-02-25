@@ -16972,11 +16972,14 @@ function ClassAccessorProperty(node) {
 }
 function ClassPrivateProperty(node) {
   this.printJoin(node.decorators);
-  if (node.static) {
-    this.word("static");
-    this.space();
-  }
+  this.tsPrintClassMemberModifiers(node);
   this.print(node.key);
+  if (node.optional) {
+    this.tokenChar(63);
+  }
+  if (node.definite) {
+    this.tokenChar(33);
+  }
   this.print(node.typeAnnotation);
   if (node.value) {
     this.space();
@@ -19105,6 +19108,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports.TaggedTemplateExpression = TaggedTemplateExpression;
 exports.TemplateElement = TemplateElement;
 exports.TemplateLiteral = TemplateLiteral;
+exports._printTemplate = _printTemplate;
 function TaggedTemplateExpression(node) {
   this.print(node.tag);
   {
@@ -19115,22 +19119,24 @@ function TaggedTemplateExpression(node) {
 function TemplateElement() {
   throw new Error("TemplateElement printing is handled in TemplateLiteral");
 }
-function TemplateLiteral(node) {
+function _printTemplate(node, substitutions) {
   const quasis = node.quasis;
   let partRaw = "`";
-  for (let i = 0; i < quasis.length; i++) {
+  for (let i = 0; i < quasis.length - 1; i++) {
     partRaw += quasis[i].value.raw;
-    if (i + 1 < quasis.length) {
-      this.token(partRaw + "${", true);
-      this.print(node.expressions[i]);
-      partRaw = "}";
-      if (this.tokenMap) {
-        const token = this.tokenMap.findMatching(node, "}", i);
-        if (token) this._catchUpTo(token.loc.start);
-      }
+    this.token(partRaw + "${", true);
+    this.print(substitutions[i]);
+    partRaw = "}";
+    if (this.tokenMap) {
+      const token = this.tokenMap.findMatching(node, "}", i);
+      if (token) this._catchUpTo(token.loc.start);
     }
   }
+  partRaw += quasis[quasis.length - 1].value.raw;
   this.token(partRaw + "`", true);
+}
+function TemplateLiteral(node) {
+  this._printTemplate(node, node.expressions);
 }
 
 //# sourceMappingURL=template-literals.js.map
@@ -19437,6 +19443,7 @@ exports.TSQualifiedName = TSQualifiedName;
 exports.TSRestType = TSRestType;
 exports.TSStringKeyword = TSStringKeyword;
 exports.TSSymbolKeyword = TSSymbolKeyword;
+exports.TSTemplateLiteralType = TSTemplateLiteralType;
 exports.TSThisType = TSThisType;
 exports.TSTupleType = TSTupleType;
 exports.TSTypeAliasDeclaration = TSTypeAliasDeclaration;
@@ -19824,6 +19831,9 @@ function tokenIfPlusMinus(self, tok) {
     self.token(tok);
   }
 }
+function TSTemplateLiteralType(node) {
+  this._printTemplate(node, node.types);
+}
 function TSLiteralType(node) {
   this.print(node.literal);
 }
@@ -20008,11 +20018,10 @@ function TSImportType(node) {
 }
 function TSImportEqualsDeclaration(node) {
   const {
-    isExport,
     id,
     moduleReference
   } = node;
-  if (isExport) {
+  if (node.isExport) {
     this.word("export");
     this.space();
   }
@@ -20064,13 +20073,14 @@ function tsPrintSignatureDeclarationBase(node) {
   this.print(returnType);
 }
 function tsPrintClassMemberModifiers(node) {
-  const isField = node.type === "ClassAccessorProperty" || node.type === "ClassProperty";
-  printModifiersList(this, node, [isField && node.declare && "declare", node.accessibility]);
+  const isPrivateField = node.type === "ClassPrivateProperty";
+  const isPublicField = node.type === "ClassAccessorProperty" || node.type === "ClassProperty";
+  printModifiersList(this, node, [isPublicField && node.declare && "declare", !isPrivateField && node.accessibility]);
   if (node.static) {
     this.word("static");
     this.space();
   }
-  printModifiersList(this, node, [node.override && "override", node.abstract && "abstract", isField && node.readonly && "readonly"]);
+  printModifiersList(this, node, [!isPrivateField && node.override && "override", !isPrivateField && node.abstract && "abstract", (isPublicField || isPrivateField) && node.readonly && "readonly"]);
 }
 function printBraced(printer, node, cb) {
   printer.token("{");
@@ -20374,10 +20384,14 @@ exports.OptionalIndexedAccessType = OptionalIndexedAccessType;
 exports.OptionalCallExpression = exports.OptionalMemberExpression = OptionalMemberExpression;
 exports.SequenceExpression = SequenceExpression;
 exports.TSSatisfiesExpression = exports.TSAsExpression = TSAsExpression;
+exports.TSConditionalType = TSConditionalType;
+exports.TSConstructorType = exports.TSFunctionType = TSFunctionType;
 exports.TSInferType = TSInferType;
 exports.TSInstantiationExpression = TSInstantiationExpression;
+exports.TSIntersectionType = TSIntersectionType;
 exports.UnaryLike = exports.TSTypeAssertion = UnaryLike;
-exports.TSIntersectionType = exports.TSUnionType = TSUnionType;
+exports.TSTypeOperator = TSTypeOperator;
+exports.TSUnionType = TSUnionType;
 exports.IntersectionTypeAnnotation = exports.UnionTypeAnnotation = UnionTypeAnnotation;
 exports.UpdateExpression = UpdateExpression;
 exports.AwaitExpression = exports.YieldExpression = YieldExpression;
@@ -20471,17 +20485,50 @@ function TSAsExpression(node, parent) {
   }
   return Binary(node, parent);
 }
+function TSConditionalType(node, parent) {
+  const parentType = parent.type;
+  if (parentType === "TSArrayType" || parentType === "TSIndexedAccessType" && parent.objectType === node || parentType === "TSOptionalType" || parentType === "TSTypeOperator" || parentType === "TSTypeParameter") {
+    return true;
+  }
+  if ((parentType === "TSIntersectionType" || parentType === "TSUnionType") && parent.types[0] === node) {
+    return true;
+  }
+  if (parentType === "TSConditionalType" && (parent.checkType === node || parent.extendsType === node)) {
+    return true;
+  }
+  return false;
+}
 function TSUnionType(node, parent) {
   const parentType = parent.type;
-  return parentType === "TSArrayType" || parentType === "TSOptionalType" || parentType === "TSIntersectionType" || parentType === "TSRestType";
+  return parentType === "TSIntersectionType" || parentType === "TSTypeOperator" || parentType === "TSArrayType" || parentType === "TSIndexedAccessType" && parent.objectType === node || parentType === "TSOptionalType";
+}
+function TSIntersectionType(node, parent) {
+  const parentType = parent.type;
+  return parentType === "TSTypeOperator" || parentType === "TSArrayType" || parentType === "TSIndexedAccessType" && parent.objectType === node || parentType === "TSOptionalType";
 }
 function TSInferType(node, parent) {
   const parentType = parent.type;
-  return parentType === "TSArrayType" || parentType === "TSOptionalType";
+  if (parentType === "TSArrayType" || parentType === "TSIndexedAccessType" && parent.objectType === node || parentType === "TSOptionalType") {
+    return true;
+  }
+  if (node.typeParameter.constraint) {
+    if ((parentType === "TSIntersectionType" || parentType === "TSUnionType") && parent.types[0] === node) {
+      return true;
+    }
+  }
+  return false;
+}
+function TSTypeOperator(node, parent) {
+  const parentType = parent.type;
+  return parentType === "TSArrayType" || parentType === "TSIndexedAccessType" && parent.objectType === node || parentType === "TSOptionalType";
 }
 function TSInstantiationExpression(node, parent) {
   const parentType = parent.type;
   return (parentType === "CallExpression" || parentType === "OptionalCallExpression" || parentType === "NewExpression" || parentType === "TSInstantiationExpression") && !!parent.typeParameters;
+}
+function TSFunctionType(node, parent) {
+  const parentType = parent.type;
+  return parentType === "TSIntersectionType" || parentType === "TSUnionType" || parentType === "TSTypeOperator" || parentType === "TSOptionalType" || parentType === "TSArrayType" || parentType === "TSIndexedAccessType" && parent.objectType === node || parentType === "TSConditionalType" && (parent.checkType === node || parent.extendsType === node);
 }
 function BinaryExpression(node, parent, tokenContext, inForStatementInit) {
   return node.operator === "in" && inForStatementInit;
@@ -22974,7 +23021,7 @@ var StrictModeErrors = {
   StrictWith: "'with' in strict mode."
 };
 const UnparenthesizedPipeBodyDescriptions = new Set(["ArrowFunctionExpression", "AssignmentExpression", "ConditionalExpression", "YieldExpression"]);
-var PipelineOperatorErrors = {
+var PipelineOperatorErrors = Object.assign({
   PipeBodyIsTighter: "Unexpected yield after pipeline body; any yield expression acting as Hack-style pipe body must be parenthesized due to its loose operator precedence.",
   PipeTopicRequiresHackPipes: 'Topic reference is used, but the pipelineOperator plugin was not passed a "proposal": "hack" or "smart" option.',
   PipeTopicUnbound: "Topic reference is unbound; it must be inside a pipe body.",
@@ -22986,14 +23033,15 @@ var PipelineOperatorErrors = {
     type
   }) => `Hack-style pipe body cannot be an unparenthesized ${toNodeDescription({
     type
-  })}; please wrap it in parentheses.`,
+  })}; please wrap it in parentheses.`
+}, {
   PipelineBodyNoArrow: 'Unexpected arrow "=>" after pipeline body; arrow function in pipeline body must be parenthesized.',
   PipelineBodySequenceExpression: "Pipeline body may not be a comma-separated sequence expression.",
   PipelineHeadSequenceExpression: "Pipeline head should not be a comma-separated sequence expression.",
   PipelineTopicUnused: "Pipeline is in topic style but does not use topic reference.",
   PrimaryTopicNotAllowed: "Topic reference was used in a lexical context without topic binding.",
   PrimaryTopicRequiresSmartPipeline: 'Topic reference is used, but the pipelineOperator plugin was not passed a "proposal": "hack" or "smart" option.'
-};
+});
 const _excluded = ["message"];
 function defineHidden(obj, key, value) {
   Object.defineProperty(obj, key, {
@@ -23299,8 +23347,7 @@ var estree = superClass => class ESTreeParserMixin extends superClass {
     if (typeParameters) {
       delete node.typeParameters;
       funcNode.typeParameters = typeParameters;
-      funcNode.start = typeParameters.start;
-      funcNode.loc.start = typeParameters.loc.start;
+      this.resetStartLocationFromNode(funcNode, typeParameters);
     }
     if (type === "ClassPrivateMethod") {
       node.computed = false;
@@ -30516,7 +30563,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     }
     this.expect(11);
     if (this.eat(16)) {
-      node.qualifier = this.tsParseEntityName();
+      node.qualifier = this.tsParseEntityName(1 | 2);
     }
     if (this.match(47)) {
       {
@@ -30525,19 +30572,30 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     }
     return this.finishNode(node, "TSImportType");
   }
-  tsParseEntityName(allowReservedWords = true) {
-    let entity = this.parseIdentifier(allowReservedWords);
+  tsParseEntityName(flags) {
+    let entity;
+    if (flags & 1 && this.match(78)) {
+      if (flags & 2) {
+        entity = this.parseIdentifier(true);
+      } else {
+        const node = this.startNode();
+        this.next();
+        entity = this.finishNode(node, "ThisExpression");
+      }
+    } else {
+      entity = this.parseIdentifier(!!(flags & 1));
+    }
     while (this.eat(16)) {
       const node = this.startNodeAtNode(entity);
       node.left = entity;
-      node.right = this.parseIdentifier(allowReservedWords);
+      node.right = this.parseIdentifier(!!(flags & 1));
       entity = this.finishNode(node, "TSQualifiedName");
     }
     return entity;
   }
   tsParseTypeReference() {
     const node = this.startNode();
-    node.typeName = this.tsParseEntityName();
+    node.typeName = this.tsParseEntityName(1);
     if (!this.hasPrecedingLineBreak() && this.match(47)) {
       {
         node.typeParameters = this.tsParseTypeArguments();
@@ -30564,7 +30622,9 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     if (this.match(83)) {
       node.exprName = this.tsParseImportType();
     } else {
-      node.exprName = this.tsParseEntityName();
+      {
+        node.exprName = this.tsParseEntityName(1 | 2);
+      }
     }
     if (!this.hasPrecedingLineBreak() && this.match(47)) {
       {
@@ -30824,10 +30884,11 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     return this.finishNode(node, "TSTupleType");
   }
   tsParseTupleElementType() {
+    const restStartLoc = this.state.startLoc;
+    const rest = this.eat(21);
     const {
       startLoc
     } = this.state;
-    const rest = this.eat(21);
     let labeled;
     let label;
     let optional;
@@ -30842,7 +30903,6 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       type = this.tsParseType();
     } else if (chAfterWord === 63) {
       optional = true;
-      const startLoc = this.state.startLoc;
       const wordName = this.state.value;
       const typeOrLabel = this.tsParseNonArrayType();
       if (this.lookaheadCharCode() === 58) {
@@ -30864,7 +30924,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     if (labeled) {
       let labeledNode;
       if (label) {
-        labeledNode = this.startNodeAtNode(label);
+        labeledNode = this.startNodeAt(startLoc);
         labeledNode.optional = optional;
         labeledNode.label = label;
         labeledNode.elementType = type;
@@ -30873,7 +30933,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
           this.raise(TSErrors.TupleOptionalAfterType, this.state.lastTokStartLoc);
         }
       } else {
-        labeledNode = this.startNodeAtNode(type);
+        labeledNode = this.startNodeAt(startLoc);
         labeledNode.optional = optional;
         this.raise(TSErrors.InvalidTupleMemberLabel, type);
         labeledNode.label = type;
@@ -30881,12 +30941,12 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       }
       type = this.finishNode(labeledNode, "TSNamedTupleMember");
     } else if (optional) {
-      const optionalTypeNode = this.startNodeAtNode(type);
+      const optionalTypeNode = this.startNodeAt(startLoc);
       optionalTypeNode.typeAnnotation = type;
       type = this.finishNode(optionalTypeNode, "TSOptionalType");
     }
     if (rest) {
-      const restNode = this.startNodeAt(startLoc);
+      const restNode = this.startNodeAt(restStartLoc);
       restNode.typeAnnotation = type;
       type = this.finishNode(restNode, "TSRestType");
     }
@@ -30925,9 +30985,11 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     return this.finishNode(node, "TSLiteralType");
   }
   tsParseTemplateLiteralType() {
-    const node = this.startNode();
-    node.literal = super.parseTemplate(false);
-    return this.finishNode(node, "TSLiteralType");
+    {
+      const node = this.startNode();
+      node.literal = super.parseTemplate(false);
+      return this.finishNode(node, "TSLiteralType");
+    }
   }
   parseTemplateSubstitution() {
     if (this.state.inType) return this.tsParseType();
@@ -30994,15 +31056,18 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     this.unexpected();
   }
   tsParseArrayTypeOrHigher() {
+    const {
+      startLoc
+    } = this.state;
     let type = this.tsParseNonArrayType();
     while (!this.hasPrecedingLineBreak() && this.eat(0)) {
       if (this.match(3)) {
-        const node = this.startNodeAtNode(type);
+        const node = this.startNodeAt(startLoc);
         node.elementType = type;
         this.expect(3);
         type = this.finishNode(node, "TSArrayType");
       } else {
-        const node = this.startNodeAtNode(type);
+        const node = this.startNodeAt(startLoc);
         node.objectType = type;
         node.indexType = this.tsParseType();
         this.expect(3);
@@ -31255,8 +31320,8 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     const originalStartLoc = this.state.startLoc;
     const delimitedList = this.tsParseDelimitedList("HeritageClauseElement", () => {
       const node = this.startNode();
-      node.expression = this.tsParseEntityName();
       {
+        node.expression = this.tsParseEntityName(1 | 2);
         if (this.match(47)) {
           node.typeParameters = this.tsParseTypeArguments();
         }
@@ -31442,7 +31507,9 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     return this.finishNode(node, "TSModuleDeclaration");
   }
   tsParseImportEqualsDeclaration(node, maybeDefaultIdentifier, isExport) {
-    node.isExport = isExport || false;
+    {
+      node.isExport = isExport || false;
+    }
     node.id = maybeDefaultIdentifier || this.parseIdentifier();
     this.checkIdentifier(node.id, 4096);
     this.expect(29);
@@ -31458,7 +31525,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     return this.isContextual(119) && this.lookaheadCharCode() === 40;
   }
   tsParseModuleReference() {
-    return this.tsIsExternalModuleReference() ? this.tsParseExternalModuleReference() : this.tsParseEntityName(false);
+    return this.tsIsExternalModuleReference() ? this.tsParseExternalModuleReference() : this.tsParseEntityName(0);
   }
   tsParseExternalModuleReference() {
     const node = this.startNode();
@@ -31910,15 +31977,18 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
   }
   parseExport(node, decorators) {
     if (this.match(83)) {
-      this.next();
       const nodeImportEquals = node;
+      this.next();
       let maybeDefaultIdentifier = null;
       if (this.isContextual(130) && this.isPotentialImportPhase(false)) {
         maybeDefaultIdentifier = this.parseMaybeImportPhase(nodeImportEquals, false);
       } else {
         nodeImportEquals.importKind = "value";
       }
-      return this.tsParseImportEqualsDeclaration(nodeImportEquals, maybeDefaultIdentifier, true);
+      const declaration = this.tsParseImportEqualsDeclaration(nodeImportEquals, maybeDefaultIdentifier, true);
+      {
+        return declaration;
+      }
     } else if (this.eat(29)) {
       const assign = node;
       assign.expression = super.parseExpression();
@@ -32118,7 +32188,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
     if (declaration.type === "TSInterfaceDeclaration" || declaration.type === "TSTypeAliasDeclaration" || isDeclare) {
       node.exportKind = "type";
     }
-    if (isDeclare) {
+    if (isDeclare && declaration.type !== "TSImportEqualsDeclaration") {
       this.resetStartLocation(declaration, startLoc);
       declaration.declare = true;
     }
@@ -33285,17 +33355,18 @@ class ExpressionParser extends LValParser {
             return this.withTopicBindingContext(() => {
               return this.parseHackPipeBody();
             });
-          case "smart":
-            return this.withTopicBindingContext(() => {
-              if (this.prodParam.hasYield && this.isContextual(108)) {
-                throw this.raise(Errors.PipeBodyIsTighter, this.state.startLoc);
-              }
-              return this.parseSmartPipelineBodyInStyle(this.parseExprOpBaseRightExpr(op, prec), startLoc);
-            });
           case "fsharp":
             return this.withSoloAwaitPermittingContext(() => {
               return this.parseFSharpPipelineBody(prec);
             });
+        }
+        if (this.getPluginOption("pipelineOperator", "proposal") === "smart") {
+          return this.withTopicBindingContext(() => {
+            if (this.prodParam.hasYield && this.isContextual(108)) {
+              throw this.raise(Errors.PipeBodyIsTighter, this.state.startLoc);
+            }
+            return this.parseSmartPipelineBodyInStyle(this.parseExprOpBaseRightExpr(op, prec), startLoc);
+          });
         }
       default:
         return this.parseExprOpBaseRightExpr(op, prec);
@@ -33792,12 +33863,19 @@ class ExpressionParser extends LValParser {
   }
   finishTopicReference(node, startLoc, pipeProposal, tokenType) {
     if (this.testTopicReferenceConfiguration(pipeProposal, startLoc, tokenType)) {
-      const nodeType = pipeProposal === "smart" ? "PipelinePrimaryTopicReference" : "TopicReference";
-      if (!this.topicReferenceIsAllowedInCurrentContext()) {
-        this.raise(pipeProposal === "smart" ? Errors.PrimaryTopicNotAllowed : Errors.PipeTopicUnbound, startLoc);
+      if (pipeProposal === "hack") {
+        if (!this.topicReferenceIsAllowedInCurrentContext()) {
+          this.raise(Errors.PipeTopicUnbound, startLoc);
+        }
+        this.registerTopicReference();
+        return this.finishNode(node, "TopicReference");
+      } else {
+        if (!this.topicReferenceIsAllowedInCurrentContext()) {
+          this.raise(Errors.PrimaryTopicNotAllowed, startLoc);
+        }
+        this.registerTopicReference();
+        return this.finishNode(node, "PipelinePrimaryTopicReference");
       }
-      this.registerTopicReference();
-      return this.finishNode(node, nodeType);
     } else {
       throw this.raise(Errors.PipeTopicUnconfiguredToken, startLoc, {
         token: tokenLabelName(tokenType)
@@ -43231,6 +43309,7 @@ exports.assertTSRestType = assertTSRestType;
 exports.assertTSSatisfiesExpression = assertTSSatisfiesExpression;
 exports.assertTSStringKeyword = assertTSStringKeyword;
 exports.assertTSSymbolKeyword = assertTSSymbolKeyword;
+exports.assertTSTemplateLiteralType = assertTSTemplateLiteralType;
 exports.assertTSThisType = assertTSThisType;
 exports.assertTSTupleType = assertTSTupleType;
 exports.assertTSType = assertTSType;
@@ -43971,6 +44050,9 @@ function assertTSIndexedAccessType(node, opts) {
 function assertTSMappedType(node, opts) {
   assert("TSMappedType", node, opts);
 }
+function assertTSTemplateLiteralType(node, opts) {
+  assert("TSTemplateLiteralType", node, opts);
+}
 function assertTSLiteralType(node, opts) {
   assert("TSLiteralType", node, opts);
 }
@@ -44290,6 +44372,43 @@ function createTypeAnnotationBasedOnTypeof(type) {
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
+var _lowercase = __nccwpck_require__(9130);
+Object.keys(_lowercase).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _lowercase[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _lowercase[key];
+    }
+  });
+});
+var _uppercase = __nccwpck_require__(8530);
+Object.keys(_uppercase).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (key in exports && exports[key] === _uppercase[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _uppercase[key];
+    }
+  });
+});
+
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
+/***/ 9130:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
 exports.anyTypeAnnotation = anyTypeAnnotation;
 exports.argumentPlaceholder = argumentPlaceholder;
 exports.arrayExpression = arrayExpression;
@@ -44508,6 +44627,7 @@ exports.tSRestType = exports.tsRestType = tsRestType;
 exports.tSSatisfiesExpression = exports.tsSatisfiesExpression = tsSatisfiesExpression;
 exports.tSStringKeyword = exports.tsStringKeyword = tsStringKeyword;
 exports.tSSymbolKeyword = exports.tsSymbolKeyword = tsSymbolKeyword;
+exports.tSTemplateLiteralType = exports.tsTemplateLiteralType = tsTemplateLiteralType;
 exports.tSThisType = exports.tsThisType = tsThisType;
 exports.tSTupleType = exports.tsTupleType = tsTupleType;
 exports.tSTypeAliasDeclaration = exports.tsTypeAliasDeclaration = tsTypeAliasDeclaration;
@@ -46579,8 +46699,7 @@ function tsPropertySignature(key, typeAnnotation = null) {
   const node = {
     type: "TSPropertySignature",
     key,
-    typeAnnotation,
-    kind: null
+    typeAnnotation
   };
   const defs = NODE_FIELDS.TSPropertySignature;
   validate(defs.key, node, "key", key, 1);
@@ -46888,6 +47007,17 @@ function tsMappedType(typeParameter, typeAnnotation = null, nameType = null) {
   validate(defs.nameType, node, "nameType", nameType, 1);
   return node;
 }
+function tsTemplateLiteralType(quasis, types) {
+  const node = {
+    type: "TSTemplateLiteralType",
+    quasis,
+    types
+  };
+  const defs = NODE_FIELDS.TSTemplateLiteralType;
+  validate(defs.quasis, node, "quasis", quasis, 1);
+  validate(defs.types, node, "types", types, 1);
+  return node;
+}
 function tsLiteralType(literal) {
   const node = {
     type: "TSLiteralType",
@@ -47159,7 +47289,7 @@ function SpreadProperty(argument) {
   return spreadElement(argument);
 }
 
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=lowercase.js.map
 
 
 /***/ }),
@@ -47176,1534 +47306,1540 @@ Object.defineProperty(exports, "__esModule", ({
 Object.defineProperty(exports, "AnyTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.anyTypeAnnotation;
+    return _lowercase.anyTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "ArgumentPlaceholder", ({
   enumerable: true,
   get: function () {
-    return _index.argumentPlaceholder;
+    return _lowercase.argumentPlaceholder;
   }
 }));
 Object.defineProperty(exports, "ArrayExpression", ({
   enumerable: true,
   get: function () {
-    return _index.arrayExpression;
+    return _lowercase.arrayExpression;
   }
 }));
 Object.defineProperty(exports, "ArrayPattern", ({
   enumerable: true,
   get: function () {
-    return _index.arrayPattern;
+    return _lowercase.arrayPattern;
   }
 }));
 Object.defineProperty(exports, "ArrayTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.arrayTypeAnnotation;
+    return _lowercase.arrayTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "ArrowFunctionExpression", ({
   enumerable: true,
   get: function () {
-    return _index.arrowFunctionExpression;
+    return _lowercase.arrowFunctionExpression;
   }
 }));
 Object.defineProperty(exports, "AssignmentExpression", ({
   enumerable: true,
   get: function () {
-    return _index.assignmentExpression;
+    return _lowercase.assignmentExpression;
   }
 }));
 Object.defineProperty(exports, "AssignmentPattern", ({
   enumerable: true,
   get: function () {
-    return _index.assignmentPattern;
+    return _lowercase.assignmentPattern;
   }
 }));
 Object.defineProperty(exports, "AwaitExpression", ({
   enumerable: true,
   get: function () {
-    return _index.awaitExpression;
+    return _lowercase.awaitExpression;
   }
 }));
 Object.defineProperty(exports, "BigIntLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.bigIntLiteral;
+    return _lowercase.bigIntLiteral;
   }
 }));
 Object.defineProperty(exports, "BinaryExpression", ({
   enumerable: true,
   get: function () {
-    return _index.binaryExpression;
+    return _lowercase.binaryExpression;
   }
 }));
 Object.defineProperty(exports, "BindExpression", ({
   enumerable: true,
   get: function () {
-    return _index.bindExpression;
+    return _lowercase.bindExpression;
   }
 }));
 Object.defineProperty(exports, "BlockStatement", ({
   enumerable: true,
   get: function () {
-    return _index.blockStatement;
+    return _lowercase.blockStatement;
   }
 }));
 Object.defineProperty(exports, "BooleanLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.booleanLiteral;
+    return _lowercase.booleanLiteral;
   }
 }));
 Object.defineProperty(exports, "BooleanLiteralTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.booleanLiteralTypeAnnotation;
+    return _lowercase.booleanLiteralTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "BooleanTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.booleanTypeAnnotation;
+    return _lowercase.booleanTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "BreakStatement", ({
   enumerable: true,
   get: function () {
-    return _index.breakStatement;
+    return _lowercase.breakStatement;
   }
 }));
 Object.defineProperty(exports, "CallExpression", ({
   enumerable: true,
   get: function () {
-    return _index.callExpression;
+    return _lowercase.callExpression;
   }
 }));
 Object.defineProperty(exports, "CatchClause", ({
   enumerable: true,
   get: function () {
-    return _index.catchClause;
+    return _lowercase.catchClause;
   }
 }));
 Object.defineProperty(exports, "ClassAccessorProperty", ({
   enumerable: true,
   get: function () {
-    return _index.classAccessorProperty;
+    return _lowercase.classAccessorProperty;
   }
 }));
 Object.defineProperty(exports, "ClassBody", ({
   enumerable: true,
   get: function () {
-    return _index.classBody;
+    return _lowercase.classBody;
   }
 }));
 Object.defineProperty(exports, "ClassDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.classDeclaration;
+    return _lowercase.classDeclaration;
   }
 }));
 Object.defineProperty(exports, "ClassExpression", ({
   enumerable: true,
   get: function () {
-    return _index.classExpression;
+    return _lowercase.classExpression;
   }
 }));
 Object.defineProperty(exports, "ClassImplements", ({
   enumerable: true,
   get: function () {
-    return _index.classImplements;
+    return _lowercase.classImplements;
   }
 }));
 Object.defineProperty(exports, "ClassMethod", ({
   enumerable: true,
   get: function () {
-    return _index.classMethod;
+    return _lowercase.classMethod;
   }
 }));
 Object.defineProperty(exports, "ClassPrivateMethod", ({
   enumerable: true,
   get: function () {
-    return _index.classPrivateMethod;
+    return _lowercase.classPrivateMethod;
   }
 }));
 Object.defineProperty(exports, "ClassPrivateProperty", ({
   enumerable: true,
   get: function () {
-    return _index.classPrivateProperty;
+    return _lowercase.classPrivateProperty;
   }
 }));
 Object.defineProperty(exports, "ClassProperty", ({
   enumerable: true,
   get: function () {
-    return _index.classProperty;
+    return _lowercase.classProperty;
   }
 }));
 Object.defineProperty(exports, "ConditionalExpression", ({
   enumerable: true,
   get: function () {
-    return _index.conditionalExpression;
+    return _lowercase.conditionalExpression;
   }
 }));
 Object.defineProperty(exports, "ContinueStatement", ({
   enumerable: true,
   get: function () {
-    return _index.continueStatement;
+    return _lowercase.continueStatement;
   }
 }));
 Object.defineProperty(exports, "DebuggerStatement", ({
   enumerable: true,
   get: function () {
-    return _index.debuggerStatement;
+    return _lowercase.debuggerStatement;
   }
 }));
 Object.defineProperty(exports, "DecimalLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.decimalLiteral;
+    return _lowercase.decimalLiteral;
   }
 }));
 Object.defineProperty(exports, "DeclareClass", ({
   enumerable: true,
   get: function () {
-    return _index.declareClass;
+    return _lowercase.declareClass;
   }
 }));
 Object.defineProperty(exports, "DeclareExportAllDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.declareExportAllDeclaration;
+    return _lowercase.declareExportAllDeclaration;
   }
 }));
 Object.defineProperty(exports, "DeclareExportDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.declareExportDeclaration;
+    return _lowercase.declareExportDeclaration;
   }
 }));
 Object.defineProperty(exports, "DeclareFunction", ({
   enumerable: true,
   get: function () {
-    return _index.declareFunction;
+    return _lowercase.declareFunction;
   }
 }));
 Object.defineProperty(exports, "DeclareInterface", ({
   enumerable: true,
   get: function () {
-    return _index.declareInterface;
+    return _lowercase.declareInterface;
   }
 }));
 Object.defineProperty(exports, "DeclareModule", ({
   enumerable: true,
   get: function () {
-    return _index.declareModule;
+    return _lowercase.declareModule;
   }
 }));
 Object.defineProperty(exports, "DeclareModuleExports", ({
   enumerable: true,
   get: function () {
-    return _index.declareModuleExports;
+    return _lowercase.declareModuleExports;
   }
 }));
 Object.defineProperty(exports, "DeclareOpaqueType", ({
   enumerable: true,
   get: function () {
-    return _index.declareOpaqueType;
+    return _lowercase.declareOpaqueType;
   }
 }));
 Object.defineProperty(exports, "DeclareTypeAlias", ({
   enumerable: true,
   get: function () {
-    return _index.declareTypeAlias;
+    return _lowercase.declareTypeAlias;
   }
 }));
 Object.defineProperty(exports, "DeclareVariable", ({
   enumerable: true,
   get: function () {
-    return _index.declareVariable;
+    return _lowercase.declareVariable;
   }
 }));
 Object.defineProperty(exports, "DeclaredPredicate", ({
   enumerable: true,
   get: function () {
-    return _index.declaredPredicate;
+    return _lowercase.declaredPredicate;
   }
 }));
 Object.defineProperty(exports, "Decorator", ({
   enumerable: true,
   get: function () {
-    return _index.decorator;
+    return _lowercase.decorator;
   }
 }));
 Object.defineProperty(exports, "Directive", ({
   enumerable: true,
   get: function () {
-    return _index.directive;
+    return _lowercase.directive;
   }
 }));
 Object.defineProperty(exports, "DirectiveLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.directiveLiteral;
+    return _lowercase.directiveLiteral;
   }
 }));
 Object.defineProperty(exports, "DoExpression", ({
   enumerable: true,
   get: function () {
-    return _index.doExpression;
+    return _lowercase.doExpression;
   }
 }));
 Object.defineProperty(exports, "DoWhileStatement", ({
   enumerable: true,
   get: function () {
-    return _index.doWhileStatement;
+    return _lowercase.doWhileStatement;
   }
 }));
 Object.defineProperty(exports, "EmptyStatement", ({
   enumerable: true,
   get: function () {
-    return _index.emptyStatement;
+    return _lowercase.emptyStatement;
   }
 }));
 Object.defineProperty(exports, "EmptyTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.emptyTypeAnnotation;
+    return _lowercase.emptyTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "EnumBooleanBody", ({
   enumerable: true,
   get: function () {
-    return _index.enumBooleanBody;
+    return _lowercase.enumBooleanBody;
   }
 }));
 Object.defineProperty(exports, "EnumBooleanMember", ({
   enumerable: true,
   get: function () {
-    return _index.enumBooleanMember;
+    return _lowercase.enumBooleanMember;
   }
 }));
 Object.defineProperty(exports, "EnumDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.enumDeclaration;
+    return _lowercase.enumDeclaration;
   }
 }));
 Object.defineProperty(exports, "EnumDefaultedMember", ({
   enumerable: true,
   get: function () {
-    return _index.enumDefaultedMember;
+    return _lowercase.enumDefaultedMember;
   }
 }));
 Object.defineProperty(exports, "EnumNumberBody", ({
   enumerable: true,
   get: function () {
-    return _index.enumNumberBody;
+    return _lowercase.enumNumberBody;
   }
 }));
 Object.defineProperty(exports, "EnumNumberMember", ({
   enumerable: true,
   get: function () {
-    return _index.enumNumberMember;
+    return _lowercase.enumNumberMember;
   }
 }));
 Object.defineProperty(exports, "EnumStringBody", ({
   enumerable: true,
   get: function () {
-    return _index.enumStringBody;
+    return _lowercase.enumStringBody;
   }
 }));
 Object.defineProperty(exports, "EnumStringMember", ({
   enumerable: true,
   get: function () {
-    return _index.enumStringMember;
+    return _lowercase.enumStringMember;
   }
 }));
 Object.defineProperty(exports, "EnumSymbolBody", ({
   enumerable: true,
   get: function () {
-    return _index.enumSymbolBody;
+    return _lowercase.enumSymbolBody;
   }
 }));
 Object.defineProperty(exports, "ExistsTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.existsTypeAnnotation;
+    return _lowercase.existsTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "ExportAllDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.exportAllDeclaration;
+    return _lowercase.exportAllDeclaration;
   }
 }));
 Object.defineProperty(exports, "ExportDefaultDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.exportDefaultDeclaration;
+    return _lowercase.exportDefaultDeclaration;
   }
 }));
 Object.defineProperty(exports, "ExportDefaultSpecifier", ({
   enumerable: true,
   get: function () {
-    return _index.exportDefaultSpecifier;
+    return _lowercase.exportDefaultSpecifier;
   }
 }));
 Object.defineProperty(exports, "ExportNamedDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.exportNamedDeclaration;
+    return _lowercase.exportNamedDeclaration;
   }
 }));
 Object.defineProperty(exports, "ExportNamespaceSpecifier", ({
   enumerable: true,
   get: function () {
-    return _index.exportNamespaceSpecifier;
+    return _lowercase.exportNamespaceSpecifier;
   }
 }));
 Object.defineProperty(exports, "ExportSpecifier", ({
   enumerable: true,
   get: function () {
-    return _index.exportSpecifier;
+    return _lowercase.exportSpecifier;
   }
 }));
 Object.defineProperty(exports, "ExpressionStatement", ({
   enumerable: true,
   get: function () {
-    return _index.expressionStatement;
+    return _lowercase.expressionStatement;
   }
 }));
 Object.defineProperty(exports, "File", ({
   enumerable: true,
   get: function () {
-    return _index.file;
+    return _lowercase.file;
   }
 }));
 Object.defineProperty(exports, "ForInStatement", ({
   enumerable: true,
   get: function () {
-    return _index.forInStatement;
+    return _lowercase.forInStatement;
   }
 }));
 Object.defineProperty(exports, "ForOfStatement", ({
   enumerable: true,
   get: function () {
-    return _index.forOfStatement;
+    return _lowercase.forOfStatement;
   }
 }));
 Object.defineProperty(exports, "ForStatement", ({
   enumerable: true,
   get: function () {
-    return _index.forStatement;
+    return _lowercase.forStatement;
   }
 }));
 Object.defineProperty(exports, "FunctionDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.functionDeclaration;
+    return _lowercase.functionDeclaration;
   }
 }));
 Object.defineProperty(exports, "FunctionExpression", ({
   enumerable: true,
   get: function () {
-    return _index.functionExpression;
+    return _lowercase.functionExpression;
   }
 }));
 Object.defineProperty(exports, "FunctionTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.functionTypeAnnotation;
+    return _lowercase.functionTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "FunctionTypeParam", ({
   enumerable: true,
   get: function () {
-    return _index.functionTypeParam;
+    return _lowercase.functionTypeParam;
   }
 }));
 Object.defineProperty(exports, "GenericTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.genericTypeAnnotation;
+    return _lowercase.genericTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "Identifier", ({
   enumerable: true,
   get: function () {
-    return _index.identifier;
+    return _lowercase.identifier;
   }
 }));
 Object.defineProperty(exports, "IfStatement", ({
   enumerable: true,
   get: function () {
-    return _index.ifStatement;
+    return _lowercase.ifStatement;
   }
 }));
 Object.defineProperty(exports, "Import", ({
   enumerable: true,
   get: function () {
-    return _index.import;
+    return _lowercase.import;
   }
 }));
 Object.defineProperty(exports, "ImportAttribute", ({
   enumerable: true,
   get: function () {
-    return _index.importAttribute;
+    return _lowercase.importAttribute;
   }
 }));
 Object.defineProperty(exports, "ImportDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.importDeclaration;
+    return _lowercase.importDeclaration;
   }
 }));
 Object.defineProperty(exports, "ImportDefaultSpecifier", ({
   enumerable: true,
   get: function () {
-    return _index.importDefaultSpecifier;
+    return _lowercase.importDefaultSpecifier;
   }
 }));
 Object.defineProperty(exports, "ImportExpression", ({
   enumerable: true,
   get: function () {
-    return _index.importExpression;
+    return _lowercase.importExpression;
   }
 }));
 Object.defineProperty(exports, "ImportNamespaceSpecifier", ({
   enumerable: true,
   get: function () {
-    return _index.importNamespaceSpecifier;
+    return _lowercase.importNamespaceSpecifier;
   }
 }));
 Object.defineProperty(exports, "ImportSpecifier", ({
   enumerable: true,
   get: function () {
-    return _index.importSpecifier;
+    return _lowercase.importSpecifier;
   }
 }));
 Object.defineProperty(exports, "IndexedAccessType", ({
   enumerable: true,
   get: function () {
-    return _index.indexedAccessType;
+    return _lowercase.indexedAccessType;
   }
 }));
 Object.defineProperty(exports, "InferredPredicate", ({
   enumerable: true,
   get: function () {
-    return _index.inferredPredicate;
+    return _lowercase.inferredPredicate;
   }
 }));
 Object.defineProperty(exports, "InterfaceDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.interfaceDeclaration;
+    return _lowercase.interfaceDeclaration;
   }
 }));
 Object.defineProperty(exports, "InterfaceExtends", ({
   enumerable: true,
   get: function () {
-    return _index.interfaceExtends;
+    return _lowercase.interfaceExtends;
   }
 }));
 Object.defineProperty(exports, "InterfaceTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.interfaceTypeAnnotation;
+    return _lowercase.interfaceTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "InterpreterDirective", ({
   enumerable: true,
   get: function () {
-    return _index.interpreterDirective;
+    return _lowercase.interpreterDirective;
   }
 }));
 Object.defineProperty(exports, "IntersectionTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.intersectionTypeAnnotation;
+    return _lowercase.intersectionTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "JSXAttribute", ({
   enumerable: true,
   get: function () {
-    return _index.jsxAttribute;
+    return _lowercase.jsxAttribute;
   }
 }));
 Object.defineProperty(exports, "JSXClosingElement", ({
   enumerable: true,
   get: function () {
-    return _index.jsxClosingElement;
+    return _lowercase.jsxClosingElement;
   }
 }));
 Object.defineProperty(exports, "JSXClosingFragment", ({
   enumerable: true,
   get: function () {
-    return _index.jsxClosingFragment;
+    return _lowercase.jsxClosingFragment;
   }
 }));
 Object.defineProperty(exports, "JSXElement", ({
   enumerable: true,
   get: function () {
-    return _index.jsxElement;
+    return _lowercase.jsxElement;
   }
 }));
 Object.defineProperty(exports, "JSXEmptyExpression", ({
   enumerable: true,
   get: function () {
-    return _index.jsxEmptyExpression;
+    return _lowercase.jsxEmptyExpression;
   }
 }));
 Object.defineProperty(exports, "JSXExpressionContainer", ({
   enumerable: true,
   get: function () {
-    return _index.jsxExpressionContainer;
+    return _lowercase.jsxExpressionContainer;
   }
 }));
 Object.defineProperty(exports, "JSXFragment", ({
   enumerable: true,
   get: function () {
-    return _index.jsxFragment;
+    return _lowercase.jsxFragment;
   }
 }));
 Object.defineProperty(exports, "JSXIdentifier", ({
   enumerable: true,
   get: function () {
-    return _index.jsxIdentifier;
+    return _lowercase.jsxIdentifier;
   }
 }));
 Object.defineProperty(exports, "JSXMemberExpression", ({
   enumerable: true,
   get: function () {
-    return _index.jsxMemberExpression;
+    return _lowercase.jsxMemberExpression;
   }
 }));
 Object.defineProperty(exports, "JSXNamespacedName", ({
   enumerable: true,
   get: function () {
-    return _index.jsxNamespacedName;
+    return _lowercase.jsxNamespacedName;
   }
 }));
 Object.defineProperty(exports, "JSXOpeningElement", ({
   enumerable: true,
   get: function () {
-    return _index.jsxOpeningElement;
+    return _lowercase.jsxOpeningElement;
   }
 }));
 Object.defineProperty(exports, "JSXOpeningFragment", ({
   enumerable: true,
   get: function () {
-    return _index.jsxOpeningFragment;
+    return _lowercase.jsxOpeningFragment;
   }
 }));
 Object.defineProperty(exports, "JSXSpreadAttribute", ({
   enumerable: true,
   get: function () {
-    return _index.jsxSpreadAttribute;
+    return _lowercase.jsxSpreadAttribute;
   }
 }));
 Object.defineProperty(exports, "JSXSpreadChild", ({
   enumerable: true,
   get: function () {
-    return _index.jsxSpreadChild;
+    return _lowercase.jsxSpreadChild;
   }
 }));
 Object.defineProperty(exports, "JSXText", ({
   enumerable: true,
   get: function () {
-    return _index.jsxText;
+    return _lowercase.jsxText;
   }
 }));
 Object.defineProperty(exports, "LabeledStatement", ({
   enumerable: true,
   get: function () {
-    return _index.labeledStatement;
+    return _lowercase.labeledStatement;
   }
 }));
 Object.defineProperty(exports, "LogicalExpression", ({
   enumerable: true,
   get: function () {
-    return _index.logicalExpression;
+    return _lowercase.logicalExpression;
   }
 }));
 Object.defineProperty(exports, "MemberExpression", ({
   enumerable: true,
   get: function () {
-    return _index.memberExpression;
+    return _lowercase.memberExpression;
   }
 }));
 Object.defineProperty(exports, "MetaProperty", ({
   enumerable: true,
   get: function () {
-    return _index.metaProperty;
+    return _lowercase.metaProperty;
   }
 }));
 Object.defineProperty(exports, "MixedTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.mixedTypeAnnotation;
+    return _lowercase.mixedTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "ModuleExpression", ({
   enumerable: true,
   get: function () {
-    return _index.moduleExpression;
+    return _lowercase.moduleExpression;
   }
 }));
 Object.defineProperty(exports, "NewExpression", ({
   enumerable: true,
   get: function () {
-    return _index.newExpression;
+    return _lowercase.newExpression;
   }
 }));
 Object.defineProperty(exports, "Noop", ({
   enumerable: true,
   get: function () {
-    return _index.noop;
+    return _lowercase.noop;
   }
 }));
 Object.defineProperty(exports, "NullLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.nullLiteral;
+    return _lowercase.nullLiteral;
   }
 }));
 Object.defineProperty(exports, "NullLiteralTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.nullLiteralTypeAnnotation;
+    return _lowercase.nullLiteralTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "NullableTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.nullableTypeAnnotation;
+    return _lowercase.nullableTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "NumberLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.numberLiteral;
+    return _lowercase.numberLiteral;
   }
 }));
 Object.defineProperty(exports, "NumberLiteralTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.numberLiteralTypeAnnotation;
+    return _lowercase.numberLiteralTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "NumberTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.numberTypeAnnotation;
+    return _lowercase.numberTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "NumericLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.numericLiteral;
+    return _lowercase.numericLiteral;
   }
 }));
 Object.defineProperty(exports, "ObjectExpression", ({
   enumerable: true,
   get: function () {
-    return _index.objectExpression;
+    return _lowercase.objectExpression;
   }
 }));
 Object.defineProperty(exports, "ObjectMethod", ({
   enumerable: true,
   get: function () {
-    return _index.objectMethod;
+    return _lowercase.objectMethod;
   }
 }));
 Object.defineProperty(exports, "ObjectPattern", ({
   enumerable: true,
   get: function () {
-    return _index.objectPattern;
+    return _lowercase.objectPattern;
   }
 }));
 Object.defineProperty(exports, "ObjectProperty", ({
   enumerable: true,
   get: function () {
-    return _index.objectProperty;
+    return _lowercase.objectProperty;
   }
 }));
 Object.defineProperty(exports, "ObjectTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.objectTypeAnnotation;
+    return _lowercase.objectTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "ObjectTypeCallProperty", ({
   enumerable: true,
   get: function () {
-    return _index.objectTypeCallProperty;
+    return _lowercase.objectTypeCallProperty;
   }
 }));
 Object.defineProperty(exports, "ObjectTypeIndexer", ({
   enumerable: true,
   get: function () {
-    return _index.objectTypeIndexer;
+    return _lowercase.objectTypeIndexer;
   }
 }));
 Object.defineProperty(exports, "ObjectTypeInternalSlot", ({
   enumerable: true,
   get: function () {
-    return _index.objectTypeInternalSlot;
+    return _lowercase.objectTypeInternalSlot;
   }
 }));
 Object.defineProperty(exports, "ObjectTypeProperty", ({
   enumerable: true,
   get: function () {
-    return _index.objectTypeProperty;
+    return _lowercase.objectTypeProperty;
   }
 }));
 Object.defineProperty(exports, "ObjectTypeSpreadProperty", ({
   enumerable: true,
   get: function () {
-    return _index.objectTypeSpreadProperty;
+    return _lowercase.objectTypeSpreadProperty;
   }
 }));
 Object.defineProperty(exports, "OpaqueType", ({
   enumerable: true,
   get: function () {
-    return _index.opaqueType;
+    return _lowercase.opaqueType;
   }
 }));
 Object.defineProperty(exports, "OptionalCallExpression", ({
   enumerable: true,
   get: function () {
-    return _index.optionalCallExpression;
+    return _lowercase.optionalCallExpression;
   }
 }));
 Object.defineProperty(exports, "OptionalIndexedAccessType", ({
   enumerable: true,
   get: function () {
-    return _index.optionalIndexedAccessType;
+    return _lowercase.optionalIndexedAccessType;
   }
 }));
 Object.defineProperty(exports, "OptionalMemberExpression", ({
   enumerable: true,
   get: function () {
-    return _index.optionalMemberExpression;
+    return _lowercase.optionalMemberExpression;
   }
 }));
 Object.defineProperty(exports, "ParenthesizedExpression", ({
   enumerable: true,
   get: function () {
-    return _index.parenthesizedExpression;
+    return _lowercase.parenthesizedExpression;
   }
 }));
 Object.defineProperty(exports, "PipelineBareFunction", ({
   enumerable: true,
   get: function () {
-    return _index.pipelineBareFunction;
+    return _lowercase.pipelineBareFunction;
   }
 }));
 Object.defineProperty(exports, "PipelinePrimaryTopicReference", ({
   enumerable: true,
   get: function () {
-    return _index.pipelinePrimaryTopicReference;
+    return _lowercase.pipelinePrimaryTopicReference;
   }
 }));
 Object.defineProperty(exports, "PipelineTopicExpression", ({
   enumerable: true,
   get: function () {
-    return _index.pipelineTopicExpression;
+    return _lowercase.pipelineTopicExpression;
   }
 }));
 Object.defineProperty(exports, "Placeholder", ({
   enumerable: true,
   get: function () {
-    return _index.placeholder;
+    return _lowercase.placeholder;
   }
 }));
 Object.defineProperty(exports, "PrivateName", ({
   enumerable: true,
   get: function () {
-    return _index.privateName;
+    return _lowercase.privateName;
   }
 }));
 Object.defineProperty(exports, "Program", ({
   enumerable: true,
   get: function () {
-    return _index.program;
+    return _lowercase.program;
   }
 }));
 Object.defineProperty(exports, "QualifiedTypeIdentifier", ({
   enumerable: true,
   get: function () {
-    return _index.qualifiedTypeIdentifier;
+    return _lowercase.qualifiedTypeIdentifier;
   }
 }));
 Object.defineProperty(exports, "RecordExpression", ({
   enumerable: true,
   get: function () {
-    return _index.recordExpression;
+    return _lowercase.recordExpression;
   }
 }));
 Object.defineProperty(exports, "RegExpLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.regExpLiteral;
+    return _lowercase.regExpLiteral;
   }
 }));
 Object.defineProperty(exports, "RegexLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.regexLiteral;
+    return _lowercase.regexLiteral;
   }
 }));
 Object.defineProperty(exports, "RestElement", ({
   enumerable: true,
   get: function () {
-    return _index.restElement;
+    return _lowercase.restElement;
   }
 }));
 Object.defineProperty(exports, "RestProperty", ({
   enumerable: true,
   get: function () {
-    return _index.restProperty;
+    return _lowercase.restProperty;
   }
 }));
 Object.defineProperty(exports, "ReturnStatement", ({
   enumerable: true,
   get: function () {
-    return _index.returnStatement;
+    return _lowercase.returnStatement;
   }
 }));
 Object.defineProperty(exports, "SequenceExpression", ({
   enumerable: true,
   get: function () {
-    return _index.sequenceExpression;
+    return _lowercase.sequenceExpression;
   }
 }));
 Object.defineProperty(exports, "SpreadElement", ({
   enumerable: true,
   get: function () {
-    return _index.spreadElement;
+    return _lowercase.spreadElement;
   }
 }));
 Object.defineProperty(exports, "SpreadProperty", ({
   enumerable: true,
   get: function () {
-    return _index.spreadProperty;
+    return _lowercase.spreadProperty;
   }
 }));
 Object.defineProperty(exports, "StaticBlock", ({
   enumerable: true,
   get: function () {
-    return _index.staticBlock;
+    return _lowercase.staticBlock;
   }
 }));
 Object.defineProperty(exports, "StringLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.stringLiteral;
+    return _lowercase.stringLiteral;
   }
 }));
 Object.defineProperty(exports, "StringLiteralTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.stringLiteralTypeAnnotation;
+    return _lowercase.stringLiteralTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "StringTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.stringTypeAnnotation;
+    return _lowercase.stringTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "Super", ({
   enumerable: true,
   get: function () {
-    return _index.super;
+    return _lowercase.super;
   }
 }));
 Object.defineProperty(exports, "SwitchCase", ({
   enumerable: true,
   get: function () {
-    return _index.switchCase;
+    return _lowercase.switchCase;
   }
 }));
 Object.defineProperty(exports, "SwitchStatement", ({
   enumerable: true,
   get: function () {
-    return _index.switchStatement;
+    return _lowercase.switchStatement;
   }
 }));
 Object.defineProperty(exports, "SymbolTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.symbolTypeAnnotation;
+    return _lowercase.symbolTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "TSAnyKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsAnyKeyword;
+    return _lowercase.tsAnyKeyword;
   }
 }));
 Object.defineProperty(exports, "TSArrayType", ({
   enumerable: true,
   get: function () {
-    return _index.tsArrayType;
+    return _lowercase.tsArrayType;
   }
 }));
 Object.defineProperty(exports, "TSAsExpression", ({
   enumerable: true,
   get: function () {
-    return _index.tsAsExpression;
+    return _lowercase.tsAsExpression;
   }
 }));
 Object.defineProperty(exports, "TSBigIntKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsBigIntKeyword;
+    return _lowercase.tsBigIntKeyword;
   }
 }));
 Object.defineProperty(exports, "TSBooleanKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsBooleanKeyword;
+    return _lowercase.tsBooleanKeyword;
   }
 }));
 Object.defineProperty(exports, "TSCallSignatureDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsCallSignatureDeclaration;
+    return _lowercase.tsCallSignatureDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSConditionalType", ({
   enumerable: true,
   get: function () {
-    return _index.tsConditionalType;
+    return _lowercase.tsConditionalType;
   }
 }));
 Object.defineProperty(exports, "TSConstructSignatureDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsConstructSignatureDeclaration;
+    return _lowercase.tsConstructSignatureDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSConstructorType", ({
   enumerable: true,
   get: function () {
-    return _index.tsConstructorType;
+    return _lowercase.tsConstructorType;
   }
 }));
 Object.defineProperty(exports, "TSDeclareFunction", ({
   enumerable: true,
   get: function () {
-    return _index.tsDeclareFunction;
+    return _lowercase.tsDeclareFunction;
   }
 }));
 Object.defineProperty(exports, "TSDeclareMethod", ({
   enumerable: true,
   get: function () {
-    return _index.tsDeclareMethod;
+    return _lowercase.tsDeclareMethod;
   }
 }));
 Object.defineProperty(exports, "TSEnumBody", ({
   enumerable: true,
   get: function () {
-    return _index.tsEnumBody;
+    return _lowercase.tsEnumBody;
   }
 }));
 Object.defineProperty(exports, "TSEnumDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsEnumDeclaration;
+    return _lowercase.tsEnumDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSEnumMember", ({
   enumerable: true,
   get: function () {
-    return _index.tsEnumMember;
+    return _lowercase.tsEnumMember;
   }
 }));
 Object.defineProperty(exports, "TSExportAssignment", ({
   enumerable: true,
   get: function () {
-    return _index.tsExportAssignment;
+    return _lowercase.tsExportAssignment;
   }
 }));
 Object.defineProperty(exports, "TSExpressionWithTypeArguments", ({
   enumerable: true,
   get: function () {
-    return _index.tsExpressionWithTypeArguments;
+    return _lowercase.tsExpressionWithTypeArguments;
   }
 }));
 Object.defineProperty(exports, "TSExternalModuleReference", ({
   enumerable: true,
   get: function () {
-    return _index.tsExternalModuleReference;
+    return _lowercase.tsExternalModuleReference;
   }
 }));
 Object.defineProperty(exports, "TSFunctionType", ({
   enumerable: true,
   get: function () {
-    return _index.tsFunctionType;
+    return _lowercase.tsFunctionType;
   }
 }));
 Object.defineProperty(exports, "TSImportEqualsDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsImportEqualsDeclaration;
+    return _lowercase.tsImportEqualsDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSImportType", ({
   enumerable: true,
   get: function () {
-    return _index.tsImportType;
+    return _lowercase.tsImportType;
   }
 }));
 Object.defineProperty(exports, "TSIndexSignature", ({
   enumerable: true,
   get: function () {
-    return _index.tsIndexSignature;
+    return _lowercase.tsIndexSignature;
   }
 }));
 Object.defineProperty(exports, "TSIndexedAccessType", ({
   enumerable: true,
   get: function () {
-    return _index.tsIndexedAccessType;
+    return _lowercase.tsIndexedAccessType;
   }
 }));
 Object.defineProperty(exports, "TSInferType", ({
   enumerable: true,
   get: function () {
-    return _index.tsInferType;
+    return _lowercase.tsInferType;
   }
 }));
 Object.defineProperty(exports, "TSInstantiationExpression", ({
   enumerable: true,
   get: function () {
-    return _index.tsInstantiationExpression;
+    return _lowercase.tsInstantiationExpression;
   }
 }));
 Object.defineProperty(exports, "TSInterfaceBody", ({
   enumerable: true,
   get: function () {
-    return _index.tsInterfaceBody;
+    return _lowercase.tsInterfaceBody;
   }
 }));
 Object.defineProperty(exports, "TSInterfaceDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsInterfaceDeclaration;
+    return _lowercase.tsInterfaceDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSIntersectionType", ({
   enumerable: true,
   get: function () {
-    return _index.tsIntersectionType;
+    return _lowercase.tsIntersectionType;
   }
 }));
 Object.defineProperty(exports, "TSIntrinsicKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsIntrinsicKeyword;
+    return _lowercase.tsIntrinsicKeyword;
   }
 }));
 Object.defineProperty(exports, "TSLiteralType", ({
   enumerable: true,
   get: function () {
-    return _index.tsLiteralType;
+    return _lowercase.tsLiteralType;
   }
 }));
 Object.defineProperty(exports, "TSMappedType", ({
   enumerable: true,
   get: function () {
-    return _index.tsMappedType;
+    return _lowercase.tsMappedType;
   }
 }));
 Object.defineProperty(exports, "TSMethodSignature", ({
   enumerable: true,
   get: function () {
-    return _index.tsMethodSignature;
+    return _lowercase.tsMethodSignature;
   }
 }));
 Object.defineProperty(exports, "TSModuleBlock", ({
   enumerable: true,
   get: function () {
-    return _index.tsModuleBlock;
+    return _lowercase.tsModuleBlock;
   }
 }));
 Object.defineProperty(exports, "TSModuleDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsModuleDeclaration;
+    return _lowercase.tsModuleDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSNamedTupleMember", ({
   enumerable: true,
   get: function () {
-    return _index.tsNamedTupleMember;
+    return _lowercase.tsNamedTupleMember;
   }
 }));
 Object.defineProperty(exports, "TSNamespaceExportDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsNamespaceExportDeclaration;
+    return _lowercase.tsNamespaceExportDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSNeverKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsNeverKeyword;
+    return _lowercase.tsNeverKeyword;
   }
 }));
 Object.defineProperty(exports, "TSNonNullExpression", ({
   enumerable: true,
   get: function () {
-    return _index.tsNonNullExpression;
+    return _lowercase.tsNonNullExpression;
   }
 }));
 Object.defineProperty(exports, "TSNullKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsNullKeyword;
+    return _lowercase.tsNullKeyword;
   }
 }));
 Object.defineProperty(exports, "TSNumberKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsNumberKeyword;
+    return _lowercase.tsNumberKeyword;
   }
 }));
 Object.defineProperty(exports, "TSObjectKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsObjectKeyword;
+    return _lowercase.tsObjectKeyword;
   }
 }));
 Object.defineProperty(exports, "TSOptionalType", ({
   enumerable: true,
   get: function () {
-    return _index.tsOptionalType;
+    return _lowercase.tsOptionalType;
   }
 }));
 Object.defineProperty(exports, "TSParameterProperty", ({
   enumerable: true,
   get: function () {
-    return _index.tsParameterProperty;
+    return _lowercase.tsParameterProperty;
   }
 }));
 Object.defineProperty(exports, "TSParenthesizedType", ({
   enumerable: true,
   get: function () {
-    return _index.tsParenthesizedType;
+    return _lowercase.tsParenthesizedType;
   }
 }));
 Object.defineProperty(exports, "TSPropertySignature", ({
   enumerable: true,
   get: function () {
-    return _index.tsPropertySignature;
+    return _lowercase.tsPropertySignature;
   }
 }));
 Object.defineProperty(exports, "TSQualifiedName", ({
   enumerable: true,
   get: function () {
-    return _index.tsQualifiedName;
+    return _lowercase.tsQualifiedName;
   }
 }));
 Object.defineProperty(exports, "TSRestType", ({
   enumerable: true,
   get: function () {
-    return _index.tsRestType;
+    return _lowercase.tsRestType;
   }
 }));
 Object.defineProperty(exports, "TSSatisfiesExpression", ({
   enumerable: true,
   get: function () {
-    return _index.tsSatisfiesExpression;
+    return _lowercase.tsSatisfiesExpression;
   }
 }));
 Object.defineProperty(exports, "TSStringKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsStringKeyword;
+    return _lowercase.tsStringKeyword;
   }
 }));
 Object.defineProperty(exports, "TSSymbolKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsSymbolKeyword;
+    return _lowercase.tsSymbolKeyword;
+  }
+}));
+Object.defineProperty(exports, "TSTemplateLiteralType", ({
+  enumerable: true,
+  get: function () {
+    return _lowercase.tsTemplateLiteralType;
   }
 }));
 Object.defineProperty(exports, "TSThisType", ({
   enumerable: true,
   get: function () {
-    return _index.tsThisType;
+    return _lowercase.tsThisType;
   }
 }));
 Object.defineProperty(exports, "TSTupleType", ({
   enumerable: true,
   get: function () {
-    return _index.tsTupleType;
+    return _lowercase.tsTupleType;
   }
 }));
 Object.defineProperty(exports, "TSTypeAliasDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeAliasDeclaration;
+    return _lowercase.tsTypeAliasDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeAnnotation;
+    return _lowercase.tsTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "TSTypeAssertion", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeAssertion;
+    return _lowercase.tsTypeAssertion;
   }
 }));
 Object.defineProperty(exports, "TSTypeLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeLiteral;
+    return _lowercase.tsTypeLiteral;
   }
 }));
 Object.defineProperty(exports, "TSTypeOperator", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeOperator;
+    return _lowercase.tsTypeOperator;
   }
 }));
 Object.defineProperty(exports, "TSTypeParameter", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeParameter;
+    return _lowercase.tsTypeParameter;
   }
 }));
 Object.defineProperty(exports, "TSTypeParameterDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeParameterDeclaration;
+    return _lowercase.tsTypeParameterDeclaration;
   }
 }));
 Object.defineProperty(exports, "TSTypeParameterInstantiation", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeParameterInstantiation;
+    return _lowercase.tsTypeParameterInstantiation;
   }
 }));
 Object.defineProperty(exports, "TSTypePredicate", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypePredicate;
+    return _lowercase.tsTypePredicate;
   }
 }));
 Object.defineProperty(exports, "TSTypeQuery", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeQuery;
+    return _lowercase.tsTypeQuery;
   }
 }));
 Object.defineProperty(exports, "TSTypeReference", ({
   enumerable: true,
   get: function () {
-    return _index.tsTypeReference;
+    return _lowercase.tsTypeReference;
   }
 }));
 Object.defineProperty(exports, "TSUndefinedKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsUndefinedKeyword;
+    return _lowercase.tsUndefinedKeyword;
   }
 }));
 Object.defineProperty(exports, "TSUnionType", ({
   enumerable: true,
   get: function () {
-    return _index.tsUnionType;
+    return _lowercase.tsUnionType;
   }
 }));
 Object.defineProperty(exports, "TSUnknownKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsUnknownKeyword;
+    return _lowercase.tsUnknownKeyword;
   }
 }));
 Object.defineProperty(exports, "TSVoidKeyword", ({
   enumerable: true,
   get: function () {
-    return _index.tsVoidKeyword;
+    return _lowercase.tsVoidKeyword;
   }
 }));
 Object.defineProperty(exports, "TaggedTemplateExpression", ({
   enumerable: true,
   get: function () {
-    return _index.taggedTemplateExpression;
+    return _lowercase.taggedTemplateExpression;
   }
 }));
 Object.defineProperty(exports, "TemplateElement", ({
   enumerable: true,
   get: function () {
-    return _index.templateElement;
+    return _lowercase.templateElement;
   }
 }));
 Object.defineProperty(exports, "TemplateLiteral", ({
   enumerable: true,
   get: function () {
-    return _index.templateLiteral;
+    return _lowercase.templateLiteral;
   }
 }));
 Object.defineProperty(exports, "ThisExpression", ({
   enumerable: true,
   get: function () {
-    return _index.thisExpression;
+    return _lowercase.thisExpression;
   }
 }));
 Object.defineProperty(exports, "ThisTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.thisTypeAnnotation;
+    return _lowercase.thisTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "ThrowStatement", ({
   enumerable: true,
   get: function () {
-    return _index.throwStatement;
+    return _lowercase.throwStatement;
   }
 }));
 Object.defineProperty(exports, "TopicReference", ({
   enumerable: true,
   get: function () {
-    return _index.topicReference;
+    return _lowercase.topicReference;
   }
 }));
 Object.defineProperty(exports, "TryStatement", ({
   enumerable: true,
   get: function () {
-    return _index.tryStatement;
+    return _lowercase.tryStatement;
   }
 }));
 Object.defineProperty(exports, "TupleExpression", ({
   enumerable: true,
   get: function () {
-    return _index.tupleExpression;
+    return _lowercase.tupleExpression;
   }
 }));
 Object.defineProperty(exports, "TupleTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.tupleTypeAnnotation;
+    return _lowercase.tupleTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "TypeAlias", ({
   enumerable: true,
   get: function () {
-    return _index.typeAlias;
+    return _lowercase.typeAlias;
   }
 }));
 Object.defineProperty(exports, "TypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.typeAnnotation;
+    return _lowercase.typeAnnotation;
   }
 }));
 Object.defineProperty(exports, "TypeCastExpression", ({
   enumerable: true,
   get: function () {
-    return _index.typeCastExpression;
+    return _lowercase.typeCastExpression;
   }
 }));
 Object.defineProperty(exports, "TypeParameter", ({
   enumerable: true,
   get: function () {
-    return _index.typeParameter;
+    return _lowercase.typeParameter;
   }
 }));
 Object.defineProperty(exports, "TypeParameterDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.typeParameterDeclaration;
+    return _lowercase.typeParameterDeclaration;
   }
 }));
 Object.defineProperty(exports, "TypeParameterInstantiation", ({
   enumerable: true,
   get: function () {
-    return _index.typeParameterInstantiation;
+    return _lowercase.typeParameterInstantiation;
   }
 }));
 Object.defineProperty(exports, "TypeofTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.typeofTypeAnnotation;
+    return _lowercase.typeofTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "UnaryExpression", ({
   enumerable: true,
   get: function () {
-    return _index.unaryExpression;
+    return _lowercase.unaryExpression;
   }
 }));
 Object.defineProperty(exports, "UnionTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.unionTypeAnnotation;
+    return _lowercase.unionTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "UpdateExpression", ({
   enumerable: true,
   get: function () {
-    return _index.updateExpression;
+    return _lowercase.updateExpression;
   }
 }));
 Object.defineProperty(exports, "V8IntrinsicIdentifier", ({
   enumerable: true,
   get: function () {
-    return _index.v8IntrinsicIdentifier;
+    return _lowercase.v8IntrinsicIdentifier;
   }
 }));
 Object.defineProperty(exports, "VariableDeclaration", ({
   enumerable: true,
   get: function () {
-    return _index.variableDeclaration;
+    return _lowercase.variableDeclaration;
   }
 }));
 Object.defineProperty(exports, "VariableDeclarator", ({
   enumerable: true,
   get: function () {
-    return _index.variableDeclarator;
+    return _lowercase.variableDeclarator;
   }
 }));
 Object.defineProperty(exports, "Variance", ({
   enumerable: true,
   get: function () {
-    return _index.variance;
+    return _lowercase.variance;
   }
 }));
 Object.defineProperty(exports, "VoidTypeAnnotation", ({
   enumerable: true,
   get: function () {
-    return _index.voidTypeAnnotation;
+    return _lowercase.voidTypeAnnotation;
   }
 }));
 Object.defineProperty(exports, "WhileStatement", ({
   enumerable: true,
   get: function () {
-    return _index.whileStatement;
+    return _lowercase.whileStatement;
   }
 }));
 Object.defineProperty(exports, "WithStatement", ({
   enumerable: true,
   get: function () {
-    return _index.withStatement;
+    return _lowercase.withStatement;
   }
 }));
 Object.defineProperty(exports, "YieldExpression", ({
   enumerable: true,
   get: function () {
-    return _index.yieldExpression;
+    return _lowercase.yieldExpression;
   }
 }));
-var _index = __nccwpck_require__(9380);
+var _lowercase = __nccwpck_require__(9130);
 
 //# sourceMappingURL=uppercase.js.map
 
@@ -49549,12 +49685,11 @@ toKeyAlias.increment = function () {
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 
-__webpack_unused_export__ = ({
+Object.defineProperty(exports, "__esModule", ({
   value: true
-});
+}));
 exports["default"] = toSequenceExpression;
 var _gatherSequenceExpressions = __nccwpck_require__(1022);
 ;
@@ -51299,6 +51434,10 @@ defineType("ClassPrivateProperty", {
       validate: (0, _utils.assertValueType)("boolean"),
       optional: true
     },
+    optional: {
+      validate: (0, _utils.assertValueType)("boolean"),
+      optional: true
+    },
     definite: {
       validate: (0, _utils.assertValueType)("boolean"),
       optional: true
@@ -52437,6 +52576,7 @@ defineType("TSPropertySignature", {
     readonly: (0, _utils.validateOptional)(bool),
     typeAnnotation: (0, _utils.validateOptionalType)("TSTypeAnnotation"),
     kind: {
+      optional: true,
       validate: (0, _utils.assertOneOf)("get", "set")
     }
   })
@@ -52620,6 +52760,20 @@ defineType("TSMappedType", {
     nameType: (0, _utils.validateOptionalType)("TSType")
   })
 });
+defineType("TSTemplateLiteralType", {
+  aliases: ["TSType", "TSBaseType"],
+  visitor: ["quasis", "types"],
+  fields: {
+    quasis: (0, _utils.validateArrayOfType)("TemplateElement"),
+    types: {
+      validate: (0, _utils.chain)((0, _utils.assertValueType)("array"), (0, _utils.assertEach)((0, _utils.assertNodeType)("TSType")), function (node, key, val) {
+        if (node.quasis.length !== val.length + 1) {
+          throw new TypeError(`Number of ${node.type} quasis should be exactly one more than the number of types.\nExpected ${val.length + 1} quasis but got ${node.quasis.length}`);
+        }
+      })
+    }
+  }
+});
 defineType("TSLiteralType", {
   aliases: ["TSType", "TSBaseType"],
   visitor: ["literal"],
@@ -52770,17 +52924,18 @@ defineType("TSImportType", {
   }
 });
 defineType("TSImportEqualsDeclaration", {
-  aliases: ["Statement"],
+  aliases: ["Statement", "Declaration"],
   visitor: ["id", "moduleReference"],
-  fields: {
-    isExport: (0, _utils.validate)(bool),
+  fields: Object.assign({}, {
+    isExport: (0, _utils.validate)(bool)
+  }, {
     id: (0, _utils.validateType)("Identifier"),
     moduleReference: (0, _utils.validateType)("TSEntityName", "TSExternalModuleReference"),
     importKind: {
       validate: (0, _utils.assertOneOf)("type", "value"),
       optional: true
     }
-  }
+  })
 });
 defineType("TSExternalModuleReference", {
   visitor: ["expression"],
@@ -53580,30 +53735,6 @@ Object.keys(_index).forEach(function (key) {
 var _createTypeAnnotationBasedOnTypeof = __nccwpck_require__(9829);
 var _createFlowUnionType = __nccwpck_require__(5953);
 var _createTSUnionType = __nccwpck_require__(8684);
-var _index2 = __nccwpck_require__(9380);
-Object.keys(_index2).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
-  if (key in exports && exports[key] === _index2[key]) return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function () {
-      return _index2[key];
-    }
-  });
-});
-var _uppercase = __nccwpck_require__(8530);
-Object.keys(_uppercase).forEach(function (key) {
-  if (key === "default" || key === "__esModule") return;
-  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
-  if (key in exports && exports[key] === _uppercase[key]) return;
-  Object.defineProperty(exports, key, {
-    enumerable: true,
-    get: function () {
-      return _uppercase[key];
-    }
-  });
-});
 var _productions = __nccwpck_require__(4157);
 Object.keys(_productions).forEach(function (key) {
   if (key === "default" || key === "__esModule") return;
@@ -53613,6 +53744,18 @@ Object.keys(_productions).forEach(function (key) {
     enumerable: true,
     get: function () {
       return _productions[key];
+    }
+  });
+});
+var _index2 = __nccwpck_require__(9380);
+Object.keys(_index2).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
+  if (key in exports && exports[key] === _index2[key]) return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function () {
+      return _index2[key];
     }
   });
 });
@@ -53728,13 +53871,14 @@ Object.keys(_index6).forEach(function (key) {
   });
 });
 var _deprecationWarning = __nccwpck_require__(496);
+var _toSequenceExpression = __nccwpck_require__(8902);
 const react = exports.react = {
   isReactComponent: _isReactComponent.default,
   isCompatTag: _isCompatTag.default,
   buildChildren: _buildChildren.default
 };
 {
-  exports.toSequenceExpression = __nccwpck_require__(8902)["default"];
+  exports.toSequenceExpression = _toSequenceExpression.default;
 }
 if (process.env.BABEL_TYPES_8_BREAKING) {
   console.warn("BABEL_TYPES_8_BREAKING is not supported anymore. Use the latest Babel 8.0.0 pre-release instead!");
@@ -53968,7 +54112,7 @@ Object.defineProperty(exports, "__esModule", ({
 exports["default"] = removeTypeDuplicates;
 var _index = __nccwpck_require__(2605);
 function getQualifiedName(node) {
-  return (0, _index.isIdentifier)(node) ? node.name : `${node.right.name}.${getQualifiedName(node.left)}`;
+  return (0, _index.isIdentifier)(node) ? node.name : (0, _index.isThisExpression)(node) ? "this" : `${node.right.name}.${getQualifiedName(node.left)}`;
 }
 function removeTypeDuplicates(nodesIn) {
   const nodes = Array.from(nodesIn);
@@ -54166,6 +54310,7 @@ const keys = {
   ImportNamespaceSpecifier: ["local"],
   ImportDefaultSpecifier: ["local"],
   ImportDeclaration: ["specifiers"],
+  TSImportEqualsDeclaration: ["id"],
   ExportSpecifier: ["exported"],
   ExportNamespaceSpecifier: ["exported"],
   ExportDefaultSpecifier: ["exported"],
@@ -54808,6 +54953,7 @@ exports.isTSRestType = isTSRestType;
 exports.isTSSatisfiesExpression = isTSSatisfiesExpression;
 exports.isTSStringKeyword = isTSStringKeyword;
 exports.isTSSymbolKeyword = isTSSymbolKeyword;
+exports.isTSTemplateLiteralType = isTSTemplateLiteralType;
 exports.isTSThisType = isTSThisType;
 exports.isTSTupleType = isTSTupleType;
 exports.isTSType = isTSType;
@@ -55997,6 +56143,11 @@ function isTSMappedType(node, opts) {
   if (node.type !== "TSMappedType") return false;
   return opts == null || (0, _shallowEqual.default)(node, opts);
 }
+function isTSTemplateLiteralType(node, opts) {
+  if (!node) return false;
+  if (node.type !== "TSTemplateLiteralType") return false;
+  return opts == null || (0, _shallowEqual.default)(node, opts);
+}
 function isTSLiteralType(node, opts) {
   if (!node) return false;
   if (node.type !== "TSLiteralType") return false;
@@ -56626,6 +56777,7 @@ function isDeclaration(node, opts) {
     case "TSTypeAliasDeclaration":
     case "TSEnumDeclaration":
     case "TSModuleDeclaration":
+    case "TSImportEqualsDeclaration":
       break;
     case "Placeholder":
       if (node.expectedNode === "Declaration") break;
@@ -57167,6 +57319,7 @@ function isTypeScript(node, opts) {
     case "TSTypeOperator":
     case "TSIndexedAccessType":
     case "TSMappedType":
+    case "TSTemplateLiteralType":
     case "TSLiteralType":
     case "TSExpressionWithTypeArguments":
     case "TSInterfaceDeclaration":
@@ -57246,6 +57399,7 @@ function isTSType(node, opts) {
     case "TSTypeOperator":
     case "TSIndexedAccessType":
     case "TSMappedType":
+    case "TSTemplateLiteralType":
     case "TSLiteralType":
     case "TSExpressionWithTypeArguments":
     case "TSImportType":
@@ -57272,6 +57426,7 @@ function isTSBaseType(node, opts) {
     case "TSUnknownKeyword":
     case "TSVoidKeyword":
     case "TSThisType":
+    case "TSTemplateLiteralType":
     case "TSLiteralType":
       break;
     default:
