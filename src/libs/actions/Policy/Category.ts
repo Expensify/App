@@ -143,6 +143,89 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
     return onyxData;
 }
 
+function buildOptimisticMccGroup() {
+    const optimisticMccGroup: Record<'mccGroup', Record<string, MccGroup>> = {
+        mccGroup: {
+            airlines: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
+                groupID: 'airlines',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            commuter: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
+                groupID: 'commuter',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            gas: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.CAR,
+                groupID: 'gas',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            goods: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.MATERIALS,
+                groupID: 'goods',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            groceries: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
+                groupID: 'groceries',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            hotel: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
+                groupID: 'hotel',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            mail: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.OFFICE_SUPPLIES,
+                groupID: 'mail',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            meals: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.MEALS_AND_ENTERTAINMENT,
+                groupID: 'meals',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            rental: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
+                groupID: 'rental',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            services: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.PROFESSIONAL_SERVICES,
+                groupID: 'services',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            taxi: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.TRAVEL,
+                groupID: 'taxi',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            uncategorized: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.OTHER,
+                groupID: 'uncategorized',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+            utilities: {
+                category: CONST.POLICY.DEFAULT_CATEGORIES.UTILITIES,
+                groupID: 'utilities',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+    };
+
+    const successMccGroup: Record<'mccGroup', Record<string, Partial<MccGroup>>> = {mccGroup: {}};
+    Object.keys(optimisticMccGroup.mccGroup).forEach((key) => (successMccGroup.mccGroup[key] = {pendingAction: null}));
+
+    const mccGroupData = {
+        optimisticData: optimisticMccGroup,
+        successData: successMccGroup,
+        failureData: {mccGroup: null},
+    };
+
+    return mccGroupData;
+}
+
 function updateImportSpreadsheetData(categoriesLength: number) {
     const onyxData: OnyxData = {
         successData: [
@@ -1369,6 +1452,7 @@ function getPolicyCategoriesData(policyID: string | undefined) {
 
 export {
     buildOptimisticPolicyCategories,
+    buildOptimisticMccGroup,
     buildOptimisticPolicyRecentlyUsedCategories,
     clearCategoryErrors,
     createPolicyCategory,
