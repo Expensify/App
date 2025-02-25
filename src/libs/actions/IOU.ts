@@ -4612,7 +4612,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
                 receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
-                transactionThreadReportID,
                 createdReportActionIDForThread,
                 reimbursible,
             };
