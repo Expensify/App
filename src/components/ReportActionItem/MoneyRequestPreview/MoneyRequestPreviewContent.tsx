@@ -36,6 +36,7 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {
+    canEditMoneyRequest,
     getTransactionDetails,
     getWorkspaceIcon,
     isPaidGroupPolicy,
@@ -248,7 +249,8 @@ function MoneyRequestPreviewContent({
             }
             const firstViolation = violations?.at(0);
             if (firstViolation) {
-                const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate);
+                const canEdit = isMoneyRequestAction && canEditMoneyRequest(action, transaction);
+                const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
                 const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;

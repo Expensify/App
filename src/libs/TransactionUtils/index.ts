@@ -1043,11 +1043,6 @@ function hasWarningTypeViolation(transactionID: string | undefined, transactionV
                 !isViolationDismissed(transaction, violation),
         ) ?? [];
 
-    const hasOnlyDupeDetectionViolation = warningTypeViolations?.every((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-    if (hasOnlyDupeDetectionViolation) {
-        return false;
-    }
-
     return warningTypeViolations.length > 0;
 }
 
@@ -1380,7 +1375,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
 
 function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
     return {
-        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, false),
+        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
