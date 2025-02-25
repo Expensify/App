@@ -5,11 +5,11 @@ import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/USD/utils/getValuesForBeneficialOwner';
@@ -41,6 +41,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {paddingBottom: safeAreaInsetPaddingBottom} = useStyledSafeAreaInsets();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
@@ -76,54 +77,50 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
         });
 
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <ScrollView
-                    style={styles.pt0}
-                    contentContainerStyle={[styles.flexGrow1, styles.ph0, safeAreaPaddingBottomStyle]}
-                >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
-                    <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
-                    <View>
-                        <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
-                        {isUserUBO && (
-                            <MenuItem
-                                title={`${requestorData.firstName} ${requestorData.lastName}`}
-                                description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
-                                wrapperStyle={[styles.ph5]}
-                                icon={Expensicons.FallbackAvatar}
-                                iconType={CONST.ICON_TYPE_AVATAR}
-                                iconWidth={40}
-                                iconHeight={40}
-                                interactive={false}
-                                shouldShowRightIcon={false}
-                                displayInDefaultIconColor
-                            />
-                        )}
-                        {extraBeneficialOwners}
-                    </View>
-
-                    <View style={[styles.ph5, styles.mtAuto]}>
-                        {!!error && error.length > 0 && (
-                            <DotIndicatorMessage
-                                textStyles={[styles.formError]}
-                                type="error"
-                                messages={{error}}
-                            />
-                        )}
-                    </View>
-                    <Button
-                        success
-                        large
-                        isLoading={isLoading}
-                        isDisabled={isOffline}
-                        style={[styles.w100, styles.mt2, styles.pb5, styles.ph5]}
-                        onPress={handleUBOsConfirmation}
-                        text={translate('common.confirm')}
+        <ScrollView
+            style={styles.pt0}
+            contentContainerStyle={[styles.flexGrow1, {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
+        >
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
+            <Text style={[styles.p5, styles.textSupporting]}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
+            <View>
+                <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
+                {isUserUBO && (
+                    <MenuItem
+                        title={`${requestorData.firstName} ${requestorData.lastName}`}
+                        description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
+                        wrapperStyle={[styles.ph5]}
+                        icon={Expensicons.FallbackAvatar}
+                        iconType={CONST.ICON_TYPE_AVATAR}
+                        iconWidth={40}
+                        iconHeight={40}
+                        interactive={false}
+                        shouldShowRightIcon={false}
+                        displayInDefaultIconColor
                     />
-                </ScrollView>
-            )}
-        </SafeAreaConsumer>
+                )}
+                {extraBeneficialOwners}
+            </View>
+
+            <View style={[styles.ph5, styles.mt5, styles.flexGrow1, styles.justifyContentEnd]}>
+                {!!error && error.length > 0 && (
+                    <DotIndicatorMessage
+                        textStyles={[styles.formError]}
+                        type="error"
+                        messages={{error}}
+                    />
+                )}
+                <Button
+                    success
+                    large
+                    isLoading={isLoading}
+                    isDisabled={isOffline}
+                    style={[styles.w100]}
+                    onPress={handleUBOsConfirmation}
+                    text={translate('common.confirm')}
+                />
+            </View>
+        </ScrollView>
     );
 }
 

@@ -49,6 +49,15 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** Should the submit button be enabled when offline */
     enabledWhenOffline?: boolean;
+
+    /** Set the default value to the input if there is a valid saved value */
+    shouldUseDefaultValue?: boolean;
+
+    /** Should the input be disabled */
+    disabled?: boolean;
+
+    /** Placeholder displayed inside input */
+    placeholder?: string;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -65,6 +74,9 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     maxLength,
     enabledWhenOffline,
+    shouldUseDefaultValue = true,
+    disabled = false,
+    placeholder,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -95,6 +107,9 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         maxLength={maxLength}
                         shouldSaveDraft={!isEditing}
                         autoFocus
+                        shouldUseDefaultValue={shouldUseDefaultValue}
+                        disabled={disabled}
+                        placeholder={placeholder}
                     />
                 </View>
                 {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
