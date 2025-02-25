@@ -810,7 +810,7 @@ const ROUTES = {
         getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}/invite-message`, backTo)}` as const,
     },
     WORKSPACE_OVERVIEW: {
-        route: 'settings/workspaces/:policyID/profile',
+        route: 'settings/workspaces/:policyID/overview',
         getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW route');
