@@ -107,8 +107,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
+
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
+                [SCREENS.CONSOLE_DEBUG]: {
+                    path: ROUTES.CONSOLE_DEBUG.route,
+                    exact: true,
+                },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
@@ -213,10 +218,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: {
                             path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.CONSOLE]: {
-                            path: ROUTES.SETTINGS_CONSOLE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,
@@ -526,11 +527,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
                             path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_DATE.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
                             path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.route},

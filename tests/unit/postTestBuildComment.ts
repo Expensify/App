@@ -97,6 +97,7 @@ describe('Post test build comments action tests', () => {
     beforeEach(() => jest.clearAllMocks());
 
     test('Test GH action', async () => {
+        when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('12');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('ANDROID_HYBRID', {required: false}).mockReturnValue('success');
@@ -136,6 +137,7 @@ describe('Post test build comments action tests', () => {
     });
 
     test('Test GH action when input is not complete', async () => {
+        when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
         when(core.getInput).calledWith('PR_NUMBER', {required: true}).mockReturnValue('12');
         when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
         when(core.getInput).calledWith('ANDROID_HYBRID', {required: false}).mockReturnValue('');
