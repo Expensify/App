@@ -456,6 +456,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -488,6 +489,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -524,6 +526,7 @@ describe('SidebarUtils', () => {
                     parentReportAction: undefined,
                     hasViolations: false,
                     lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
