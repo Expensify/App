@@ -307,6 +307,14 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
+function isValidPhoneNumber(phoneNumber: string): boolean {
+    if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
+        return false;
+    }
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
+    return parsedPhoneNumber.possible;
+}
+
 function isValidValidateCode(validateCode: string): boolean {
     return !!validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
 }
@@ -660,6 +668,7 @@ export {
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
+    isValidPhoneNumber,
     isValidWebsite,
     validateIdentity,
     isValidTwoFactorCode,

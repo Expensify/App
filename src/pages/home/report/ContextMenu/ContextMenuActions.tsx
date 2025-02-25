@@ -738,9 +738,13 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: true,
         textTranslateKey: 'debug.debug',
         icon: Expensicons.Bug,
-        shouldShow: ({type, user}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !!user?.isDebugModeEnabled,
-        onPress: (closePopover, {reportID}) => {
-            Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
+        shouldShow: ({type, user}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!user?.isDebugModeEnabled,
+        onPress: (closePopover, {reportID, reportAction}) => {
+            if (reportAction) {
+                Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, reportAction.reportActionID));
+            } else {
+                Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
+            }
             hideContextMenu(false, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},

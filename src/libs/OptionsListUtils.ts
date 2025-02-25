@@ -99,6 +99,7 @@ import {
     getReportOrDraftReport,
     getReportParticipantsTitle,
     getReportPreviewMessage,
+    getReportSubtitlePrefix,
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
@@ -549,33 +550,35 @@ function getAlternateText(option: OptionData, {showChatPreviewLine = false, forc
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const formattedLastMessageText = formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? ''));
+    const reportPrefix = getReportSubtitlePrefix(report);
+    const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
 
     if (isExpenseThread || option.isMoneyRequestReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'iou.expense');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'iou.expense');
     }
 
     if (option.isThread) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'threads.thread');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : option.subtitle;
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
     }
 
     if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
-        return showChatPreviewLine && !forcePolicyNamePreview && formattedLastMessageText ? formattedLastMessageText : option.subtitle;
+        return showChatPreviewLine && !forcePolicyNamePreview && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'task.task');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'task.task');
     }
 
     if (isGroupChat) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageText : translate(preferredLocale, 'common.group');
+        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translate(preferredLocale, 'common.group');
     }
 
     return showChatPreviewLine && formattedLastMessageText
-        ? formattedLastMessageText
+        ? formattedLastMessageTextWithPrefix
         : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList.at(0)?.login ?? '' : '');
 }
 
@@ -1484,7 +1487,7 @@ function getValidOptions(
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
         // Exclude Manager McTest if user submitted expense or scanned receipt and when selection is made from Create or Submit flow
-        [CONST.EMAIL.MANAGER_MCTEST]: !(Permissions.canUseManagerMcTest(config.betas) && !getIsUserSubmittedExpenseOrScannedReceipt() && canShowManagerMcTest),
+        [CONST.EMAIL.MANAGER_MCTEST]: !(!getIsUserSubmittedExpenseOrScannedReceipt() && canShowManagerMcTest && Permissions.canUseManagerMcTest(config.betas)),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -2147,6 +2150,13 @@ function shouldUseBoldText(report: OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
+/**
+ * Helper method to check if participant email is Manager McTest
+ */
+function isSelectedManagerMcTest(email: string | null | undefined): boolean {
+    return email === CONST.EMAIL.MANAGER_MCTEST;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2200,6 +2210,8 @@ export {
     orderWorkspaceOptions,
     filterSelfDMChat,
     filterReports,
+    getIsUserSubmittedExpenseOrScannedReceipt,
+    isSelectedManagerMcTest,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
