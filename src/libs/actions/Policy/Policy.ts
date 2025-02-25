@@ -1757,6 +1757,8 @@ function buildPolicyData(
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
 
+    const shouldEnableWorkflowsByDefault =
+        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     const optimisticData: OnyxUpdate[] = [
@@ -1774,16 +1776,16 @@ function buildPolicyData(
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
-                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
-                    enabled: true,
+                    enabled: !shouldEnableWorkflowsByDefault,
                 },
                 customUnits,
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: false,
+                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
@@ -3132,6 +3134,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ? {
                               approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                               autoReporting: false,
+                              autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                               harvesting: {
                                   enabled: false,
                               },
@@ -3144,6 +3147,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                               }
@@ -3181,6 +3185,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ? {
                               approvalMode: policy?.approvalMode,
                               autoReporting: policy?.autoReporting,
+                              autoReportingFrequency: policy?.autoReportingFrequency,
                               harvesting: policy?.harvesting,
                               reimbursementChoice: policy?.reimbursementChoice,
                           }
@@ -3191,6 +3196,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
+                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
