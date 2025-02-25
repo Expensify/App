@@ -48,7 +48,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                 updateNetSuiteInvoiceItemPreference(policyID, row.value, config?.invoiceItemPreference);
             }
             if (row.value === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
-                Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
+                Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
             }
         },
         [config?.invoiceItemPreference, policyID],
@@ -97,7 +97,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                             title={selectedItem ? selectedItem.name : undefined}
                             interactive
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}
                             brickRoadIndicator={areSettingsInErrorFields([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>

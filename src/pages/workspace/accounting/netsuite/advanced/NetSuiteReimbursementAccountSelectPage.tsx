@@ -38,7 +38,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
             if (config?.reimbursementAccountID !== value && policyID) {
                 updateNetSuiteReimbursementAccountID(policyID, value, config?.reimbursementAccountID);
             }
-            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
         [policyID, config?.reimbursementAccountID],
     );
@@ -77,7 +77,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
             listItem={RadioListItem}
             onSelectRow={updateReimbursementAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => policyID && Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
             title="workspace.netsuite.advancedConfig.reimbursementsAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}

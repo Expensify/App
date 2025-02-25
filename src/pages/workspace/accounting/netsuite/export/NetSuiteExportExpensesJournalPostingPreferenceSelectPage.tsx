@@ -48,7 +48,7 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
             if (row.value !== config?.journalPostingPreference && policyID) {
                 updateNetSuiteJournalPostingPreference(policyID, row.value, config?.journalPostingPreference);
             }
-            Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
         [config?.journalPostingPreference, params.expenseType, policyID],
     );
@@ -64,7 +64,7 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={
                 isReimbursable
