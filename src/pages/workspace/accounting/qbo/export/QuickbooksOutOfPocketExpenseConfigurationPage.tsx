@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -33,7 +33,7 @@ const accountOrExportDestination = [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSE
 function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const isLocationEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!qboConfig?.syncTax;
@@ -67,19 +67,29 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
         {
             title: qboConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID)),
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID));
+            },
             hintText: exportHintText,
             subscribedSettings: accountOrExportDestination,
-            pendingAction: PolicyUtils.settingsPendingAction(accountOrExportDestination, qboConfig?.pendingFields),
-            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(accountOrExportDestination, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: settingsPendingAction(accountOrExportDestination, qboConfig?.pendingFields),
+            brickRoadIndicator: areSettingsInErrorFields(accountOrExportDestination, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             title: qboConfig?.reimbursableExpensesAccount?.name ?? translate('workspace.qbo.notConfigured'),
             description: accountDescription,
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID));
+            },
             subscribedSettings: account,
-            pendingAction: PolicyUtils.settingsPendingAction(account, qboConfig?.pendingFields),
-            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(account, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: settingsPendingAction(account, qboConfig?.pendingFields),
+            brickRoadIndicator: areSettingsInErrorFields(account, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
 
