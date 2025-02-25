@@ -6,6 +6,34 @@ on:
       PULL_REQUEST_NUMBER:
         description: Pull Request number for correct placement of apps
         required: true
+      WEB:
+        description: Should build web app?
+        type: boolean
+        default: true
+      DESKTOP:
+        description: Should build desktop app?
+        type: boolean
+        default: true
+      IOS:
+        description: Should build iOS app?
+        type: boolean
+        default: true
+      IOS_HYBRID:
+        description: Should build iOS hybrid app? 
+        type: boolean
+        default: true
+      ANDROID:
+        description: Should build android app? 
+        type: boolean
+        default: true
+      ANDROID_HYBRID:
+        description: Should build android hybrid app? 
+        type: boolean
+        default: true
+
+env:
+  # This variable is needed for fastlane to construct correct path
+  PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
 jobs:
   prep:
@@ -50,6 +78,7 @@ jobs:
 
   buildAndroid:
     name: Build Android app for testing
+    if: ${{ inputs.ANDROID }}
     uses: ./.github/workflows/buildAndroid.yml
     needs: [prep]
     secrets: inherit
@@ -104,6 +133,7 @@ jobs:
 
   iOS:
     name: Build and deploy iOS for testing
+    if: ${{ inputs.IOS }}
     needs: [prep]
     env:
       DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
@@ -192,6 +222,7 @@ jobs:
 
   desktop:
     name: Build and deploy Desktop for testing
+    if: ${{ inputs.DESKTOP }}
     needs: [prep]
     runs-on: macos-14-large
     steps:
@@ -242,6 +273,7 @@ jobs:
 
   web:
     name: Build and deploy Web
+    if: ${{ inputs.WEB }}
     needs: [prep]
     runs-on: ubuntu-latest-xl
     steps:
@@ -279,6 +311,8 @@ jobs:
     secrets: inherit
     with:
       APP_REF: ${{ needs.prep.outputs.REF }}
+      IOS_HYBRID: ${{ inputs.IOS_HYBRID }}
+      ANDROID_HYBRID: ${{ inputs.ANDROID_HYBRID }}
 
   postGithubComment:
     runs-on: ubuntu-latest
