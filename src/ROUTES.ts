@@ -1110,7 +1110,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/advanced` as const,
+        getRoute: (policyID?: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/advanced` as const,
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/account-selector',
@@ -1127,7 +1127,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
+        getRoute: (policyID?: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
             `settings/workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const,
     },
     WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
@@ -1767,7 +1767,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
+        getRoute: (policyID?: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
     },
     POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
@@ -1938,7 +1938,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_ADVANCED: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const,
+        getRoute: (policyID?: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/reimbursement-account/select',
@@ -2104,7 +2104,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced` as const,
+        getRoute: (policyID?: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
