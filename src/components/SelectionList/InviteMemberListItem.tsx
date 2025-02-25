@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -76,119 +76,120 @@ function InviteMemberListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
+    const educationalTooltipProps = useMemo(() => {
+        if (shouldShowExpenseSubmitTooltip) {
+            return {
+                shouldRender: shouldShowExpenseSubmitTooltip,
+                shiftHorizontal: 4,
+                shiftVertical: variables.composerTooltipShiftVertical,
+                renderTooltipContent: renderExpenseSubmitTooltip,
+                onTooltipPress: hideExpenseSubmitTooltip,
+            };
+        }
+        return {
+            shouldRender: shouldShowProductTrainingTooltip,
+            renderTooltipContent: renderProductTrainingTooltip,
+            shouldHideOnNavigate: true,
+        };
+    }, [hideExpenseSubmitTooltip, renderExpenseSubmitTooltip, renderProductTrainingTooltip, shouldShowExpenseSubmitTooltip, shouldShowProductTrainingTooltip]);
+
     return (
-        <EducationalTooltip
-            shouldRender={shouldShowExpenseSubmitTooltip}
-            anchorAlignment={{
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-            }}
-            shiftHorizontal={variables.workspaceLHNtooltipShiftHorizontal}
-            shiftVertical={variables.composerTooltipShiftVertical}
-            wrapperStyle={styles.productTrainingTooltipWrapper}
-            renderTooltipContent={renderExpenseSubmitTooltip}
-            onTooltipPress={hideExpenseSubmitTooltip}
+        <BaseListItem
+            pressableStyle={[[shouldHighlightSelectedItem && item.isSelected && styles.activeComponentBG]]}
+            item={item}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
+            isFocused={isFocused}
+            isDisabled={isDisabled}
+            showTooltip={showTooltip}
+            canSelectMultiple={canSelectMultiple}
+            onSelectRow={onSelectRow}
+            onDismissError={onDismissError}
+            rightHandSideComponent={rightHandSideComponent}
+            errors={item.errors}
+            pendingAction={item.pendingAction}
+            FooterComponent={
+                item.invitedSecondaryLogin ? (
+                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
+                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
+                    </Text>
+                ) : undefined
+            }
+            keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+            shouldDisplayRBR={!shouldShowCheckBox}
         >
-            <View>
-                <BaseListItem
-                    pressableStyle={[[shouldHighlightSelectedItem && item.isSelected && styles.activeComponentBG]]}
-                    item={item}
-                    wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow]}
-                    isFocused={isFocused}
-                    isDisabled={isDisabled}
-                    showTooltip={showTooltip}
-                    canSelectMultiple={canSelectMultiple}
-                    onSelectRow={onSelectRow}
-                    onDismissError={onDismissError}
-                    rightHandSideComponent={rightHandSideComponent}
-                    errors={item.errors}
-                    pendingAction={item.pendingAction}
-                    FooterComponent={
-                        item.invitedSecondaryLogin ? (
-                            <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
-                                {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
-                            </Text>
-                        ) : undefined
-                    }
-                    keyForList={item.keyForList}
-                    onFocus={onFocus}
-                    shouldSyncFocus={shouldSyncFocus}
-                    shouldDisplayRBR={!shouldShowCheckBox}
+            {(hovered?: boolean) => (
+                <EducationalTooltip
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...educationalTooltipProps}
                 >
-                    {(hovered?: boolean) => (
-                        <EducationalTooltip
-                            shouldRender={shouldShowProductTrainingTooltip}
-                            renderTooltipContent={renderProductTrainingTooltip}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                            }}
-                            shouldHideOnNavigate
-                            wrapperStyle={styles.productTrainingTooltipWrapper}
-                        >
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                                {!!item.icons &&
-                                    (item.shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={item.icons.at(0) ?? fallbackIcon}
-                                            secondaryAvatar={item.icons.at(1)}
-                                            showTooltip={showTooltip}
-                                            backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                        />
-                                    ) : (
-                                        <MultipleAvatars
-                                            icons={item.icons}
-                                            shouldShowTooltip={showTooltip}
-                                            secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                            ]}
-                                        />
-                                    ))}
-                                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <TextWithTooltip
-                                            shouldShowTooltip={showTooltip}
-                                            text={Str.removeSMSDomain(item.text ?? '')}
-                                            style={[
-                                                styles.optionDisplayName,
-                                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                                item.isBold !== false && styles.sidebarLinkTextBold,
-                                                styles.pre,
-                                                item.alternateText ? styles.mb1 : null,
-                                            ]}
-                                        />
-                                    </View>
-                                    {!!item.alternateText && (
-                                        <TextWithTooltip
-                                            shouldShowTooltip={showTooltip}
-                                            text={Str.removeSMSDomain(item.alternateText ?? '')}
-                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                        />
-                                    )}
-                                </View>
-                                {!!item.rightElement && item.rightElement}
-                                {!!shouldShowCheckBox && (
-                                    <PressableWithFeedback
-                                        onPress={handleCheckboxPress}
-                                        disabled={isDisabled}
-                                        role={CONST.ROLE.BUTTON}
-                                        accessibilityLabel={item.text ?? ''}
-                                        style={[styles.ml2, styles.optionSelectCircle]}
-                                    >
-                                        <SelectCircle
-                                            isChecked={item.isSelected ?? false}
-                                            selectCircleStyles={styles.ml0}
-                                        />
-                                    </PressableWithFeedback>
-                                )}
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                        {!!item.icons &&
+                            (item.shouldShowSubscript ? (
+                                <SubscriptAvatar
+                                    mainAvatar={item.icons.at(0) ?? fallbackIcon}
+                                    secondaryAvatar={item.icons.at(1)}
+                                    showTooltip={showTooltip}
+                                    backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                />
+                            ) : (
+                                <MultipleAvatars
+                                    icons={item.icons}
+                                    shouldShowTooltip={showTooltip}
+                                    secondAvatarStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                        hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                    ]}
+                                />
+                            ))}
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={Str.removeSMSDomain(item.text ?? '')}
+                                    style={[
+                                        styles.optionDisplayName,
+                                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                        item.isBold !== false && styles.sidebarLinkTextBold,
+                                        styles.pre,
+                                        item.alternateText ? styles.mb1 : null,
+                                    ]}
+                                />
                             </View>
-                        </EducationalTooltip>
-                    )}
-                </BaseListItem>
-            </View>
-        </EducationalTooltip>
+                            {!!item.alternateText && (
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                />
+                            )}
+                        </View>
+                        {!!item.rightElement && item.rightElement}
+                        {!!shouldShowCheckBox && (
+                            <PressableWithFeedback
+                                onPress={handleCheckboxPress}
+                                disabled={isDisabled}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={item.text ?? ''}
+                                style={[styles.ml2, styles.optionSelectCircle]}
+                            >
+                                <SelectCircle
+                                    isChecked={item.isSelected ?? false}
+                                    selectCircleStyles={styles.ml0}
+                                />
+                            </PressableWithFeedback>
+                        )}
+                    </View>
+                </EducationalTooltip>
+            )}
+        </BaseListItem>
     );
 }
 
