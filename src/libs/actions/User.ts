@@ -1558,4 +1558,7 @@ export {
     subscribeToActiveGuides,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
+
+    // This is only exported so that it can be mocked, and not have the Pusher PINGPONG run while tests are running (because it will make the network go offline and cause tests to timeout)
+    initializePusherPingPong,
 };

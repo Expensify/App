@@ -89,6 +89,13 @@ jest.mock('@src/libs/actions/Timing', () => ({
     end: jest.fn(),
 }));
 
+// Mock this one method from the User action so that the Pusher PINGPONG does not run during tests. It can cause the network to go offline which causes tests to fail because of timeouts.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('@src/libs/actions/User', () => ({
+    ...jest.requireActual('@src/libs/actions/User'),
+    initializePusherPingPong: jest.fn(),
+}));
+
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({
     defineTask: jest.fn(),
     onBackgroundTaskExecution: jest.fn(),
