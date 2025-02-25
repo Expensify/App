@@ -33,6 +33,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     }, [bankAccounts, exportConfiguration?.nonReimbursableAccount]);
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
+    const activeRoute = Navigation.getActiveRoute();
 
     const menuItems = [
         {
@@ -40,7 +41,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onPress: !policyID
                 ? undefined
                 : () => {
-                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
+                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID, activeRoute));
                   },
             title: exportConfiguration?.exporter ?? policyOwner,
             subscribedSettings: [CONST.XERO_CONFIG.EXPORTER],
@@ -54,13 +55,13 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.purchaseBillDate'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID, activeRoute)),
             title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_DATE],
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID, activeRoute)),
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_STATUS],
         },
@@ -80,7 +81,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.xeroBankAccount'),
-            onPress: () => (!policyID ? undefined : Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.getRoute(policyID))),
+            onPress: () => (!policyID ? undefined : Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.getRoute(policyID, activeRoute))),
             title: selectedBankAccountName,
             subscribedSettings: [CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
         },
