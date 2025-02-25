@@ -45,7 +45,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             cleanupTravelProvisioningSession();
 
             // TravelDot is a standalone white-labeled implementation of Spotnana so it has to be opened in a new tab
-            Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken));
+            Linking.openURL(buildTravelDotURL(travelProvisioning.spotnanaToken, travelProvisioning.isTestAccount ?? false));
         }
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
