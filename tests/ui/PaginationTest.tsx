@@ -339,6 +339,9 @@ describe('Pagination', () => {
         await act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
+        // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
+        // we need to scroll too to trigger `onStartReached` which triggers other updates
+        scrollToOffset(0);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
         await waitForBatchedUpdatesWithAct();
