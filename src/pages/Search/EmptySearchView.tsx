@@ -1,10 +1,9 @@
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
 import {Alert, PiggyBank} from '@components/Icon/Illustrations';
@@ -22,7 +21,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
 import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
-import {bookATrip} from '@libs/actions/Travel';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
@@ -61,11 +59,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    const [ctaErrorMessage, setCtaErrorMessage] = useState('');
-
-    const subtitleComponent = useMemo(() => {
+    const tripViewChildren = useMemo(() => {
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
@@ -79,7 +74,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     </TextLink>
                     {translate('travel.toLearnMore')}
                 </Text>
-                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1]}>
+                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1, styles.mb5]}>
                     {tripsFeatures.map((tripsFeature) => (
                         <View
                             key={tripsFeature.translationKey}
@@ -99,16 +94,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                         </View>
                     ))}
                 </View>
-                {!!ctaErrorMessage && (
-                    <DotIndicatorMessage
-                        style={styles.mt1}
-                        messages={{error: ctaErrorMessage}}
-                        type="error"
-                    />
-                )}
+                <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
             </>
         );
-    }, [styles, translate, ctaErrorMessage]);
+    }, [styles, translate]);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const onboardingPurpose = introSelected?.choice;
@@ -131,14 +120,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
-                    subtitle: subtitleComponent,
-                    buttons: [
-                        {
-                            buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                            buttonAction: () => bookATrip(translate, setCtaErrorMessage, setRootStatusBarEnabled, ctaErrorMessage),
-                            success: true,
-                        },
-                    ],
+                    children: tripViewChildren,
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -238,10 +220,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
-        subtitleComponent,
+        tripViewChildren,
         hasSeenTour,
-        setRootStatusBarEnabled,
-        ctaErrorMessage,
         navatticURL,
         shouldRedirectToExpensifyClassic,
         hasResults,
@@ -264,7 +244,9 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                 buttons={content.buttons}
                 headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
                 lottieWebViewStyles={content.lottieWebViewStyles}
-            />
+            >
+                {content.children}
+            </EmptyStateComponent>
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}

@@ -134,7 +134,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const subtitle = getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
-    const policyName = getPolicyName(report, true);
+    const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report?.reportID);
     const policyID = report?.policyID;

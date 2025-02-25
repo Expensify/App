@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {getButtonRole, getButtonStyle} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
@@ -34,6 +35,7 @@ function ThreeDotsMenu({
     hideProductTrainingTooltip,
     renderProductTrainingTooltipContent,
     shouldShowProductTrainingTooltip = false,
+    isNested = false,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL);
 
@@ -104,8 +106,8 @@ function ThreeDotsMenu({
                             e.preventDefault();
                         }}
                         ref={buttonRef}
-                        style={[styles.touchableButtonImage, iconStyles]}
-                        role={CONST.ROLE.BUTTON}
+                        style={[styles.touchableButtonImage, iconStyles, getButtonStyle(styles, isNested)]}
+                        role={getButtonRole(isNested)}
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon

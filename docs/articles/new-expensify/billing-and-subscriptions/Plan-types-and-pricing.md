@@ -39,7 +39,7 @@ Yes! Customers can pay in AUD, GBP, or NZD in addition to USD.
 - **Control Plan:** A$30, £14, or NZ$32 per user/month (Annual subscription + Expensify Cards)
 
 ## Is Expensify free for individuals?
-Yes! Individuals can use Expensify for free to track expenses.
+Yes! Individuals can use Expensify for free to track expenses. The steps in this [help article](https://help.expensify.com/articles/expensify-classic/getting-started/Create-a-workspace-for-yourself) will walk you through creating a personal workspace to track your expenses.
 
 ## How do I get more info about pricing?
 For customized information or help choosing the right plan, reach out to Expensify Concierge or email **concierge@expensify.com**.

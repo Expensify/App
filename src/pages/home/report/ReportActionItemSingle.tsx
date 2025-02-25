@@ -70,6 +70,9 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 
     /** If the action is being hovered */
     isHovered?: boolean;
+
+    /** If the action is being actived */
+    isActive?: boolean;
 };
 
 const showUserDetails = (accountID: number | undefined) => {
@@ -93,6 +96,7 @@ function ReportActionItemSingle({
     report,
     iouReport,
     isHovered = false,
+    isActive = false,
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -108,7 +112,7 @@ function ReportActionItemSingle({
         `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
     );
 
-    let displayName = getDisplayNameForParticipant(actorAccountID);
+    let displayName = getDisplayNameForParticipant({accountID: actorAccountID});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -121,7 +125,7 @@ function ReportActionItemSingle({
     let avatarSource = avatar;
     let avatarId: number | string | undefined = actorAccountID;
     if (isWorkspaceActor) {
-        displayName = getPolicyName(report, undefined, policy);
+        displayName = getPolicyName({report, policy});
         actorHint = displayName;
         avatarSource = getWorkspaceIcon(report, policy).source;
         avatarId = report?.policyID;
@@ -152,7 +156,7 @@ function ReportActionItemSingle({
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
             const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
             const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-            const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
+            const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
             secondaryAvatar = {
                 source: secondaryUserAvatar,
@@ -170,7 +174,7 @@ function ReportActionItemSingle({
     } else if (isInvoiceReportUtils(iouReport)) {
         const secondaryAccountId = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-        const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
+        const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
         secondaryAvatar = {
             source: secondaryUserAvatar,
@@ -223,6 +227,15 @@ function ReportActionItemSingle({
         [action, isWorkspaceActor, actorAccountID],
     );
 
+    const getBackgroundColor = () => {
+        if (isActive) {
+            return theme.messageHighlightBG;
+        }
+        if (isHovered) {
+            return theme.hoverComponentBG;
+        }
+        return theme.sidebar;
+    };
     const getAvatar = () => {
         if (shouldShowSubscriptAvatar) {
             return (
@@ -230,6 +243,7 @@ function ReportActionItemSingle({
                     mainAvatar={icon}
                     secondaryAvatar={secondaryAvatar}
                     noMargin
+                    backgroundColor={getBackgroundColor()}
                 />
             );
         }

@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function navigateBack() {
     Navigation.goBack(ROUTES.NEW_CHAT);
@@ -38,7 +39,7 @@ function NewChatConfirmPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const selectedOptions = useMemo((): Participant[] => {
@@ -95,13 +96,13 @@ function NewChatConfirmPage() {
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
+        navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
     }, [newGroupDraft, avatarFile]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 
     useEffect(() => {
-        if (!stashedLocalAvatarImage) {
+        if (!stashedLocalAvatarImage || isLoadingOnyxValue(newGroupDraftMetaData)) {
             return;
         }
 
@@ -118,9 +119,9 @@ function NewChatConfirmPage() {
         // To handle this, we re-read the avatar image file from disk whenever the component re-mounts.
         readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
 
-        // we only need to run this when the component re-mounted
+        // we only need to run this when the component re-mounted and when the onyx is loaded completely
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [newGroupDraftMetaData]);
 
     return (
         <ScreenWrapper testID={NewChatConfirmPage.displayName}>

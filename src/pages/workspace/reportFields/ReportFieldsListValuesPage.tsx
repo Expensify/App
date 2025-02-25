@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -106,6 +107,13 @@ function ReportFieldsListValuesPage({
         },
         [policyID, reportFieldID],
     );
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedValues({});
+        },
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
 
     const listValuesSections = useMemo(() => {
         const data = listValues
