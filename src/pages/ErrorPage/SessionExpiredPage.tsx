@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
+import {clearSignInData} from '@userActions/Session';
 
 function SessionExpiredPage() {
     const styles = useThemeStyles();
@@ -34,7 +34,7 @@ function SessionExpiredPage() {
                         <TextLink
                             onPress={() => {
                                 if (!HybridAppModule.isHybridApp()) {
-                                    Session.clearSignInData();
+                                    clearSignInData();
                                     Navigation.goBack();
                                     return;
                                 }

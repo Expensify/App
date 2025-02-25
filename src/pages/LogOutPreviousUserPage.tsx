@@ -4,10 +4,10 @@ import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as SessionUtils from '@libs/SessionUtils';
+import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
-import * as SessionActions from '@userActions/Session';
+import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,17 +29,17 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     useEffect(() => {
         const sessionEmail = session?.email;
         const transitionURL = HybridAppModule.isHybridApp() ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
-        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+        const isLoggingAsNewUser = isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
         const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
-        if (isLoggingInAsNewUser) {
+        if (isLoggingAsNewUser) {
             // We don't want to close react-native app in this particular case.
-            SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin, false);
+            signOutAndRedirectToSignIn(false, isSupportalLogin, false);
             return;
         }
 
         if (isSupportalLogin) {
-            SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
+            signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
@@ -55,7 +55,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const shouldForceLogin = route.params.shouldForceLogin === 'true';
         if (shouldForceLogin) {
             const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
-            SessionActions.signInWithShortLivedAuthToken(shortLivedAuthToken);
+            signInWithShortLivedAuthToken(shortLivedAuthToken);
         }
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -65,12 +65,12 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         const exitTo = route.params.exitTo as Route | null;
         const sessionEmail = session?.email;
         const transitionURL = HybridAppModule.isHybridApp() ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
-        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+        const isLoggingAsNewUser = isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
         // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
         // For HybridApp we have separate logic to handle transitions.
-        if (!HybridAppModule.isHybridApp() && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
+        if (!HybridAppModule.isHybridApp() && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingAsNewUser) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
                 Navigation.goBack();
