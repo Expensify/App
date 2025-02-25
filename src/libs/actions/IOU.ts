@@ -451,7 +451,7 @@ type CreateDistanceRequestInformation = {
     policyParams?: RequestMoneyPolicyParams;
 };
 
-type CreateSplitsTranasactionParams = {
+type CreateSplitsTransactionParams = {
     amount: number;
     comment: string;
     currency: string;
@@ -470,8 +470,8 @@ type CreateSplitsAndOnyxDataParams = {
     participants: Participant[];
     currentUserLogin: string;
     currentUserAccountID: number;
-    existingSplitChatReportID?: string;
-    transactionParams: CreateSplitsTranasactionParams;
+    existingSplitChatReportID: string | undefined;
+    transactionParams: CreateSplitsTransactionParams;
 };
 
 type TrackExpenseTransactionParams = {
@@ -5019,8 +5019,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
     notifyNewAction(activeReportID, payeeAccountID);
 }
 
-function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
+function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const existingChatReportID = existingSplitChatReportID || participants.at(0)?.reportID;
 
     // Check if the report is available locally if we do have one
@@ -5074,27 +5075,26 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
  * @param amount - always in the smallest unit of the currency
  * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a workspace chat
  */
-function createSplitsAndOnyxData(createSplitsParams: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
-    const {
-        participants,
-        currentUserLogin,
-        currentUserAccountID,
-        existingSplitChatReportID = '',
-        transactionParams: {
-            amount,
-            comment,
-            currency,
-            merchant,
-            created,
-            category,
-            tag,
-            splitShares = {},
-            billable = false,
-            iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-            taxCode = '',
-            taxAmount = 0,
-        },
-    } = createSplitsParams;
+function createSplitsAndOnyxData({
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    existingSplitChatReportID,
+    transactionParams: {
+        amount,
+        comment,
+        currency,
+        merchant,
+        created,
+        category,
+        tag,
+        splitShares = {},
+        billable = false,
+        iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+        taxCode = '',
+        taxAmount = 0,
+    },
+}: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
