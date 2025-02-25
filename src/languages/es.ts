@@ -1024,6 +1024,7 @@ const translations = {
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
+            invalidTagLength: 'El nombre de la etiqueta supera los 255 caracteres. Por favor, acórtalo o elige una etiqueta diferente.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar.',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
