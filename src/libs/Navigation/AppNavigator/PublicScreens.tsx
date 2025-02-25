@@ -14,6 +14,7 @@ import ValidateLoginPage from '@pages/ValidateLoginPage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
+import RightModalNavigator from './Navigators/RightModalNavigator';
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
@@ -58,6 +59,10 @@ function PublicScreens() {
             <RootStack.Screen
                 name={SCREENS.SAML_SIGN_IN}
                 component={SAMLSignInPage}
+            />
+            <RootStack.Screen
+                name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                component={RightModalNavigator}
             />
         </RootStack.Navigator>
     );
