@@ -4,6 +4,7 @@ import type {ForwardedRef} from 'react';
 import React from 'react';
 import Animated from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
+import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
@@ -12,17 +13,6 @@ const AnimatedMarkdownTextInput = Animated.createAnimatedComponent(MarkdownTextI
 type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownTextInput & HTMLInputElement;
 
 type RNMarkdownTextInputProps = Omit<MarkdownTextInputProps, 'parser'>;
-
-function handleFormatSelection(selectedText: string, formatCommand: string) {
-    switch (formatCommand) {
-        case 'formatBold':
-            return `*${selectedText}*`;
-        case 'formatItalic':
-            return `_${selectedText}_`;
-        default:
-            return selectedText;
-    }
-}
 
 function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
@@ -39,7 +29,7 @@ function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputPr
                 }
                 ref(refHandle as AnimatedMarkdownTextInputRef);
             }}
-            formatSelection={handleFormatSelection}
+            formatSelection={toggleSelectionFormat}
             // eslint-disable-next-line
             {...props}
             /**
