@@ -12,7 +12,6 @@ import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';
-import ONYXKEYS from './ONYXKEYS';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
@@ -6320,15 +6319,6 @@ const CONST = {
             BEFORE: 'Before',
             AFTER: 'After',
         },
-        SNAPSHOT_ONYX_KEYS: [
-            ONYXKEYS.COLLECTION.REPORT,
-            ONYXKEYS.COLLECTION.POLICY,
-            ONYXKEYS.COLLECTION.TRANSACTION,
-            ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-            ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            ONYXKEYS.PERSONAL_DETAILS_LIST,
-            ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        ],
     },
 
     REFERRER: {

@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useBlockedFromConcierge} from '@components/OnyxProvider';
-import useOnyx from '@hooks/useOnyx';
+import {useBlockedFromConcierge, usePersonalDetails} from '@components/OnyxProvider';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -38,7 +38,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || undefined}`);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const personalDetails = usePersonalDetails();
     const blockedFromConcierge = useBlockedFromConcierge();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
