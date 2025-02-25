@@ -1679,6 +1679,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
                 areCategoriesEnabled: true,
+                approver: sessionEmail,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
@@ -1689,6 +1690,8 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 originalFileName: file?.name,
                 employeeList: {
                     [sessionEmail]: {
+                        submitsTo: sessionEmail,
+                        email: sessionEmail,
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
@@ -1759,6 +1762,11 @@ function buildPolicyData(
 
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
+    const enableAddApprovals = !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const approvalSettings = enableAddApprovals
+        ? {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC, areWorkflowsEnabled: true}
+        : {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, areWorkflowsEnabled: false};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1775,7 +1783,8 @@ function buildPolicyData(
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: sessionEmail,
+                ...approvalSettings,
                 harvesting: {
                     enabled: true,
                 },
@@ -1783,11 +1792,12 @@ function buildPolicyData(
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: false,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
                     [sessionEmail]: {
+                        submitsTo: sessionEmail,
+                        email: sessionEmail,
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
@@ -2087,6 +2097,10 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
         policyID,
         workspaceName,
     );
+    const enableAddApprovals = !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const approvalSettings = enableAddApprovals
+        ? {approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC, areWorkflowsEnabled: true}
+        : {approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL, areWorkflowsEnabled: false};
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2104,7 +2118,8 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                ...approvalSettings,
+                approver: sessionEmail,
                 harvesting: {
                     enabled: true,
                 },
@@ -2112,11 +2127,12 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: false,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
                     [sessionEmail]: {
+                        submitsTo: sessionEmail,
+                        email: sessionEmail,
                         role: CONST.POLICY.ROLE.ADMIN,
                         errors: {},
                     },
@@ -2417,7 +2433,8 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         autoReporting: true,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        approver: sessionEmail,
         harvesting: {
             enabled: true,
         },
@@ -2425,17 +2442,21 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         areCategoriesEnabled: true,
         areTagsEnabled: false,
         areDistanceRatesEnabled: false,
-        areWorkflowsEnabled: false,
+        areWorkflowsEnabled: true,
         areReportFieldsEnabled: false,
         areConnectionsEnabled: false,
         employeeList: {
             [sessionEmail]: {
+                email: sessionEmail,
+                submitsTo: sessionEmail,
                 role: CONST.POLICY.ROLE.ADMIN,
                 errors: {},
             },
             ...(employeeEmail
                 ? {
                       [employeeEmail]: {
+                          email: employeeEmail,
+                          submitsTo: sessionEmail,
                           role: CONST.POLICY.ROLE.USER,
                           errors: {},
                       },
