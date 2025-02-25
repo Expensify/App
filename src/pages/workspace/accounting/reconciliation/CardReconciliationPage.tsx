@@ -9,6 +9,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as AccountingUtils from '@libs/AccountingUtils';
+import {isExpensifyCardFullySetup} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -43,7 +44,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const {connection} = route.params;
     const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection) as ConnectionName;
     const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
-    const shouldShow = policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID;
+    const shouldShow = isExpensifyCardFullySetup(policy, cardSettings);
 
     const toggleContinuousReconciliation = (value: boolean) => {
         Card.toggleContinuousReconciliation(workspaceAccountID, value, connectionName, currentConnectionName);
