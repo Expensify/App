@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {getButtonRole, getButtonStyle} from '@components/Button/utils';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
 
@@ -96,7 +97,9 @@ function BaseListItem<TItem extends ListItem>({
                 interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
+                isNested
                 hoverDimmingValue={1}
+                pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
                 hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => e.preventDefault()}
@@ -104,7 +107,6 @@ function BaseListItem<TItem extends ListItem>({
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                    getButtonStyle(styles, true),
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
