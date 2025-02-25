@@ -11,6 +11,8 @@ const {
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
     WORKSPACE_EXPENSE_SUBMIT,
+    SCAN_TEST_TOOLTIP_MANAGER,
+    SCAN_TEST_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -70,6 +72,16 @@ type DismissedProductTraining = {
      * When user dismisses the workspaceExpenseTooltip product training tooltip, we store the timestamp here.
      */
     [WORKSPACE_EXPENSE_SUBMIT]: string;
+
+    /**
+     * When user dismisses the test manager tooltip product training tooltip, we store the timestamp here.
+     */
+    [SCAN_TEST_TOOLTIP_MANAGER]: string;
+
+    /**
+     * When user dismisses the test manager on confirmantion page product training tooltip, we store the timestamp here.
+     */
+    [SCAN_TEST_CONFIRMATION]: string;
 };
 
 export default DismissedProductTraining;

@@ -231,6 +231,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: true
 
       - name: Load Desktop credentials from 1Password
         id: load-credentials

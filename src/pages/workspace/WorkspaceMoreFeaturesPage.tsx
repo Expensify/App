@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -147,10 +146,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         disabled: !isEmptyObject(getCompanyFeeds(cardFeeds)),
         action: (isEnabled: boolean) => {
             if (!policyID) {
-                return;
-            }
-            if (isEnabled && !isControlPolicy(policy)) {
-                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
                 return;
             }
             enableCompanyCards(policyID, isEnabled, true);
@@ -438,13 +433,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         openPolicyMoreFeaturesPage(route.params.policyID);
     }, [route.params.policyID]);
 
-    useNetwork({onReconnect: fetchFeatures});
+    useEffect(() => {
+        fetchFeatures();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchFeatures();
-        }, [fetchFeatures]),
-    );
+    useNetwork({onReconnect: fetchFeatures});
 
     return (
         <AccessOrNotFoundWrapper

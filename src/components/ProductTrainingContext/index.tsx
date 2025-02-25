@@ -131,7 +131,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
             const visibleTooltip = determineVisibleTooltip();
-
             // If this is the highest priority visible tooltip, show it
             if (tooltipName === visibleTooltip) {
                 return true;
@@ -249,7 +248,6 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldShow && shouldRenderTooltip(tooltipName);
     }, [shouldRenderTooltip, tooltipName, shouldShow]);
-
     const hideProductTrainingTooltip = useCallback(() => {
         if (!shouldShowProductTrainingTooltip) {
             return;

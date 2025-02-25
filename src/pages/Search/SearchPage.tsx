@@ -9,8 +9,8 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader';
-import SearchStatusBar from '@components/Search/SearchStatusBar';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
@@ -32,7 +33,7 @@ function SearchPage({route}: SearchPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
-    const {q, name} = route.params;
+    const {q, name, groupBy} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
         const parsedQuery = buildSearchQueryJSON(q);
@@ -41,8 +42,10 @@ function SearchPage({route}: SearchPageProps) {
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: buildCannedSearchQuery()}));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
+
+    const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
@@ -53,6 +56,7 @@ function SearchPage({route}: SearchPageProps) {
                 <SearchPageNarrow
                     queryJSON={queryJSON}
                     policyID={policyID}
+                    shouldGroupByReports={shouldGroupByReports}
                     searchName={searchName}
                 />
             </FreezeWrapper>
@@ -80,7 +84,7 @@ function SearchPage({route}: SearchPageProps) {
                                     />
                                     <SearchTypeMenu
                                         queryJSON={queryJSON}
-                                        searchName={searchName}
+                                        shouldGroupByReports={shouldGroupByReports}
                                     />
                                 </View>
                             ) : (
@@ -99,11 +103,15 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <SearchPageHeader queryJSON={queryJSON} />
+                            <SearchPageHeader
+                                queryJSON={queryJSON}
+                                shouldGroupByReports={shouldGroupByReports}
+                            />
                             <SearchStatusBar queryJSON={queryJSON} />
                             <Search
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
+                                shouldGroupByReports={shouldGroupByReports}
                             />
                         </ScreenWrapper>
                     </View>
