@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/USD/utils/getValuesForBeneficialOwner';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const requestorData = getSubStepValues(REQUESTOR_PERSONAL_INFO_KEYS, undefined, reimbursementAccount);
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+    const error = getLatestErrorMessage(reimbursementAccount);
 
     const extraBeneficialOwners =
         isAnyoneElseUBO &&

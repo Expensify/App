@@ -16,9 +16,11 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
-    const defaultCompanyTaxIDNumber = reimbursementAccount?.achData?.companyTaxID ?? '';
+    // This is default value for the input to be display
+    /* eslint-disable-next-line rulesdir/no-default-id-values */
+    const defaultCompanyTaxID = reimbursementAccount?.achData?.companyTaxID ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
-    const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxIDNumber && reimbursementAccount?.achData?.state !== 'SETUP');
+    const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxID && reimbursementAccount?.achData?.state !== 'SETUP');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -50,7 +52,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
             onSubmit={handleSubmit}
             inputId={COMPANY_TAX_ID_KEY}
             inputLabel={translate('businessInfoStep.taxIDNumber')}
-            defaultValue={defaultCompanyTaxIDNumber}
+            defaultValue={defaultCompanyTaxID}
             shouldUseDefaultValue={shouldDisableCompanyTaxID}
             disabled={shouldDisableCompanyTaxID}
             shouldShowHelpLinks={false}
