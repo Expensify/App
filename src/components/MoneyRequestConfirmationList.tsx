@@ -836,7 +836,7 @@ function MoneyRequestConfirmationList({
             }
 
             if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-                setFormError('iou.error.invalidCategoryLength');
+                setFormError('iou.error.invalidTagLength');
                 return;
             }
 
