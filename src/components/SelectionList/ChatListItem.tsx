@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +44,7 @@ function ChatListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
 
     const attachmentContextValue = {type: CONST.ATTACHMENT_TYPE.SEARCH};
 
@@ -58,7 +60,7 @@ function ChatListItem<TItem extends ListItem>({
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-    const mentionReportContextValue = useMemo(() => ({currentReportID: item?.reportID ?? '-1'}), [item.reportID]);
+    const mentionReportContextValue = useMemo(() => ({currentReportID: item?.reportID}), [item.reportID]);
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -102,10 +104,11 @@ function ChatListItem<TItem extends ListItem>({
                         <AttachmentContext.Provider value={attachmentContextValue}>
                             <View style={styles.webViewStyles.tagStyles.ol}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                                    <Text style={styles.chatItemMessageHeaderPolicy}>In </Text>
+                                    <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
                                     <TextLink
                                         fontSize={variables.fontSizeSmall}
                                         onPress={() => onSelectRow(item)}
+                                        numberOfLines={1}
                                     >
                                         {reportActionItem.reportName}
                                     </TextLink>

@@ -130,7 +130,7 @@ function IOURequestStepCategory({
 
         setMoneyRequestCategory(transactionID, updatedCategory, policy?.id);
 
-        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+        if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
             if (report?.reportID) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
             }

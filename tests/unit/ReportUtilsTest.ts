@@ -4,11 +4,13 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {
+    buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
+    canEditWriteCapability,
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
@@ -397,7 +399,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: true,
                             ownerAccountID: 1,
                         }),
-                    ).toBe('Vikings Policy');
+                    ).toBe(`Ragnar Lothbrok's expenses`);
                 });
 
                 test('as admin', () => {
@@ -409,7 +411,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: false,
                             ownerAccountID: 1,
                         }),
-                    ).toBe('Ragnar Lothbrok');
+                    ).toBe(`Ragnar Lothbrok's expenses`);
                 });
             });
 
@@ -434,9 +436,11 @@ describe('ReportUtils', () => {
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
+                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
+                    );
                 });
 
                 test('as admin', async () => {
@@ -445,9 +449,11 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
+                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
+                    );
                 });
             });
         });
@@ -1755,6 +1761,13 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticChatReport', () => {
+        it('should always set isPinned to false', () => {
+            const result = buildOptimisticChatReport([1, 2, 3]);
+            expect(result.isPinned).toBe(false);
+        });
+    });
+
     describe('getInvoiceChatByParticipants', () => {
         it('only returns an invoice chat if the receiver type matches', () => {
             // Given an invoice chat that has been converted from an individual to policy receiver type
@@ -1831,6 +1844,16 @@ describe('ReportUtils', () => {
             };
 
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+    });
+
+    describe('canEditWriteCapability', () => {
+        it('should return false for workspace chat', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
         });
     });
 

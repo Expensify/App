@@ -167,8 +167,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
+        if (loginData?.validatedDate) {
+            return;
+        }
         resetContactMethodValidateCodeSentState(contactMethod);
-    }, [contactMethod]);
+    }, [contactMethod, loginData?.validatedDate]);
 
     const getThreeDotsMenuItems = useCallback(() => {
         const menuItems = [];

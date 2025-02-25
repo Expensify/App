@@ -32,7 +32,7 @@ defaultFilter
       if (!value) {
         autocomplete = {
           key,
-          value: '',
+          value: "",
           start: location().end.offset,
           length: 0,
         };
@@ -43,7 +43,6 @@ defaultFilter
         key,
         ...value[value.length - 1],
       };
-
       return value
         .filter((filter) => filter.length > 0)
         .map((filter) => ({
@@ -52,7 +51,7 @@ defaultFilter
         }));
     }
 
-freeTextFilter = _ (identifier/ ",") _ { autocomplete = null; }
+freeTextFilter = _ (identifier / ",") _ { autocomplete = null; }
 
 autocompleteKey "key"
   = @(
