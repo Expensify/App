@@ -815,7 +815,7 @@ const ROUTES = {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW route');
             }
-            return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile` as const, backTo);
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/overview` as const, backTo);
         },
     },
     WORKSPACE_OVERVIEW_ADDRESS: {
