@@ -35,8 +35,6 @@ import type SCREENS from '@src/SCREENS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const FOOTER_BUTTON_CONTENT_PADDING = 80;
-
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
 
@@ -288,8 +286,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         shouldHighlightSelectedItem
                         shouldShowTextInput={shouldShowTextInput}
                         addBottomSafeAreaPadding
-                        contentContainerStyle={{paddingBottom: FOOTER_BUTTON_CONTENT_PADDING}}
-                        shouldFooterContentStickToBottom
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

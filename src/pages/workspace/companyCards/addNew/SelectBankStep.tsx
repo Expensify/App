@@ -95,7 +95,6 @@ function SelectBankStep() {
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
                 addBottomSafeAreaPadding
-                shouldFooterContentUseSmallPadding
             >
                 {hasError && (
                     <View style={[styles.ph3, styles.mb3]}>

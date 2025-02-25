@@ -240,7 +240,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
                         addBottomSafeAreaPadding
-                        shouldFooterContentStickToBottom
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

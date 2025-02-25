@@ -92,7 +92,6 @@ function SelectFeedType() {
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
                 addBottomSafeAreaPadding
-                shouldFooterContentUseSmallPadding
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>
