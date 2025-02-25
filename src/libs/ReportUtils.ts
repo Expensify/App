@@ -6847,6 +6847,7 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
     return !lastVisibleMessage.lastMessageText;
 }
 
+// We need oneTransactionThreadReport to get the correct last visible action created
 function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
