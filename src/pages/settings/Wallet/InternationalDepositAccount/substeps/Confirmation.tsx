@@ -98,9 +98,10 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     });
 
     Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] ?? {}).forEach(([fieldName, field]) => {
+        const title = field.valueSet?.find((type) => type.id === formValues[fieldName])?.text ?? formValues[fieldName];
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-            title: formValues[fieldName],
+            title,
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.ACCOUNT_TYPE);
