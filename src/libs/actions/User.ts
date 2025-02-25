@@ -986,6 +986,11 @@ function checkforLatePongReplies() {
 let pingPusherIntervalID: ReturnType<typeof setInterval>;
 let checkforLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
 function initializePusherPingPong() {
+    // Skip doing the ping pong during tests so that the network isn't knocked offline, forcing tests to timeout
+    if (process.env.NODE_ENV === 'test') {
+        return;
+    }
+
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
@@ -1558,7 +1563,4 @@ export {
     subscribeToActiveGuides,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
-
-    // This is only exported so that it can be mocked, and not have the Pusher PINGPONG run while tests are running (because it will make the network go offline and cause tests to timeout)
-    initializePusherPingPong,
 };
