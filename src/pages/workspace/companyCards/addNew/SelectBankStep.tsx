@@ -94,12 +94,11 @@ function SelectBankStep() {
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
-                confirmButtonStyles={styles.mt5}
                 addBottomSafeAreaPadding
-                shouldFooterContentStickToBottom
+                shouldFooterContentUseSmallPadding
             >
                 {hasError && (
-                    <View style={[styles.ph5, styles.mb3]}>
+                    <View style={[styles.ph3, styles.mb3]}>
                         <FormHelpMessage
                             isError={hasError}
                             message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}

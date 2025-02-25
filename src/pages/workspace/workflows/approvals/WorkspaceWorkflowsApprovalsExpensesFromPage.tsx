@@ -205,12 +205,17 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <ScreenWrapper testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}>
+            <ScreenWrapper
+                testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldKeyboardOffsetBottomSafeAreaPadding
+            >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
                     onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                    addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsExpensesFromPage.title')}
@@ -234,6 +239,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         footerContent={button}
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
+                        addBottomSafeAreaPadding
+                        shouldFooterContentStickToBottom
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

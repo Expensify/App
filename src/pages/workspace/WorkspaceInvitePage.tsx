@@ -359,7 +359,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     isLoadingNewOptions={!!isSearchingForReports}
                     contentContainerStyle={shouldUseEdgeToEdgeLayout && {paddingBottom: FOOTER_BUTTON_CONTENT_PADDING}}
                     addBottomSafeAreaPadding={shouldUseEdgeToEdgeLayout}
-                    shouldFooterContentStickToBottom={shouldUseEdgeToEdgeLayout}
+                    // shouldFooterContentStickToBottom={shouldUseEdgeToEdgeLayout}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
