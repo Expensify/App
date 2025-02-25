@@ -986,3 +986,11 @@ button {
 .hidden {
     display: none;
 }
+
+.expensify-text-svg {
+    fill: var(--color-text);
+}
+
+.help-text-svg {
+    fill: var(--color-success);
+}
