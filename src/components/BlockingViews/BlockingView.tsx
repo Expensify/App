@@ -11,6 +11,7 @@ import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,6 +48,11 @@ type BaseBlockingViewProps = {
 
     /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether to add bottom safe area padding to the view.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
 type BlockingViewIconProps = {
@@ -94,7 +100,8 @@ function BlockingView({
     animationWebStyle = {},
     CustomSubtitle,
     contentFitImage,
-    containerStyle,
+    containerStyle: containerStyleProp,
+    addBottomSafeAreaPadding = false,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -131,6 +138,8 @@ function BlockingView({
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{subtitleText}</View>
         );
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
+
+    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, style: containerStyleProp});
 
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
