@@ -1,7 +1,8 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import throttle from 'lodash/throttle';
 import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
 import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
-import {InteractionManager, Linking, NativeModules} from 'react-native';
+import {InteractionManager, Linking} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -230,8 +231,8 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     hideContextMenu(false);
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
-        if (NativeModules.HybridAppModule && killHybridApp) {
-            NativeModules.HybridAppModule.closeReactNativeApp(true, false);
+        if (HybridAppModule.isHybridApp() && killHybridApp) {
+            HybridAppModule.closeReactNativeApp(true, false);
             return;
         }
         // We'll only call signOut if we're not stashing the session and this is not a supportal session,
@@ -1166,7 +1167,7 @@ function handleExitToNavigation(exitTo: Route | HybridAppRoute) {
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
-                const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
+                const url = HybridAppModule.isHybridApp() ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
                 Navigation.goBack();
                 Navigation.navigate(url);
             });

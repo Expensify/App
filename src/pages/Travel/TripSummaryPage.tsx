@@ -1,6 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -34,7 +34,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={reservationsData.length === 0 || (!canUseSpotnanaTravel && !NativeModules.HybridAppModule) || (isBlockedFromSpotnanaTravel && !NativeModules.HybridAppModule)}
+                shouldShow={reservationsData.length === 0 || (!canUseSpotnanaTravel && !HybridAppModule.isHybridApp()) || (isBlockedFromSpotnanaTravel && !HybridAppModule.isHybridApp())}
             >
                 <HeaderWithBackButton
                     title={translate(`travel.tripDetails`)}

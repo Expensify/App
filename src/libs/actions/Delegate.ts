@@ -1,4 +1,4 @@
-import {NativeModules} from 'react-native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -157,7 +157,12 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-                    openApp().then(() => NativeModules.HybridAppModule?.switchAccount(email, restrictedToken, policyID, String(previousAccountID)));
+                    openApp().then(() => {
+                        if (!HybridAppModule.isHybridApp()) {
+                            return;
+                        }
+                        HybridAppModule.switchAccount(email, restrictedToken, policyID, String(previousAccountID));
+                    });
                 });
         })
         .catch((error) => {
@@ -239,7 +244,12 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
                     confirmReadyToOpenApp();
-                    openApp().then(() => NativeModules.HybridAppModule?.switchAccount(requesterEmail, authToken, '', ''));
+                    openApp().then(() => {
+                        if (!HybridAppModule.isHybridApp()) {
+                            return;
+                        }
+                        HybridAppModule.switchAccount(requesterEmail, authToken, '', '');
+                    });
                 });
         })
         .catch((error) => {

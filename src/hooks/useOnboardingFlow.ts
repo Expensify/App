@@ -1,5 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useEffect} from 'react';
-import {InteractionManager, NativeModules} from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {isUserOnPrivateDomain} from '@libs/actions/Session';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
@@ -41,7 +42,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (NativeModules.HybridAppModule && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
+            if (HybridAppModule.isHybridApp() && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
                 return;
             }
 
@@ -57,7 +58,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (NativeModules.HybridAppModule) {
+            if (HybridAppModule.isHybridApp()) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                 if (isSingleNewDotEntry) {
                     return;
@@ -76,7 +77,7 @@ function useOnboardingFlowRouter() {
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
-            if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
+            if (!HybridAppModule.isHybridApp() && isOnboardingCompleted === false) {
                 startOnboardingFlow(isPrivateDomain);
             }
         });

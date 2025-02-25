@@ -1,6 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useState} from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -83,13 +83,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 ?.then(() => {
                     // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
                     // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
-                    if (!NativeModules.HybridAppModule || !wasNewDotLaunchedJustForTravel) {
+                    if (!HybridAppModule.isHybridApp() || !wasNewDotLaunchedJustForTravel) {
                         return;
                     }
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, false);
+                    HybridAppModule.closeReactNativeApp(false, false);
                     setRootStatusBarEnabled(false);
                 })
                 ?.catch(() => {

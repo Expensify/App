@@ -1,5 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -32,12 +33,12 @@ function SessionExpiredPage() {
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
-                                if (!NativeModules.HybridAppModule) {
+                                if (!HybridAppModule.isHybridApp()) {
                                     Session.clearSignInData();
                                     Navigation.goBack();
                                     return;
                                 }
-                                NativeModules.HybridAppModule.closeReactNativeApp(true, false);
+                                HybridAppModule.closeReactNativeApp(true, false);
                             }}
                         >
                             {translate('deeplinkWrapper.signIn')}

@@ -1,4 +1,5 @@
-import {Linking, NativeModules} from 'react-native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {Linking} from 'react-native';
 import CONST from '@src/CONST';
 
 export default function updateApp(isProduction: boolean) {
@@ -6,5 +7,5 @@ export default function updateApp(isProduction: boolean) {
         Linking.openURL(CONST.APP_DOWNLOAD_LINKS.OLD_DOT_IOS);
         return;
     }
-    Linking.openURL(NativeModules.HybridAppModule ? CONST.APP_DOWNLOAD_LINKS.OLD_DOT_IOS : CONST.APP_DOWNLOAD_LINKS.IOS);
+    Linking.openURL(HybridAppModule.isHybridApp() ? CONST.APP_DOWNLOAD_LINKS.OLD_DOT_IOS : CONST.APP_DOWNLOAD_LINKS.IOS);
 }

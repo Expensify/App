@@ -1,5 +1,5 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React from 'react';
-import {NativeModules} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,7 +21,7 @@ function MyTripsPage() {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={(!canUseSpotnanaTravel && !NativeModules.HybridAppModule) || (isBlockedFromSpotnanaTravel && !NativeModules.HybridAppModule)}
+                shouldShow={(!canUseSpotnanaTravel && !HybridAppModule.isHybridApp()) || (isBlockedFromSpotnanaTravel && !HybridAppModule.isHybridApp())}
             >
                 <HeaderWithBackButton
                     title={translate('travel.header')}

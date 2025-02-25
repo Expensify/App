@@ -1,5 +1,5 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React, {useEffect} from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Log from '@libs/Log';
@@ -47,7 +47,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         }
 
         // For HybridApp we have separate logic to handle transitions.
-        if (!NativeModules.HybridAppModule && exitTo) {
+        if (!HybridAppModule.isHybridApp() && exitTo) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(exitTo as Route);
             });

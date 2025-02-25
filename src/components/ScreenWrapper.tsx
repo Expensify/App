@@ -1,8 +1,9 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
+import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
@@ -176,7 +177,9 @@ function ScreenWrapper(
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
-        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+        if (HybridAppModule.isHybridApp()) {
+            HybridAppModule.closeReactNativeApp(false, false);
+        }
         setRootStatusBarEnabled(false);
     });
 

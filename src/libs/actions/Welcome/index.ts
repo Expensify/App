@@ -1,4 +1,4 @@
-import {NativeModules} from 'react-native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -121,7 +121,7 @@ function updateOnboardingLastVisitedPath(path: string) {
 }
 
 function completeHybridAppOnboarding() {
-    if (!NativeModules.HybridAppModule) {
+    if (!HybridAppModule.isHybridApp()) {
         return;
     }
 
@@ -145,7 +145,7 @@ function completeHybridAppOnboarding() {
 
         // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
-        NativeModules.HybridAppModule.completeOnboarding(true);
+        HybridAppModule.completeOnboarding(true);
     });
 }
 

@@ -1,5 +1,5 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React, {useContext, useMemo, useState} from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
@@ -87,7 +87,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
 
                     // For MICRO companies (1-10 employees), we want to remain on NewDot.
-                    if (!NativeModules.HybridAppModule || selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                    if (!HybridAppModule.isHybridApp() || selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                         return;
                     }
@@ -107,7 +107,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         );
                     }
 
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                    HybridAppModule.closeReactNativeApp(false, true);
                     setRootStatusBarEnabled(false);
                 }}
                 pressOnEnter

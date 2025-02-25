@@ -1,5 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import Header from '@components/Header';
 import HeaderGap from '@components/HeaderGap';
@@ -22,7 +23,7 @@ function UpdateRequiredView() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {isProduction} = useEnvironment();
-    const isStandaloneNewAppProduction = isProduction && !NativeModules.HybridAppModule;
+    const isStandaloneNewAppProduction = isProduction && !HybridAppModule.isHybridApp();
 
     return (
         <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
