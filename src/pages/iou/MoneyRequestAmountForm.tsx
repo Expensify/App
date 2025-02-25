@@ -70,8 +70,8 @@ type MoneyRequestAmountFormProps = {
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
 
-    /** Whether to allow flipping the currency */
-    allowFlippingCurrency?: boolean;
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -97,7 +97,7 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
-        allowFlippingCurrency = false,
+        allowFlippingAmount = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -316,6 +316,7 @@ function MoneyRequestAmountForm(
                         toggleNegative={toggleNegative}
                         clearNegative={clearNegative}
                         isNegative={isNegative}
+                        allowFlippingAmount={allowFlippingAmount}
                     />
                     {!!formError && (
                         <FormHelpMessage
@@ -350,7 +351,7 @@ function MoneyRequestAmountForm(
                             text={currency}
                         />
                     )}
-                    {allowFlippingCurrency && canUseTouchScreen && (
+                    {allowFlippingAmount && canUseTouchScreen && (
                         <Button
                             shouldShowRightIcon
                             small
