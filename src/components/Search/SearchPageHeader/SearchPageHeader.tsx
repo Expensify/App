@@ -23,6 +23,7 @@ import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
+    getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     updateAdvancedFilters,
@@ -39,11 +40,18 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
-type SearchPageHeaderProps = {queryJSON: SearchQueryJSON; searchName?: string; searchRouterListVisible?: boolean; hideSearchRouterList?: () => void; onSearchRouterFocus?: () => void};
+type SearchPageHeaderProps = {
+    queryJSON: SearchQueryJSON;
+    searchName?: string;
+    searchRouterListVisible?: boolean;
+    hideSearchRouterList?: () => void;
+    onSearchRouterFocus?: () => void;
+    shouldGroupByReports?: boolean;
+};
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, shouldGroupByReports}: SearchPageHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -142,9 +150,12 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
             !isOffline &&
             !isAnyTransactionOnHold &&
             (selectedReports.length
-                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && lastPaymentMethods[report.policyID])
+                ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
                 : selectedTransactionsKeys.every(
-                      (id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY && selectedTransactions[id].policyID && lastPaymentMethods[selectedTransactions[id].policyID],
+                      (id) =>
+                          selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
+                          selectedTransactions[id].policyID &&
+                          getLastPolicyPaymentMethod(selectedTransactions[id].policyID, lastPaymentMethods),
                   ));
 
         if (shouldShowPayOption) {
@@ -165,7 +176,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
 
                     for (const item of items) {
                         const policyID = item.policyID;
-                        const lastPolicyPaymentMethod = policyID ? lastPaymentMethods?.[policyID] : null;
+                        const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(policyID, lastPaymentMethods);
 
                         if (!lastPolicyPaymentMethod) {
                             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: item.reportID, backTo: activeRoute}));
@@ -182,11 +193,15 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
 
                     const paymentData = (
                         selectedReports.length
-                            ? selectedReports.map((report) => ({reportID: report.reportID, amount: report.total, paymentType: lastPaymentMethods[`${report.policyID}`]}))
+                            ? selectedReports.map((report) => ({
+                                  reportID: report.reportID,
+                                  amount: report.total,
+                                  paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
+                              }))
                             : Object.values(selectedTransactions).map((transaction) => ({
                                   reportID: transaction.reportID,
                                   amount: transaction.amount,
-                                  paymentType: lastPaymentMethods[transaction.policyID],
+                                  paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
                               }))
                     ) as PaymentData[];
 
@@ -323,7 +338,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
     }, [allCards, currencyList, hideProductTrainingTooltip, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const InputRightComponent = useMemo(() => {
-        return headerButtonsOptions.length > 0 ? (
+        return headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || selectionMode?.isEnabled) ? (
             <ButtonWithDropdownMenu
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
@@ -337,7 +352,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
             <EducationalTooltip
                 shouldRender={shouldShowProductTrainingTooltip}
                 anchorAlignment={{
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                 }}
                 shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
@@ -363,6 +378,8 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
         styles.productTrainingTooltipWrapper,
         styles.searchAutocompleteInputResults,
         translate,
+        selectionMode,
+        shouldUseNarrowLayout,
     ]);
 
     if (shouldUseNarrowLayout && selectionMode?.isEnabled) {
@@ -415,6 +432,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
                 searchName={searchName}
                 hideSearchRouterList={hideSearchRouterList}
                 inputRightComponent={InputRightComponent}
+                shouldGroupByReports={shouldGroupByReports}
             />
             <ConfirmModal
                 isVisible={isDeleteExpensesConfirmModalVisible}

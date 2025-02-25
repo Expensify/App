@@ -50,6 +50,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     const {canUseSpotnanaTravel} = usePermissions();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
+    const backTo = route.params.backTo;
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
@@ -183,6 +184,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
             shouldShowNonAdmin
             icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
+            onBackButtonPress={() => Navigation.goBack(backTo)}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
