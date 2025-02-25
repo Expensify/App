@@ -190,11 +190,15 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         }
     }, [currentSubStep, directorsPrevScreen, directorsScreenIndex, goToTheLastStep, isEditing, isUserDirector, onBackButtonPress, prevScreen, screenIndex]);
 
-    const handleDirectorEdit = useCallback((directorID: string) => {
-        setDirectorBeingModifiedID(directorID);
-        setIsEditingExistingDirector(true);
-        setCurrentSubStep(SUBSTEP.DIRECTOR_DETAILS_FORM);
-    }, []);
+    const handleDirectorEdit = useCallback(
+        (directorID: string) => {
+            setDirectorBeingModifiedID(directorID);
+            setIsEditingExistingDirector(true);
+            directorsResetScreenIndex();
+            setCurrentSubStep(SUBSTEP.DIRECTOR_DETAILS_FORM);
+        },
+        [directorsResetScreenIndex],
+    );
 
     const handleEmailSubmit = useCallback(() => {
         // TODO: the message to the email provided in the previous step should be sent
@@ -238,7 +242,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
 
             {currentSubStep === SUBSTEP.DIRECTOR_DETAILS_FORM && (
                 <DirectorDetailsForm
-                    isEditing={isEditingExistingDirector}
+                    isEditing={directorsBeingEditing}
                     onNext={directorsNextScreen}
                     onMove={directorsMoveTo}
                     directorID={directorBeingModifiedID}
