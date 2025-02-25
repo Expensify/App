@@ -15,9 +15,9 @@ Onyx.connect({
 });
 
 /**
- * Reset user's reimbursement account. This will delete the bank account.
+ * Reset user's USD reimbursement account. This will delete the bank account if one is connected.
  */
-function resetFreePlanBankAccount(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string | undefined) {
+function resetUSDBankAccountFlow(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string | undefined) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
@@ -143,4 +143,4 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
     );
 }
 
-export default resetFreePlanBankAccount;
+export default resetUSDBankAccountFlow;

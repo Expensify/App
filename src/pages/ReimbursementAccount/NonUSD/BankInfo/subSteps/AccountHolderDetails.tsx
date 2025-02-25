@@ -57,6 +57,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                     errors[fieldID] = translate('common.error.fieldRequired');
                 }
 
+                // TODO accountHolderCountry doesnt get errorMessage returned from corpayFields - not sure where we fix it FE/BE
                 field.validationRules.forEach((rule) => {
                     if (!rule.regEx) {
                         return;

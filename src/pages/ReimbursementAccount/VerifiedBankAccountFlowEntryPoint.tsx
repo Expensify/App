@@ -24,7 +24,7 @@ import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
-import {requestResetFreePlanBankAccount, resetReimbursementAccount, setBankAccountSubStep} from '@userActions/ReimbursementAccount';
+import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep} from '@userActions/ReimbursementAccount';
 import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,8 +53,8 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
 
-    /** Whether the bank account has non USD currency */
-    hasForeignCurrency: boolean;
+    /** Whether the workspace currency is set to non USD currency */
+    isNonUSDWorkspace: boolean;
 
     /** Should ValidateCodeActionModal be displayed or not */
     isValidateCodeActionModalVisible?: boolean;
@@ -78,7 +78,7 @@ function VerifiedBankAccountFlowEntryPoint({
     reimbursementAccount,
     onContinuePress,
     shouldShowContinueSetupButton,
-    hasForeignCurrency,
+    isNonUSDWorkspace,
     isValidateCodeActionModalVisible,
     toggleValidateCodeActionModal,
     setNonUSDBankAccountStep,
@@ -128,7 +128,7 @@ function VerifiedBankAccountFlowEntryPoint({
         }
 
         if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL) {
-            if (hasForeignCurrency) {
+            if (isNonUSDWorkspace) {
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
                 return;
             }
@@ -139,7 +139,7 @@ function VerifiedBankAccountFlowEntryPoint({
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             openPlaidView();
         }
-    }, [account?.validated, hasForeignCurrency, setNonUSDBankAccountStep, setUSDBankAccountStep]);
+    }, [account?.validated, isNonUSDWorkspace, setNonUSDBankAccountStep, setUSDBankAccountStep]);
 
     const handleConnectPlaid = () => {
         if (isPlaidDisabled) {
@@ -164,7 +164,7 @@ function VerifiedBankAccountFlowEntryPoint({
             return;
         }
 
-        if (hasForeignCurrency) {
+        if (isNonUSDWorkspace) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             return;
         }
@@ -238,8 +238,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={Expensicons.RotateLeft}
                                     iconFill={theme.iconMenu}
-                                    // TODO add method for non USD accounts in next issue - https://github.com/Expensify/App/issues/50912
-                                    onPress={requestResetFreePlanBankAccount}
+                                    onPress={requestResetBankAccount}
                                     shouldShowRightIcon
                                     wrapperStyle={[styles.cardMenuItem, styles.mt4]}
                                     disabled={!!pendingAction || !isEmptyObject(errors)}
@@ -247,7 +246,7 @@ function VerifiedBankAccountFlowEntryPoint({
                             </>
                         ) : (
                             <>
-                                {!hasForeignCurrency && !shouldShowContinueSetupButton && (
+                                {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                     <MenuItem
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
                                         icon={Expensicons.Bank}
@@ -288,7 +287,14 @@ function VerifiedBankAccountFlowEntryPoint({
                 </View>
             </ScrollView>
 
-            {!!reimbursementAccount?.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
+            {!!reimbursementAccount?.shouldShowResetModal && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={reimbursementAccount}
+                    isNonUSDWorkspace={isNonUSDWorkspace}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
+                    setNonUSDBankAccountStep={setNonUSDBankAccountStep}
+                />
+            )}
 
             <ValidateCodeActionModal
                 title={translate('contacts.validateAccount')}

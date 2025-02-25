@@ -32,6 +32,7 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: mapCurrencyToCountry(item.currencyCode)});
         updateGeneralSettings(policy.id, policy?.name ?? '', item.currencyCode);
+        // TODO reset non USD flow in here as well
         clearCorpayBankAccountFields();
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
