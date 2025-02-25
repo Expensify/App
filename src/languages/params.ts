@@ -321,6 +321,10 @@ type UpdatedPolicyFieldWithValueParam = {value: boolean};
 
 type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
 
+type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number};
+
+type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
+
 type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
@@ -888,4 +892,6 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
+    UpdatedPolicyAuditRateParams,
+    UpdatedPolicyManualApprovalThresholdParams,
 };
