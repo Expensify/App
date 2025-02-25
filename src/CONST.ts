@@ -413,6 +413,8 @@ const CONST = {
     // This is limit set on servers, do not update without wider internal discussion
     API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
+    API_TRANSACTION_TAG_MAX_LENGTH: 255,
+
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
         SIGNING_IN: 'signing-in',
