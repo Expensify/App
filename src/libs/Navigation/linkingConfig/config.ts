@@ -107,8 +107,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
+
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
             screens: {
+                [SCREENS.CONSOLE_DEBUG]: {
+                    path: ROUTES.CONSOLE_DEBUG.route,
+                    exact: true,
+                },
                 [SCREENS.RIGHT_MODAL.SETTINGS]: {
                     screens: {
                         [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
@@ -213,10 +218,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: {
                             path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.CONSOLE]: {
-                            path: ROUTES.SETTINGS_CONSOLE.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.SHARE_LOG]: ROUTES.SETTINGS_SHARE_LOG.route,

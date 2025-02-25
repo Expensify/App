@@ -268,7 +268,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: {
+    CONSOLE_DEBUG: {
         route: 'settings/troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
     },
