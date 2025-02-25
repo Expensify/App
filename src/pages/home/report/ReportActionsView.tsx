@@ -30,6 +30,7 @@ import {
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
+import shouldMaintainVisibleContentPosition from '@libs/shouldMaintainVisibleContentPosition';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -427,6 +428,7 @@ function ReportActionsView({
 
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
+
     return (
         <>
             <ReportActionsList
@@ -448,6 +450,7 @@ function ReportActionsView({
                 listID={listID}
                 onContentSizeChange={onContentSizeChange}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition(isLoadingInitialReportActions || isLoadingOlderReportActions)}
             />
             <UserTypingEventListener report={report} />
             <PopoverReactionList ref={reactionListRef} />
