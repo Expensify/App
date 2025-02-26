@@ -24,5 +24,11 @@
     color: transparent;
 }
 .react-pdf__Page__canvas {
-    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 4px 12px 0px rgba(2, 18, 4, 0.06);
+}
+@media (prefers-color-scheme: dark) {
+    .react-pdf__Page__canvas {
+        color-scheme: dark;
+        box-shadow: 0px 4px 12px 0px rgba(2, 18, 4, 0.24);
+    }
 }
