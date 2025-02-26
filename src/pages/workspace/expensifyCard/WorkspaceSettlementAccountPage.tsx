@@ -108,7 +108,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={paymentBankAccountID ? paymentBankAccountID.toString() : ''}
+                    initiallyFocusedOptionKey={paymentBankAccountID?.toString()}
                     listHeaderContent={
                         <>
                             <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
