@@ -1807,9 +1807,9 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
             value: {
                 [iou.createdAction.reportActionID]: {
                     // Disabling this line since transactionParams.transaction.filename can be an empty string
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     errors: getReceiptError(
                         transactionParams.transaction.receipt,
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         transactionParams.transaction?.filename || transactionParams.transaction.receipt?.filename,
                         false,
                         errorKey,
