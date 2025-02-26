@@ -374,7 +374,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({['user@example.com']: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+            Member.addMembersToWorkspace({'user@example.com': userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
 
             await waitForBatchedUpdates();
 
