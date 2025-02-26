@@ -6,15 +6,18 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
+import Header from '@components/Header';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Modal from '@components/Modal';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -141,9 +144,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import Header from "@components/Header";
-import Button from "@components/Button";
-import Modal from "@components/Modal";
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -242,19 +242,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         return '';
     }, [report]);
 
-    const isReportPDFReady = useMemo(() => {
-        return reportPDFFilename !== undefined && reportPDFFilename !== null;
-    }, [reportPDFFilename]);
-
     const messagePDF = useMemo(() => {
-        if (!isReportPDFReady) {
+        if (!reportPDFFilename) {
             return translate('reportDetailsPage.waitForPDF');
         }
-        if (reportPDFFilename === 'error') {
+        if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
             return translate('reportDetailsPage.errorPDF');
         }
         return translate('reportDetailsPage.generatedPDF');
-    }, [isReportPDFReady, reportPDFFilename, translate]);
+    }, [reportPDFFilename, translate]);
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
@@ -585,8 +581,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     action: () => {
                         if (isOffline) {
                             setOfflineModalVisible(true);
+                        } else {
+                            beginPDFExport();
                         }
-                        beginPDFExport();
                     },
                 },
             );
@@ -623,11 +620,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     if (!report?.policyID) {
                         return;
                     }
-                    if (isSmallScreenWidth) {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID));
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(report?.policyID));
+                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, Navigation.getActiveRoute()));
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
@@ -664,6 +657,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         return items;
     }, [
+        beginPDFExport,
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
@@ -706,7 +700,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isOffline,
         transactionIDList,
         unapproveExpenseReportOrShowModal,
-        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -1170,7 +1163,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             </View>
                             <View>
                                 <Text>{messagePDF}</Text>
-                                {!isReportPDFReady && (
+                                {!reportPDFFilename && (
                                     <ActivityIndicator
                                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                         color={theme.textSupporting}
@@ -1179,14 +1172,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                                 )}
                             </View>
                         </View>
-                        {isReportPDFReady && reportPDFFilename !== 'error' && (
+                        {!!reportPDFFilename && reportPDFFilename !== 'error' && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={() => downloadReportPDF(reportPDFFilename ?? '', reportName)}
                                 text={translate('common.download')}
                             />
                         )}
-                        {(!isReportPDFReady || reportPDFFilename === 'error') && (
+                        {(!reportPDFFilename || reportPDFFilename === 'error') && (
                             <Button
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={() => setIsPDFModalVisible(false)}
