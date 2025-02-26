@@ -129,7 +129,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingCategories(false);
         closeImportPage();
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     };
 
     return (
