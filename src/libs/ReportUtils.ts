@@ -4446,6 +4446,9 @@ function getReportNameInternal({
         return getIOUUnapprovedMessage(parentReportAction);
     }
 
+    if (isTaskReport(report)) {
+        return Parser.htmlToText(report?.reportName ?? '');
+    }
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
@@ -6355,7 +6358,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: changelog,
-                html: description ? getParsedComment(changelog) : changelog,
+                html: getParsedComment(changelog),
             },
         ],
         person: [
@@ -6707,7 +6710,7 @@ function buildOptimisticTaskReport(
 
     return {
         reportID: generateReportID(),
-        reportName: title,
+        reportName: getParsedComment(title ?? ''),
         description: getParsedComment(description ?? ''),
         ownerAccountID,
         participants,

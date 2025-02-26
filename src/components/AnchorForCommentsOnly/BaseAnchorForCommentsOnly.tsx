@@ -9,7 +9,7 @@ import Tooltip from '@components/Tooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
@@ -17,7 +17,19 @@ import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 /*
  * This is a default anchor component for regular links.
  */
-function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style, onPress, linkHasImage, ...rest}: BaseAnchorForCommentsOnlyProps) {
+function BaseAnchorForCommentsOnly({
+    onPressIn,
+    onPressOut,
+    href = '',
+    rel = '',
+    target = '',
+    children = null,
+    style,
+    onPress,
+    linkHasImage,
+    wrapperStyle,
+    ...rest
+}: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
@@ -38,7 +50,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
     } else {
         linkProps.href = href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
+    const defaultTextStyle = canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
     const linkHref = !linkHasImage ? href : undefined;
 
@@ -62,6 +74,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             onPressOut={onPressOut}
             role={CONST.ROLE.LINK}
             accessibilityLabel={href}
+            wrapperStyle={wrapperStyle}
         >
             <Tooltip text={linkHref}>
                 <Text
