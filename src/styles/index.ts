@@ -5,8 +5,6 @@ import type {LineLayer} from 'react-map-gl';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- will be removed in the future PR
-import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -74,8 +72,6 @@ type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | nu
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
-type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
-
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
@@ -92,7 +88,7 @@ type Styles = Record<
     | MapDirectionStyle
     | MapDirectionLayerStyle
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomAnimation | CustomPickerStyle)
+    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomPickerStyle)
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -438,7 +434,15 @@ const styles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
         },
-
+        textDoubleDecker: {
+            fontSize: variables.fontSizeSmall,
+            opacity: 0.8,
+            fontWeight: FontUtils.fontWeight.bold,
+            lineHeight: 12,
+        },
+        noPaddingBottom: {
+            paddingBottom: 0,
+        },
         textNormal: {
             fontSize: variables.fontSizeNormal,
         },
@@ -1100,7 +1104,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 1,
+            zIndex: variables.searchTopBarZIndex + 2,
             backgroundColor: theme.appBG,
         },
 
@@ -2713,6 +2717,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.transparent,
         },
 
+        modalContainer: {height: '100%'},
+
+        modalAnimatedContainer: {width: '100%'},
+
+        modalContainerBox: {
+            zIndex: 2,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+
+        modalBackdrop: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'black',
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,
@@ -3417,16 +3440,6 @@ const styles = (theme: ThemeColors) =>
             };
         },
 
-        makeSlideInTranslation: (translationType: Translation, fromValue: number) =>
-            ({
-                from: {
-                    [translationType]: fromValue,
-                },
-                to: {
-                    [translationType]: 0,
-                },
-            } satisfies CustomAnimation),
-
         growlNotificationBox: {
             backgroundColor: theme.inverse,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -3739,7 +3752,12 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 1,
+            backgroundColor: theme.appBG,
+        },
+
+        narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
@@ -4406,12 +4424,8 @@ const styles = (theme: ThemeColors) =>
                 fontSize: variables.fontSizeLabel,
             } satisfies TextStyle),
 
-        animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
         }),
 
         tabOpacity: (
