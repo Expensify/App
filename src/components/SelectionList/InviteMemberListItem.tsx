@@ -14,8 +14,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import BaseListItem from './BaseListItem';
+import { useProductTrainingContext } from '@components/ProductTrainingContext';
+import ONYXKEYS from '@src/ONYXKEYS';
+import { useOnyx } from 'react-native-onyx';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+import { getIsUserSubmittedExpenseOrScannedReceipt, isSelectedManagerMcTest } from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import type {InviteMemberListItemProps, ListItem} from './types';
+import BaseListItem from './BaseListItem';
 
 const fallbackIcon: Icon = {
     source: FallbackAvatar,
@@ -42,6 +48,11 @@ function InviteMemberListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isSelectedManagerMcTest(item.login),
+    );
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -84,8 +95,18 @@ function InviteMemberListItem<TItem extends ListItem>({
             shouldDisplayRBR={!shouldShowCheckBox}
         >
             {(hovered?: boolean) => (
-                <>
-                    {!!item.icons &&
+                <EducationalTooltip
+                shouldRender={shouldShowProductTrainingTooltip}
+                renderTooltipContent={renderProductTrainingTooltip}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                shouldHideOnNavigate
+                wrapperStyle={styles.productTrainingTooltipWrapper}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                {!!item.icons &&
                         (item.shouldShowSubscript ? (
                             <SubscriptAvatar
                                 mainAvatar={item.icons.at(0) ?? fallbackIcon}
@@ -141,7 +162,8 @@ function InviteMemberListItem<TItem extends ListItem>({
                             />
                         </PressableWithFeedback>
                     )}
-                </>
+                </View>
+            </EducationalTooltip>
             )}
         </BaseListItem>
     );

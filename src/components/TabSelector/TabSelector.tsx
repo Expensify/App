@@ -9,6 +9,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import { getIsUserSubmittedExpenseOrScannedReceipt } from '@libs/OptionsListUtils';
+import {useOnyx} from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Permissions from '@libs/Permissions';
 import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import TabSelectorItem from './TabSelectorItem';
@@ -54,6 +58,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -71,7 +76,8 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const inactiveOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: false, affectedTabs: affectedAnimatedTabs, position, isActive});
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
                     const {icon, title} = getIconAndTitle(route.name, translate);
-
+                    const shouldShowTestReceiptTooltip = route.name === CONST.TAB_REQUEST.SCAN && isActive && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas);
+                    console.log('shouldShowTestReceiptTooltip', shouldShowTestReceiptTooltip);
                     const onPress = () => {
                         if (isActive) {
                             return;
@@ -104,6 +110,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                             backgroundColor={backgroundColor}
                             isActive={isActive}
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
+                            shouldShowTestReceiptTooltip={shouldShowTestReceiptTooltip}
                         />
                     );
                 })}
