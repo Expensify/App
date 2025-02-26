@@ -154,7 +154,7 @@ type BeneficialOwnersStepExtraProps = {
     beneficialOwnerKeys?: string[];
 };
 
-type SignerInfoStepExtraProps = Record<string, string | FileObject[]>;
+type SignerInfoStepProps = Record<string, string | FileObject[]>;
 
 type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;
 
@@ -394,10 +394,10 @@ type NonUSDReimbursementAccountAdditionalProps = {
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
-    SignerInfoStepExtraProps &
     Form<
         InputID,
         BeneficialOwnersStepBaseProps &
+            SignerInfoStepProps &
             BankAccountStepProps &
             CompanyStepProps &
             RequestorStepProps &

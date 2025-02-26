@@ -225,6 +225,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are saving the beneficial owners data via the API */
     isSavingCorpayOnboardingBeneficialOwnersFields?: boolean;
 
+    /** Whether we are saving the signer info data via the API */
+    isSavingCorpayOnboardingDirectorInformation?: boolean;
+
     /** Where the request is successful */
     isSuccess?: boolean;
 
