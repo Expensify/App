@@ -25,9 +25,9 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {currentStep} = issueNewCard ?? {};
+    /* eslint-disable react-compiler/react-compiler */
     const backTo = route?.params?.backTo;
     const firstAssigneeEmail = useRef(issueNewCard?.data?.assigneeEmail);
-    /* eslint-disable react-compiler/react-compiler */
     if (!firstAssigneeEmail.current) {
         firstAssigneeEmail.current = issueNewCard?.data?.assigneeEmail;
     }
