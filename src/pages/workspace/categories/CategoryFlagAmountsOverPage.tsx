@@ -55,7 +55,6 @@ function CategoryFlagAmountsOverPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryFlagAmountsOverPage.displayName}
                 shouldEnableMaxHeight

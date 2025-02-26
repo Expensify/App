@@ -41,7 +41,6 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CreateCategoryPage.displayName}
                 shouldEnableMaxHeight

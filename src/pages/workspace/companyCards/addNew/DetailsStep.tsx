@@ -170,7 +170,6 @@ function DetailsStep({policyID}: DetailsStepProps) {
         <ScreenWrapper
             testID={DetailsStep.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldKeyboardOffsetBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >

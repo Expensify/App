@@ -73,7 +73,6 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceEditTagsPage.displayName}
             >

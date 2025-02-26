@@ -178,7 +178,6 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             enableEdgeToEdgeBottomSafeAreaPadding
-            shouldKeyboardOffsetBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList

@@ -176,7 +176,6 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 testID={WorkspaceInviteMessagePage.displayName}
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}

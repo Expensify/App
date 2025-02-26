@@ -103,7 +103,6 @@ function WorkspaceCreateReportFieldsPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
                 testID={WorkspaceCreateReportFieldsPage.displayName}
                 shouldEnableMaxHeight

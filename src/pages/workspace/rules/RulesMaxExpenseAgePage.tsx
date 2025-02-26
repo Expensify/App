@@ -52,7 +52,6 @@ function RulesMaxExpenseAgePage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesMaxExpenseAgePage.displayName}
             >

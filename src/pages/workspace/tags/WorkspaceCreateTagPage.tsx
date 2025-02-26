@@ -73,7 +73,6 @@ function WorkspaceCreateTagPage({route}: CreateTagPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceCreateTagPage.displayName}
                 shouldEnableMaxHeight

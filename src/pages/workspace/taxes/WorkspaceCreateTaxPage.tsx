@@ -73,7 +73,6 @@ function WorkspaceCreateTaxPage({
             <ScreenWrapper
                 testID={WorkspaceCreateTaxPage.displayName}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
             >
                 <FullPageNotFoundView

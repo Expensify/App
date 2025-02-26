@@ -254,7 +254,6 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             <ScreenWrapper
                 testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}

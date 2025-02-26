@@ -75,7 +75,6 @@ function NamePage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={NamePage.displayName}
             >

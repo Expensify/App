@@ -69,7 +69,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxCodePage.displayName}
             >

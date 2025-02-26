@@ -64,7 +64,6 @@ function ValuePage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={ValuePage.displayName}
             >

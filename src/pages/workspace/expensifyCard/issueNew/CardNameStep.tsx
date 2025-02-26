@@ -75,7 +75,6 @@ function CardNameStep({policyID}: CardNameStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={4}
             stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
-            shouldKeyboardOffsetBottomSafeAreaPadding
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>

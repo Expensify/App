@@ -63,7 +63,6 @@ function WorkspaceNamePage({policy}: Props) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceNamePage.displayName}
             >

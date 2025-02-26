@@ -50,7 +50,6 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
             >
                 <HeaderWithBackButton title={translate('workspace.invoices.companyName')} />
                 <FormProvider

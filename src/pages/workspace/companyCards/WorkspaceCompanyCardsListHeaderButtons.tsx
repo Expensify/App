@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, flatAllCardsList, getBankName, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, flatAllCardsList, getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -47,8 +47,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const isCommercialFeed = isCustomFeed(selectedFeed);
-    const companyFeeds = getCompanyFeeds(cardFeeds);
-    const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = getBankName(selectedFeed);
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`]);
 

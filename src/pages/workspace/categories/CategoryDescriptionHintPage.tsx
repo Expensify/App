@@ -44,7 +44,6 @@ function CategoryDescriptionHintPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryDescriptionHintPage.displayName}
                 shouldEnableMaxHeight

@@ -57,7 +57,6 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryPayrollCodePage.displayName}
                 shouldEnableMaxHeight

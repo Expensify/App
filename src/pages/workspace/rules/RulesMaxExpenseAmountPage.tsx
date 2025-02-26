@@ -47,7 +47,6 @@ function RulesMaxExpenseAmountPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesMaxExpenseAmountPage.displayName}
             >

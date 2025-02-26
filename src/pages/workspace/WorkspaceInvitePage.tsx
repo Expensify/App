@@ -308,7 +308,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 shouldUseCachedViewportHeight
                 testID={WorkspaceInvitePage.displayName}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton

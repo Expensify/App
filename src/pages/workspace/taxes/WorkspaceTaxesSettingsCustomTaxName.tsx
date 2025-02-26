@@ -64,7 +64,6 @@ function WorkspaceTaxesSettingsCustomTaxName({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxesSettingsCustomTaxName.displayName}
                 style={styles.defaultModalContainer}

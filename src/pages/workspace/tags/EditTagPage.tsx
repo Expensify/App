@@ -78,7 +78,6 @@ function EditTagPage({route}: EditTagPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={EditTagPage.displayName}
                 shouldEnableMaxHeight

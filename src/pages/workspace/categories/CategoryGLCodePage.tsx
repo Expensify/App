@@ -57,7 +57,6 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryGLCodePage.displayName}
                 shouldEnableMaxHeight

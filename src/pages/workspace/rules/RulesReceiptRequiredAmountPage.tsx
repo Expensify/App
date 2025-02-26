@@ -48,7 +48,6 @@ function RulesReceiptRequiredAmountPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 testID={RulesReceiptRequiredAmountPage.displayName}
             >
                 <HeaderWithBackButton

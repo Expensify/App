@@ -66,7 +66,6 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={TagGLCodePage.displayName}
                 shouldEnableMaxHeight

@@ -73,7 +73,6 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
-                shouldKeyboardOffsetBottomSafeAreaPadding
             >
                 <HeaderWithBackButton title={translate('workspace.invoices.companyWebsite')} />
                 <FormProvider
