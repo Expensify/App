@@ -931,7 +931,7 @@ function MoneyRequestConfirmationList({
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
 
-        const button = (
+        const button = shouldShowSettlementButton ? (
             <SettlementButton
                 pressOnEnter
                 onPress={confirm}
@@ -953,7 +953,17 @@ function MoneyRequestConfirmationList({
                 useKeyboardShortcuts
                 isLoading={isConfirmed}
             />
-        ) 
+        ) : (
+            <ButtonWithDropdownMenu
+                pressOnEnter
+                onPress={(event, value) => confirm(value as PaymentMethodType)}
+                options={splitOrRequestOptions}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                enterKeyEventListenerPriority={1}
+                isLoading={isConfirmed}
+                useKeyboardShortcuts
+            />
+        );
 
         return (
             <>
@@ -980,7 +990,7 @@ function MoneyRequestConfirmationList({
                 </EducationalTooltip>
             </>
         );
-    }, [isReadOnly, iouType, confirm, bankAccountRoute, iouCurrencyCode, policyID, isConfirmed, errorMessage, styles.ph1, styles.mb2, styles.productTrainingTooltipWrapper, shouldShowProductTrainingTooltip, renderProductTrainingTooltip]);
+    }, [isReadOnly, iouType, confirm, bankAccountRoute, iouCurrencyCode, policyID, isConfirmed, splitOrRequestOptions, errorMessage, styles.ph1, styles.mb2, styles.productTrainingTooltipWrapper, shouldShowProductTrainingTooltip, renderProductTrainingTooltip]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter
