@@ -3117,25 +3117,28 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
+    const successData: OnyxUpdate[] = [];
+    if (isWorkspaceMemberLeavingWorkspaceRoom || isChatThread) {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value:
-                isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
-                    ? {
-                          participants: {
-                              [currentUserAccountID]: {
-                                  notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                              },
-                          },
-                      }
-                    : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
-                          acc[key] = null;
-                          return acc;
-                      }, {}),
-        },
-    ];
+            value: {
+                participants: {
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            },
+        });
+    } else {
+        // Use the Onyx.set method to remove all other key values except reportName to prevent showing the room name as random numbers after leaving it.
+        // See https://github.com/Expensify/App/issues/55676 for more information.
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {reportName: report.reportName},
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
         {
