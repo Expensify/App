@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
@@ -15,6 +15,7 @@ import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -22,6 +23,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import useHandleBackButton from './useHandleBackButton';
@@ -47,6 +49,8 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
 
+    const triggerScrollEvent = useScrollEventEmitter({tooltipName: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP});
+
     const handleBackButtonPress = useCallback(() => {
         if (!selectionMode?.isEnabled) {
             return false;
@@ -65,6 +69,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
 
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
+            runOnJS(triggerScrollEvent)();
             const {contentOffset, layoutMeasurement, contentSize} = event;
             if (windowHeight > contentSize.height) {
                 return;
