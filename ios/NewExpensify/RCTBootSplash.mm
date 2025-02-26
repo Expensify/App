@@ -77,14 +77,9 @@ RCT_EXPORT_MODULE();
   }
 }
 
-
 + (void)initWithStoryboard:(NSString * _Nonnull)storyboardName
                   rootView:(UIView * _Nullable)rootView {
-  if (RCTRunningInAppExtension()) {
-    return;
-  }
-
-  if ([self isInitialized]) {
+  if (RCTRunningInAppExtension() || [self isInitialized]) {
     return;
   }
 
