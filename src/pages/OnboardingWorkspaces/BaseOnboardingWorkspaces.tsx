@@ -49,12 +49,12 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     const handleJoinWorkspace = useCallback(
         (policyID: string) => {
             MemberAction.joinAccessiblePolicy(policyID);
-            Report.completeOnboarding(
-                CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-                CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
-                onboardingPersonalDetails?.firstName ?? '',
-                onboardingPersonalDetails?.lastName ?? '',
-            );
+            Report.completeOnboarding({
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                data: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                firstName: onboardingPersonalDetails?.firstName ?? '',
+                lastName: onboardingPersonalDetails?.lastName ?? '',
+            });
             Welcome.setOnboardingAdminsChatReportID();
             Welcome.setOnboardingPolicyID(policyID);
 
