@@ -3756,6 +3756,7 @@ const styles = (theme: ThemeColors) =>
         narrowSearchHeaderStyle: {
             paddingTop: 1,
             backgroundColor: theme.appBG,
+            flex: 1,
         },
 
         narrowSearchRouterInactiveStyle: {
