@@ -917,6 +917,7 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
+        useLastUnreadReportAction: true,
     };
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
