@@ -377,7 +377,23 @@ function Button(
             innerStyles,
             link && styles.bgTransparent,
         ],
-        [StyleUtils, danger, icon, innerStyles, isDisabled, large, link, medium, shouldRemoveLeftBorderRadius, shouldRemoveRightBorderRadius, shouldShowRightIcon, small, styles, success, text],
+        [
+            StyleUtils,
+            danger,
+            icon,
+            innerStyles,
+            isDisabled,
+            large,
+            link,
+            medium,
+            shouldRemoveLeftBorderRadius,
+            shouldRemoveRightBorderRadius,
+            shouldShowRightIcon,
+            small,
+            styles,
+            success,
+            text,
+        ],
     );
 
     const buttonForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
