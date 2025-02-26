@@ -156,7 +156,7 @@ function ScreenWrapper(
         focusTrapSettings,
         bottomContent,
         enableEdgeToEdgeBottomSafeAreaPadding = false,
-        shouldKeyboardOffsetBottomSafeAreaPadding = false,
+        shouldKeyboardOffsetBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
