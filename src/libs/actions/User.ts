@@ -977,7 +977,7 @@ function checkforLatePongReplies() {
         // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
         lastPingSentTimestamp = Date.now();
         pongHasBeenMissed = true;
-        NetworkConnection.setOfflineStatus(true, 'PONG event was no recieved from the server in time so assuming that means the client is offline');
+        NetworkConnection.setOfflineStatus(true, 'PONG event was not received from the server in time so assuming that means the client is offline');
     } else {
         Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
     }
