@@ -78,6 +78,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
+import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import type {OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,7 +100,6 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<

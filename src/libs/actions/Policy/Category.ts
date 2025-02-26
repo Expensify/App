@@ -30,13 +30,13 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {getAllPolicyReports} from '@libs/ReportUtils';
+import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({

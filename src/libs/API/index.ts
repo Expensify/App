@@ -1,7 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
-import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import {HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
 import {isOffline} from '@libs/Network/NetworkStore';
@@ -79,7 +78,7 @@ function prepareRequest<TCommand extends ApiCommand>(
         command,
         data,
         initiatedOffline: isOffline(),
-        created: DateUtils.getDBTime(),
+        created: new Date().getTime().toString(),
         ...onyxDataWithoutOptimisticData,
         ...conflictResolver,
     };
