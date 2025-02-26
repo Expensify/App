@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import type {ComponentType} from 'react';
+import {ComponentType, useEffect} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -9,7 +9,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@navigation/Navigation';
 import getSignerDetailsAndSignerFilesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getSignerDetailsAndSignerFilesForSignerInfo';
-import {saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
+import {clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -75,9 +75,24 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 bankAccountID,
                 directorIDs: `${directorKeys.toString()}`,
             });
-            onSubmit();
         }
-    }, [account?.primaryLogin, bankAccountID, currency, directorKeys, onSubmit, reimbursementAccountDraft]);
+    }, [account?.primaryLogin, bankAccountID, currency, directorKeys, reimbursementAccountDraft]);
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess) {
+            onSubmit();
+            clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+        }
+
+        return () => {
+            clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+        };
+    }, [reimbursementAccount, onSubmit]);
 
     const submitSignerDetailsForm = () => {
         setCurrentSubStep(SUBSTEP.ARE_YOU_DIRECTOR);

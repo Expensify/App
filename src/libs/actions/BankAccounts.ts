@@ -601,6 +601,10 @@ function clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingBeneficialOwnersFields: null});
 }
 
+function clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingDirectorInformation: null});
+}
+
 /**
  * Function to display and fetch data for Reimbursement Account step
  * @param stepToOpen - current step to open
@@ -887,6 +891,7 @@ export {
     saveCorpayOnboardingBeneficialOwners,
     saveCorpayOnboardingDirectorInformation,
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
+    clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
 };
 
