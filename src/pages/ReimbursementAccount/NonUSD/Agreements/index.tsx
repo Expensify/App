@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
-import Confirmation from './subSteps/Confirmation';
+import Confirmation from './substeps/Confirmation';
 
 type AgreementsProps = {
     /** Handles back button press */
