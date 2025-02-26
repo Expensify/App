@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +26,12 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
-
+    const firstAssigneeEmail = useRef(issueNewCard?.data?.assigneeEmail);
+    /* eslint-disable react-compiler/react-compiler */
+    if (!firstAssigneeEmail.current) {
+        firstAssigneeEmail.current = issueNewCard?.data?.assigneeEmail;
+    }
+    const shouldUseBackToParam = !firstAssigneeEmail.current || firstAssigneeEmail.current === issueNewCard?.data?.assigneeEmail;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
@@ -49,7 +54,8 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 return (
                     <ConfirmationStep
                         policyID={policyID}
-                        backTo={backTo}
+                        backTo={shouldUseBackToParam ? backTo : undefined}
+                        /* eslint-enable react-compiler/react-compiler */
                     />
                 );
             default:
