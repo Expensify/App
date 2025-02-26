@@ -28,7 +28,6 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
         hidePickerModal();
     };
 
-    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
     const selectedItem = items?.find((item) => item.value === value);
 
     return (
@@ -38,7 +37,6 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
                 shouldShowRightIcon
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 title={selectedItem?.label || placeholder || ''}
-                descriptionTextStyle={descStyle}
                 description={label}
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}
