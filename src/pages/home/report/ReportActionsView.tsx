@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Illustrations from '@components/Icon/Illustrations';
+import LoadingBar from '@components/LoadingBar';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -56,6 +57,9 @@ type ReportActionsViewProps = {
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
 
+    /** Are we loading more report actions? */
+    isLoadingOlderReportActions?: boolean;
+
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
@@ -74,6 +78,7 @@ function ReportActionsView({
     parentReportAction,
     reportActions: allReportActions,
     isLoadingInitialReportActions,
+    isLoadingOlderReportActions = true,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
@@ -210,6 +215,8 @@ function ReportActionsView({
             ),
         [reportActions, isOffline, canPerformWriteAction],
     );
+
+    const showLoadingBar = isLoadingOlderReportActions || !!(visibleReportActions.length > 0 && isLoadingInitialReportActions);
 
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions?.map((action) => action.reportActionID);
@@ -372,6 +379,7 @@ function ReportActionsView({
     const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
+            <LoadingBar shouldShow={showLoadingBar} />
             <ReportActionsList
                 report={report}
                 transactionThreadReport={transactionThreadReport}
