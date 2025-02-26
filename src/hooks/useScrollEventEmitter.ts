@@ -1,13 +1,17 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
+
+type ScrollingEventAdditionalData = {
+    tooltipName: string;
+};
 
 /**
  * This hook tracks scroll events and emits a "scrolling" event when scrolling starts and ends.
  */
-const useScrollEventEmitter = <T extends Object>(additionalEmitData: T) => {
+const useScrollEventEmitter = (additionalEmitData: ScrollingEventAdditionalData) => {
     const isScrollingRef = useRef<boolean>(false);
-    let timeout: NodeJS.Timeout | null = null; // Timeout for detecting the end of scrolling
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const triggerScrollEvent = useCallback(() => {
         const emitScrolling = (isScrolling: boolean) => {
@@ -24,19 +28,24 @@ const useScrollEventEmitter = <T extends Object>(additionalEmitData: T) => {
         }
 
         // End the scroll and emit after a brief timeout to detect the end of scrolling
-        if (timeout) {
-            clearTimeout(timeout); // Clear any existing timeout
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
         }
 
-        timeout = setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
             emitScrolling(false);
             isScrollingRef.current = false;
         }, 250);
     }, [additionalEmitData]);
 
+    // Cleanup timeout on unmount
     useEffect(() => {
-        triggerScrollEvent();
-    }, [triggerScrollEvent]);
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     return triggerScrollEvent;
 };

@@ -1,6 +1,6 @@
 import {NavigationContext} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {type LayoutRectangle, type NativeMethods, type NativeSyntheticEvent} from 'react-native';
+import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
