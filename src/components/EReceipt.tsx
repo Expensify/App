@@ -25,11 +25,14 @@ type EReceiptProps = {
 
     /** The transaction data in search */
     transactionItem?: TransactionListItemType;
+
+    /** Where it is the preview */
+    isThumbnail?: boolean;
 };
 
 const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
 const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
-function EReceipt({transactionID, transactionItem}: EReceiptProps) {
+function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -56,7 +59,14 @@ function EReceipt({transactionID, transactionItem}: EReceiptProps) {
     const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;
 
     return (
-        <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
+        <View
+            style={[
+                styles.eReceiptContainer,
+                primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined,
+                isThumbnail && styles.w100,
+                isThumbnail && StyleUtils.getMinimumWidth(variables.eReceiptBGHWidth),
+            ]}
+        >
             <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
                     <ImageSVG src={backgroundImage} />
@@ -66,7 +76,7 @@ function EReceipt({transactionID, transactionItem}: EReceiptProps) {
                         <ImageSVG
                             src={Expensicons.ReceiptBody}
                             fill={theme.textColorfulBackground}
-                            height={variables.eReceiptBodyHeight}
+                            width="100%"
                         />
                     </View>
                     <View style={styles.eReceiptContentWrapper}>

@@ -4226,27 +4226,31 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContainer: {
-            minWidth: variables.eReceiptBGHWidth,
+            width: variables.eReceiptBGHWidth,
             minHeight: variables.eReceiptBGHeight,
             overflow: 'hidden',
         },
 
         eReceiptContentContainer: {
             ...positioning.pRelative,
-            width: variables.eReceiptBodyWidth,
             minHeight: variables.eReceiptBodyHeight,
+            ...sizing.w100,
+            ...spacing.p5,
         },
 
         eReceiptBody: {
             ...positioning.pAbsolute,
             ...sizing.w100,
+            ...spacing.ph5,
             top: 0,
+            left: 0,
         },
 
         eReceiptContentWrapper: {
-            ...positioning.pAbsolute,
             ...sizing.w100,
-            top: 40,
+            ...spacing.ph5,
+            top: 20,
+            left: 0,
         },
 
         loginHeroBody: {

@@ -145,14 +145,15 @@ function ReceiptImage({
 
     if (isEReceipt) {
         return (
-            <View style={[styles.mw100, styles.h100]}>
+            <View style={[styles.mw100, styles.h100, styles.overflowHidden]}>
                 <View
                     onLayout={onParentLayout}
-                    style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}, styles.overflowHidden]}
+                    style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}]}
                 >
                     <EReceipt
                         transactionID={transactionID}
                         transactionItem={transactionItem}
+                        isThumbnail
                     />
                 </View>
             </View>
