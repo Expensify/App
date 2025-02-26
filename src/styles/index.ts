@@ -375,6 +375,9 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
+        verticalAlignBottom: {
+            verticalAlign: 'bottom',
+        },
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },

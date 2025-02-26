@@ -73,7 +73,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
 }
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
-    const {isCreateMenuActive, setIsCreateMenuActive, fabRef} = useContext(FABPopoverContext);
+    const {isCreateMenuActive, toggleCreateMenu, fabRef} = useContext(FABPopoverContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -290,7 +290,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                         role={CONST.ROLE.BUTTON}
                         isActive={isCreateMenuActive}
                         ref={fabRef}
-                        onPress={() => setIsCreateMenuActive(!isCreateMenuActive)}
+                        onPress={() => toggleCreateMenu(isCreateMenuActive)}
                         isTooltipAllowed={isTooltipAllowed}
                     />
                 </View>

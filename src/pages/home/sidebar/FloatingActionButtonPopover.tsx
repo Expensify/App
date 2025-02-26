@@ -51,12 +51,7 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
-type FloatingActionButtonAndPopoverProps = {
-    /* Callback function before the menu is hidden */
-    onHideCreateMenu?: () => void;
-};
-
-type FloatingActionButtonAndPopoverRef = {
+type FloatingActionButtonPopoverRef = {
     hideCreateMenu: () => void;
 };
 
@@ -155,7 +150,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-function FloatingActionButtonAndPopover({onHideCreateMenu}: FloatingActionButtonAndPopoverProps, ref: ForwardedRef<FloatingActionButtonAndPopoverRef>) {
+function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActionButtonPopoverRef>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -178,7 +173,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu}: FloatingActionButton
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
 
-    const {isCreateMenuActive, setIsCreateMenuActive, fabRef} = useContext(FABPopoverContext);
+    const {isCreateMenuActive, hideCreateMenu, fabRef} = useContext(FABPopoverContext);
     const [modalVisible, setModalVisible] = useState(false);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -271,23 +266,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu}: FloatingActionButton
             // When any other page is opened over LHN
             !isFocused && prevIsFocused,
         [isFocused, prevIsFocused],
-    );
-
-    /**
-     * Method called either when:
-     * - Pressing the floating action button to open the CreateMenu modal
-     * - Selecting an item on CreateMenu or closing it by clicking outside of the modal component
-     */
-    const hideCreateMenu = useCallback(
-        () => {
-            if (!isCreateMenuActive) {
-                return;
-            }
-            setIsCreateMenuActive(false);
-            onHideCreateMenu?.();
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [isCreateMenuActive],
     );
 
     useEffect(() => {
@@ -517,6 +495,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu}: FloatingActionButton
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
                 animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
+                shouldUseNewModal
                 menuItems={menuItems.map((item) => {
                     return {
                         ...item,
@@ -552,8 +531,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu}: FloatingActionButton
     );
 }
 
-FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
+FloatingActionButtonPopover.displayName = 'FloatingActionButtonPopover';
 
-export default forwardRef(FloatingActionButtonAndPopover);
+export default forwardRef(FloatingActionButtonPopover);
 
 export type {PolicySelector};

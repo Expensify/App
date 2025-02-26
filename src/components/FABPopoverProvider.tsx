@@ -1,20 +1,27 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {ReactNode} from 'react';
 import React, {createContext, useCallback, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getPlatform from '@libs/getPlatform';
-import type FloatingActionButtonPopoverMenuRef from '@pages/home/sidebar/BottomTabBarFloatingActionButton/types';
-import FloatingActionButtonAndPopover from '@pages/home/sidebar/FloatingActionButtonAndPopover';
+import FloatingActionButtonPopover from '@pages/home/sidebar/FloatingActionButtonPopover';
 import CONST from '@src/CONST';
+
+type FloatingActionButtonPopoverMenuRef = {
+    hideCreateMenu: () => void;
+};
 
 type FABPopoverContextValue = {
     isCreateMenuActive: boolean;
-    setIsCreateMenuActive: (value: boolean) => void;
+    hideCreateMenu: () => void;
+    toggleCreateMenu: (isFabActionActive: boolean) => void;
     fabRef: React.RefObject<HTMLDivElement | View>;
 };
 
 const FABPopoverContext = createContext<FABPopoverContextValue>({
     isCreateMenuActive: false,
-    setIsCreateMenuActive: () => {},
+    hideCreateMenu: () => {},
+    toggleCreateMenu: () => {},
     fabRef: {current: null},
 });
 
@@ -25,8 +32,8 @@ type FABPopoverProviderProps = {
 function FABPopoverProvider({children}: FABPopoverProviderProps) {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
-    const value = useMemo(() => ({isCreateMenuActive, setIsCreateMenuActive, fabRef}), [isCreateMenuActive, fabRef]);
-
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isFocused = useIsFocused();
     const platform = getPlatform();
 
     const popoverModal = useRef<FloatingActionButtonPopoverMenuRef>(null);
@@ -42,6 +49,16 @@ function FABPopoverProvider({children}: FABPopoverProviderProps) {
     }, []);
 
     /**
+     * Method create event listener
+     */
+    const createDragoverListener = () => {
+        if (platform !== CONST.PLATFORM.WEB) {
+            return;
+        }
+        document.addEventListener('dragover', hidePopoverOnDragOver);
+    };
+
+    /**
      * Method remove event listener.
      */
     const removeDragoverListener = () => {
@@ -51,12 +68,62 @@ function FABPopoverProvider({children}: FABPopoverProviderProps) {
         document.removeEventListener('dragover', hidePopoverOnDragOver);
     };
 
+    /**
+     * Method called either when:
+     * - Pressing the floating action button to open the CreateMenu modal
+     * - Selecting an item on CreateMenu or closing it by clicking outside of the modal component
+     */
+    const hideCreateMenu = useCallback(
+        () => {
+            if (!isCreateMenuActive) {
+                return;
+            }
+            setIsCreateMenuActive(false);
+            removeDragoverListener();
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [isCreateMenuActive],
+    );
+
+    /**
+     * Method called when we click the floating action button
+     */
+    const showCreateMenu = useCallback(
+        () => {
+            if (!isFocused && shouldUseNarrowLayout) {
+                return;
+            }
+            setIsCreateMenuActive(true);
+            createDragoverListener();
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [isFocused, shouldUseNarrowLayout],
+    );
+
+    const toggleCreateMenu = useCallback(
+        (isFabActionActive: boolean) => {
+            if (isFabActionActive) {
+                hideCreateMenu();
+            } else {
+                showCreateMenu();
+            }
+        },
+        [hideCreateMenu, showCreateMenu],
+    );
+
+    const value = useMemo(
+        () => ({
+            isCreateMenuActive,
+            hideCreateMenu,
+            toggleCreateMenu,
+            fabRef,
+        }),
+        [isCreateMenuActive, toggleCreateMenu, hideCreateMenu, fabRef],
+    );
+
     return (
         <FABPopoverContext.Provider value={value}>
-            <FloatingActionButtonAndPopover
-                ref={popoverModal}
-                onHideCreateMenu={removeDragoverListener}
-            />
+            <FloatingActionButtonPopover ref={popoverModal} />
             {children}
         </FABPopoverContext.Provider>
     );
