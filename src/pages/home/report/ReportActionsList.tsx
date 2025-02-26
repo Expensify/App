@@ -251,7 +251,9 @@ function ReportActionsList({
      */
     const wasMessageReceivedWhileOffline = useCallback(
         (message: OnyxTypes.ReportAction) =>
-            !wasActionTakenByCurrentUser(message) && wasActionCreatedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale),
+            !wasActionTakenByCurrentUser(message) &&
+            wasActionCreatedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale) &&
+            !(message.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || message.isOptimisticAction),
         [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale],
     );
 
