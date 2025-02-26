@@ -82,12 +82,7 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_DATE], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => {
-                if (!policyID) {
-                    return;
-                }
-                clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE);
-            }}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE)}
         />
     );
 }

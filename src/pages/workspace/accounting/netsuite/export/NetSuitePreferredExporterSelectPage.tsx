@@ -27,7 +27,7 @@ type CardListItem = ListItem & {
 };
 
 function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
@@ -109,12 +109,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORTER], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => {
-                if (!policyID) {
-                    return;
-                }
-                clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORTER);
-            }}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORTER)}
         />
     );
 }

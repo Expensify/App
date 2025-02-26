@@ -8,7 +8,10 @@ import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteReceivableAccount} from '@libs/actions/connections/NetSuiteCommands';
+<<<<<<< HEAD
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
+=======
+>>>>>>> main
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -80,12 +83,7 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => {
-                if (!policyID) {
-                    return;
-                }
-                clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT);
-            }}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT)}
         />
     );
 }
