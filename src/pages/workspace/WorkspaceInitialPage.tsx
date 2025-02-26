@@ -351,13 +351,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     useEffect(() => {
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
+            let newlyEnabledFeature: PolicyFeatureName | null = null;
             (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
                 const isFeatureEnabled = isPolicyFeatureEnabled(policy, key);
+                // Determine if this feature is newly enabled (wasn't enabled before but is now)
+                if (isFeatureEnabled && !currentFeatureStates[key]) {
+                    newlyEnabledFeature = key;
+                }
                 newFeatureStates[key] =
                     prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
             });
 
-            setHighlightedFeature(Object.keys(newFeatureStates).at(0));
+            // Only highlight the newly enabled feature
+            if (newlyEnabledFeature) {
+                setHighlightedFeature(newlyEnabledFeature);
+            }
+
             return {
                 ...policyFeatureStates,
                 ...newFeatureStates,
