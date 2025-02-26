@@ -25,8 +25,8 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {currentStep} = issueNewCard ?? {};
-    /* eslint-disable react-compiler/react-compiler */
     const backTo = route?.params?.backTo;
+    /* eslint-disable react-compiler/react-compiler */
     const firstAssigneeEmail = useRef(issueNewCard?.data?.assigneeEmail);
     if (!firstAssigneeEmail.current) {
         firstAssigneeEmail.current = issueNewCard?.data?.assigneeEmail;
@@ -55,7 +55,6 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                     <ConfirmationStep
                         policyID={policyID}
                         backTo={shouldUseBackToParam ? backTo : undefined}
-                        /* eslint-enable react-compiler/react-compiler */
                     />
                 );
             default:
@@ -86,6 +85,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         >
             {getCurrentStep()}
         </AccessOrNotFoundWrapper>
+        /* eslint-enable react-compiler/react-compiler */
     );
 }
 
