@@ -79,7 +79,6 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     <InputWrapper
                         ref={inputCallbackRef}

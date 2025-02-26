@@ -92,7 +92,6 @@ function WorkspaceCreateTaxPage({
                             shouldValidateOnBlur={false}
                             disablePressOnEnter={!!modal?.isVisible}
                             addBottomSafeAreaPadding
-                            shouldSubmitButtonStickToBottom
                         >
                             <View style={styles.mhn5}>
                                 <InputWrapper

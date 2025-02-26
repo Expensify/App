@@ -13,12 +13,10 @@ import type {WithNavigationTransitionEndProps} from '@components/withNavigationT
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,8 +40,6 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-const FOOTER_BUTTON_CONTENT_PADDING = 80;
-
 type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
@@ -53,7 +49,6 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
 function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
@@ -283,8 +278,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
     }, [excludedUsers, translate, debouncedSearchTerm, policyName, usersToInvite, personalDetails.length]);
 
-    const shouldUseEdgeToEdgeLayout = useMemo(() => shouldUseNarrowLayout && getPlatform(true) !== CONST.PLATFORM.WEB, [shouldUseNarrowLayout]);
-
     const footerContent = useMemo(
         () => (
             <FormAlertWithSubmitButton
@@ -295,21 +288,9 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 message={policy?.alertMessage ?? ''}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
-                shouldBlendOpacity={shouldUseEdgeToEdgeLayout}
             />
         ),
-        [
-            inviteUser,
-            policy?.alertMessage,
-            selectedOptions.length,
-            shouldShowAlertPrompt,
-            shouldUseEdgeToEdgeLayout,
-            styles.flexBasisAuto,
-            styles.flexGrow0,
-            styles.flexReset,
-            styles.flexShrink0,
-            translate,
-        ],
+        [inviteUser, policy?.alertMessage, selectedOptions.length, shouldShowAlertPrompt, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
 
     useEffect(() => {
@@ -357,9 +338,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
-                    contentContainerStyle={shouldUseEdgeToEdgeLayout && {paddingBottom: FOOTER_BUTTON_CONTENT_PADDING}}
-                    addBottomSafeAreaPadding={shouldUseEdgeToEdgeLayout}
-                    // shouldFooterContentStickToBottom={shouldUseEdgeToEdgeLayout}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

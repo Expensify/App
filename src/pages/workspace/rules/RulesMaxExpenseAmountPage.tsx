@@ -65,7 +65,6 @@ function RulesMaxExpenseAmountPage({
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

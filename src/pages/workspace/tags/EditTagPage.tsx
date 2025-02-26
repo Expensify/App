@@ -101,7 +101,6 @@ function EditTagPage({route}: EditTagPageProps) {
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     <InputWrapper
                         InputComponent={TextInput}

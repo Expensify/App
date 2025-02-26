@@ -80,7 +80,6 @@ function WorkspaceTaxesSettingsCustomTaxName({
                     validate={validate}
                     onSubmit={submit}
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

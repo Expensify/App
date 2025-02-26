@@ -123,7 +123,6 @@ function WorkspaceCreateReportFieldsPage({
                     shouldValidateOnBlur={false}
                     disablePressOnEnter={!!modal?.isVisible}
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>

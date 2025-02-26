@@ -186,7 +186,6 @@ function DetailsStep({policyID}: DetailsStepProps) {
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
                 addBottomSafeAreaPadding
-                shouldSubmitButtonStickToBottom
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}

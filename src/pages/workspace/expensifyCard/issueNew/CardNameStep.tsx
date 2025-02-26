@@ -87,7 +87,6 @@ function CardNameStep({policyID}: CardNameStepProps) {
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
                 addBottomSafeAreaPadding
-                shouldSubmitButtonStickToBottom
             >
                 <InputWrapper
                     InputComponent={TextInput}

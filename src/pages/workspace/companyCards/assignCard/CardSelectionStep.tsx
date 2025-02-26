@@ -163,11 +163,9 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                     }
                     shouldShowTextInputAfterHeader
                     shouldShowHeaderMessageAfterHeader
-                    includeSafeAreaPaddingBottom={false}
                     shouldShowListEmptyContent={false}
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
-                    shouldFooterContentStickToBottom
                     footerContent={
                         <FormAlertWithSubmitButton
                             buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}

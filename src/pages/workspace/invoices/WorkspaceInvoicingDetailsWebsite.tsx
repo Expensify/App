@@ -84,7 +84,6 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
                     enabledWhenOffline
                     validate={validate}
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     <InputWrapper
                         InputComponent={TextInput}

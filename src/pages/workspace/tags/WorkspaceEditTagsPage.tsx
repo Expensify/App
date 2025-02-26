@@ -89,7 +89,6 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

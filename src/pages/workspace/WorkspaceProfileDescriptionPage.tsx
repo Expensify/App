@@ -90,7 +90,6 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                     validate={validate}
                     enabledWhenOffline
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

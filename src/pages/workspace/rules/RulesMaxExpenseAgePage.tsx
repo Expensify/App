@@ -70,7 +70,6 @@ function RulesMaxExpenseAgePage({
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
                     addBottomSafeAreaPadding
-                    shouldSubmitButtonStickToBottom
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
