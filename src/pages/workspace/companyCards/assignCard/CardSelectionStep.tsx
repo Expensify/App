@@ -162,7 +162,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                     }
                     shouldShowTextInputAfterHeader
                     shouldShowHeaderMessageAfterHeader
-                    includeSafeAreaPaddingBottom={false}
+                    addBottomSafeAreaPadding
                     shouldShowListEmptyContent={false}
                     shouldUpdateFocusedIndex
                     footerContent={

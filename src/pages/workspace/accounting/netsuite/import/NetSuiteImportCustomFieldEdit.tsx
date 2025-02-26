@@ -175,6 +175,7 @@ function NetSuiteImportCustomFieldEdit({
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!customField || !PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customField, fieldName)}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldUseScrollView={false}
         >
             {renderMap[fieldName] || renderForm}

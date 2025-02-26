@@ -45,6 +45,7 @@ function NSQSCustomersPage({policy}: WithPolicyProps) {
             contentContainerStyle={[styles.pb2, styles.ph5, styles.gap6]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NSQS}
             onBackButtonPress={policyID ? () => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.getRoute(policyID)) : undefined}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.nsqs.import.importFields.customers.subtitle`))}</comment>`} />
             <View>

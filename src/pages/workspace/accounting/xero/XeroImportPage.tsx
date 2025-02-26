@@ -69,6 +69,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.importDescription')}</Text>
 

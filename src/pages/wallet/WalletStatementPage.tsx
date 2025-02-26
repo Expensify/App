@@ -89,7 +89,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID={WalletStatementPage.displayName}
         >
             <HeaderWithBackButton
@@ -98,7 +98,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
                 isDownloading={isDownloading}
                 onDownloadButtonPress={processDownload}
             />
-            <FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <WalletStatementModal statementPageURL={url} />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

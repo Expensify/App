@@ -68,6 +68,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {sections.map((section) => (
                 <OfflineWithFeedback

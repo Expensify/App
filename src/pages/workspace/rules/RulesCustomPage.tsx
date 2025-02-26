@@ -47,7 +47,7 @@ function RulesCustomPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesCustomPage.displayName}
             >
@@ -64,6 +64,7 @@ function RulesCustomPage({
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

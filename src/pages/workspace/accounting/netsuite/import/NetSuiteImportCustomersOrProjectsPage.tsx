@@ -69,6 +69,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={[styles.ph5, styles.flexRow, styles.pb5]}>
                 <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPaths))}</comment>`} />

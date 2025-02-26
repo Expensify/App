@@ -54,6 +54,7 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow

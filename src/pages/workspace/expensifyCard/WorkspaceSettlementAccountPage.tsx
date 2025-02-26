@@ -90,7 +90,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
         >
             <ScreenWrapper
                 testID={WorkspaceSettlementAccountPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -98,6 +98,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
                 />
                 <SelectionList
+                    addBottomSafeAreaPadding
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementAccount(value ?? 0)}

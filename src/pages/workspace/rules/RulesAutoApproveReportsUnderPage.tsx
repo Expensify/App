@@ -43,7 +43,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
             shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesAutoApproveReportsUnderPage.displayName}
             >
@@ -60,6 +60,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

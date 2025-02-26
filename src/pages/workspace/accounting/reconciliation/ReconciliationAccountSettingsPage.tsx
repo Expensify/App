@@ -71,6 +71,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             connectionName={connectionName}
             shouldUseScrollView={false}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection))}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>

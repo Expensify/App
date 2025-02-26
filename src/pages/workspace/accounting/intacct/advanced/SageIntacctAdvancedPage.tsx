@@ -98,6 +98,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {toggleSections.map((section) => (
                 <ToggleSettingOptionRow

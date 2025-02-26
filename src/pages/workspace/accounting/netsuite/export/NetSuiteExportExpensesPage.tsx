@@ -107,6 +107,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {menuItems
                 .filter((item) => !item.shouldHide)
