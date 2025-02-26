@@ -268,7 +268,7 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    CONSOLE_DEBUG: {
+    SETTINGS_CONSOLE: {
         route: 'settings/troubleshoot/console',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
     },
@@ -1110,7 +1110,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/advanced',
-        getRoute: (policyID?: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/advanced` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/advanced` as const,
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/account-selector',
@@ -1127,7 +1127,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID?: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
+        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
             `settings/workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const,
     },
     WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
@@ -1881,7 +1881,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/netsuite/export/` as const, backTo, false),
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_EXPORT route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/netsuite/export/` as const, backTo, false);
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/preferred-exporter/select',
@@ -1893,8 +1898,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
-            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}` as const,
+        getRoute: (policyID: string | undefined, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/destination/select',
@@ -1922,11 +1931,21 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/invoice-item-preference/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/invoice-item-preference/invoice-item/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/invoice-item/select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/invoice-item/select` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/tax-posting-account/select',
@@ -1938,7 +1957,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_ADVANCED: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/',
-        getRoute: (policyID?: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_ADVANCED route');
+            }
+            return `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/reimbursement-account/select',
@@ -2104,7 +2128,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced',
-        getRoute: (policyID?: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
