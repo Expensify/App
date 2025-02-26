@@ -1,19 +1,18 @@
 import Onyx from 'react-native-onyx';
 import {PromotedActions} from '@components/PromotedActionsBar';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import type {ReportAction, Transaction} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomTransaction from '../utils/collections/transaction';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/Navigation/getTopmostCentralPaneRoute', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
-const mockedGetTopmostCentralPaneRoute = getTopmostCentralPaneRoute as jest.MockedFunction<typeof getTopmostCentralPaneRoute>;
+const mockedIsSearchTopmostFullScreenRoute = isSearchTopmostFullScreenRoute as jest.MockedFunction<typeof isSearchTopmostFullScreenRoute>;
 
 OnyxUpdateManager();
 describe('PromotedActionsBar', () => {
@@ -25,7 +24,7 @@ describe('PromotedActionsBar', () => {
 
     beforeEach(() => {
         global.fetch = getGlobalFetchMock();
-        mockedGetTopmostCentralPaneRoute.mockReset();
+        mockedIsSearchTopmostFullScreenRoute.mockReset();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -115,7 +114,7 @@ describe('PromotedActionsBar', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, transaction);
 
             // When the user unheld the transaction from the search central pane
-            mockedGetTopmostCentralPaneRoute.mockReturnValueOnce({name: SCREENS.SEARCH.CENTRAL_PANE});
+            mockedIsSearchTopmostFullScreenRoute.mockReturnValueOnce(true);
             PromotedActions.hold({
                 isTextHold: false,
                 reportAction,
