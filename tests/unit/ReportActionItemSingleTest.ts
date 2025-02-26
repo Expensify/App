@@ -54,18 +54,16 @@ describe('ReportActionItemSingle', () => {
             };
 
             function setup() {
+                LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
-                return waitForBatchedUpdates()
-                    .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                            ...policyCollectionDataSet,
-                        }),
-                    )
-                    .then(() => {
-                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(shouldShowSubscriptAvatar, fakeReport, fakeReportAction);
-                    });
+
+                return waitForBatchedUpdates().then(() =>
+                    Onyx.multiSet({
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
+                        [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                        ...policyCollectionDataSet,
+                    }),
+                );
             }
 
             it('renders secondary Avatar properly', async () => {
@@ -77,11 +75,10 @@ describe('ReportActionItemSingle', () => {
                 });
             });
 
-            it('renders Person information', async () => {
+            it('renders Person information', () => {
                 const [expectedPerson] = fakeReportAction.person ?? [];
 
-                await setup();
-                await waitFor(() => {
+                return setup().then(() => {
                     expect(screen.getByText(expectedPerson.text ?? '')).toBeOnTheScreen();
                 });
             });
