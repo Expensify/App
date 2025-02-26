@@ -1521,38 +1521,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
 /** Builds the Onyx data for an invoice */
 function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
-    // const {
-    //     chat: {report: chatReport, createdAction: chatCreatedAction, reportPreviewAction, isNewReport: isNewChatReport},
-    //     iou: {createdAction: iouCreatedAction, action: iouAction, report: iouReport},
-    //     transactionParams: {transaction, threadReport: transactionThreadReport, threadCreatedReportAction: transactionThreadCreatedReportAction},
-    //     policyParams: {policy, policyTagList, policyCategories},
-    //     optimisticData: {
-    //         policyRecentlyUsedCategories: optimisticPolicyRecentlyUsedCategories,
-    //         policyRecentlyUsedTags: optimisticPolicyRecentlyUsedTags,
-    //         personalDetailListAction: optimisticPersonalDetailListAction,
-    //         recentlyUsedCurrencies: optimisticRecentlyUsedCurrencies,
-    //     },
-    //     companyName,
-    //     companyWebsite,
-    // } = invoiceParams;
-
-    const {
-        // chat: {report: chatReport, createdAction: chatCreatedAction, reportPreviewAction, isNewReport: isNewChatReport},
-        chat,
-        // iou: {createdAction: iouCreatedAction, action: iouAction, report: iouReport},
-        iou,
-        // transactionParams: {transaction, threadReport: transactionThreadReport, threadCreatedReportAction: transactionThreadCreatedReportAction},
-        transactionParams,
-        policyParams: {policy, policyTagList, policyCategories},
-        optimisticData: {
-            policyRecentlyUsedCategories: optimisticPolicyRecentlyUsedCategories,
-            policyRecentlyUsedTags: optimisticPolicyRecentlyUsedTags,
-            personalDetailListAction: optimisticPersonalDetailListAction,
-            recentlyUsedCurrencies: optimisticRecentlyUsedCurrencies,
-        },
-        companyName,
-        companyWebsite,
-    } = invoiceParams;
+    const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite} = invoiceParams;
 
     const clearedPendingFields = Object.fromEntries(Object.keys(transactionParams.transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [
@@ -1630,36 +1599,36 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         });
     }
 
-    if (optimisticPolicyRecentlyUsedCategories.length) {
+    if (optimisticDataParams.policyRecentlyUsedCategories.length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iou.report?.policyID}`,
-            value: optimisticPolicyRecentlyUsedCategories,
+            value: optimisticDataParams.policyRecentlyUsedCategories,
         });
     }
 
-    if (optimisticRecentlyUsedCurrencies?.length) {
+    if (optimisticDataParams.recentlyUsedCurrencies?.length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-            value: optimisticRecentlyUsedCurrencies,
+            value: optimisticDataParams.recentlyUsedCurrencies,
         });
     }
 
-    if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
+    if (!isEmptyObject(optimisticDataParams.policyRecentlyUsedTags)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iou.report?.policyID}`,
-            value: optimisticPolicyRecentlyUsedTags,
+            value: optimisticDataParams.policyRecentlyUsedTags,
         });
     }
 
     const redundantParticipants: Record<number, null> = {};
-    if (!isEmptyObject(optimisticPersonalDetailListAction)) {
+    if (!isEmptyObject(optimisticDataParams.personalDetailListAction)) {
         const successPersonalDetailListAction: Record<number, null> = {};
 
         // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
-        Object.keys(optimisticPersonalDetailListAction).forEach((accountIDKey) => {
+        Object.keys(optimisticDataParams.personalDetailListAction).forEach((accountIDKey) => {
             const accountID = Number(accountIDKey);
             successPersonalDetailListAction[accountID] = null;
             redundantParticipants[accountID] = null;
@@ -1668,7 +1637,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetailListAction,
+            value: optimisticDataParams.personalDetailListAction,
         });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1868,7 +1837,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
     if (companyName && companyWebsite) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyParams.policy?.id}`,
             value: {
                 invoice: {
                     companyName,
@@ -1882,7 +1851,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyParams.policy?.id}`,
             value: {
                 invoice: {
                     pendingFields: {
@@ -1894,7 +1863,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyParams.policy?.id}`,
             value: {
                 invoice: {
                     companyName: null,
@@ -1909,17 +1878,17 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
     }
 
     // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy)) {
+    if (!policyParams.policy || !isPaidGroupPolicy(policyParams.policy)) {
         return [optimisticData, successData, failureData];
     }
 
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
         transactionParams.transaction,
         [],
-        policy,
-        policyTagList ?? {},
-        policyCategories ?? {},
-        hasDependentTags(policy, policyTagList ?? {}),
+        policyParams.policy,
+        policyParams.policyTagList ?? {},
+        policyParams.policyCategories ?? {},
+        hasDependentTags(policyParams.policy, policyParams.policyTagList ?? {}),
         true,
     );
 
