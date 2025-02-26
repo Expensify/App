@@ -226,7 +226,6 @@ function ReportActionsView({
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
     const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
-    const isLoading = isLoadingInitialReportActions !== false && !visibleReportActions.length;
 
     useEffect(() => {
         // update ref with current state
@@ -352,7 +351,7 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if (isLoading && !isOffline) {
+    if (isLoadingInitialReportActions && !isOffline) {
         return <ReportActionsSkeletonView />;
     }
 
