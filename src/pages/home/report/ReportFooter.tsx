@@ -18,13 +18,22 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {addComment} from '@libs/actions/Report';
+import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import Log from '@libs/Log';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {
+    addDomainToShortMention,
+    canUserPerformWriteAction,
+    canWriteInReport as canWriteInReportUtil,
+    isAdminsOnlyPostingRoom as isAdminsOnlyPostingRoomUtil,
+    isArchivedNonExpenseReport,
+    isPolicyExpenseChat,
+    isPublicRoom,
+    isSystemChat as isSystemChatUtil,
+} from '@libs/ReportUtils';
+import {generateAccountID} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import * as Report from '@userActions/Report';
-import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -59,12 +68,6 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur: () => void;
-
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus: boolean;
-
-    /** A method to update showSoftInputOnFocus */
-    setShowSoftInputOnFocus: (value: boolean) => void;
 };
 
 function ReportFooter({
@@ -75,10 +78,8 @@ function ReportFooter({
     policy,
     isReportReadyForDisplay = true,
     isComposerFullSize = false,
-    showSoftInputOnFocus,
     onComposerBlur,
     onComposerFocus,
-    setShowSoftInputOnFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -106,20 +107,20 @@ function ReportFooter({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
-    const isArchivedRoom = ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs);
+    const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
-    const shouldShowComposerOptimistically = !isAnonymousUser && ReportUtils.isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
-    const canPerformWriteAction = ReportUtils.canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
+    const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
+    const canPerformWriteAction = canUserPerformWriteAction(report) ?? shouldShowComposerOptimistically;
     const shouldHideComposer = !canPerformWriteAction || isBlockedFromChat;
-    const canWriteInReport = ReportUtils.canWriteInReport(report);
-    const isSystemChat = ReportUtils.isSystemChat(report);
-    const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
-    const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+    const canWriteInReport = canWriteInReportUtil(report);
+    const isSystemChat = isSystemChatUtil(report);
+    const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
+    const isUserPolicyAdmin = isPolicyAdmin(policy);
 
-    const shouldShowEducationalTooltip = ReportUtils.isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat;
+    const shouldShowEducationalTooltip = isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat;
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -135,7 +136,7 @@ function ReportFooter({
             }
 
             const mention = match[1] ? match[1].trim() : '';
-            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention) ?? mention;
+            const mentionWithDomain = addDomainToShortMention(mention) ?? mention;
             const isValidMention = Str.isValidEmail(mentionWithDomain);
 
             let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
@@ -144,8 +145,8 @@ function ReportFooter({
                 if (isValidMention) {
                     assignee = Object.values(allPersonalDetails ?? {}).find((value) => value?.login === mentionWithDomain) ?? undefined;
                     if (!Object.keys(assignee ?? {}).length) {
-                        const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
-                        const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
+                        const assigneeAccountID = generateAccountID(mentionWithDomain);
+                        const optimisticDataForNewAssignee = setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
                         assignee = optimisticDataForNewAssignee.assignee;
                         assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                     }
@@ -155,7 +156,7 @@ function ReportFooter({
                     title = `@${mentionWithDomain} ${title}`;
                 }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true);
+            createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee?.accountID, assigneeChatReport, report.policyID, true);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],
@@ -167,7 +168,7 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            Report.addComment(report.reportID, text);
+            addComment(report.reportID, text);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
@@ -228,8 +229,6 @@ function ReportFooter({
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                             shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
-                            showSoftInputOnFocus={showSoftInputOnFocus}
-                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                             didHideComposerInput={didHideComposerInput}
                         />
                     </SwipeableView>
@@ -249,7 +248,6 @@ export default memo(
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        prevProps.showSoftInputOnFocus === nextProps.showSoftInputOnFocus &&
         lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
         lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
