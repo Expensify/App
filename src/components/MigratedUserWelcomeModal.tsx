@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -6,6 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
+import {parseFSAttributes} from '@libs/Fullstory';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {FeatureListItem} from './FeatureList';
@@ -36,6 +37,14 @@ function OnboardingWelcomeVideo() {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
+    useLayoutEffect(parseFSAttributes, []);
+
     return (
         <FeatureTrainingModal
             // We would like to show the Lottie animation instead of a video
@@ -54,7 +63,11 @@ function OnboardingWelcomeVideo() {
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
         >
-            <View style={[styles.gap3, styles.pt1, styles.pl1]}>
+            <View
+                style={[styles.gap3, styles.pt1, styles.pl1]}
+                fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
+            >
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View
                         key={translationKey}

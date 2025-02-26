@@ -2,9 +2,9 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import {isInstantSubmitEnabled, isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter, isProcessingReport, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
-import {getTransactionViolations} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -14,6 +14,7 @@ import TextLink from './TextLink';
 type BrokenConnectionDescriptionProps = {
     /** Transaction id of the corresponding report */
     transactionID: string | undefined;
+
     /** Current report */
     report: OnyxEntry<Report>;
 
@@ -24,7 +25,7 @@ type BrokenConnectionDescriptionProps = {
 function BrokenConnectionDescription({transactionID, policy, report}: BrokenConnectionDescriptionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const transactionViolations = getTransactionViolations(transactionID);
+    const transactionViolations = useTransactionViolations(transactionID);
 
     const brokenConnection530Error = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
     const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
@@ -44,12 +45,7 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
                 {`${translate('violations.adminBrokenConnectionError')}`}
                 <TextLink
                     style={[styles.textLabelSupporting, styles.link]}
-                    onPress={() => {
-                        if (!policy?.id) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id));
-                    }}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id))}
                 >{`${translate('workspace.common.companyCards')}`}</TextLink>
                 .
             </>

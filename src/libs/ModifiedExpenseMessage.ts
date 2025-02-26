@@ -141,7 +141,7 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     const rootParentReport = getRootParentReport({report: destinationReport});
     // In OldDot, expenses could be moved to a self-DM. Return the corresponding message for this case.
     if (isSelfDM(rootParentReport)) {
-        return translateLocal('iou.movedToSelfDM');
+        return translateLocal('iou.movedToPersonalSpace');
     }
     // In NewDot, the "Move report" flow only supports moving expenses from self-DM to:
     // - A policy expense chat
@@ -152,7 +152,7 @@ function getForExpenseMovedFromSelfDM(destinationReportID: string) {
     if (isEmpty(policyName) && !reportName) {
         return translateLocal('iou.changedTheExpense');
     }
-    return translateLocal('iou.movedFromSelfDM', {
+    return translateLocal('iou.movedFromPersonalSpace', {
         reportName,
         workspaceName: !isEmpty(policyName) ? policyName : undefined,
     });

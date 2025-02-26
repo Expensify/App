@@ -364,17 +364,17 @@ describe('ModifiedExpenseMessage', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
-                    oldMerchant: '1.00 mi @ $0.67 / mi',
-                    merchant: '10.00 mi @ $0.67 / mi',
-                    oldAmount: 67,
-                    amount: 670,
+                    oldMerchant: '1.00 mi @ $0.70 / mi',
+                    merchant: '10.00 mi @ $0.70 / mi',
+                    oldAmount: 70,
+                    amount: 700,
                     oldCurrency: CONST.CURRENCY.USD,
                     currency: CONST.CURRENCY.USD,
                 },
             };
 
             it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
-                const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $6.70 (previously $0.67)`;
+                const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $7.00 (previously $0.70)`;
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
                 expect(result).toEqual(expectedResult);
             });
@@ -385,9 +385,9 @@ describe('ModifiedExpenseMessage', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
-                    oldMerchant: '56.36 mi @ $0.67 / mi',
+                    oldMerchant: '56.36 mi @ $0.70 / mi',
                     merchant: '56.36 mi @ $0.99 / mi',
-                    oldAmount: 3776,
+                    oldAmount: 3945,
                     amount: 5580,
                     oldCurrency: CONST.CURRENCY.USD,
                     currency: CONST.CURRENCY.USD,
@@ -395,7 +395,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
-                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $37.76)`;
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
                 expect(result).toEqual(expectedResult);
             });
@@ -403,7 +403,7 @@ describe('ModifiedExpenseMessage', () => {
 
         describe('when moving an expense', () => {
             beforeEach(() => Onyx.clear());
-            it('return the message "moved expense to self DM" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
+            it('return the message "moved expense to personal space" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
                 // Given the selfDM report and report action
                 const selfDMReport = {
                     ...report,
@@ -419,11 +419,11 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`]: selfDMReport});
                 await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToSelfDM');
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
 
                 // When the expense is moved from an expense chat or 1:1 DM to selfDM
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: selfDMReport.reportID, reportAction});
-                // Then it should return the 'moved expense to self DM' message
+                // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
 
@@ -449,11 +449,11 @@ describe('ModifiedExpenseMessage', () => {
 
                 // When the expense is moved to an expense chat with reportName empty
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
-                // Then it should return the 'changed the expense' message
+                // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
 
-            it('return the message "moved expense from self DM to policyName" when both reportName and policyName are present', async () => {
+            it('return the message "moved expense from personal space to policyName" when both reportName and policyName are present', async () => {
                 // Given the policyExpenseChat with both reportName and policyName are present and report action
                 const policyExpenseChat = {
                     ...report,
@@ -471,7 +471,10 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
                 await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromSelfDM', {reportName: policyExpenseChat.reportName, workspaceName: policyExpenseChat.policyName});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
+                    reportName: policyExpenseChat.reportName,
+                    workspaceName: policyExpenseChat.policyName,
+                });
 
                 // When the expense is moved to an expense chat with both reportName and policyName are present
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
@@ -479,7 +482,7 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
-            it('return the message "moved expense from self DM to chat with reportName" when only reportName is present', async () => {
+            it('return the message "moved expense from personal space to chat with reportName" when only reportName is present', async () => {
                 // Given the policyExpenseChat with only reportName is present and report action
                 const policyExpenseChat = {
                     ...report,
@@ -496,7 +499,7 @@ describe('ModifiedExpenseMessage', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
                 await waitForBatchedUpdates();
 
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromSelfDM', {reportName: policyExpenseChat.reportName});
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: policyExpenseChat.reportName});
 
                 // When the expense is moved to an expense chat with only reportName is present
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});

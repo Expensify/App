@@ -98,15 +98,18 @@ function isCardHiddenFromSearch(card: Card) {
     return !card?.nameValuePairs?.isVirtual && CONST.EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes(card.state ?? 0);
 }
 
+function isCardClosed(card: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.CLOSED;
+}
+
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList = allCards, shouldExcludeCardHiddenFromSearch = false) {
     const feedCards: CardList = {};
-    Object.keys(cardList).forEach((cardKey) => {
-        const card = cardList[cardKey];
-        if (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card)) {
+    Object.values(cardList).forEach((card) => {
+        if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
             return;
         }
 
-        feedCards[cardKey] = card;
+        feedCards[card.cardID] = card;
     });
 
     Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
@@ -513,6 +516,19 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
     return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
 }
 
+/**
+ * Checks if an Expensify Card was issued for a given workspace.
+ */
+function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): boolean {
+    const cards = getAllCardsForWorkspace(workspaceAccountID, allCardList);
+    return Object.values(cards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
+}
+
+function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed): boolean {
+    const workspaceCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${feedName}`] ?? {};
+    return !!workspaceCards.cardList;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -538,6 +554,7 @@ export {
     getSelectedFeed,
     getCorrectStepForSelectedBank,
     getCustomOrFormattedFeedName,
+    isCardClosed,
     getFilteredCardList,
     hasOnlyOneCardToAssign,
     checkIfNewFeedConnected,
@@ -550,4 +567,6 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    hasIssuedExpensifyCard,
+    hasCardListObject,
 };

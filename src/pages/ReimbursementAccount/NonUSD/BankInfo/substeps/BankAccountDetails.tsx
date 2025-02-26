@@ -86,17 +86,21 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
+            isSubmitDisabled={!inputs}
         >
-            <View>
+            <>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>
                 {inputs}
                 {!inputs && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        color={theme.spinner}
-                    />
+                    <View style={[styles.flexGrow1, styles.alignItemsCenter]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            color={theme.spinner}
+                            style={styles.flexGrow1}
+                        />
+                    </View>
                 )}
-            </View>
+            </>
         </FormProvider>
     );
 }

@@ -6,9 +6,9 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {navigateToAndOpenChildReport} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
@@ -28,11 +28,14 @@ type ReportActionItemThreadProps = {
     /** Whether the thread item / message is being hovered */
     isHovered: boolean;
 
+    /** Whether the thread item / message is being actived */
+    isActive?: boolean;
+
     /** The function that should be called when the thread is LongPressed or right-clicked */
     onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) => void;
 };
 
-function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction}: ReportActionItemThreadProps) {
+function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -48,7 +51,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childR
                 onPress={() => {
                     Performance.markStart(CONST.TIMING.OPEN_REPORT_THREAD);
                     Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
-                    Report.navigateToAndOpenChildReport(childReportID);
+                    navigateToAndOpenChildReport(childReportID);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}
@@ -60,6 +63,7 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childR
                         icons={icons}
                         shouldStackHorizontally
                         isHovered={isHovered}
+                        isActive={isActive}
                         isInReportAction
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>

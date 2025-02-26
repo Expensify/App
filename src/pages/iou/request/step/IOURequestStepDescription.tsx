@@ -133,6 +133,9 @@ function IOURequestStepDescription({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction));
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+    const getDescriptionHint = () => {
+        return transaction?.category && policyCategories ? policyCategories[transaction?.category]?.commentHint ?? '' : '';
+    };
 
     return (
         <StepScreenWrapper
@@ -167,6 +170,7 @@ function IOURequestStepDescription({
                         type="markdown"
                         excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                         ref={inputCallbackRef}
+                        hint={getDescriptionHint()}
                     />
                 </View>
             </FormProvider>

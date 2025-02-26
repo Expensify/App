@@ -30,7 +30,7 @@ jest.mock('@libs/ReportUtils', () => ({
     isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
 }));
 
-jest.mock('@libs/Navigation/shouldOpenOnAdminRoom', () => ({
+jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => mockShouldOpenOnAdminRoom() as boolean,
