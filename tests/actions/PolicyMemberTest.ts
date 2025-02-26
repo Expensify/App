@@ -362,6 +362,7 @@ describe('actions/PolicyMember', () => {
             const policyID = '1';
             const workspaceReportID = '1';
             const userAccountID = 1236;
+            const userEmail = 'user@example.com';
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
                 ...createRandomReport(Number(workspaceReportID)),
@@ -374,7 +375,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // When adding the user to the workspace
-            Member.addMembersToWorkspace({'user@example.com': userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
 
             await waitForBatchedUpdates();
 
