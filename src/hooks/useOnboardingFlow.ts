@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useEffect} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -7,6 +6,7 @@ import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -42,7 +42,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (HybridAppModule.isHybridApp() && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
+            if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
                 return;
             }
 
@@ -58,7 +58,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (HybridAppModule.isHybridApp()) {
+            if (CONFIG.IS_HYBRID_APP) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                 if (isSingleNewDotEntry) {
                     return;
@@ -77,7 +77,7 @@ function useOnboardingFlowRouter() {
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
-            if (!HybridAppModule.isHybridApp() && isOnboardingCompleted === false) {
+            if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false) {
                 startOnboardingFlow(isPrivateDomain);
             }
         });

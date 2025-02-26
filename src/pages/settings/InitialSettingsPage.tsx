@@ -45,6 +45,7 @@ import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Lin
 import {hasPaymentMethodError} from '@userActions/PaymentMethods';
 import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -249,7 +250,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
-                    ...(HybridAppModule.isHybridApp()
+                    ...(CONFIG.IS_HYBRID_APP
                         ? {
                               action: () => {
                                   HybridAppModule.closeReactNativeApp(false, true);

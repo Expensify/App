@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearSignInData} from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
 
 function SessionExpiredPage() {
     const styles = useThemeStyles();
@@ -33,7 +34,7 @@ function SessionExpiredPage() {
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
-                                if (!HybridAppModule.isHybridApp()) {
+                                if (!CONFIG.IS_HYBRID_APP) {
                                     clearSignInData();
                                     Navigation.goBack();
                                     return;

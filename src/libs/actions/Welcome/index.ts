@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
+import CONFIG from '@src/CONFIG';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose} from '@src/types/onyx';
@@ -122,7 +123,7 @@ function updateOnboardingLastVisitedPath(path: string) {
 }
 
 function completeHybridAppOnboarding() {
-    if (!HybridAppModule.isHybridApp()) {
+    if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
 

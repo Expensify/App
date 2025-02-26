@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React, {useContext, useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -8,6 +7,7 @@ import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +28,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
     useEffect(() => {
         const sessionEmail = session?.email;
-        const transitionURL = HybridAppModule.isHybridApp() ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
+        const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingAsNewUser = isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
         const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
@@ -64,13 +64,13 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     useEffect(() => {
         const exitTo = route.params.exitTo as Route | null;
         const sessionEmail = session?.email;
-        const transitionURL = HybridAppModule.isHybridApp() ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
+        const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
         const isLoggingAsNewUser = isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
         // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
         // For HybridApp we have separate logic to handle transitions.
-        if (!HybridAppModule.isHybridApp() && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingAsNewUser) {
+        if (!CONFIG.IS_HYBRID_APP && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingAsNewUser) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
                 Navigation.goBack();

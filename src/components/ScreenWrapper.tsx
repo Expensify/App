@@ -18,6 +18,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
@@ -177,7 +178,7 @@ function ScreenWrapper(
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
-        if (HybridAppModule.isHybridApp()) {
+        if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.closeReactNativeApp(false, false);
         }
         setRootStatusBarEnabled(false);

@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,6 +18,7 @@ import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
 import {getTripReservationIcon} from '@libs/TripReservationUtils';
 import {openTravelDotLink} from '@userActions/Link';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -67,7 +67,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={!reservation || (!canUseSpotnanaTravel && !HybridAppModule.isHybridApp()) || (isBlockedFromSpotnanaTravel && !HybridAppModule.isHybridApp())}
+                shouldShow={!reservation || (!canUseSpotnanaTravel && !CONFIG.IS_HYBRID_APP) || (isBlockedFromSpotnanaTravel && !CONFIG.IS_HYBRID_APP)}
             >
                 <HeaderWithBackButton
                     title={reservationType ? `${translate(`travel.${reservationType}`)} ${translate('common.details').toLowerCase()}` : translate('common.details')}

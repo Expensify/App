@@ -20,6 +20,7 @@ import {openOldDotLink} from '@userActions/Link';
 import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@userActions/Welcome';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,7 +111,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         );
                     }
 
-                    if (HybridAppModule.isHybridApp()) {
+                    if (CONFIG.IS_HYBRID_APP) {
                         HybridAppModule.closeReactNativeApp(false, true);
                         setRootStatusBarEnabled(false);
                     } else {

@@ -8,6 +8,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
@@ -158,7 +159,7 @@ function connect(email: string) {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
                     openApp().then(() => {
-                        if (!HybridAppModule.isHybridApp()) {
+                        if (!CONFIG.IS_HYBRID_APP) {
                             return;
                         }
                         HybridAppModule.switchAccount(email, restrictedToken, policyID, String(previousAccountID));
@@ -247,7 +248,7 @@ function disconnect() {
 
                     confirmReadyToOpenApp();
                     openApp().then(() => {
-                        if (!HybridAppModule.isHybridApp()) {
+                        if (!CONFIG.IS_HYBRID_APP) {
                             return;
                         }
                         HybridAppModule.switchAccount(requesterEmail, authToken, '', '');

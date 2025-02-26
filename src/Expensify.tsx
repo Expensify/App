@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
@@ -14,7 +13,7 @@ import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAu
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
-import * as CONFIG from './CONFIG';
+import CONFIG from './CONFIG';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
 import {updateLastRoute} from './libs/actions/App';
@@ -119,8 +118,7 @@ function Expensify() {
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash =
-        shouldInit &&
-        (HybridAppModule.isHybridApp() ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+        shouldInit && (CONFIG.IS_HYBRID_APP ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {

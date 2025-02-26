@@ -231,7 +231,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     hideContextMenu(false);
     if (!isAnonymousUser()) {
         // In the HybridApp, we want the Old Dot to handle the sign out process
-        if (HybridAppModule.isHybridApp() && killHybridApp) {
+        if (CONFIG.IS_HYBRID_APP && killHybridApp) {
             HybridAppModule.closeReactNativeApp(true, false);
             return;
         }
@@ -1172,7 +1172,7 @@ function handleExitToNavigation(exitTo: Route | HybridAppRoute) {
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             Navigation.waitForProtectedRoutes().then(() => {
-                const url = HybridAppModule.isHybridApp() ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
+                const url = CONFIG.IS_HYBRID_APP ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
                 Navigation.goBack();
                 Navigation.navigate(url);
             });
