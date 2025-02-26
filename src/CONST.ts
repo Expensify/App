@@ -12,7 +12,6 @@ import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';
-import ONYXKEYS from './ONYXKEYS';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
@@ -30,7 +29,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
-const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
+const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
 const MAX_DATE = dateAdd(new Date(), {years: 1});
@@ -48,6 +47,7 @@ const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow ?? 'keyInputUpArr
 const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow ?? 'keyInputDownArrow';
 const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow ?? 'keyInputLeftArrow';
 const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInputRightArrow';
+const keyInputSpace = ' ';
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
@@ -216,7 +216,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click "Just track it (don\'t submit it)".\n' +
+                '4. Choose your *personal* space.\n' +
                 '5. Click *Create*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
@@ -239,8 +239,8 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click "Just track it (don\'t submit it)".\n' +
-                '5. Click *Track*.\n' +
+                '4. Choose your *personal* space.\n' +
+                '5. Click *Create*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
         },
@@ -538,7 +538,7 @@ const CONST = {
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
-        IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
+        IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
@@ -680,14 +680,6 @@ const CONST = {
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
-        },
-        BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
-            ACCOUNT_HOLDER_NAME: 'addressName',
-            ACCOUNT_HOLDER_REGION: 'addressState',
-            ACCOUNT_HOLDER_CITY: 'addressCity',
-            ACCOUNT_HOLDER_ADDRESS: 'addressStreet',
-            ACCOUNT_HOLDER_POSTAL_CODE: 'addressZipCode',
-            ROUTING_CODE: 'routingNumber',
         },
         BUSINESS_INFO_STEP: {
             PICKLIST: {
@@ -944,6 +936,14 @@ const CONST = {
             shortcutKey: 'Backspace',
             modifiers: [],
         },
+        SPACE: {
+            descriptionKey: null,
+            shortcutKey: 'Space',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputSpace},
+            },
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -1017,12 +1017,21 @@ const CONST = {
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
+    COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
+        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-mastercard-commercial-feed',
+    COMPANY_CARDS_DELIVERY_FILE_HELP: {
+        cdf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-mastercard-commercial-feed',
+        vcf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-visa-commercial-feed',
+        gl1025: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-an-american-express-corporate-feed',
+    },
+    COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
+    COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP:
+        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
-    COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL:
-        'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#what-is-the-difference-between-commercial-card-feeds-and-your-direct-bank-connections',
+    COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
-    COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
+    COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
@@ -1783,6 +1792,7 @@ const CONST = {
     },
     CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
+    LHN_VIEWPORT_ITEM_COUNT: 20,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
@@ -2133,6 +2143,8 @@ const CONST = {
     },
 
     NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
+
+    NETSUITE_PAYABLE_ACCOUNT_DEFAULT_VALUE: '',
 
     /**
      * Countries where tax setting is permitted (Strings are in the format of Netsuite's Country type/enum)
@@ -2690,27 +2702,27 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
         },
-        DEFAULT_CATEGORIES: [
-            'Advertising',
-            'Benefits',
-            'Car',
-            'Equipment',
-            'Fees',
-            'Home Office',
-            'Insurance',
-            'Interest',
-            'Labor',
-            'Maintenance',
-            'Materials',
-            'Meals and Entertainment',
-            'Office Supplies',
-            'Other',
-            'Professional Services',
-            'Rent',
-            'Taxes',
-            'Travel',
-            'Utilities',
-        ],
+        DEFAULT_CATEGORIES: {
+            ADVERTISING: 'Advertising',
+            BENEFITS: 'Benefits',
+            CAR: 'Car',
+            EQUIPMENT: 'Equipment',
+            FEES: 'Fees',
+            HOME_OFFICE: 'Home Office',
+            INSURANCE: 'Insurance',
+            INTEREST: 'Interest',
+            LABOR: 'Labor',
+            MAINTENANCE: 'Maintenance',
+            MATERIALS: 'Materials',
+            MEALS_AND_ENTERTAINMENT: 'Meals and Entertainment',
+            OFFICE_SUPPLIES: 'Office Supplies',
+            OTHER: 'Other',
+            PROFESSIONAL_SERVICES: 'Professional Services',
+            RENT: 'Rent',
+            TAXES: 'Taxes',
+            TRAVEL: 'Travel',
+            UTILITIES: 'Utilities',
+        },
         OWNERSHIP_ERRORS: {
             NO_BILLING_CARD: 'noBillingCard',
             AMOUNT_OWED: 'amountOwed',
@@ -6320,15 +6332,6 @@ const CONST = {
             BEFORE: 'Before',
             AFTER: 'After',
         },
-        SNAPSHOT_ONYX_KEYS: [
-            ONYXKEYS.COLLECTION.REPORT,
-            ONYXKEYS.COLLECTION.POLICY,
-            ONYXKEYS.COLLECTION.TRANSACTION,
-            ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-            ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            ONYXKEYS.PERSONAL_DETAILS_LIST,
-            ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        ],
     },
 
     REFERRER: {

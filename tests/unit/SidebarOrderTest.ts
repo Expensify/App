@@ -455,7 +455,7 @@ describe('Sidebar', () => {
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email One');
+                        expect(displayNames.at(0)).toHaveTextContent(`Email One's expenses`);
                         expect(displayNames.at(1)).toHaveTextContent('Workspace-Test-001 owes $100.00');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
                         expect(displayNames.at(3)).toHaveTextContent('Email Two');
