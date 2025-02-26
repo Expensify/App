@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import SidePane from '@components/SidePane';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,6 +29,7 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
+    const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
@@ -107,6 +109,8 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
+                    // This is necessary 
+                    width: isPaneHidden || !isExtraLargeScreenWidth ? '100%' : windowWidth - variables.sideBarWidth,
                 },
             },
         },
