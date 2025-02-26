@@ -144,6 +144,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import usePermissions from "@hooks/usePermissions";
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -169,6 +170,7 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUsePDFExport} = usePermissions();
     const theme = useTheme();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
@@ -573,20 +575,24 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         });
                     },
                 },
-                {
-                    key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
-                    translationKey: 'common.downloadAsPDF',
-                    icon: Expensicons.Document,
-                    isAnonymousAction: false,
-                    action: () => {
-                        if (isOffline) {
-                            setOfflineModalVisible(true);
-                        } else {
-                            beginPDFExport();
-                        }
-                    },
-                },
             );
+            if (canUsePDFExport) {
+                items.push(
+                    {
+                        key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
+                        translationKey: 'common.downloadAsPDF',
+                        icon: Expensicons.Document,
+                        isAnonymousAction: false,
+                        action: () => {
+                            if (isOffline) {
+                                setOfflineModalVisible(true);
+                            } else {
+                                beginPDFExport();
+                            }
+                        },
+                    },
+                );
+            }
         }
 
         if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {

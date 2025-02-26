@@ -65,6 +65,7 @@ export default {
     isBlockedFromSpotnanaTravel,
     canUseNetSuiteUSATax,
     canUsePerDiem,
+    canUsePDFExport,
     canUseMergeAccounts,
     canUseManagerMcTest,
     canUseInternationalBankAccount,
