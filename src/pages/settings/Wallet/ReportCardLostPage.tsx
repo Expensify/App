@@ -11,7 +11,7 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -79,7 +79,7 @@ function ReportCardLostPage({
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
-    const {paddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom} = useSafeAreaPaddings();
 
     const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? {});
     const primaryLogin = account?.primaryLogin ?? '';

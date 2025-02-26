@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import {View} from 'react-native';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 function NavigationBar() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {insets} = useStyledSafeAreaInsets();
+    const {insets} = useSafeAreaPaddings();
 
     const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
 

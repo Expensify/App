@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type FixedFooterProps = {
@@ -25,7 +25,7 @@ type FixedFooterProps = {
 
 function FixedFooter({style, children, addBottomSafeAreaPadding = false, shouldStickToBottom = false}: FixedFooterProps) {
     const styles = useThemeStyles();
-    const {paddingBottom} = useStyledSafeAreaInsets(true);
+    const {paddingBottom} = useSafeAreaPaddings(true);
 
     const footerStyle = useMemo<StyleProp<ViewStyle>>(() => {
         const totalPaddingBottom = styles.pb5.paddingBottom + paddingBottom;

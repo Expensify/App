@@ -4,8 +4,7 @@ import useSafeAreaInsets from './useSafeAreaInsets';
 import useStyleUtils from './useStyleUtils';
 
 /**
- * Custom hook to get the styled safe area insets. The top and bottom padding values are adjusted
- * so that they will only ever be applied once per <ScreenWrapper>.
+ * Custom hook to get safe area padding values and styles.
  *
  * This hook utilizes the `SafeAreaInsetsContext` to retrieve the current safe area insets
  * and applies styling adjustments using the `useStyleUtils` hook.
@@ -26,12 +25,12 @@ import useStyleUtils from './useStyleUtils';
  * }
  *
  * function MyComponent() {
- *     const { paddingTop, paddingBottom, safeAreaPaddingBottomStyle } = useStyledSafeAreaInsets();
+ *     const { paddingTop, paddingBottom, safeAreaPaddingBottomStyle } = useSafeAreaPaddings();
  *
  *     // Use these values to style your component accordingly
  * }
  */
-function useStyledSafeAreaInsets(enableEdgeToEdgeBottomSafeAreaPadding = false) {
+function useSafeAreaPaddings(enableEdgeToEdgeBottomSafeAreaPadding = false) {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
     const {paddingTop, paddingBottom} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
@@ -74,4 +73,4 @@ function useStyledSafeAreaInsets(enableEdgeToEdgeBottomSafeAreaPadding = false) 
     };
 }
 
-export default useStyledSafeAreaInsets;
+export default useSafeAreaPaddings;
