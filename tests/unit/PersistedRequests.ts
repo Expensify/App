@@ -79,7 +79,7 @@ describe('PersistedRequests', () => {
             command: 'OpenReport',
             successData: [{key: 'reportMetadata_1', onyxMethod: 'set', value: {}}],
             failureData: [{key: 'reportMetadata_2', onyxMethod: 'set', value: {}}],
-            requestID: 4
+            requestID: 4,
         };
         PersistedRequests.updateOngoingRequest(newRequest);
         expect(PersistedRequests.getOngoingRequest()).toEqual(newRequest);
