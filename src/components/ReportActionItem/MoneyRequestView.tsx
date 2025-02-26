@@ -241,7 +241,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         amountTitle = translate('iou.receiptStatusTitle');
     }
 
-    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === 'customUnitOutOfPolicy');
+    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
     const updatedTransactionDescription = useMemo(() => {
         if (!updatedTransaction) {
