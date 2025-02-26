@@ -138,8 +138,9 @@ describe('actions/Policy', () => {
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
-            // Created report action and and default MANAGE_TEAM intent tasks (7) assigned to user by guide, signingoff messages (1)
-            expect(adminReportActions.length).toBe(9);
+            // Created Report Action, MANAGE_TEAM tasks (minus tasks that requires integrations to be enabled) and signoff message
+            const manageTeamDefaultTaskCount = (CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length) - 2;
+            expect(adminReportActions.length).toBe(2 + manageTeamDefaultTaskCount);
             let createdTaskReportActions = 0;
             let signingOffMessage = 0;
             let taskReportActions = 0;
