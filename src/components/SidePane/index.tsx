@@ -1,18 +1,17 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import Animated, {Easing, SlideInRight} from 'react-native-reanimated';
+import React, {useCallback, useEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Backdrop from '@components/Modal/BottomDockedModal/Backdrop';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePane from '@hooks/useSidePane';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
 import Navigation from '@libs/Navigation/Navigation';
-import {isSidePaneHidden, substituteRouteParameters} from '@libs/SidePaneUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {substituteRouteParameters} from '@libs/SidePaneUtils';
 import getHelpContent from './getHelpContent';
 
 function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
@@ -20,8 +19,7 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     const {translate} = useLocalize();
 
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
-    const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth);
+    const {sidePaneTranslateX, shouldHideSidePane, isSidePaneOverlayVisible} = useSidePane();
 
     const route = useNavigationState((state) => {
         const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
@@ -50,24 +48,19 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
         }
     }, [isExtraLargeScreenWidth, onClose]);
 
-    console.log(`%%% lastRoute`, route);
-
-    if (isPaneHidden) {
+    if (shouldHideSidePane) {
         return null;
     }
 
     return (
         <>
-            {shouldShowOverlay && !isExtraLargeScreenWidth && !shouldUseNarrowLayout && (
+            {shouldShowOverlay && isSidePaneOverlayVisible && (
                 <Backdrop
                     onBackdropPress={onClose}
                     style={styles.sidePaneOverlay}
                 />
             )}
-            <Animated.View
-                style={styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth)}
-                entering={isExtraLargeScreenWidth ? undefined : SlideInRight.duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN).easing(Easing.inOut(Easing.quad))}
-            >
+            <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}]}]}>
                 <ScreenWrapper testID={SidePane.displayName}>
                     <HeaderWithBackButton
                         title={translate('common.help')}
@@ -92,4 +85,4 @@ function SidePaneWithOverlay() {
 SidePane.displayName = 'SidePane';
 
 export default SidePane;
-export {SidePaneWithOverlay};
+export {SidePaneWithOverlay, useSidePane as useAnimatedPaddingRight};

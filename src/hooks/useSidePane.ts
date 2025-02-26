@@ -1,0 +1,66 @@
+import {useEffect, useRef, useState} from 'react';
+// Import Animated directly from 'react-native' as animations are used with navigation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import {triggerSidePane as triggerSidePaneAction} from '@libs/actions/SidePane';
+import {isSidePaneHidden} from '@libs/SidePaneUtils';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import useResponsiveLayout from './useResponsiveLayout';
+import useWindowDimensions from './useWindowDimensions';
+
+/**
+ * Hook to get the animated position of the side pane and the margin of the navigator
+ */
+function useSidePane() {
+    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
+
+    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth);
+
+    const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
+    const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;
+
+    const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
+    const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
+    const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
+
+    const triggerSidePane = () => {
+        triggerSidePaneAction(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openMobile);
+    };
+
+    useEffect(() => {
+        if (!isPaneHidden) {
+            setShouldHideSidePane(false);
+        }
+
+        Animated.parallel([
+            Animated.timing(sidePaneOffset.current, {
+                toValue: shouldApplySidePaneOffset ? variables.sideBarWidth : 0,
+                duration: CONST.ANIMATED_TRANSITION,
+                useNativeDriver: false,
+            }),
+            Animated.timing(sidePaneTranslateX.current, {
+                toValue: isPaneHidden ? sidePaneWidth : 0,
+                duration: CONST.ANIMATED_TRANSITION,
+                useNativeDriver: false,
+            }),
+        ]).start(() => {
+            setShouldHideSidePane(isPaneHidden);
+        });
+    }, [isPaneHidden, shouldApplySidePaneOffset, shouldUseNarrowLayout, sidePaneWidth]);
+
+    return {
+        sidePane,
+        shouldHideSidePane,
+        isSidePaneOverlayVisible: !isPaneHidden && !isExtraLargeScreenWidth && !shouldUseNarrowLayout,
+        sidePaneOffset,
+        sidePaneTranslateX,
+        triggerSidePane,
+    };
+}
+
+export default useSidePane;
