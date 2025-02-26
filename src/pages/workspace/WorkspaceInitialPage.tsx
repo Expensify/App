@@ -437,7 +437,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             <FullPageNotFoundView
                 onBackButtonPress={Navigation.dismissModal}
                 onLinkPress={Navigation.goBackToHome}
-                shouldShow
+                shouldShow={shouldShowNotFoundPage}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 addBottomSafeAreaPadding
             >
