@@ -17,7 +17,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {getButtonRole, getButtonStyle} from './utils';
+import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonProps = Partial<ChildrenProps> & {
@@ -376,26 +376,8 @@ function Button(
             text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
             innerStyles,
             link && styles.bgTransparent,
-            getButtonStyle(styles, isNested),
         ],
-        [
-            StyleUtils,
-            danger,
-            icon,
-            innerStyles,
-            isDisabled,
-            isNested,
-            large,
-            link,
-            medium,
-            shouldRemoveLeftBorderRadius,
-            shouldRemoveRightBorderRadius,
-            shouldShowRightIcon,
-            small,
-            styles,
-            success,
-            text,
-        ],
+        [StyleUtils, danger, icon, innerStyles, isDisabled, large, link, medium, shouldRemoveLeftBorderRadius, shouldRemoveRightBorderRadius, shouldShowRightIcon, small, styles, success, text],
     );
 
     const buttonForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
@@ -467,6 +449,7 @@ function Button(
                     style,
                 ]}
                 style={[buttonStyles, shouldBlendOpacity && {backgroundColor: theme.appBG, opacity: 1, position: 'relative', overflow: 'hidden'}]}
+                isNested={isNested}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
                     success && !isDisabled ? styles.buttonSuccessHovered : undefined,

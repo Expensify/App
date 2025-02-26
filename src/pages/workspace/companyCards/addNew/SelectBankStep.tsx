@@ -103,6 +103,7 @@ function SelectBankStep() {
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
+                confirmButtonStyles={!hasError && styles.mt5}
                 addBottomSafeAreaPadding
             >
                 {hasError && (

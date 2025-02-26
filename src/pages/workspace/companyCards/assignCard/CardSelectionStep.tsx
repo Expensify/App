@@ -149,32 +149,34 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                                 <InteractiveStepSubHeader
                                     startStepIndex={1}
-                                    stepNames={CONST.COMPANY_CARD.STEP_NAMES}
-                                />
+                                        stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                                    />
+                                </View>
+                                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+                                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
+                                    {translate('workspace.companyCards.chooseCardFor', {
+                                        assignee: assigneeDisplayName,
+                                        feed: getBankName(feed),
+                                    })}
+                                </Text>
                             </View>
-                            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                            <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                                {translate('workspace.companyCards.chooseCardFor', {
-                                    assignee: assigneeDisplayName,
-                                    feed: getBankName(feed),
-                                })}
-                            </Text>
-                        </View>
-                    }
-                    shouldShowTextInputAfterHeader
-                    shouldShowHeaderMessageAfterHeader
-                    shouldShowListEmptyContent={false}
-                    shouldUpdateFocusedIndex
-                    addBottomSafeAreaPadding
-                    footerContent={
-                        <FormAlertWithSubmitButton
-                            buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                            onSubmit={submit}
-                            isAlertVisible={shouldShowError}
-                            message={translate('common.error.pleaseSelectOne')}
-                        />
-                    }
-                />
+                        }
+                        shouldShowTextInputAfterHeader
+                        shouldShowHeaderMessageAfterHeader
+                        includeSafeAreaPaddingBottom={false}
+                        shouldShowListEmptyContent={false}
+                        shouldUpdateFocusedIndex
+                        footerContent={
+                            <FormAlertWithSubmitButton
+                                buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                                onSubmit={submit}
+                                isAlertVisible={shouldShowError}
+                                containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
+                                message={translate('common.error.pleaseSelectOne')}
+                                buttonStyles={styles.mb5}
+                            />
+                        }
+                    />
             )}
         </InteractiveStepWrapper>
     );
