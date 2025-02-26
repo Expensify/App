@@ -41,9 +41,10 @@ const useScrollEventEmitter = (additionalEmitData: ScrollingEventAdditionalData)
     // Cleanup timeout on unmount
     useEffect(() => {
         return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
+            if (!timeoutRef.current) {
+                return;
             }
+            clearTimeout(timeoutRef.current);
         };
     }, []);
 
