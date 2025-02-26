@@ -22,7 +22,7 @@ import {isDuplicate, isOnHold as isOnHoldTransactionUtils} from './TransactionUt
 function isSubmitAction(report: Report) {
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
-    const isOpen = isOpenReport(report); 
+    const isOpen = isOpenReport(report);
     const isManualSubmitEnabled = true; // TODO how to find it?
 
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled;
