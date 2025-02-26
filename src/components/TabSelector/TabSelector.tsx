@@ -77,7 +77,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const backgroundColor = getBackgroundColor({routesLength: state.routes.length, tabIndex: index, affectedTabs: affectedAnimatedTabs, theme, position, isActive});
                     const {icon, title} = getIconAndTitle(route.name, translate);
                     const shouldShowTestReceiptTooltip = route.name === CONST.TAB_REQUEST.SCAN && isActive && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas);
-                    console.log('shouldShowTestReceiptTooltip', shouldShowTestReceiptTooltip);
+                    
                     const onPress = () => {
                         if (isActive) {
                             return;
