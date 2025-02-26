@@ -30,7 +30,6 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
     const policy = usePolicy(activeWorkspaceID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const isAnonymousUser = isAnonymousUserUtil(session);
 
     const headerBreadcrumb = policy?.name
@@ -40,7 +39,6 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
           };
 
     const displaySignIn = isAnonymousUser;
-    const displayHelp = shouldDisplaySidePane && !!sidePane;
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
@@ -75,7 +73,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
-                {displayHelp && <HelpButton />}
+                {shouldDisplaySidePane && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
             <LoadingBar shouldShow={isLoadingReportData ?? false} />

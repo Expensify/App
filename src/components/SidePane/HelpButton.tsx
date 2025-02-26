@@ -23,6 +23,10 @@ function HelpButton({style}: HelpButtonProps) {
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
+    if (!sidePane) {
+        return null;
+    }
+
     return (
         <Tooltip text={translate('common.help')}>
             <PressableWithoutFeedback
