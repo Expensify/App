@@ -10,9 +10,9 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
@@ -103,7 +103,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         return cardListOptions.filter((option) => option.text.toLowerCase().includes(searchText));
     }, [searchText, cardListOptions]);
 
-    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
     return (
         <InteractiveStepWrapper
