@@ -36,6 +36,8 @@ use(Pagination);
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 use(SaveResponseInOnyx);
 
+let requestIndex = 0;
+
 type OnyxData = {
     optimisticData?: OnyxUpdate[];
     successData?: OnyxUpdate[];
@@ -78,7 +80,7 @@ function prepareRequest<TCommand extends ApiCommand>(
         command,
         data,
         initiatedOffline: isOffline(),
-        created: new Date().getTime().toString(),
+        requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
         ...conflictResolver,
     };
