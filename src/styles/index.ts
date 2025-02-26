@@ -4232,24 +4232,17 @@ const styles = (theme: ThemeColors) =>
         },
 
         eReceiptContentContainer: {
-            ...positioning.pRelative,
-            minHeight: variables.eReceiptBodyHeight,
             ...sizing.w100,
             ...spacing.p5,
-        },
-
-        eReceiptBody: {
-            ...positioning.pAbsolute,
-            ...sizing.w100,
-            ...spacing.ph5,
-            top: 0,
-            left: 0,
+            minWidth: variables.eReceiptBodyWidth,
+            minHeight: variables.eReceiptBodyHeight,
         },
 
         eReceiptContentWrapper: {
             ...sizing.w100,
             ...spacing.ph5,
-            top: 20,
+            position: 'absolute',
+            top: 40,
             left: 0,
         },
 
