@@ -3392,6 +3392,7 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        ERROR: 'error',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
