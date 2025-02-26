@@ -1571,7 +1571,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionParams.transaction.transactionID}`,
-            value: transactionParams.transaction.transactionID,
+            value: transactionParams.transaction,
         },
         chat.isNewReport
             ? {
