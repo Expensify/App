@@ -56,7 +56,7 @@ function TabSelectorItem({
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, shouldShowTestReceiptTooltip);
-console.log('shouldShowProductTrainingTooltip tab selector item', shouldShowProductTrainingTooltip);
+
     const content = () => (
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
@@ -93,7 +93,7 @@ console.log('shouldShowProductTrainingTooltip tab selector item', shouldShowProd
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
             wrapperStyle={styles.productTrainingTooltipWrapper}
-            shiftVertical={25}
+            shiftVertical={18}
         >
             {content()}
         </EducationalTooltip>
