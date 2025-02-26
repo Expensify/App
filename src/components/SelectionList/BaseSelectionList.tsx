@@ -841,7 +841,7 @@ function BaseSelectionList<TItem extends ListItem>(
         additionalPaddingBottom: showConfirmButton && shouldFooterContentStickToBottom ? DEFAULT_CONFIRM_BUTTON_CONTENT_PADDING : 0,
     });
 
-    const shouldHideBottomSafeAreaPaddingWithFooter = !shouldFooterContentStickToBottom && (showConfirmButton || !!footerContent);
+    const shouldHideContentBottomSafeAreaPadding = !shouldFooterContentStickToBottom && (showConfirmButton || !!footerContent);
 
     // TODO: test _every_ component that uses SelectionList
     return (
@@ -902,7 +902,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
-                        addBottomSafeAreaPadding={!shouldHideBottomSafeAreaPaddingWithFooter && addBottomSafeAreaPadding}
+                        addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
                         contentContainerStyle={contentContainerStyle}
                         CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
                     />
