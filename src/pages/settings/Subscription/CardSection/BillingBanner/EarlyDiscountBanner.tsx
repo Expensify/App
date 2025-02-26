@@ -54,24 +54,25 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onDismisse
     }, [firstDayFreeTrial]);
 
     const dismissButton = useMemo(
-        () => (
-            <Tooltip text={translate('common.close')}>
-                <PressableWithFeedback
-                    onPress={() => {
-                        setIsDismissed(true);
-                        onDismissedDiscountBanner?.();
-                    }}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.close')}
-                >
-                    <Icon
-                        src={Expensicons.Close}
-                        fill={theme.icon}
-                    />
-                </PressableWithFeedback>
-            </Tooltip>
-        ),
-        [theme.icon, translate, onDismissedDiscountBanner],
+        () =>
+            discountInfo?.discountType === 25 && (
+                <Tooltip text={translate('common.close')}>
+                    <PressableWithFeedback
+                        onPress={() => {
+                            setIsDismissed(true);
+                            onDismissedDiscountBanner?.();
+                        }}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.close')}
+                    >
+                        <Icon
+                            src={Expensicons.Close}
+                            fill={theme.icon}
+                        />
+                    </PressableWithFeedback>
+                </Tooltip>
+            ),
+        [theme.icon, translate, onDismissedDiscountBanner, discountInfo?.discountType],
     );
 
     const rightComponent = useMemo(() => {
@@ -85,7 +86,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onDismisse
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 />
-                {discountInfo?.discountType === 25 && (shouldUseNarrowLayout ? undefined : dismissButton)}
+                {!shouldUseNarrowLayout && dismissButton}
             </View>
         );
     }, [
@@ -99,7 +100,6 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onDismisse
         styles.gap2,
         styles.flex1,
         translate,
-        discountInfo?.discountType,
         GuideBookingButton,
         dismissButton,
     ]);
@@ -125,7 +125,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, onDismisse
                     <Text>{translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase2', {discountType: discountInfo?.discountType})}</Text>
                 </Text>
             )}
-            {discountInfo?.discountType === 25 && (shouldUseNarrowLayout ? dismissButton : undefined)}
+            {shouldUseNarrowLayout && dismissButton}
         </View>
     );
 
