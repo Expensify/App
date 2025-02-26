@@ -19,8 +19,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThread, search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import memoize from '@libs/memoize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {generateReportID} from '@libs/ReportUtils';
@@ -56,9 +56,17 @@ type SearchProps = {
     shouldGroupByReports?: boolean;
 };
 
-const transactionItemMobileHeight = 100;
-const reportItemTransactionHeight = 52;
-const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
+const transactionItemMobileHeight = 112;
+
+const mobileItemHeightWithButton = 112;
+const mobileItemHeight = 100;
+
+const webItemHeightWithButton = 112;
+const webItemHeight = 104;
+
+const webItemHeightCompact = 72;
+
+const listItemPadding = 8; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
@@ -163,6 +171,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
     // const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
     const {windowHeight} = useWindowDimensions();
+    const platform = getPlatform(true);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -216,34 +225,26 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-    const getItemHeight = useCallback(
+    const getDefaultItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
-            if (isTransactionListItemType(item) || isReportActionListItemType(item)) {
-                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
+            const isTransactionItem = isTransactionListItemType(item);
+            const isItemBig = isTransactionItem && item.action === 'pay';
+            const mobileHeight = isItemBig ? mobileItemHeightWithButton : mobileItemHeight;
+            const webHeight = isItemBig ? webItemHeightWithButton : webItemHeight;
+            const unifiedWebItemHeight = isLargeScreenWidth ? webItemHeightCompact : webHeight;
+            switch (platform) {
+                case CONST.PLATFORM.IOS:
+                case CONST.PLATFORM.ANDROID:
+                case CONST.PLATFORM.MOBILEWEB:
+                    return mobileHeight;
+                case CONST.PLATFORM.WEB:
+                    return unifiedWebItemHeight;
+                default:
+                    return 100;
             }
-
-            if (item.transactions.length === 0) {
-                return 0;
-            }
-
-            if (item.transactions.length === 1) {
-                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
-            }
-
-            const baseReportItemHeight = isLargeScreenWidth ? 72 : 108;
-            return baseReportItemHeight + item.transactions.length * reportItemTransactionHeight + listItemPadding;
         },
-        [isLargeScreenWidth],
+        [isLargeScreenWidth, platform],
     );
-
-    const getItemHeightMemoized = memoize(getItemHeight, {
-        transformKey: ([item]) => {
-            // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
-            // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
-            const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
-            return `${hash}-${item.keyForList}-${screenSizeHash}`;
-        },
-    });
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
@@ -599,11 +600,11 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             // For more information, refer to the React Native documentation:
             // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
             // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
-            windowSize={21}
+            windowSize={111}
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             onSelectRow={openReport}
-            getItemHeight={getItemHeightMemoized}
+            getItemHeight={getDefaultItemHeight}
             shouldSingleExecuteRowSelect
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             shouldPreventDefault={false}
@@ -618,7 +619,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
             isScreenFocused={isSearchScreenFocused}
             initialNumToRender={initialNumToRender}
-            maxToRenderPerBatch={initialNumToRender}
+            maxToRenderPerBatch={initialNumToRender * 2}
             defaultItemHeight={DEFAULT_ITEM_HEIGHT}
         />
     );
