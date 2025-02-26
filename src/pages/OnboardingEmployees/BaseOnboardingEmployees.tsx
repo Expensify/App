@@ -74,11 +74,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         return;
                     }
                     setOnboardingCompanySize(selectedCompanySize);
-
-                    // Redirect is disabled on desktop
-                    if (getPlatform() !== CONST.PLATFORM.DESKTOP) {
-                        switchToOldDotOnNonMicroCompanySize(selectedCompanySize);
-                    }
+                    switchToOldDotOnNonMicroCompanySize(selectedCompanySize);
 
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
