@@ -40,9 +40,9 @@ import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkspaceProfilePageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
+type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
-function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: WorkspaceProfilePageProps) {
+function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -79,37 +79,37 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
     }, [policy?.id]);
     const onPressAddress = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_ADDRESS.getRoute(policy.id));
     }, [policy?.id]);
     const onPressName = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(policy.id));
     }, [policy?.id]);
     const onPressDescription = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.getRoute(policy.id));
     }, [policy?.id]);
     const onPressShare = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_SHARE.getRoute(policy.id));
     }, [policy?.id]);
     const onPressPlanType = useCallback(() => {
         if (!policy?.id) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_PLAN.getRoute(policy.id));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_PLAN.getRoute(policy.id));
     }, [policy?.id]);
     const policyName = policy?.name ?? '';
     const policyDescription =
@@ -176,7 +176,7 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_PROFILE}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
             // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
             shouldShowLoading={policy === undefined}
             shouldUseScrollView
@@ -381,6 +381,6 @@ function WorkspaceProfilePage({policyDraft, policy: policyProp, route}: Workspac
     );
 }
 
-WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
+WorkspaceOverviewPage.displayName = 'WorkspaceOverviewPage';
 
-export default withPolicy(WorkspaceProfilePage);
+export default withPolicy(WorkspaceOverviewPage);

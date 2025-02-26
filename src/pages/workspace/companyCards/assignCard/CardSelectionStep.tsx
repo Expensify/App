@@ -13,6 +13,7 @@ import TextLink from '@components/TextLink';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
@@ -37,6 +38,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {environmentURL} = useEnvironment();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
@@ -91,7 +93,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
-                src={getCardFeedIcon(feed)}
+                src={getCardFeedIcon(feed, illustrations)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}

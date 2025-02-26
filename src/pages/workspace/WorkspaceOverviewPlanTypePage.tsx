@@ -34,7 +34,7 @@ type WorkspacePlanTypeItem = {
     keyForList: ValueOf<typeof CONST.POLICY.TYPE>;
     isSelected: boolean;
 };
-function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
+function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
     const policyID = policy?.id;
     const {translate} = useLocalize();
@@ -101,7 +101,7 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                testID={WorkspaceProfilePlanTypePage.displayName}
+                testID={WorkspaceOverviewPlanTypePage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -158,6 +158,6 @@ function WorkspaceProfilePlanTypePage({policy}: WithPolicyProps) {
     );
 }
 
-WorkspaceProfilePlanTypePage.displayName = 'WorkspaceProfilePlanTypePage';
+WorkspaceOverviewPlanTypePage.displayName = 'WorkspaceOverviewPlanTypePage';
 
-export default withPolicy(WorkspaceProfilePlanTypePage);
+export default withPolicy(WorkspaceOverviewPlanTypePage);

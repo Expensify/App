@@ -2967,6 +2967,7 @@ const CONST = {
             BREX: 'oauth.brex.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
+            CSV: '_ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -3047,6 +3048,7 @@ const CONST = {
             VISA: 'visa',
             MASTERCARD: 'mastercard',
             STRIPE: 'stripe',
+            CSV: 'CSV',
         },
         FEED_TYPE: {
             CUSTOM: 'customFeed',
@@ -3336,7 +3338,7 @@ const CONST = {
     GUIDES_CALL_TASK_IDS: {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_PROFILE: 'WorkspaceProfile',
+        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',

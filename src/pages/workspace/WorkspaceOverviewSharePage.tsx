@@ -29,7 +29,7 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
-function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
+function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -68,7 +68,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                testID={WorkspaceProfileSharePage.displayName}
+                testID={WorkspaceOverviewSharePage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -146,6 +146,6 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     );
 }
 
-WorkspaceProfileSharePage.displayName = 'WorkspaceProfileSharePage';
+WorkspaceOverviewSharePage.displayName = 'WorkspaceOverviewSharePage';
 
-export default withPolicy(WorkspaceProfileSharePage);
+export default withPolicy(WorkspaceOverviewSharePage);

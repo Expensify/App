@@ -18,11 +18,11 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspaceProfileCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
+type WorkspaceOverviewCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
-function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProps) {
+function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPageProps) {
     const {translate} = useLocalize();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
@@ -44,7 +44,7 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceProfileCurrencyPage.displayName}
+                testID={WorkspaceOverviewCurrencyPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}
@@ -62,6 +62,6 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProp
     );
 }
 
-WorkspaceProfileCurrencyPage.displayName = 'WorkspaceProfileCurrencyPage';
+WorkspaceOverviewCurrencyPage.displayName = 'WorkspaceOverviewCurrencyPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceProfileCurrencyPage);
+export default withPolicyAndFullscreenLoading(WorkspaceOverviewCurrencyPage);

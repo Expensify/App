@@ -23,7 +23,7 @@ import type {WithPolicyProps} from './withPolicy';
 
 type Props = WithPolicyProps;
 
-function WorkspaceProfileDescriptionPage({policy}: Props) {
+function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isInputInitializedRef = useRef(false);
@@ -73,7 +73,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
             <ScreenWrapper
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceProfileDescriptionPage.displayName}
+                testID={WorkspaceOverviewDescriptionPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.descriptionInputLabel')}
@@ -119,6 +119,6 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
     );
 }
 
-WorkspaceProfileDescriptionPage.displayName = 'WorkspaceProfileDescriptionPage';
+WorkspaceOverviewDescriptionPage.displayName = 'WorkspaceOverviewDescriptionPage';
 
-export default withPolicy(WorkspaceProfileDescriptionPage);
+export default withPolicy(WorkspaceOverviewDescriptionPage);
