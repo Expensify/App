@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 if [[ ! -d Mobile-Expensify ]]; then
     echo false
