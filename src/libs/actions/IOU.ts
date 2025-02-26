@@ -344,7 +344,7 @@ type PerDiemExpenseTransactionParams = {
     billable?: boolean;
 };
 
-type RequestMoneyPolicyParams = {
+type BasePolicyParams = {
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -359,7 +359,7 @@ type RequestMoneyParticipantParams = {
 type PerDiemExpenseInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
-    policyParams?: RequestMoneyPolicyParams;
+    policyParams?: BasePolicyParams;
     transactionParams: PerDiemExpenseTransactionParams;
 };
 
@@ -367,14 +367,14 @@ type PerDiemExpenseInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: PerDiemExpenseTransactionParams;
     participantParams: RequestMoneyParticipantParams;
-    policyParams?: RequestMoneyPolicyParams;
+    policyParams?: BasePolicyParams;
     moneyRequestReportID?: string;
 };
 
 type RequestMoneyInformation = {
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
-    policyParams?: RequestMoneyPolicyParams;
+    policyParams?: BasePolicyParams;
     gpsPoints?: GPSPoint;
     action?: IOUAction;
     reimbursible?: boolean;
@@ -385,7 +385,7 @@ type MoneyRequestInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: RequestMoneyTransactionParams;
     participantParams: RequestMoneyParticipantParams;
-    policyParams?: RequestMoneyPolicyParams;
+    policyParams?: BasePolicyParams;
     moneyRequestReportID?: string;
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
@@ -422,7 +422,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     shouldCreateNewMoneyRequestReport: boolean;
     isOneOnOneSplit?: boolean;
     existingTransactionThreadReportID?: string;
-    policyParams?: RequestMoneyPolicyParams;
+    policyParams?: BasePolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
 };
 
@@ -449,7 +449,7 @@ type CreateDistanceRequestInformation = {
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     transactionParams: DistanceRequestTransactionParams;
-    policyParams?: RequestMoneyPolicyParams;
+    policyParams?: BasePolicyParams;
 };
 
 type TrackExpenseTransactionParams = {
@@ -477,7 +477,7 @@ type CreateTrackExpenseParams = {
     isDraftPolicy: boolean;
     action?: IOUAction;
     participantParams: RequestMoneyParticipantParams;
-    policyParams?: RequestMoneyPolicyParams;
+    policyParams?: BasePolicyParams;
     transactionParams: TrackExpenseTransactionParams;
 };
 
@@ -502,18 +502,12 @@ type GetTrackExpenseInformationParticipantParams = {
     participant: Participant;
 };
 
-type GetTrackExpenseInformationPolicyParams = {
-    policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
-};
-
 type GetTrackExpenseInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     moneyRequestReportID?: string;
     existingTransactionID?: string;
     participantParams: GetTrackExpenseInformationParticipantParams;
-    policyParams: GetTrackExpenseInformationPolicyParams;
+    policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
 };
 
