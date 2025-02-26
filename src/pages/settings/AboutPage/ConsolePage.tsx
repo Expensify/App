@@ -14,7 +14,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -51,8 +50,7 @@ function ConsolePage() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.CONSOLE_DEBUG>>();
-    const isAuthenticated = useIsAuthenticated();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [
@@ -183,16 +181,14 @@ function ConsolePage() {
                     icon={Expensicons.Download}
                     style={[styles.flex1, styles.mr1]}
                 />
-                {isAuthenticated && (
-                    <Button
-                        text={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onPress={shareLogs}
-                        large
-                        icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
-                        style={[styles.flex1, styles.ml1]}
-                        isLoading={isGeneratingLogsFile}
-                    />
-                )}
+                <Button
+                    text={translate('initialSettingsPage.debugConsole.shareLog')}
+                    onPress={shareLogs}
+                    large
+                    icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
+                    style={[styles.flex1, styles.ml1]}
+                    isLoading={isGeneratingLogsFile}
+                />
             </View>
             <View style={[styles.mh5]}>
                 <TextInput
