@@ -1,6 +1,7 @@
 import {NavigationContext} from '@react-navigation/native';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {DeviceEventEmitter, Dimensions, type LayoutRectangle, NativeMethods, type NativeSyntheticEvent} from 'react-native';
+import {type LayoutRectangle, type NativeMethods, type NativeSyntheticEvent} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -10,6 +11,10 @@ import measureTooltipCoordinate, {getTooltipCoordiate} from './measureTooltipCoo
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
+type ScrollingEventData = {
+    isScrolling: boolean;
+    tooltipName: string;
+};
 /**
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
@@ -26,7 +31,9 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
 
     const setTooltipPosition = useCallback(
         (isScrolling: boolean, tooltipName: string) => {
-            if (tooltipName !== name || !genericTooltipStateRef.current || !tooltipElRef.current) return;
+            if (tooltipName !== name || !genericTooltipStateRef.current || !tooltipElRef.current) {
+                return;
+            }
 
             const {hideTooltip, showTooltip, updateTargetBounds} = genericTooltipStateRef.current;
             if (isScrolling) {
@@ -59,9 +66,11 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     );
 
     useLayoutEffect(() => {
-        if (!shouldRender || !name || !shouldHideOnEdge) return;
+        if (!shouldRender || !name || !shouldHideOnEdge) {
+            return;
+        }
         setTooltipPosition(false, name);
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling, tooltipName} = {}) => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling, tooltipName}: ScrollingEventData = {isScrolling: false, tooltipName: ''}) => {
             setTooltipPosition(isScrolling, tooltipName);
         });
 
@@ -124,9 +133,6 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                         // e.target is specific to native, use e.nativeEvent.target on web instead
                         const target = e.target || e.nativeEvent.target;
                         tooltipElRef.current = target;
-                        if (shouldHideOnEdge) {
-                            return;
-                        }
                         show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
                     },
                 });

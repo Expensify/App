@@ -199,7 +199,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onOptionPress}
                 name={CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP}
-                shouldHideOnEdge={true}
+                shouldHideOnEdge
             >
                 <View>
                     <Hoverable>
