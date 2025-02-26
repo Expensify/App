@@ -651,10 +651,7 @@ function clearQBOErrorField(policyID: string | undefined, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearQBDErrorField(policyID: string | undefined, fieldName: string) {
-    if (!policyID) {
-        return;
-    }
+function clearQBDErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksDesktop: {config: {errorFields: {[fieldName]: null}}}}});
 }
 

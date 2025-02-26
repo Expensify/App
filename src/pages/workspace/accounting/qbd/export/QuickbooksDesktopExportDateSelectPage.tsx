@@ -73,7 +73,12 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE], qbdConfig?.pendingFields)}
             errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE)}
+            onClose={() => {
+                if (!policyID) {
+                    return;
+                }
+                clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE);
+            }}
             shouldSingleExecuteRowSelect
         />
     );
