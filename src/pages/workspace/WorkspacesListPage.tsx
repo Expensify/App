@@ -37,7 +37,7 @@ import localeCompare from '@libs/LocaleCompare';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, getWorkspaceAccountID, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -124,7 +124,7 @@ function WorkspacesListPage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();

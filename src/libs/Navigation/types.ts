@@ -1566,7 +1566,9 @@ type ReportsSplitNavigatorParamList = {
 
 type SettingsSplitNavigatorParamList = {
     [SCREENS.SETTINGS.ROOT]: undefined;
-    [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SETTINGS.WORKSPACES]: {
+        backTo?: Routes;
+    };
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
