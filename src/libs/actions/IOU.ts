@@ -470,7 +470,7 @@ type CreateSplitsAndOnyxDataParams = {
     participants: Participant[];
     currentUserLogin: string;
     currentUserAccountID: number;
-    existingSplitChatReportID: string | undefined;
+    existingSplitChatReportID?: string;
     transactionParams: CreateSplitsTransactionParams;
 };
 
@@ -5021,8 +5021,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const existingChatReportID = existingSplitChatReportID || participants.at(0)?.reportID;
+    const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
 
     // Check if the report is available locally if we do have one
     const existingSplitChatOnyxData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
@@ -5535,7 +5534,7 @@ function splitBill({
     tag = '',
     billable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-    existingSplitChatReportID = '',
+    existingSplitChatReportID,
     splitShares = {},
     splitPayerAccountIDs = [],
     taxCode = '',
@@ -5610,12 +5609,13 @@ function splitBillAndOpenReport({
     splitPayerAccountIDs = [],
     taxCode = '',
     taxAmount = 0,
+    existingSplitChatReportID,
 }: SplitBillActionsParams) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
         participants,
         currentUserLogin,
         currentUserAccountID,
-        existingSplitChatReportID: '',
+        existingSplitChatReportID,
         transactionParams: {
             amount,
             comment,
@@ -5686,7 +5686,7 @@ function startSplitBill({
     currentUserAccountID,
     comment,
     receipt,
-    existingSplitChatReportID = '',
+    existingSplitChatReportID,
     billable = false,
     category = '',
     tag = '',
