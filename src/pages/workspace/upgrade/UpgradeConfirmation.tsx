@@ -47,6 +47,7 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
             shouldShowPrimaryButton
             onPrimaryButtonPress={onConfirmUpgrade}
             primaryButtonText={translate('workspace.upgrade.completed.gotIt')}
+            containerStyle={styles.h100}
         />
     );
 }

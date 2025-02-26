@@ -654,6 +654,10 @@ type MergeAccountGenericParams = {
     email: string;
 };
 
+type PolicyExpenseChatNameParams = {
+    displayName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -887,5 +891,6 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     MergeAccountGenericParams,
+    PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
 };
