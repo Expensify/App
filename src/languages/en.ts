@@ -4871,7 +4871,7 @@ const translations = {
             if (!oldValue) {
                 return `set the monthly report submission date to "${newValue}"`;
             }
-            return `updated the monthly report submission date from "${oldValue}" to "${newValue}"`;
+            return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
         },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,

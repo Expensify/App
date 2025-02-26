@@ -4926,7 +4926,7 @@ const translations = {
             if (!oldValue) {
                 return `establecer la fecha de envío del informe mensual a "${newValue}"`;
             }
-            return `actualizar la fecha de envío del informe mensual de "${oldValue}" a "${newValue}"`;
+            return `actualizar la fecha de envío del informe mensual a "${newValue}" (previamente "${oldValue}")`;
         },
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
