@@ -55,21 +55,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   postGitHubCommentBuildStarted:
-    runs-on: ubuntu-latest
+    name: Post build started comment
+    uses: ./.github/workflows/postBuildStartedComment.yml
     needs: [prep]
-    steps:
-      - name: Add build start comment
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ github.token }}
-          script: |
-            const workflowURL = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: process.env.PULL_REQUEST_NUMBER,
-              body: `🚧 @${{ github.actor }} has triggered a test build. You can view the [workflow run here](${workflowURL}).`
-            });
+    secrets: inherit
+    with:
+      APP_PULL_REQUEST_NUMBER: ${{ github.event.number || github.event.inputs.PULL_REQUEST_NUMBER }}
 
   buildAndroid:
     name: Build Android app for testing
@@ -186,7 +177,7 @@ jobs:
         run: |
           op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc/NewApp_AdHoc.mobileprovision" --force --out-file ./NewApp_AdHoc.mobileprovision
           op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Notification_Service/NewApp_AdHoc_Notification_Service.mobileprovision" --force --out-file ./NewApp_AdHoc_Notification_Service.mobileprovision
-          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Share_Extension.mobileprovision/NewApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./NewApp_AdHoc_Share_Extension.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/NewApp_AdHoc_Share_Extension/NewApp_AdHoc_Share_Extension.mobileprovision" --force --out-file ./NewApp_AdHoc_Share_Extension.mobileprovision
           op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
       - name: Configure AWS Credentials
@@ -231,6 +222,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_DESKTOP_BUILD: true
 
       - name: Load Desktop credentials from 1Password
         id: load-credentials

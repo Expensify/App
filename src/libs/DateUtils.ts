@@ -943,6 +943,14 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
     return `${format(date1, 'MMM d, yyyy')} - ${format(date2, 'MMM d, yyyy')}`;
 }
 
+/**
+ * Checks if the current time falls within the specified time range.
+ */
+const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean => {
+    const now = Date.now();
+    return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
+};
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -998,6 +1006,7 @@ const DateUtils = {
     getFormattedDuration,
     isFutureDay,
     getFormattedDateRangeForPerDiem,
+    isCurrentTimeWithinRange,
 };
 
 export default DateUtils;

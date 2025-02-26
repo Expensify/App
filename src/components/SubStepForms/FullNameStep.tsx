@@ -8,7 +8,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
@@ -70,13 +70,13 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields);
 
             const firstName = values[firstNameInputID as keyof FormOnyxValues<TFormID>] as string;
-            if (!ValidationUtils.isRequiredFulfilled(firstName)) {
+            if (!isRequiredFulfilled(firstName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[firstNameInputID] = translate('common.error.fieldRequired');
-            } else if (!ValidationUtils.isValidLegalName(firstName)) {
+            } else if (!isValidLegalName(firstName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[firstNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
             } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
@@ -88,10 +88,10 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const lastName = values[lastNameInputID as keyof FormOnyxValues<TFormID>] as string;
-            if (!ValidationUtils.isRequiredFulfilled(lastName)) {
+            if (!isRequiredFulfilled(lastName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[lastNameInputID] = translate('common.error.fieldRequired');
-            } else if (!ValidationUtils.isValidLegalName(lastName)) {
+            } else if (!isValidLegalName(lastName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[lastNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
             } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
@@ -113,6 +113,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            enabledWhenOffline
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{formTitle}</Text>

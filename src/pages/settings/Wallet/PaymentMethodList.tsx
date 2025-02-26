@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {getCardFeedIcon, isExpensifyCard, maskCardNumber} from '@libs/CardUtils';
@@ -195,6 +196,7 @@ function PaymentMethodList({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const illustrations = useThemeIllustrations();
 
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -216,8 +218,8 @@ function PaymentMethodList({
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
-                const icon = getCardFeedIcon(card.bank as CompanyCardFeed);
                 const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
+                const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
                 if (!isExpensifyCard(card.cardID)) {
                     const pressHandler = onPress as CardPressHandler;
@@ -359,6 +361,7 @@ function PaymentMethodList({
         onPress,
         isLoadingBankAccountList,
         isLoadingCardList,
+        illustrations,
     ]);
 
     /**
