@@ -76,7 +76,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
                         <ImageSVG
                             src={Expensicons.ReceiptBody}
                             fill={theme.textColorfulBackground}
-                            contentFit='fill'
+                            contentFit="fill"
                         />
                         <View style={styles.eReceiptContentWrapper}>
                             <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter]}>
