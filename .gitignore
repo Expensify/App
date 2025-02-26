@@ -46,6 +46,9 @@ android/app/src/main/java/com/expensify/chat/generated/
 # Vscode
 .vscode
 
+# Fleet
+.fleet
+
 # node.js
 #
 node_modules/

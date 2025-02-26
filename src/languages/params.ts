@@ -652,6 +652,10 @@ type SettlementDateParams = {
     settlementDate: string;
 };
 
+type PolicyExpenseChatNameParams = {
+    displayName: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -885,5 +889,6 @@ export type {
     UpdatedPolicyReportFieldDefaultValueParams,
     SubmitsToParams,
     SettlementDateParams,
+    PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
 };
