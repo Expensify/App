@@ -126,45 +126,43 @@ index 26c9aeb..b2cff8b 100644
  
    @Override
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
-index 1d7800d..b612029 100644
+index 8dc00b6..97bb202 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactHorizontalScrollView.java
-@@ -508,6 +508,10 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
-           mOnScrollDispatchHelper.getYFlingVelocity(),
-           mEnableSyncOnScroll);
-       mPreventReentry = false;
-+
+@@ -483,6 +483,9 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
+             mOnScrollDispatchHelper.getXFlingVelocity(),
+             mOnScrollDispatchHelper.getYFlingVelocity());
+       }
 +      if (mMaintainVisibleContentPositionHelper != null) {
 +        mMaintainVisibleContentPositionHelper.onScroll();
 +      }
+     } finally {
+       Systrace.endSection(Systrace.TRACE_TAG_REACT_JAVA_BRIDGE);
      }
-   }
- 
-@@ -1459,7 +1463,7 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
-     if (layoutDirection == LAYOUT_DIRECTION_RTL) {
+@@ -1414,7 +1417,7 @@ public class ReactHorizontalScrollView extends HorizontalScrollView
+     if (v.getLayoutDirection() == LAYOUT_DIRECTION_RTL) {
        adjustPositionForContentChangeRTL(left, right, oldLeft, oldRight);
      } else if (mMaintainVisibleContentPositionHelper != null) {
 -      mMaintainVisibleContentPositionHelper.updateScrollPosition();
 +      mMaintainVisibleContentPositionHelper.onLayout();
      }
+     ReactScrollViewHelper.emitLayoutChangeEvent(this);
    }
- 
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
-index e49a25a..0eb79ed 100644
+index adf92c1..49a1470 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/scroll/ReactScrollView.java
-@@ -432,6 +432,10 @@ public class ReactScrollView extends ScrollView
-           mOnScrollDispatchHelper.getYFlingVelocity(),
-           mEnableSyncOnScroll);
-       mPreventReentry = false;
-+
+@@ -417,6 +417,9 @@ public class ReactScrollView extends ScrollView
+             mOnScrollDispatchHelper.getXFlingVelocity(),
+             mOnScrollDispatchHelper.getYFlingVelocity());
+       }
 +      if (mMaintainVisibleContentPositionHelper != null) {
 +        mMaintainVisibleContentPositionHelper.onScroll();
 +      }
+     } finally {
+       Systrace.endSection(Systrace.TRACE_TAG_REACT_JAVA_BRIDGE);
      }
-   }
- 
-@@ -1235,7 +1239,7 @@ public class ReactScrollView extends ScrollView
+@@ -1224,7 +1227,7 @@ public class ReactScrollView extends ScrollView
      }
  
      if (mMaintainVisibleContentPositionHelper != null) {
