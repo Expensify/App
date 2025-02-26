@@ -1,15 +1,10 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import {useOnyx} from 'react-native-onyx';
 import SidePane from '@components/SidePane';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isSidePaneHidden} from '@libs/SidePaneUtils';
-import variables from '@styles/variables';
-import ONYXKEYS from '@src/ONYXKEYS';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 
@@ -29,11 +24,8 @@ const commonScreenOptions: PlatformStackNavigationOptions = {
 
 const useRootNavigatorScreenOptions = () => {
     const StyleUtils = useStyleUtils();
-    const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
-    const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth);
 
     return {
         rightModalNavigator: {
@@ -44,14 +36,7 @@ const useRootNavigatorScreenOptions = () => {
             animationTypeForReplace: 'pop',
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    // This is necessary to cover translated sidebar with overlay.
-                    width: shouldUseNarrowLayout ? '100%' : '200%',
-                    // Excess space should be on the left so we need to position from right.
-                    right: isPaneHidden || !isExtraLargeScreenWidth ? 0 : variables.sideBarWidth,
-                },
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, shouldAnimateSidePane: true}),
             },
             // @ts-expect-error SidePane is a custom screen option that was added in a patch (when we migrate to react-navigation v7 we can use screenLayout instead)
             sidePane: SidePane,
@@ -106,12 +91,7 @@ const useRootNavigatorScreenOptions = () => {
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,
             web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    // This is necessary 
-                    width: isPaneHidden || !isExtraLargeScreenWidth ? '100%' : windowWidth - variables.sideBarWidth,
-                },
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePane: true}),
             },
         },
     } satisfies RootNavigatorScreenOptions;
