@@ -66,10 +66,10 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         width={variables.cardIconWidth}
                         additionalStyles={styles.cardIcon}
                     />
-                    <View>
+                    <View style={styles.flex1}>
                         <View style={[styles.flexRow, styles.gap1]}>
-                            <CaretWrapper>
-                                <Text style={styles.textStrong}>{formattedFeedName}</Text>
+                            <CaretWrapper style={styles.flex1}>
+                                <Text style={[styles.textStrong, styles.flexShrink1]}>{formattedFeedName}</Text>
                             </CaretWrapper>
                             {checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID), selectedFeed) && (
                                 <Icon
