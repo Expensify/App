@@ -222,7 +222,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
                             style={[styles.flex1, styles.ph1]}
-                        /> 
+                        />
                         <Button
                             text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             style={[styles.flex1, styles.ph1]}
@@ -231,7 +231,27 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                 )}
             </View>
         );
-    }, [styles.alignItemsCenter, styles.flex1, styles.flexRow, styles.flexWrap, styles.gap3, styles.justifyContentBetween, styles.justifyContentCenter, styles.mw100, styles.p2, styles.pb2, styles.ph1, styles.productTrainingTooltipText, styles.pt1, styles.textAlignCenter, styles.textBold, styles.textWrap, theme.tooltipHighlightText, tooltipName, translate]);
+    }, [
+        styles.alignItemsCenter,
+        styles.flex1,
+        styles.flexRow,
+        styles.flexWrap,
+        styles.gap3,
+        styles.justifyContentBetween,
+        styles.justifyContentCenter,
+        styles.mw100,
+        styles.p2,
+        styles.pb2,
+        styles.ph1,
+        styles.productTrainingTooltipText,
+        styles.pt1,
+        styles.textAlignCenter,
+        styles.textBold,
+        styles.textWrap,
+        theme.tooltipHighlightText,
+        tooltipName,
+        translate,
+    ]);
 
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldShow && shouldRenderTooltip(tooltipName);

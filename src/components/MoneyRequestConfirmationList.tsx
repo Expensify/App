@@ -66,12 +66,12 @@ import FormHelpMessage from './FormHelpMessage';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
+import {useProductTrainingContext} from './ProductTrainingContext';
 import SelectionList from './SelectionList';
 import type {SectionListDataType} from './SelectionList/types';
 import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import Text from './Text';
-import {useProductTrainingContext} from './ProductTrainingContext';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type MoneyRequestConfirmationListProps = {
@@ -990,7 +990,22 @@ function MoneyRequestConfirmationList({
                 </EducationalTooltip>
             </>
         );
-    }, [isReadOnly, iouType, confirm, bankAccountRoute, iouCurrencyCode, policyID, isConfirmed, splitOrRequestOptions, errorMessage, styles.ph1, styles.mb2, styles.productTrainingTooltipWrapper, shouldShowProductTrainingTooltip, renderProductTrainingTooltip]);
+    }, [
+        isReadOnly,
+        iouType,
+        confirm,
+        bankAccountRoute,
+        iouCurrencyCode,
+        policyID,
+        isConfirmed,
+        splitOrRequestOptions,
+        errorMessage,
+        styles.ph1,
+        styles.mb2,
+        styles.productTrainingTooltipWrapper,
+        shouldShowProductTrainingTooltip,
+        renderProductTrainingTooltip,
+    ]);
 
     const listFooterContent = (
         <MoneyRequestConfirmationListFooter

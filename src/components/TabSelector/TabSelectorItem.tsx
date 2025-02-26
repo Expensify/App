@@ -2,12 +2,12 @@ import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Tooltip from '@components/Tooltip';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 
@@ -81,7 +81,7 @@ function TabSelectorItem({
                 />
             )}
         </AnimatedPressableWithFeedback>
-    ) 
+    );
 
     return shouldShowTestReceiptTooltip ? (
         <EducationalTooltip

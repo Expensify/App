@@ -1,27 +1,27 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import SelectCircle from '@components/SelectCircle';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
-import { useProductTrainingContext } from '@components/ProductTrainingContext';
-import ONYXKEYS from '@src/ONYXKEYS';
-import { useOnyx } from 'react-native-onyx';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
-import { getIsUserSubmittedExpenseOrScannedReceipt, isSelectedManagerMcTest } from '@libs/OptionsListUtils';
+import {getIsUserSubmittedExpenseOrScannedReceipt, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import type {InviteMemberListItemProps, ListItem} from './types';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import BaseListItem from './BaseListItem';
+import type {InviteMemberListItemProps, ListItem} from './types';
 
 const fallbackIcon: Icon = {
     source: FallbackAvatar,
@@ -96,74 +96,74 @@ function InviteMemberListItem<TItem extends ListItem>({
         >
             {(hovered?: boolean) => (
                 <EducationalTooltip
-                shouldRender={shouldShowProductTrainingTooltip}
-                renderTooltipContent={renderProductTrainingTooltip}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-                shouldHideOnNavigate
-                wrapperStyle={styles.productTrainingTooltipWrapper}
-            >
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                {!!item.icons &&
-                        (item.shouldShowSubscript ? (
-                            <SubscriptAvatar
-                                mainAvatar={item.icons.at(0) ?? fallbackIcon}
-                                secondaryAvatar={item.icons.at(1)}
-                                showTooltip={showTooltip}
-                                backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                            />
-                        ) : (
-                            <MultipleAvatars
-                                icons={item.icons}
-                                shouldShowTooltip={showTooltip}
-                                secondAvatarStyle={[
-                                    StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                    isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                    hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                                ]}
-                            />
-                        ))}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.text ?? '')}
-                                style={[
-                                    styles.optionDisplayName,
-                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                    item.isBold !== false && styles.sidebarLinkTextBold,
-                                    styles.pre,
-                                    item.alternateText ? styles.mb1 : null,
-                                ]}
-                            />
+                    shouldRender={shouldShowProductTrainingTooltip}
+                    renderTooltipContent={renderProductTrainingTooltip}
+                    anchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    shouldHideOnNavigate
+                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                >
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                        {!!item.icons &&
+                            (item.shouldShowSubscript ? (
+                                <SubscriptAvatar
+                                    mainAvatar={item.icons.at(0) ?? fallbackIcon}
+                                    secondaryAvatar={item.icons.at(1)}
+                                    showTooltip={showTooltip}
+                                    backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                />
+                            ) : (
+                                <MultipleAvatars
+                                    icons={item.icons}
+                                    shouldShowTooltip={showTooltip}
+                                    secondAvatarStyle={[
+                                        StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
+                                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                        hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                    ]}
+                                />
+                            ))}
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={Str.removeSMSDomain(item.text ?? '')}
+                                    style={[
+                                        styles.optionDisplayName,
+                                        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                        item.isBold !== false && styles.sidebarLinkTextBold,
+                                        styles.pre,
+                                        item.alternateText ? styles.mb1 : null,
+                                    ]}
+                                />
+                            </View>
+                            {!!item.alternateText && (
+                                <TextWithTooltip
+                                    shouldShowTooltip={showTooltip}
+                                    text={Str.removeSMSDomain(item.alternateText ?? '')}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                />
+                            )}
                         </View>
-                        {!!item.alternateText && (
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={Str.removeSMSDomain(item.alternateText ?? '')}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
+                        {!!item.rightElement && item.rightElement}
+                        {!!shouldShowCheckBox && (
+                            <PressableWithFeedback
+                                onPress={handleCheckboxPress}
+                                disabled={isDisabled}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={item.text ?? ''}
+                                style={[styles.ml2, styles.optionSelectCircle]}
+                            >
+                                <SelectCircle
+                                    isChecked={item.isSelected ?? false}
+                                    selectCircleStyles={styles.ml0}
+                                />
+                            </PressableWithFeedback>
                         )}
                     </View>
-                    {!!item.rightElement && item.rightElement}
-                    {!!shouldShowCheckBox && (
-                        <PressableWithFeedback
-                            onPress={handleCheckboxPress}
-                            disabled={isDisabled}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={item.text ?? ''}
-                            style={[styles.ml2, styles.optionSelectCircle]}
-                        >
-                            <SelectCircle
-                                isChecked={item.isSelected ?? false}
-                                selectCircleStyles={styles.ml0}
-                            />
-                        </PressableWithFeedback>
-                    )}
-                </View>
-            </EducationalTooltip>
+                </EducationalTooltip>
             )}
         </BaseListItem>
     );

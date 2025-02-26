@@ -25,10 +25,13 @@ function useDebouncedState<T>(initialValue: T, delay: number = CONST.TIMING.USE_
 
     useEffect(() => () => debouncedSetDebouncedValue.cancel(), [debouncedSetDebouncedValue]);
 
-    const handleSetValue = useCallback((newValue: T) => {
-        setValue(newValue);
-        debouncedSetDebouncedValue(newValue);
-    }, [debouncedSetDebouncedValue]);
+    const handleSetValue = useCallback(
+        (newValue: T) => {
+            setValue(newValue);
+            debouncedSetDebouncedValue(newValue);
+        },
+        [debouncedSetDebouncedValue],
+    );
 
     return [value, debouncedValue, handleSetValue];
 }

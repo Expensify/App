@@ -149,7 +149,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: SCAN_TEST_CONFIRMATION,
         priority: 1100,
         shouldShow: () => true,
-    }
+    },
 };
 
 export default TOOLTIPS;
