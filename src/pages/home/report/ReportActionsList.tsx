@@ -275,7 +275,7 @@ function ReportActionsList({
     /**
      * The reportActionID the unread marker should display above
      */
-    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useMemo(() => {
+    const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions.at(index + 1);
             const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
@@ -332,11 +332,11 @@ function ReportActionsList({
 
             // eslint-disable-next-line react-compiler/react-compiler
             if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
-                return {unreadMarkerReportActionID: reportAction.reportActionID, unreadMarkerReportActionIndex: index};
+                return reportAction.reportActionID;
             }
         }
 
-        return {unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1};
+        return null;
     }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
@@ -638,27 +638,6 @@ function ReportActionsList({
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
-
-    // Handles scrolling to the unread marker.
-    // If we have an unread marker initially we do not need to scroll to it as this
-    // will be handled by the list `initialScrollKey`.
-    const didScrollToUnreadMarker = useRef(unreadMarkerReportActionIndex >= 0);
-    useEffect(() => {
-        if (unreadMarkerReportActionIndex === -1 || didScrollToUnreadMarker.current) {
-            return;
-        }
-        didScrollToUnreadMarker.current = true;
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.ref?.current?.scrollToIndex({
-                index: unreadMarkerReportActionIndex,
-                animated: true,
-                // This scrolls the unread action at the top of the screen.
-                viewPosition: 1,
-                // This makes sure that the unread indicator doesn't get cut off.
-                viewOffset: -64,
-            });
-        });
-    }, [reportScrollManager, unreadMarkerReportActionIndex]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
