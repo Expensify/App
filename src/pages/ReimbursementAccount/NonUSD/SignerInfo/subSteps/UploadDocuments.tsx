@@ -21,7 +21,6 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 type UploadDocumentsProps = SubStepProps;
 
-const {SIGNER_ADDRESS_PROOF, SIGNER_PROOF_OF_DIRECTORS, SIGNER_COPY_OF_ID, SIGNER_CODICE_FISCALE, SIGNER_PRD_AND_SFG} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE, PRD_AND_SFG} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 const STEP_FIELDS = [ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID];
 
@@ -39,11 +38,11 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
     const defaultValues = {
-        [`signer_${COPY_OF_ID}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_COPY_OF_ID] ?? reimbursementAccountDraft?.[`signer_${COPY_OF_ID}`] ?? [],
-        [`signer_${ADDRESS_PROOF}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_ADDRESS_PROOF] ?? reimbursementAccountDraft?.[`signer_${ADDRESS_PROOF}`] ?? [],
-        [`signer_${PROOF_OF_DIRECTORS}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_PROOF_OF_DIRECTORS] ?? reimbursementAccountDraft?.[`signer_${PROOF_OF_DIRECTORS}`] ?? [],
-        [`signer_${CODICE_FISCALE}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_CODICE_FISCALE] ?? reimbursementAccountDraft?.[`signer_${CODICE_FISCALE}`] ?? [],
-        [`signer_${PRD_AND_SFG}`]: reimbursementAccount?.achData?.corpay?.[SIGNER_PRD_AND_SFG] ?? reimbursementAccountDraft?.[`signer_${PRD_AND_SFG}`] ?? [],
+        [`signer_${COPY_OF_ID}`]: Array.isArray(reimbursementAccountDraft?.[`signer_${COPY_OF_ID}`]) ? reimbursementAccountDraft?.[`signer_${COPY_OF_ID}`] : [],
+        [`signer_${ADDRESS_PROOF}`]: Array.isArray(reimbursementAccountDraft?.[`signer_${ADDRESS_PROOF}`]) ? reimbursementAccountDraft?.[`signer_${ADDRESS_PROOF}`] : [],
+        [`signer_${PROOF_OF_DIRECTORS}`]: Array.isArray(reimbursementAccountDraft?.[`signer_${PROOF_OF_DIRECTORS}`]) ? reimbursementAccountDraft?.[`signer_${PROOF_OF_DIRECTORS}`] : [],
+        [`signer_${CODICE_FISCALE}`]: Array.isArray(reimbursementAccountDraft?.[`signer_${CODICE_FISCALE}`]) ? reimbursementAccountDraft?.[`signer_${CODICE_FISCALE}`] : [],
+        [`signer_${PRD_AND_SFG}`]: Array.isArray(reimbursementAccountDraft?.[`signer_${PRD_AND_SFG}`]) ? reimbursementAccountDraft?.[`signer_${PRD_AND_SFG}`] : [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[`signer_${COPY_OF_ID}`] as FileObject[]);
