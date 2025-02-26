@@ -1630,7 +1630,8 @@ const translations = {
         title: 'Edicion flujo de aprobación',
         deleteTitle: 'Eliminar flujo de trabajo de aprobación',
         deletePrompt: '¿Estás seguro de que quieres eliminar este flujo de trabajo de aprobación? Todos los miembros pasarán a usar el flujo de trabajo predeterminado.',
-        preventSelfApprovalError: 'Este flujo de trabajo requiere al menos dos aprobadores cuando la opción "Prevenir aprobaciones propias" está habilitada. Por favor, añade otro aprobador o deshabilita la función "Prevenir aprobaciones propias" en las reglas de tu espacio de trabajo.',
+        preventSelfApprovalError:
+            'Este flujo de trabajo requiere al menos dos aprobadores cuando la opción "Prevenir aprobaciones propias" está habilitada. Por favor, añade otro aprobador o deshabilita la función "Prevenir aprobaciones propias" en las reglas de tu espacio de trabajo.',
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
