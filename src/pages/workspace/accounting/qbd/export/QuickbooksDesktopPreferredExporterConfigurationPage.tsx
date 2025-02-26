@@ -99,7 +99,12 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER], qbdConfig?.pendingFields)}
             errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER)}
+            onClose={() => {
+                if (!policyID) {
+                    return;
+                }
+                clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER);
+            }}
         />
     );
 }
