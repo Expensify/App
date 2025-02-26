@@ -1767,7 +1767,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
-        getRoute: (policyID?: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ADVANCED route');
+            }
+            return `settings/workspaces/${policyID}/accounting/xero/advanced` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
