@@ -241,6 +241,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         amountTitle = translate('iou.receiptStatusTitle');
     }
 
+    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === 'customUnitOutOfPolicy');
+
     const updatedTransactionDescription = useMemo(() => {
         if (!updatedTransaction) {
             return undefined;
@@ -376,7 +378,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
-                    title={rateToDisplay}
+                    title={isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : rateToDisplay}
                     interactive={canEditDistanceRate}
                     shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}

@@ -523,6 +523,7 @@ const translations = {
         perDiem: 'Per diem',
         validate: 'Validate',
         expenseReports: 'Expense Reports',
+        rateOutOfPolicy: 'Rate out of policy',
     },
     supportalNoAccess: {
         title: 'Not so fast',
