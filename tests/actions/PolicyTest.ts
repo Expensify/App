@@ -161,7 +161,7 @@ describe('actions/Policy', () => {
             });
             expect(createdTaskReportActions).toBe(1);
             expect(signingOffMessage).toBe(1);
-            expect(taskReportActions).toBe(7);
+            expect(taskReportActions).toBe(manageTeamDefaultTaskCount);
 
             // Check for success data
             (fetch as MockFetch)?.resume?.();
