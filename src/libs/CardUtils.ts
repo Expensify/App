@@ -516,6 +516,14 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
     return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
 }
 
+/**
+ * Checks if an Expensify Card was issued for a given workspace.
+ */
+function hasIssuedExpensifyCard(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): boolean {
+    const cards = getAllCardsForWorkspace(workspaceAccountID, allCardList);
+    return Object.values(cards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
+}
+
 function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed): boolean {
     const workspaceCards = allWorkspaceCards?.[`cards_${workspaceAccountID}_${feedName}`] ?? {};
     return !!workspaceCards.cardList;
@@ -570,6 +578,7 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,
 };
