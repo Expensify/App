@@ -1903,7 +1903,7 @@ const ROUTES = {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES route');
             }
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}` as const, backTo);
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: {
