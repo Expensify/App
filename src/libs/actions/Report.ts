@@ -4210,8 +4210,8 @@ function completeOnboarding({
 }: {
     engagementChoice: OnboardingPurpose;
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     adminsChatReportID?: string;
     onboardingPolicyID?: string;
     paymentSelected?: string;
