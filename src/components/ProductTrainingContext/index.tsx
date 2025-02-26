@@ -101,13 +101,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             }
 
             // We need to make an exception for the QAB tooltip because it is shown in a modal, otherwise it would be hidden if a modal is visible
-            if (
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
-                isModalVisible
-            ) {
+            if (tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON && isModalVisible) {
                 return false;
             }
 
@@ -137,6 +131,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
             const visibleTooltip = determineVisibleTooltip();
+
             // If this is the highest priority visible tooltip, show it
             if (tooltipName === visibleTooltip) {
                 return true;
@@ -254,6 +249,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldShow && shouldRenderTooltip(tooltipName);
     }, [shouldRenderTooltip, tooltipName, shouldShow]);
+
     const hideProductTrainingTooltip = useCallback(() => {
         if (!shouldShowProductTrainingTooltip) {
             return;
