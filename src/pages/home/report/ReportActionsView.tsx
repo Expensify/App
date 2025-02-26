@@ -351,7 +351,7 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if (isLoadingInitialReportActions && !isOffline) {
+    if (isLoadingInitialReportActions && visibleReportActions.length === 0 && !isOffline) {
         return <ReportActionsSkeletonView />;
     }
 
