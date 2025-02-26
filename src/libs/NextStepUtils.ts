@@ -87,7 +87,8 @@ function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boo
  *
  * @param report
  * @param predictedNextStatus - a next expected status of the report
- * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
+ * @param shouldFixViolations - whether to show `fix the issue` next step
+ * @param isUnapprove - whether a report is being unapproved
  * @returns nextStep
  */
 function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, shouldFixViolations?: boolean, isUnapprove?: boolean): ReportNextStep | null {
