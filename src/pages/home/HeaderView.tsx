@@ -106,7 +106,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -384,7 +383,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         </View>
                     </View>
                 )}
-                <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             </View>
             {shouldShowDiscount && isChatUsedForOnboarding && <EarlyDiscountBanner isSubscriptionPage={false} />}
         </>
