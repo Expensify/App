@@ -1,15 +1,13 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePane from '@hooks/useSidePane';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isSidePaneHidden} from '@libs/SidePaneUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import getIsBottomTabVisibleDirectly from './getIsBottomTabVisibleDirectly';
 import getIsScreenWithBottomTabFocused from './getIsScreenWithBottomTabFocused';
 import getSelectedTab from './getSelectedTab';
@@ -28,19 +26,17 @@ type TopLevelBottomTabBarProps = {
  */
 function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom} = useStyledSafeAreaInsets();
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
-
-    const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
-    const sidePaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth);
+    const {isSidePaneOverlayVisible} = useSidePane();
 
     // That means it's visible and it's not covered by the overlay.
-    const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state) && sidePaneHidden;
+    const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state) && !isSidePaneOverlayVisible;
+    const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state) && !isSidePaneOverlayVisible;
     const selectedTab = getSelectedTab(state);
-    const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state) && sidePaneHidden;
 
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;

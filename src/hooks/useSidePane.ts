@@ -2,14 +2,27 @@ import {useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {triggerSidePane as triggerSidePaneAction} from '@libs/actions/SidePane';
-import {isSidePaneHidden} from '@libs/SidePaneUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
+
+function isSidePaneHidden(sidePane: OnyxEntry<OnyxTypes.SidePane>, isExtraLargeScreenWidth: boolean) {
+    if (!isExtraLargeScreenWidth && !sidePane?.openMobile) {
+        return true;
+    }
+
+    if (isExtraLargeScreenWidth && !sidePane?.open) {
+        return true;
+    }
+
+    return false;
+}
 
 /**
  * Hook to get the animated position of the side pane and the margin of the navigator
