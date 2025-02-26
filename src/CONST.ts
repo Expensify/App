@@ -124,16 +124,6 @@ const createWorkspaceTask: OnboardingTask = {
         `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
 };
 
-const meetGuideTask: OnboardingTask = {
-    type: 'meetGuide',
-    autoCompleted: false,
-    title: 'Meet your setup specialist',
-    description: ({adminsRoomLink}) =>
-        `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
-        '\n' +
-        `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
-};
-
 const setupCategoriesTask: OnboardingTask = {
     type: 'setupCategories',
     autoCompleted: false,
@@ -2953,6 +2943,7 @@ const CONST = {
             BREX: 'oauth.brex.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
+            CSV: '_ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -3033,6 +3024,7 @@ const CONST = {
             VISA: 'visa',
             MASTERCARD: 'mastercard',
             STRIPE: 'stripe',
+            CSV: 'CSV',
         },
         FEED_TYPE: {
             CUSTOM: 'customFeed',
@@ -3322,7 +3314,7 @@ const CONST = {
     GUIDES_CALL_TASK_IDS: {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_PROFILE: 'WorkspaceProfile',
+        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
@@ -5176,7 +5168,6 @@ const CONST = {
             tasks: [
                 createWorkspaceTask,
                 selfGuidedTourTask,
-                meetGuideTask,
                 {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
@@ -5275,7 +5266,6 @@ const CONST = {
             },
             tasks: [
                 createWorkspaceTask,
-                meetGuideTask,
                 setupCategoriesTask,
                 {
                     type: 'inviteAccountant',
@@ -5344,7 +5334,6 @@ const CONST = {
         [onboardingChoices.ADMIN]: {
             message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
             tasks: [
-                meetGuideTask,
                 {
                     type: 'reviewWorkspaceSettings',
                     autoCompleted: false,
