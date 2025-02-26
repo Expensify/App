@@ -228,6 +228,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                     description="If you are not director, we need to collect additional information about at least one director in the company"
                     defaultValue={isAnyoneElseDirector}
                     onSelectedValue={handleNextSubStep}
+                    isLoading={reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation}
                 />
             )}
 

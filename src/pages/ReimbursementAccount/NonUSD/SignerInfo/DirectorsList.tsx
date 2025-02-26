@@ -90,7 +90,7 @@ function DirectorsList({directorKeys, onConfirm, onEdit}: DirectorsListProps) {
                         <Button
                             success
                             large
-                            isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
+                            isLoading={reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation}
                             isDisabled={isOffline}
                             style={[styles.w100, styles.mt2]}
                             onPress={onConfirm}
