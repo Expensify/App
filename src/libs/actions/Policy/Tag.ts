@@ -32,6 +32,7 @@ import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Re
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -689,7 +690,9 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData, {
+        checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, persistedRequests, parameters),
+    });
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);

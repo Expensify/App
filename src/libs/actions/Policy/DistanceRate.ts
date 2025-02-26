@@ -21,6 +21,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -163,7 +164,9 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData, {
+        checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, persistedRequests, parameters),
+    });
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);

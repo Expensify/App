@@ -63,6 +63,9 @@ type RequestData = {
      * More info https://github.com/Expensify/App/issues/51761
      */
     initiatedOffline?: boolean;
+
+    /** The created time of the request */
+    created?: string;
 };
 
 /**
