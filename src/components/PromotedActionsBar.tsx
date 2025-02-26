@@ -90,7 +90,7 @@ const PromotedActions = {
             if (!isTextHold) {
                 Navigation.goBack();
             }
-            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
+            const targetedReportID = reportID ?? reportAction?.childReportID;
 
             if (!isSearchTopmostFullScreenRoute()) {
                 changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
