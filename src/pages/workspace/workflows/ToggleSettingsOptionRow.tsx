@@ -77,9 +77,6 @@ type ToggleSettingOptionRowProps = {
 
     /** Callback to fire when the switch is toggled in disabled state */
     disabledAction?: () => void;
-
-    /** Additional text to display below the subtitle */
-    additionalText?: string;
 };
 const ICON_SIZE = 48;
 
@@ -88,7 +85,6 @@ function ToggleSettingOptionRow({
     title,
     customTitle,
     subtitle,
-    additionalText,
     subtitleStyle,
     accordionStyle,
     switchAccessibilityLabel,
@@ -196,7 +192,6 @@ function ToggleSettingOptionRow({
                     />
                 </View>
                 {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                {!!additionalText && <Text style={[styles.mt2, subtitleStyle]}>{additionalText}</Text>}
                 <Accordion
                     isExpanded={isAccordionExpanded}
                     style={accordionStyle}

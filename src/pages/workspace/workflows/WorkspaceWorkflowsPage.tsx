@@ -177,8 +177,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             },
             {
                 title: translate('workflowsPage.addApprovalsTitle'),
-                subtitle: translate('workflowsPage.addApprovalsDescription'),
-                switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
+                subtitle: isSmartLimitEnable ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
+                switchAccessibilityLabel: isSmartLimitEnable ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
                     setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
@@ -207,7 +207,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                     </>
                 ),
-                additionalText: isSmartLimitEnable ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : '',
                 disabled: isSmartLimitEnable,
                 isActive:
                     ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
@@ -333,7 +332,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 title={item.title}
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                 subtitle={item.subtitle}
-                subtitleStyle={[styles.textLabelSupportingEmptyValue]}
+                subtitleStyle={[styles.textLabelSupportingEmptyValue, styles.lh20]}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
@@ -342,7 +341,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 errors={item.errors}
                 onCloseError={item.onCloseError}
                 disabled={item.disabled}
-                additionalText={item.additionalText}
             />
         </Section>
     );
