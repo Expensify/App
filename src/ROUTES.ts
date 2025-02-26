@@ -135,7 +135,10 @@ const ROUTES = {
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
-    SETTINGS_SUBSCRIPTION: {route: 'settings/subscription', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo)},
+    SETTINGS_SUBSCRIPTION: {
+        route: 'settings/subscription',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo),
+    },
     SETTINGS_SUBSCRIPTION_SIZE: {
         route: 'settings/subscription/subscription-size',
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
@@ -333,7 +336,10 @@ const ROUTES = {
         route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
         getRoute: (reportID: string | undefined, policyID: string | undefined, fieldID: string, backTo?: string) => {
             if (!policyID || !reportID) {
-                Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route', {policyID, reportID});
+                Log.warn('Invalid policyID or reportID is used to build the EDIT_REPORT_FIELD_REQUEST route', {
+                    policyID,
+                    reportID,
+                });
             }
             return getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo);
         },
@@ -1110,7 +1116,12 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/advanced` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-online/advanced` as const;
+        },
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/account-selector',
@@ -1127,8 +1138,12 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
-            `settings/workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const,
+        getRoute: (policyID: string | undefined, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS route');
+            }
+            return `settings/workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const;
+        },
     },
     WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
@@ -2133,7 +2148,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED route');
+            }
+            return `settings/workspaces/${policyID}/accounting/sage-intacct/advanced` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
