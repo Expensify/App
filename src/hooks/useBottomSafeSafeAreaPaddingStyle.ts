@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import {StyleSheet} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import useStyledSafeAreaInsets from './useStyledSafeAreaInsets';
+import useSafeAreaPaddings from './useSafeAreaPaddings';
 
 type UseBottomSafeAreaPaddingStyleParams = {
     addBottomSafeAreaPadding?: boolean;
@@ -10,7 +10,7 @@ type UseBottomSafeAreaPaddingStyleParams = {
 };
 
 function useBottomSafeSafeAreaPaddingStyle(params?: UseBottomSafeAreaPaddingStyleParams) {
-    const {paddingBottom: safeAreaPaddingBottom} = useStyledSafeAreaInsets(true);
+    const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
 
     const {addBottomSafeAreaPadding, style, additionalPaddingBottom} = params ?? {};
 

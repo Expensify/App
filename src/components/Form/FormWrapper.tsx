@@ -8,7 +8,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
@@ -113,7 +113,7 @@ function FormWrapper({
         focusInput?.focus?.();
     }, [errors, formState?.errorFields, inputRefs]);
 
-    const {paddingBottom} = useStyledSafeAreaInsets(true);
+    const {paddingBottom} = useSafeAreaPaddings(true);
     const SubmitButton = useMemo(
         () =>
             isSubmitButtonVisible && (
@@ -195,10 +195,10 @@ function FormWrapper({
     if (!shouldUseScrollView) {
         if (shouldSubmitButtonStickToBottom) {
             return (
-                <View style={styles.flex1}>
+                <>
                     {scrollViewContent()}
                     {SubmitButton}
-                </View>
+                </>
             );
         }
 

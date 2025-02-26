@@ -21,9 +21,9 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -827,7 +827,7 @@ function BaseSelectionList<TItem extends ListItem>(
             </View>
         );
 
-    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const paddingBottomStyle = useMemo(
         () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
         [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
