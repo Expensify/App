@@ -160,7 +160,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
+                rightHeaderText={translate('common.enabled')}
             />
         );
     };
