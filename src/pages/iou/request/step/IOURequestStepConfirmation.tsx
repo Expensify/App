@@ -21,9 +21,10 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getBankAccountRoute} from '@libs/ReportUtils';
+import {generateReportID, getBankAccountRoute} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
 import type {GpsPoint} from '@userActions/IOU';
@@ -39,6 +40,7 @@ import {
     setMoneyRequestCategory,
     splitBill,
     splitBillAndOpenReport,
+    startMoneyRequest,
     startSplitBill,
     submitPerDiemExpense as submitPerDiemExpenseIOUActions,
     trackExpense as trackExpenseIOUActions,
@@ -171,6 +173,19 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
+        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
+            return;
+        }
+        startMoneyRequest(
+            CONST.IOU.TYPE.CREATE,
+            // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+            // for all of the routes in the creation flow.
+            generateReportID(),
+        );
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, [isLoadingTransaction]);
+
+    useEffect(() => {
         if (!transaction?.category) {
             return;
         }
@@ -202,15 +217,35 @@ function IOURequestStepConfirmation({
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
             return;
         }
-        // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
-        // back to the participants step
-        if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action));
+
+        if (transaction?.isFromGlobalCreate) {
+            // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
+            if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action), {compareParams: false});
+                return;
+            }
+
+            // If the participant was auto-assigned, we need to keep the reportID that is already on the stack.
+            // This will allow the user to edit the participant field after going back and forward.
+            Navigation.goBack();
             return;
         }
+
+        // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [action, isPerDiemRequest, transaction?.participantsAutoAssigned, transaction?.reportID, participantsAutoAssignedFromRoute, requestType, iouType, transactionID, reportID]);
+    }, [
+        action,
+        isPerDiemRequest,
+        transaction?.participantsAutoAssigned,
+        transaction?.isFromGlobalCreate,
+        transaction?.reportID,
+        participantsAutoAssignedFromRoute,
+        requestType,
+        iouType,
+        transactionID,
+        reportID,
+    ]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -716,10 +751,16 @@ function IOURequestStepConfirmation({
                     <LocationPermissionModal
                         startPermissionFlow={startLocationPermissionFlow}
                         resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                        onGrant={() => createTransaction(selectedParticipantList, true)}
+                        onGrant={() => {
+                            navigateAfterInteraction(() => {
+                                createTransaction(selectedParticipantList, true);
+                            });
+                        }}
                         onDeny={() => {
                             updateLastLocationPermissionPrompt();
-                            createTransaction(selectedParticipantList, false);
+                            navigateAfterInteraction(() => {
+                                createTransaction(selectedParticipantList, false);
+                            });
                         }}
                     />
                 )}

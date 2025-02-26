@@ -1,9 +1,9 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import lodashIsEqual from 'lodash/isEqual';
 import type {ReactNode, RefObject} from 'react';
-import React, {useLayoutEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -12,8 +12,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
-import * as Modal from '@userActions/Modal';
+import {isSafari} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
+import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -23,6 +24,7 @@ import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
 import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import type BottomDockedModalProps from './Modal/BottomDockedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
@@ -56,7 +58,11 @@ type PopoverMenuItem = MenuItemProps & {
     pendingAction?: PendingAction;
 };
 
-type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
+type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
+    Pick<BottomDockedModalProps, 'animationInDelay'> & {
+        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
+        shouldUseNewModal?: boolean;
+    };
 
 type PopoverMenuProps = Partial<PopoverModalProps> & {
     /** Callback method fired when the user requests to close the modal */
@@ -162,8 +168,10 @@ function PopoverMenu({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
     animationIn = 'fadeIn',
+    animationInDelay,
     animationOut = 'fadeOut',
     animationInTiming = CONST.ANIMATED_TRANSITION,
+    animationOutTiming,
     disableAnimation = true,
     withoutOverlay = false,
     shouldSetModalVisibility = true,
@@ -177,6 +185,7 @@ function PopoverMenu({
     shouldUseScrollView = false,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
+    shouldUseNewModal,
     testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
@@ -189,7 +198,8 @@ function PopoverMenu({
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const {windowHeight} = useWindowDimensions();
-
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
     const selectItem = (index: number) => {
@@ -202,9 +212,9 @@ function PopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
-        } else if (selectedItem.shouldCallAfterModalHide && !Browser.isSafari()) {
+        } else if (selectedItem.shouldCallAfterModalHide && !isSafari()) {
             onItemSelected?.(selectedItem, index);
-            Modal.close(
+            close(
                 () => {
                     selectedItem.onSelected?.();
                 },
@@ -312,6 +322,21 @@ function PopoverMenu({
         {isActive: isVisible},
     );
 
+    const keyboardShortcutSpaceCallback = useCallback(
+        (e?: GestureResponderEvent | KeyboardEvent) => {
+            if (shouldUseScrollView) {
+                return;
+            }
+
+            e?.preventDefault();
+        },
+        [shouldUseScrollView],
+    );
+
+    // On web and desktop, pressing the space bar after interacting with the parent view
+    // can cause the parent view to scroll when the space bar is pressed.
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWebOrDesktop && isVisible, shouldPreventDefault: false});
+
     const onModalHide = () => {
         setFocusedIndex(currentMenuItemsFocusedIndex);
     };
@@ -352,7 +377,9 @@ function PopoverMenu({
             onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
+            animationInDelay={animationInDelay}
             animationInTiming={animationInTiming}
+            animationOutTiming={animationOutTiming}
             disableAnimation={disableAnimation}
             fromSidebarMediumScreen={fromSidebarMediumScreen}
             withoutOverlay={withoutOverlay}
@@ -363,6 +390,7 @@ function PopoverMenu({
             innerContainerStyle={innerContainerStyle}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
+            shouldUseNewModal={shouldUseNewModal}
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={[isSmallScreenWidth ? {maxHeight: windowHeight - 250} : styles.createMenuContainer, containerStyles]}>
