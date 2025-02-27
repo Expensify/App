@@ -330,7 +330,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         runAndResetOnPopoverHide,
         clearActiveReportAction,
         contentRef,
-        isContextMenuOpeningRef: isContextMenuOpeningRef.current,
+        isContextMenuOpening: isContextMenuOpeningRef.current,
     }));
 
     const reportAction = reportActionRef.current;

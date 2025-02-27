@@ -13,7 +13,8 @@ import {
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
-import {type ContextMenuAnchor, contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,7 +82,7 @@ function MoneyRequestAction({
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
 
     const onMoneyRequestPreviewPressed = () => {
-        if (contextMenuRef.current.isContextMenuOpeningRef) {
+        if (contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
         if (isSplitBillAction) {
