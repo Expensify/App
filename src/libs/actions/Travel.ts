@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
  */
-function acceptSpotnanaTerms(domain?: string) {
+function acceptSpotnanaTerms(domain?: string, policyID?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: 'merge',
@@ -49,7 +49,7 @@ function acceptSpotnanaTerms(domain?: string) {
         },
     ];
 
-    const params: AcceptSpotnanaTermsParams = {domain};
+    const params: AcceptSpotnanaTermsParams = {domain, policyID};
 
     API.write(WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS, params, {optimisticData, successData, failureData});
 }
