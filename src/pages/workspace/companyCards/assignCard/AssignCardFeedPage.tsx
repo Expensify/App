@@ -33,6 +33,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         firstAssigneeEmail.current = assignCard?.data?.email;
     }
     const shouldUseBackToParam = !firstAssigneeEmail.current || firstAssigneeEmail.current === assignCard?.data?.email;
+    /* eslint-enable react-compiler/react-compiler */
     useEffect(() => {
         return () => {
             clearAssignCardStepAndData();
@@ -81,8 +82,8 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
             return (
                 <ConfirmationStep
                     policyID={policyID}
+                    // eslint-disable-next-line react-compiler/react-compiler
                     backTo={shouldUseBackToParam ? backTo : undefined}
-                    /* eslint-enable react-compiler/react-compiler */
                 />
             );
         default:
