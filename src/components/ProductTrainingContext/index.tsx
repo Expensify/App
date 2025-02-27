@@ -217,7 +217,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                 </View>
                 {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pb2, styles.pt1]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pb2, styles.pt2]}>
                         <Button
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
