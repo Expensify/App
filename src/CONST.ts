@@ -90,7 +90,7 @@ const onboardingChoices = {
     ...backendOnboardingChoices,
 } as const;
 
-const combinedTrackSubmitOnboardingChoices = {
+const createExpenseOnboardingChoices = {
     PERSONAL_SPEND: selectableOnboardingChoices.PERSONAL_SPEND,
     EMPLOYER: selectableOnboardingChoices.EMPLOYER,
     SUBMIT: backendOnboardingChoices.SUBMIT,
@@ -122,16 +122,6 @@ const createWorkspaceTask: OnboardingTask = {
         '2. Click *Workspaces* > *New workspace*.\n' +
         '\n' +
         `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
-};
-
-const meetGuideTask: OnboardingTask = {
-    type: 'meetGuide',
-    autoCompleted: false,
-    title: 'Meet your setup specialist',
-    description: ({adminsRoomLink}) =>
-        `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
-        '\n' +
-        `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
 };
 
 const setupCategoriesTask: OnboardingTask = {
@@ -756,7 +746,6 @@ const CONST = {
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
@@ -2961,6 +2950,7 @@ const CONST = {
             BREX: 'oauth.brex.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
+            CSV: '_ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -3041,6 +3031,7 @@ const CONST = {
             VISA: 'visa',
             MASTERCARD: 'mastercard',
             STRIPE: 'stripe',
+            CSV: 'CSV',
         },
         FEED_TYPE: {
             CUSTOM: 'customFeed',
@@ -3330,7 +3321,7 @@ const CONST = {
     GUIDES_CALL_TASK_IDS: {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_PROFILE: 'WorkspaceProfile',
+        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
@@ -5163,7 +5154,7 @@ const CONST = {
 
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
-    COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES: {...combinedTrackSubmitOnboardingChoices},
+    CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
@@ -5184,7 +5175,6 @@ const CONST = {
             tasks: [
                 createWorkspaceTask,
                 selfGuidedTourTask,
-                meetGuideTask,
                 {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
@@ -5283,7 +5273,6 @@ const CONST = {
             },
             tasks: [
                 createWorkspaceTask,
-                meetGuideTask,
                 setupCategoriesTask,
                 {
                     type: 'inviteAccountant',
@@ -5352,7 +5341,6 @@ const CONST = {
         [onboardingChoices.ADMIN]: {
             message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
             tasks: [
-                meetGuideTask,
                 {
                     type: 'reviewWorkspaceSettings',
                     autoCompleted: false,
@@ -5390,11 +5378,11 @@ const CONST = {
         },
     } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
-    COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES: {
-        [combinedTrackSubmitOnboardingChoices.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
-        [combinedTrackSubmitOnboardingChoices.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-        [combinedTrackSubmitOnboardingChoices.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-    } satisfies Record<ValueOf<typeof combinedTrackSubmitOnboardingChoices>, OnboardingMessage>,
+    CREATE_EXPENSE_ONBOARDING_MESSAGES: {
+        [createExpenseOnboardingChoices.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
+        [createExpenseOnboardingChoices.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+        [createExpenseOnboardingChoices.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+    } satisfies Record<ValueOf<typeof createExpenseOnboardingChoices>, OnboardingMessage>,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
