@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 type GenericFeaturesViewProps = {
     buttonDisabled?: boolean;
@@ -17,9 +18,10 @@ type GenericFeaturesViewProps = {
     onUpgrade: () => void;
     formattedPrice: string;
     policyID?: string;
+    backTo?: Route;
 };
 
-function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice, policyID}: GenericFeaturesViewProps) {
+function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice, backTo, policyID}: GenericFeaturesViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
@@ -86,7 +88,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, {forceReplace: true})}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     large
                 />
             )}
