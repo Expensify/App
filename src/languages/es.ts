@@ -514,6 +514,7 @@ const translations = {
         perDiem: 'Per diem',
         validate: 'Validar',
         expenseReports: 'Informes de Gastos',
+        rateOutOfPolicy: 'Tasa fuera de póliza',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
