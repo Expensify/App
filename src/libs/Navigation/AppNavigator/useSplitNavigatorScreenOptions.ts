@@ -50,13 +50,9 @@ const useSplitNavigatorScreenOptions = () => {
             ...hideKeyboardOnSwipe,
             headerShown: false,
             title: CONFIG.SITE_TITLE,
-            animation: shouldUseNarrowLayout ? undefined : Animations.NONE,
+            animation: Animations.NONE,
             web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                    paddingRight: shouldUseNarrowLayout ? 0 : variables.sideBarWidth,
-                },
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePane: true}),
             },
         },
     } satisfies SplitNavigatorScreenOptions;

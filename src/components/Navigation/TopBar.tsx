@@ -5,6 +5,7 @@ import Breadcrumbs from '@components/Breadcrumbs';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import HelpButton from '@components/SidePane/HelpButton';
 import Text from '@components/Text';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
@@ -19,10 +20,11 @@ type TopBarProps = {
     breadcrumbLabel: string;
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
+    shouldDisplaySidePane?: boolean;
     cancelSearch?: () => void;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, cancelSearch}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplaySidePane = true, cancelSearch}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
@@ -71,6 +73,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
+                {shouldDisplaySidePane && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
             <LoadingBar shouldShow={isLoadingReportData ?? false} />

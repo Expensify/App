@@ -33,6 +33,7 @@ const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     isExtraSmallScreenWidth: false,
     isSmallScreen: false,
     onboardingIsMediumOrLargerScreenWidth: false,
+    isExtraLargeScreenWidth: false,
 };
 
 const TEST_USER_ACCOUNT_ID = 1;

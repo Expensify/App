@@ -5443,6 +5443,25 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
+
+        sidePaneOverlay: {
+            ...positioning.pFixed,
+            left: 0,
+            top: 0,
+            bottom: 0,
+            right: 0,
+            backgroundColor: theme.overlay,
+            opacity: variables.overlayOpacity,
+        },
+        sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+            ...positioning.pFixed,
+            right: 0,
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            height: '100%',
+            backgroundColor: theme.modalBackground,
+            borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
+            borderLeftColor: theme.border,
+        }),
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
