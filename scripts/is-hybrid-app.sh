@@ -22,6 +22,10 @@ if [[ -f package.json ]]; then
     if [[ "$package_name" == "mobile-expensify" ]]; then
         echo true
         exit 0
+    else
+        echo "The package name is incorrect. It should be 'mobile-expensify'. Script will assume the standalone NewDot app."
+        echo false
+        exit 0
     fi
 else
     echo "package.json not found in Mobile-Expensify"
