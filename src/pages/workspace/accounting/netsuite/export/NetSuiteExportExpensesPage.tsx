@@ -60,7 +60,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.getRoute(policyID, params.expenseType));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
             },
             title: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined,
             subscribedSettings: [exportDestinationSettingName],
@@ -79,7 +79,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.getRoute(policyID, params.expenseType));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
             },
             title: defaultVendor ? defaultVendor.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR],
@@ -97,7 +97,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute(policyID, params.expenseType));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
             },
             title: selectedPayableAccount ? selectedPayableAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.PAYABLE_ACCT],
@@ -115,7 +115,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute(policyID, params.expenseType));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
             },
             title: selectedReimbursablePayableAccount ? selectedReimbursablePayableAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT],
@@ -133,7 +133,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 if (!policyID) {
                     return;
                 }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.getRoute(policyID, params.expenseType));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT.getRoute(policyID, params.expenseType, Navigation.getActiveRoute()));
             },
             title: config?.journalPostingPreference
                 ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`)

@@ -27,7 +27,7 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
 
     const policyID = policy?.id;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_RECEIVABLE_ACCOUNT_SELECT>>();
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteReceivableAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteReceivableAccountOptions(policy ?? undefined, config?.receivableAccount),
         [config?.receivableAccount, policy],
