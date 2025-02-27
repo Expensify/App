@@ -1630,8 +1630,7 @@ const translations = {
         title: 'Edit approval workflow',
         deleteTitle: 'Delete approval workflow',
         deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
-        preventSelfApprovalError:
-            'This workflow requires at least two approvers when "Prevent self-approvals" is enabled. Please add another approver or disable the "Prevent self-approvals" feature in your workspace rules.',
+        preventSelfApprovalError: "Members can't submit to themselves with prevent self-approvals enabled. Choose a different approver, or amend the workspace rule.",
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
