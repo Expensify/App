@@ -531,10 +531,6 @@ function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed
 
 /**
  * Check if the Expensify Card is fully set up and a new card can be issued
- *
- * @param policy the policy object
- * @param cardSettings the card settings object
- * @returns boolean
  */
 function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
