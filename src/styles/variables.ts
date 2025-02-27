@@ -270,6 +270,8 @@ export default {
     searchFiltersTooltipShiftHorizontalNarrow: -10,
     searchFiltersTooltipShiftVerticalNarrow: 5,
     bottomTabInboxTooltipShiftHorizontal: 36,
+    rhnOptionsTooltipShiftHorizontal: 4,
+    rhnOptionsTooltipShiftVertical: -10,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,

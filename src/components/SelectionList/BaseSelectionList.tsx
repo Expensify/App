@@ -125,6 +125,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
+        shouldShowEducationalTooltip = () => false,
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
     }: BaseSelectionListProps<TItem>,
@@ -538,7 +539,8 @@ function BaseSelectionList<TItem extends ListItem>(
         </>
     );
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
+    const renderItem = (data: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
+        const {item, index, section} = data;
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
         const isItemFocused = (!isDisabled || item.isSelected) && focusedIndex === normalizedIndex;
@@ -576,6 +578,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
+                    shouldShowEducationalTooltip={shouldShowEducationalTooltip(data)}
                 />
             </View>
         );

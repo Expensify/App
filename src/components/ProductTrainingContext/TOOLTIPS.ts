@@ -13,6 +13,7 @@ const {
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
+    WORKSPACE_EXPENSE_SUBMIT,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
@@ -29,6 +30,7 @@ type TooltipData = {
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
+    isModalTooltip?: boolean;
     shouldRenderActionButtons?: boolean;
 };
 
@@ -73,6 +75,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: QUICK_ACTION_BUTTON,
         priority: 1150,
         shouldShow: () => true,
+        isModalTooltip: true,
     },
     [WORKSAPCE_CHAT_CREATE]: {
         content: [
@@ -127,6 +130,18 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 900,
         shouldShow: () => true,
         shouldRenderActionButtons: true,
+        isModalTooltip: true,
+    },
+    [WORKSPACE_EXPENSE_SUBMIT]: {
+        content: [
+            {text: 'productTrainingTooltip.workspaceExpenseSubmit.part1', isBold: true},
+            {text: 'productTrainingTooltip.workspaceExpenseSubmit.part2', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(WORKSPACE_EXPENSE_SUBMIT),
+        name: WORKSPACE_EXPENSE_SUBMIT,
+        priority: 200,
+        shouldShow: () => true,
+        isModalTooltip: true,
     },
     [SCAN_TEST_TOOLTIP_MANAGER]: {
         content: [
@@ -138,6 +153,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: SCAN_TEST_TOOLTIP_MANAGER,
         priority: 1000,
         shouldShow: () => true,
+        isModalTooltip: true,
     },
     [SCAN_TEST_CONFIRMATION]: {
         content: [
@@ -149,6 +165,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: SCAN_TEST_CONFIRMATION,
         priority: 1100,
         shouldShow: () => true,
+        isModalTooltip: true,
     },
 };
 

@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsUserSubmittedExpenseOrScannedReceipt, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -43,6 +44,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     onFocus,
     shouldSyncFocus,
     shouldHighlightSelectedItem,
+    shouldShowEducationalTooltip = false,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -60,6 +62,12 @@ function InviteMemberListItem<TItem extends ListItem>({
 
     const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
 
+    const {
+        renderProductTrainingTooltip: renderExpenseSubmitTooltip,
+        shouldShowProductTrainingTooltip: shouldShowExpenseSubmitTooltip,
+        hideProductTrainingTooltip: hideExpenseSubmitTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACE_EXPENSE_SUBMIT, shouldShowEducationalTooltip);
+
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
@@ -67,6 +75,23 @@ function InviteMemberListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
+
+    const educationalTooltipProps = useMemo(() => {
+        if (shouldShowExpenseSubmitTooltip) {
+            return {
+                shouldRender: shouldShowExpenseSubmitTooltip,
+                shiftHorizontal: variables.rhnOptionsTooltipShiftHorizontal,
+                shiftVertical: variables.rhnOptionsTooltipShiftVertical,
+                renderTooltipContent: renderExpenseSubmitTooltip,
+                onTooltipPress: hideExpenseSubmitTooltip,
+            };
+        }
+        return {
+            shouldRender: shouldShowProductTrainingTooltip,
+            renderTooltipContent: renderProductTrainingTooltip,
+            shouldHideOnNavigate: true,
+        };
+    }, [hideExpenseSubmitTooltip, renderExpenseSubmitTooltip, renderProductTrainingTooltip, shouldShowExpenseSubmitTooltip, shouldShowProductTrainingTooltip]);
 
     return (
         <BaseListItem
@@ -96,14 +121,13 @@ function InviteMemberListItem<TItem extends ListItem>({
         >
             {(hovered?: boolean) => (
                 <EducationalTooltip
-                    shouldRender={shouldShowProductTrainingTooltip}
-                    renderTooltipContent={renderProductTrainingTooltip}
                     anchorAlignment={{
                         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                     }}
-                    shouldHideOnNavigate
                     wrapperStyle={styles.productTrainingTooltipWrapper}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...educationalTooltipProps}
                 >
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                         {!!item.icons &&
