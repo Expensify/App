@@ -406,8 +406,8 @@ type OriginalMessagePolicyChangeLog = {
     oldValue?: boolean | string;
 };
 
-/** Model of `join policy changelog` report action */
-type OriginalMessageJoinPolicyChangeLog = {
+/** Model of `join policy` report action */
+type OriginalMessageJoinPolicy = {
     /** What was the invited user decision */
     choice: JoinWorkspaceResolution;
 
@@ -721,7 +721,7 @@ type IssueNewCardOriginalMessage = OriginalMessage<
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
-    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicyChangeLog;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
