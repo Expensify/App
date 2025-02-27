@@ -6,6 +6,37 @@ type FormatRule = {
     syntax: string;
 };
 
+type Match = {
+    start: number;
+    end: number;
+};
+
+function applyFormatting(text: string, selectionStart: number, selectionEnd: number, syntax: string) {
+    const prefix = text.slice(0, selectionStart);
+    const suffix = text.slice(selectionEnd);
+    const selectedText = text.slice(selectionStart, selectionEnd);
+    const formattedText = `${syntax}${selectedText}${syntax}`;
+    const updatedText = `${prefix}${formattedText}${suffix}`;
+    const cursorOffset = formattedText.length - selectedText.length;
+    return {updatedText, cursorOffset};
+}
+
+function findMatchingFormat(text: string, selectionStart: number, selectionEnd: number, formatRule: FormatRule): Match | null {
+    const markdownRanges = parseExpensiMark(text);
+    for (const range of markdownRanges) {
+        if (range && range.type === formatRule.markdownType && range.start != null && range.length != null) {
+            const rangeEnd = range.start + range.length;
+            const isExactMatch = range.start === selectionStart && rangeEnd === selectionEnd;
+            const isEnclosedMatch = range.start - 1 === selectionStart && rangeEnd + 1 === selectionEnd;
+            const isRangeBetweenSyntaxes = text[range.start - 1] === formatRule.syntax && text[rangeEnd] === formatRule.syntax;
+            if ((isExactMatch || isEnclosedMatch) && isRangeBetweenSyntaxes) {
+                return {start: range.start, end: rangeEnd};
+            }
+        }
+    }
+    return null;
+}
+
 function getFormatRule(formatCommand: string): FormatRule | null {
     if (formatCommand === 'formatBold') {
         return {markdownType: 'bold', syntax: '*'};
@@ -14,6 +45,15 @@ function getFormatRule(formatCommand: string): FormatRule | null {
         return {markdownType: 'italic', syntax: '_'};
     }
     return null;
+}
+
+function removeFormatting(text: string, selectionStart: number, match: Match) {
+    const prefix = text.slice(0, match.start - 1);
+    const suffix = text.slice(match.end + 1);
+    const unformattedText = text.slice(match.start, match.end);
+    const updatedText = `${prefix}${unformattedText}${suffix}`;
+    const cursorOffset = selectionStart - match.start - 1;
+    return {updatedText, cursorOffset};
 }
 
 /**
@@ -31,33 +71,12 @@ function toggleSelectionFormat(text: string, selectionStart: number, selectionEn
         return {updatedText: text, cursorOffset: 0};
     }
 
-    // Remove formatting if the selection is already formatted.
-    const markdownRanges = parseExpensiMark(text);
-    for (const range of markdownRanges) {
-        if (range && range.type === formatRule.markdownType && range.start != null && range.length != null) {
-            const rangeEnd = range.start + range.length;
-            const isExactMatch = range.start === selectionStart && rangeEnd === selectionEnd;
-            const isEnclosedMatch = range.start - 1 === selectionStart && rangeEnd + 1 === selectionEnd;
-            const isRangeBetweenSyntaxes = text[range.start - 1] === formatRule.syntax && text[rangeEnd] === formatRule.syntax;
-            if ((isExactMatch || isEnclosedMatch) && isRangeBetweenSyntaxes) {
-                const prefix = text.slice(0, range.start - 1);
-                const suffix = text.slice(rangeEnd + 1);
-                const unformattedText = text.slice(range.start, rangeEnd);
-                const updatedText = `${prefix}${unformattedText}${suffix}`;
-                const cursorOffset = selectionStart - range.start - 1;
-                return {updatedText, cursorOffset};
-            }
-        }
+    const match = findMatchingFormat(text, selectionStart, selectionEnd, formatRule);
+    if (match) {
+        return removeFormatting(text, selectionStart, match);
     }
 
-    // Otherwise, add formatting.
-    const prefix = text.slice(0, selectionStart);
-    const suffix = text.slice(selectionEnd);
-    const selectedText = text.slice(selectionStart, selectionEnd);
-    const formattedText = `${formatRule.syntax}${selectedText}${formatRule.syntax}`;
-    const updatedText = `${prefix}${formattedText}${suffix}`;
-    const cursorOffset = formattedText.length - selectedText.length;
-    return {updatedText, cursorOffset};
+    return applyFormatting(text, selectionStart, selectionEnd, formatRule.syntax);
 }
 
 export default toggleSelectionFormat;
