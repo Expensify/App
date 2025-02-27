@@ -1,9 +1,10 @@
 #!/bin/bash
 
+source scripts/shellUtils.sh
 
 # Check if jq is installed
 if [[ -d Mobile-Expensify ]]; then
-  echo 'jq is not installed. Please install jq and try again'
+  error 'jq is not installed. Please install jq and try again'
   exit 1
 fi
 
