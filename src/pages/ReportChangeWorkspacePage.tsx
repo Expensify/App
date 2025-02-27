@@ -143,6 +143,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     }, [filteredAndSortedUserWorkspaces]);
 
     const headerMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length ? translate('common.noResultsFound') : '';
+
     const shouldShowCreateWorkspace = usersWorkspaces.length === 0;
 
     return (
