@@ -67,12 +67,17 @@ To change an existing user’s role:
 
 ## How do I change the Workspace Owner?
 
-To change the ownership of a workspace:
+To change the ownership of a workspace (as the new owner):
 
-1. From the Workspace view, press Members on the left.
+1. From the Workspace view, click Members on the left.
 2. Click the member with the “Owner” tag next to their name.
 3. Click Transfer Owner on the right-hand panel.
 4. Click Continue.
+5. The user who took the action is now the owner, and should have the "Owner" tag next to their name.
+
+![Workspace list showing Owner tag]({{site.url}}/assets/images/transfer-ownership.png){:width="100%"}
+
+![Workspace admin role showing transfer owner button]({{site.url}}/assets/images/transfer-ownership_02.png){:width="100%"}
 
 # FAQ
 
