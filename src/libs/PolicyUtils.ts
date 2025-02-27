@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -1326,32 +1327,17 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
 };
 
 /**
- * Returns an array of user emails who are currently self-approving:
- * i.e. user.submitsTo === their own email.
+ * Checks if we can enable the "Prevent Self Approvals" feature for the workspace.
+ * We can enable it if there are more than 1 approver in the workspace.
  */
-function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
-    const defaultApprover = policy?.approver ?? policy?.owner;
-    if (!policy?.employeeList || !defaultApprover) {
-        return [];
-    }
-    return Object.keys(policy.employeeList).filter((email) => {
-        const employee = policy?.employeeList?.[email] ?? {};
-        return employee?.submitsTo === email && employee?.email !== defaultApprover;
-    });
-}
-
-/**
- * Checks if the workspace has only one user and if there no approver for the policy.
- * If so, we can't enable the "Prevent Self Approvals" feature.
- */
-function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
-    if (!policy?.employeeList || !policy.approver) {
+function canEnablePreventSelfApprovals(approvalWorkflows: ApprovalWorkflow[]): boolean {
+    if (approvalWorkflows.length === 0) {
         return false;
     }
 
-    const employeeEmails = Object.keys(policy.employeeList);
+    const numberOfApproversForDefaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault)?.approvers.length;
 
-    return employeeEmails.length > 1;
+    return numberOfApproversForDefaultWorkflow ? numberOfApproversForDefaultWorkflow > 1 : false;
 }
 
 export {
@@ -1361,7 +1347,6 @@ export {
     escapeTagName,
     getActivePolicies,
     getPerDiemCustomUnits,
-    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,

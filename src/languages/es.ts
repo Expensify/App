@@ -1631,6 +1631,8 @@ const translations = {
         title: 'Edicion flujo de aprobación',
         deleteTitle: 'Eliminar flujo de trabajo de aprobación',
         deletePrompt: '¿Estás seguro de que quieres eliminar este flujo de trabajo de aprobación? Todos los miembros pasarán a usar el flujo de trabajo predeterminado.',
+        preventSelfApprovalError:
+            'Los miembros no pueden enviarse informes a sí mismos con la opción de evitar aprobaciones propias habilitada. Elige un aprobador diferente o modifica la regla del espacio de trabajo.',
     },
     workflowsExpensesFromPage: {
         title: 'Gastos de',
@@ -4792,7 +4794,7 @@ const translations = {
                     `Todos los miembros que actualmente estén aprobando sus propios gastos serán eliminados y reemplazados con el aprobador predeterminado de este espacio de trabajo (${managerEmail}).`,
                 preventSelfApprovalsConfirmButton: 'Evitar autoaprobaciones',
                 preventSelfApprovalsModalTitle: '¿Evitar autoaprobaciones?',
-                preventSelfApprovalsDisabledSubtitle: 'Las aprobaciones propias no pueden habilitarse hasta que este espacio de trabajo tenga al menos dos miembros.',
+                preventSelfApprovalsDisabledSubtitle: 'Las aprobaciones propias no pueden habilitarse hasta que este espacio de trabajo tenga al menos dos aprobadores.',
             },
             categoryRules: {
                 title: 'Reglas de categoría',
