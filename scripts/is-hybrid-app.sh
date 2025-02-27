@@ -10,7 +10,7 @@ if [[ ! -d Mobile-Expensify ]]; then
     echo false
     exit 0
 else
-    cd Mobile-Expensify
+    cd Mobile-Expensify || exit 1
 fi
 
 # Check if 'package.json' exists
