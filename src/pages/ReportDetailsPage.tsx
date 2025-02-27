@@ -308,8 +308,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
 
-    const isAllowToDeleteTransaction = !isCardTransaction || (isCardTransaction && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW);
-    const shouldShowDeleteButton = isCardTransaction ? isAllowToDeleteTransaction : shouldShowTaskDeleteButton || canDeleteRequest;
+    const shouldShowDeleteButton = isCardTransaction ? transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW : shouldShowTaskDeleteButton || canDeleteRequest;
 
     const canUnapproveRequest = isExpenseReportUtil(report) && (isReportManagerUtil(report) || isPolicyAdmin) && isReportApprovedUtil({report}) && !isSubmitAndClose(policy);
 
