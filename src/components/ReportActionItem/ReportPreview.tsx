@@ -518,7 +518,7 @@ function ReportPreview({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const openReportFromPreview = useCallback(() => {
-        if (!iouReportID || contextMenuRef.current?.isPopoverVisible) {
+        if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);

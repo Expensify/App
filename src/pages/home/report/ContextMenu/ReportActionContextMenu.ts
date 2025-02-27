@@ -50,7 +50,7 @@ type ReportActionContextMenu = {
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
     contentRef: RefObject<View>;
-    isPopoverVisible: boolean;
+    isContextMenuOpening: boolean;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();

@@ -4,7 +4,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {DeviceEventEmitter, Dimensions} from 'react-native';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -77,6 +77,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     });
 
     const onPopoverShow = useRef(() => {});
+    const isContextMenuOpeningRef = useRef(false);
     const onPopoverHide = useRef(() => {});
     const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
     const onCancelDeleteModal = useRef(() => {});
@@ -175,6 +176,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         isOverflowMenu = false,
         isThreadReportParentActionParam = false,
     ) => {
+        isContextMenuOpeningRef.current = true;
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
@@ -235,6 +237,17 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         // After we have called the action, reset it.
         onPopoverShow.current = () => {};
     };
+
+    useEffect(() => {
+        if (!isPopoverVisible) {
+            return;
+        }
+
+        // After the animation of the popover opening ends, reset isContextMenuOpeningRef.
+        InteractionManager.runAfterInteractions(() => {
+            isContextMenuOpeningRef.current = false;
+        });
+    }, [isPopoverVisible]);
 
     /** Run the callback and return a noop function to reset it */
     const runAndResetCallback = (callback: () => void) => {
@@ -317,7 +330,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         runAndResetOnPopoverHide,
         clearActiveReportAction,
         contentRef,
-        isPopoverVisible,
+        isContextMenuOpening: isContextMenuOpeningRef.current,
     }));
 
     const reportAction = reportActionRef.current;

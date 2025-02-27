@@ -82,7 +82,7 @@ function MoneyRequestAction({
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
 
     const onMoneyRequestPreviewPressed = () => {
-        if (contextMenuRef.current?.isPopoverVisible) {
+        if (contextMenuRef.current?.isContextMenuOpening) {
             return;
         }
         if (isSplitBillAction) {
