@@ -686,7 +686,11 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             const activeRoute = Navigation.getActiveRoute();
             if (closePopover) {
-                hideContextMenu(false, () => Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute)));
+                hideContextMenu(false, () => {
+                    KeyboardUtils.dismiss().then(() => {
+                        Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
+                    });
+                });
                 return;
             }
 
