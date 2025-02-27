@@ -1,6 +1,6 @@
 import {setYear} from 'date-fns';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import TextInput from '@components/TextInput';
@@ -28,6 +28,7 @@ function DatePicker({
     value,
     shouldSaveDraft = false,
     formID,
+    autoFocus = false,
 }: DateInputWithPickerProps) {
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
@@ -63,10 +64,10 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const handlePress = () => {
+    const handlePress = useCallback(() => {
         calculatePopoverPosition();
         setIsModalVisible(true);
-    };
+    }, [calculatePopoverPosition]);
 
     const closeDatePicker = useCallback(() => {
         textInputRef.current?.blur();
@@ -83,6 +84,15 @@ function DatePicker({
     useEffect(() => {
         calculatePopoverPosition();
     }, [calculatePopoverPosition, windowWidth]);
+
+    useEffect(() => {
+        if (!autoFocus) {
+            return;
+        }
+        InteractionManager.runAfterInteractions(() => {
+            handlePress();
+        });
+    }, [handlePress, autoFocus]);
 
     return (
         <>
