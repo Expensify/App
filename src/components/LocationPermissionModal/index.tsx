@@ -9,6 +9,8 @@ import getPlatform from '@libs/getPlatform';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
+import { useIsFocused } from '@react-navigation/native';
+import Visibility from '@libs/Visibility';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -19,13 +21,29 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        console.log("[wildebug] ~ index.tsx:27 ~ useEffect ~ isFocused:", isFocused)
+    }, [isFocused]);
+
+    useEffect(() => {
+        const unsubscriber = Visibility.onVisibilityChange(() => {
+            console.log("[wildebug] ~ index.tsx:34 ~ unsubscriber ~ Visibility.isVisible():", Visibility.isVisible())
+
+        });
+
+        return unsubscriber;
+    }, []);
+
+
     useEffect(() => {
         if (!startPermissionFlow) {
             return;
         }
 
         getLocationPermission().then((status) => {
-            onInitialGetLocationCompleted?.();
+            onInitialGetLocationCompleted?.(status);
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
             }

@@ -10,6 +10,10 @@ import {getLocationPermission, requestLocationPermission} from '@pages/iou/reque
 import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
 import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
+import { useIsFocused } from '@react-navigation/native';
+import Visibility from '@libs/Visibility';
+import { clearUserLocation, setUserLocation } from '@libs/actions/UserLocation';
+import getCurrentPosition from '@libs/getCurrentPosition';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -20,6 +24,32 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const {translate} = useLocalize();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
+    useEffect(() => {
+        console.log("[wildebug] ~ index.desktop.tsx:32 ~ useEffect ~ useEffect:")
+        const unsubscriber = Visibility.onVisibilityChange(() => {
+
+            clearUserLocation();
+            getCurrentPosition(
+                (successData) => {
+                    console.log("[wildebug] ~ index.tsx:214 ~ useEffect ~ successData:", successData)
+                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                    onGrant();
+                },
+                () => {},
+                {
+                    maximumAge: 0,
+                    timeout: CONST.GPS.TIMEOUT,
+                },
+            );
+
+            console.log("[wildebug] ~ index.tsx:34 ~ unsubscriber ~ Visibility.isVisible():", Visibility.isVisible())
+
+        });
+
+        return unsubscriber;
+    }, []);
+
 
     useEffect(() => {
         if (!startPermissionFlow) {
