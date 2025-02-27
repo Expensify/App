@@ -567,7 +567,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 onConfirm={() => {
                     setModalVisible(false);
                     if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                         setRootStatusBarEnabled(false);
                         return;
                     }
