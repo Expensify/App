@@ -253,6 +253,7 @@ PODS:
     - AppAuth/Core (~> 1.7)
     - GTMSessionFetcher/Core (< 4.0, >= 3.3)
   - GTMSessionFetcher/Core (3.5.0)
+  - GzipSwift (5.1.1)
   - hermes-engine (0.76.3):
     - hermes-engine/Pre-built (= 0.76.3)
   - hermes-engine/Pre-built (0.76.3)
@@ -2521,7 +2522,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.230):
+  - RNLiveMarkdown (0.1.233):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2541,10 +2542,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/newarch (= 0.1.230)
+    - RNLiveMarkdown/newarch (= 0.1.233)
     - RNReanimated/worklets
     - Yoga
-  - RNLiveMarkdown/newarch (0.1.230):
+  - RNLiveMarkdown/newarch (0.1.233):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2877,6 +2878,7 @@ DEPENDENCIES:
   - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - GzipSwift
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
@@ -3008,6 +3010,7 @@ SPEC REPOS:
     - GoogleUtilities
     - GTMAppAuth
     - GTMSessionFetcher
+    - GzipSwift
     - libavif
     - libdav1d
     - libwebp
@@ -3321,6 +3324,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: ea963c370a38a8069cc5f7ba4ca849a60b6d7d15
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
+  GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: 0555a84ea495e8e3b4bde71b597cd87fbb382888
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
@@ -3429,7 +3433,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 364e6862a112045bb5c5d35601f0bdb0304af979
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 3887f27df3e002a4d008488df0ef62d7bcc526eb
+  RNLiveMarkdown: 763a9c03a90435770c2d49f9e99a7fc72ea49552
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: d184c8d3213acf4c97ec71fbbb6f9d4954552d80
   RNPermissions: 0b1429b55af59d1d08b75a8be2459f65a8ac3f28
@@ -3449,6 +3453,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 3deb2471faa9916c8a82dda2a22d3fba2620ad37
 
-PODFILE CHECKSUM: 6fc95cc1e80a55665a376c27ca23105e1eda8c64
+PODFILE CHECKSUM: a5d166a2e749f6a67badc7a7c90ac596a94c2099
 
 COCOAPODS: 1.15.2
