@@ -39,10 +39,18 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
 
     const defaultValues = {
         [`${SIGNER_PREFIX}_${COPY_OF_ID}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${COPY_OF_ID}`]) ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${COPY_OF_ID}`] : [],
-        [`${SIGNER_PREFIX}_${ADDRESS_PROOF}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`]) ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`] : [],
-        [`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`]) ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`] : [],
-        [`${SIGNER_PREFIX}_${CODICE_FISCALE}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${CODICE_FISCALE}`]) ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${CODICE_FISCALE}`] : [],
-        [`${SIGNER_PREFIX}_${PRD_AND_SFG}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PRD_AND_SFG}`]) ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PRD_AND_SFG}`] : [],
+        [`${SIGNER_PREFIX}_${ADDRESS_PROOF}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`])
+            ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`]
+            : [],
+        [`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`])
+            ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`]
+            : [],
+        [`${SIGNER_PREFIX}_${CODICE_FISCALE}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${CODICE_FISCALE}`])
+            ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${CODICE_FISCALE}`]
+            : [],
+        [`${SIGNER_PREFIX}_${PRD_AND_SFG}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PRD_AND_SFG}`])
+            ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PRD_AND_SFG}`]
+            : [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${COPY_OF_ID}`] as FileObject[]);
@@ -109,7 +117,10 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         setError={setError}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
-                    {(isDocumentNeededStatus.isAddressProofNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isAddressProofNeeded ||
+                        isDocumentNeededStatus.isProofOfDirecorsNeeded ||
+                        isDocumentNeededStatus.isCodiceFiscaleNeeded ||
+                        isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
                 </View>
             )}
             {isDocumentNeededStatus.isAddressProofNeeded && (
@@ -131,7 +142,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         setError={setError}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
-                    {isDocumentNeededStatus.isProofOfDirecorsNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isProofOfDirecorsNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && (
+                        <View style={[styles.sectionDividerLine, styles.mh0]} />
+                    )}
                 </View>
             )}
             {isDocumentNeededStatus.isProofOfDirecorsNeeded && (
@@ -153,7 +166,7 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         setError={setError}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.proofOfDirectorsDescription')}</Text>
-                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
                 </View>
             )}
             {isDocumentNeededStatus.isCodiceFiscaleNeeded && (
