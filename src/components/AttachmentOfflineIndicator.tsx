@@ -12,12 +12,9 @@ import Text from './Text';
 type AttachmentOfflineIndicatorProps = {
     /** Whether the offline indicator is displayed for the attachment preview. */
     isPreview?: boolean;
-
-    /** Whether the offline indicator should always have a background color set. */
-    shouldAlwaysHaveBackground?: boolean;
 };
 
-function AttachmentOfflineIndicator({isPreview = false, shouldAlwaysHaveBackground = false}: AttachmentOfflineIndicatorProps) {
+function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -46,7 +43,7 @@ function AttachmentOfflineIndicator({isPreview = false, shouldAlwaysHaveBackgrou
                 styles.pAbsolute,
                 styles.h100,
                 styles.w100,
-                (isPreview || shouldAlwaysHaveBackground) && styles.hoveredComponentBG,
+                isPreview && styles.hoveredComponentBG,
             ]}
         >
             <Icon
