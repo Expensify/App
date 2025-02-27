@@ -281,13 +281,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 focusTrapOptions: isMobileSafari()
                     ? undefined
                     : {
-                          // It is added because input form's focusing bothers transition animation:
+                          // We need to check this because focusing the input form interferes with the transition animation:
                           // https://github.com/Expensify/App/issues/53884#issuecomment-2594568960
                           checkCanFocusTrap: (trapContainers: Array<HTMLElement | SVGElement>) => {
                               return new Promise((resolve) => {
                                   const interval = setInterval(() => {
                                       const trapContainer = trapContainers.at(0);
-                                      if (!trapContainer || (trapContainer && getComputedStyle(trapContainer).visibility !== 'hidden')) {
+                                      if (!trapContainer || getComputedStyle(trapContainer).visibility !== 'hidden') {
                                           resolve();
                                           clearInterval(interval);
                                       }
