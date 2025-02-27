@@ -1353,12 +1353,12 @@ function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
 function isPrefferedExporter(policy: Policy) {
     const user = getCurrentUserEmail();
     const exporters = [
-        policy.connections?.intacct.config.export.exporter,
-        policy.connections?.netsuite.options.config.exporter,
-        policy.connections?.netsuiteQuickStart.config.exporter,
-        policy.connections?.quickbooksDesktop.config.export.exporter,
-        policy.connections?.quickbooksOnline.config.export.exporter,
-        policy.connections?.xero.config.export.exporter,
+        policy.connections?.intacct?.config?.export?.exporter,
+        policy.connections?.netsuite?.options?.config?.exporter,
+        policy.connections?.netsuiteQuickStart?.config?.exporter,
+        policy.connections?.quickbooksDesktop?.config?.export?.exporter,
+        policy.connections?.quickbooksOnline?.config?.export?.exporter,
+        policy.connections?.xero?.config?.export?.exporter,
     ];
 
     return exporters.some((exporter) => exporter && exporter === user);
@@ -1366,12 +1366,12 @@ function isPrefferedExporter(policy: Policy) {
 
 function isAutoSyncEnabled(policy: Policy) {
     const values = [
-        policy.connections?.intacct.config.autoSync.enabled,
-        policy.connections?.netsuite.config.autoSync.enabled,
-        policy.connections?.netsuiteQuickStart.config.autoSync?.enabled,
-        policy.connections?.quickbooksDesktop.config.autoSync.enabled,
-        policy.connections?.quickbooksOnline.config.autoSync.enabled,
-        policy.connections?.xero.config.autoSync.enabled,
+        policy.connections?.intacct?.config?.autoSync?.enabled,
+        policy.connections?.netsuite?.config?.autoSync?.enabled,
+        policy.connections?.netsuiteQuickStart?.config?.autoSync?.enabled,
+        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
+        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
+        policy.connections?.xero?.config?.autoSync?.enabled,
     ];
 
     return values.some((value) => !!value);

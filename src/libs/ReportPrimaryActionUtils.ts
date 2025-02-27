@@ -42,7 +42,7 @@ function isApproveAction(report: Report, policy: Policy, reportTransactions: Tra
         return false;
     }
 
-    const isOneExpenseReport = isExpenseReport(report) && reportTransactions.length === 1;
+    const isOneExpenseReport = isExpense && reportTransactions.length === 1;
     const isOnHold = reportTransactions.some(isOnHoldTransactionUtils);
     const isProcessing = isProcessingReport(report);
     const isOneExpenseReportOnHold = isOneExpenseReport && isOnHold;
