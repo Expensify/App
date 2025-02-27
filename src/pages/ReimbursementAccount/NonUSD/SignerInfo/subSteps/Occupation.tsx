@@ -11,13 +11,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type OccupationProps = SubStepProps & {directorID?: string};
 
-const {PREFIX, DIRECTOR_OCCUPATION} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {DIRECTOR_PREFIX, DIRECTOR_OCCUPATION} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function Occupation({onNext, onMove, isEditing, directorID}: OccupationProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const inputID = `${PREFIX}_${directorID}_${DIRECTOR_OCCUPATION}`;
+    const inputID = `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_OCCUPATION}`;
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(

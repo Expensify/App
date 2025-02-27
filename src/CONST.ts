@@ -740,7 +740,8 @@ const CONST = {
                 DIRECTORS_LIST: 7,
             },
             SIGNER_INFO_DATA: {
-                PREFIX: 'director',
+                SIGNER_PREFIX: 'signer',
+                DIRECTOR_PREFIX: 'director',
                 FULL_NAME: 'signerFullName',
                 DATE_OF_BIRTH: 'signerDateOfBirth',
                 JOB_TITLE: 'signerJobTitle',

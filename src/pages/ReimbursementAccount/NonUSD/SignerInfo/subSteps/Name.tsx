@@ -13,13 +13,13 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 type NameProps = SubStepProps & {directorID?: string};
 
 const {SIGNER_FULL_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {PREFIX, DIRECTOR_FULL_NAME} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {DIRECTOR_PREFIX, DIRECTOR_FULL_NAME} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
 function Name({onNext, onMove, isEditing, directorID}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const inputID = directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? `${PREFIX}_${directorID}_${DIRECTOR_FULL_NAME}` : SIGNER_FULL_NAME;
+    const inputID = directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_FULL_NAME}` : SIGNER_FULL_NAME;
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(
