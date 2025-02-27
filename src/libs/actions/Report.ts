@@ -1584,7 +1584,7 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 
-    if (!reportActionID || !originalReportID) {
+    if (!reportActionID || !originalReportID || !reportID) {
         return;
     }
 
