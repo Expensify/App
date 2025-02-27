@@ -31,11 +31,11 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
-    const {isSidePaneOverlayVisible} = useSidePane();
+    const {shouldHideTopLevelBottomBar} = useSidePane();
 
     // That means it's visible and it's not covered by the overlay.
-    const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state) && !isSidePaneOverlayVisible;
-    const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state) && !isSidePaneOverlayVisible;
+    const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state) && !shouldHideTopLevelBottomBar;
+    const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state) && !shouldHideTopLevelBottomBar;
     const selectedTab = getSelectedTab(state);
 
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;

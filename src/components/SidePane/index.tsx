@@ -19,7 +19,7 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     const {translate} = useLocalize();
 
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {sidePaneTranslateX, shouldHideSidePane, isSidePaneOverlayVisible} = useSidePane();
+    const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop} = useSidePane();
 
     const route = useNavigationState((state) => {
         const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
@@ -55,7 +55,7 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     return (
         <>
             <View>
-                {shouldShowOverlay && isSidePaneOverlayVisible && (
+                {shouldShowOverlay && !shouldHideSidePaneBackdrop && (
                     <Backdrop
                         onBackdropPress={onClose}
                         style={styles.sidePaneOverlay}
