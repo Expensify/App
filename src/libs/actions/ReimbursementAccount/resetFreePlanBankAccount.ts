@@ -17,7 +17,7 @@ Onyx.connect({
 /**
  * Reset user's reimbursement account. This will delete the bank account.
  */
-function resetFreePlanBankAccount(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string | undefined) {
+function resetFreePlanBankAccount(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }

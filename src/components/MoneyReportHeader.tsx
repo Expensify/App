@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
     canBeExported,
@@ -27,13 +27,13 @@ import {
     isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
     isClosedExpenseReportWithNoExpenses,
-    isCurrentUserSubmitter,
     isInvoiceReport,
     navigateBackOnDeleteTransaction,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
+    checkIfShouldShowMarkAsCashButton,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
@@ -150,11 +150,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
-    const transactionIDs = transactions?.map((t) => t.transactionID) ?? [];
-    const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (allTransactions) =>
-            Object.fromEntries(Object.entries(allTransactions ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
-    });
+    const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
+    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const violations = useMemo(
+        () => Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
+        [allViolations, transactionIDs],
+    );
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
     // Check if user should see broken connection violation warning.
@@ -173,8 +174,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        !!transactionThreadReportID &&
-        (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID))));
+        !!transactionThreadReportID && checkIfShouldShowMarkAsCashButton(hasAllPendingRTERViolations, shouldShowBrokenConnectionViolation, moneyRequestReport, policy);
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
@@ -300,7 +300,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (hasOnlyHeldExpenses) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
         }
-        if (shouldShowBrokenConnectionViolation) {
+        if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (
