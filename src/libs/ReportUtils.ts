@@ -5671,6 +5671,54 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
 }
 
 /**
+ * Builds an optimistic CHANGEPOLICY report action with a randomly generated reportActionID.
+ * This action is used when we change the workspace of a report.
+ */
+function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string): ReportAction {
+    const originalMessage = {
+        fromPolicyID,
+        toPolicyID,
+    };
+
+    const fromPolicy = getPolicy(fromPolicyID);
+    const toPolicy = getPolicy(toPolicyID);
+
+    const changePolicyReportActionMessage = [
+    {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            text: `changed the workspace to ${toPolicy?.name}`,
+      },
+      ...(fromPolicyID
+        ? [
+              {
+                  type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                  text: `(previously ${fromPolicy?.name})`,
+              },
+          ]
+        : []),
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        originalMessage,
+        message: changePolicyReportActionMessage,
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+  }
+}
+
+/**
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
@@ -9536,6 +9584,7 @@ export {
     isHiddenForCurrentUser,
     prepareOnboardingOnyxData,
     getReportSubtitlePrefix,
+    buildOptimisticChangePolicyReportAction,
 };
 
 export type {

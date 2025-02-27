@@ -1302,7 +1302,6 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
     }
     return [
         CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
-        CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
@@ -1357,10 +1356,6 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
                 return translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
             }
             return translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
-        }
-        case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
-            const {fromPolicy, toPolicy} = originalMessage;
-            return translateLocal('report.actions.type.changePolicy', {fromPolicy, toPolicy});
         }
         case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
             const {delegateUser, originalManager} = originalMessage;

@@ -64,6 +64,13 @@ type DismissedProductTraining = {
      * When user dismisses the globalCreateTooltip product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_TOOLTIP]: string;
+
+    /**
+     * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
+     */
+    [CONST.CHANGE_POLICY_TRAINING_MODAL]: string;
+
+
 };
 
 export default DismissedProductTraining;

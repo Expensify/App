@@ -1029,6 +1029,13 @@ type ReportDetailsNavigatorParamList = {
     };
 };
 
+type ReportChangeWorkspaceNavigatorParamList = {
+    [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: {
+        reportID: string;
+        backTo?: Routes;
+    };
+};
+
 type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.ROOT]: {
         reportID: string;
@@ -1434,6 +1441,7 @@ type SignInNavigatorParamList = {
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+    [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
 
 type ReferralDetailsNavigatorParamList = {
@@ -1501,6 +1509,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: NavigatorScreenParams<ReportChangeWorkspaceNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
@@ -1928,6 +1937,7 @@ export type {
     ReimbursementAccountNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
+    ReportChangeWorkspaceNavigatorParamList,
     ReportSettingsNavigatorParamList,
     ReportsSplitNavigatorParamList,
     RestrictedActionParamList,

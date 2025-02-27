@@ -1091,6 +1091,13 @@ const translations = {
         whatIsHoldExplain: 'Retener es como "pausar" un gasto para solicitar más detalles antes de aprobarlo o pagarlo.',
         holdIsLeftBehind: 'Si apruebas un informe, los gastos retenidos se quedan fuera de esa aprobación.',
         unholdWhenReady: 'Desbloquea los gastos cuando estés listo para aprobarlos o pagarlos.',
+        changePolicyEducational: {
+            title: 'You moved this report!',
+            description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
+            reCategorize: '<strong>Re-categorize any expenses</strong> to comply with workspace rules.',
+            workflows: 'This report may now be subject to a different approval <strong>workflow.</strong>',
+        },
+        changeWorkspace: 'Change workspace',
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
