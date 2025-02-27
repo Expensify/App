@@ -537,7 +537,7 @@ function IOURequestStepScan({
                     updateScanAndNavigate(file, source);
                     return;
                 }
-                // if (shouldSkipConfirmation) {
+                if (shouldSkipConfirmation) {
                     setFileResize(file);
                     setFileSource(source);
                     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && file;
@@ -549,7 +549,7 @@ function IOURequestStepScan({
                             return;
                         }
                     }
-                // }
+                }
                 navigateToConfirmationStep(file, source, false);
             });
         });
@@ -853,21 +853,13 @@ function IOURequestStepScan({
                             confirmText={translate('common.close')}
                             shouldShowCancelButton={false}
                         />
-                        {startLocationPermissionFlow && (
+                        {startLocationPermissionFlow && !!fileResize && (
                             <LocationPermissionModal
                                 startPermissionFlow={startLocationPermissionFlow}
                                 resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                                onGrant={() => {
-                                    if(!fileResize || !fileSource) {
-                                        return;
-                                    }
-                                    navigateToConfirmationStep(fileResize, fileSource, true)
-                                }}
+                                onGrant={() => navigateToConfirmationStep(fileResize, fileSource, true)}
                                 onDeny={() => {
                                     updateLastLocationPermissionPrompt();
-                                    if(!fileResize || !fileSource) {
-                                        return;
-                                    }
                                     navigateToConfirmationStep(fileResize, fileSource, false);
                                 }}
                             />
