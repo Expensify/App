@@ -2396,7 +2396,7 @@ const CONST = {
         BANCORP_WALLET_PROGRAM_ID: '660',
         PROGRAM_ISSUERS: {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
-            BANCORP_BANK: 'The Bancorp Bank',
+            BANCORP_BANK: 'The Bancorp Bank, N.A.',
         },
     },
 
