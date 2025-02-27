@@ -39,7 +39,7 @@ function init() {
             const recomputeDerivedValue = () => {
                 const newDerivedValue = compute(dependencyValues, derivedValue);
                 if (newDerivedValue !== derivedValue) {
-                    Log.info(`[OnyxDerived] value for key ${key} changed, updating it in Onyx`, false, {old: derivedValue, new: newDerivedValue});
+                    Log.info(`[OnyxDerived] value for key ${key} changed, updating it in Onyx`, false, {old: derivedValue ?? null, new: newDerivedValue ?? null});
                     derivedValue = newDerivedValue;
                     Onyx.set(key, derivedValue ?? null);
                 }
