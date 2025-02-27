@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +19,7 @@ import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actio
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import {getActivePolicies, getActivePolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,6 +36,13 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const groupPolicies = activePolicies.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL);
+    const isUserMemberOfSingleGroupPolicy = groupPolicies.length === 1;
+    const activePolicy = getActivePolicy();
+    const isActivePolicyGroup = activePolicy?.type;
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
@@ -110,6 +119,19 @@ function TravelTerms({route}: TravelTermsPageProps) {
                             }
                             if (errorMessage) {
                                 setErrorMessage('');
+                            }
+
+                            if (!isActivePolicyGroup && !isUserMemberOfSingleGroupPolicy) {
+                                // This will be kept in en.ts and es.ts file seperately
+                                setErrorMessage(
+                                    'You need to set a default workspace to enable Expensify Travel. Go to Settings > Workspaces > click the three vertical dots next to a workspace > Set as default workspace, then try again!',
+                                );
+                                return;
+                            }
+
+                            if (isUserMemberOfSingleGroupPolicy) {
+                                acceptSpotnanaTerms(domain, groupPolicies[0].id);
+                                return;
                             }
 
                             acceptSpotnanaTerms(domain);
