@@ -33,6 +33,7 @@ import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -144,7 +145,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import usePermissions from "@hooks/usePermissions";
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -558,40 +558,36 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         }
 
         if (isMoneyRequestReport) {
-            items.push(
-                {
-                    key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_CSV,
-                    translationKey: 'common.downloadAsCSV',
-                    icon: Expensicons.Table,
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_CSV,
+                translationKey: 'common.downloadAsCSV',
+                icon: Expensicons.Table,
+                isAnonymousAction: false,
+                action: () => {
+                    if (isOffline) {
+                        setOfflineModalVisible(true);
+                        return;
+                    }
+
+                    exportReportToCSV({reportID: report.reportID, transactionIDList}, () => {
+                        setDownloadErrorModalVisible(true);
+                    });
+                },
+            });
+            if (canUsePDFExport) {
+                items.push({
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
+                    translationKey: 'common.downloadAsPDF',
+                    icon: Expensicons.Document,
                     isAnonymousAction: false,
                     action: () => {
                         if (isOffline) {
                             setOfflineModalVisible(true);
-                            return;
+                        } else {
+                            beginPDFExport();
                         }
-
-                        exportReportToCSV({reportID: report.reportID, transactionIDList}, () => {
-                            setDownloadErrorModalVisible(true);
-                        });
                     },
-                },
-            );
-            if (canUsePDFExport) {
-                items.push(
-                    {
-                        key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
-                        translationKey: 'common.downloadAsPDF',
-                        icon: Expensicons.Document,
-                        isAnonymousAction: false,
-                        action: () => {
-                            if (isOffline) {
-                                setOfflineModalVisible(true);
-                            } else {
-                                beginPDFExport();
-                            }
-                        },
-                    },
-                );
+                });
             }
         }
 
