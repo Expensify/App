@@ -21,6 +21,7 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {generateReportID, getBankAccountRoute} from '@libs/ReportUtils';
@@ -750,10 +751,16 @@ function IOURequestStepConfirmation({
                     <LocationPermissionModal
                         startPermissionFlow={startLocationPermissionFlow}
                         resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                        onGrant={() => createTransaction(selectedParticipantList, true)}
+                        onGrant={() => {
+                            navigateAfterInteraction(() => {
+                                createTransaction(selectedParticipantList, true);
+                            });
+                        }}
                         onDeny={() => {
                             updateLastLocationPermissionPrompt();
-                            createTransaction(selectedParticipantList, false);
+                            navigateAfterInteraction(() => {
+                                createTransaction(selectedParticipantList, false);
+                            });
                         }}
                     />
                 )}
