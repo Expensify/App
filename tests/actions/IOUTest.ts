@@ -4,7 +4,9 @@ import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx'
 import Onyx from 'react-native-onyx';
 import {
     canApproveIOU,
+    canCancelPayment,
     cancelPayment,
+    canUnapproveIOU,
     deleteMoneyRequest,
     payMoneyRequest,
     putOnHold,
@@ -4673,6 +4675,36 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             expect(canApproveIOU(fakeReport, fakePolicy)).toBeTruthy();
+        });
+    });
+
+    describe('canUnapproveIOU', () => {
+        it('should return false if the report is waiting for a bank account', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'A',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            expect(canUnapproveIOU(fakeReport, undefined)).toBeFalsy();
+        });
+    });
+
+    describe('canCancelPayment', () => {
+        it('should return true if the report is waiting for a bank account', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'A',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID})).toBeTruthy();
         });
     });
 });
