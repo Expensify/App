@@ -2176,7 +2176,7 @@ const translations = {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
-        reviewTheFees: 'Por favor, revisa las siguientes tarifas.',
+        reviewTheFees: 'Echa un vistazo a algunas tarifas.',
         checkTheBoxes: 'Por favor, marca las siguientes casillas.',
         agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
@@ -2191,7 +2191,7 @@ const translations = {
             customerService: 'Servicio al cliente',
             automatedOrLive: '(agente automatizado o en vivo)',
             afterTwelveMonths: '(después de 12 meses sin transacciones)',
-            weChargeOneFee: 'Cobramos un tipo de tarifa.',
+            weChargeOneFee: 'Cobramos un tipo de tarifa. Es:',
             fdicInsurance: 'Tus fondos pueden acogerse al seguro de la FDIC.',
             generalInfo: 'Para obtener información general sobre cuentas de prepago, visite',
             conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
@@ -2201,9 +2201,9 @@ const translations = {
         },
         longTermsForm: {
             listOfAllFees: 'Una lista de todas las tarifas de la Billetera Expensify',
-            typeOfFeeHeader: 'Tipo de tarifa',
-            feeAmountHeader: 'Importe de la tarifa',
-            moreDetailsHeader: 'Más detalles',
+            typeOfFeeHeader: 'Todas las tarifas',
+            feeAmountHeader: 'Cantidad',
+            moreDetailsHeader: 'Descripción',
             openingAccountTitle: 'Abrir una cuenta',
             openingAccountDetails: 'No hay tarifa para abrir una cuenta.',
             monthlyFeeDetails: 'No hay tarifa mensual.',
@@ -2224,7 +2224,8 @@ const translations = {
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
                 'Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán ' +
                 `transferidos a ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}, una institución asegurada por la FDIC. Una vez allí, tus fondos ` +
-                `están asegurados hasta ${amount} por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} quiebre. Ver`,
+                `están asegurados hasta ${amount} por la FDIC en caso de que ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} falle, si se cumplen ` +
+                `los requisitos específicos de seguro de depósito y tu tarjeta está registrada. Ver`,
             fdicInsuranceBancorp2: 'para más detalles.',
             contactExpensifyPayments: `Comunícate con ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} llamando al + 1833-400-0904, o por correo electrónico a`,
             contactExpensifyPayments2: 'o inicie sesión en',
