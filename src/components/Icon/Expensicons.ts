@@ -205,6 +205,7 @@ import UserEye from '@assets/images/user-eye.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
+import VideoSlash from '@assets/images/video-slash.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
 import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
@@ -383,6 +384,7 @@ export {
     User,
     UserCheck,
     Users,
+    VideoSlash,
     VolumeHigh,
     VolumeLow,
     Wallet,

@@ -12,9 +12,12 @@ import Text from './Text';
 type AttachmentOfflineIndicatorProps = {
     /** Whether the offline indicator is displayed for the attachment preview. */
     isPreview?: boolean;
+
+    /** Whether the offline indicator should always have a background color set. */
+    shouldAlwaysHaveBackground?: boolean;
 };
 
-function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndicatorProps) {
+function AttachmentOfflineIndicator({isPreview = false, shouldAlwaysHaveBackground = false}: AttachmentOfflineIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -35,7 +38,17 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
     }
 
     return (
-        <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, styles.pAbsolute, styles.h100, styles.w100, isPreview && styles.hoveredComponentBG]}>
+        <View
+            style={[
+                styles.flexColumn,
+                styles.alignItemsCenter,
+                styles.justifyContentCenter,
+                styles.pAbsolute,
+                styles.h100,
+                styles.w100,
+                (isPreview || shouldAlwaysHaveBackground) && styles.hoveredComponentBG,
+            ]}
+        >
             <Icon
                 fill={theme.icon}
                 src={Expensicons.OfflineCloud}
