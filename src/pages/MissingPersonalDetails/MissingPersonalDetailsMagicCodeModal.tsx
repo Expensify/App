@@ -37,7 +37,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
         privatePersonalDetails.addresses.length === 0;
 
     useEffect(() => {
-        if (missingDetails || !!privateDetailsErrors || !isAllCardsShipped) {
+        if (missingDetails || !!privateDetailsErrors || !areAllCardsShipped) {
             return;
         }
 
