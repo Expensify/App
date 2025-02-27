@@ -6,6 +6,7 @@ import {
     canApproveIOU,
     cancelPayment,
     deleteMoneyRequest,
+    mergeDuplicates,
     payMoneyRequest,
     putOnHold,
     requestMoney,
@@ -30,6 +31,7 @@ import {translateLocal} from '@libs/Localize';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {
+    getDismissedViolationMessageText,
     getOriginalMessage,
     getReportActionHtml,
     getReportActionMessage,
@@ -3817,6 +3819,86 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
+        });
+    });
+
+    describe('mergeDuplicates', () => {
+        test('Merging duplicates of two transactions should display a system message', async () => {
+            // Given two duplicate transactions
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction1 = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transaction2 = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 100,
+                    currency: 'USD',
+                    reportID: iouReport.reportID,
+                },
+            });
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+
+            const iouActions: ReportAction[] = [];
+            [transaction1, transaction2].forEach((transaction) => {
+                const optimisticReportAction = buildOptimisticIOUReportAction(
+                    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transaction.amount,
+                    transaction.currency,
+                    '',
+                    [],
+                    transaction.transactionID,
+                );
+                iouActions.push({
+                    ...optimisticReportAction,
+                    childReportID: rand64(),
+                });
+            });
+            const actions: OnyxInputValue<ReportActions> = {};
+            iouActions.forEach(
+                (iouAction) =>
+                    (actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`] = {
+                        ...iouAction,
+                    }),
+            );
+            const actionCollectionDataSet: ReportActionsCollectionDataSet = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: actions};
+            await waitForBatchedUpdates();
+            await Onyx.multiSet({...transactionCollectionDataSet, ...actionCollectionDataSet});
+
+            // When merge duplicates transaction
+            mergeDuplicates({
+                ...transaction1,
+                receiptID: 1,
+                category: '',
+                comment: '',
+                billable: false,
+                reimbursable: true,
+                tag: '',
+                transactionIDList: [transaction2.transactionID],
+            });
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActions.at(0)?.childReportID}`,
+                    callback: (reportActions) => {
+                        Onyx.disconnect(connection);
+                        // Then the system message 'resolved the duplicate' should be displayed
+                        const dismissedViolationReportAction = Object.values(reportActions ?? {}).at(0);
+                        if (isActionOfType(dismissedViolationReportAction, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
+                            const dismissedViolationMessageText = getDismissedViolationMessageText(getOriginalMessage(dismissedViolationReportAction));
+                            const systemMessage = 'resolved the duplicate';
+                            expect(dismissedViolationMessageText).toBe(systemMessage);
+                        }
+                        resolve();
+                    },
+                });
+            });
         });
     });
 
