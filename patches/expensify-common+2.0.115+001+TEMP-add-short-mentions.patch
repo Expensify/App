@@ -1,0 +1,27 @@
+diff --git a/node_modules/expensify-common/dist/ExpensiMark.js b/node_modules/expensify-common/dist/ExpensiMark.js
+index 5c8cd83..b80923f 100644
+--- a/node_modules/expensify-common/dist/ExpensiMark.js
++++ b/node_modules/expensify-common/dist/ExpensiMark.js
+@@ -364,6 +364,22 @@ class ExpensiMark {
+                 replacement: '$1<a href="mailto:$2">$2</a>',
+                 rawInputReplacement: '$1<a href="mailto:$2" data-raw-href="$2" data-link-variant="auto">$2</a>',
+             },
++
++            {
++                name: 'shortMentions',
++
++                regex: new RegExp(
++                    `(@here|[a-zA-Z0-9.!$%&+=?^\`{|}-]?)(@(?=((?=[\\w]+[\\w'#%+-]+(?:\\.[\\w'#%+-]+)*)[\\w\\.'#%+-]{1,64}(?= |_|\\b))(?!([:\\/\\\\]))(?<end>.*))(?!here)\\S{3,254}(?=\\k<end>$))(?!((?:(?!<a).)+)?<\\/a>|[^<]*(<\\/pre>|<\\/code>|<\\/mention-user>|<\\/mention-here>))`,
++                    'gim',
++                ),
++                replacement: (_extras, match, g1, g2) => {
++                    if (!str_1.default.isValidMention(match)) {
++                        return match;
++                    }
++                    return `${g1}<mention-short>${g2}</mention-short>`;
++                },
++            },
++
+             {
+                 // Use \B in this case because \b doesn't match * or ~.
+                 // \B will match everything that \b doesn't, so it works

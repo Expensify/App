@@ -1,9 +1,11 @@
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
 import {MarkdownTextInput, parseExpensiMark} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React from 'react';
-import Animated from 'react-native-reanimated';
+import React, {forwardRef, useCallback} from 'react';
+import Animated, {useSharedValue} from 'react-native-reanimated';
+import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
+import {decorateRangesWithShortMentions} from '@libs/ParsingUtils';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
@@ -11,7 +13,10 @@ const AnimatedMarkdownTextInput = Animated.createAnimatedComponent(MarkdownTextI
 
 type AnimatedMarkdownTextInputRef = typeof AnimatedMarkdownTextInput & MarkdownTextInput & HTMLInputElement;
 
-type RNMarkdownTextInputProps = Omit<MarkdownTextInputProps, 'parser'>;
+// Make the parser prop optional for this component because we are always defaulting to `parseExpensiMark`
+type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> & {
+    parser?: MarkdownTextInputProps['parser'];
+};
 
 function handleFormatSelection(selectedText: string, formatCommand: string) {
     switch (formatCommand) {
@@ -24,15 +29,38 @@ function handleFormatSelection(selectedText: string, formatCommand: string) {
     }
 }
 
-function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTextInputWithRefProps, ref: ForwardedRef<AnimatedMarkdownTextInputRef>) {
     const theme = useTheme();
+
+    const {mentionsList, currentUserMention} = useShortMentionsList();
+    const mentionsSharedVal = useSharedValue<string[]>(mentionsList);
+
+    // We accept parser passed down as a prop or use ExpensiMark if parser is not defined
+    const parserWorklet = useCallback(
+        (text: string) => {
+            'worklet';
+
+            if (parser) {
+                return parser(text);
+            }
+
+            const parsedMentions = parseExpensiMark(text);
+            const availableMentions = mentionsSharedVal.get();
+            if (availableMentions.length === 0) {
+                return parsedMentions;
+            }
+
+            return decorateRangesWithShortMentions(parsedMentions, text, mentionsSharedVal.get(), currentUserMention);
+        },
+        [currentUserMention, mentionsSharedVal, parser],
+    );
 
     return (
         <AnimatedMarkdownTextInput
             allowFontScaling={false}
             textBreakStrategy="simple"
             keyboardAppearance={theme.colorScheme}
-            parser={parseExpensiMark}
+            parser={parserWorklet}
             ref={(refHandle) => {
                 if (typeof ref !== 'function') {
                     return;
@@ -43,7 +71,7 @@ function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputPr
             // eslint-disable-next-line
             {...props}
             /**
-             * If maxLength is not set, we should set the it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text
+             * If maxLength is not set, we should set it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text
              */
             maxLength={maxLength ?? CONST.MAX_COMMENT_LENGTH + 1}
         />
@@ -52,5 +80,5 @@ function RNMarkdownTextInputWithRef({maxLength, ...props}: RNMarkdownTextInputPr
 
 RNMarkdownTextInputWithRef.displayName = 'RNTextInputWithRef';
 
-export default React.forwardRef(RNMarkdownTextInputWithRef);
+export default forwardRef(RNMarkdownTextInputWithRef);
 export type {AnimatedMarkdownTextInputRef};
