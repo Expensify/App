@@ -2,7 +2,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {getActivePolicies, getRateDisplayValue, getPolicyNameByID, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActivePolicies, getPolicyNameByID, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
@@ -479,7 +479,7 @@ describe('PolicyUtils', () => {
         it('should return the policy name for a given policyID', async () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                name:'testName',
+                name: 'testName',
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
