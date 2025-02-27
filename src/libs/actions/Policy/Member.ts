@@ -994,7 +994,9 @@ function acceptJoinRequest(reportID: string | undefined, reportAction: OnyxEntry
             },
         },
     ];
-    const accountIDToApprove = ReportActionsUtils.isActionableJoinRequest(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID : CONST.DEFAULT_NUMBER_ID;
+    const accountIDToApprove = ReportActionsUtils.isActionableJoinRequest(reportAction)
+        ? ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID
+        : CONST.DEFAULT_NUMBER_ID;
     const parameters = {
         requests: JSON.stringify({
             [ReportActionsUtils.isActionableJoinRequest(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID]: {
@@ -1053,7 +1055,9 @@ function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntr
             },
         },
     ];
-    const accountIDToApprove = ReportActionsUtils.isActionableJoinRequest(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID : CONST.DEFAULT_NUMBER_ID;
+    const accountIDToApprove = ReportActionsUtils.isActionableJoinRequest(reportAction)
+        ? ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID
+        : CONST.DEFAULT_NUMBER_ID;
     const parameters = {
         requests: JSON.stringify({
             [ReportActionsUtils.isActionableJoinRequest(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID]: {
