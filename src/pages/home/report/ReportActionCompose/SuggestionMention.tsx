@@ -15,13 +15,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import localeCompare from '@libs/LocaleCompare';
-import * as LoginUtils from '@libs/LoginUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as SuggestionsUtils from '@libs/SuggestionUtils';
+import {canReportBeMentionedWithinPolicy} from '@libs/ReportUtils';
+import {trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
-import * as ReportUserActions from '@userActions/Report';
+import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
@@ -157,7 +157,7 @@ function SuggestionMention(
         useCallback(() => {
             const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
             if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
-                ReportUserActions.searchInServer(suggestionValues.mentionPrefix, policyID);
+                searchInServer(suggestionValues.mentionPrefix, policyID);
             }
         }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, suggestionValues.mentionPrefix, policyID, isGroupPolicyReport]),
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
@@ -169,7 +169,7 @@ function SuggestionMention(
                 return displayText;
             }
             // If the emails are not in the same private domain, we also return the displayText
-            if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
+            if (!areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
                 return Str.removeSMSDomain(displayText);
             }
 
@@ -203,7 +203,7 @@ function SuggestionMention(
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
-            updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
+            updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterMention)}`, true);
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
                 start: selectionPosition,
@@ -291,7 +291,7 @@ function SuggestionMention(
                 if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
                     return false;
                 }
-                const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);
+                const displayName = getDisplayNameOrDefault(detail);
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
@@ -318,7 +318,7 @@ function SuggestionMention(
 
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
-                    text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
+                    text: formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login),
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
                     handle: detail?.login,
                     icons: [
@@ -342,7 +342,7 @@ function SuggestionMention(
         (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
             Object.values(reportBatch ?? {}).forEach((report) => {
-                if (!ReportUtils.canReportBeMentionedWithinPolicy(report, policyID)) {
+                if (!canReportBeMentionedWithinPolicy(report, policyID)) {
                     return;
                 }
                 if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
