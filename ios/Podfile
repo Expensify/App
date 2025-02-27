@@ -120,6 +120,7 @@ end
 
 target 'NotificationServiceExtension' do
   pod 'AirshipServiceExtension'
+  pod 'GzipSwift'
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
