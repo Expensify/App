@@ -47,6 +47,9 @@ type OptionRowLHNDataProps = {
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
 
+    /** The transaction thread report associated with the current report, if any */
+    oneTransactionThreadReport: OnyxEntry<Report>;
+
     /** Array of report name value pairs for this report */
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
 
