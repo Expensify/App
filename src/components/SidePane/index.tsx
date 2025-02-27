@@ -1,7 +1,7 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
+import {Animated, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Backdrop from '@components/Modal/BottomDockedModal/Backdrop';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -54,12 +54,14 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
 
     return (
         <>
-            {shouldShowOverlay && isSidePaneOverlayVisible && (
-                <Backdrop
-                    onBackdropPress={onClose}
-                    style={styles.sidePaneOverlay}
-                />
-            )}
+            <View>
+                {shouldShowOverlay && isSidePaneOverlayVisible && (
+                    <Backdrop
+                        onBackdropPress={onClose}
+                        style={styles.sidePaneOverlay}
+                    />
+                )}
+            </View>
             <Animated.View style={[styles.sidePaneContainer(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}]}]}>
                 <ScreenWrapper testID={SidePane.displayName}>
                     <HeaderWithBackButton
