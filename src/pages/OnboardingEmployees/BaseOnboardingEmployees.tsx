@@ -1,7 +1,8 @@
-import React, {useMemo, useState} from 'react';
+import React, {useContext, useMemo, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,11 +13,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {openOldDotLink} from '@userActions/Link';
+import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
+import {completeOnboarding} from '@userActions/Report';
+import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,8 +37,9 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(PolicyUtils.isPaidGroupPolicy);
+    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
@@ -69,23 +73,24 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         setError(translate('onboarding.errorSelection'));
                         return;
                     }
-                    Welcome.setOnboardingCompanySize(selectedCompanySize);
+                    setOnboardingCompanySize(selectedCompanySize);
+                    switchToOldDotOnNonMicroCompanySize(selectedCompanySize);
 
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
-                    // We need `adminsChatReportID` for `Report.completeOnboarding`, but at the same time, we don't want to call `Policy.createWorkspace` more than once.
+                    // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
                     // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
                     const {adminsChatReportID, policyID} = shouldCreateWorkspace
-                        ? Policy.createWorkspace(undefined, true, '', Policy.generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM)
+                        ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false)
                         : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
                     if (shouldCreateWorkspace) {
-                        Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
-                        Welcome.setOnboardingPolicyID(policyID);
+                        setOnboardingAdminsChatReportID(adminsChatReportID);
+                        setOnboardingPolicyID(policyID);
                     }
 
-                    // For MICRO companies (1-10 employees), we want to remain on NewDot.
-                    if (!NativeModules.HybridAppModule || selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                    // For MICRO companies (1-10 employees) or desktop app, we want to remain on NewDot.
+                    if (selectedCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || getPlatform() === CONST.PLATFORM.DESKTOP) {
                         Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                         return;
                     }
@@ -93,7 +98,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     // For other company sizes we want to complete onboarding here.
                     // At this point `onboardingPurposeSelected` should always exist as we set it in `BaseOnboardingPurpose`.
                     if (onboardingPurposeSelected) {
-                        Report.completeOnboarding(
+                        completeOnboarding(
                             onboardingPurposeSelected,
                             CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                             undefined,
@@ -105,7 +110,12 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         );
                     }
 
-                    NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                    if (NativeModules.HybridAppModule) {
+                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        setRootStatusBarEnabled(false);
+                    } else {
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                    }
                 }}
                 pressOnEnter
             />

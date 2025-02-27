@@ -1,10 +1,13 @@
 import debounce from 'lodash/debounce';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
 /**
@@ -98,6 +101,15 @@ function tryFocusModeUpdate() {
     isReadyPromise.then(() => {
         // User is signed out so do not try to switch them
         if (!currentUserAccountID) {
+            return;
+        }
+
+        const currentRoute = navigationRef.getCurrentRoute();
+        if (getIsNarrowLayout()) {
+            if (currentRoute?.name !== SCREENS.HOME) {
+                return;
+            }
+        } else if (currentRoute?.name !== SCREENS.REPORT) {
             return;
         }
 

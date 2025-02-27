@@ -3,11 +3,11 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
+import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -19,10 +19,11 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
-import {getChatFSAttributes} from '@libs/Fullstory';
-import isReportScreenTopmostCentralPane from '@libs/Navigation/isReportScreenTopmostCentralPane';
-import isSearchTopmostCentralPane from '@libs/Navigation/isSearchTopmostCentralPane';
+import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {
@@ -51,7 +52,7 @@ import {
     isUnread,
 } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
-import type {AuthScreensParamList} from '@navigation/types';
+import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import {PersonalDetailsContext} from '@src/components/OnyxProvider';
@@ -88,21 +89,6 @@ type ReportActionsListProps = {
 
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID?: string | null;
-
-    /** The report metadata loading states */
-    isLoadingInitialReportActions?: boolean;
-
-    /** Are we loading more report actions? */
-    isLoadingOlderReportActions?: boolean;
-
-    /** Was there an error when loading older report actions? */
-    hasLoadingOlderReportActionsError?: boolean;
-
-    /** Are we loading newer report actions? */
-    isLoadingNewerReportActions?: boolean;
-
-    /** Was there an error when loading newer report actions? */
-    hasLoadingNewerReportActionsError?: boolean;
 
     /** Callback executed on list layout */
     onLayout: (event: LayoutChangeEvent) => void;
@@ -158,11 +144,6 @@ function ReportActionsList({
     report,
     transactionThreadReport,
     parentReportAction,
-    isLoadingInitialReportActions = false,
-    isLoadingOlderReportActions = false,
-    hasLoadingOlderReportActionsError = false,
-    isLoadingNewerReportActions = false,
-    hasLoadingNewerReportActionsError = false,
     sortedReportActions,
     sortedVisibleReportActions,
     onScroll,
@@ -185,13 +166,12 @@ function ReportActionsList({
 
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
     const lastMessageTime = useRef<string | null>(null);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
-    const [pendingBottomScroll, setPendingBottomScroll] = useState(false);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
@@ -208,7 +188,6 @@ function ReportActionsList({
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
-    const hasFooterRendered = useRef(false);
     const linkedReportActionID = route?.params?.reportActionID;
 
     const lastAction = sortedVisibleReportActions.at(0);
@@ -252,7 +231,9 @@ function ReportActionsList({
      */
     const wasMessageReceivedWhileOffline = useCallback(
         (message: OnyxTypes.ReportAction) =>
-            !wasActionTakenByCurrentUser(message) && wasActionCreatedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale),
+            !wasActionTakenByCurrentUser(message) &&
+            wasActionCreatedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, preferredLocale) &&
+            !(message.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || message.isOptimisticAction),
         [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale],
     );
 
@@ -457,48 +438,41 @@ function ReportActionsList({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const isNewMessageDisplayed = useMemo(() => {
-        const prevActions = Object.values(prevSortedVisibleReportActionsObjects);
-        const lastPrevVisibleAction = prevActions.at(0);
-        return lastAction?.reportActionID !== lastPrevVisibleAction?.reportActionID;
-    }, [prevSortedVisibleReportActionsObjects, lastAction]);
+    // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
+    // https://github.com/Expensify/App/issues/54520
+    useEffect(() => {
+        if (!isSafari()) {
+            return;
+        }
+        const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
+        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
+            InteractionManager.runAfterInteractions(() => {
+                reportScrollManager.scrollToBottom();
+            });
+        }
+    }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser || scrollingVerticalOffset.current === 0 || !isReportScreenTopmostCentralPane()) {
-                return;
-            }
-            if (!hasNewestReportActionRef.current) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                return;
-            }
-            if (!isNewMessageDisplayed) {
-                setPendingBottomScroll(true);
-            } else {
-                InteractionManager.runAfterInteractions(() => {
-                    reportScrollManager.scrollToBottom();
-                });
-            }
-        },
-        [reportScrollManager, report.reportID, isNewMessageDisplayed],
-    );
-
-    useEffect(() => {
-        if (!pendingBottomScroll || scrollingVerticalOffset.current === 0) {
-            return;
-        }
-
-        if (isNewMessageDisplayed) {
             InteractionManager.runAfterInteractions(() => {
                 setIsFloatingMessageCounterVisible(false);
+                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+                // they are now in the list.
+                if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
+                    return;
+                }
+                if (!hasNewestReportActionRef.current) {
+                    if (Navigation.getReportRHPActiveRoute()) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+                    return;
+                }
                 reportScrollManager.scrollToBottom();
-                setPendingBottomScroll(false);
             });
-        }
-    }, [pendingBottomScroll, reportScrollManager, isNewMessageDisplayed]);
-
+        },
+        [reportScrollManager, report.reportID],
+    );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -700,40 +674,6 @@ function ReportActionsList({
     // eslint-disable-next-line react-compiler/react-compiler
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
-    const contentContainerStyle: StyleProp<ViewStyle> = useMemo(
-        () => [styles.chatContentScrollView, isLoadingNewerReportActions && canShowHeader ? styles.chatContentScrollViewWithHeaderLoader : {}],
-        [isLoadingNewerReportActions, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader, canShowHeader],
-    );
-
-    const lastReportAction: OnyxTypes.ReportAction | undefined = useMemo(() => sortedReportActions.at(-1) ?? undefined, [sortedReportActions]);
-
-    const retryLoadOlderChatsError = useCallback(() => {
-        loadOlderChats(true);
-    }, [loadOlderChats]);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    const listFooterComponent = useMemo(() => {
-        // Skip this hook on the first render (when online), as we are not sure if more actions are going to be loaded,
-        // Therefore showing the skeleton on footer might be misleading.
-        // When offline, there should be no second render, so we should show the skeleton if the corresponding loading prop is present.
-        // In case of an error we want to display the footer no matter what.
-        if (!isOffline && !hasFooterRendered.current && !hasLoadingOlderReportActionsError) {
-            hasFooterRendered.current = true;
-            return null;
-        }
-
-        return (
-            <ListBoundaryLoader
-                type={CONST.LIST_COMPONENTS.FOOTER}
-                isLoadingOlderReportActions={isLoadingOlderReportActions}
-                isLoadingInitialReportActions={isLoadingInitialReportActions}
-                lastReportActionName={lastReportAction?.actionName}
-                hasError={hasLoadingOlderReportActionsError}
-                onRetry={retryLoadOlderChatsError}
-            />
-        );
-    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction?.actionName, isOffline, hasLoadingOlderReportActionsError, retryLoadOlderChatsError]);
-
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
             onLayout(event);
@@ -754,7 +694,7 @@ function ReportActionsList({
 
     const listHeaderComponent = useMemo(() => {
         // In case of an error we want to display the header no matter what.
-        if (!canShowHeader && !hasLoadingNewerReportActionsError) {
+        if (!canShowHeader) {
             // eslint-disable-next-line react-compiler/react-compiler
             hasHeaderRendered.current = true;
             return null;
@@ -763,15 +703,13 @@ function ReportActionsList({
         return (
             <ListBoundaryLoader
                 type={CONST.LIST_COMPONENTS.HEADER}
-                isLoadingNewerReportActions={isLoadingNewerReportActions}
-                hasError={hasLoadingNewerReportActionsError}
                 onRetry={retryLoadNewerChatsError}
             />
         );
-    }, [isLoadingNewerReportActions, canShowHeader, hasLoadingNewerReportActionsError, retryLoadNewerChatsError]);
+    }, [canShowHeader, retryLoadNewerChatsError]);
 
     const onStartReached = useCallback(() => {
-        if (!isSearchTopmostCentralPane()) {
+        if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
         }
@@ -782,6 +720,9 @@ function ReportActionsList({
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
     }, [loadOlderChats]);
+
+    // Parse Fullstory attributes on initial render
+    useLayoutEffect(parseFSAttributes, []);
 
     const [reportActionsListTestID, reportActionsListFSClass] = getChatFSAttributes(participantsContext, 'ReportActionsList', report);
 
@@ -794,6 +735,7 @@ function ReportActionsList({
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 testID={reportActionsListTestID}
+                nativeID={reportActionsListTestID}
                 fsClass={reportActionsListFSClass}
             >
                 <InvertedFlatList
@@ -803,15 +745,14 @@ function ReportActionsList({
                     style={styles.overscrollBehaviorContain}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={ActionSheetAwareScrollView.renderScrollComponent}
-                    contentContainerStyle={contentContainerStyle}
+                    renderScrollComponent={renderScrollComponent}
+                    contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
                     onStartReachedThreshold={0.75}
-                    ListFooterComponent={listFooterComponent}
                     ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}

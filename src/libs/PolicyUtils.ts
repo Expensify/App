@@ -9,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
-import type {CardFeedData} from '@src/types/onyx/CardFeeds';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -41,6 +40,7 @@ import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
+import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -56,6 +56,7 @@ type ConnectionWithLastSyncData = {
 
 let allPolicies: OnyxCollection<Policy>;
 let activePolicyId: OnyxEntry<string>;
+let isLoadingReportData = true;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -66,6 +67,12 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyId = value),
+});
+
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
+    callback: (value) => (isLoadingReportData = value ?? false),
 });
 
 /**
@@ -79,6 +86,16 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
             !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
     );
 }
+
+function getPerDiemCustomUnits(policies: OnyxCollection<Policy> | null, email: string | undefined): Array<{policyID: string; customUnit: CustomUnit}> {
+    return (
+        getActivePolicies(policies, email)
+            .map((mappedPolicy) => ({policyID: mappedPolicy.id, customUnit: getPerDiemCustomUnit(mappedPolicy)}))
+            // We filter out custom units that are undefine but ts cant' figure it out.
+            .filter(({customUnit}) => !isEmptyObject(customUnit) && !!customUnit.enabled) as Array<{policyID: string; customUnit: CustomUnit}>
+    );
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -211,17 +228,17 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
 
 /**
  * Check if the policy can be displayed
- * If offline, always show the policy pending deletion.
- * If online, show the policy pending deletion only if there is an error.
+ * If shouldShowPendingDeletePolicy is true, show the policy pending deletion.
+ * If shouldShowPendingDeletePolicy is false, show the policy pending deletion only if there is an error.
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean, currentUserLogin: string | undefined): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined): boolean {
     return (
         !!policy?.isJoinRequestPending ||
         (!!policy &&
             policy?.type !== CONST.POLICY.TYPE.PERSONAL &&
-            (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
+            (shouldShowPendingDeletePolicy || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!getPolicyRole(policy, currentUserLogin))
     );
 }
@@ -417,7 +434,10 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
+    if (isPerDiemRequest) {
+        return false;
+    }
     const distanceUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
@@ -671,6 +691,14 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, curre
     return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
+/**
+ *
+ * Checks whether the current user has a policy with Xero accounting software integration
+ */
+function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
+    return getActiveAdminWorkspaces(allPolicies, currentUserLogin)?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]);
+}
+
 /** Whether the user can send invoice from the workspace */
 function canSendInvoiceFromWorkspace(policyID: string | undefined): boolean {
     const policy = getPolicy(policyID);
@@ -771,7 +799,7 @@ function findSelectedTaxAccountWithDefaultSelect(taxAccounts: NetSuiteTaxAccount
 }
 
 function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
-    const vendors = policy?.connections?.netsuite.options.data.vendors;
+    const vendors = policy?.connections?.netsuite?.options.data.vendors;
 
     const selectedVendor = findSelectedVendorWithDefaultSelect(vendors, selectedVendorId);
 
@@ -784,7 +812,7 @@ function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: 
 }
 
 function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
 
     const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
 
@@ -797,7 +825,7 @@ function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBa
 }
 
 function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const receivableAccounts = policy?.connections?.netsuite.options.data.receivableList;
+    const receivableAccounts = policy?.connections?.netsuite?.options.data.receivableList;
 
     const selectedReceivableAccount = findSelectedBankAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
 
@@ -810,7 +838,7 @@ function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selecte
 }
 
 function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
-    const invoiceItems = policy?.connections?.netsuite.options.data.items;
+    const invoiceItems = policy?.connections?.netsuite?.options.data.items;
 
     const selectedInvoiceItem = findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId);
 
@@ -823,7 +851,7 @@ function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemI
 }
 
 function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCountry?: string, selectedAccountId?: string): SelectorType[] {
-    const taxAccounts = policy?.connections?.netsuite.options.data.taxAccountsList;
+    const taxAccounts = policy?.connections?.netsuite?.options.data.taxAccountsList;
     const accountOptions = (taxAccounts ?? []).filter(({country}) => country === subsidiaryCountry);
 
     const selectedTaxAccount = findSelectedTaxAccountWithDefaultSelect(accountOptions, selectedAccountId);
@@ -849,7 +877,7 @@ function getFilteredReimbursableAccountOptions(payableAccounts: NetSuiteAccount[
 }
 
 function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
 
     const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
@@ -867,7 +895,7 @@ function getFilteredCollectionAccountOptions(payableAccounts: NetSuiteAccount[] 
 }
 
 function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
 
     const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
@@ -885,7 +913,7 @@ function getFilteredApprovalAccountOptions(payableAccounts: NetSuiteAccount[] | 
 }
 
 function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const defaultApprovalAccount: NetSuiteAccount = {
         id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
         name: translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
@@ -986,6 +1014,10 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return syncSuccessfulDate;
 }
 
+function getNSQSCompanyID(policy: Policy) {
+    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
+}
+
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
     if (!currentEntityID) {
@@ -1063,10 +1095,16 @@ function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
     return cleanedCustomUnit;
 }
 
-function navigateWhenEnableFeature(policyID: string) {
+function goBackWhenEnableFeature(policyID: string) {
     setTimeout(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+}
+
+function navigateToExpensifyCardPage(policyID: string) {
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+    });
 }
 
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
@@ -1114,7 +1152,7 @@ function getWorkspaceAccountID(policyID?: string) {
     return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
-function hasVBBA(policyID: string) {
+function hasVBBA(policyID: string | undefined) {
     const policy = getPolicy(policyID);
     return !!policy?.achAccount?.bankAccountID;
 }
@@ -1146,10 +1184,6 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
-function hasPolicyFeedsError(feeds: Record<string, CardFeedData>, feedToSkip?: string): boolean {
-    return Object.entries(feeds).filter(([feedName, feedData]) => feedName !== feedToSkip && !!feedData.errors).length > 0;
-}
-
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
@@ -1170,7 +1204,9 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
 }
 
 function isPolicyAccessible(policy: OnyxEntry<Policy>): boolean {
-    return !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id;
+    return (
+        !isEmptyObject(policy) && (Object.keys(policy).length !== 1 || isEmptyObject(policy.errors)) && !!policy?.id && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
 }
 
 function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
@@ -1179,6 +1215,17 @@ function areAllGroupPoliciesExpenseChatDisabled(policies = allPolicies) {
         return false;
     }
     return !groupPolicies.some((policy) => !!policy?.isPolicyExpenseChatEnabled);
+}
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
+    const policy = getPolicy(policyID);
+
+    if (!policy) {
+        return false;
+    }
+
+    return !isPolicyAccessible(policy) && !isLoadingReportData;
 }
 
 function hasOtherControlWorkspaces(currentPolicyID: string) {
@@ -1205,11 +1252,112 @@ function canModifyPlan(policyID?: string) {
     return !!policy && isPolicyAdmin(policy);
 }
 
+function getAdminsPrivateEmailDomains(policy?: Policy) {
+    if (!policy) {
+        return [];
+    }
+
+    const adminDomains = Object.entries(policy.employeeList ?? {}).reduce((domains, [email, employee]) => {
+        if (employee.role !== CONST.POLICY.ROLE.ADMIN) {
+            return domains;
+        }
+        domains.push(Str.extractEmailDomain(email).toLowerCase());
+        return domains;
+    }, [] as string[]);
+
+    const ownerDomains = policy.owner ? [Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
+
+    const privateDomains = [...new Set(adminDomains.concat(ownerDomains))].filter((domain) => !isPublicDomain(domain));
+
+    // If the policy is not owned by Expensify there is no point in showing the domain for provisioning.
+    if (!isExpensifyTeam(policy.owner)) {
+        return privateDomains.filter((domain) => domain !== CONST.EXPENSIFY_PARTNER_NAME && domain !== CONST.EMAIL.GUIDES_DOMAIN);
+    }
+
+    return privateDomains;
+}
+
+/**
+ * Determines the most frequent domain from the `acceptedDomains` list
+ * that appears in the email addresses of policy members.
+ *
+ * @param acceptedDomains - List of domains to consider.
+ * @param policy - The policy object.
+ */
+function getMostFrequentEmailDomain(acceptedDomains: string[], policy?: Policy) {
+    if (!policy) {
+        return undefined;
+    }
+    const domainOccurrences = {} as Record<string, number>;
+    Object.keys(policy.employeeList ?? {})
+        .concat(policy.owner)
+        .map((email) => Str.extractEmailDomain(email).toLowerCase())
+        .forEach((memberDomain) => {
+            if (!acceptedDomains.includes(memberDomain)) {
+                return;
+            }
+            domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
+        });
+    let mostFrequent = {domain: '', count: 0};
+    Object.entries(domainOccurrences).forEach(([domain, count]) => {
+        if (count <= mostFrequent.count) {
+            return;
+        }
+        mostFrequent = {domain, count};
+    });
+    if (mostFrequent.count === 0) {
+        return undefined;
+    }
+    return mostFrequent.domain;
+}
+
+const getDescriptionForPolicyDomainCard = (domainName: string): string => {
+    // A domain name containing a policyID indicates that this is a workspace feed
+    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1];
+    if (policyID) {
+        const policy = getPolicy(policyID.toUpperCase());
+        return policy?.name ?? domainName;
+    }
+    return domainName;
+};
+
+/**
+ * Returns an array of user emails who are currently self-approving:
+ * i.e. user.submitsTo === their own email.
+ */
+function getAllSelfApprovers(policy: OnyxEntry<Policy>): string[] {
+    const defaultApprover = policy?.approver ?? policy?.owner;
+    if (!policy?.employeeList || !defaultApprover) {
+        return [];
+    }
+    return Object.keys(policy.employeeList).filter((email) => {
+        const employee = policy?.employeeList?.[email] ?? {};
+        return employee?.submitsTo === email && employee?.email !== defaultApprover;
+    });
+}
+
+/**
+ * Checks if the workspace has only one user and if there no approver for the policy.
+ * If so, we can't enable the "Prevent Self Approvals" feature.
+ */
+function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
+    if (!policy?.employeeList || !policy.approver) {
+        return false;
+    }
+
+    const employeeEmails = Object.keys(policy.employeeList);
+
+    return employeeEmails.length > 1;
+}
+
 export {
     canEditTaxRate,
+    canEnablePreventSelfApprovals,
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
+    getPerDiemCustomUnits,
+    getAllSelfApprovers,
     getAdminEmployees,
     getCleanedTagName,
     getConnectedIntegration,
@@ -1233,7 +1381,6 @@ export {
     goBackFromInvalidPolicy,
     hasAccountingConnections,
     shouldShowSyncError,
-    hasPolicyFeedsError,
     shouldShowCustomUnitsError,
     shouldShowEmployeeListError,
     hasIntegrationAutoSync,
@@ -1275,6 +1422,7 @@ export {
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,
+    hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
@@ -1288,6 +1436,7 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
+    getNSQSCompanyID,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
@@ -1297,7 +1446,8 @@ export {
     getDistanceRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
-    navigateWhenEnableFeature,
+    goBackWhenEnableFeature,
+    navigateToExpensifyCardPage,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
@@ -1329,10 +1479,14 @@ export {
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
     areAllGroupPoliciesExpenseChatDisabled,
+    shouldDisplayPolicyNotFoundPage,
     hasOtherControlWorkspaces,
     getManagerAccountEmail,
     getRuleApprovers,
     canModifyPlan,
+    getAdminsPrivateEmailDomains,
+    getMostFrequentEmailDomain,
+    getDescriptionForPolicyDomainCard,
 };
 
 export type {MemberEmailsToAccountIDs};

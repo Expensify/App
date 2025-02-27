@@ -31,11 +31,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getDescriptionForPolicyDomainCard, maskCardNumber} from '@libs/CardUtils';
+import {maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
@@ -412,6 +413,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                                     title={translate('common.bankAccounts')}
                                     isCentralPane
+                                    subtitleMuted
                                     titleStyles={styles.accountSettingsSectionTitle}
                                     illustration={LottieAnimations.BankVault}
                                     illustrationStyle={styles.walletIllustration}
@@ -437,6 +439,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         subtitle={translate('walletPage.assignedCardsDescription')}
                                         title={translate('walletPage.assignedCards')}
                                         isCentralPane
+                                        subtitleMuted
                                         titleStyles={styles.accountSettingsSectionTitle}
                                     >
                                         <PaymentMethodList
@@ -461,6 +464,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         subtitle={translate(`walletPage.sendAndReceiveMoney`)}
                                         title={translate('walletPage.expensifyWallet')}
                                         isCentralPane
+                                        subtitleMuted
                                         titleStyles={styles.accountSettingsSectionTitle}
                                     >
                                         <>
@@ -676,7 +680,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 title={translate('workspace.common.viewTransactions')}
                                 onPress={() => {
                                     Navigation.navigate(
-                                        ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                        ROUTES.SEARCH_ROOT.getRoute({
                                             query: buildCannedSearchQuery({
                                                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                                                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,

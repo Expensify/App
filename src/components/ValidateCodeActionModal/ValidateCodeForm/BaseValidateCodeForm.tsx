@@ -102,6 +102,7 @@ function BaseValidateCodeForm({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
+    const latestActionVerifiedError = getLatestErrorField(validateCodeAction, 'actionVerified');
 
     const timerRef = useRef<NodeJS.Timeout>();
 
@@ -184,12 +185,12 @@ function BaseValidateCodeForm({
             setValidateCode(text);
             setFormError({});
 
-            if (!isEmptyObject(validateError)) {
+            if (!isEmptyObject(validateError) || !isEmptyObject(latestActionVerifiedError)) {
                 clearError();
                 clearValidateCodeActionError('actionVerified');
             }
         },
-        [validateError, clearError],
+        [validateError, clearError, latestActionVerifiedError],
     );
 
     /**
@@ -243,7 +244,7 @@ function BaseValidateCodeForm({
             )}
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
-                errors={getLatestErrorField(validateCodeAction, 'actionVerified')}
+                errors={latestActionVerifiedError}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => clearValidateCodeActionError('actionVerified')}
             >

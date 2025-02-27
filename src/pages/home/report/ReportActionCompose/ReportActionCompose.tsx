@@ -1,9 +1,9 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
@@ -91,12 +91,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** Should show educational tooltip */
     shouldShowEducationalTooltip?: boolean;
 
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus: boolean;
-
-    /** A method to update showSoftInputOnFocus */
-    setShowSoftInputOnFocus: (value: boolean) => void;
-
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 };
@@ -120,10 +114,8 @@ function ReportActionCompose({
     isReportReadyForDisplay = true,
     lastReportAction,
     shouldShowEducationalTooltip,
-    showSoftInputOnFocus,
     onComposerFocus,
     onComposerBlur,
-    setShowSoftInputOnFocus,
     didHideComposerInput,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
@@ -138,11 +130,24 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
-    const isScreenFocused = useIsFocused();
+    const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const task = InteractionManager.runAfterInteractions(() => {
+                setIsScreenTransitionEnded(true);
+            });
+
+            return () => {
+                task.cancel();
+                setIsScreenTransitionEnded(false);
+            };
+        }, []),
+    );
 
     const {renderProductTrainingTooltip, hideProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSAPCE_CHAT_CREATE,
-        shouldShowEducationalTooltip && isScreenFocused,
+        shouldShowEducationalTooltip && isScreenTransitionEnded,
     );
 
     /**
@@ -484,7 +489,7 @@ function ReportActionCompose({
                                             reportParticipantIDs={reportParticipantIDs}
                                             isComposerFullSize={isComposerFullSize}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={!!disabled}
+                                            disabled={disabled}
                                             setMenuVisibility={setMenuVisibility}
                                             isMenuVisible={isMenuVisible}
                                             onTriggerAttachmentPicker={onTriggerAttachmentPicker}
@@ -522,15 +527,13 @@ function ReportActionCompose({
                                             displayFileInModal={displayFileInModal}
                                             onCleared={submitForm}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
-                                            disabled={!!disabled}
+                                            disabled={disabled}
                                             setIsCommentEmpty={setIsCommentEmpty}
                                             handleSendMessage={handleSendMessage}
                                             shouldShowComposeInput={shouldShowComposeInput}
                                             onFocus={onFocus}
                                             onBlur={onBlur}
                                             measureParentContainer={measureContainer}
-                                            showSoftInputOnFocus={showSoftInputOnFocus}
-                                            setShowSoftInputOnFocus={setShowSoftInputOnFocus}
                                             onValueChange={onValueChange}
                                             didHideComposerInput={didHideComposerInput}
                                         />

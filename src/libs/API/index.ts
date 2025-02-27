@@ -3,8 +3,9 @@ import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
 import Log from '@libs/Log';
 import {HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
+import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
-import {getPusherSocketID} from '@libs/Pusher/pusher';
+import Pusher from '@libs/Pusher';
 import {processWithMiddleware, use} from '@libs/Request';
 import {getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
@@ -69,13 +70,14 @@ function prepareRequest<TCommand extends ApiCommand>(
 
         // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
         // is sent back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
-        pusherSocketID: isWriteRequest ? getPusherSocketID() : undefined,
+        pusherSocketID: isWriteRequest ? Pusher.getPusherSocketID() : undefined,
     };
 
     // Assemble all request metadata (used by middlewares, and for persisted requests stored in Onyx)
     const request: SetRequired<OnyxRequest, 'data'> = {
         command,
         data,
+        initiatedOffline: isOffline(),
         ...onyxDataWithoutOptimisticData,
         ...conflictResolver,
     };

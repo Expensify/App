@@ -81,6 +81,7 @@ describe('actions/Policy', () => {
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
+            expect(policy?.mccGroup).toBeDefined();
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -93,8 +94,10 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Two reports should be created: #admins and expense report
-            const workspaceReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID);
+            // These reports should be created: #admins and expense report + task reports of manage team (default) intent
+            const workspaceReports = Object.values(allReports ?? {})
+                .filter((report) => report?.policyID === policyID)
+                .filter((report) => report?.type !== 'task');
             expect(workspaceReports.length).toBe(2);
             workspaceReports.forEach((report) => {
                 expect(report?.pendingFields?.addWorkspaceRoom).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -129,14 +132,36 @@ describe('actions/Policy', () => {
             let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             let workspaceReportActions: ReportAction[] = adminReportActions.concat(expenseReportActions);
-            [adminReportActions, expenseReportActions].forEach((actions) => {
-                expect(actions.length).toBe(1);
-            });
-            [...adminReportActions, ...expenseReportActions].forEach((reportAction) => {
+            expect(expenseReportActions.length).toBe(1);
+            [...expenseReportActions].forEach((reportAction) => {
                 expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
+            // Created Report Action, MANAGE_TEAM tasks (minus tasks that requires integrations to be enabled) and signoff message
+            const manageTeamDefaultTaskCount = CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 2;
+            expect(adminReportActions.length).toBe(2 + manageTeamDefaultTaskCount);
+            let createdTaskReportActions = 0;
+            let signingOffMessage = 0;
+            let taskReportActions = 0;
+            adminReportActions.forEach((reportAction) => {
+                if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+                    createdTaskReportActions++;
+                    expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                    expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
+                    return;
+                }
+                if (reportAction.childType === CONST.REPORT.TYPE.TASK) {
+                    taskReportActions++;
+                    expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                    // we dont check actorAccountID as it will be a random account id for the guide
+                    return;
+                }
+                signingOffMessage++;
+            });
+            expect(createdTaskReportActions).toBe(1);
+            expect(signingOffMessage).toBe(1);
+            expect(taskReportActions).toBe(manageTeamDefaultTaskCount);
 
             // Check for success data
             (fetch as MockFetch)?.resume?.();
@@ -223,6 +248,55 @@ describe('actions/Policy', () => {
             // Then the policy autoReporting and autoReportingFrequency should equal the initial value.
             expect(policy?.autoReporting).toBe(autoReporting);
             expect(policy?.autoReportingFrequency).toBe(autoReportingFrequency);
+        });
+    });
+
+    describe('enablePolicyRules', () => {
+        it('should disable preventSelfApproval when the rule feature is turned off', async () => {
+            (fetch as MockFetch)?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areRulesEnabled: true,
+                preventSelfApproval: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // Disable the rule feature
+            Policy.enablePolicyRules(fakePolicy.id, false);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the preventSelfApproval is reset to false
+            expect(policy?.preventSelfApproval).toBeFalsy();
+            expect(policy?.areRulesEnabled).toBeFalsy();
+            expect(policy?.pendingFields?.areRulesEnabled).toEqual(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the pending action is cleared
+            expect(policy?.pendingFields?.areRulesEnabled).toBeFalsy();
         });
     });
 

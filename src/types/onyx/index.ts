@@ -35,7 +35,7 @@ import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type IOU from './IOU';
 import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
-import type LastPaymentMethod from './LastPaymentMethod';
+import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
 import type {LoginList} from './Login';
@@ -100,6 +100,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
 import type User from './User';
@@ -248,4 +249,6 @@ export type {
     CorpayFormField,
     JoinablePolicies,
     DismissedProductTraining,
+    TravelProvisioning,
+    LastPaymentMethodType,
 };

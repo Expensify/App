@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -25,7 +25,6 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
-    shouldUseSuccessStyle?: boolean;
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     goToItem: () => void;
@@ -36,7 +35,6 @@ type ActionCellProps = {
 
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
-    shouldUseSuccessStyle: shouldUseSuccessStyleProp = true,
     isLargeScreenWidth = true,
     isSelected = false,
     goToItem,
@@ -51,17 +49,6 @@ function ActionCell({
     const {isOffline} = useNetwork();
 
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
-
-    const getButtonInnerStyles = useCallback(
-        (shouldUseSuccessStyle: boolean) => {
-            if (!isSelected) {
-                return {};
-            }
-            return shouldUseSuccessStyle ? styles.buttonSuccessHovered : styles.buttonDefaultHovered;
-        },
-        [isSelected, styles],
-    );
-
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
 
     if ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE) {
@@ -69,7 +56,7 @@ function ActionCell({
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
                 <Badge
                     text={text}
-                    icon={Expensicons.Checkmark}
+                    icon={action === CONST.SEARCH.ACTION_TYPES.DONE ? Expensicons.Checkbox : Expensicons.Checkmark}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
@@ -88,18 +75,21 @@ function ActionCell({
     }
 
     if (action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.REVIEW || shouldUseViewAction) {
+        const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
+
         return isLargeScreenWidth ? (
             <Button
                 text={text}
                 onPress={goToItem}
                 small
                 style={[styles.w100]}
-                innerStyles={getButtonInnerStyles(false)}
+                innerStyles={buttonInnerStyles}
                 link={isChildListItem}
                 shouldUseDefaultHover={!isChildListItem}
                 icon={!isChildListItem && action === CONST.SEARCH.ACTION_TYPES.REVIEW ? Expensicons.DotIndicator : undefined}
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
+                isNested
             />
         ) : null;
     }
@@ -110,10 +100,10 @@ function ActionCell({
             onPress={goToItem}
             small
             style={[styles.w100]}
-            innerStyles={getButtonInnerStyles(shouldUseSuccessStyleProp)}
             isLoading={isLoading}
-            success={shouldUseSuccessStyleProp}
+            success
             isDisabled={isOffline}
+            isNested
         />
     );
 }

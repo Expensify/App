@@ -45,7 +45,7 @@ function IOURequestStepCurrency({
         // to the confirmation page
         if (pageIndex === CONST.IOU.PAGE_INDEX.CONFIRM) {
             if (selectedCurrencyValue) {
-                Navigation.navigate(appendParam(backTo as string, 'currency', selectedCurrencyValue));
+                Navigation.goBack(appendParam(backTo as string, 'currency', selectedCurrencyValue), {compareParams: false});
             } else {
                 Navigation.goBack(backTo);
             }

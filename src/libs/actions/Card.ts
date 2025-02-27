@@ -35,6 +35,9 @@ type IssueNewCardFlowData = {
 
     /** Data required to be sent to issue a new card */
     data?: Partial<IssueNewCardData>;
+
+    /** ID of the policy */
+    policyID: string | undefined;
 };
 
 function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
@@ -44,6 +47,7 @@ function reportVirtualExpensifyCardFraud(card: Card, validateCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD,
             value: {
+                cardID,
                 isLoading: true,
                 errors: null,
             },
@@ -222,6 +226,10 @@ function clearCardListErrors(cardID: number) {
     Onyx.merge(ONYXKEYS.CARD_LIST, {[cardID]: {errors: null, isLoading: false}});
 }
 
+function clearReportVirtualCardFraudForm() {
+    Onyx.merge(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {cardID: null, isLoading: false, errors: null});
+}
+
 /**
  * Makes an API call to get virtual card details (pan, cvv, expiration date, address)
  * This function purposefully uses `makeRequestWithSideEffects` method. For security reason
@@ -381,19 +389,19 @@ function getCardDefaultName(userName?: string) {
     return `${userName}'s Card`;
 }
 
-function setIssueNewCardStepAndData({data, isEditing, step}: IssueNewCardFlowData) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, isEditing, currentStep: step, errors: null});
+function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewCardFlowData) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data, isEditing, currentStep: step, errors: null});
 }
 
-function clearIssueNewCardFlow() {
-    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {
+function clearIssueNewCardFlow(policyID: string | undefined) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
         currentStep: null,
         data: {},
     });
 }
 
-function clearIssueNewCardError() {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {errors: null});
+function clearIssueNewCardError(policyID: string | undefined) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {errors: null});
 }
 
 function updateExpensifyCardLimit(workspaceAccountID: number, cardID: number, newLimit: number, newAvailableSpend: number, oldLimit?: number, oldAvailableSpend?: number) {
@@ -664,7 +672,7 @@ function deactivateCard(workspaceAccountID: number, card?: Card) {
     API.write(WRITE_COMMANDS.CARD_DEACTIVATE, parameters, {optimisticData, failureData});
 }
 
-function startIssueNewCardFlow(policyID: string) {
+function startIssueNewCardFlow(policyID: string | undefined) {
     const parameters: StartIssueNewCardFlowParams = {
         policyID,
     };
@@ -725,7 +733,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     });
 }
 
-function issueExpensifyCard(policyID: string, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
+function issueExpensifyCard(policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -735,7 +743,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: true,
                 errors: null,
@@ -747,7 +755,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 isSuccessful: true,
@@ -758,7 +766,7 @@ function issueExpensifyCard(policyID: string, feedCountry: string, validateCode:
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD,
+            key: `${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`,
             value: {
                 isLoading: false,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
@@ -889,10 +897,20 @@ function updateSelectedFeed(feed: CompanyCardFeed, policyID: string | undefined)
     ]);
 }
 
+function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
+    const parameters = {
+        feedCountry,
+        domainAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
     clearCardListErrors,
+    clearReportVirtualCardFraudForm,
     clearIssueNewCardError,
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
@@ -911,5 +929,6 @@ export {
     updateSelectedFeed,
     deactivateCard,
     getCardDefaultName,
+    queueExpensifyCardForBilling,
 };
 export type {ReplacementReason};

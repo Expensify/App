@@ -2,11 +2,11 @@ import React, {useMemo, useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {FeatureListItem} from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -18,20 +18,19 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {startMoneyRequest} from '@libs/actions/IOU';
+import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
+import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import {getNavatticURL} from '@libs/TourUtils';
-import * as TripsResevationUtils from '@libs/TripReservationUtils';
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
-import * as Link from '@userActions/Link';
-import * as Task from '@userActions/Task';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type EmptySearchViewProps = {
@@ -41,11 +40,11 @@ type EmptySearchViewProps = {
 
 const tripsFeatures: FeatureListItem[] = [
     {
-        icon: Illustrations.PiggyBank,
+        icon: PiggyBank,
         translationKey: 'travel.features.saveMoney',
     },
     {
-        icon: Illustrations.Alert,
+        icon: Alert,
         translationKey: 'travel.features.alerts',
     },
 ];
@@ -58,12 +57,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const [modalVisible, setModalVisible] = useState(false);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return PolicyUtils.areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
+        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
 
-    const [ctaErrorMessage, setCtaErrorMessage] = useState('');
-
-    const subtitleComponent = useMemo(() => {
+    const tripViewChildren = useMemo(() => {
         return (
             <>
                 <Text style={[styles.textSupporting, styles.textNormal]}>
@@ -77,7 +74,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     </TextLink>
                     {translate('travel.toLearnMore')}
                 </Text>
-                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1]}>
+                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pt4, styles.pl1, styles.mb5]}>
                     {tripsFeatures.map((tripsFeature) => (
                         <View
                             key={tripsFeature.translationKey}
@@ -97,16 +94,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                         </View>
                     ))}
                 </View>
-                {!!ctaErrorMessage && (
-                    <DotIndicatorMessage
-                        style={styles.mt1}
-                        messages={{error: ctaErrorMessage}}
-                        type="error"
-                    />
-                )}
+                <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
             </>
         );
-    }, [styles, translate, ctaErrorMessage]);
+    }, [styles, translate]);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const onboardingPurpose = introSelected?.choice;
@@ -118,8 +109,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canModifyTask = Task.canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const canActionTask = Task.canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
         switch (type) {
@@ -129,14 +120,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
                     titleStyles: {...styles.textAlignLeft},
-                    subtitle: subtitleComponent,
-                    buttons: [
-                        {
-                            buttonText: translate('search.searchResults.emptyTripResults.buttonText'),
-                            buttonAction: () => TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage),
-                            success: true,
-                        },
-                    ],
+                    children: tripViewChildren,
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -151,10 +135,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATour'),
                                           buttonAction: () => {
-                                              Link.openExternalLink(navatticURL);
-                                              Welcome.setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTask && canActionTask) {
-                                                  Task.completeTask(viewTourTaskReport);
+                                              openExternalLink(navatticURL);
+                                              setSelfTourViewed();
+                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                                  completeTask(viewTourTaskReport);
                                               }
                                           },
                                       },
@@ -168,7 +152,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                             setModalVisible(true);
                                             return;
                                         }
-                                        IOU.startMoneyRequest(CONST.IOU.TYPE.CREATE, ReportUtils.generateReportID());
+                                        startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
                                     }),
                                 success: true,
                             },
@@ -191,10 +175,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                       {
                                           buttonText: translate('emptySearchView.takeATour'),
                                           buttonAction: () => {
-                                              Link.openExternalLink(navatticURL);
-                                              Welcome.setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTask && canActionTask) {
-                                                  Task.completeTask(viewTourTaskReport);
+                                              openExternalLink(navatticURL);
+                                              setSelfTourViewed();
+                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                                  completeTask(viewTourTaskReport);
                                               }
                                           },
                                       },
@@ -208,7 +192,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                             setModalVisible(true);
                                             return;
                                         }
-                                        IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, ReportUtils.generateReportID());
+                                        startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
                                     }),
                                 success: true,
                             },
@@ -236,15 +220,14 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         translate,
         styles.textAlignLeft,
         styles.emptyStateFolderWebStyles,
-        subtitleComponent,
+        tripViewChildren,
         hasSeenTour,
-        ctaErrorMessage,
         navatticURL,
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
-        canModifyTask,
-        canActionTask,
+        canModifyTheTask,
+        canActionTheTask,
     ]);
 
     return (
@@ -261,13 +244,15 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                 buttons={content.buttons}
                 headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
                 lottieWebViewStyles={content.lottieWebViewStyles}
-            />
+            >
+                {content.children}
+            </EmptyStateComponent>
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                 }}
                 onCancel={() => setModalVisible(false)}
                 title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
