@@ -79,12 +79,15 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             shouldBeBlocked={!shouldShow}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={CardReconciliationPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.accounting.cardReconciliation')} />
-                <ScrollView contentContainerStyle={styles.pb5}>
+                <ScrollView
+                    contentContainerStyle={styles.pb5}
+                    addBottomSafeAreaPadding
+                >
                     <ToggleSettingOptionRow
                         key={translate('workspace.accounting.continuousReconciliation')}
                         title={translate('workspace.accounting.continuousReconciliation')}

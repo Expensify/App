@@ -12,7 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AppUpdate from '@libs/actions/AppUpdate';
+import {updateApp} from '@libs/actions/AppUpdate/';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();
@@ -25,7 +25,7 @@ function UpdateRequiredView() {
     const isStandaloneNewAppProduction = isProduction && !NativeModules.HybridAppModule;
 
     return (
-        <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
+        <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
             <HeaderGap />
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredViewHeader]}>
                 <Header title={translate('updateRequiredView.updateRequired')} />
@@ -56,7 +56,7 @@ function UpdateRequiredView() {
                 <Button
                     success
                     large
-                    onPress={() => AppUpdate.updateApp(isProduction)}
+                    onPress={() => updateApp(isProduction)}
                     text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
                 />

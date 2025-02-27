@@ -356,6 +356,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView
+                addBottomSafeAreaPadding
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}

@@ -290,7 +290,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 enabledWhenOffline
             />
         ),
-        [inviteUser, policy?.alertMessage, selectedOptions.length, shouldShowAlertPrompt, styles, translate],
+        [inviteUser, policy?.alertMessage, selectedOptions.length, shouldShowAlertPrompt, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate],
     );
 
     useEffect(() => {
@@ -307,7 +307,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
                 testID={WorkspaceInvitePage.displayName}
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton
@@ -337,6 +337,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

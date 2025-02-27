@@ -38,6 +38,7 @@ function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT.getRoute(policyID))}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}

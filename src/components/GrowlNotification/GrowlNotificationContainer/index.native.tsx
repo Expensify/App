@@ -11,7 +11,7 @@ function GrowlNotificationContainer({children, translateY}: GrowlNotificationCon
     const insets = useSafeAreaInsets();
     const animatedStyles = useAnimatedStyle(() => styles.growlNotificationTranslateY(translateY));
 
-    return <Animated.View style={[StyleUtils.getSafeAreaPadding(insets), styles.growlNotificationContainer, animatedStyles]}>{children}</Animated.View>;
+    return <Animated.View style={[StyleUtils.getPlatformSafeAreaPadding(insets), styles.growlNotificationContainer, animatedStyles]}>{children}</Animated.View>;
 }
 
 GrowlNotificationContainer.displayName = 'GrowlNotificationContainer';

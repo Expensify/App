@@ -56,7 +56,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryPayrollCodePage.displayName}
                 shouldEnableMaxHeight
@@ -77,6 +77,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         ref={inputCallbackRef}

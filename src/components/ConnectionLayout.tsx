@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -70,6 +71,9 @@ type ConnectionLayoutProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
+
+    /** Whether to enable edge to edge bottom safe area padding logic */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -94,7 +98,7 @@ function ConnectionLayout({
     policyID,
     accessVariants,
     featureName,
-    contentContainerStyle,
+    contentContainerStyle: contentContainerStyleProp,
     titleStyle,
     shouldIncludeSafeAreaPaddingBottom,
     connectionName,
@@ -104,6 +108,7 @@ function ConnectionLayout({
     shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
+    enableEdgeToEdgeBottomSafeAreaPadding = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -124,6 +129,7 @@ function ConnectionLayout({
     );
 
     const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: contentContainerStyleProp});
 
     return (
         <AccessOrNotFoundWrapper
@@ -133,6 +139,7 @@ function ConnectionLayout({
             shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
                 shouldEnableMaxHeight
                 testID={displayName}
@@ -143,7 +150,12 @@ function ConnectionLayout({
                     onBackButtonPress={onBackButtonPress}
                 />
                 {shouldUseScrollView ? (
-                    <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
+                    <ScrollView
+                        contentContainerStyle={enableEdgeToEdgeBottomSafeAreaPadding ? undefined : contentContainerStyle}
+                        addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+                    >
+                        {renderSelectionContent}
+                    </ScrollView>
                 ) : (
                     <View style={contentContainerStyle}>{renderSelectionContent}</View>
                 )}

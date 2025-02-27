@@ -30,9 +30,9 @@ import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPen
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 
-type WorkspaceCompanyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
-function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
+function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -145,8 +145,8 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     route={route}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
                     shouldShowOfflineIndicatorInWideScreen
-                    includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
+                    addBottomSafeAreaPadding
                 >
                     {(isFeedAdded || isPending) && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons
@@ -186,6 +186,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     );
 }
 
-WorkspaceCompanyCardPage.displayName = 'WorkspaceCompanyCardPage';
+WorkspaceCompanyCardsPage.displayName = 'WorkspaceCompanyCardsPage';
 
-export default WorkspaceCompanyCardPage;
+export default WorkspaceCompanyCardsPage;
