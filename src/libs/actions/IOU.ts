@@ -126,7 +126,6 @@ import {
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isOptimisticPersonalDetail,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
-    isPayer,
     isPayer as isPayerReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportApproved,
@@ -8221,7 +8220,7 @@ function canIOUBePaid(
 }
 
 function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
-    return isPayer(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
+    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
 }
 
 function canSubmitReport(
