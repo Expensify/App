@@ -18,7 +18,7 @@ import localeCompare from '@libs/LocaleCompare';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {canReportBeMentionedWithinPolicy} from '@libs/ReportUtils';
+import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, getDisplayNameForParticipant, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
 import {trimLeadingSpace} from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import {searchInServer} from '@userActions/Report';
@@ -58,7 +58,7 @@ type SuggestionPersonalDetailsList = Record<
 >;
 
 function getDisplayName(details: PersonalDetails) {
-    const displayNameFromAccountID = ReportUtils.getDisplayNameForParticipant({accountID: details.accountID});
+    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID});
     if (!displayNameFromAccountID) {
         return details.login?.length ? details.login : '';
     }
@@ -102,7 +102,7 @@ function SuggestionMention(
     // Smaller weight means higher order in suggestion list
     const getPersonalDetailsWeight = useCallback(
         (detail: PersonalDetails, policyEmployeeAccountIDs: number[]): number => {
-            if (ReportUtils.isReportParticipant(detail.accountID, currentReport)) {
+            if (isReportParticipant(detail.accountID, currentReport)) {
                 return 0;
             }
             if (policyEmployeeAccountIDs.includes(detail.accountID)) {
@@ -114,7 +114,7 @@ function SuggestionMention(
     );
     const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList | undefined = useMemo(() => {
         const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policyID);
-        if (!ReportUtils.isGroupChat(currentReport) && !ReportUtils.doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
+        if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
             return personalDetails;
         }
         return lodashMapValues(personalDetails, (detail) =>
