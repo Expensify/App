@@ -4,7 +4,7 @@ source scripts/shellUtils.sh
 
 # Check if jq is installed
 if ! jq --version > /dev/null 2>&1; then
-  error 'jq is not installed. Please install jq and try again'
+  error 'jq is not installed. Please install jq and try again' >&2
   exit 1
 fi
 
