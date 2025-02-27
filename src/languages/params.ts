@@ -418,6 +418,8 @@ type LowerUpperParams = {lower: string; upper: string};
 
 type CategoryNameParams = {categoryName: string};
 
+type NeedCategoryForExportToIntegrationParams = {connectionName: string};
+
 type TaxAmountParams = {taxAmount: number};
 
 type SecondaryLoginParams = {secondaryLogin: string};
@@ -646,6 +648,10 @@ type SubmitsToParams = {
 
 type SettlementDateParams = {
     settlementDate: string;
+};
+
+type PolicyExpenseChatNameParams = {
+    displayName: string;
 };
 
 export type {
@@ -880,4 +886,6 @@ export type {
     UpdatedPolicyReportFieldDefaultValueParams,
     SubmitsToParams,
     SettlementDateParams,
+    PolicyExpenseChatNameParams,
+    NeedCategoryForExportToIntegrationParams,
 };

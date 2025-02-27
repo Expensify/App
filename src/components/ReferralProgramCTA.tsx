@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import {getButtonRole} from './Button/utils';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
@@ -53,8 +54,9 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
             }}
             style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
+            isNested
             accessibilityLabel="referral"
-            role={CONST.ROLE.BUTTON}
+            role={getButtonRole(true)}
         >
             <Text>
                 {translate(`referralProgram.${referralContentType}.buttonText1`)}

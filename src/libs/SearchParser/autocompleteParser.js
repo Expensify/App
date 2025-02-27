@@ -287,34 +287,19 @@ function peg$parse(input, options) {
           start: location().end.offset,
           length: 0,
         };
-        return {
-          key: "syntax",
-          value: key,
-          start: location().start.offset,
-          length: location().end.offset - location().start.offset,
-        };
+        return;
       }
 
       autocomplete = {
         key,
         ...value[value.length - 1],
       };
-      const result = value
+      return value
         .filter((filter) => filter.length > 0)
         .map((filter) => ({
           key,
           ...filter,
         }));
-
-      return [
-        {
-          key: "syntax",
-          value: key,
-          start: location().start.offset,
-          length: result[0].start - location().start.offset,
-        },
-        ...result,
-      ];
     };
   var peg$f3 = function() { autocomplete = null; };
   var peg$f4 = function(parts, empty) {
