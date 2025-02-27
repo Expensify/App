@@ -42,7 +42,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const primaryLogin = getContactMethod();
+    const primaryContactMethod = getContactMethod();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const [isMaintenanceModalVisible, setMaintenanceModalVisibility] = useState(false);
 
@@ -61,7 +61,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
         }
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
-        if (!primaryLogin || Str.isSMSLogin(primaryLogin)) {
+        if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(translate('travel.phoneError'));
             return;
         }
@@ -111,7 +111,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryLogin, setRootStatusBarEnabled]);
+    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled]);
 
     return (
         <>
