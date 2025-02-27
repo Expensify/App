@@ -18,13 +18,13 @@ import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {viewCardTransactions} from '@libs/CardTransactionUtils';
 import {getCardFeedIcon, getDefaultCardName, maskCardNumber} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, getWorkspaceAccountID} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -176,11 +176,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 title={translate('workspace.common.viewTransactions')}
                                 style={styles.mt3}
                                 onPress={() => {
-                                    Navigation.navigate(
-                                        ROUTES.SEARCH_ROOT.getRoute({
-                                            query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
-                                        }),
-                                    );
+                                    viewCardTransactions(cardID);
                                 }}
                             />
                             <OfflineWithFeedback
