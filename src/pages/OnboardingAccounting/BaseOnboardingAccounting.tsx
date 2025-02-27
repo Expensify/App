@@ -93,6 +93,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         accountingIcon = Expensicons.QBOCircle;
                         break;
                     }
+                    case CONST.POLICY.CONNECTIONS.NAME.QBD: {
+                        text = translate('workspace.accounting.qbd');
+                        accountingIcon = Expensicons.QBDSquare;
+                        break;
+                    }
                     case CONST.POLICY.CONNECTIONS.NAME.XERO: {
                         text = translate('workspace.accounting.xero');
                         accountingIcon = Expensicons.XeroCircle;
