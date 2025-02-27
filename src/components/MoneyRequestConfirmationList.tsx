@@ -827,11 +827,6 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-                setFormError('iou.error.invalidTagLength');
-                return;
-            }
-
             if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
                 setFormError('iou.error.invalidSubrateLength');
                 return;
