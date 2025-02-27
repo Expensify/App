@@ -33,7 +33,7 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(undefined, {shouldPopToTop: true});
-                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? '-1'));
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             });
             return;
         }
