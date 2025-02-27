@@ -132,17 +132,14 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {report:submit:from:customfield2} | Would output the custom field 2 entry associated with the user who submitted the report. If John Smith’s Custom Field 2 contains 1234, then this formula would output 1234. |
 | To | Is the email address of the last person who the report was submitted to.|
 | {report:submit:to} | Would output alice@email.com if they are the current approver.|
-| {report:submit:to:email\|frontPart} | Would output alice.|
 | Current user | To export the email of the currently logged in Expensify user.|
 | {user:email} | Would output bob@example.com assuming that is the currently logged in Expensify user's email.|
-| {user:email\|frontPart} | bob|
 | Submitter | "Sally Ride" with email "sride@email.com" is the submitter for the following examples.|
-| {report:submit:from}| Sally Ride|
+| {report:submit:from}| Would output Sally Ride. If the user's name is blank, then it will print the user's whole email.|
 | {report:submit:from:firstname}| Sally|
 | {report:submit:from:lastname}| Ride|
 | {report:submit:from:fullname}| Sally Ride |
 | {report:submit:from:email} | sride@email.com|
-| {report:submit:from:email\|frontPart} | Would output sride. If the user's name is blank, then {report:submit:from} and {report:submit:from:email\|frontPart} will print the user's whole email.|
 
 ### Expense level
 
@@ -245,13 +242,19 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | sqrt |  The square root of a number. {sqrt:64} output 8|
 || Note - You can also combine the value of any two numeric fields. For example, you can use {math: {expense:tag:glcode} + {expense:category:glcode}} to add the value of the Tag GL code with the Category GL code.|
 
-### Substring formulas
+## Functions
+Functions can be applied to any formula using the `|` symbol and the function name. They can be chained together and are case insensitive.
 
-This formula will output a subset of the string in question. It is important to remember that the count starts at 0 not 1.
-
-`{expense:merchant|substr:0:4}` would output "Star" for a merchant named Starbucks. This is because we are telling it to start at position 0 and be of 4 character length.
-
-`{expense:merchant|substr:4:5}` would output "bucks" for a merchant named Starbucks. This is because we are telling it to start at position 4 and be of 5 character length.
+| Function | Description
+| -- | -- |
+| frontpart | Get the front part of an email or the first word of the value|
+| {report:submit:from:email\|frontPart} | would output alice if alice@email.com was the submitter|
+| {report:submit:from:fullname\|frontpart} | would output Sally if the submitter's full name is Sally Ride|
+| substr | Outputs a substring of the string (value) it operates on. It takes 1 or 2 parameters: offset and length. An offset of 0 starts at the first character of the value, 1 at the second, etc. The length is how many characters to return.|
+| {expense:merchant\|substr:0:4} | would output "Star" for a merchant named Starbucks.|
+| {expense:merchant\|substr:4:5} | would output "bucks" for a merchant named Starbucks.|
+| {report:policyname\|substr:20} | would output "Sally's Expenses" for a report on a workspace named "Control Workspace - Sally's Expenses"|
+| {report:policyname\|substr:20\|frontpart} | would output "Sally's"|
 
 {% include faq-begin.md %}
 
