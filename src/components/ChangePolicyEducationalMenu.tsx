@@ -1,17 +1,14 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import React, {useEffect} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
 import * as Illustrations from './Icon/Illustrations';
-import Text from './Text';
-import TextPill from './TextPill';
 
-type ProcessMoneyRequestHoldMenuProps = {
+
+type ChangePolicyEducationalMenuProps = {
     /** Method to trigger when pressing outside of the popover menu to close it */
     onClose: () => void;
 
@@ -19,11 +16,10 @@ type ProcessMoneyRequestHoldMenuProps = {
     onConfirm: () => void;
 };
 
-function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHoldMenuProps) {
+function ChangePolicyEducationalMenu({onClose, onConfirm}: ChangePolicyEducationalMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const navigation = useNavigation();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
         const unsub = navigation.addListener('beforeRemove', () => {
@@ -32,22 +28,12 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
         return unsub;
     }, [navigation, onClose]);
 
-    const title = useMemo(
-        () => (
-            <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
-                <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                <TextPill textStyles={styles.holdRequestInline}>{translate('iou.holdEducationalText')}</TextPill>
-            </View>
-        ),
-        [onboardingIsMediumOrLargerScreenWidth, styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.holdRequestInline, translate],
-    );
-
     return (
         <FeatureTrainingModal
-            title={title}
-            description={translate('iou.whatIsHoldExplain')}
+            title={translate('iou.changePolicyEducational.title')}
+            description={translate('iou.changePolicyEducational.description')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.HoldExpense}
+            image={Illustrations.ReceiptFairy}
             contentFitImage="cover"
             width={variables.changePolicyEducationModalWidth}
             illustrationAspectRatio={39 / 22}
@@ -62,6 +48,6 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
     );
 }
 
-ProcessMoneyRequestHoldMenu.displayName = 'ProcessMoneyRequestHoldMenu';
+ChangePolicyEducationalMenu.displayName = 'ChangePolicyEducationalMenu';
 
-export default ProcessMoneyRequestHoldMenu;
+export default ChangePolicyEducationalMenu;

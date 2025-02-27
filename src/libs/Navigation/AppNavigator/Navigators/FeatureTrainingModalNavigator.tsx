@@ -7,6 +7,7 @@ import type {FeatureTrainingNavigatorParamList} from '@libs/Navigation/types';
 import ProcessMoneyRequestHoldPage from '@pages/ProcessMoneyRequestHoldPage';
 import TrackTrainingPage from '@pages/TrackTrainingPage';
 import SCREENS from '@src/SCREENS';
+import ChangePolicyEducationalModal from '@pages/ChangePolicyEducationalModal';
 
 const Stack = createPlatformStackNavigator<FeatureTrainingNavigatorParamList>();
 
@@ -22,6 +23,10 @@ function FeatureTrainingModalNavigator() {
                     <Stack.Screen
                         name={SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT}
                         component={ProcessMoneyRequestHoldPage}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT}
+                        component={ChangePolicyEducationalModal}
                     />
                 </Stack.Navigator>
             </View>
