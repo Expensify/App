@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import Checkbox from '@components/Checkbox';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -43,6 +44,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
+import SearchList from './SearchList';
 import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -343,6 +345,34 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         [isFocused, clearSelectedTransactions],
     );
 
+    const openReport = useCallback(
+        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
+            let reportID = isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
+
+            if (!reportID) {
+                return;
+            }
+
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
+                reportID = generateReportID();
+                createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
+            }
+
+            const backTo = Navigation.getActiveRoute();
+
+            if (isReportActionListItemType(item)) {
+                const reportActionID = item.reportActionID;
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                return;
+            }
+
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        },
+        [hash],
+    );
+
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
@@ -425,31 +455,6 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         );
     };
 
-    const openReport = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
-        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
-        let reportID = isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
-
-        if (!reportID) {
-            return;
-        }
-
-        // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-        if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
-            reportID = generateReportID();
-            createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
-        }
-
-        const backTo = Navigation.getActiveRoute();
-
-        if (isReportActionListItemType(item)) {
-            const reportActionID = item.reportActionID;
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
-    };
-
     const fetchMoreResults = () => {
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
@@ -483,16 +488,17 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
+
     return (
-        <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
-            ref={handleSelectionListScroll(sortedSelectedData)}
-            sections={[{data: sortedSelectedData, isDisabled: false}]}
-            turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
-            onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
+        <SearchList
+            data={sortedSelectedData}
+            ListItem={ListItem}
+            onSelectRow={openReport}
             onCheckboxPress={toggleTransaction}
-            onSelectAll={toggleAllTransactions}
-            customListHeader={
-                !isLargeScreenWidth ? null : (
+            onAllCheckboxPress={toggleAllTransactions}
+            canSelectMultiple={isLargeScreenWidth}
+            SearchTableHeader={
+                !isLargeScreenWidth ? undefined : (
                     <SearchTableHeader
                         data={searchResults?.data}
                         metadata={searchResults?.search}
@@ -504,53 +510,78 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                     />
                 )
             }
-            isSelected={(item) =>
-                (status !== CONST.SEARCH.STATUS.EXPENSE.ALL || shouldGroupByReports) && isReportListItemType(item)
-                    ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
-                    : !!item.isSelected
-            }
-            shouldAutoTurnOff={false}
             onScroll={onSearchListScroll}
-            onContentSizeChange={onContentSizeChange}
-            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
-            customListHeaderHeight={searchHeaderHeight}
-            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
-            // we have configured a larger windowSize and a longer delay between batch renders.
-            // The windowSize determines the number of items rendered before and after the currently visible items.
-            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
-            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
-            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
-            // For more information, refer to the React Native documentation:
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
-            windowSize={111}
-            updateCellsBatchingPeriod={200}
-            ListItem={ListItem}
-            onSelectRow={openReport}
-            getItemHeight={getItemHeightMemoized}
-            shouldSingleExecuteRowSelect
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            shouldPreventDefault={false}
-            listHeaderWrapperStyle={[styles.ph8, styles.pt3]}
-            containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-            showScrollIndicator={false}
-            onEndReachedThreshold={0.75}
-            onEndReached={fetchMoreResults}
-            listFooterContent={
-                shouldShowLoadingMoreItems ? (
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        fixedNumItems={5}
-                    />
-                ) : undefined
-            }
-            contentContainerStyle={[contentContainerStyle, styles.pb3]}
-            scrollEventThrottle={1}
-            shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
-            isScreenFocused={isSearchScreenFocused}
-            initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
         />
     );
+
+    // return (
+    //     <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
+    //         ref={handleSelectionListScroll(sortedSelectedData)}
+    //         sections={[{data: sortedSelectedData, isDisabled: false}]}
+    //         turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
+    //         onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
+    //         onCheckboxPress={toggleTransaction}
+    //         onSelectAll={toggleAllTransactions}
+    //         customListHeader={
+    //             !isLargeScreenWidth ? null : (
+    //                 <SearchTableHeader
+    //                     data={searchResults?.data}
+    //                     metadata={searchResults?.search}
+    //                     onSortPress={onSortPress}
+    //                     sortOrder={sortOrder}
+    //                     sortBy={sortBy}
+    //                     shouldShowYear={shouldShowYear}
+    //                     shouldShowSorting={shouldShowSorting}
+    //                 />
+    //             )
+    //         }
+    //         isSelected={(item) =>
+    //             (status !== CONST.SEARCH.STATUS.EXPENSE.ALL || shouldGroupByReports) && isReportListItemType(item)
+    //                 ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
+    //                 : !!item.isSelected
+    //         }
+    //         shouldAutoTurnOff={false}
+    //         onScroll={onSearchListScroll}
+    //         onContentSizeChange={onContentSizeChange}
+    //         canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+    //         customListHeaderHeight={searchHeaderHeight}
+    //         // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+    //         // we have configured a larger windowSize and a longer delay between batch renders.
+    //         // The windowSize determines the number of items rendered before and after the currently visible items.
+    //         // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+    //         // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+    //         // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+    //         // For more information, refer to the React Native documentation:
+    //         // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+    //         // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+    //         windowSize={111}
+    //         updateCellsBatchingPeriod={200}
+    //         ListItem={ListItem}
+    //         onSelectRow={openReport}
+    //         getItemHeight={getItemHeightMemoized}
+    //         shouldSingleExecuteRowSelect
+    //         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+    //         shouldPreventDefault={false}
+    //         listHeaderWrapperStyle={[styles.ph8, styles.pt3]}
+    //         containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+    //         showScrollIndicator={false}
+    //         onEndReachedThreshold={0.75}
+    //         onEndReached={fetchMoreResults}
+    //         listFooterContent={
+    //             shouldShowLoadingMoreItems ? (
+    //                 <SearchRowSkeleton
+    //                     shouldAnimate
+    //                     fixedNumItems={5}
+    //                 />
+    //             ) : undefined
+    //         }
+    //         contentContainerStyle={[contentContainerStyle, styles.pb3]}
+    //         scrollEventThrottle={1}
+    //         shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
+    //         isScreenFocused={isSearchScreenFocused}
+    //         initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
+    //     />
+    // );
 }
 
 Search.displayName = 'Search';
