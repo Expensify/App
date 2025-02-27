@@ -258,7 +258,7 @@ function SearchPageHeaderInput({
                         {showPopupButton && (
                             <Animated.View
                                 entering={FadeInRight}
-                                exiting={FadeOutRight}
+                                exiting={isFocused ? FadeOutRight : undefined}
                                 style={[styles.pl3]}
                             >
                                 <SearchTypeMenuPopover
@@ -342,6 +342,7 @@ function SearchPageHeaderInput({
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
+                        shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                     />
                 </View>
             </View>
