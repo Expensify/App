@@ -371,11 +371,30 @@ describe('TransactionUtils', () => {
             expect(showBrokenConnectionViolation).toBe(false);
         });
 
-        it('should return true when a broken connection violation exists and the user is the policy member', () => {
+        it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
             const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
             const transaction = generateTransaction();
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transaction, undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists for any of the provided transactions and the user is the policy member', () => {
+            const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
+            const transaction1 = generateTransaction();
+            const transaction2 = generateTransaction();
+            const transactionIDs = [transaction1.transactionID, transaction2.transactionID];
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.RTER,
+                        data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                    },
+                ],
+            };
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDs, undefined, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
