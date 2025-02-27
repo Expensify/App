@@ -5019,6 +5019,7 @@ const translations = {
                 cardFeeds: 'Card feeds',
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `All CSV Imported Cards${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
             current: 'Current',
             past: 'Past',
@@ -5945,13 +5946,13 @@ const translations = {
         },
         scanTestTooltip: {
             part1: 'Want to see how Scan works?',
-            part2: ' Try a test receipt!',
+            part2: ' Try a test \nreceipt!',
             part3: 'Choose our',
             part4: ' test manager',
             part5: ' to try it out!',
             part6: 'Now,',
             part7: ' submit your expense',
-            part8: ' and watch the magic happen!',
+            part8: ' and watch the\nmagic happen!',
             tryItOut: 'Try it out',
             noThanks: 'No thanks',
         },
