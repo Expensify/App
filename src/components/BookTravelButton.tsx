@@ -7,6 +7,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
+import {getContactMethod} from '@libs/UserUtils';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,8 +42,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const primaryLogin = account?.primaryLogin;
+    const primaryLogin = getContactMethod();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const [isMaintenanceModalVisible, setMaintenanceModalVisibility] = useState(false);
 
