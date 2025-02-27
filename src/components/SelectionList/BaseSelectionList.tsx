@@ -125,6 +125,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
+        shouldAnimateOnRemove = false,
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
     }: BaseSelectionListProps<TItem>,
@@ -576,6 +577,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
+                    shouldAnimateOnRemove={shouldAnimateOnRemove}
                 />
             </View>
         );

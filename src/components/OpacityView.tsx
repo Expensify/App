@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import useExitingAnimation from '@hooks/useExitingAnimation';
+import useThemeStyles from '@hooks/useThemeStyles';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import variables from '@styles/variables';
 
@@ -32,6 +34,8 @@ type OpacityViewProps = {
 
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing?: boolean;
+
+    shouldAnimateOnRemove?: boolean;
 };
 
 function OpacityView({
@@ -41,8 +45,13 @@ function OpacityView({
     style = [],
     dimmingValue = variables.hoverDimValue,
     needsOffscreenAlphaCompositing = false,
+    shouldAnimateOnRemove,
 }: OpacityViewProps) {
     const opacity = useSharedValue(1);
+    const styles = useThemeStyles();
+    const [height, setHeight] = useState(0);
+    const Exiting = useExitingAnimation(height);
+
     const opacityStyle = useAnimatedStyle(() => ({
         opacity: opacity.get(),
     }));
@@ -53,8 +62,12 @@ function OpacityView({
 
     return (
         <Animated.View
-            style={[opacityStyle, style]}
+            style={[opacityStyle, style, shouldAnimateOnRemove && styles.overflowHidden]}
             needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
+            exiting={shouldAnimateOnRemove ? Exiting : undefined}
+            onLayout={(e) => {
+                setHeight(e.nativeEvent.layout.height);
+            }}
         >
             {children}
         </Animated.View>

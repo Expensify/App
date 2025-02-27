@@ -524,7 +524,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         }
     }
 
-    return Object.values(reportIDToTransactions);
+    return Object.values(reportIDToTransactions).filter((report) => report.transactions.length);
 }
 
 /**

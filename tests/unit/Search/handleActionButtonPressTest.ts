@@ -205,13 +205,13 @@ describe('handleActionButtonPress', () => {
     const searchHash = 1;
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem);
+        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem);
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false);
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
 });
