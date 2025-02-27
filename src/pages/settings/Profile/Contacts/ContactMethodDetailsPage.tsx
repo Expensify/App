@@ -327,7 +327,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         canDismissError
                     />
                 )}
-                {isValidateCodeFormVisible && !loginData.validatedDate && !!loginData && (
+                {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
                     <ValidateCodeActionForm
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         validatePendingAction={loginData.pendingFields?.validateCodeSent}
