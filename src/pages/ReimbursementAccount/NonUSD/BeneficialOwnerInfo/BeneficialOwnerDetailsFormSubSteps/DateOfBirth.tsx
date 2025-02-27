@@ -16,7 +16,7 @@ function DateOfBirth({onNext, isEditing, onMove, isUserEnteringHisOwnData, owner
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobInputID = `${PREFIX}_${ownerBeingModifiedID}_${DOB}` as const;
-    const dobDefaultValue = reimbursementAccountDraft?.[dobInputID] ?? '';
+    const dobDefaultValue = String(reimbursementAccountDraft?.[dobInputID] ?? '');
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourDOB' : 'ownershipInfoStep.whatsTheOwnersDOB');
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({

@@ -43,6 +43,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardMap} from '@src/TIMEZONES';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
+import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
 import Log from './Log';
 
@@ -86,6 +87,35 @@ let networkTimeSkew = 0;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
+});
+
+let isOffline: boolean | undefined;
+
+let preferredLocaleFromOnyx: Locale;
+
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        preferredLocaleFromOnyx = value;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (val) => {
+        if (!val?.lastOfflineAt) {
+            setNetworkLastOffline(getLocalDateFromDatetime(preferredLocaleFromOnyx));
+        }
+
+        const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
+        if (newIsOffline && isOffline === false) {
+            setNetworkLastOffline(getLocalDateFromDatetime(preferredLocaleFromOnyx));
+        }
+        isOffline = newIsOffline;
+    },
 });
 
 function isDate(arg: unknown): arg is Date {
@@ -696,6 +726,15 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 };
 
 /**
+ * Checks if the input time is after the reference date
+ * param {Date} inputDate - The date to validate.
+ * returns {boolean} - Returns true if the input date is after the reference date, otherwise false.
+ */
+const isFutureDay = (inputDate: Date): boolean => {
+    return isAfter(startOfDay(inputDate), startOfDay(new Date()));
+};
+
+/**
  * Checks if the input time is at least one minute in the future compared to the reference time.
  * param {Date} inputTime - The time to validate.
  * param {Date} referenceTime - The time to compare against.
@@ -904,6 +943,14 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
     return `${format(date1, 'MMM d, yyyy')} - ${format(date2, 'MMM d, yyyy')}`;
 }
 
+/**
+ * Checks if the current time falls within the specified time range.
+ */
+const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean => {
+    const now = Date.now();
+    return isAfter(now, new Date(startTime)) && isBefore(now, new Date(endTime));
+};
+
 const DateUtils = {
     isDate,
     formatToDayOfWeek,
@@ -957,7 +1004,9 @@ const DateUtils = {
     isValidDateString,
     getFormattedDurationBetweenDates,
     getFormattedDuration,
+    isFutureDay,
     getFormattedDateRangeForPerDiem,
+    isCurrentTimeWithinRange,
 };
 
 export default DateUtils;
