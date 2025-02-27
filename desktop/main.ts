@@ -211,6 +211,9 @@ const showKeyboardShortcutsPage = (browserWindow: BrowserWindow) => {
 const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater => ({
     init: () => {
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
+            // eslint-disable-next-line no-console
+            console.group('[dev] ELECTRON_EVENTS.UPDATE_DOWNLOADED');
+            console.debug('[dev] info:', info);
             const systemMenu = Menu.getApplicationMenu();
             const updateMenuItem = systemMenu?.getMenuItemById(`update`);
             const checkForUpdatesMenuItem = systemMenu?.getMenuItemById(`checkForUpdates`);
@@ -226,15 +229,37 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (browserWindow.isVisible() && !isSilentUpdating) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
-                quitAndInstallWithUpdate();
+                console.debug('[dev] else');
+
+                autoUpdater
+                    .checkForUpdates()
+                    .then((result) => {
+                        console.debug('[dev] result', result);
+                        if (result?.updateInfo.version === downloadedVersion) {
+                            quitAndInstallWithUpdate();
+                        } else {
+                            return autoUpdater.downloadUpdate();
+                        }
+                    })
+                    .then(() => {
+                        quitAndInstallWithUpdate();
+                    })
+                    .catch((error) => {
+                        console.debug('[dev] error', error);
+                        log.error('Error during update check or download:', error);
+                    });
             }
+            // eslint-disable-next-line no-console
+            console.groupEnd();
         });
 
         ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate);
         autoUpdater.checkForUpdates();
     },
     update: () => {
-        autoUpdater.checkForUpdates();
+        autoUpdater.checkForUpdates().then((result) => {
+            console.debug('[dev] update result', result);
+        });
     },
 });
 
@@ -663,9 +688,9 @@ const mainWindow = (): Promise<void> => {
 
             // Start checking for JS updates
             .then((browserWindowRef) => {
-                if (__DEV__) {
-                    return;
-                }
+                // if (__DEV__) {
+                //     return;
+                // }
 
                 checkForUpdates(electronUpdater(browserWindowRef));
             })
