@@ -84,112 +84,122 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.mh5, styles.flex1]}
+            style={[styles.mh5, styles.flexGrow1]}
+            submitButtonStyles={[styles.mb0]}
         >
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('signerInfoStep.uploadID')}</Text>
-                {isDocumentNeededStatus.isCopyOfIDNeeded && (
-                    <View>
-                        <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.id')}</Text>
-                        <InputWrapper
-                            InputComponent={UploadFile}
-                            buttonText={translate('signerInfoStep.chooseFile')}
-                            uploadedFiles={uploadedIDs}
-                            onUpload={(files) => {
-                                handleSelectFile(files, uploadedIDs, `${SIGNER_PREFIX}_${COPY_OF_ID}`, setUploadedID);
-                            }}
-                            onRemove={(fileName) => {
-                                handleRemoveFile(fileName, uploadedIDs, `${SIGNER_PREFIX}_${COPY_OF_ID}`, setUploadedID);
-                            }}
-                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                            value={uploadedIDs}
-                            inputID={`${SIGNER_PREFIX}_${COPY_OF_ID}`}
-                            setError={setError}
-                        />
-                    </View>
-                )}
-                {isDocumentNeededStatus.isAddressProofNeeded && (
-                    <View>
-                        <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.proofOf')}</Text>
-                        <InputWrapper
-                            InputComponent={UploadFile}
-                            buttonText={translate('signerInfoStep.chooseFile')}
-                            uploadedFiles={uploadedProofsOfAddress}
-                            onUpload={(files) => {
-                                handleSelectFile(files, uploadedProofsOfAddress, `${SIGNER_PREFIX}_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
-                            }}
-                            onRemove={(fileName) => {
-                                handleRemoveFile(fileName, uploadedProofsOfAddress, `${SIGNER_PREFIX}_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
-                            }}
-                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                            value={uploadedProofsOfAddress}
-                            inputID={`${SIGNER_PREFIX}_${ADDRESS_PROOF}`}
-                            setError={setError}
-                        />
-                    </View>
-                )}
-                {isDocumentNeededStatus.isProofOfDirecorsNeeded && (
-                    <View>
-                        <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.proofOfDirectors')}</Text>
-                        <InputWrapper
-                            InputComponent={UploadFile}
-                            buttonText={translate('signerInfoStep.chooseFile')}
-                            uploadedFiles={uploadedProofsOfDirectors}
-                            onUpload={(files) => {
-                                handleSelectFile(files, uploadedProofsOfDirectors, `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
-                            }}
-                            onRemove={(fileName) => {
-                                handleRemoveFile(fileName, uploadedProofsOfDirectors, `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
-                            }}
-                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                            value={uploadedProofsOfDirectors}
-                            inputID={`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`}
-                            setError={setError}
-                        />
-                    </View>
-                )}
-                {isDocumentNeededStatus.isCodiceFiscaleNeeded && (
-                    <View>
-                        <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.codiceFiscale')}</Text>
-                        <InputWrapper
-                            InputComponent={UploadFile}
-                            buttonText={translate('signerInfoStep.chooseFile')}
-                            uploadedFiles={uploadedCodiceFiscale}
-                            onUpload={(files) => {
-                                handleSelectFile(files, uploadedCodiceFiscale, `${SIGNER_PREFIX}_${CODICE_FISCALE}`, setUploadedCodiceFiscale);
-                            }}
-                            onRemove={(fileName) => {
-                                handleRemoveFile(fileName, uploadedCodiceFiscale, `${SIGNER_PREFIX}_${CODICE_FISCALE}`, setUploadedCodiceFiscale);
-                            }}
-                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                            value={uploadedCodiceFiscale}
-                            inputID={`${SIGNER_PREFIX}_${CODICE_FISCALE}`}
-                            setError={setError}
-                        />
-                    </View>
-                )}
-                {isDocumentNeededStatus.isPRDandFSGNeeded && (
-                    <View>
-                        <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.PRDandSFD')}</Text>
-                        <InputWrapper
-                            InputComponent={UploadFile}
-                            buttonText={translate('signerInfoStep.chooseFile')}
-                            uploadedFiles={uploadedPRDandSFG}
-                            onUpload={(files) => {
-                                handleSelectFile(files, uploadedPRDandSFG, `${SIGNER_PREFIX}_${PRD_AND_SFG}`, setUploadedPRDandSFG);
-                            }}
-                            onRemove={(fileName) => {
-                                handleRemoveFile(fileName, uploadedPRDandSFG, `${SIGNER_PREFIX}_${PRD_AND_SFG}`, setUploadedPRDandSFG);
-                            }}
-                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
-                            value={uploadedPRDandSFG}
-                            inputID={`${SIGNER_PREFIX}_${PRD_AND_SFG}`}
-                            setError={setError}
-                        />
-                    </View>
-                )}
-                <WhyLink containerStyles={[styles.mt6]} />
-            </View>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('ownershipInfoStep.uploadDocuments')}</Text>
+            <Text style={[styles.textSupporting, styles.mb5]}>{translate('signerInfoStep.pleaseUpload')}</Text>
+            <Text style={[styles.textSupporting, styles.mb6]}>{translate('ownershipInfoStep.acceptedFiles')}</Text>
+            {isDocumentNeededStatus.isCopyOfIDNeeded && (
+                <View>
+                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.id')}</Text>
+                    <InputWrapper
+                        InputComponent={UploadFile}
+                        buttonText={translate('signerInfoStep.chooseFile')}
+                        uploadedFiles={uploadedIDs}
+                        onUpload={(files) => {
+                            handleSelectFile(files, uploadedIDs, `${SIGNER_PREFIX}_${COPY_OF_ID}`, setUploadedID);
+                        }}
+                        onRemove={(fileName) => {
+                            handleRemoveFile(fileName, uploadedIDs, `${SIGNER_PREFIX}_${COPY_OF_ID}`, setUploadedID);
+                        }}
+                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        value={uploadedIDs}
+                        inputID={`${SIGNER_PREFIX}_${COPY_OF_ID}`}
+                        setError={setError}
+                    />
+                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
+                    {(isDocumentNeededStatus.isAddressProofNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                </View>
+            )}
+            {isDocumentNeededStatus.isAddressProofNeeded && (
+                <View>
+                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.proofOf')}</Text>
+                    <InputWrapper
+                        InputComponent={UploadFile}
+                        buttonText={translate('signerInfoStep.chooseFile')}
+                        uploadedFiles={uploadedProofsOfAddress}
+                        onUpload={(files) => {
+                            handleSelectFile(files, uploadedProofsOfAddress, `${SIGNER_PREFIX}_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
+                        }}
+                        onRemove={(fileName) => {
+                            handleRemoveFile(fileName, uploadedProofsOfAddress, `${SIGNER_PREFIX}_${ADDRESS_PROOF}`, setUploadedProofOfAddress);
+                        }}
+                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        value={uploadedProofsOfAddress}
+                        inputID={`${SIGNER_PREFIX}_${ADDRESS_PROOF}`}
+                        setError={setError}
+                    />
+                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
+                    {isDocumentNeededStatus.isProofOfDirecorsNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                </View>
+            )}
+            {isDocumentNeededStatus.isProofOfDirecorsNeeded && (
+                <View>
+                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.proofOfDirectors')}</Text>
+                    <InputWrapper
+                        InputComponent={UploadFile}
+                        buttonText={translate('signerInfoStep.chooseFile')}
+                        uploadedFiles={uploadedProofsOfDirectors}
+                        onUpload={(files) => {
+                            handleSelectFile(files, uploadedProofsOfDirectors, `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
+                        }}
+                        onRemove={(fileName) => {
+                            handleRemoveFile(fileName, uploadedProofsOfDirectors, `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`, setUploadedProofsOfDirectors);
+                        }}
+                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        value={uploadedProofsOfDirectors}
+                        inputID={`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`}
+                        setError={setError}
+                    />
+                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.proofOfDirectorsDescription')}</Text>
+                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                </View>
+            )}
+            {isDocumentNeededStatus.isCodiceFiscaleNeeded && (
+                <View>
+                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.codiceFiscale')}</Text>
+                    <InputWrapper
+                        InputComponent={UploadFile}
+                        buttonText={translate('signerInfoStep.chooseFile')}
+                        uploadedFiles={uploadedCodiceFiscale}
+                        onUpload={(files) => {
+                            handleSelectFile(files, uploadedCodiceFiscale, `${SIGNER_PREFIX}_${CODICE_FISCALE}`, setUploadedCodiceFiscale);
+                        }}
+                        onRemove={(fileName) => {
+                            handleRemoveFile(fileName, uploadedCodiceFiscale, `${SIGNER_PREFIX}_${CODICE_FISCALE}`, setUploadedCodiceFiscale);
+                        }}
+                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        value={uploadedCodiceFiscale}
+                        inputID={`${SIGNER_PREFIX}_${CODICE_FISCALE}`}
+                        setError={setError}
+                    />
+                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('ownershipInfoStep.codiceFiscaleDescription')}</Text>
+                    {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                </View>
+            )}
+            {isDocumentNeededStatus.isPRDandFSGNeeded && (
+                <View>
+                    <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PRDandSFD')}</Text>
+                    <InputWrapper
+                        InputComponent={UploadFile}
+                        buttonText={translate('signerInfoStep.chooseFile')}
+                        uploadedFiles={uploadedPRDandSFG}
+                        onUpload={(files) => {
+                            handleSelectFile(files, uploadedPRDandSFG, `${SIGNER_PREFIX}_${PRD_AND_SFG}`, setUploadedPRDandSFG);
+                        }}
+                        onRemove={(fileName) => {
+                            handleRemoveFile(fileName, uploadedPRDandSFG, `${SIGNER_PREFIX}_${PRD_AND_SFG}`, setUploadedPRDandSFG);
+                        }}
+                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        value={uploadedPRDandSFG}
+                        inputID={`${SIGNER_PREFIX}_${PRD_AND_SFG}`}
+                        setError={setError}
+                    />
+                    <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.PRDandFSGDescription')}</Text>
+                </View>
+            )}
+            <WhyLink containerStyles={[styles.mt6]} />
         </FormProvider>
     );
 }
