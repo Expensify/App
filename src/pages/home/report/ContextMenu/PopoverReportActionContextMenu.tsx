@@ -243,7 +243,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             return;
         }
 
-        // After the animation ends reset isContextMenuOpeningRef
+        // After the animation of the popover opening ends, reset isContextMenuOpeningRef.
         InteractionManager.runAfterInteractions(() => {
             isContextMenuOpeningRef.current = false;
         });
