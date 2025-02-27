@@ -4,7 +4,6 @@ import {useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import {triggerSidePane as triggerSidePaneAction} from '@libs/actions/SidePane';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,10 +40,6 @@ function useSidePane() {
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
 
-    const triggerSidePane = () => {
-        triggerSidePaneAction(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openMobile);
-    };
-
     useEffect(() => {
         if (!isPaneHidden) {
             setShouldHideSidePane(false);
@@ -72,7 +67,6 @@ function useSidePane() {
         isSidePaneOverlayVisible: !isPaneHidden && !isExtraLargeScreenWidth && !shouldUseNarrowLayout,
         sidePaneOffset,
         sidePaneTranslateX,
-        triggerSidePane,
     };
 }
 
