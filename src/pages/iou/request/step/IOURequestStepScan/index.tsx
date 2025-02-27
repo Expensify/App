@@ -553,7 +553,7 @@ function IOURequestStepScan({
                 filename,
                 (file) => {
                     const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined, true);
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined, CONST.IOU.RECEIPT_STATE.SCANCOMPLETE);
                     navigateToConfirmationStep(file, source, false);
                 },
                 (error) => {

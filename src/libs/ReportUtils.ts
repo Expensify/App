@@ -5730,12 +5730,12 @@ function buildOptimisticReportPreview(
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
-
+    const isTestTransaction = isTestTransactionReport(iouReport);
     return {
         reportActionID: reportActionID ?? rand64(),
         reportID: chatReport?.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-        pendingAction: undefined,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         originalMessage: {
             linkedReportID: iouReport?.reportID,
         },
@@ -5757,8 +5757,7 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
-        childStateNum: 2,
-        childStatusNum: 4,
+        ...(isTestTransaction && {childStateNum: 2, childStatusNum: 4}),
     };
 }
 

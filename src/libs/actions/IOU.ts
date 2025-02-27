@@ -815,9 +815,9 @@ function setSplitPayer(transactionID: string, payerAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitPayerAccountIDs: [payerAccountID]});
 }
 
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isManagerMcTest?: boolean) {
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        receipt: {source, type: type ?? '', state: isManagerMcTest ? CONST.IOU.RECEIPT_STATE.SCANCOMPLETE : undefined},
+        receipt: {source, type: type ?? '', state},
         filename,
     });
 }

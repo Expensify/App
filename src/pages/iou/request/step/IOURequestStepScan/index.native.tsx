@@ -494,7 +494,7 @@ function IOURequestStepScan({
                         return;
                     }
 
-                    setMoneyRequestReceipt(transactionID, file.uri, filename, !isEditing, file.type, true);
+                    setMoneyRequestReceipt(transactionID, file.uri, filename, !isEditing, file.type, CONST.IOU.RECEIPT_STATE.SCANCOMPLETE);
                     navigateToConfirmationStep(file, file.uri, false);
                 })
                 .catch((error) => {
