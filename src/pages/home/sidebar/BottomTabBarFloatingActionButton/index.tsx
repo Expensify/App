@@ -1,8 +1,12 @@
 import React, {useCallback, useRef} from 'react';
-import FloatingActionButtonAndPopover from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
+import FloatingActionButtonAndPopover from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type FloatingActionButtonPopoverMenuRef from './types';
 
-function BottomTabBarFloatingActionButton() {
+type BottomTabBarFloatingActionButtonProps = {
+    isTooltipAllowed: boolean;
+};
+
+function BottomTabBarFloatingActionButton({isTooltipAllowed}: BottomTabBarFloatingActionButtonProps) {
     const popoverModal = useRef<FloatingActionButtonPopoverMenuRef>(null);
 
     /**
@@ -32,6 +36,7 @@ function BottomTabBarFloatingActionButton() {
     return (
         <FloatingActionButtonAndPopover
             ref={popoverModal}
+            isTooltipAllowed={isTooltipAllowed}
             onShowCreateMenu={createDragoverListener}
             onHideCreateMenu={removeDragoverListener}
         />

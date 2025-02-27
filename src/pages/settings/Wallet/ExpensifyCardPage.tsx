@@ -16,11 +16,9 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setDraftValues} from '@libs/actions/FormActions';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getUpdatedDraftValues, getUpdatedPrivatePersonalDetails, goToNextPhysicalCardRoute} from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -65,10 +63,8 @@ function ExpensifyCardPage({
     },
 }: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [draftValues] = useOnyx(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT);
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -141,18 +137,6 @@ function ExpensifyCardPage({
 
     const primaryLogin = account?.primaryLogin ?? '';
     const loginData = loginList?.[primaryLogin];
-
-    const goToGetPhysicalCardFlow = () => {
-        let updatedDraftValues = draftValues;
-        if (!draftValues) {
-            updatedDraftValues = getUpdatedDraftValues(undefined, privatePersonalDetails, loginList);
-            // Form draft data needs to be initialized with the private personal details
-            // If no draft data exists
-            setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);
-        }
-
-        goToNextPhysicalCardRoute(domain, getUpdatedPrivatePersonalDetails(updatedDraftValues, privatePersonalDetails));
-    };
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -279,7 +263,7 @@ function ExpensifyCardPage({
                             style={styles.mt3}
                             onPress={() => {
                                 Navigation.navigate(
-                                    ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                    ROUTES.SEARCH_ROOT.getRoute({
                                         query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
                                     }),
                                 );
@@ -307,7 +291,7 @@ function ExpensifyCardPage({
                     large
                     text={translate('cardPage.getPhysicalCard')}
                     pressOnEnter
-                    onPress={goToGetPhysicalCardFlow}
+                    onPress={() => Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS)}
                     style={[styles.mh5, styles.mb5]}
                 />
             )}

@@ -210,11 +210,11 @@ function NewChatPage() {
                 newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
                 newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? `${CONST.DEFAULT_NUMBER_ID}`}];
+                selectionListRef?.current?.scrollToIndex(0, true);
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
             selectionListRef.current?.focusTextInput();
-            selectionListRef?.current?.scrollToIndex(Math.max(newSelectedOptions.length - 1, 0), true);
             setSelectedOptions(newSelectedOptions);
         },
         [selectedOptions, setSelectedOptions],

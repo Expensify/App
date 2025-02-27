@@ -294,8 +294,8 @@ function AttachmentModal({
     const deleteAndCloseModal = useCallback(() => {
         detachReceipt(transaction?.transactionID);
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
-    }, [transaction, report]);
+        Navigation.goBack();
+    }, [transaction]);
 
     const isValidFile = useCallback(
         (fileObject: FileObject) =>
@@ -435,9 +435,11 @@ function AttachmentModal({
                 text: translate('common.replace'),
                 onSelected: () => {
                     closeModal(true);
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
-                    );
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    });
                 },
             });
         }

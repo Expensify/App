@@ -50,7 +50,7 @@ function EarlyDiscountBanner({isSubscriptionPage}: EarlyDiscountBannerProps) {
                     success
                     style={shouldUseNarrowLayout && styles.flex1}
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 />
                 {discountInfo?.discountType === 25 && (
                     <Button

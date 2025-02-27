@@ -7,6 +7,7 @@ import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import type ResponsiveLayoutResult from './hooks/useResponsiveLayout/types';
 import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
@@ -28,7 +29,7 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const EXPENSIFY_URL = 'https://www.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
-const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
+const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
 const MAX_DATE = dateAdd(new Date(), {years: 1});
@@ -46,6 +47,7 @@ const keyInputUpArrow = KeyCommand?.constants?.keyInputUpArrow ?? 'keyInputUpArr
 const keyInputDownArrow = KeyCommand?.constants?.keyInputDownArrow ?? 'keyInputDownArrow';
 const keyInputLeftArrow = KeyCommand?.constants?.keyInputLeftArrow ?? 'keyInputLeftArrow';
 const keyInputRightArrow = KeyCommand?.constants?.keyInputRightArrow ?? 'keyInputRightArrow';
+const keyInputSpace = ' ';
 
 // describes if a shortcut key can cause navigation
 const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
@@ -66,7 +68,7 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
-// Hide not issued or not activated cards (states 2 and 4) from card filter options in search, as no transactions can be made on cards in these states
+// Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
@@ -214,7 +216,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click "Just track it (don\'t submit it)".\n' +
+                '4. Choose your *personal* space.\n' +
                 '5. Click *Create*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
@@ -237,8 +239,8 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
                 '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
-                '4. Click "Just track it (don\'t submit it)".\n' +
-                '5. Click *Track*.\n' +
+                '4. Choose your *personal* space.\n' +
+                '5. Click *Create*.\n' +
                 '\n' +
                 'And you’re done! Yep, it’s that easy.',
         },
@@ -479,6 +481,12 @@ const CONST = {
     // Regex to read violation value from string given by backend
     VIOLATION_LIMIT_REGEX: /[^0-9]+/g,
 
+    // Validates phone numbers with digits, '+', '-', '()', '.', and spaces
+    ACCEPTED_PHONE_CHARACTER_REGEX: /^[0-9+\-().\s]+$/,
+
+    // Prevents consecutive special characters or spaces like '--', '..', '((', '))', or '  '.
+    REPEATED_SPECIAL_CHAR_PATTERN: /([-\s().])\1+/,
+
     MERCHANT_NAME_MAX_LENGTH: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
@@ -530,7 +538,7 @@ const CONST = {
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
-        IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
+        IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
@@ -688,8 +696,7 @@ const CONST = {
                 IS_ANYONE_ELSE_BENEFICIAL_OWNER: 2,
                 BENEFICIAL_OWNER_DETAILS_FORM: 3,
                 ARE_THERE_MORE_BENEFICIAL_OWNERS: 4,
-                OWNERSHIP_CHART: 5,
-                BENEFICIAL_OWNERS_LIST: 6,
+                BENEFICIAL_OWNERS_LIST: 5,
             },
             BENEFICIAL_OWNER_DATA: {
                 BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
@@ -703,7 +710,13 @@ const CONST = {
                 CITY: 'city',
                 STATE: 'state',
                 ZIP_CODE: 'zipCode',
-                COUNTRY: 'country',
+                COUNTRY: 'nationality',
+                PROOF_OF_OWNERSHIP: 'proofOfBeneficialOwner',
+                COPY_OF_ID: 'copyOfIDForBeneficialOwner',
+                ADDRESS_PROOF: 'addressProofForBeneficialOwner',
+                CODICE_FISCALE: 'codiceFisclaleTaxID',
+                FULL_NAME: 'fullName',
+                RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
             CURRENT_USER_KEY: 'currentUser',
         },
@@ -732,15 +745,16 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
+        PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
-        CATEGORY_AND_TAG_APPROVERS: 'categoryAndTagApprovers',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NSQS: 'nsqs',
+        CUSTOM_RULES: 'customRules',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -758,6 +772,7 @@ const CONST = {
         AU: 'AU',
         CA: 'CA',
         GB: 'GB',
+        IT: 'IT',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
@@ -921,6 +936,14 @@ const CONST = {
             shortcutKey: 'Backspace',
             modifiers: [],
         },
+        SPACE: {
+            descriptionKey: null,
+            shortcutKey: 'Space',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputSpace},
+            },
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -994,12 +1017,21 @@ const CONST = {
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_HELP: 'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds',
+    COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
+        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-mastercard-commercial-feed',
+    COMPANY_CARDS_DELIVERY_FILE_HELP: {
+        cdf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-mastercard-commercial-feed',
+        vcf: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-a-visa-commercial-feed',
+        gl1025: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#steps-to-add-an-american-express-corporate-feed',
+    },
+    COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-a-visa-commercial-feed',
+    COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP:
+        'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
-    COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL:
-        'https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Commercial-Card-Feeds#what-is-the-difference-between-commercial-card-feeds-and-your-direct-bank-connections',
+    COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
-    COPILOT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot',
+    COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
@@ -1052,6 +1084,7 @@ const CONST = {
         REQUEST_MANUAL: 'requestManual',
         REQUEST_SCAN: 'requestScan',
         REQUEST_DISTANCE: 'requestDistance',
+        PER_DIEM: 'perDiem',
         SPLIT_MANUAL: 'splitManual',
         SPLIT_SCAN: 'splitScan',
         SPLIT_DISTANCE: 'splitDistance',
@@ -1134,6 +1167,7 @@ const CONST = {
                 REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 REJECTED: 'REJECTED',
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
+                DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -1379,6 +1413,12 @@ const CONST = {
             DELETE: 'delete',
             PRESERVE: 'preserve',
         },
+        ANIMATION_TIMING: {
+            DEFAULT_IN: 300,
+            DEFAULT_OUT: 200,
+            FAB_IN: 350,
+            FAB_OUT: 200,
+        },
     },
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
@@ -1588,6 +1628,17 @@ const CONST = {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
         PRESENCE_ACTIVE_GUIDES: 'presence-activeGuides',
+        STATE: {
+            CONNECTING: 'CONNECTING',
+            CONNECTED: 'CONNECTED',
+            DISCONNECTING: 'DISCONNECTING',
+            DISCONNECTED: 'DISCONNECTED',
+            RECONNECTING: 'RECONNECTING',
+        },
+        CHANNEL_STATUS: {
+            SUBSCRIBING: 'SUBSCRIBING',
+            SUBSCRIBED: 'SUBSCRIBED',
+        },
     },
 
     EMOJI_SPACER: 'SPACER',
@@ -1741,6 +1792,7 @@ const CONST = {
     },
     CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
+    LHN_VIEWPORT_ITEM_COUNT: 20,
     SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EXPENSIFY_MERCHANT: 'Expensify, Inc.',
@@ -2092,6 +2144,8 @@ const CONST = {
 
     NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
 
+    NETSUITE_PAYABLE_ACCOUNT_DEFAULT_VALUE: '',
+
     /**
      * Countries where tax setting is permitted (Strings are in the format of Netsuite's Country type/enum)
      *
@@ -2198,7 +2252,7 @@ const CONST = {
         },
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
-        APPROVAL_ACCOUNT: 'approvalAccount',
+        PAYMENT_ACCOUNT: 'paymentAccount',
     },
 
     QUICKBOOKS_EXPORT_DATE: {
@@ -2604,6 +2658,14 @@ const CONST = {
             SMARTREPORT: 'SMARTREPORT',
             BILLCOM: 'BILLCOM',
         },
+        APPROVAL_MODE_TRANSLATION_KEYS: {
+            OPTIONAL: 'submitAndClose',
+            BASIC: 'submitAndApprove',
+            ADVANCED: 'advanced',
+            DYNAMICEXTERNAL: 'dynamictExternal',
+            SMARTREPORT: 'smartReport',
+            BILLCOM: 'billcom',
+        },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
@@ -2640,27 +2702,27 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
         },
-        DEFAULT_CATEGORIES: [
-            'Advertising',
-            'Benefits',
-            'Car',
-            'Equipment',
-            'Fees',
-            'Home Office',
-            'Insurance',
-            'Interest',
-            'Labor',
-            'Maintenance',
-            'Materials',
-            'Meals and Entertainment',
-            'Office Supplies',
-            'Other',
-            'Professional Services',
-            'Rent',
-            'Taxes',
-            'Travel',
-            'Utilities',
-        ],
+        DEFAULT_CATEGORIES: {
+            ADVERTISING: 'Advertising',
+            BENEFITS: 'Benefits',
+            CAR: 'Car',
+            EQUIPMENT: 'Equipment',
+            FEES: 'Fees',
+            HOME_OFFICE: 'Home Office',
+            INSURANCE: 'Insurance',
+            INTEREST: 'Interest',
+            LABOR: 'Labor',
+            MAINTENANCE: 'Maintenance',
+            MATERIALS: 'Materials',
+            MEALS_AND_ENTERTAINMENT: 'Meals and Entertainment',
+            OFFICE_SUPPLIES: 'Office Supplies',
+            OTHER: 'Other',
+            PROFESSIONAL_SERVICES: 'Professional Services',
+            RENT: 'Rent',
+            TAXES: 'Taxes',
+            TRAVEL: 'Travel',
+            UTILITIES: 'Utilities',
+        },
         OWNERSHIP_ERRORS: {
             NO_BILLING_CARD: 'noBillingCard',
             AMOUNT_OWED: 'amountOwed',
@@ -2679,6 +2741,10 @@ const CONST = {
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
+        },
+        EXPENSE_REPORT_RULES: {
+            PREVENT_SELF_APPROVAL: 'preventSelfApproval',
+            MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
         CONNECTIONS: {
             NAME: {
@@ -2887,6 +2953,7 @@ const CONST = {
             BREX: 'oauth.brex.com',
             WELLS_FARGO: 'oauth.wellsfargo.com',
             AMEX_DIRECT: 'oauth.americanexpressfdx.com',
+            CSV: '_ccupload',
         },
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
@@ -2967,6 +3034,7 @@ const CONST = {
             VISA: 'visa',
             MASTERCARD: 'mastercard',
             STRIPE: 'stripe',
+            CSV: 'CSV',
         },
         FEED_TYPE: {
             CUSTOM: 'customFeed',
@@ -4761,12 +4829,12 @@ const CONST = {
         CUSTOM: 'custom',
     },
     TWO_FACTOR_AUTH_STEPS: {
-        CODES: 'CODES',
+        COPY_CODES: 'COPY_CODES',
         VERIFY: 'VERIFY',
         SUCCESS: 'SUCCESS',
         ENABLED: 'ENABLED',
         DISABLED: 'DISABLED',
-        GETCODE: 'GETCODE',
+        DISABLE: 'DISABLE',
     },
     DELEGATE_ROLE: {
         ALL: 'all',
@@ -4809,13 +4877,15 @@ const CONST = {
     SF_COORDINATES: [-122.4194, 37.7749],
 
     NAVIGATION: {
-        TYPE: {
-            UP: 'UP',
-        },
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+
+            /** These action types are custom for RootNavigator */
+            SWITCH_POLICY_ID: 'SWITCH_POLICY_ID',
+            DISMISS_MODAL: 'DISMISS_MODAL',
+            OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
         },
     },
     TIME_PERIOD: {
@@ -4992,6 +5062,7 @@ const CONST = {
         PER_DAY_LIMIT: 'perDayLimit',
         RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
         RECEIPT_REQUIRED: 'receiptRequired',
+        CUSTOM_RULES: 'customRules',
         RTER: 'rter',
         SMARTSCAN_FAILED: 'smartscanFailed',
         SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
@@ -5112,10 +5183,10 @@ const CONST = {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
                     title: 'Set up categories and tags',
-                    description: ({workspaceSettingsLink, workspaceAccountingLink}) =>
+                    description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                         '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
                         '\n' +
-                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceSettingsLink}).`,
+                        `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
                 },
                 setupCategoriesTask,
                 {
@@ -6142,12 +6213,16 @@ const CONST = {
             ASC: 'asc',
             DESC: 'desc',
         },
+        GROUP_BY: {
+            REPORTS: 'reports',
+        },
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
+                DONE: 'done',
                 PAID: 'paid',
             },
             INVOICE: {
@@ -6193,7 +6268,6 @@ const CONST = {
             LOWER_THAN: 'lt',
             LOWER_THAN_OR_EQUAL_TO: 'lte',
         },
-        SYNTAX_RANGE_NAME: 'syntax',
         SYNTAX_ROOT_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
@@ -6627,11 +6701,33 @@ const CONST = {
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
     },
     SMART_BANNER_HEIGHT: 152,
+
+    NAVIGATION_TESTS: {
+        DEFAULT_PARENT_ROUTE: {key: 'parentRouteKey', name: 'ParentNavigator'},
+        DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: {
+            shouldUseNarrowLayout: true,
+            isSmallScreenWidth: true,
+            isInNarrowPaneModal: false,
+            isExtraSmallScreenHeight: false,
+            isMediumScreenWidth: false,
+            isLargeScreenWidth: false,
+            isExtraSmallScreenWidth: false,
+            isSmallScreen: false,
+            onboardingIsMediumOrLargerScreenWidth: false,
+        } as ResponsiveLayoutResult,
+    },
+
     TRAVEL: {
         DEFAULT_DOMAIN: 'domain',
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
         },
+    },
+    LAST_PAYMENT_METHOD: {
+        LAST_USED: 'lastUsed',
+        IOU: 'Iou',
+        EXPENSE: 'Expense',
+        INVOICE: 'Invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
