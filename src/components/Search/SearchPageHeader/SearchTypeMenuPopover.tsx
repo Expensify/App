@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+import variables from '@styles/variables';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -114,6 +115,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 isSelected: false,
                 shouldCallAfterModalHide: true,
                 icon: Expensicons.Bookmark,
+                iconWidth: variables.iconSizeExtraLarge,
             };
         },
         [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards],
