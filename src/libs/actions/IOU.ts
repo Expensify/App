@@ -1909,23 +1909,31 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
     return [optimisticData, successData, failureData];
 }
 
+type BuildOnyxDataForTrackExpenseParams = {
+    chat: {report: OnyxInputValue<OnyxTypes.Report>; previewAction: OnyxInputValue<ReportAction>};
+    iou: {report: OnyxInputValue<OnyxTypes.Report>; createdAction: OptimisticCreatedReportAction; action: OptimisticIOUReportAction};
+    transactionParams: {transaction: OnyxTypes.Transaction; threadReport: OptimisticChatReport | null; threadCreatedReportAction: OptimisticCreatedReportAction | null};
+    policyParams: {policy?: OnyxInputValue<OnyxTypes.Policy>; tagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>; categories?: OnyxInputValue<OnyxTypes.PolicyCategories>};
+    shouldCreateNewMoneyRequestReport: boolean;
+    existingTransactionThreadReportID?: string;
+    actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>;
+};
+
 /** Builds the Onyx data for track expense */
-function buildOnyxDataForTrackExpense(
-    chatReport: OnyxInputValue<OnyxTypes.Report>,
-    iouReport: OnyxInputValue<OnyxTypes.Report>,
-    transaction: OnyxTypes.Transaction,
-    iouCreatedAction: OptimisticCreatedReportAction,
-    iouAction: OptimisticIOUReportAction,
-    reportPreviewAction: OnyxInputValue<ReportAction>,
-    transactionThreadReport: OptimisticChatReport | null,
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null,
-    shouldCreateNewMoneyRequestReport: boolean,
-    policy?: OnyxInputValue<OnyxTypes.Policy>,
-    policyTagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxInputValue<OnyxTypes.PolicyCategories>,
-    existingTransactionThreadReportID?: string,
-    actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>,
-): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+function buildOnyxDataForTrackExpense({
+    chat,
+    iou,
+    transactionParams,
+    policyParams = {},
+    shouldCreateNewMoneyRequestReport,
+    existingTransactionThreadReportID,
+    actionableTrackExpenseWhisper,
+}: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+    const {report: chatReport, previewAction: reportPreviewAction} = chat;
+    const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
+    const {transaction, threadReport: transactionThreadReport, threadCreatedReportAction: transactionThreadCreatedReportAction} = transactionParams;
+    const {policy, tagList: policyTagList, categories: policyCategories} = policyParams;
+
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
@@ -3288,22 +3296,18 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     }
 
     // STEP 5: Build Onyx Data
-    const trackExpenseOnyxData = buildOnyxDataForTrackExpense(
-        chatReport,
-        iouReport,
-        optimisticTransaction,
-        optimisticCreatedActionForIOUReport,
-        iouAction,
-        reportPreviewAction,
-        optimisticTransactionThread ?? {},
-        optimisticCreatedActionForTransactionThread,
+    const trackExpenseOnyxData = buildOnyxDataForTrackExpense({
+        chat: {report: chatReport, previewAction: reportPreviewAction},
+        iou: {report: iouReport, action: iouAction, createdAction: optimisticCreatedActionForIOUReport},
+        transactionParams: {
+            transaction: optimisticTransaction,
+            threadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            threadReport: optimisticTransactionThread ?? {},
+        },
+        policyParams: {policy, tagList: policyTagList, categories: policyCategories},
         shouldCreateNewMoneyRequestReport,
-        policy,
-        policyTagList,
-        policyCategories,
-        undefined,
         actionableTrackExpenseWhisper,
-    );
+    });
 
     return {
         createdWorkspaceParams,
