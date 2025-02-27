@@ -1,13 +1,16 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import EReceipt from './EReceipt';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
+import type {TransactionListItemType} from './SelectionList/types';
 import ThumbnailImage from './ThumbnailImage';
 
 type Style = {height: number; borderRadius: number; margin: number};
@@ -85,6 +88,9 @@ type ReceiptImageProps = (
 
     /** Callback to be called on pressing the image */
     onPress?: () => void;
+
+    /** The transaction data in search */
+    transactionItem?: TransactionListItemType;
 };
 
 function ReceiptImage({
@@ -105,8 +111,18 @@ function ReceiptImage({
     fallbackIconBackground,
     isEmptyReceipt = false,
     onPress,
+    transactionItem,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
+
+    const [scale, setScale] = useState<number>(1);
+
+    const onParentLayout = (event: LayoutChangeEvent) => {
+        const parentWidth = event.nativeEvent.layout.width;
+        const desiredWidth = 335; // Replace with the original width of your component
+        const scaleFactor = Math.min(parentWidth / desiredWidth, 1);
+        setScale(scaleFactor);
+    };
 
     if (isEmptyReceipt) {
         return (
@@ -127,12 +143,29 @@ function ReceiptImage({
         );
     }
 
-    if (isEReceipt || isThumbnail) {
+    if (isEReceipt) {
+        return (
+            <View style={[styles.mw100, styles.h100, styles.overflowHidden]}>
+                <View
+                    onLayout={onParentLayout}
+                    style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}]}
+                >
+                    <EReceipt
+                        transactionID={transactionID}
+                        transactionItem={transactionItem}
+                        isThumbnail
+                    />
+                </View>
+            </View>
+        );
+    }
+
+    if (isThumbnail) {
         const props = isThumbnail && {borderRadius: style?.borderRadius, fileExtension, isReceiptThumbnail: true};
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
-                    transactionID={transactionID ?? '-1'}
+                    transactionID={transactionID}
                     iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
