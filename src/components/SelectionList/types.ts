@@ -403,6 +403,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     shouldUseUserSkeletonView?: boolean;
 
+    /** Default item height */
+    defaultItemHeight?: number;
+
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 
@@ -623,6 +626,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
      */
     updateCellsBatchingPeriod?: number;
+
+    /**
+     * Determines the minimum number of cells to render before the first cell in the list.
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#minrendercount
+     */
+    maxToRenderPerBatch?: number;
 
     /**
      * The number passed here is a measurement unit where 1 is equivalent to your viewport height. The default value is 21 (10 viewports above, 10 below, and one in between).

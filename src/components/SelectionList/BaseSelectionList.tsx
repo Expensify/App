@@ -26,7 +26,6 @@ import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -35,7 +34,9 @@ import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
-const getDefaultItemHeight = () => variables.optionRowHeight;
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+const sectionListKeyExtractor = <TItem extends ListItem>(item: TItem, index: number): string => item?.keyForList || `${index}`;
+const viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
 
 function BaseSelectionList<TItem extends ListItem>(
     {
@@ -48,7 +49,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onCheckboxPress,
         onSelectAll,
         onDismissError,
-        getItemHeight = getDefaultItemHeight,
+        getItemHeight,
         textInputLabel = '',
         textInputPlaceholder = '',
         textInputValue = '',
@@ -125,6 +126,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemTitleStyles,
         initialNumToRender = 12,
         listItemTitleContainerStyles,
+        maxToRenderPerBatch: maxToRenderPerBatchProp,
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
     }: BaseSelectionListProps<TItem>,
@@ -148,22 +150,10 @@ function BaseSelectionList<TItem extends ListItem>(
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
-    const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+    const [itemLayoutMap, setItemLayoutMap] = useState<Map<number, {length: number; offset: number; index: number}>>(new Map());
+    const itemHeightsRef = useRef(new Map<string, number>());
 
-    const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
-        if (!itemKey) {
-            return;
-        }
-
-        const {height} = event.nativeEvent.layout;
-
-        setItemHeights((prevHeights) => ({
-            ...prevHeights,
-            [itemKey]: height,
-        }));
-    };
-
-    const incrementPage = () => setCurrentPage((prev) => prev + 1);
+    const incrementPage = useCallback(() => setCurrentPage((prev) => prev + 1), []);
 
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
@@ -174,66 +164,81 @@ function BaseSelectionList<TItem extends ListItem>(
      * so we can calculate the position of any given item when scrolling programmatically
      */
     const flattenedSections = useMemo<FlattenedSectionsReturn<TItem>>(() => {
-        const allOptions: TItem[] = [];
+        if (!sections.length) {
+            return {
+                allOptions: [],
+                selectedOptions: [],
+                disabledOptionsIndexes: [],
+                disabledArrowKeyOptionsIndexes: [],
+                itemLayouts: [{length: 0, offset: 0}],
+                allSelected: false,
+            };
+        }
 
+        const allOptions: TItem[] = [];
         const disabledOptionsIndexes: number[] = [];
         const disabledArrowKeyOptionsIndexes: number[] = [];
-        let disabledIndex = 0;
-
-        // need to account that the list might have some extra content above it
-        let offset = customListHeader ? customListHeaderHeight : 0;
-        const itemLayouts = [{length: 0, offset}];
-
         const selectedOptions: TItem[] = [];
+        let disabledIndex = 0;
+        let offset = customListHeader ? customListHeaderHeight : 0;
+        const itemLayouts: Array<{length: number; offset: number}> = [{length: 0, offset}];
 
-        sections.forEach((section, sectionIndex) => {
-            const sectionHeaderHeight = !!section.title || !!section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
+        const sectionHeaderHeightCache = new Map();
+        const getSectionHeaderHeight = (section: SectionListDataType<TItem>) => {
+            if (sectionHeaderHeightCache.has(section)) {
+                return sectionHeaderHeightCache.get(section) as number;
+            }
+            const height = section.title ?? section.CustomSectionHeader ? variables.optionsListSectionHeaderHeight : 0;
+            sectionHeaderHeightCache.set(section, height);
+            return height;
+        };
+
+        for (let i = 0; i < sections.length; i++) {
+            const section = sections[i];
+
+            // Cache section header height
+            const sectionHeaderHeight = getSectionHeaderHeight(section);
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
-            section.data?.forEach((item, optionIndex) => {
-                // Add item to the general flattened array
+            for (let j = 0; j < section.data.length; j++) {
+                const item = section.data[j];
+
                 allOptions.push({
                     ...item,
-                    sectionIndex,
-                    index: optionIndex,
+                    sectionIndex: i,
+                    index: j,
                 });
 
-                // If disabled, add to the disabled indexes array
-                const isItemDisabled = !!section.isDisabled || (item.isDisabled && !item.isSelected);
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (isItemDisabled || item.isDisabledCheckbox) {
+                if (section.isDisabled || (item.isDisabled && !item.isSelected)) {
                     disabledOptionsIndexes.push(disabledIndex);
-                    if (isItemDisabled) {
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    if (section.isDisabled || item.isDisabled) {
                         disabledArrowKeyOptionsIndexes.push(disabledIndex);
                     }
                 }
-                disabledIndex += 1;
+                disabledIndex++;
 
+                // Cache item height
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = item?.keyForList && itemHeights[item.keyForList] ? itemHeights[item.keyForList] : getItemHeight(item);
-                itemLayouts.push({length: fullItemHeight, offset});
-                offset += fullItemHeight;
+                const fullItemHeight = getItemHeight ? getItemHeight(item) : itemHeightsRef.current.get(item?.keyForList ?? '');
+                itemLayouts.push({length: fullItemHeight ?? 0, offset});
+                offset += fullItemHeight ?? 0;
 
-                if (item.isSelected && !selectedOptions.find((option) => option.keyForList === item.keyForList)) {
+                if (item.isSelected) {
                     selectedOptions.push(item);
                 }
-            });
+            }
 
             // We're not rendering any section footer, but we need to push to the array
             // because React Native accounts for it in getItemLayout
             itemLayouts.push({length: 0, offset});
-        });
+        }
 
         // We're not rendering the list footer, but we need to push to the array
         // because React Native accounts for it in getItemLayout
         itemLayouts.push({length: 0, offset});
-
-        if (selectedOptions.length > 1 && !canSelectMultiple) {
-            Log.alert(
-                'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
-            );
-        }
 
         return {
             allOptions,
@@ -243,7 +248,7 @@ function BaseSelectionList<TItem extends ListItem>(
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, itemHeights, getItemHeight]);
+    }, [sections, customListHeader, customListHeaderHeight, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -300,9 +305,9 @@ function BaseSelectionList<TItem extends ListItem>(
             // the top of the viewable area at all times by adjusting the viewOffset.
             if (shouldKeepFocusedItemAtTopOfViewableArea) {
                 const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
-                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeights[firstPreviousItem.keyForList] : 0;
+                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeightsRef.current.get(firstPreviousItem.keyForList) ?? 0 : 0;
                 const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
-                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeights[secondPreviousItem.keyForList] : 0;
+                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeightsRef.current.get(secondPreviousItem.keyForList) ?? 0 : 0;
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
@@ -425,13 +430,12 @@ function BaseSelectionList<TItem extends ListItem>(
         ],
     );
 
-    const selectAllRow = () => {
+    const selectAllRow = useCallback(() => {
         onSelectAll?.();
-
         if (shouldShowTextInput && shouldPreventDefaultFocusOnSelectRow && innerTextInputRef.current) {
             innerTextInputRef.current.focus();
         }
-    };
+    }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
     const getFocusedOption = useCallback(() => {
         const focusedOption = focusedIndex !== -1 ? flattenedSections.allOptions.at(focusedIndex) : undefined;
@@ -443,7 +447,7 @@ function BaseSelectionList<TItem extends ListItem>(
         return focusedOption;
     }, [flattenedSections.allOptions, focusedIndex]);
 
-    const selectFocusedOption = () => {
+    const selectFocusedOption = useCallback(() => {
         const focusedOption = getFocusedOption();
 
         if (!focusedOption) {
@@ -451,7 +455,7 @@ function BaseSelectionList<TItem extends ListItem>(
         }
 
         selectRow(focusedOption);
-    };
+    }, [getFocusedOption, selectRow]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -467,91 +471,111 @@ function BaseSelectionList<TItem extends ListItem>(
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      */
-    const getItemLayout = (data: Array<SectionListData<TItem, SectionWithIndexOffset<TItem>>> | null, flatDataArrayIndex: number) => {
-        const targetItem = flattenedSections.itemLayouts.at(flatDataArrayIndex);
+    const getItemLayout = useCallback(
+        (data: Array<SectionListData<TItem, SectionWithIndexOffset<TItem>>> | null, index: number) => {
+            // Use the pre-computed layout information
+            const layout = itemLayoutMap.get(index);
 
-        if (!targetItem || flatDataArrayIndex === -1) {
-            return {
-                length: 0,
-                offset: 0,
-                index: flatDataArrayIndex,
-            };
-        }
+            if (layout) {
+                return layout;
+            }
 
-        return {
-            length: targetItem.length,
-            offset: targetItem.offset,
-            index: flatDataArrayIndex,
-        };
-    };
-
-    const renderSectionHeader = ({section}: {section: SectionListDataType<TItem>}) => {
-        if (section.CustomSectionHeader) {
-            return <section.CustomSectionHeader section={section} />;
-        }
-
-        if (!section.title || isEmptyObject(section.data) || listHeaderContent) {
-            return null;
-        }
-
-        return (
-            // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
-            // We do this so that we can reference the height in `getItemLayout` –
-            // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
-            // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
-            </View>
-        );
-    };
-
-    const header = () => (
-        <>
-            {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
-                <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle, styles.selectionListStickyHeader]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={flattenedSections.allSelected}
-                            onPress={selectAllRow}
-                            disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                        />
-                        {!customListHeader && (
-                            <PressableWithFeedback
-                                style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
-                                onPress={selectAllRow}
-                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                role="button"
-                                accessibilityState={{checked: flattenedSections.allSelected}}
-                                disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                            >
-                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                            </PressableWithFeedback>
-                        )}
-                    </View>
-                    {customListHeader}
-                </View>
-            )}
-            {!headerMessage && !canSelectMultiple && customListHeader}
-        </>
+            return {length: 0, offset: 0, index};
+        },
+        [itemLayoutMap],
     );
 
-    const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
-        const normalizedIndex = index + (section?.indexOffset ?? 0);
-        const isDisabled = !!section.isDisabled || item.isDisabled;
-        const isItemFocused = (!isDisabled || item.isSelected) && focusedIndex === normalizedIndex;
-        const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
+    const renderSectionHeader = useCallback(
+        // eslint-disable-next-line react/no-unused-prop-types
+        ({section}: {section: SectionListDataType<TItem>}) => {
+            if (section.CustomSectionHeader) {
+                return <section.CustomSectionHeader section={section} />;
+            }
 
-        return (
-            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
+            if (!section.title || isEmptyObject(section.data) || listHeaderContent) {
+                return null;
+            }
+
+            return (
+                // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
+                // We do this so that we can reference the height in `getItemLayout` –
+                // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
+                // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionTitleStyles]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+                </View>
+            );
+        },
+        [listHeaderContent, sectionTitleStyles, styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.textLabelSupporting],
+    );
+
+    const header = useCallback(
+        () => (
+            <>
+                {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
+                    <View style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, listHeaderWrapperStyle, styles.selectionListStickyHeader]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <Checkbox
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                isChecked={flattenedSections.allSelected}
+                                onPress={selectAllRow}
+                                disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                            />
+                            {!customListHeader && (
+                                <PressableWithFeedback
+                                    style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
+                                    onPress={selectAllRow}
+                                    accessibilityLabel={translate('workspace.people.selectAll')}
+                                    role="button"
+                                    accessibilityState={{checked: flattenedSections.allSelected}}
+                                    disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                                >
+                                    <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                </PressableWithFeedback>
+                            )}
+                        </View>
+                        {customListHeader}
+                    </View>
+                )}
+                {!headerMessage && !canSelectMultiple && customListHeader}
+            </>
+        ),
+        [
+            canSelectMultiple,
+            customListHeader,
+            flattenedSections.allOptions.length,
+            flattenedSections.allSelected,
+            flattenedSections.disabledOptionsIndexes.length,
+            headerMessage,
+            listHeaderWrapperStyle,
+            selectAllRow,
+            shouldPreventDefaultFocusOnSelectRow,
+            shouldShowSelectAll,
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.pb3,
+            styles.peopleRow,
+            styles.ph3,
+            styles.ph5,
+            styles.selectionListStickyHeader,
+            styles.textStrong,
+            styles.userSelectNone,
+            translate,
+        ],
+    );
+
+    const renderItem = useCallback(
+        ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
+            const normalizedIndex = index + (section?.indexOffset ?? 0);
+            const isDisabled = !!section.isDisabled || item.isDisabled;
+            const isItemFocused = (!isDisabled || item.isSelected) && focusedIndex === normalizedIndex;
+            const isItemHighlighted = itemsToHighlight?.has(item.keyForList ?? '') ?? false;
+            return (
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        ...item,
-                    }}
+                    item={{...item, shouldAnimateInHighlight: isItemHighlighted}}
                     index={index}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
@@ -577,11 +601,35 @@ function BaseSelectionList<TItem extends ListItem>(
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                 />
-            </View>
-        );
-    };
+            );
+        },
+        [
+            focusedIndex,
+            itemsToHighlight,
+            ListItem,
+            shouldShowTooltips,
+            canSelectMultiple,
+            onLongPressRow,
+            shouldSingleExecuteRowSelect,
+            selectRow,
+            onCheckboxPress,
+            onDismissError,
+            shouldPreventDefaultFocusOnSelectRow,
+            rightHandSideComponent,
+            isRowMultilineSupported,
+            isAlternateTextMultilineSupported,
+            alternateTextNumberOfLines,
+            shouldIgnoreFocus,
+            setFocusedIndex,
+            listItemWrapperStyle,
+            listItemTitleStyles,
+            shouldHighlightSelectedItem,
+            singleExecution,
+            listItemTitleContainerStyles,
+        ],
+    );
 
-    const renderListEmptyContent = () => {
+    const renderListEmptyContent = useCallback(() => {
         if (showLoadingPlaceholder) {
             return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
@@ -589,19 +637,17 @@ function BaseSelectionList<TItem extends ListItem>(
             return listEmptyContent;
         }
         return null;
-    };
+    }, [listEmptyContent, shouldShowListEmptyContent, shouldUseUserSkeletonView, showLoadingPlaceholder]);
 
-    const renderInput = () => {
+    const renderInput = useCallback(() => {
         return (
             <View style={[styles.ph5, styles.pb3]}>
                 <TextInput
                     ref={(element) => {
                         innerTextInputRef.current = element as RNTextInput;
-
                         if (!textInputRef) {
                             return;
                         }
-
                         if (typeof textInputRef === 'function') {
                             textInputRef(element as RNTextInput);
                         } else {
@@ -631,7 +677,23 @@ function BaseSelectionList<TItem extends ListItem>(
                 />
             </View>
         );
-    };
+    }, [
+        styles.ph5,
+        styles.pb3,
+        textInputLabel,
+        textInputHint,
+        textInputValue,
+        textInputPlaceholder,
+        textInputMaxLength,
+        onChangeText,
+        inputMode,
+        textInputIconLeft,
+        selectFocusedOption,
+        flattenedSections.allOptions.length,
+        isLoadingNewOptions,
+        shouldTextInputInterceptSwipe,
+        textInputRef,
+    ]);
 
     const scrollToFocusedIndexOnFirstRender = useCallback(
         (nativeEvent: LayoutChangeEvent) => {
@@ -729,15 +791,14 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUpdateFocusedIndex,
     ]);
 
-    useEffect(
-        () => () => {
+    useEffect(() => {
+        return () => {
             if (!itemFocusTimeoutRef.current) {
                 return;
             }
             clearTimeout(itemFocusTimeoutRef.current);
-        },
-        [],
-    );
+        };
+    }, []);
 
     /**
      * Highlights the items and scrolls to the first item present in the items list.
@@ -815,15 +876,85 @@ function BaseSelectionList<TItem extends ListItem>(
         },
     );
 
-    const headerMessageContent = () =>
-        (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
-        !!headerMessage && (
-            <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
-                <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
-            </View>
-        );
+    const headerMessageContent = useCallback(
+        () =>
+            (!isLoadingNewOptions || headerMessage !== translate('common.noResultsFound') || (flattenedSections.allOptions.length === 0 && !showLoadingPlaceholder)) &&
+            !!headerMessage && (
+                <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
+                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                </View>
+            ),
+        [flattenedSections.allOptions.length, headerMessage, headerMessageStyle, isLoadingNewOptions, showLoadingPlaceholder, styles, translate],
+    );
 
     const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+
+    const handleRenderSectionHeader = useCallback(
+        (arg: {section: SectionListDataType<TItem>}) => (
+            <>
+                {renderSectionHeader(arg)}
+                {listHeaderContent && header()}
+            </>
+        ),
+        [header, listHeaderContent, renderSectionHeader],
+    );
+    const ListHeader = useMemo(() => {
+        if (shouldShowTextInput && shouldShowTextInputAfterHeader) {
+            return (
+                <>
+                    {listHeaderContent}
+                    {renderInput()}
+                    {shouldShowHeaderMessageAfterHeader && headerMessageContent()}
+                </>
+            );
+        }
+        return listHeaderContent;
+    }, [shouldShowTextInput, shouldShowTextInputAfterHeader, listHeaderContent, renderInput, shouldShowHeaderMessageAfterHeader, headerMessageContent]);
+
+    // Add this effect to pre-compute layouts when sections change
+    useEffect(() => {
+        const newItemLayoutMap = new Map<number, {length: number; offset: number; index: number}>();
+        let currentIndex = 0;
+        let offset = 0;
+        const sectionHeaderHeight = 40;
+
+        // Pre-compute layout for all items
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < slicedSections.length; i++) {
+            // Section header
+            newItemLayoutMap.set(currentIndex, {
+                length: sectionHeaderHeight,
+                offset,
+                index: currentIndex,
+            });
+            offset += sectionHeaderHeight;
+            currentIndex++;
+            // Check if the section exists and has data
+            const section = slicedSections?.at(i);
+            if (section && section.data.length > 0) {
+                // Items in this section
+                // eslint-disable-next-line @typescript-eslint/prefer-for-of
+                for (let j = 0; j < section.data.length; j++) {
+                    // Make sure getItemHeight is defined before calling it
+                    if (getItemHeight) {
+                        const item = section.data[j];
+                        const length = getItemHeight(item);
+
+                        newItemLayoutMap.set(currentIndex, {
+                            length,
+                            offset,
+                            index: currentIndex,
+                        });
+
+                        offset += length;
+                        currentIndex++;
+                    }
+                }
+            }
+        }
+
+        setItemLayoutMap(newItemLayoutMap);
+    }, [slicedSections, getItemHeight]);
 
     // TODO: test _every_ component that uses SelectionList
     return (
@@ -843,42 +974,27 @@ function BaseSelectionList<TItem extends ListItem>(
                         ref={listRef}
                         sections={slicedSections}
                         stickySectionHeadersEnabled={false}
-                        renderSectionHeader={(arg) => (
-                            <>
-                                {renderSectionHeader(arg)}
-                                {listHeaderContent && header()}
-                            </>
-                        )}
+                        renderSectionHeader={handleRenderSectionHeader}
                         renderItem={renderItem}
                         getItemLayout={getItemLayout}
                         onScroll={onScroll}
                         onScrollBeginDrag={onScrollBeginDrag}
                         onContentSizeChange={onContentSizeChange}
-                        keyExtractor={(item, index) => item.keyForList ?? `${index}`}
+                        keyExtractor={sectionListKeyExtractor}
                         extraData={focusedIndex}
                         // the only valid values on the new arch are "white", "black", and "default", other values will cause a crash
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
                         showsVerticalScrollIndicator={showScrollIndicator}
                         initialNumToRender={initialNumToRender}
-                        maxToRenderPerBatch={maxToRenderPerBatch}
+                        maxToRenderPerBatch={maxToRenderPerBatchProp ?? maxToRenderPerBatch}
                         windowSize={windowSize}
                         updateCellsBatchingPeriod={updateCellsBatchingPeriod}
-                        viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                        viewabilityConfig={viewabilityConfig}
                         testID="selection-list"
                         onLayout={onSectionListLayout}
                         style={[(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0, sectionListStyle]}
-                        ListHeaderComponent={
-                            shouldShowTextInput && shouldShowTextInputAfterHeader ? (
-                                <>
-                                    {listHeaderContent}
-                                    {renderInput()}
-                                    {shouldShowHeaderMessageAfterHeader && headerMessageContent()}
-                                </>
-                            ) : (
-                                listHeaderContent
-                            )
-                        }
+                        ListHeaderComponent={ListHeader}
                         scrollEnabled={scrollEnabled}
                         ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                         onEndReached={onEndReached}
