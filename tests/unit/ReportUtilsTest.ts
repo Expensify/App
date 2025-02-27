@@ -33,6 +33,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -219,10 +220,11 @@ const policy: Policy = {
     isPolicyExpenseChatEnabled: false,
 };
 
-Onyx.init({keys: ONYXKEYS});
-
 describe('ReportUtils', () => {
     beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
@@ -1158,6 +1160,7 @@ describe('ReportUtils', () => {
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
             const accountID = 2;
+            const report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
             await Onyx.multiSet({
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
@@ -1167,10 +1170,7 @@ describe('ReportUtils', () => {
                 },
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
             });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]),
-            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             expect(isChatUsedForOnboarding(report)).toBeTruthy();
         });
