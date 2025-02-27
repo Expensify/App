@@ -6,7 +6,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 type PreRendererProps = CustomRendererProps<TBlock> & {
@@ -34,16 +34,18 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     return (
         <View style={isLast ? styles.mt2 : styles.mv2}>
             <ShowContextMenuContext.Consumer>
-                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+                {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                     <PressableWithoutFeedback
                         onPress={onPressIn ?? (() => {})}
                         onPressIn={onPressIn}
                         onPressOut={onPressOut}
                         onLongPress={(event) => {
-                            if (isDisabled) {
-                                return;
-                            }
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));
+                            onShowContextMenu(() => {
+                                if (isDisabled) {
+                                    return;
+                                }
+                                return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
+                            });
                         }}
                         shouldUseHapticsOnLongPress
                         role={CONST.ROLE.PRESENTATION}

@@ -100,7 +100,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -118,7 +118,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 if (isDisabled) {
                                     return;
                                 }
-                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
+                                return onShowContextMenu(() =>
+                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs)),
+                                );
                             }}
                             isNested
                             shouldUseHapticsOnLongPress

@@ -150,3 +150,9 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         return Promise.resolve(formData);
     }),
 }));
+
+jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => jest.fn()), // Return a function that returns a function
+}));
