@@ -105,6 +105,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountGenericParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     NeedCategoryForExportToIntegrationParams,
@@ -1360,6 +1361,62 @@ const translations = {
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         enterYourDefaultContactMethod: 'Por favor, introduce tu método de contacto predeterminado para cerrar tu cuenta.',
+    },
+    mergeAccountsPage: {
+        mergeAccount: 'Fusionar cuentas',
+        accountDetails: {
+            accountToMergeInto: ({email}: MergeAccountGenericParams) => `Introduce la cuenta en la que deseas fusionar ${email}`,
+            notReversibleConsent: 'Entiendo que esto no es reversible',
+        },
+        accountValidate: {
+            confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
+            lossOfUnsubmittedData: ({email}: MergeAccountGenericParams) => `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de ${email}`,
+            enterMagicCode: ({email}: MergeAccountGenericParams) => `Para continuar, por favor introduce el código mágico enviado a ${email}`,
+        },
+        mergeSuccess: {
+            accountsMerged: '¡Cuentas fusionadas!',
+            successfullyMergedAllData: ({email, newEmail}: MergeAccountGenericParams & {newEmail: string}) =>
+                `Has fusionado exitosamente todos los datos de ${email} en ${newEmail}. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta`,
+        },
+        mergePendingSAML: {
+            weAreWorkingOnIt: 'Estamos trabajando en ello',
+            limitedSupport: 'Todavía no es posible fusionar cuentas en New Expensify. Por favor, realiza esta acción en Expensify Classic en su lugar',
+            reachOutForHelp: {
+                beforeLink: '¡No dudes en ',
+                linkText: 'comunicarte con Concierge',
+                afterLink: ' si tienes alguna pregunta!',
+            },
+            goToExpensifyClassic: 'Dirígete a Expensify Classic',
+        },
+        mergeFailureSAMLDomainControl: {
+            beforeLink: ({email}: MergeAccountGenericParams) => `No puedes fusionar ${email} porque está controlado por ${email.split('@').at(0)}. Póngase `,
+            linkText: 'en contacto con Conserjería',
+            afterLink: ' si necesita ayuda.',
+        },
+        mergeFailureSAMLAccount: ({email}: MergeAccountGenericParams) =>
+            `No puedes fusionar ${email} en otras cuentas porque tu administrador de dominio la ha establecido como tu inicio de sesión principal. Por favor, fusiona otras cuentas en esta en su lugar.`,
+        mergeFailure2FA: {
+            oldAccount2FAEnabled: ({email}: MergeAccountGenericParams) =>
+                `No puedes fusionar cuentas porque ${email} tiene habilitada la autenticación de dos factores (2FA). Por favor, deshabilita 2FA para ${email} e inténtalo nuevamente.`,
+            learnMore: 'Aprende más sobre cómo fusionar cuentas.',
+        },
+        mergeFailureAccountLocked: {
+            beforeLink: ({email}: MergeAccountGenericParams) => `No puedes fusionar ${email} porque está bloqueado. Póngase `,
+            linkText: 'en contacto con Conserjería',
+            afterLink: ` si necesita ayuda.`,
+        },
+        mergeFailureUncreatedAccount: {
+            noExpensifyAccount: ({email}: MergeAccountGenericParams) => `No puedes fusionar cuentas porque ${email} no tiene una cuenta de Expensify.`,
+            addContactMethod: {
+                beforeLink: 'Por favor, ',
+                linkText: 'añádela como método de contacto',
+                afterLink: ' en su lugar.',
+            },
+        },
+        mergeFailureSmartScannerAccount: ({email}: MergeAccountGenericParams) => `No puedes fusionar ${email} en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.`,
+        mergeFailureInvoicedAccount: ({email}: MergeAccountGenericParams) =>
+            `No puedes fusionar ${email} en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.`,
+        mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',

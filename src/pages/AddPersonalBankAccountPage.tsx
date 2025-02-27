@@ -94,9 +94,9 @@ function AddPersonalBankAccountPage() {
                         <ConfirmationPage
                             heading={translate('addPersonalBankAccountPage.successTitle')}
                             description={translate('addPersonalBankAccountPage.successMessage')}
-                            shouldShowButton
-                            buttonText={translate('common.continue')}
-                            onButtonPress={() => exitFlow(true)}
+                            shouldShowPrimaryButton
+                            primaryButtonText={translate('common.continue')}
+                            onPrimaryButtonPress={() => exitFlow(true)}
                         />
                     ) : (
                         <FormProvider
