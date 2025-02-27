@@ -87,6 +87,12 @@ type EducationalTooltipProps = ChildrenProps &
 
         /** Whether the tooltip should hide when navigating */
         shouldHideOnNavigate?: boolean;
+
+        /** This name can be used to distinguish between different tooltips  */
+        name?: string;
+
+        /** whether tooltip should hide during scrolling  */
+        shouldHideOnEdge?: boolean;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
@@ -95,4 +101,4 @@ type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
 };
 
 export default TooltipProps;
-export type {EducationalTooltipProps, GenericTooltipProps, SharedTooltipProps, TooltipExtendedProps};
+export type {EducationalTooltipProps, GenericTooltipProps, SharedTooltipProps, TooltipExtendedProps, GenericTooltipState};
