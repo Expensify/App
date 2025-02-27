@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
@@ -36,6 +37,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {environmentURL} = useEnvironment();
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
@@ -90,7 +92,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
-                src={getCardFeedIcon(feed)}
+                src={getCardFeedIcon(feed, illustrations)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -132,6 +134,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 <>
                     <SelectionList
                         sections={[{data: searchedListOptions}]}
+                        headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
                         shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
                         textInputLabel={translate('common.search')}
                         textInputValue={searchText}
@@ -157,6 +160,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                             </View>
                         }
                         shouldShowTextInputAfterHeader
+                        shouldShowHeaderMessageAfterHeader
                         includeSafeAreaPaddingBottom={false}
                         shouldShowListEmptyContent={false}
                         shouldUpdateFocusedIndex
@@ -165,7 +169,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                         buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
                         onSubmit={submit}
                         isAlertVisible={shouldShowError}
-                        containerStyles={styles.ph5}
+                        containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
                         message={translate('common.error.pleaseSelectOne')}
                         buttonStyles={styles.mb5}
                     />

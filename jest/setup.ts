@@ -9,6 +9,12 @@ import 'setimmediate';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
+// Needed for tests to have the necessary environment variables set
+if (!('GITHUB_REPOSITORY' in process.env)) {
+    process.env.GITHUB_REPOSITORY_OWNER = 'Expensify';
+    process.env.GITHUB_REPOSITORY = 'Expensify/App';
+}
+
 setupMockImages();
 mockFSLibrary();
 

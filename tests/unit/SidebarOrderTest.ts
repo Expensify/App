@@ -1,3 +1,4 @@
+import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {addComment} from '@libs/actions/Report';
@@ -16,9 +17,15 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@libs/Permissions');
 jest.mock('@components/Icon/Expensicons');
-jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/hooks/useResponsiveLayout');
-jest.mock('@src/hooks/useIsCurrentRouteHome');
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
+    useNavigationState: () => true,
+    useIsFocused: () => true,
+    useRoute: () => ({name: 'Home'}),
+    useNavigation: () => undefined,
+    useFocusEffect: () => undefined,
+}));
 
 describe('Sidebar', () => {
     beforeAll(() =>
@@ -448,7 +455,7 @@ describe('Sidebar', () => {
                         const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
-                        expect(displayNames.at(0)).toHaveTextContent('Email One');
+                        expect(displayNames.at(0)).toHaveTextContent(`Email One's expenses`);
                         expect(displayNames.at(1)).toHaveTextContent('Workspace-Test-001 owes $100.00');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
                         expect(displayNames.at(3)).toHaveTextContent('Email Two');
@@ -851,7 +858,6 @@ describe('Sidebar', () => {
 
             const reportNameValuePairsCollectionDataSet: ReportNameValuePairsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report1.reportID}`]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: DateUtils.getDBTime(),
                 },
             };
@@ -1005,7 +1011,6 @@ describe('Sidebar', () => {
 
             const reportNameValuePairsCollectionDataSet: ReportNameValuePairsCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report1.reportID}`]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     private_isArchived: DateUtils.getDBTime(),
                 },
             };

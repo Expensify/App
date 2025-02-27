@@ -7,7 +7,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
-import {shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isTripPreview, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
 import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, getAllAncestorReportActionIDs, getAllAncestorReportActions} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -111,6 +111,8 @@ function ReportActionItemParentAction({
             {allAncestors.map((ancestor) => {
                 const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
                 const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport);
+                const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
+
                 return (
                     <OfflineWithFeedback
                         key={ancestor.reportAction.reportActionID}
@@ -120,10 +122,12 @@ function ReportActionItemParentAction({
                         errorRowStyles={[styles.ml10, styles.mr2]}
                         onClose={() => navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
                     >
-                        <ThreadDivider
-                            ancestor={ancestor}
-                            isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
-                        />
+                        {shouldDisplayThreadDivider && (
+                            <ThreadDivider
+                                ancestor={ancestor}
+                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])}
+                            />
+                        )}
                         <ReportActionItem
                             onPress={
                                 canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
