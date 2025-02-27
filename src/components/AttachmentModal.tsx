@@ -514,6 +514,7 @@ function AttachmentModal({
                     }
                 }}
                 propagateSwipe
+                swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
                 initialFocus={() => {
                     if (!submitRef.current) {
                         return false;
