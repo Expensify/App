@@ -28,7 +28,7 @@ function findMatchingFormat(text: string, selectionStart: number, selectionEnd: 
             const rangeEnd = range.start + range.length;
             const isExactMatch = range.start === selectionStart && rangeEnd === selectionEnd;
             const isEnclosedMatch = range.start - 1 === selectionStart && rangeEnd + 1 === selectionEnd;
-            const isRangeBetweenSyntaxes = text[range.start - 1] === formatRule.syntax && text[rangeEnd] === formatRule.syntax;
+            const isRangeBetweenSyntaxes = range.start > 0 && text[range.start - 1] === formatRule.syntax && rangeEnd < text.length && text[rangeEnd] === formatRule.syntax;
             if ((isExactMatch || isEnclosedMatch) && isRangeBetweenSyntaxes) {
                 return {start: range.start, end: rangeEnd};
             }
