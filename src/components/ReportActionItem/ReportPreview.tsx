@@ -9,6 +9,7 @@ import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
@@ -274,7 +275,7 @@ function ReportPreview({
     }, []);
 
     const confirmPayment = useCallback(
-        (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
+        (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
             if (!type) {
                 return;
             }
@@ -288,7 +289,14 @@ function ReportPreview({
                 setIsPaidAnimationRunning(true);
                 HapticFeedback.longPress();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, payAsBusiness);
+                    payInvoice(
+                        type,
+                        chatReport,
+                        iouReport,
+                        payAsBusiness,
+                        paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? methodID : undefined,
+                        paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD ? methodID : undefined,
+                    );
                 } else {
                     payMoneyRequest(type, chatReport, iouReport);
                 }
