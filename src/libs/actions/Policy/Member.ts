@@ -19,7 +19,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover} from '@libs/PolicyUtils';
+import {getDefaultApprover, isUserPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -38,6 +38,12 @@ type RoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
     onyxSuccessData: OnyxUpdate[];
     onyxFailureData: OnyxUpdate[];
+};
+
+type PreferredExporterOnyxData = {
+    optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
 };
 
 type NewCustomUnit = {
@@ -315,6 +321,87 @@ function removeOptimisticRoomMembers(
 
     return roomMembers;
 }
+/** This function will reset the preferred exporter to the owner of the workspace
+ * if the current preferred exporter is removed from the admin role.
+ * @param [policyID] The id of the policy.
+ * @param [loginList] The logins of the users whose roles are being updated to non-admin role or are removed from a workspace
+ */
+function resetAccountingPreferredExporter(policyID: string, loginList: string[]): PreferredExporterOnyxData {
+    const policy = getPolicy(policyID);
+    const owner = ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const adminLoginList = loginList.filter((login) => isUserPolicyAdmin(policy, login));
+    const connections = [CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.POLICY.CONNECTIONS.NAME.QBD];
+
+    connections.forEach((connection) => {
+        if (!policy?.connections?.[connection]?.config.export.exporter || !adminLoginList.includes(policy?.connections?.[connection]?.config.export.exporter)) {
+            return;
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {
+                    [connection]: {
+                        config: {
+                            export: {exporter: owner},
+                            pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        },
+                    },
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {[connection]: {config: {pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: null}}}},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {
+                    [connection]: {
+                        config: {
+                            export: {exporter: policy?.connections?.[connection]?.config.export.exporter},
+                            pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: null},
+                        },
+                    },
+                },
+            },
+        });
+    });
+
+    if (policy?.connections?.netsuite?.options.config.exporter && adminLoginList.includes(policy?.connections?.netsuite?.options.config.exporter)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {netsuite: {options: {config: {exporter: owner, pendingFields: {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}}},
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {
+                connections: {netsuite: {options: {config: {pendingFields: {exporter: null}}}}},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {connections: {netsuite: {options: {config: {exporter: policy?.connections?.netsuite?.options.config.exporter, pendingFields: {exporter: null}}}}}},
+        });
+    }
+
+    return {optimisticData, successData, failureData};
+}
 
 /**
  * Remove the passed members from the policy employeeList
@@ -429,6 +516,13 @@ function removeMembers(accountIDs: number[], policyID: string) {
         },
     ];
     failureData.push(...announceRoomMembers.onyxFailureData, ...adminRoomMembers.onyxFailureData);
+
+    if (emailList.length) {
+        const preferredExporterOnyxData = resetAccountingPreferredExporter(policyID, emailList);
+        optimisticData.push(...preferredExporterOnyxData.optimisticData);
+        successData.push(...preferredExporterOnyxData.successData);
+        failureData.push(...preferredExporterOnyxData.failureData);
+    }
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
@@ -545,7 +639,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
 }
 
 function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
-    const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
+    const previousEmployeeList = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
         if (!allPersonalDetails?.[accountID]?.login) {
             return result;
@@ -604,6 +698,16 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             },
         },
     ];
+
+    if (newRole !== CONST.POLICY.ROLE.ADMIN) {
+        const preferredExporterOnyxData = resetAccountingPreferredExporter(
+            policyID,
+            memberRoles.map((member) => member.email),
+        );
+        optimisticData.push(...preferredExporterOnyxData.optimisticData);
+        successData.push(...preferredExporterOnyxData.successData);
+        failureData.push(...preferredExporterOnyxData.failureData);
+    }
 
     const adminRoom = ReportUtils.getAllPolicyReports(policyID).find(ReportUtils.isAdminRoom);
     if (adminRoom) {
