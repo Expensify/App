@@ -1481,8 +1481,8 @@ const CONST = {
             BACKUP: 'backup',
         },
         LIABILITY_TYPE: {
-          RESTRICT: 'corporate',
-          ALLOW: 'personal',
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
         },
     },
 
