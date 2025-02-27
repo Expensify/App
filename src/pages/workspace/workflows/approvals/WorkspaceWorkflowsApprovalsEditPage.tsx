@@ -51,9 +51,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         // Check if there's only one approver and policy's prevent self approval feature is enabled
         // AND the approver is also in the members list (potential self-approval scenario)
-        if (policy?.preventSelfApproval && 
-            approvalWorkflow.approvers.length === 1 && 
-            approvalWorkflow.members.some(member => member.email === approvalWorkflow.approvers[0].email)) {
+        if (policy?.preventSelfApproval && approvalWorkflow.approvers.length === 1 && approvalWorkflow.members.some((member) => member.email === approvalWorkflow.approvers[0].email)) {
             setPreventSelfApprovalError(translate('workflowsEditApprovalsPage.preventSelfApprovalError'));
             return;
         }
@@ -131,9 +129,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        if (policy?.preventSelfApproval && 
-            approvalWorkflow.approvers.length === 1 && 
-            approvalWorkflow.members.some(member => member.email === approvalWorkflow.approvers[0].email)) {
+        if (policy?.preventSelfApproval && approvalWorkflow.approvers.length === 1 && approvalWorkflow.members.some((member) => member.email === approvalWorkflow.approvers[0].email)) {
             setPreventSelfApprovalError(translate('workflowsEditApprovalsPage.preventSelfApprovalError'));
         } else {
             setPreventSelfApprovalError('');
