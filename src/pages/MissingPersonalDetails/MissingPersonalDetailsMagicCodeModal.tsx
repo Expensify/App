@@ -43,7 +43,7 @@ function MissingPersonalDetailsMagicCodeModal({onClose, isValidateCodeActionModa
 
         clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
         Navigation.goBack();
-    }, [missingDetails, privateDetailsErrors, isAllCardsShipped]);
+    }, [missingDetails, privateDetailsErrors, areAllCardsShipped]);
 
     const onBackButtonPress = () => {
         onClose?.();
