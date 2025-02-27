@@ -4,7 +4,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -13,6 +13,7 @@ import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -77,7 +78,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     });
 
     const onPopoverShow = useRef(() => {});
-    const isContextMenuOpeningRef = useRef(false);
+    const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const onPopoverHide = useRef(() => {});
     const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
     const onCancelDeleteModal = useRef(() => {});
@@ -176,7 +177,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         isOverflowMenu = false,
         isThreadReportParentActionParam = false,
     ) => {
-        isContextMenuOpeningRef.current = true;
+        setIsContextMenuOpening(true);
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
@@ -243,10 +244,10 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             return;
         }
 
-        // After the animation of the popover opening ends, reset isContextMenuOpeningRef.
-        InteractionManager.runAfterInteractions(() => {
-            isContextMenuOpeningRef.current = false;
-        });
+        // After the context menu opening animation ends reset isContextMenuOpening.
+        setTimeout(() => {
+            setIsContextMenuOpening(false);
+        }, CONST.ANIMATED_TRANSITION);
     }, [isPopoverVisible]);
 
     /** Run the callback and return a noop function to reset it */
@@ -330,7 +331,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         runAndResetOnPopoverHide,
         clearActiveReportAction,
         contentRef,
-        isContextMenuOpening: isContextMenuOpeningRef.current,
+        isContextMenuOpening,
     }));
 
     const reportAction = reportActionRef.current;
