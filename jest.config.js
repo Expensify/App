@@ -14,7 +14,8 @@ module.exports = {
     },
     transformIgnorePatterns: [
         '<rootDir>/node_modules/(?!react-native)/',
-        '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js', // Exclude this file to let FormatSelectionUtilsTest run.
+        // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
+        '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],
     globals: {
