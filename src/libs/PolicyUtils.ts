@@ -226,7 +226,7 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
     return policy?.employeeList?.[currentUserLogin]?.role;
 }
 
-function getPolicyName(policyID: string): string {
+function getPolicyNameByID(policyID: string): string {
     return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? policyID;
 }
 
@@ -1489,7 +1489,7 @@ export {
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
-    getPolicyName,
+    getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
 };

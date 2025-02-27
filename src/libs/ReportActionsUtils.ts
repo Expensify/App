@@ -28,7 +28,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
 import {getEffectiveDisplayName, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getPolicy, getPolicyName, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import {getPolicy, getPolicyNameByID, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {isOnHoldByTransactionID} from './TransactionUtils';
@@ -1360,7 +1360,7 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         }
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
             const {fromPolicy, toPolicy} = originalMessage;
-            return translateLocal('report.actions.type.changePolicy', {fromPolicy: getPolicyName(fromPolicy), toPolicy: getPolicyName(toPolicy)});
+            return translateLocal('report.actions.type.changePolicy', {fromPolicy: getPolicyNameByID(fromPolicy), toPolicy: getPolicyNameByID(toPolicy)});
         }
         case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
             const {delegateUser, originalManager} = originalMessage;
