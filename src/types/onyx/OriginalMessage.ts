@@ -414,6 +414,7 @@ type OriginalMessageJoinPolicy = {
     /** ID of the affected policy */
     policyID: string;
 
+    /** AccountID for the user requesting to join the policy */
     accountID?: number;
 };
 
