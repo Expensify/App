@@ -1116,7 +1116,7 @@ const CONST = {
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
-            EXPORT: 'export',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',

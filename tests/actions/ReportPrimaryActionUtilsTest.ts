@@ -87,7 +87,7 @@ describe('getPrimaryAction', () => {
         expect(getPrimaryAction(report, policy as Policy, [], [])).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
-    it('should return EXPORT for report being processed', async () => {
+    it('should return EXPORT TO ACCOUNTING for report being processed', async () => {
         const report = {
             reportID: REPORT_ID,
             // type: CONST.REPORT.TYPE.EXPENSE,
@@ -107,7 +107,7 @@ describe('getPrimaryAction', () => {
             },
         };
 
-        expect(getPrimaryAction(report, policy as Policy, [], [])).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT);
+        expect(getPrimaryAction(report, policy as Policy, [], [])).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
     it('should return REMOVE HOLD for report being processed', async () => {
@@ -161,5 +161,4 @@ describe('getPrimaryAction', () => {
 
         expect(getPrimaryAction(report, policy as Policy, [transaction], [])).toBe(CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES);
     });
-
 });

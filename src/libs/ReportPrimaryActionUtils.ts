@@ -135,6 +135,8 @@ function isReviewDuplicatesAction(report: Report, policy: Policy, reportTransact
 
 function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]) {
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const hasAllPendingRTERViolations = hasPendingRTERViolation(violations);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(
@@ -144,7 +146,8 @@ function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: 
         violations,
     );
 
-    return isSubmitter && hasAllPendingRTERViolations && shouldShowBrokenConnectionViolation;
+    const userControllsReport = isSubmitter || isApprover || isAdmin;
+    return userControllsReport && hasAllPendingRTERViolations && shouldShowBrokenConnectionViolation;
 }
 
 function getPrimaryAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | undefined {
@@ -161,7 +164,7 @@ function getPrimaryAction(report: Report, policy: Policy, reportTransactions: Tr
     }
 
     if (isExportAction(report, policy)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.EXPORT;
+        return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 
     if (isRemoveHoldAction(report, reportTransactions)) {
