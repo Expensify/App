@@ -48,7 +48,7 @@ function VerifyPage({route}: VerifyPageProps) {
         if (!account?.requiresTwoFactorAuth || !account.codesAreCopied) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute(route.params?.backTo, route.params?.forwardTo));
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS.getRoute(route.params?.backTo, route.params?.forwardTo), {forceReplace: true});
     }, [account?.codesAreCopied, account?.requiresTwoFactorAuth, route.params?.backTo, route.params?.forwardTo]);
 
     /**
@@ -79,7 +79,7 @@ function VerifyPage({route}: VerifyPageProps) {
                 text: translate('twoFactorAuth.stepVerify'),
                 total: 3,
             }}
-            onBackButtonPress={Navigation.goBack}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_ROOT.getRoute(route.params?.backTo, route.params?.forwardTo))}
         >
             <ScrollView
                 keyboardShouldPersistTaps="handled"
