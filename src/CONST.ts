@@ -1048,6 +1048,7 @@ const CONST = {
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
+        SIGN_OUT: 'signout',
     },
 
     EXPENSIFY_POLICY_DOMAIN,
