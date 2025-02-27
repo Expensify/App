@@ -1861,8 +1861,8 @@ function buildOnyxDataForInvoice(
 type BuildOnyxDataForTrackExpenseParams = {
     chat: {report: OnyxInputValue<OnyxTypes.Report>; previewAction: OnyxInputValue<ReportAction>};
     iou: {report: OnyxInputValue<OnyxTypes.Report>; createdAction: OptimisticCreatedReportAction; action: OptimisticIOUReportAction};
-    transactionParams: {transaction: OnyxTypes.Transaction; transactionThreadReport: OptimisticChatReport | null; transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null};
-    policyParams: {policy?: OnyxInputValue<OnyxTypes.Policy>; policyTagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>; policyCategories?: OnyxInputValue<OnyxTypes.PolicyCategories>};
+    transactionParams: {transaction: OnyxTypes.Transaction; threadReport: OptimisticChatReport | null; threadCreatedReportAction: OptimisticCreatedReportAction | null};
+    policyParams: {policy?: OnyxInputValue<OnyxTypes.Policy>; tagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>; categories?: OnyxInputValue<OnyxTypes.PolicyCategories>};
     shouldCreateNewMoneyRequestReport: boolean;
     existingTransactionThreadReportID?: string;
     actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>;
@@ -1880,8 +1880,8 @@ function buildOnyxDataForTrackExpense({
 }: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
-    const {transaction, transactionThreadReport, transactionThreadCreatedReportAction} = transactionParams;
-    const {policy, policyTagList, policyCategories} = policyParams;
+    const {transaction, threadReport: transactionThreadReport, threadCreatedReportAction: transactionThreadCreatedReportAction} = transactionParams;
+    const {policy, tagList: policyTagList, categories: policyCategories} = policyParams;
 
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -3269,10 +3269,10 @@ function getTrackExpenseInformation(
         iou: {report: iouReport, action: iouAction, createdAction: optimisticCreatedActionForIOUReport},
         transactionParams: {
             transaction: optimisticTransaction,
-            transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
-            transactionThreadReport: optimisticTransactionThread ?? {},
+            threadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            threadReport: optimisticTransactionThread ?? {},
         },
-        policyParams: {policy, policyTagList, policyCategories},
+        policyParams: {policy, tagList: policyTagList, categories: policyCategories},
         shouldCreateNewMoneyRequestReport,
         actionableTrackExpenseWhisper,
     });
