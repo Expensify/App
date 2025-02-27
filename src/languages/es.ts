@@ -2191,7 +2191,7 @@ const translations = {
             customerService: 'Servicio al cliente',
             automatedOrLive: '(agente automatizado o en vivo)',
             afterTwelveMonths: '(después de 12 meses sin transacciones)',
-            weChargeOneFee: 'Cobramos un tipo de tarifa. Es:',
+            weChargeOneFee: 'Cobramos otro tipo de tarifa. Es:',
             fdicInsurance: 'Tus fondos pueden acogerse al seguro de la FDIC.',
             generalInfo: 'Para obtener información general sobre cuentas de prepago, visite',
             conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
