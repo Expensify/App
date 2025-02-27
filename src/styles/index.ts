@@ -2998,12 +2998,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        borderedContentCardLarge: {
-            borderWidth: 1,
-            borderColor: theme.border,
-            borderRadius: variables.componentBorderRadiusLarge,
-        },
-
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 16,
@@ -3148,6 +3142,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             opacity: 0,
             left: -9999,
+            top: -9999,
         },
 
         containerWithSpaceBetween: {
@@ -3761,6 +3756,7 @@ const styles = (theme: ThemeColors) =>
         narrowSearchHeaderStyle: {
             paddingTop: 1,
             backgroundColor: theme.appBG,
+            flex: 1,
         },
 
         narrowSearchRouterInactiveStyle: {
