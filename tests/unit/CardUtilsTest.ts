@@ -1,10 +1,14 @@
 import type {OnyxCollection} from 'react-native-onyx';
+import type IllustrationsType from '@styles/theme/illustrations/types';
+import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import {
     checkIfFeedConnectionIsBroken,
     flatAllCardsList,
     formatCardExpiration,
+    getBankCardDetailsImage,
     getBankName,
+    getCardFeedIcon,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getFeedType,
@@ -238,7 +242,19 @@ const allCardsList = {
         },
     },
 } as OnyxCollection<WorkspaceCardsList>;
-/* eslint-enable @typescript-eslint/naming-convention */
+
+const mockIllustrations = {
+    EmptyStateBackgroundImage: 'EmptyStateBackgroundImage',
+    ExampleCheckES: 'ExampleCheckES',
+    ExampleCheckEN: 'ExampleCheckEN',
+    WorkspaceProfile: 'WorkspaceProfile',
+    ExpensifyApprovedLogo: 'ExpensifyApprovedLogo',
+    GenericCompanyCard: 'GenericCompanyCard',
+    GenericCSVCompanyCardLarge: 'GenericCSVCompanyCardLarge',
+    GenericCompanyCardLarge: 'GenericCompanyCardLarge',
+};
+
+jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
 
 describe('CardUtils', () => {
     describe('Expiration date formatting', () => {
@@ -454,10 +470,56 @@ describe('CardUtils', () => {
             expect(feedName).toBe('American Express');
         });
 
+        it('Should return a valid name if a CSV imported feed variation was provided', () => {
+            const feed = 'cards_2267989_ccupload666' as CompanyCardFeed;
+            const feedName = getBankName(feed);
+            expect(feedName).toBe('CSV');
+        });
+
         it('Should return empty string if invalid feed was provided', () => {
             const feed = 'vvcf' as CompanyCardFeed;
             const feedName = getBankName(feed);
             expect(feedName).toBe('');
+        });
+    });
+
+    describe('getCardFeedIcon', () => {
+        it('Should return a valid illustration if a valid feed was provided', () => {
+            const feed = 'vcf';
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            expect(illustration).toBe('VisaCompanyCardDetailLarge');
+        });
+
+        it('Should return a valid illustration if an OldDot feed variation was provided', () => {
+            const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeed;
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            expect(illustration).toBe('AmexCardCompanyCardDetailLarge');
+        });
+
+        it('Should return a valid illustration if a CSV imported feed variation was provided', () => {
+            const feed = 'cards_2267989_ccupload666' as CompanyCardFeed;
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            expect(illustration).toBe('GenericCSVCompanyCardLarge');
+        });
+
+        it('Should return valid illustration if a non-matching feed was provided', () => {
+            const feed = '666' as CompanyCardFeed;
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            expect(illustration).toBe('GenericCompanyCardLarge');
+        });
+    });
+
+    describe('getBankCardDetailsImage', () => {
+        it('Should return a valid illustration if a valid bank name was provided', () => {
+            const bank = 'American Express';
+            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType);
+            expect(illustration).toBe('AmexCardCompanyCardDetail');
+        });
+
+        it('Should return a valid illustration if Other bank name was provided', () => {
+            const bank = 'Other';
+            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType);
+            expect(illustration).toBe('GenericCompanyCard');
         });
     });
 
