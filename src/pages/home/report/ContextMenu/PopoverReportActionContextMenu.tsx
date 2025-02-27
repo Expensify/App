@@ -4,7 +4,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -243,10 +243,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             return;
         }
 
-        // After the animation ends reset isContextMenuOpeningRef
-        InteractionManager.runAfterInteractions(() => {
-            isContextMenuOpeningRef.current = false;
-        });
+        isContextMenuOpeningRef.current = false;
     }, [isPopoverVisible]);
 
     /** Run the callback and return a noop function to reset it */
