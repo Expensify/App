@@ -230,6 +230,7 @@ import type {TranslationDeepObject} from './types';
 /* eslint-disable max-len */
 const translations = {
     common: {
+        translate: 'Traducir',
         cancel: 'Cancelar',
         dismiss: 'Descartar',
         yes: 'Sí',
@@ -1759,13 +1760,24 @@ const translations = {
     languagePage: {
         language: 'Idioma',
         languages: {
-            en: {
-                label: 'Inglés',
-            },
-            es: {
-                label: 'Español',
-            },
+            en: {label: 'English'},
+            es: {label: 'Español'},
+            pt: {label: 'Português'},
+            it: {label: 'Italiano'},
+            de: {label: 'Deutsch'},
+            fr: {label: 'Français'},
+            nl: {label: 'Nederlands'},
+            pl: {label: 'Polski'},
+            ru: {label: 'Русский'},
+            tr: {label: 'Türkçe'},
+            ko: {label: '한국어'},
+            ch: {label: '中文'},
+            ja: {label: '日本語'},
+            ro: {label: 'Română'},
         },
+        translateMessage: 'Traducir mensajes',
+        viewOriginal: 'Ver original',
+        showTranslation: 'Mostrar traducción',
     },
     themePage: {
         theme: 'Tema',

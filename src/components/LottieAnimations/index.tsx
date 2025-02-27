@@ -94,6 +94,11 @@ const DotLottieAnimations = {
         w: 375,
         h: 240,
     },
+    SpinningPyramid: {
+        file: require<LottieViewProps['source']>('@assets/animations/SpinningPyramid.lottie'),
+        w: 300,
+        h: 300,
+    },
 } satisfies Record<string, DotLottieAnimation>;
 
 export default DotLottieAnimations;

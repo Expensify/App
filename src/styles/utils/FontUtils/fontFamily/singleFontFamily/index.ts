@@ -62,6 +62,11 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
     },
+    INTER: {
+        fontFamily: 'Inter',
+        fontStyle: 'normal',
+        fontWeight: fontWeight.normal,
+    },
 };
 
 export default fontFamily;

@@ -22,6 +22,9 @@ type Message = {
     /** The html content of the fragment. */
     html?: string;
 
+    /** Translate text */
+    translatedText?: string;
+
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
      */
@@ -274,6 +277,8 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
      * Note: This is sent by the backend but we don't use it locally
      */
     timestamp?: number;
+
+    shouldShowTranslation?: boolean;
 }>;
 
 /**
