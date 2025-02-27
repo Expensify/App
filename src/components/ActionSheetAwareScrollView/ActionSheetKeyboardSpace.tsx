@@ -169,16 +169,30 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
 
                 const nextOffset = elementOffset + lastKeyboardHeight;
 
-                if (keyboard.state.get() === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
-                    return withSpring(nextOffset < 0 ? 0 : nextOffset, SPRING_CONFIG);
+                // Check if there's a space not filled by content)
+                const hasWhiteGap = popoverHeight && popoverHeight < lastKeyboardHeight && (nextOffset > 0 || elementOffset > -lastKeyboardHeight);
+
+                // Handle case when modal is smaller than keyboard+textinput
+                if (keyboard.state.get() === KeyboardState.CLOSED) {
+                    if (hasWhiteGap) {
+                        return withSpring(nextOffset, SPRING_CONFIG);
+                    }
+
+                    if (nextOffset > invertedKeyboardHeight) {
+                        return withSpring(nextOffset < 0 ? 0 : nextOffset, SPRING_CONFIG);
+                    }
                 }
 
                 if (elementOffset < 0) {
-                    const heightDifference = (fy ?? 0) - lastKeyboardHeight - keyboardHeight - safeArea.top - safeArea.bottom;
+                    const heightDifference = (fy ?? 0) - keyboardHeight - safeArea.top - safeArea.bottom;
                     if (isClosingKeyboard) {
+                        if (hasWhiteGap) {
+                            return withSequence(withTiming(keyboardHeight, {duration: 0}), withSpring(heightDifference, SPRING_CONFIG));
+                        }
                         return 0;
                     }
-                    if (heightDifference > safeArea.top) {
+
+                    if (hasWhiteGap && heightDifference > safeArea.top) {
                         return withSequence(withTiming(lastKeyboardHeight - keyboardHeight, {duration: 0}), withSpring(heightDifference, SPRING_CONFIG));
                     }
                     return lastKeyboardHeight - keyboardHeight;
