@@ -207,6 +207,7 @@ function ConfirmContent({
                             isPressOnEnterActive={isVisible}
                             large
                             text={confirmText || translate('common.yes')}
+                            accessibilityLabel={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                         />
                         {shouldShowCancelButton && !shouldReverseStackedButtons && (

@@ -1,5 +1,5 @@
 import type {SearchQueryJSON} from '@components/Search/types';
-import * as autocompleteParser from '@libs/SearchParser/autocompleteParser';
+import {parse} from '@libs/SearchParser/autocompleteParser';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
@@ -55,6 +55,22 @@ const tests = [
                 {key: 'category', length: 6, start: 89, value: 'travel'},
                 {key: 'category', length: 5, start: 96, value: 'hotel'},
                 {key: 'category', length: 22, start: 102, value: 'meal & entertainment'},
+            ],
+        },
+    },
+    {
+        query: parserCommonTests.quotesIOS,
+        expected: {
+            autocomplete: {
+                key: 'category',
+                length: 5,
+                start: 33,
+                value: 'a b',
+            },
+            ranges: [
+                {key: 'type', value: 'expense', start: 5, length: 7},
+                {key: 'status', value: 'all', start: 20, length: 3},
+                {key: 'category', value: 'a b', start: 33, length: 5},
             ],
         },
     },
@@ -215,7 +231,7 @@ const tests = [
 
 describe('autocomplete parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const result = autocompleteParser.parse(query) as SearchQueryJSON;
+        const result = parse(query) as SearchQueryJSON;
 
         expect(result).toEqual(expected);
     });

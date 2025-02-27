@@ -50,6 +50,9 @@ function validateAmount(amount: string, decimals: number, amountMaxLength: numbe
             ? `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
             : `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
     const decimalNumberRegex = new RegExp(regexString, 'i');
+    if (shouldAllowNegative) {
+        return amount === '' || amount === '-' || decimalNumberRegex.test(amount);
+    }
     return amount === '' || decimalNumberRegex.test(amount);
 }
 

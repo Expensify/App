@@ -581,7 +581,7 @@ describe('APITests', () => {
             });
     });
 
-    test('Read request should not stuck when SequentialQueue is paused an resumed', async () => {
+    test('Read request should not stuck when SequentialQueue is paused and resumed', async () => {
         // Given 2 WRITE requests and 1 READ request where the first write request pauses the SequentialQueue
         const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({previousUpdateID: 1});
         API.write('MockWriteCommandOne' as WriteCommand, {});

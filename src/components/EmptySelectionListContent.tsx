@@ -48,7 +48,7 @@ function EmptySelectionListContent({contentType}: EmptySelectionListContentProps
     );
 
     return (
-        <ScrollView>
+        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
             <View style={[styles.flex1, styles.overflowHidden, styles.minHeight65]}>
                 <BlockingView
                     icon={Illustrations.ToddWithPhones}

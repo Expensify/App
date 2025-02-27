@@ -2,6 +2,7 @@
 // .at() has a performance overhead we explicitly want to avoid here
 
 /* eslint-disable no-continue */
+import type DynamicArrayBuffer from '@libs/DynamicArrayBuffer';
 import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, stringToNumeric} from './utils';
 
 /**
@@ -20,7 +21,7 @@ import {ALPHABET_SIZE, DELIMITER_CHAR_CODE, END_CHAR_CODE, SPECIAL_CHAR_CODE, st
  *
  * The tree will be built using the Ukkonen's algorithm: https://www.cs.helsinki.fi/u/ukkonen/SuffixT1withFigs.pdf
  */
-function makeTree(numericSearchValues: Uint8Array) {
+function makeTree(numericSearchValues: DynamicArrayBuffer<Uint8Array>) {
     // Every leaf represents a suffix. There can't be more than n suffixes.
     // Every internal node has to have at least 2 children. So the total size of ukkonen tree is not bigger than 2n - 1.
     // + 1 is because an extra character at the beginning to offset the 1-based indexing.
@@ -85,7 +86,7 @@ function makeTree(numericSearchValues: Uint8Array) {
                 currentNode = transitionNodes[currentNode * ALPHABET_SIZE + char];
                 currentPosition = rangeStart[currentNode];
             }
-            if (currentPosition === 0 || char === numericSearchValues[currentPosition]) {
+            if (currentPosition === 0 || char === numericSearchValues.array[currentPosition]) {
                 currentPosition++;
             } else {
                 splitEdge(char);
@@ -109,14 +110,14 @@ function makeTree(numericSearchValues: Uint8Array) {
         rangeEnd[nodeCounter] = currentPosition - 1;
         parent[nodeCounter] = parent[currentNode];
 
-        transitionNodes[nodeCounter * ALPHABET_SIZE + numericSearchValues[currentPosition]] = currentNode;
+        transitionNodes[nodeCounter * ALPHABET_SIZE + numericSearchValues.array[currentPosition]] = currentNode;
         transitionNodes[nodeCounter * ALPHABET_SIZE + c] = nodeCounter + 1;
         rangeStart[nodeCounter + 1] = currentIndex;
         parent[nodeCounter + 1] = nodeCounter;
         rangeStart[currentNode] = currentPosition;
         parent[currentNode] = nodeCounter;
 
-        transitionNodes[parent[nodeCounter] * ALPHABET_SIZE + numericSearchValues[rangeStart[nodeCounter]]] = nodeCounter;
+        transitionNodes[parent[nodeCounter] * ALPHABET_SIZE + numericSearchValues.array[rangeStart[nodeCounter]]] = nodeCounter;
         nodeCounter += 2;
         handleDescent(nodeCounter);
     }
@@ -125,7 +126,7 @@ function makeTree(numericSearchValues: Uint8Array) {
         currentNode = suffixLink[parent[latestNodeIndex - 2]];
         currentPosition = rangeStart[latestNodeIndex - 2];
         while (currentPosition <= rangeEnd[latestNodeIndex - 2]) {
-            currentNode = transitionNodes[currentNode * ALPHABET_SIZE + numericSearchValues[currentPosition]];
+            currentNode = transitionNodes[currentNode * ALPHABET_SIZE + numericSearchValues.array[currentPosition]];
             currentPosition += rangeEnd[currentNode] - rangeStart[currentNode] + 1;
         }
         if (currentPosition === rangeEnd[latestNodeIndex - 2] + 1) {
@@ -139,7 +140,7 @@ function makeTree(numericSearchValues: Uint8Array) {
     function build() {
         initializeTree();
         for (currentIndex = 1; currentIndex < numericSearchValues.length; ++currentIndex) {
-            const c = numericSearchValues[currentIndex];
+            const c = numericSearchValues.array[currentIndex];
             processCharacter(c);
         }
     }
@@ -165,7 +166,7 @@ function makeTree(numericSearchValues: Uint8Array) {
             const rangeLen = node === 1 ? 0 : rightRange - leftRange + 1;
 
             for (let i = 0; i < rangeLen && depth + i < searchValue.length && leftRange + i < numericSearchValues.length; i++) {
-                if (searchValue[depth + i] !== numericSearchValues[leftRange + i]) {
+                if (searchValue[depth + i] !== numericSearchValues.array[leftRange + i]) {
                     return;
                 }
             }

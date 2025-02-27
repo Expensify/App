@@ -5,7 +5,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -20,12 +20,12 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const ssnLast4InputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}` as const;
-    const defaultSsnLast4 = reimbursementAccountDraft?.[ssnLast4InputID] ?? '';
+    const defaultSsnLast4 = String(reimbursementAccountDraft?.[ssnLast4InputID] ?? '');
     const stepFields = [ssnLast4InputID];
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
-        if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID])) {
+        const errors = getFieldRequiredErrors(values, stepFields);
+        if (values[ssnLast4InputID] && !isValidSSNLastFour(String(values[ssnLast4InputID]))) {
             errors[ssnLast4InputID] = translate('bankAccount.error.ssnLast4');
         }
         return errors;

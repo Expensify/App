@@ -108,6 +108,12 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether selected items should be marked as selected */
     shouldShowSelectedItemCheck?: boolean;
+
+    /** Used to locate the component in the tests */
+    testID?: string;
+
+    /** The second line text displays under the first line */
+    secondLineText?: string;
 };
 
 export type {

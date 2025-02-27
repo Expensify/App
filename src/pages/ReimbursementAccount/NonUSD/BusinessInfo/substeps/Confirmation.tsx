@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollView from '@components/ScrollView';
@@ -9,7 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {annualVolumeRange, applicantType, natureOfBusiness} from '@pages/ReimbursementAccount/NonUSD/BusinessInfo/mockedCorpayLists';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,16 +20,18 @@ const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {
     COMPANY_NAME,
     BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
-    COMPANY_COUNTRY,
+    TAX_ID_EIN_NUMBER,
+    COMPANY_COUNTRY_CODE,
     COMPANY_STREET,
     COMPANY_CITY,
     COMPANY_STATE,
-    COMPANY_ZIP_CODE,
+    COMPANY_POSTAL_CODE,
     BUSINESS_CONTACT_NUMBER,
     BUSINESS_CONFIRMATION_EMAIL,
     FORMATION_INCORPORATION_COUNTRY_CODE,
     ANNUAL_VOLUME,
     APPLICANT_TYPE_ID,
+    TRADE_VOLUME,
     BUSINESS_CATEGORY,
 } = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
@@ -46,12 +49,27 @@ function Confirmation({onNext, onMove}: SubStepProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
+    const error = getLatestErrorMessage(reimbursementAccount);
 
     const values = useMemo(() => getSubstepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
-    const paymentVolume = useMemo(() => displayStringValue(annualVolumeRange, values[ANNUAL_VOLUME]), [values]);
-    const businessCategory = useMemo(() => displayStringValue(natureOfBusiness, values[BUSINESS_CATEGORY]), [values]);
-    const businessType = useMemo(() => displayStringValue(applicantType, values[APPLICANT_TYPE_ID]), [values]);
+    const paymentVolume = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.AnnualVolumeRange ?? [], values[ANNUAL_VOLUME]),
+        [corpayOnboardingFields?.picklists.AnnualVolumeRange, values],
+    );
+    const businessCategory = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.NatureOfBusiness ?? [], values[BUSINESS_CATEGORY]),
+        [corpayOnboardingFields?.picklists.NatureOfBusiness, values],
+    );
+    const businessType = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.ApplicantType ?? [], values[APPLICANT_TYPE_ID]),
+        [corpayOnboardingFields?.picklists.ApplicantType, values],
+    );
+    const tradeVolumeRange = useMemo(
+        () => displayStringValue(corpayOnboardingFields?.picklists.TradeVolumeRange ?? [], values[TRADE_VOLUME]),
+        [corpayOnboardingFields?.picklists.TradeVolumeRange, values],
+    );
 
     return (
         <SafeAreaConsumer>
@@ -78,8 +96,16 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         }}
                     />
                     <MenuItemWithTopDescription
+                        description={translate('businessInfoStep.taxIDEIN')}
+                        title={values[TAX_ID_EIN_NUMBER]}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(4);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
                         description={translate('businessInfoStep.businessAddress')}
-                        title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_ZIP_CODE], values[COMPANY_COUNTRY])}
+                        title={displayAddress(values[COMPANY_STREET], values[COMPANY_CITY], values[COMPANY_STATE], values[COMPANY_POSTAL_CODE], values[COMPANY_COUNTRY_CODE])}
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(1);
@@ -106,7 +132,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         title={businessType}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(5);
+                            onMove(6);
                         }}
                     />
                     <MenuItemWithTopDescription
@@ -114,7 +140,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         title={values[FORMATION_INCORPORATION_COUNTRY_CODE]}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(4);
+                            onMove(5);
                         }}
                     />
                     <MenuItemWithTopDescription
@@ -122,7 +148,7 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         title={businessCategory}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(5);
+                            onMove(6);
                         }}
                     />
                     <MenuItemWithTopDescription
@@ -130,13 +156,29 @@ function Confirmation({onNext, onMove}: SubStepProps) {
                         title={paymentVolume}
                         shouldShowRightIcon
                         onPress={() => {
-                            onMove(6);
+                            onMove(7);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('businessInfoStep.averageReimbursementAmount')}
+                        title={tradeVolumeRange}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(8);
                         }}
                     />
                     <View style={[styles.p5, styles.flexGrow1, styles.justifyContentEnd]}>
+                        {!!error && error.length > 0 && (
+                            <DotIndicatorMessage
+                                textStyles={[styles.formError]}
+                                type="error"
+                                messages={{error}}
+                            />
+                        )}
                         <Button
                             success
-                            style={[styles.w100]}
+                            isLoading={reimbursementAccount?.isSavingCorpayOnboardingCompanyFields}
+                            style={[styles.w100, styles.mt2]}
                             onPress={onNext}
                             large
                             text={translate('common.confirm')}

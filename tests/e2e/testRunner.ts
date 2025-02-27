@@ -87,8 +87,8 @@ try {
 // START OF TEST CODE
 const runTests = async (): Promise<void> => {
     Logger.info('Installing apps and reversing port');
-    await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
-    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
+    await installApp(config.MAIN_APP_PACKAGE, mainAppPath, undefined, defaultConfig.FLAG);
+    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath, undefined, defaultConfig.FLAG);
     await reversePort();
 
     // Start the HTTP server
@@ -241,8 +241,8 @@ const runTests = async (): Promise<void> => {
         const test = Object.values(config.TESTS_CONFIG).at(testIndex);
 
         // re-instal app for each new test suite
-        await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
-        await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
+        await installApp(config.MAIN_APP_PACKAGE, mainAppPath, undefined, defaultConfig.FLAG);
+        await installApp(config.DELTA_APP_PACKAGE, deltaAppPath, undefined, defaultConfig.FLAG);
 
         // check if we want to skip the test
         if (args.includes('--includes')) {

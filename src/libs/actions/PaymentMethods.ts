@@ -14,7 +14,7 @@ import type {
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Navigation from '@libs/Navigation/Navigation';
@@ -235,6 +235,7 @@ function addSubscriptionPaymentCard(
         addressZip,
         currency,
         isP2PDebitCard: false,
+        shouldClaimEarlyDiscountOffer: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -280,14 +281,7 @@ function addSubscriptionPaymentCard(
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
 function addPaymentCardGBP(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
-        Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
-    });
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData);
 }
 
 /**

@@ -68,13 +68,12 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
-        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${containsOnlyEmojis ? 'islarge' : ''}></edited>` : '';
+        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         let htmlContent = htmlWithDeletedTag;
         if (containsOnlyEmojis) {
             htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji islarge>');
-            htmlContent = Str.replaceAll(htmlContent, '<blockquote>', '<blockquote isemojisonly>');
         } else if (containsEmojis) {
             htmlContent = Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji ismedium>');
         }
@@ -87,6 +86,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
 
         return (
             <RenderCommentHTML
+                containsOnlyEmojis={containsOnlyEmojis}
                 source={source}
                 html={htmlWithTag}
             />

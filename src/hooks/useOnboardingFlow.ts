@@ -1,11 +1,11 @@
 import {useEffect} from 'react';
 import {InteractionManager, NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {isUserOnPrivateDomain} from '@libs/actions/Session';
+import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as Session from '@userActions/Session';
-import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -16,6 +16,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
  * Warning: This hook should be used only once in the app
  */
 function useOnboardingFlowRouter() {
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
     const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -26,12 +27,16 @@ function useOnboardingFlowRouter() {
 
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
+    const isPrivateDomain = isUserOnPrivateDomain();
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {
+            if (isLoadingApp !== false) {
+                return;
+            }
+
             if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
@@ -41,10 +46,14 @@ function useOnboardingFlowRouter() {
             }
 
             if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
-                const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
+                const defaultCannedQuery = buildCannedSearchQuery();
                 const query = defaultCannedQuery;
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
                 Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
+                return;
+            }
+
+            if (hasBeenAddedToNudgeMigration) {
                 return;
             }
 
@@ -62,16 +71,17 @@ function useOnboardingFlowRouter() {
                 // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
                 if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                    OnboardingFlow.startOnboardingFlow(isPrivateDomain);
+                    startOnboardingFlow(isPrivateDomain);
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
             if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
-                OnboardingFlow.startOnboardingFlow(isPrivateDomain);
+                startOnboardingFlow(isPrivateDomain);
             }
         });
     }, [
+        isLoadingApp,
         isOnboardingCompleted,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,

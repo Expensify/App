@@ -1,7 +1,9 @@
 import React, {useMemo} from 'react';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -38,6 +40,8 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID ?? '-1');
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
+
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!sync?.syncReimbursedReports);
 
     return (
         <ConnectionLayout
@@ -84,7 +88,10 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
             />
-            {!!sync?.syncReimbursedReports && (
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                isToggleTriggered={shouldAnimateAccordionSection}
+            >
                 <>
                     <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], pendingFields)}>
                         <MenuItemWithTopDescription
@@ -115,7 +122,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         />
                     </OfflineWithFeedback>
                 </>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }

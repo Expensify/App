@@ -39,7 +39,7 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace'>;
 
 function AmountTextInput(
     {
@@ -84,6 +84,7 @@ function AmountTextInput(
             // Setting both autoCorrect and spellCheck to false will hide the suggestion.
             autoCorrect={false}
             spellCheck={false}
+            disableKeyboardShortcuts
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

@@ -1,28 +1,30 @@
 import {Str} from 'expensify-common';
-import React, {memo, useContext, useEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
+import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
@@ -78,6 +80,9 @@ type AttachmentViewProps = Attachment & {
 
     /** Flag indicating if the attachment is being uploaded. */
     isUploading?: boolean;
+
+    /** The reportID related to the attachment */
+    reportID?: string;
 };
 
 function AttachmentView({
@@ -104,20 +109,20 @@ function AttachmentView({
     isUploaded = true,
     isDeleted,
     isUploading = false,
+    reportID,
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const theme = useTheme();
+    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
-    const isUsedInCarousel = !!attachmentCarouselPagerContext?.pagerRef;
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -131,8 +136,8 @@ function AttachmentView({
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
 
     useEffect(() => {
-        FileUtils.getFileResolution(file).then((resolution) => {
-            setIsHighResolution(FileUtils.isHighResolutionImage(resolution));
+        getFileResolution(file).then((resolution) => {
+            setIsHighResolution(isHighResolutionImage(resolution));
         });
     }, [file]);
 
@@ -158,7 +163,11 @@ function AttachmentView({
         );
     }
 
-    if (transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction)) {
+    if (isPerDiemRequest(transaction) && transaction && !hasReceiptSource(transaction)) {
+        return <PerDiemEReceipt transactionID={transaction.transactionID} />;
+    }
+
+    if (transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction)) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
@@ -175,13 +184,13 @@ function AttachmentView({
     // will appear with a source that is a blob
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
     const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
-    if (!hasPDFFailedToLoad && (isSourcePDF || isFilePDF)) {
+    if (!hasPDFFailedToLoad && !isUploading && (isSourcePDF || isFilePDF)) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
             const id = (transaction && transaction.transactionID) ?? reportActionID;
             if (path && id) {
-                CachedPDFPaths.add(id, path);
+                addCachedPDFPaths(id, path);
             }
             if (!loadComplete) {
                 setLoadComplete(true);
@@ -213,7 +222,7 @@ function AttachmentView({
         );
     }
 
-    if (TransactionUtils.isDistanceRequest(transaction) && transaction) {
+    if (isDistanceRequest(transaction) && transaction) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
@@ -281,7 +290,7 @@ function AttachmentView({
                         }}
                     />
                 </View>
-                {isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}
+                <View style={safeAreaPaddingBottomStyle}>{isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}</View>
             </>
         );
     }
@@ -290,9 +299,10 @@ function AttachmentView({
         return (
             <AttachmentViewVideo
                 source={source}
-                shouldUseSharedVideoElement={isUsedInCarousel}
+                shouldUseSharedVideoElement={!CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix))}
                 isHovered={isHovered}
                 duration={duration}
+                reportID={reportID}
             />
         );
     }

@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
@@ -90,9 +89,6 @@ function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
     // We cancel the pending and active tooltips here instead of in setModalVisibility because
     // we want to do it when a modal is going to show. If we do it when the modal is fully shown,
     // the tooltip in that modal won't show.
-    if (isVisible) {
-        TooltipManager.cancelPendingAndActiveTooltips();
-    }
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 

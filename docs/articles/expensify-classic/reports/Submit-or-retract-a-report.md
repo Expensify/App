@@ -1,6 +1,6 @@
 ---
 title: Submit or retract a report
-description: Submit a report for reimbursement or retract a submitted report to make corrections
+description: How to submit a report for reimbursement or retract a submitted report to make corrections
 ---
 <div id="expensify-classic" markdown="1">
 

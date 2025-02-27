@@ -3,7 +3,18 @@ const path = require('path');
 const restrictedImportPaths = [
     {
         name: 'react-native',
-        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', 'Text', 'ScrollView'],
+        importNames: [
+            'useWindowDimensions',
+            'StatusBar',
+            'TouchableOpacity',
+            'TouchableWithoutFeedback',
+            'TouchableNativeFeedback',
+            'TouchableHighlight',
+            'Pressable',
+            'Text',
+            'ScrollView',
+            'Animated',
+        ],
         message: [
             '',
             "For 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.",
@@ -11,6 +22,7 @@ const restrictedImportPaths = [
             "For 'StatusBar', please use '@libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
+            "For 'Animated', please use 'Animated' from 'react-native-reanimated' instead.",
         ].join('\n'),
     },
     {
@@ -75,6 +87,10 @@ const restrictedImportPaths = [
         importNames: ['memoize'],
         message: "Please use '@src/libs/memoize' instead.",
     },
+    {
+        name: 'react-native-animatable',
+        message: "Please use 'react-native-reanimated' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -106,7 +122,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended-type-checked',
         'plugin:@typescript-eslint/stylistic-type-checked',
         'plugin:you-dont-need-lodash-underscore/all',
-        'plugin:prettier/recommended',
+        'prettier',
     ],
     plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library', 'eslint-plugin-react-compiler', 'lodash', 'deprecation'],
     parser: '@typescript-eslint/parser',
@@ -134,6 +150,16 @@ module.exports = {
             {
                 selector: ['variable', 'property'],
                 format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+                // This filter excludes variables and properties that start with "private_" to make them valid.
+                //
+                // Examples:
+                // - "private_a" → valid
+                // - "private_test" → valid
+                // - "private_" → not valid
+                filter: {
+                    regex: '^private_[a-z][a-zA-Z0-9]*$',
+                    match: false,
+                },
             },
             {
                 selector: 'function',
@@ -177,6 +203,7 @@ module.exports = {
         'es/no-nullish-coalescing-operators': 'off',
         'es/no-optional-chaining': 'off',
         'deprecation/deprecation': 'off',
+        'arrow-body-style': 'off',
 
         // Import specific rules
         'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -282,6 +309,7 @@ module.exports = {
                 'jsdoc/no-types': 'off',
                 'react/jsx-filename-extension': 'off',
                 'rulesdir/no-default-props': 'off',
+                'prefer-arrow-callback': 'off',
             },
         },
         {

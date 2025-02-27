@@ -1,38 +1,29 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import Button from './Button';
+import variables from '@styles/variables';
+import FeatureTrainingModal from './FeatureTrainingModal';
 import HoldMenuSectionList from './HoldMenuSectionList';
-import type {PopoverAnchorPosition} from './Modal/types';
-import Popover from './Popover';
+import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 import TextPill from './TextPill';
 
 type ProcessMoneyRequestHoldMenuProps = {
-    /** Whether the content is visible */
-    isVisible: boolean;
-
     /** Method to trigger when pressing outside of the popover menu to close it */
     onClose: () => void;
 
     /** Method to trigger when pressing confirm button */
     onConfirm: () => void;
-
-    /** The anchor position of the popover menu */
-    anchorPosition?: PopoverAnchorPosition;
-
-    /** The anchor alignment of the popover menu */
-    anchorAlignment?: AnchorAlignment;
 };
 
-function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment}: ProcessMoneyRequestHoldMenuProps) {
+function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const popoverRef = useRef(null);
     const navigation = useNavigation();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
         const unsub = navigation.addListener('beforeRemove', () => {
@@ -41,32 +32,33 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
         return unsub;
     }, [navigation, onClose]);
 
-    return (
-        <Popover
-            isVisible={isVisible}
-            onClose={onClose}
-            anchorPosition={anchorPosition}
-            anchorRef={popoverRef}
-            anchorAlignment={anchorAlignment}
-            disableAnimation={false}
-            withoutOverlay={false}
-            shouldCloseWhenBrowserNavigationChanged={false}
-        >
-            <View style={[styles.mh5, styles.mv5]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
-                    <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                    <TextPill textStyles={styles.holdRequestInline}>{translate('violations.hold')}</TextPill>
-                </View>
-                <HoldMenuSectionList />
-                <Button
-                    success
-                    style={[styles.mt5]}
-                    text={translate('common.buttonConfirm')}
-                    onPress={onConfirm}
-                    large
-                />
+    const title = useMemo(
+        () => (
+            <View style={[styles.flexRow, styles.alignItemsCenter, onboardingIsMediumOrLargerScreenWidth ? styles.mb1 : styles.mb2]}>
+                <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
+                <TextPill textStyles={styles.holdRequestInline}>{translate('iou.holdEducationalText')}</TextPill>
             </View>
-        </Popover>
+        ),
+        [onboardingIsMediumOrLargerScreenWidth, styles.flexRow, styles.alignItemsCenter, styles.mb1, styles.mb2, styles.textHeadline, styles.mr2, styles.holdRequestInline, translate],
+    );
+
+    return (
+        <FeatureTrainingModal
+            title={title}
+            description={translate('iou.whatIsHoldExplain')}
+            confirmText={translate('common.buttonConfirm')}
+            image={Illustrations.HoldExpense}
+            contentFitImage="cover"
+            width={variables.holdEducationModalWidth}
+            illustrationAspectRatio={39 / 22}
+            contentInnerContainerStyles={styles.mb5}
+            modalInnerContainerStyle={styles.pt0}
+            illustrationOuterContainerStyle={styles.p0}
+            onClose={onClose}
+            onConfirm={onConfirm}
+        >
+            <HoldMenuSectionList />
+        </FeatureTrainingModal>
     );
 }
 

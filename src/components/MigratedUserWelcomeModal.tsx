@@ -1,11 +1,12 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Welcome from '@libs/actions/Welcome';
+import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
+import {parseFSAttributes} from '@libs/Fullstory';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {FeatureListItem} from './FeatureList';
@@ -36,6 +37,14 @@ function OnboardingWelcomeVideo() {
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
+    /**
+     * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
+     * to ensure necessary properties are available for further processing.
+     * Reevaluates "fs-class" to dynamically apply styles or behavior based on
+     * updated attribute values.
+     */
+    useLayoutEffect(parseFSAttributes, []);
+
     return (
         <FeatureTrainingModal
             // We would like to show the Lottie animation instead of a video
@@ -45,16 +54,20 @@ function OnboardingWelcomeVideo() {
             confirmText={translate('migratedUserWelcomeModal.confirmText')}
             animation={LottieAnimations.WorkspacePlanet}
             onClose={() => {
-                Welcome.dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+                dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
             }}
             animationStyle={[styles.emptyWorkspaceIllustrationStyle]}
-            animationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
-            animationOuterContainerStyle={styles.p0}
+            illustrationInnerContainerStyle={[StyleUtils.getBackgroundColorStyle(LottieAnimations.WorkspacePlanet.backgroundColor), styles.cardSectionIllustration]}
+            illustrationOuterContainerStyle={styles.p0}
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
         >
-            <View style={[styles.gap3, styles.pt1, styles.pl1]}>
+            <View
+                style={[styles.gap3, styles.pt1, styles.pl1]}
+                fsClass={CONST.FULL_STORY.UNMASK}
+                testID={CONST.FULL_STORY.UNMASK}
+            >
                 {ExpensifyFeatures.map(({translationKey, icon}) => (
                     <View
                         key={translationKey}

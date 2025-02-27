@@ -36,6 +36,9 @@ type Session = {
 
     /** User signed in with short lived token */
     signedInWithShortLivedAuthToken?: boolean;
+
+    /** Timestamp of the session creation date */
+    creationDate?: number;
 };
 
 export default Session;

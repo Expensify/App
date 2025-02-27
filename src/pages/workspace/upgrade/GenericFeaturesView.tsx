@@ -15,9 +15,11 @@ type GenericFeaturesViewProps = {
     buttonDisabled?: boolean;
     loading?: boolean;
     onUpgrade: () => void;
+    formattedPrice: string;
+    policyID?: string;
 };
 
-function GenericFeaturesView({onUpgrade, buttonDisabled, loading}: GenericFeaturesViewProps) {
+function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice, policyID}: GenericFeaturesViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
@@ -38,7 +40,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading}: GenericFeatur
                     height={48}
                 />
             </View>
-            <View style={styles.mb5}>
+            <View style={policyID ? styles.mb5 : styles.mb4}>
                 <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.title')}</Text>
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.note')}</Text>
                 {benefits.map((benefit) => (
@@ -51,24 +53,43 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading}: GenericFeatur
                     </View>
                 ))}
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
-                    {translate('workspace.upgrade.commonFeatures.benefits.note')}{' '}
+                    {translate('workspace.upgrade.commonFeatures.benefits.startsAt')}
+                    <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
+                    {translate('workspace.upgrade.commonFeatures.benefits.perMember')}{' '}
                     <TextLink
                         style={[styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                     >
                         {translate('workspace.upgrade.commonFeatures.benefits.learnMore')}
                     </TextLink>{' '}
                     {translate('workspace.upgrade.commonFeatures.benefits.pricing')}
                 </Text>
             </View>
-            <Button
-                isLoading={loading}
-                text={translate('common.upgrade')}
-                success
-                onPress={onUpgrade}
-                isDisabled={buttonDisabled}
-                large
-            />
+            {!policyID && (
+                <Text style={[styles.mb5, styles.textNormal, styles.textSupporting]}>
+                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.upgrade.commonFeatures.benefits.toUpgrade')}</Text>{' '}
+                    <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.common.goToWorkspaces')}</Text>,{' '}
+                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.upgrade.commonFeatures.benefits.selectWorkspace')}</Text>{' '}
+                    <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.type.control')}</Text>.
+                </Text>
+            )}
+            {policyID ? (
+                <Button
+                    isLoading={loading}
+                    text={translate('common.upgrade')}
+                    success
+                    onPress={onUpgrade}
+                    isDisabled={buttonDisabled}
+                    large
+                />
+            ) : (
+                <Button
+                    text={translate('workspace.common.goToWorkspaces')}
+                    success
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, {forceReplace: true})}
+                    large
+                />
+            )}
         </View>
     );
 }

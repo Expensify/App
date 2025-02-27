@@ -58,7 +58,7 @@ function extractAttachments(
             }
 
             if (name === 'img' && attribs.src) {
-                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(attribs.src) ? attribs.src : null);
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
                 const previewSource = tryResolveUrlFromApiRoot(attribs.src);
                 const sourceLinkKey = `${source}|${currentLink}`;

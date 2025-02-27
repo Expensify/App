@@ -35,8 +35,11 @@ NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
     # Set HybridApp-specific arguments
     IOS_MODE="Debug"
     ANDROID_MODE="Debug"
-    SCHEME="Expensify"
-    APP_ID="org.me.mobiexpensifyg"
+    SCHEME="Expensify Dev"
+    APP_ID="org.me.mobiexpensifyg.dev"
+
+    # Build Yapl JS
+    cd Mobile-Expensify && npm run grunt:build:shared && cd ..
 
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
     PROJECT_ROOT_PATH="Mobile-Expensify/"

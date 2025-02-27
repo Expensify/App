@@ -1,4 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,7 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 /*
  * This is a "utility page", that does this:
@@ -23,6 +26,11 @@ function ConciergePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const route = useRoute();
+
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const viewTourTaskReportID = introSelected?.viewTour;
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
     useFocusEffect(
         useCallback(() => {
@@ -32,12 +40,22 @@ function ConciergePage() {
                     if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData) {
                         return;
                     }
+
+                    // Mark the viewTourTask as complete if we are redirected to Concierge after finishing the Navattic tour
+                    const {navattic} = (route.params as {navattic?: string}) ?? {};
+                    if (navattic === CONST.NAVATTIC.COMPLETED) {
+                        if (viewTourTaskReport) {
+                            if (viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || viewTourTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+                                Task.completeTask(viewTourTaskReport);
+                            }
+                        }
+                    }
                     Report.navigateToConciergeChat(true, () => !isUnmounted.current);
                 });
             } else {
-                Navigation.navigate();
+                Navigation.navigate(ROUTES.HOME);
             }
-        }, [session, isLoadingReportData]),
+        }, [session, isLoadingReportData, route.params, viewTourTaskReport]),
     );
 
     useEffect(() => {

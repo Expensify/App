@@ -1,5 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 /**
  * Names of violations.
@@ -87,6 +89,12 @@ type TransactionViolationData = {
     /** Type of the RTER violation */
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
 
+    /** A generic message to display to the user */
+    message?: string;
+
+    /** Backend-defined override for the violation's target field */
+    field?: string;
+
     /** Message to display to the user */
     tooltip?: string;
 };
@@ -109,5 +117,8 @@ type TransactionViolation = {
 /** Collection of transaction violations */
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationData};
+/** Collection of mock transaction violations, indexed by transactionViolations_${transactionID} */
+type TransactionViolationsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>;
+
+export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationData, TransactionViolationsCollectionDataSet};
 export default TransactionViolations;

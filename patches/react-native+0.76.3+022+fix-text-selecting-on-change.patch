@@ -1,0 +1,34 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+index b134908..26ef77b 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+@@ -136,6 +136,7 @@ public class ReactEditText extends AppCompatEditText {
+   private boolean mContextMenuHidden = false;
+   private boolean mDidAttachToWindow = false;
+   private boolean mSelectTextOnFocus = false;
++  private boolean hasSelectedTextOnFocus = false;
+   private @Nullable String mPlaceholder = null;
+   private Overflow mOverflow = Overflow.VISIBLE;
+ 
+@@ -256,11 +257,11 @@ public class ReactEditText extends AppCompatEditText {
+   @Override
+   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+     onContentSizeChange();
+-    if (mSelectTextOnFocus && isFocused()) {
++    if (mSelectTextOnFocus && isFocused() && !hasSelectedTextOnFocus) {
+       // Explicitly call this method to select text when layout is drawn
+       selectAll();
+       // Prevent text on being selected for next layout pass
+-      mSelectTextOnFocus = false;
++      hasSelectedTextOnFocus = true;
+     }
+   }
+ 
+@@ -389,6 +390,7 @@ public class ReactEditText extends AppCompatEditText {
+     if (getShowSoftInputOnFocus()) {
+       showSoftKeyboard();
+     }
++    hasSelectedTextOnFocus = true;
+     return focused;
+   }
+ 

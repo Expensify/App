@@ -28,7 +28,7 @@ type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<Setti
 function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {policyID, cardID, bank} = route.params;
+    const {policyID, cardID, bank, backTo} = route.params;
     const policy = usePolicy(policyID);
     const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
     const [searchText, setSearchText] = useState('');
@@ -36,7 +36,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const [allBankCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${bank}`);
     const card = allBankCards?.[cardID];
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy) ?? CONST.POLICY.CONNECTIONS.NAME.QBO;
-    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card);
+    const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, policy, card, backTo);
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
