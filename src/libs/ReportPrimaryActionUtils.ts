@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
 import {
     isClosedReport,
     isCurrentUserSubmitter,
@@ -17,13 +17,18 @@ import {
     isReportApproved,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {isDuplicate, isOnHold as isOnHoldTransactionUtils} from './TransactionUtils';
+import {
+    hasPendingRTERViolation,
+    isDuplicate,
+    isOnHold as isOnHoldTransactionUtils,
+    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+} from './TransactionUtils';
 
-function isSubmitAction(report: Report) {
+function isSubmitAction(report: Report, policy: Policy) {
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
-    const isManualSubmitEnabled = true; // TODO how to find it?
+    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled;
 }
@@ -31,7 +36,7 @@ function isSubmitAction(report: Report) {
 function isApproveAction(report: Report, policy: Policy, reportTransactions: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
-    const isApprovalEnabled = policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL; // TODO verify
+    const isApprovalEnabled = policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     if (!isExpense || !isApprover || !isApprovalEnabled) {
         return false;
@@ -52,7 +57,7 @@ function isApproveAction(report: Report, policy: Policy, reportTransactions: Tra
 function isPayAction(report: Report, policy: Policy) {
     const isExpense = isExpenseReport(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
-    const isPaymentsEnabled = true; // TODO
+    const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isApproved = isReportApproved({report});
     const isClosed = isClosedReport(report);
     const isFinished = isApproved || isClosed;
@@ -128,15 +133,22 @@ function isReviewDuplicatesAction(report: Report, policy: Policy, reportTransact
     return false;
 }
 
-function isMarkAsCashAction(report: Report, violations: TransactionViolation[]) {
+function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]) {
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
-    const hasReceiptMatchViolation = violations.some((violation) => violation.name === CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT); // TODO
 
-    return isSubmitter && hasReceiptMatchViolation;
+    const hasAllPendingRTERViolations = hasPendingRTERViolation(violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(
+        reportTransactions.map((t) => t.transactionID),
+        report,
+        policy,
+        violations,
+    );
+
+    return isSubmitter && hasAllPendingRTERViolations && shouldShowBrokenConnectionViolation;
 }
 
 function getPrimaryAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | undefined {
-    if (isSubmitAction(report)) {
+    if (isSubmitAction(report, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
@@ -160,7 +172,7 @@ function getPrimaryAction(report: Report, policy: Policy, reportTransactions: Tr
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isMarkAsCashAction(report, violations)) {
+    if (isMarkAsCashAction(report, policy, reportTransactions, violations)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 }
