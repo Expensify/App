@@ -514,6 +514,7 @@ const translations = {
         perDiem: 'Per diem',
         validate: 'Validar',
         expenseReports: 'Informes de Gastos',
+        rateOutOfPolicy: 'Tasa fuera de póliza',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -5202,7 +5203,7 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} de ${oldValue} a ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} a ${newValue}`,
-                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `cambió el espacio de trabajo de ${fromPolicy} a ${toPolicy}`,
+                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `cambió el espacio de trabajo a ${toPolicy} (previamente ${fromPolicy})`,
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
@@ -6475,13 +6476,13 @@ const translations = {
         },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',
-            part2: ' ¡Prueba con un recibo de prueba!',
+            part2: ' \n¡Prueba con un recibo de prueba!',
             part3: '¡Elige a',
             part4: ' nuestro gerente',
             part5: ' de prueba para probarlo!',
             part6: 'Ahora,',
             part7: ' envía tu gasto y',
-            part8: ' ¡observa cómo ocurre la magia!',
+            part8: '\n¡observa cómo ocurre la magia!',
             tryItOut: 'Prueba esto',
             noThanks: 'No, gracias',
         },
