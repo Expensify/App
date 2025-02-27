@@ -49,6 +49,8 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // For HybridApp we have separate logic to handle transitions.
         if (!NativeModules.HybridAppModule && exitTo) {
             Navigation.isNavigationReady().then(() => {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack();
                 Navigation.navigate(exitTo as Route);
             });
         }
