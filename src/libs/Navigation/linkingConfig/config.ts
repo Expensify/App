@@ -255,10 +255,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ADDRESS_STATE.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
-                            path: ROUTES.SETTINGS_2FA.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.DELEGATE.ADD_DELEGATE]: {
                             path: ROUTES.SETTINGS_ADD_DELEGATE,
                             exact: true,
@@ -307,13 +303,13 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION,
                         },
                         [SCREENS.WORKSPACE.CURRENCY]: {
-                            path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },
                         [SCREENS.WORKSPACE.ADDRESS]: {
-                            path: ROUTES.WORKSPACE_PROFILE_ADDRESS.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_ADDRESS.route,
                         },
                         [SCREENS.WORKSPACE.PLAN]: {
-                            path: ROUTES.WORKSPACE_PROFILE_PLAN.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_PLAN.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
@@ -530,11 +526,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
                             path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_DATE.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
                             path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED_APPROVAL_ACCOUNT]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED_APPROVAL_ACCOUNT.route,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.route},
@@ -563,7 +559,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {path: ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {path: ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
-                            path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.route,
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.route,
@@ -572,7 +568,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.route,
                         },
                         [SCREENS.WORKSPACE.SHARE]: {
-                            path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
+                            path: ROUTES.WORKSPACE_OVERVIEW_SHARE.route,
                         },
                         [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: {
                             path: ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.route,
@@ -882,7 +878,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS,
                         },
-                        [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_PROFILE_NAME.route,
+                        [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_OVERVIEW_NAME.route,
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
@@ -975,6 +971,30 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY]: {
                             path: ROUTES.WORKSPACE_PER_DIEM_EDIT_CURRENCY.route,
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
+                    screens: {
+                        [SCREENS.TWO_FACTOR_AUTH.ROOT]: {
+                            path: ROUTES.SETTINGS_2FA_ROOT.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.VERIFY]: {
+                            path: ROUTES.SETTINGS_2FA_VERIFY.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
+                            path: ROUTES.SETTINGS_2FA_SUCCESS.route,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.DISABLED]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLED,
+                            exact: true,
+                        },
+                        [SCREENS.TWO_FACTOR_AUTH.DISABLE]: {
+                            path: ROUTES.SETTINGS_2FA_DISABLE,
+                            exact: true,
                         },
                     },
                 },
@@ -1565,7 +1585,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,
                 },
-                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_PROFILE.route,
+                [SCREENS.WORKSPACE.PROFILE]: ROUTES.WORKSPACE_OVERVIEW.route,
                 [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
                     path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
                 },
