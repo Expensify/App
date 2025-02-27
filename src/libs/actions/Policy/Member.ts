@@ -19,7 +19,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover} from '@libs/PolicyUtils';
+import {getDefaultApprover, isUserPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -38,6 +38,12 @@ type RoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
     onyxSuccessData: OnyxUpdate[];
     onyxFailureData: OnyxUpdate[];
+};
+
+type PreferredExporterOnyxData = {
+    optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
 };
 
 type NewCustomUnit = {
@@ -317,36 +323,62 @@ function removeOptimisticRoomMembers(
 }
 /** This function will reset the preferred exporter to the owner of the workspace
  * if the current preferred exporter is removed from the admin role.
+ * @param [policyID] The id of the policy.
+ * @param [loginList] The logins of the users whose roles are being updated to non-admin role or are removed from a workspace
  */
-function resetAccountingPreferredExporter(policyID: string, loginList: string[]) {
+function resetAccountingPreferredExporter(policyID: string, loginList: string[]): PreferredExporterOnyxData {
     const policy = getPolicy(policyID);
     const owner = ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const adminLoginList = loginList.filter((login) => isUserPolicyAdmin(policy, login));
+    const connections = [CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.POLICY.CONNECTIONS.NAME.QBD];
 
-    if (policy?.connections?.xero?.config.export.exporter && loginList.includes(policy?.connections?.xero?.config.export.exporter)) {
+    connections.forEach((connection) => {
+        if (!policy?.connections?.[connection]?.config.export.exporter || !adminLoginList.includes(policy?.connections?.[connection]?.config.export.exporter)) {
+            return;
+        }
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                connections: {xero: {config: {export: {exporter: owner}, pendingFields: {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+                connections: {
+                    [connection]: {
+                        config: {
+                            export: {exporter: owner},
+                            pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        },
+                    },
+                },
             },
         });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                connections: {xero: {config: {pendingFields: {exporter: null}}}},
+                connections: {[connection]: {config: {pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: null}}}},
             },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {connections: {xero: {config: {export: {exporter: policy?.connections?.xero?.config.export.exporter}, pendingFields: {exporter: null}}}}},
+            value: {
+                connections: {
+                    [connection]: {
+                        config: {
+                            export: {exporter: policy?.connections?.[connection]?.config.export.exporter},
+                            pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: null},
+                        },
+                    },
+                },
+            },
         });
-    } else if (policy?.connections?.netsuite?.options.config.exporter && loginList.includes(policy?.connections?.netsuite?.options.config.exporter)) {
+    });
+
+    if (policy?.connections?.netsuite?.options.config.exporter && adminLoginList.includes(policy?.connections?.netsuite?.options.config.exporter)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -365,72 +397,6 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {connections: {netsuite: {options: {config: {exporter: policy?.connections?.netsuite?.options.config.exporter, pendingFields: {exporter: null}}}}}},
-        });
-    } else if (policy?.connections?.quickbooksOnline?.config.export.exporter && loginList.includes(policy?.connections?.quickbooksOnline?.config.export.exporter)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                connections: {quickbooksOnline: {config: {export: {exporter: owner}, pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                connections: {quickbooksOnline: {config: {pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                connections: {
-                    quickbooksOnline: {
-                        config: {export: {exporter: policy?.connections?.quickbooksOnline?.config.export.exporter}, pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
-                    },
-                },
-            },
-        });
-    } else if (policy?.connections?.intacct?.config.export.exporter && loginList.includes(policy?.connections?.intacct?.config.export.exporter)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                connections: {intacct: {config: {export: {exporter: owner}, pendingFields: {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                connections: {intacct: {config: {pendingFields: {exporter: null}}}},
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {connections: {intacct: {config: {export: {exporter: policy?.connections?.intacct?.config.export.exporter}, pendingFields: {exporter: null}}}}},
-        });
-    } else if (policy?.connections?.quickbooksDesktop?.config.export.exporter && loginList.includes(policy?.connections?.quickbooksDesktop?.config.export.exporter)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                connections: {quickbooksDesktop: {config: {export: {exporter: owner}, pendingFields: {exporter: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                connections: {quickbooksDesktop: {config: {pendingFields: {exporter: null}}}},
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {connections: {quickbooksDesktop: {config: {export: {exporter: policy?.connections?.quickbooksDesktop?.config.export.exporter}, pendingFields: {exporter: null}}}}},
         });
     }
 
@@ -551,9 +517,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
     ];
     failureData.push(...announceRoomMembers.onyxFailureData, ...adminRoomMembers.onyxFailureData);
 
-    const previousAdminLogins = emailList.filter((login) => policy?.employeeList?.[login]?.role === CONST.POLICY.ROLE.ADMIN);
-    if (previousAdminLogins.length) {
-        const preferredExporterOnyxData = resetAccountingPreferredExporter(policyID, previousAdminLogins);
+    if (emailList.length) {
+        const preferredExporterOnyxData = resetAccountingPreferredExporter(policyID, emailList);
         optimisticData.push(...preferredExporterOnyxData.optimisticData);
         successData.push(...preferredExporterOnyxData.successData);
         failureData.push(...preferredExporterOnyxData.failureData);
@@ -719,8 +684,10 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
     ];
 
     if (newRole !== CONST.POLICY.ROLE.ADMIN) {
-        const previousAdminLogins = memberRoles.filter((member) => previousEmployeeList[member.email]?.role === CONST.POLICY.ROLE.ADMIN).map((member) => member.email);
-        const preferredExporterOnyxData = resetAccountingPreferredExporter(policyID, previousAdminLogins);
+        const preferredExporterOnyxData = resetAccountingPreferredExporter(
+            policyID,
+            memberRoles.map((member) => member.email),
+        );
         optimisticData.push(...preferredExporterOnyxData.optimisticData);
         successData.push(...preferredExporterOnyxData.successData);
         failureData.push(...preferredExporterOnyxData.failureData);
