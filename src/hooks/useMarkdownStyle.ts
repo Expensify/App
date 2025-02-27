@@ -53,13 +53,13 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 paddingRight: 1,
             },
             code: {
-                ...FontUtils.fontFamily.platform.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 fontSize: 13, // TODO: should be 15 if inside h1, see StyleUtils.getCodeFontSize
                 color: theme.text,
-                borderColor: '#1A3D32',
-                backgroundColor: '#072419',
                 paddingVertical: 0,
                 paddingHorizontal: 5,
+                borderColor: theme.border,
+                backgroundColor: theme.textBackground,
             },
             pre: {
                 ...FontUtils.fontFamily.platform.MONOSPACE,
@@ -67,8 +67,8 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 color: theme.text,
                 paddingVertical: 8,
                 paddingHorizontal: 12,
-                borderColor: '#1A3D32',
-                backgroundColor: '#072419',
+                borderColor: theme.border,
+                backgroundColor: theme.textBackground,
             },
             mentionHere: {
                 color: theme.ourMentionText,
