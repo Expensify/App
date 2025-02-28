@@ -42,7 +42,9 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const primaryContactMethod = getContactMethod();
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const [isMaintenanceModalVisible, setMaintenanceModalVisibility] = useState(false);
 
