@@ -250,7 +250,7 @@ describe('actions/Policy', () => {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 waitForCollectionCallback: false,
                 callback: (policy) => {
-                    // Chekck if the autoReportingFrequency is updated to instand
+                    // Then workflows are not enabled
                     expect(policy?.areWorkflowsEnabled).toBeFalsy();
                 },
             });
