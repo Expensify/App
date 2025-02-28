@@ -7,6 +7,7 @@ import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/R
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import CONST from '@src/CONST';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
@@ -20,7 +21,7 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/non-nullable-type-assertion-style
     const action = Object.values(reportActions ?? {})?.find((reportAction) => {
-        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : -1;
+        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
         return IOUTransactionID === props.transaction?.transactionID;
     });
 
@@ -33,7 +34,7 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
             <ReportActionItem
                 action={action}
                 report={report}
-                parentReportAction={getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '')}
+                parentReportAction={getReportAction(report?.parentReportID ?? undefined, report?.parentReportActionID ?? undefined)}
                 index={props.index}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={false}
