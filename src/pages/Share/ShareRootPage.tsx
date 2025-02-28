@@ -24,7 +24,7 @@ function ShareRootPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isFileScannable, setIsFileScannable] = useState(false);
-    const imageFileFormats = Object.values(CONST.IMAGE_FILE_FORMAT) as string[];
+    const receiptFileFormats = Object.values(CONST.RECEIPT_ALLOWED_FILE_TYPES) as string[];
     const shareFileMimetypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
 
     const handleProcessFiles = useCallback(() => {
@@ -41,7 +41,7 @@ function ShareRootPage() {
             }
             if (tempFile) {
                 if (tempFile.mimeType) {
-                    if (imageFileFormats.includes(tempFile.mimeType)) {
+                    if (receiptFileFormats.includes(tempFile.mimeType)) {
                         setIsFileScannable(true);
                     } else {
                         setIsFileScannable(false);
@@ -52,7 +52,7 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             }
         });
-    }, [imageFileFormats, shareFileMimetypes, translate]);
+    }, [receiptFileFormats, shareFileMimetypes, translate]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
