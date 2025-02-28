@@ -155,16 +155,14 @@ test('[SelectionList] should scroll and select a few items', async () => {
     const eventData = {
         nativeEvent: {
             contentOffset: {
-                y: rowHeight * 5,
+                y: rowHeight * 2,
             },
             contentSize: {
-                // Dimensions of the scrollable content
-                height: rowHeight * 10,
+                height: rowHeight * 1000,
                 width: 100,
             },
             layoutMeasurement: {
-                // Dimensions of the device
-                height: rowHeight * 5,
+                height: rowHeight * 10,
                 width: 100,
             },
         },
