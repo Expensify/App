@@ -27,7 +27,7 @@ import {getPreservedSplitNavigatorState} from '@navigation/AppNavigator/createSp
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {AuthScreensParamList, RootNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -112,7 +112,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
             const lastSearchRoute = rootState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
 
             if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.ROOT];
+                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
                 const cleanedQuery = handleQueryWithPolicyID(q, activeWorkspaceID);
 
                 Navigation.navigate(
