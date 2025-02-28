@@ -11,7 +11,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
-import {generateDomainFeedsData, getCardFeedKey} from '@libs/CardUtils';
+import {generateDomainFeedData} from '@libs/CardUtils';
 import type {CardFilterItem} from '@libs/FeedUtils';
 import {buildCardFeedsData, buildIndividualCardsData, generateSelectedCards, getSelectedCardsFromFeeds} from '@libs/FeedUtils';
 import Navigation from '@navigation/Navigation';
@@ -32,9 +32,9 @@ function SearchFiltersCardPage() {
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
 
     useEffect(() => {
-        const generatedCards = generateSelectedCards(workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID);
+        const generatedCards = generateSelectedCards(userCardList, workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID);
         setSelectedCards(generatedCards);
-    }, [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds]);
+    }, [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds, userCardList]);
 
     useEffect(() => {
         openSearchFiltersCardPage();
@@ -45,7 +45,7 @@ function SearchFiltersCardPage() {
         [workspaceCardFeeds, userCardList, personalDetails, selectedCards],
     );
 
-    const domainFeedsData = useMemo(() => generateDomainFeedsData(userCardList), [userCardList]);
+    const domainFeedsData = useMemo(() => generateDomainFeedData(userCardList), [userCardList]);
 
     const cardFeedsSectionData = useMemo(
         () => buildCardFeedsData(workspaceCardFeeds ?? {}, domainFeedsData, selectedCards, translate),
@@ -101,7 +101,7 @@ function SearchFiltersCardPage() {
 
     const handleConfirmSelection = useCallback(() => {
         const feeds = cardFeedsSectionData.selected.map((feed) => feed.cardFeedKey);
-        const cardsFromSelectedFeed = getSelectedCardsFromFeeds(workspaceCardFeeds, feeds);
+        const cardsFromSelectedFeed = getSelectedCardsFromFeeds(userCardList, workspaceCardFeeds, feeds);
         const IDs = selectedCards.filter((card) => !cardsFromSelectedFeed.includes(card));
 
         updateAdvancedFilters({
@@ -110,7 +110,7 @@ function SearchFiltersCardPage() {
         });
 
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [selectedCards, cardFeedsSectionData.selected, workspaceCardFeeds]);
+    }, [userCardList, selectedCards, cardFeedsSectionData.selected, workspaceCardFeeds]);
 
     const updateNewCards = useCallback(
         (item: CardFilterItem) => {

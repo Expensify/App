@@ -1,16 +1,18 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {DomainFeedData} from './CardUtils';
-import {generateDomainFeedsData, getBankName, getCardFeedIcon, getCardFeedKey, getWorkspaceCardFeedKey, isCard, isCardHiddenFromSearch} from './CardUtils';
-import {translateLocal} from './Localize';
+import {generateDomainFeedData, getBankName, getCardFeedIcon, isCard, isCardHiddenFromSearch} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
+type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
+type CardFeedData = {cardName: string; bank: string; label?: string; type: 'domain' | 'workspace'};
 
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
@@ -25,6 +27,32 @@ function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Re
         bankFrequency[domainFeed.bank] = (bankFrequency[domainFeed.bank] || 0) + 1;
     }
     return Object.keys(bankFrequency).filter((bank) => bankFrequency[bank] > 1);
+}
+
+/**
+ * @returns string with the 'cards_' part removed from the beginning
+ */
+function getCardFeedKey(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined, workspaceFeedKey: string) {
+    const workspaceFeed = workspaceCardFeeds ? workspaceCardFeeds[workspaceFeedKey] : undefined;
+    if (!workspaceFeed) {
+        return;
+    }
+    const representativeCard = Object.values(workspaceFeed).find((cardFeedItem) => isCard(cardFeedItem));
+    if (!representativeCard) {
+        return;
+    }
+    const {fundID, bank} = representativeCard;
+    return createCardFeedKey(fundID, bank);
+}
+
+/**
+ * @returns string with added 'cards_' substring at the beginning
+ */
+function getWorkspaceCardFeedKey(cardFeedKey: string) {
+    if (!cardFeedKey.startsWith(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST)) {
+        return `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeedKey}`;
+    }
+    return cardFeedKey;
 }
 
 function createIndividualCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[]): CardFilterItem {
@@ -83,9 +111,7 @@ function buildIndividualCardsData(
     return {selected: selectedCardItems, unselected: unselectedCardItems};
 }
 
-type CardFeedData = {cardName: string; bank: string; label?: string};
-
-function getWorkspaceFeedData(cardFeed: WorkspaceCardsList | undefined, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData | undefined {
+function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData | undefined {
     const cardFeedArray = Object.values(cardFeed ?? {});
     const representativeCard = cardFeedArray.find((cardFeedItem) => isCard(cardFeedItem));
     if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && !isCardHiddenFromSearch(cardFeedItem))) {
@@ -102,10 +128,11 @@ function getWorkspaceFeedData(cardFeed: WorkspaceCardsList | undefined, repeatin
         cardName,
         bank,
         label: cardFeedLabel,
+        type: 'workspace',
     };
 }
 
-function getDomainFeedData(domainFeed: DomainFeedData, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData {
+function getDomainCardFeedData(domainFeed: DomainFeedData, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData {
     const {domainName, bank} = domainFeed;
     const isBankRepeating = repeatingBanks.includes(bank);
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
@@ -115,46 +142,56 @@ function getDomainFeedData(domainFeed: DomainFeedData, repeatingBanks: string[],
         cardName,
         bank,
         label: cardFeedLabel,
+        type: 'domain',
     };
 }
 
 type GetCardFeedData = {
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>;
     userCardList: CardList;
-    translate?: LocaleContextProps['translate'];
+    translate: LocaleContextProps['translate'];
 };
 
-function getCardFeedsData({workspaceCardFeeds, userCardList, translate: propsTranslate}: GetCardFeedData) {
-    const domainFeeds = generateDomainFeedsData(userCardList);
-    const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeeds);
-    const data: Record<string, CardFeedData> = {};
-    const translate = propsTranslate ?? translateLocal;
+function getCardFeedsData({workspaceCardFeeds, userCardList, translate}: GetCardFeedData) {
+    const domainFeedData = generateDomainFeedData(userCardList);
+    const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedData);
+    const cardFeedData: Record<string, CardFeedData> = {};
 
     Object.entries(workspaceCardFeeds)
         .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
         .forEach(([cardFeedKey, cardFeed]) => {
-            const workspaceData = getWorkspaceFeedData(cardFeed, repeatingBanks, translate);
+            const workspaceData = getWorkspaceCardFeedData(cardFeed, repeatingBanks, translate);
             if (workspaceData) {
-                data[cardFeedKey] = workspaceData;
+                cardFeedData[cardFeedKey] = workspaceData;
             }
         });
 
-    Object.values(domainFeeds).forEach((domainFeed) => {
-        data[`${domainFeed.fundID}_${domainFeed.bank}`] = getDomainFeedData(domainFeed, repeatingBanks, translate);
+    Object.values(domainFeedData).forEach((domainFeed) => {
+        const cardFeedKey = createCardFeedKey(domainFeed.fundID, domainFeed.bank);
+        cardFeedData[cardFeedKey] = getDomainCardFeedData(domainFeed, repeatingBanks, translate);
     });
 
-    return data;
+    return cardFeedData;
 }
 
-/* eslint-disable no-param-reassign */
-function getCardFeedNames(params: GetCardFeedData) {
-    const data = getCardFeedsData(params);
-    return Object.keys(data).reduce<Record<string, string>>((result, key) => {
-        result[key] = data[key].cardName;
-        return result;
+function getCardFeedNamesWithType(params: GetCardFeedData) {
+    const cardFeedData = getCardFeedsData(params);
+    return Object.keys(cardFeedData).reduce<CardFeedNamesWithType>((cardFeedNamesWithType, cardFeedKey) => {
+        /* eslint-disable-next-line no-param-reassign */
+        cardFeedNamesWithType[cardFeedKey] = {
+            name: cardFeedData[cardFeedKey].cardName,
+            type: cardFeedData[cardFeedKey].type,
+        };
+        return cardFeedNamesWithType;
     }, {});
 }
-/* eslint-enable no-param-reassign */
+
+function createCardFeedKey(fundID: string | undefined, bank: string) {
+    if (!fundID) {
+        return bank;
+    }
+    return `${fundID}_${bank}`;
+}
 
 function createCardFeedItem({
     cardName,
@@ -201,15 +238,15 @@ function buildCardFeedsData(
     Object.values(domainFeedsData).forEach((domainFeed) => {
         const {domainName, bank, correspondingCardIDs} = domainFeed;
 
-        const feedKey = `${domainFeed.fundID}_${bank}`;
-        const {cardName} = getDomainFeedData(domainFeed, repeatingBanks, translate);
+        const cardFeedKey = createCardFeedKey(domainFeed.fundID, bank);
+        const {cardName} = getDomainCardFeedData(domainFeed, repeatingBanks, translate);
 
         const feedItem = createCardFeedItem({
             cardName,
             bank,
             correspondingCardIDs,
             keyForList: `${domainName}-${bank}`,
-            cardFeedKey: feedKey,
+            cardFeedKey,
             selectedCards,
         });
         if (feedItem.isSelected) {
@@ -220,24 +257,25 @@ function buildCardFeedsData(
     });
 
     Object.entries(workspaceCardFeeds)
-        .filter(([, cardFeed]) => !isEmptyObject(cardFeed))
-        .forEach(([cardFeedKey, cardFeed]) => {
-            const correspondingCardIDs = Object.entries(cardFeed ?? {})
+        .filter(([, workspaceFeed]) => !isEmptyObject(workspaceFeed))
+        .forEach(([workspaceFeedKey, workspaceFeed]) => {
+            const correspondingCardIDs = Object.entries(workspaceFeed ?? {})
                 .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
                 .map(([cardKey]) => cardKey);
 
-            const workspaceData = getWorkspaceFeedData(cardFeed, repeatingBanks, translate);
-            if (!workspaceData) {
+            const cardFeedData = getWorkspaceCardFeedData(workspaceFeed, repeatingBanks, translate);
+            if (!cardFeedData) {
                 return;
             }
-            const {cardName, bank} = workspaceData;
+            const {cardName, bank} = cardFeedData;
+            const cardFeedKey = getCardFeedKey(workspaceCardFeeds, workspaceFeedKey);
 
             const feedItem = createCardFeedItem({
                 cardName,
                 bank,
                 correspondingCardIDs,
-                cardFeedKey: getCardFeedKey(workspaceCardFeeds, cardFeedKey),
-                keyForList: cardFeedKey,
+                cardFeedKey: cardFeedKey ?? '',
+                keyForList: workspaceFeedKey,
                 selectedCards,
             });
             if (feedItem.isSelected) {
@@ -250,27 +288,41 @@ function buildCardFeedsData(
     return {selected: selectedFeeds, unselected: unselectedFeeds};
 }
 
-function getSelectedCardsFromFeeds(workspaceCardFeeds?: Record<string, WorkspaceCardsList | undefined>, selectedFeeds?: string[]): string[] {
+function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFeeds?: Record<string, WorkspaceCardsList | undefined>, selectedFeeds?: string[]): string[] {
+    const domainFeedsData = generateDomainFeedData(cards);
+    const domainFeedCards = Object.fromEntries(
+        Object.values(domainFeedsData).map((domainFeedData) => [createCardFeedKey(domainFeedData.fundID, domainFeedData.bank), domainFeedData.correspondingCardIDs]),
+    );
+
     if (!workspaceCardFeeds || !selectedFeeds) {
         return [];
     }
 
-    const selectedCards = selectedFeeds.flatMap((feedId) => {
-        const feed = workspaceCardFeeds[getWorkspaceCardFeedKey(feedId)];
-        if (!feed) {
-            return [];
+    const selectedCards = selectedFeeds.flatMap((cardFeedKey) => {
+        const workspaceCardFeed = workspaceCardFeeds[getWorkspaceCardFeedKey(cardFeedKey)];
+        if (!workspaceCardFeed) {
+            if (!cards || Object.keys(domainFeedCards).length === 0) {
+                return [];
+            }
+
+            return domainFeedCards[cardFeedKey].filter((cardNumber) => cards[cardNumber].state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
         }
 
-        return Object.keys(feed).filter((cardNumber) => feed[cardNumber].state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+        return Object.keys(workspaceCardFeed).filter((cardNumber) => workspaceCardFeed[cardNumber].state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     });
 
     return [...new Set(selectedCards)];
 }
 
-const generateSelectedCards = (workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined, feeds: string[] | undefined, cards: string[] | undefined) => {
-    const selectedCards = getSelectedCardsFromFeeds(workspaceCardFeeds, feeds);
+const generateSelectedCards = (
+    cardList: CardList | undefined,
+    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined,
+    feeds: string[] | undefined,
+    cards: string[] | undefined,
+) => {
+    const selectedCards = getSelectedCardsFromFeeds(cardList, workspaceCardFeeds, feeds);
     return [...new Set([...selectedCards, ...(cards ?? [])])];
 };
 
-export type {CardFilterItem, ItemsGroupedBySelection};
-export {buildIndividualCardsData, getCardFeedNames, buildCardFeedsData, generateSelectedCards, getSelectedCardsFromFeeds};
+export type {CardFilterItem, ItemsGroupedBySelection, CardFeedNamesWithType};
+export {buildIndividualCardsData, getCardFeedNamesWithType, buildCardFeedsData, generateSelectedCards, getSelectedCardsFromFeeds, createCardFeedKey, getCardFeedKey, getWorkspaceCardFeedKey};

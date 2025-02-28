@@ -70,33 +70,6 @@ function isCorporateCard(cardID: number) {
 }
 
 /**
- * @returns string with the 'cards_' part removed from the beginning
- */
-// todo: this works only for workspace cards
-const getCardFeedKey = (workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined, key: string) => {
-    const workspaceFeed = workspaceCardFeeds ? workspaceCardFeeds[key] : undefined;
-    if (!workspaceFeed) {
-        return 'NO_FEED';
-    }
-    const representativeCard = Object.values(workspaceFeed).find((cardFeedItem) => isCard(cardFeedItem));
-    if (!representativeCard) {
-        return 'NO_FEED';
-    }
-    const {fundID, bank} = representativeCard;
-    return `${fundID}_${bank}`;
-};
-
-/**
- * @returns string with added 'cards_' substring at the beginning
- */
-function getWorkspaceCardFeedKey(cardID: string) {
-    if (!cardID.startsWith(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST)) {
-        return `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardID}`;
-    }
-    return cardID;
-}
-
-/**
  * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
@@ -119,15 +92,17 @@ type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: s
  * @param cardList - The list of cards to process. Can be undefined.
  * @returns a record where keys are domain names and values contain domain feed data.
  */
-function generateDomainFeedsData(cardList: CardList | undefined): Record<string, DomainFeedData> {
-    return Object.values(cardList ?? {}).reduce((accumulator, currentCard) => {
+
+function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
+    return Object.values(cardList ?? {}).reduce((domainFeedData, currentCard) => {
         // Cards in cardList can also be domain cards, we use them to compute domain feed
         if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
-            if (accumulator[currentCard.domainName]) {
-                accumulator[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
+            if (domainFeedData[currentCard.domainName]) {
+                domainFeedData[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
             } else {
                 // if the cards belongs to the same domain, every card of it should have the same fundID
-                accumulator[currentCard.domainName] = {
+                // eslint-disable-next-line no-param-reassign
+                domainFeedData[currentCard.domainName] = {
                     fundID: currentCard.fundID,
                     domainName: currentCard.domainName,
                     bank: currentCard.bank,
@@ -135,7 +110,7 @@ function generateDomainFeedsData(cardList: CardList | undefined): Record<string,
                 };
             }
         }
-        return accumulator;
+        return domainFeedData;
     }, {} as Record<string, DomainFeedData>);
 }
 
@@ -602,9 +577,7 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
-    getCardFeedKey,
-    getWorkspaceCardFeedKey,
-    generateDomainFeedsData,
+    generateDomainFeedData,
 };
 
 export type {DomainFeedData};

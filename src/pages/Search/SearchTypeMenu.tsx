@@ -21,7 +21,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import {getCardFeedNames} from '@libs/FeedUtils';
+import {getCardFeedNamesWithType} from '@libs/FeedUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getAllTaxRates} from '@libs/PolicyUtils';
 import {hasInvoiceReports} from '@libs/ReportUtils';
@@ -73,8 +73,8 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
-    const cardFeedNames = useMemo(() => {
-        return getCardFeedNames({workspaceCardFeeds, userCardList, translate});
+    const cardFeedNamesWithType = useMemo(() => {
+        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
     }, [translate, workspaceCardFeeds, userCardList]);
 
     const typeMenuItems: SearchTypeMenuItem[] = [
@@ -126,7 +126,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNames);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
             }
 
             return {
@@ -166,7 +166,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             shouldShowProductTrainingTooltip,
             hideProductTrainingTooltip,
             renderProductTrainingTooltip,
-            cardFeedNames,
+            cardFeedNamesWithType,
         ],
     );
 
@@ -220,7 +220,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
 
     if (shouldUseNarrowLayout) {
-        const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNames));
+        const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType));
 
         return (
             <SearchTypeMenuNarrow

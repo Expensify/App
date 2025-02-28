@@ -8,8 +8,10 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import {getCardDescription, getWorkspaceCardFeedKey} from './CardUtils';
+import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
+import type {CardFeedNamesWithType} from './FeedUtils';
+import {getWorkspaceCardFeedKey} from './FeedUtils';
 import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
@@ -544,7 +546,7 @@ function getFilterDisplayValue(
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     cardList: OnyxTypes.CardList,
-    cardFeedNames: Record<string, string>,
+    cardFeedNamesWithType: CardFeedNamesWithType,
 ) {
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
@@ -569,8 +571,11 @@ function getFilterDisplayValue(
         return getCleanedTagName(filterValue);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        const key = getWorkspaceCardFeedKey(filterValue);
-        return cardFeedNames[key] ?? filterValue;
+        const workspaceFeedKey = getWorkspaceCardFeedKey(filterValue);
+        if (cardFeedNamesWithType[workspaceFeedKey].type === 'workspace') {
+            return cardFeedNamesWithType[workspaceFeedKey].name;
+        }
+        return cardFeedNamesWithType[filterValue].name;
     }
     return filterValue;
 }
@@ -587,7 +592,7 @@ function buildUserReadableQueryString(
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
     cardList: OnyxTypes.CardList,
-    cardFeedNames: Record<string, string>,
+    cardFeedNamesWithType: CardFeedNamesWithType,
 ) {
     const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters;
@@ -619,7 +624,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeedNames),
+                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeedNamesWithType),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);

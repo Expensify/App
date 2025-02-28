@@ -1,4 +1,5 @@
-import {getCardFeedNames, getSelectedCardsFromFeeds} from '@libs/FeedUtils';
+import {getCardFeedNamesWithType, getSelectedCardsFromFeeds} from '@libs/FeedUtils';
+import {translateLocal} from '@libs/Localize';
 import type {WorkspaceCardsList} from '@src/types/onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -57,26 +58,26 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
 
 describe('Feed Utils', () => {
     it('returns display name of workspace & domain cards', () => {
-        const names = getCardFeedNames({workspaceCardFeeds: fakeWorkspace, userCardList: {}});
-        expect(Object.keys(names).length).toBe(2);
-        expect(Object.values(names).every((name) => name === 'All Expensify')).toBe(true);
+        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, userCardList: {}, translate: translateLocal});
+        expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
+        expect(Object.values(cardFeedNamesWithType).every((cardFeedName) => cardFeedName.name === 'All Expensify')).toBe(true);
     });
 
     it('returns feeds to selected cards', () => {
         const feeds = ['22222222_Expensify Card'];
-        const selected = getSelectedCardsFromFeeds(fakeWorkspace, feeds);
+        const selected = getSelectedCardsFromFeeds({}, fakeWorkspace, feeds);
         expect(selected.length).toBe(1);
         expect(selected.at(0)).toEqual('33333333');
     });
 
     it('returns empty object when workspaceCardFeeds is empty', () => {
-        const names = getCardFeedNames({workspaceCardFeeds: {key: {}}, userCardList: {}});
+        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, userCardList: {}, translate: translateLocal});
         expect(names).toEqual({});
     });
 
     it('returns empty array when selectedFeeds contains a non-existent feed', () => {
         const feeds = ['99999999_Expensify Card'];
-        const selected = getSelectedCardsFromFeeds(fakeWorkspace, feeds);
+        const selected = getSelectedCardsFromFeeds({}, fakeWorkspace, feeds);
         expect(selected).toEqual([]);
     });
 });

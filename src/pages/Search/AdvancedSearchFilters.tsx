@@ -18,7 +18,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAllFilters, saveSearch} from '@libs/actions/Search';
 import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import {getCardFeedNames} from '@libs/FeedUtils';
+import {createCardFeedKey, getCardFeedNamesWithType} from '@libs/FeedUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
@@ -213,28 +213,31 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     ],
 };
 
-function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
+function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
-    const workspaceCardFeeds = Object.entries(cards).reduce<Record<string, WorkspaceCardsList>>((acc, [cardKey, card]) => {
-        const groupKey = `${card.fundID}_${card.bank}`;
-        acc[groupKey] = acc[groupKey] ?? {};
-        acc[groupKey][cardKey] = card;
-        return acc;
+    const workspaceCardFeeds = Object.entries(cards).reduce<Record<string, WorkspaceCardsList>>((workspaceCardsFeed, [cardID, card]) => {
+        const workspaceFeedKey = `${createCardFeedKey(card.fundID, card.bank)}`;
+        /* eslint-disable no-param-reassign */
+        workspaceCardsFeed[workspaceFeedKey] = workspaceCardsFeed[workspaceFeedKey] ?? {};
+        workspaceCardsFeed[workspaceFeedKey][cardID] = card;
+        /* eslint-enable no-param-reassign */
+        return workspaceCardsFeed;
     }, {});
 
-    const cardFeedNames = getCardFeedNames({
+    const cardFeedNamesWithType = getCardFeedNamesWithType({
         workspaceCardFeeds,
         userCardList: cards,
+        translate,
     });
 
     const cardNames = Object.values(cards)
-        .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(`${card.fundID}_${card.bank}`))
+        .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(createCardFeedKey(card.fundID, card.bank)))
         .map((card) => getCardDescription(card.cardID, cards));
 
-    const feedNames = Object.keys(cardFeedNames)
-        .filter((feedKey) => feedFilter.includes(feedKey))
-        .map((feedKey) => cardFeedNames[feedKey]);
+    const feedNames = Object.keys(cardFeedNamesWithType)
+        .filter((cardFeedKey) => feedFilter.includes(cardFeedKey))
+        .map((cardFeedKey) => cardFeedNamesWithType[cardFeedKey].name);
 
     return [...feedNames, ...cardNames].join(', ');
 }
@@ -504,7 +507,7 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayCardFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, allCards);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, allCards, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
                         if (!shouldDisplayCardFilter) {
                             return;
