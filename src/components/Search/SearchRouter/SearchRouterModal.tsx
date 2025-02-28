@@ -6,6 +6,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import SearchRouter from './SearchRouter';
@@ -16,6 +17,7 @@ const isMobileWebSafari = isMobileSafari();
 function SearchRouterModal() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
     const viewportOffsetTop = useViewportOffsetTop();
     const safeAreaInsets = useSafeAreaInsets();
@@ -40,7 +42,7 @@ function SearchRouterModal() {
         >
             <KeyboardAvoidingView
                 behavior="padding"
-                style={styles.flex1}
+                style={[styles.flex1, {maxHeight: windowHeight}]}
             >
                 {isSearchRouterDisplayed && (
                     <FocusTrapForModal active={isSearchRouterDisplayed}>
