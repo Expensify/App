@@ -4707,18 +4707,16 @@ function changeReportPolicy(reportID: string, policyID: string){
     const failureData: OnyxUpdate[] = [];
 
     // 1. Optimistically set the policyID on the report (and all its threads)
-    function processReport(currentReportID: string) {
+    function updatePolicyIdForReportAndThreads(currentReportID: string) {
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
         const originalPolicyID = report?.policyID;
 
         if (originalPolicyID) {
-
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
                 value: {policyID},
             });
-    
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
@@ -4737,25 +4735,24 @@ function changeReportPolicy(reportID: string, policyID: string){
             if (!childReportID) {
                 return;
             }
-            processReport(childReportID);
+            updatePolicyIdForReportAndThreads(childReportID);
         });
     }
 
     // Start processing with the initial report
-    processReport(reportID);
+    updatePolicyIdForReportAndThreads(reportID);
 
     // 2. If the old workspace had a workspace chat, mark the report preview action as deleted
     if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
         const oldReportPreviewAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`]?.[reportToMove?.parentReportActionID];
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`,
             value: {[reportToMove?.parentReportActionID]: null},
         });
-    
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportToMove?.parentReportID}`,
             value: {[reportToMove?.parentReportActionID]: oldReportPreviewAction},
         });
     }
@@ -4838,12 +4835,9 @@ function changeReportPolicy(reportID: string, policyID: string){
 
     // 5. If the dismissedProductTraining.changeReportModal is not set, 
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    // Otherwise, return early
-
-    if(nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]){
-        return;
+    if(!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]){
+        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));;
     }
-    Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));
 
     // Call the ChangeReportPolicy API endpoint
     const params = {
