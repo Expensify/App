@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -133,12 +134,15 @@ function isReviewDuplicatesAction(report: Report, policy: Policy, reportTransact
     return false;
 }
 
-function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]) {
+function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>) {
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const hasAllPendingRTERViolations = hasPendingRTERViolation(violations);
+    const x = Object.values(violations ?? {})
+        .flat()
+        .filter((v) => !!v);
+    const hasAllPendingRTERViolations = hasPendingRTERViolation(x);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(
         reportTransactions.map((t) => t.transactionID),
         report,
@@ -150,7 +154,12 @@ function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: 
     return hasAllPendingRTERViolations || (userControllsReport && shouldShowBrokenConnectionViolation);
 }
 
-function getPrimaryAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | undefined {
+function getPrimaryAction(
+    report: Report,
+    policy: Policy,
+    reportTransactions: Transaction[],
+    violations: OnyxCollection<TransactionViolation[]>,
+): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | undefined {
     if (isSubmitAction(report, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }

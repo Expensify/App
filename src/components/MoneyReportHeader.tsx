@@ -11,10 +11,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import getPrimaryAction from '@libs/ReportPrimaryActionUtils';
 import {
     canBeExported,
     canDeleteTransaction,
+    changeMoneyRequestHoldStatus,
     getArchiveReason,
     getBankAccountRoute,
     getMoneyRequestSpendBreakdown,
@@ -117,7 +119,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, moneyRequestReport?.reportID),
         initialValue: [],
     });
@@ -356,6 +358,97 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
 
+    const unholdAction = () => {
+        const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
+
+        const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+        if (!moneyRequestAction) {
+            throw new Error('boom');
+        }
+
+        changeMoneyRequestHoldStatus(moneyRequestAction, ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? moneyRequestAction?.childReportID ?? ''));
+    };
+
+    if (!moneyRequestReport) {
+        return null;
+    }
+    if (!policy) {
+        return null;
+    }
+
+    const action = getPrimaryAction(moneyRequestReport, policy, transactions, violations);
+
+    const actionToOption = {
+        [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
+            <Button
+                success={isWaitingForSubmissionFromCurrentUser}
+                text={translate('common.submit')}
+                style={[styles.mnw120, styles.pv2, styles.pr0]}
+                onPress={() => submitReport(moneyRequestReport)}
+                isDisabled={shouldDisableSubmitButton}
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
+            <Button
+                success
+                onPress={confirmApproval}
+                text="Approve"
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
+            <SettlementButton
+                onlyShowPayElsewhere={onlyShowPayElsewhere}
+                currency={moneyRequestReport?.currency}
+                confirmApproval={confirmApproval}
+                policyID={moneyRequestReport?.policyID}
+                chatReportID={chatReport?.reportID}
+                iouReport={moneyRequestReport}
+                onPress={confirmPayment}
+                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                addBankAccountRoute={bankAccountRoute}
+                shouldHidePaymentOptions={!shouldShowPayButton}
+                shouldShowApproveButton={shouldShowApproveButton}
+                shouldDisableApproveButton={shouldDisableApproveButton}
+                style={[styles.pv2]}
+                formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
+                isDisabled={isOffline && !canAllowSettlement}
+                isLoading={!isOffline && !canAllowSettlement}
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING]: (
+            <ExportWithDropdownMenu
+                policy={policy}
+                report={moneyRequestReport}
+                connectionName={connectedIntegration}
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD]: (
+            <Button
+                success
+                text="Unhold"
+                onPress={unholdAction}
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
+            <Button
+                success
+                text={translate('iou.reviewDuplicates')}
+                style={styles.p0}
+                onPress={() => {
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
+                }}
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH]: (
+            <Button
+                success
+                text={translate('iou.markAsCash')}
+                style={[styles.pv2, styles.pr0]}
+                onPress={markAsCash}
+            />
+        ),
+    };
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -369,70 +462,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
             >
-                {isDuplicate && !shouldUseNarrowLayout && (
-                    <View style={[shouldDuplicateButtonBeSuccess ? styles.ml2 : styles.mh2]}>
-                        <Button
-                            success={shouldDuplicateButtonBeSuccess}
-                            text={translate('iou.reviewDuplicates')}
-                            style={styles.p0}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
-                            }}
-                        />
-                    </View>
-                )}
-                {shouldShowSettlementButton && !shouldUseNarrowLayout && (
-                    <View style={styles.pv2}>
-                        <SettlementButton
-                            onlyShowPayElsewhere={onlyShowPayElsewhere}
-                            currency={moneyRequestReport?.currency}
-                            confirmApproval={confirmApproval}
-                            policyID={moneyRequestReport?.policyID}
-                            chatReportID={chatReport?.reportID}
-                            iouReport={moneyRequestReport}
-                            onPress={confirmPayment}
-                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                            addBankAccountRoute={bankAccountRoute}
-                            shouldHidePaymentOptions={!shouldShowPayButton}
-                            shouldShowApproveButton={shouldShowApproveButton}
-                            shouldDisableApproveButton={shouldDisableApproveButton}
-                            style={[styles.pv2]}
-                            formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
-                            isDisabled={isOffline && !canAllowSettlement}
-                            isLoading={!isOffline && !canAllowSettlement}
-                        />
-                    </View>
-                )}
-                {!!shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
-                    <View style={[styles.pv2]}>
-                        <ExportWithDropdownMenu
-                            policy={policy}
-                            report={moneyRequestReport}
-                            connectionName={connectedIntegration}
-                        />
-                    </View>
-                )}
-                {!!moneyRequestReport && shouldShowSubmitButton && !shouldUseNarrowLayout && (
-                    <View style={styles.pv2}>
-                        <Button
-                            success={isWaitingForSubmissionFromCurrentUser}
-                            text={translate('common.submit')}
-                            style={[styles.mnw120, styles.pv2, styles.pr0]}
-                            onPress={() => submitReport(moneyRequestReport)}
-                            isDisabled={shouldDisableSubmitButton}
-                        />
-                    </View>
-                )}
-                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
-                    <View style={[styles.pv2]}>
-                        <Button
-                            success
-                            text={translate('iou.markAsCash')}
-                            style={[styles.pv2, styles.pr0]}
-                            onPress={markAsCash}
-                        />
-                    </View>
-                )}
+                {action && actionToOption[action]}
             </HeaderWithBackButton>
             {!!isMoreContentShown && (
                 <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
