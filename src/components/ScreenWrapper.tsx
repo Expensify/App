@@ -180,8 +180,8 @@ function ScreenWrapper(
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.closeReactNativeApp(false, false);
+            setRootStatusBarEnabled(false);
         }
-        setRootStatusBarEnabled(false);
     });
 
     const panResponder = useRef(
