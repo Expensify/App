@@ -45,7 +45,7 @@ function getValuesForSignerInfo(directorIDs: string[], reimbursementAccountDraft
         };
     }
 
-    const directorsPrefix = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA.PREFIX;
+    const directorsPrefix = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA.DIRECTOR_PREFIX;
     const signerPrefix = 'signer';
     const signerInfoKeys = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
