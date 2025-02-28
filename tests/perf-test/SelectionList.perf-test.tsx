@@ -105,7 +105,7 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
 
         if (canSelectMultiple) {
             if (selectedIds.includes(item.keyForList)) {
-                setSelectedIds(selectedIds.filter((selectedId) => selectedId === item.keyForList));
+                setSelectedIds(selectedIds.filter((selectedId) => selectedId !== item.keyForList));
             } else {
                 setSelectedIds([...selectedIds, item.keyForList]);
             }
@@ -152,19 +152,18 @@ test('[SelectionList] should render multiple selection and select 3 items', asyn
 });
 
 test('[SelectionList] should scroll and select a few items', async () => {
+    const rowHeight = variables.optionRowWebItemHeight + variables.optionRowListItemPadding;
     const eventData = {
         nativeEvent: {
             contentOffset: {
-                y: variables.optionRowHeight * 5,
+                y: rowHeight * 5,
             },
             contentSize: {
-                // Dimensions of the scrollable content
-                height: variables.optionRowHeight * 10,
+                height: rowHeight * 1000,
                 width: 100,
             },
             layoutMeasurement: {
-                // Dimensions of the device
-                height: variables.optionRowHeight * 5,
+                height: rowHeight * 5,
                 width: 100,
             },
         },
