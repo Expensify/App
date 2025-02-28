@@ -5454,7 +5454,7 @@ const styles = (theme: ThemeColors) =>
             opacity: variables.overlayOpacity,
         },
         sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
-            ...positioning.pFixed,
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             right: 0,
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             height: '100%',
