@@ -37,7 +37,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [preventSelfApprovalError, setPreventSelfApprovalError] = useState('');
     const formRef = useRef<ScrollView>(null);
 
     const updateApprovalWorkflowCallback = useCallback(() => {
@@ -49,13 +48,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             return;
         }
 
-        // Check if there's only one approver and policy's prevent self approval feature is enabled
-        // AND the approver is also in the members list (potential self-approval scenario)
-        if (policy?.preventSelfApproval && approvalWorkflow.approvers.length === 1 && approvalWorkflow.members.some((member) => member.email === approvalWorkflow.approvers[0].email)) {
-            setPreventSelfApprovalError(translate('workflowsEditApprovalsPage.preventSelfApprovalError'));
-            return;
-        }
-
         // We need to remove members and approvers that are no longer in the updated workflow
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
@@ -63,7 +55,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         InteractionManager.runAfterInteractions(() => {
             updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
         });
-    }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID, policy?.preventSelfApproval, translate]);
+    }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
 
     const removeApprovalWorkflowCallback = useCallback(() => {
         if (!initialApprovalWorkflow) {
@@ -122,20 +114,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         setInitialApprovalWorkflow(currentApprovalWorkflow);
     }, [currentApprovalWorkflow, defaultWorkflowMembers, initialApprovalWorkflow, usedApproverEmails]);
 
-    // Check for validation error whenever approval workflow changes
-    // And policy's prevent self approval feature is enabled
-    useEffect(() => {
-        if (!approvalWorkflow) {
-            return;
-        }
-
-        if (policy?.preventSelfApproval && approvalWorkflow.approvers.length === 1 && approvalWorkflow.members.some((member) => member.email === approvalWorkflow.approvers[0].email)) {
-            setPreventSelfApprovalError(translate('workflowsEditApprovalsPage.preventSelfApprovalError'));
-        } else {
-            setPreventSelfApprovalError('');
-        }
-    }, [approvalWorkflow, policy?.preventSelfApproval, translate]);
-
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
@@ -165,10 +143,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                 ref={formRef}
                             />
                             <FormAlertWithSubmitButton
-                                isAlertVisible={!isEmptyObject(approvalWorkflow?.errors) || !!preventSelfApprovalError}
-                                message={preventSelfApprovalError || ''}
+                                isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
                                 onSubmit={updateApprovalWorkflowCallback}
-                                isDisabled={!!preventSelfApprovalError}
                                 onFixTheErrorsLinkPressed={() => {
                                     formRef.current?.scrollTo({y: 0, animated: true});
                                 }}
