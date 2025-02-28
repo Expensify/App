@@ -121,7 +121,7 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
             onSelectRow={onSelectRow}
             initiallyFocusedOptionKey="item-0"
             ListItem={RadioListItem}
-            maxToRenderPerBatch={20}
+            maxToRenderPerBatch={25}
             canSelectMultiple={canSelectMultiple}
         />
     );
