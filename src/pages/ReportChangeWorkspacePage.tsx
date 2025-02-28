@@ -46,7 +46,10 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
-            changeReportPolicy(reportID, policyID ?? '');
+            if (!policyID) {
+                return;
+            }
+            changeReportPolicy(reportID, policyID);
         },
         [reportID],
     );
@@ -120,7 +123,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                         <SelectionList<WorkspaceListItem>
                             ListItem={UserListItem}
                             sections={sections}
-                            onSelectRow={(option) => selectPolicy(option.policyID ?? '')}
+                            onSelectRow={(option) => selectPolicy(option.policyID)}
                             textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                             textInputValue={searchTerm}
                             onChangeText={setSearchTerm}

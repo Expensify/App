@@ -241,6 +241,8 @@ function FeatureTrainingModal({
         );
     }, [
         image,
+        imageHeight,
+        imageWidth,
         contentFitImage,
         illustrationAspectRatio,
         styles.w100,
