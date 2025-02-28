@@ -450,6 +450,13 @@ function removeMembers(accountIDs: number[], policyID: string) {
                     pendingChatMembers,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+                value: {
+                    private_isArchived: true,
+                },
+            },
         );
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -458,13 +465,22 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 pendingChatMembers: null,
             },
         });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
-            value: {
-                pendingChatMembers: null,
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
+                value: {
+                    pendingChatMembers: null,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+                value: {
+                    private_isArchived: false,
+                },
+            },
+        );
     });
     // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
     // optimisticClosedReportActions.forEach((reportAction, index) => {
@@ -994,11 +1010,13 @@ function acceptJoinRequest(reportID: string | undefined, reportAction: OnyxEntry
             },
         },
     ];
-
+    const accountIDToApprove = ReportActionsUtils.isActionableJoinRequest(reportAction)
+        ? ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID
+        : CONST.DEFAULT_NUMBER_ID;
     const parameters = {
         requests: JSON.stringify({
             [ReportActionsUtils.isActionableJoinRequest(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID]: {
-                requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+                requests: [{accountID: accountIDToApprove, adminsRoomMessageReportActionID: reportAction.reportActionID}],
             },
         }),
     };
@@ -1053,11 +1071,13 @@ function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntr
             },
         },
     ];
-
+    const accountIDToApprove = ReportActionsUtils.isActionableJoinRequest(reportAction)
+        ? ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID
+        : CONST.DEFAULT_NUMBER_ID;
     const parameters = {
         requests: JSON.stringify({
             [ReportActionsUtils.isActionableJoinRequest(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID]: {
-                requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+                requests: [{accountID: accountIDToApprove, adminsRoomMessageReportActionID: reportAction.reportActionID}],
             },
         }),
     };
