@@ -4677,7 +4677,6 @@ function clearDeleteTransactionNavigateBackUrl() {
     Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
 }
 
-
 /**
  * Dismisses the change report's policy educational modal so that it doesn't show up again.
  */
@@ -4695,11 +4694,10 @@ function dismissChangePolicyModal() {
     API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL}, {optimisticData});
 }
 
-
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's workspace chat.
  */
-function changeReportPolicy(reportID: string, policyID: string){
+function changeReportPolicy(reportID: string, policyID: string) {
     if (!reportID || !policyID) {
         return;
     }
@@ -4768,29 +4766,27 @@ function changeReportPolicy(reportID: string, policyID: string){
     const policyExpenseChat = getPolicyExpenseChat(currentUserAccountID, policyID);
     const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, reportToMove);
 
-    if (policyExpenseChat){
+    if (policyExpenseChat) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
             value: {[optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction},
         });
-        successData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
-                value: {
-                    [optimisticReportPreviewAction.reportActionID]: {
-                        pendingAction: null,
-                    },
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: {
+                    pendingAction: null,
                 },
             },
-        );
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat.reportID}`,
             value: {[optimisticReportPreviewAction.reportActionID]: null},
         });
-        
+
         // Set the new report preview action it as a parent of the moved report
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4801,7 +4797,7 @@ function changeReportPolicy(reportID: string, policyID: string){
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {parentReportActionID: reportToMove.parentReportActionID},
-        });        
+        });
 
         // Set lastVisibleActionCreated
         optimisticData.push({
@@ -4848,14 +4844,14 @@ function changeReportPolicy(reportID: string, policyID: string){
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY, params, {optimisticData, successData, failureData});
 
-    // 5. If the dismissedProductTraining.changeReportModal is not set, 
+    // 5. If the dismissedProductTraining.changeReportModal is not set,
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]){
+    if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
         Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));
         return;
     }
     Navigation.goBack();
-}   
+}
 
 export type {Video};
 

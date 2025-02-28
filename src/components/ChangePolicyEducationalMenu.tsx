@@ -1,15 +1,14 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import useStyleUtils from '@hooks/useStyleUtils';
-import colors from '@styles/theme/colors';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import ChangeWorkspaceMenuSectionList from './ChangeWorkspaceMenuSectionList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import * as Illustrations from './Icon/Illustrations';
-
 
 type ChangePolicyEducationalMenuProps = {
     /** Method to trigger when pressing outside of the popover menu to close it */
@@ -25,7 +24,6 @@ function ChangePolicyEducationalMenu({onClose, onConfirm}: ChangePolicyEducation
     const navigation = useNavigation();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    
 
     useEffect(() => {
         const unsub = navigation.addListener('beforeRemove', () => {

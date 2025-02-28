@@ -399,7 +399,7 @@ const ROUTES = {
     REPORT_WITH_ID_CHANGE_WORKSPACE: {
         route: 'r/:reportID/change-workspace',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-workspace` as const, backTo),
-    },        
+    },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
@@ -1622,7 +1622,7 @@ const ROUTES = {
     CHANGE_POLICY_EDUCATIONAL: {
         route: 'change-workspace-educational',
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
-    },        
+    },
     TRAVEL_MY_TRIPS: 'travel',
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
