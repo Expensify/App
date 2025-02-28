@@ -415,7 +415,7 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyWorkflows', () => {
-        it('should update delay submission to instant when disabling the workflows feature', async () => {
+        it('should update delayed submission to instant when disabling the workflows feature', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
