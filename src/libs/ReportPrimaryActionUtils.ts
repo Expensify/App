@@ -147,7 +147,7 @@ function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: 
     );
 
     const userControllsReport = isSubmitter || isApprover || isAdmin;
-    return userControllsReport && hasAllPendingRTERViolations && shouldShowBrokenConnectionViolation;
+    return hasAllPendingRTERViolations || (userControllsReport && shouldShowBrokenConnectionViolation);
 }
 
 function getPrimaryAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | undefined {
