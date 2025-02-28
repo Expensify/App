@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Animated, {runOnUI, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import colors from '@styles/theme/colors';
 
 type LoadingBarProps = {shouldShow: boolean};
@@ -16,7 +16,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
             opacity.value = withTiming(1, {duration: 300});
 
             left.value = withTiming(100, {duration: 1200}, () => {
-                runOnUI(() => {
+                requestAnimationFrame(() => {
                     if (shouldShow) {
                         left.value = -30;
                         left.value = withTiming(100, {duration: 1200});
@@ -25,7 +25,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
                             isAnimating.value = false;
                         });
                     }
-                })();
+                });
             });
         } else if (!shouldShow) {
             opacity.value = withTiming(0, {duration: 300}, () => {
