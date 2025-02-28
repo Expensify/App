@@ -280,7 +280,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             (status !== CONST.SEARCH.STATUS.EXPENSE.ALL || shouldGroupByReports) && isReportListItemType(item)
                 ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
                 : !!item.isSelected,
-        [selectedTransactions, status],
+        [selectedTransactions, shouldGroupByReports, status],
     );
 
     const initialNumToRender = useMemo((): number => {
@@ -423,8 +423,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         [isFocused, clearSelectedTransactions],
     );
 
-    const ListItem = useMemo(() => getListItem(type, status, shouldGroupByReports), [type, status]);
-    const sortedData = useMemo(() => getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports), [data, sortBy, sortOrder, status, type]);
+    const ListItem = useMemo(() => getListItem(type, status, shouldGroupByReports), [type, status, shouldGroupByReports]);
+    const sortedData = useMemo(() => getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports), [data, shouldGroupByReports, sortBy, sortOrder, status, type]);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const sortedSelectedData = useMemo(
@@ -505,7 +505,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         }
 
         setSelectedTransactions(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)), data);
-    }, [clearSelectedTransactions, data, selectedTransactions, setSelectedTransactions, status]);
+    }, [clearSelectedTransactions, data, selectedTransactions, setSelectedTransactions, shouldGroupByReports]);
 
     const containerStyles = useMemo(() => [styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3], [type, isSmallScreenWidth, styles]);
     const openReport = useCallback(
