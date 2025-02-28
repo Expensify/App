@@ -1630,7 +1630,6 @@ const translations = {
         title: 'Edit approval workflow',
         deleteTitle: 'Delete approval workflow',
         deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',
-        preventSelfApprovalError: "Members can't submit to themselves with prevent self-approvals enabled. Choose a different approver, or amend the workspace rule.",
     },
     workflowsExpensesFromPage: {
         title: 'Expenses from',
@@ -4718,11 +4717,6 @@ const translations = {
                 unlockFeatureGoToSubtitle: 'Go to',
                 unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `and enable workflows, then add ${featureName} to unlock this feature.`,
                 enableFeatureSubtitle: ({featureName}: FeatureNameParams) => `and enable ${featureName} to unlock this feature.`,
-                preventSelfApprovalsModalText: ({managerEmail}: {managerEmail: string}) =>
-                    `Any members currently approving their own expenses will be removed and replaced with the default approver for this workspace (${managerEmail}).`,
-                preventSelfApprovalsConfirmButton: 'Prevent self-approvals',
-                preventSelfApprovalsModalTitle: 'Prevent self-approvals?',
-                preventSelfApprovalsDisabledSubtitle: "Self approvals can't be enabled until this workspace has at least two approvers.",
             },
             categoryRules: {
                 title: 'Category rules',
