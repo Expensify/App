@@ -226,6 +226,10 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
     return policy?.employeeList?.[currentUserLogin]?.role;
 }
 
+function getPolicyNameByID(policyID: string): string {
+    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? policyID;
+}
+
 /**
  * Check if the policy can be displayed
  * If shouldShowPendingDeletePolicy is true, show the policy pending deletion.
@@ -1485,6 +1489,7 @@ export {
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
+    getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
 };
