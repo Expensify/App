@@ -322,13 +322,14 @@ type GPSPoint = {
     long: number;
 };
 
-type RequestMoneyTransactionParams = BaseTransactionParams & {
+type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     attendees?: Attendee[];
     actionableWhisperReportActionID?: string;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
     receipt?: Receipt;
     waypoints?: WaypointCollection;
+    comment?: string;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode'> & {
