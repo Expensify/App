@@ -341,10 +341,6 @@ const mainWindow = (): Promise<void> => {
                         });
                     });
                 });
-                ipcMain.handle(ELECTRON_EVENTS.RELAUNCH_APP, () => {
-                    app.relaunch();
-                    app.exit(0);
-                });
                 /*
                  * The default origin of our Electron app is app://- instead of https://new.expensify.com or https://staging.new.expensify.com
                  * This causes CORS errors because the referer and origin headers are wrong and the API responds with an Access-Control-Allow-Origin that doesn't match app://-

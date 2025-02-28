@@ -785,8 +785,8 @@ function IOURequestStepConfirmation({
                                 createTransaction(selectedParticipantList, false);
                             });
                         }}
-                        onInitialGetLocationCompleted={(status: PermissionStatus) => {
-                            setIsConfirmed(status === RESULTS.GRANTED || status === RESULTS.LIMITED);
+                        onInitialGetLocationCompleted={() => {
+                            setIsConfirming(false);
                         }}
                     />
                 )}
