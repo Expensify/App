@@ -3853,6 +3853,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
                     pendingFields: {
                         maxExpenseAge: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
+                    isLoading: true,
                 },
             },
         ],
@@ -3864,6 +3865,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
                     pendingFields: {
                         maxExpenseAge: null,
                     },
+                    isLoading: false,
                 },
             },
         ],
@@ -3875,6 +3877,7 @@ function setPolicyMaxExpenseAge(policyID: string, maxExpenseAge: string) {
                     maxExpenseAge: originalMaxExpenseAge,
                     pendingFields: {maxExpenseAge: null},
                     errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                    isLoading: false,
                 },
             },
         ],
