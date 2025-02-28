@@ -2101,6 +2101,7 @@ const translations = {
             trackWorkspaceMessage: 'Aquí hay algunas tareas importantes para ayudarte a configurar tu espacio de trabajo.',
             chatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Aquí te explicamos cómo.',
             adminMessage: 'Como administrador, aprende a gestionar el espacio de trabajo de tu equipo y a enviar gastos tú mismo.',
+            lookingAround: "Expensify es mejor conocido por la gestión de gastos y tarjetas corporativas, pero hacemos mucho más que eso. Dime qué te interesa y te ayudaré a empezar.",
         },
     },
     featureTraining: {

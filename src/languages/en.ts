@@ -2088,7 +2088,8 @@ const translations = {
             manageTeamMessage: 'Here are some important tasks to help get your team’s expenses under control.',
             trackWorkspaceMessage: 'Here are some important tasks to help get your workspace set up.',
             chatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
-            adminMessage: "As an admin, learn how to manage your team's workspace and submit expenses yourself."
+            adminMessage: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
+            lookingAround: "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started."
         },
     },
     featureTraining: {

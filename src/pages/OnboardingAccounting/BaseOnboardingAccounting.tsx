@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -58,6 +59,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const {ONBOARDING_MESSAGES} = getOnboardingMessages();
 
     // If the signupQualifier is VSB, the company size step is skip.
     // So we need to create the new workspace in the accounting step
@@ -174,7 +176,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
                     completeOnboarding(
                         onboardingPurposeSelected,
-                        CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                        ONBOARDING_MESSAGES[onboardingPurposeSelected],
                         undefined,
                         undefined,
                         onboardingAdminsChatReportID ?? undefined,

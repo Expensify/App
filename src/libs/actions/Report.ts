@@ -169,6 +169,9 @@ import {
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
+import getOnboardingMessages from './Welcome/OnboardingFlowTasks';
+
+const {COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES, ONBOARDING_MESSAGES} = getOnboardingMessages();
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -930,7 +933,7 @@ function openReport(
         const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
 
         if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
-            const onboardingMessage = CONST.ONBOARDING_MESSAGES[choice];
+            const onboardingMessage = ONBOARDING_MESSAGES[choice];
             if (choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT) {
                 const updatedTasks = onboardingMessage.tasks.map((task) => (task.type === 'startChat' ? {...task, autoCompleted: true} : task));
                 onboardingMessage.tasks = updatedTasks;
@@ -3637,7 +3640,7 @@ function getReportPrivateNote(reportID: string | undefined) {
 
 function prepareOnboardingOnyxData(
     engagementChoice: OnboardingPurpose,
-    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    data: ValueOf<typeof ONBOARDING_MESSAGES>,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
@@ -3646,12 +3649,12 @@ function prepareOnboardingOnyxData(
     // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
-        data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
+        data = COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
     }
 
     if (engagementChoice === CONST.ONBOARDING_CHOICES.EMPLOYER || engagementChoice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         // eslint-disable-next-line no-param-reassign
-        data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
+        data = COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
@@ -4198,7 +4201,7 @@ function prepareOnboardingOnyxData(
 
 function completeOnboarding(
     engagementChoice: OnboardingPurpose,
-    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    data: ValueOf<typeof ONBOARDING_MESSAGES>,
     firstName = '',
     lastName = '',
     adminsChatReportID?: string,

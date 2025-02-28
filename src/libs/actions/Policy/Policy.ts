@@ -99,6 +99,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getOnboardingMessages from '../Welcome/OnboardingFlowTasks';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<
@@ -2017,7 +2018,8 @@ function buildPolicyData(
     };
 
     if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
-        const onboardingData = ReportUtils.prepareOnboardingOnyxData(engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
+        const {ONBOARDING_MESSAGES} = getOnboardingMessages();
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData(engagementChoice, ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
