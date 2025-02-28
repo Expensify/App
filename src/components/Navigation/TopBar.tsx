@@ -42,10 +42,10 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
     return (
         <View style={styles.w100}>
             <View
-                style={[styles.flexRow, styles.gap4, styles.mh3, styles.mv5, styles.alignItemsCenter, styles.justifyContentBetween]}
+                style={[styles.flexRow, styles.gap4, styles.mh5, styles.mv5, styles.alignItemsCenter, styles.justifyContentBetween]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.ml2]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                     <WorkspaceSwitcherButton policy={policy} />
 
                     <View style={[styles.ml3, styles.flex1]}>

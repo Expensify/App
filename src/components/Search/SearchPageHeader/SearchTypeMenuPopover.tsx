@@ -24,6 +24,7 @@ import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as g
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 
 type SavedSearchMenuItem = MenuItemWithLink & {
@@ -36,9 +37,10 @@ type SavedSearchMenuItem = MenuItemWithLink & {
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
     searchName?: string;
+    shouldGroupByReports?: boolean;
 };
 
-function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProps) {
+function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: SearchTypeMenuNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -93,7 +95,10 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
 
             return {
                 ...baseMenuItem,
-                onSelected: baseMenuItem.onPress,
+                onSelected: () => {
+                    clearAllFilters();
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                },
                 rightComponent: (
                     <ThreeDotsMenu
                         menuItems={getOverflowMenu(baseMenuItem.title ?? '', Number(baseMenuItem.hash ?? ''), item.query ?? '')}
@@ -124,7 +129,14 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
 
     const popoverMenuItems = useMemo(() => {
         const items = typeMenuItems.map((item, index) => {
-            const isSelected = title ? false : index === activeItemIndex;
+            let isSelected = false;
+            if (!title) {
+                if (shouldGroupByReports) {
+                    isSelected = item.translationPath === 'common.expenseReports';
+                } else {
+                    isSelected = index === activeItemIndex;
+                }
+            }
 
             return {
                 text: translate(item.translationPath),
@@ -159,7 +171,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
         }
 
         return items;
-    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, policyID, closeMenu]);
+    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, policyID, closeMenu, shouldGroupByReports]);
 
     const allMenuItems = useMemo(() => {
         const items = [];

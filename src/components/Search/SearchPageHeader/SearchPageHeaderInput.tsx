@@ -44,9 +44,18 @@ type SearchPageHeaderInputProps = {
     onSearchRouterFocus?: () => void;
     searchName?: string;
     inputRightComponent: React.ReactNode;
+    shouldGroupByReports?: boolean;
 };
 
-function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({
+    queryJSON,
+    searchRouterListVisible,
+    hideSearchRouterList,
+    onSearchRouterFocus,
+    searchName,
+    inputRightComponent,
+    shouldGroupByReports,
+}: SearchPageHeaderInputProps) {
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
@@ -249,11 +258,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         {showPopupButton && (
                             <Animated.View
                                 entering={FadeInRight}
-                                exiting={FadeOutRight}
+                                exiting={isFocused ? FadeOutRight : undefined}
                                 style={[styles.pl3]}
                             >
                                 <SearchTypeMenuPopover
                                     queryJSON={queryJSON}
+                                    shouldGroupByReports={shouldGroupByReports}
                                     searchName={searchName}
                                 />
                             </Animated.View>
@@ -332,6 +342,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         ref={listRef}
+                        shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                     />
                 </View>
             </View>
