@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -15,8 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
-import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -33,7 +30,6 @@ type WorkspaceListItem = {
     text: string;
     policyID?: string;
     isPolicyAdmin?: boolean;
-    brickRoadIndicator?: BrickRoad;
 } & ListItem;
 
 function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
@@ -42,58 +38,17 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
-    const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports), [reports]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-
-    const getIndicatorTypeForPolicy = useCallback(
-        (policyId?: string) => {
-            if (policyId && policyId !== activeWorkspaceID) {
-                return brickRoadsForPolicies[policyId];
-            }
-
-            if (Object.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)) {
-                return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-            }
-
-            if (Object.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO)) {
-                return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
-            }
-
-            return undefined;
-        },
-        [activeWorkspaceID, brickRoadsForPolicies],
-    );
-
-    const hasUnreadData = useCallback(
-        // TO DO: Implement checking if policy has some unread data
-        (policyId?: string) => {
-            if (policyId) {
-                return unreadStatusesForPolicies[policyId];
-            }
-
-            return Object.values(unreadStatusesForPolicies).some((status) => status);
-        },
-        [unreadStatusesForPolicies],
-    );
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
-            const newPolicyID = policyID === activeWorkspaceID ? undefined : policyID;
-
-            Navigation.goBack();
-            // On native platforms, we will see a blank screen if we navigate to a new HomeScreen route while navigating back at the same time.
-            // Therefore we delay switching the workspace until after back navigation, using the InteractionManager.
-            changeReportPolicy(reportID, newPolicyID ?? '');
+            changeReportPolicy(reportID, policyID ?? '');
         },
-        [activeWorkspaceID, reportID],
+        [reportID],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
@@ -106,7 +61,6 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
-                brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
@@ -116,19 +70,18 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                         id: policy?.id,
                     },
                 ],
-                isBold: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
                 isPolicyAdmin: isPolicyAdmin(policy),
-                isSelected: activeWorkspaceID === policy?.id,
+                isSelected: report.policyID === policy?.id,
             }));
-    }, [policies, isOffline, currentUserLogin, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);
+    }, [policies, isOffline, currentUserLogin, report.policyID]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
             usersWorkspaces
                 .filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID)),
-        [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID],
+                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, report.policyID)),
+        [debouncedSearchTerm, usersWorkspaces, report.policyID],
     );
 
     const sections = useMemo(() => {
@@ -143,7 +96,6 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     }, [filteredAndSortedUserWorkspaces]);
 
     const headerMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length ? translate('common.noResultsFound') : '';
-    const shouldShowCreateWorkspace = usersWorkspaces.length === 0;
 
     return (
         <ScreenWrapper
@@ -163,18 +115,13 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                         <SelectionList<WorkspaceListItem>
                             ListItem={UserListItem}
                             sections={sections}
-                            onSelectRow={(option) => changeReportPolicy(reportID, option.policyID ?? '')}
+                            onSelectRow={(option) => selectPolicy(option.policyID ?? '')}
                             textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                             textInputValue={searchTerm}
                             onChangeText={setSearchTerm}
                             headerMessage={headerMessage}
-                            shouldShowListEmptyContent={shouldShowCreateWorkspace}
-                            initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
+                            initiallyFocusedOptionKey={report.policyID}
                             showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
-                            showConfirmButton={!!activeWorkspaceID}
-                            shouldUseDefaultTheme
-                            confirmButtonText={translate('workspace.common.clearFilter')}
-                            onConfirm={() => selectPolicy(undefined)}
                         />
                     )}
                 </>

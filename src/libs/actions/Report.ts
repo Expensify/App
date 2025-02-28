@@ -4839,12 +4839,6 @@ function changeReportPolicy(reportID: string, policyID: string){
         value: {[optimisticMovedReportAction.reportActionID]: null},
     });
 
-    // 5. If the dismissedProductTraining.changeReportModal is not set, 
-    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]){
-        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));;
-    }
-
     // Call the ChangeReportPolicy API endpoint
     const params = {
         reportID: reportToMove.reportID,
@@ -4853,6 +4847,14 @@ function changeReportPolicy(reportID: string, policyID: string){
         changePolicyReportActionID: optimisticMovedReportAction.reportActionID,
     };
     API.write(WRITE_COMMANDS.CHANGE_REPORT_POLICY, params, {optimisticData, successData, failureData});
+
+    // 5. If the dismissedProductTraining.changeReportModal is not set, 
+    // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
+    if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]){
+        Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));
+        return;
+    }
+    Navigation.goBack();
 }   
 
 export type {Video};
