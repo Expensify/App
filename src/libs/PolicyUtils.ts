@@ -1322,23 +1322,8 @@ const getDescriptionForPolicyDomainCard = (domainName: string): string => {
     return domainName;
 };
 
-/**
- * Checks if we can enable the "Prevent Self Approvals" feature for the workspace.
- * We can enable it if there are more than 1 approver in the workspace.
- */
-function canEnablePreventSelfApprovals(approvalWorkflows: ApprovalWorkflow[]): boolean {
-    if (approvalWorkflows.length === 0) {
-        return false;
-    }
-
-    const numberOfApproversForDefaultWorkflow = approvalWorkflows.find((workflow) => workflow.isDefault)?.approvers.length;
-
-    return numberOfApproversForDefaultWorkflow ? numberOfApproversForDefaultWorkflow > 1 : false;
-}
-
 export {
     canEditTaxRate,
-    canEnablePreventSelfApprovals,
     extractPolicyIDFromPath,
     escapeTagName,
     getActivePolicies,
