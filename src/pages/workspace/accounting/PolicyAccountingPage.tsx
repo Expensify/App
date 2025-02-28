@@ -33,6 +33,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
+import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -118,7 +119,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption = policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID;
+    const shouldShowCardReconciliationOption = isExpensifyCardFullySetUp(policy, cardSettings);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -292,7 +293,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         return;
                     }
 
-                    const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+                    const iconProps = integrationData?.icon
+                        ? {
+                              icon: integrationData.icon,
+                              iconType: CONST.ICON_TYPE_AVATAR,
+                          }
+                        : {};
 
                     return {
                         ...iconProps,
@@ -416,7 +422,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         <ThreeDotsMenu
                             menuItems={overflowMenu}
                             anchorPosition={threeDotsMenuPosition}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
                         />
                     </View>
                 ),
