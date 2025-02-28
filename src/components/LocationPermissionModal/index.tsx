@@ -11,6 +11,9 @@ import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
 import { useIsFocused } from '@react-navigation/native';
 import Visibility from '@libs/Visibility';
+import lodashDebounce from 'lodash/debounce';
+import { clearUserLocation, setUserLocation } from '@libs/actions/UserLocation';
+import getCurrentPosition from '@libs/getCurrentPosition';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -22,19 +25,47 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     const isFocused = useIsFocused();
+    console.log("[wildebug] ~ index.tsx:163 ~ LocationPermissionModal ~ isFocused:", isFocused)
 
-    useEffect(() => {
-        console.log("[wildebug] ~ index.tsx:27 ~ useEffect ~ isFocused:", isFocused)
-    }, [isFocused]);
+    const checkPermissionAndUpdateLocation = () => {
+        clearUserLocation();
+        getCurrentPosition(
+            (successData) => {
+                setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                onGrant();
+            },
+            () => {},
+            {
+                maximumAge: 0,
+                timeout: CONST.GPS.TIMEOUT,
+            },
+        );
+    }
 
+    const debouncedCheckPermissionAndUpdateLocation = useMemo(() => lodashDebounce(checkPermissionAndUpdateLocation, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [checkPermissionAndUpdateLocation]);
+    isFocused
     useEffect(() => {
+        if (!showModal) {
+            return;
+        }
+
         const unsubscriber = Visibility.onVisibilityChange(() => {
-            console.log("[wildebug] ~ index.tsx:34 ~ unsubscriber ~ Visibility.isVisible():", Visibility.isVisible())
-
+            console.log("[wildebug] ~ index.tsx:54 ~ unsubscriber ~ onVisibilityChange:")
+            debouncedCheckPermissionAndUpdateLocation();
         });
 
-        return unsubscriber;
-    }, []);
+        const intervalId = setInterval(() => {
+            console.log("[wildebug] ~ index.tsx:59 ~ intervalId ~ intervalId:")
+
+            debouncedCheckPermissionAndUpdateLocation();
+        }, CONST.TIMING.LOCATION_UPDATE_INTERVAL);
+
+        return () => {
+            unsubscriber();
+            clearInterval(intervalId);
+        };
+    }, [showModal, debouncedCheckPermissionAndUpdateLocation]);
+
 
 
     useEffect(() => {
@@ -59,7 +90,16 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             if (Linking.openSettings) {
                 Linking.openSettings();
             } else {
-                onDeny?.();
+                console.log('[wildebug] aosidjfiasd')
+
+                // check one more time in case user enabled location before continue
+                getLocationPermission().then((status) => {
+                    if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+                        return onGrant();
+                    }
+        
+                    onDeny?.();
+                });
             }
             setShowModal(false);
             return;
@@ -68,21 +108,30 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     };
 
     const grantLocationPermission = handledBlockedPermission(() => {
+        console.log("[wildebug] ~ grantLocationPermission ~ requestLocationPermission called");
         requestLocationPermission()
             .then((status) => {
+                console.log("[wildebug] ~ grantLocationPermission ~ requestLocationPermission status:", status);
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+                    console.log("[wildebug] ~ grantLocationPermission ~ onGrant called");
                     onGrant();
                 } else {
+                    console.log("[wildebug] ~ grantLocationPermission ~ onDeny called");
+                console.log('[wildebug] asdifmasdf')
+
                     onDeny();
                 }
             })
             .finally(() => {
+                console.log("[wildebug] ~ grantLocationPermission ~ finally block");
                 setShowModal(false);
                 setHasError(false);
             });
     });
 
     const skipLocationPermission = () => {
+        console.log('[wildebug] asidofaisdf')
+
         onDeny();
         setShowModal(false);
         setHasError(false);

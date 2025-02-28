@@ -10,7 +10,6 @@ import {getLocationPermission, requestLocationPermission} from '@pages/iou/reque
 import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
 import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
-import { useIsFocused } from '@react-navigation/native';
 import Visibility from '@libs/Visibility';
 import { clearUserLocation, setUserLocation } from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -126,10 +125,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         setShowModal(false);
         resetPermissionFlow();
     };
-
-    const relaunchApp = () => {
-        window.electron.invoke(ELECTRON_EVENTS.RELAUNCH_APP);
-    }
 
     const locationErrorMessage = useMemo(() => (isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage'), [isWeb]);
 

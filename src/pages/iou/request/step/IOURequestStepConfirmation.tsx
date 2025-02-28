@@ -590,6 +590,7 @@ function IOURequestStepConfirmation({
                             });
                             return;
                         }
+
                         getCurrentPosition(
                             (successData) => {
                                 trackExpense(selectedParticipants, trimmedComment, receiptFile, {
@@ -624,25 +625,32 @@ function IOURequestStepConfirmation({
             }
 
             if (receiptFile && !!transaction) {
+                console.log("[wildebug] ~ IOURequestStepConfirmation.tsx:630 ~ locationPermissionGranted:", locationPermissionGranted)
+
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                     if(userLocation)
                         {
+                    console.log("[wildebug] ~ IOURequestStepConfirmation.tsx:661 ~ userLocation:", userLocation)
+
                             requestMoney(selectedParticipants, trimmedComment, receiptFile, {
                                 lat: userLocation.latitude,
                                 long: userLocation.longitude,
                             });
                             return;
                         }
+                        console.log("[wildebug] ~ IOURequestStepConfirmation.tsx:690 ~ getCurrentPosition:", getCurrentPosition)
 
                     getCurrentPosition(
                         (successData) => {
+                            console.log("[wildebug] ~ IOURequestStepConfirmation.tsx:640 ~ successData:", successData)
                             requestMoney(selectedParticipants, trimmedComment, receiptFile, {
                                 lat: successData.coords.latitude,
                                 long: successData.coords.longitude,
                             });
                         },
                         (errorData) => {
+                            console.log("[wildebug] ~ IOURequestStepConfirmation.tsx:647 ~ errorData:", errorData)
                             Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
                             // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                             requestMoney(selectedParticipants, trimmedComment, receiptFile);
@@ -775,17 +783,20 @@ function IOURequestStepConfirmation({
                         startPermissionFlow={startLocationPermissionFlow}
                         resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                         onGrant={() => {
+                            console.log("[wildebug] ~ LocationPermissionModal onGrant");
                             navigateAfterInteraction(() => {
                                 createTransaction(selectedParticipantList, true);
                             });
                         }}
                         onDeny={() => {
+                            console.log("[wildebug] ~ LocationPermissionModal onDeny");
                             updateLastLocationPermissionPrompt();
                             navigateAfterInteraction(() => {
                                 createTransaction(selectedParticipantList, false);
                             });
                         }}
                         onInitialGetLocationCompleted={() => {
+                            console.log("[wildebug] ~ LocationPermissionModal onInitialGetLocationCompleted");
                             setIsConfirming(false);
                         }}
                     />
