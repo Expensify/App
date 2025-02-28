@@ -1,17 +1,17 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
 import {translateLocal} from '@libs/Localize';
-import Navigation from '@libs/Navigation/Navigation';
-import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
+import type Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import ReportDetailsPage from '@pages/ReportDetailsPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import {Report} from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 
@@ -21,6 +21,7 @@ jest.mock('@react-navigation/native', () => {
         ...actualNav,
         useIsFocused: jest.fn(),
         useRoute: jest.fn(),
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         UNSTABLE_usePreventRemove: jest.fn(),
     };
 });
