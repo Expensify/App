@@ -14,4 +14,5 @@ export default {
     REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
     SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',
     WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
+    PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator',
 } as const;
