@@ -56,18 +56,19 @@ type SearchProps = {
     shouldGroupByReports?: boolean;
 };
 
-const transactionItemMobileHeight = 112;
-
-const mobileItemHeightWithButton = 112;
-const mobileItemHeight = 100;
-
-const webItemHeightWithButton = 112;
-const webItemHeight = 104;
-
-const webItemHeightCompact = 72;
-
-const listItemPadding = 8; // this is equivalent to 'mb3' on every transaction/report list item
-const searchHeaderHeight = 54;
+const ITEM_HEIGHTS = {
+    MOBILE: {
+        TRANSACTION: variables.optionRowTransactionItemMobileHeight + variables.optionRowListItemPadding,
+        WITH_BUTTON: variables.optionRowMobileItemHeightWithButton + variables.optionRowListItemPadding,
+        STANDARD: variables.optionRowMobileItemHeight + variables.optionRowListItemPadding,
+    },
+    WEB: {
+        WITH_BUTTON: variables.optionRowWebItemHeightWithButton + variables.optionRowListItemPadding,
+        STANDARD: variables.optionRowWebItemHeight + variables.optionRowListItemPadding,
+        COMPACT: variables.optionRowWebItemHeightCompact + variables.optionRowListItemPadding,
+    },
+    HEADER: variables.optionRowSearchHeaderHeight,
+};
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
     return [
@@ -229,18 +230,17 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
             const isTransactionItem = isTransactionListItemType(item);
             const isItemBig = isTransactionItem && item.action === 'pay';
-            const mobileHeight = isItemBig ? mobileItemHeightWithButton : mobileItemHeight;
-            const webHeight = isItemBig ? webItemHeightWithButton : webItemHeight;
-            const unifiedWebItemHeight = isLargeScreenWidth ? webItemHeightCompact : webHeight;
             switch (platform) {
                 case CONST.PLATFORM.IOS:
                 case CONST.PLATFORM.ANDROID:
                 case CONST.PLATFORM.MOBILEWEB:
-                    return mobileHeight;
-                case CONST.PLATFORM.WEB:
-                    return unifiedWebItemHeight;
+                    return isItemBig ? ITEM_HEIGHTS.MOBILE.WITH_BUTTON : ITEM_HEIGHTS.MOBILE.STANDARD;
+                case CONST.PLATFORM.WEB: {
+                    const webHeight = isItemBig ? ITEM_HEIGHTS.WEB.WITH_BUTTON : ITEM_HEIGHTS.WEB.STANDARD;
+                    return isLargeScreenWidth ? ITEM_HEIGHTS.WEB.COMPACT : webHeight;
+                }
                 default:
-                    return 100;
+                    return ITEM_HEIGHTS.MOBILE.STANDARD;
             }
         },
         [isLargeScreenWidth, platform],
@@ -288,11 +288,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             return 5;
         }
 
-        const singleItemHeight = isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
-        // Calculate available height (screen height minus headers)
-        const availableHeight = windowHeight - searchHeaderHeight;
-
-        // Calculate how many items can fit in the visible area plus some buffer
+        const singleItemHeight = isLargeScreenWidth ? ITEM_HEIGHTS.WEB.COMPACT : ITEM_HEIGHTS.MOBILE.TRANSACTION;
+        const availableHeight = windowHeight - ITEM_HEIGHTS.HEADER;
         const visibleItemCount = Math.ceil(availableHeight / singleItemHeight);
 
         return Math.ceil(visibleItemCount * 1.5);
@@ -569,7 +566,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             </View>
         );
     }
-    const DEFAULT_ITEM_HEIGHT = shouldUseNarrowLayout ? 72 : 112;
+    const DEFAULT_ITEM_HEIGHT = shouldUseNarrowLayout ? ITEM_HEIGHTS.WEB.COMPACT : ITEM_HEIGHTS.MOBILE.TRANSACTION;
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
@@ -590,7 +587,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             onScroll={onSearchListScroll}
             onContentSizeChange={onContentSizeChange}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
-            customListHeaderHeight={searchHeaderHeight}
+            customListHeaderHeight={ITEM_HEIGHTS.HEADER}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
             // The windowSize determines the number of items rendered before and after the currently visible items.
