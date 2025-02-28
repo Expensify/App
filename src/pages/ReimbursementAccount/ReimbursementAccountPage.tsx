@@ -257,7 +257,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        setReimbursementAccountLoading(true);
+        if (policyIDParam) {
+            setReimbursementAccountLoading(true);
+        }
         clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
