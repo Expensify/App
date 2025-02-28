@@ -27,7 +27,7 @@ import INPUT_IDS from '@src/types/form/AddNewCardFeedForm';
 
 type DetailsStepProps = {
     /** ID of the current policy */
-    policyID: string;
+    policyID: string | undefined;
 };
 
 function DetailsStep({policyID}: DetailsStepProps) {
@@ -199,7 +199,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                         />
                         <TextLink
                             style={[styles.label, styles.textLineHeightNormal, styles.ml2]}
-                            href={CONST.COMPANY_CARDS_HELP}
+                            href={CONST.COMPANY_CARDS_DELIVERY_FILE_HELP[feedProvider]}
                         >
                             {translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.helpLabel`)}
                         </TextLink>
