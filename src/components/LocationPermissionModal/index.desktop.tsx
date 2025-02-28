@@ -26,22 +26,29 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
-    const checkPermissionAndUpdateLocation = () => {
-        clearUserLocation();
-        getCurrentPosition(
-            (successData) => {
-                setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
-                onGrant();
-            },
-            () => {},
-            {
-                maximumAge: 0,
-                timeout: CONST.GPS.TIMEOUT,
-            },
-        );
+    const checkPermission = () => {
+        getLocationPermission().then((status) => {
+            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                return;
+            }
+            onGrant();
+        });
+
+        // clearUserLocation();
+        // getCurrentPosition(
+        //     (successData) => {
+        //         setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+        //         onGrant();
+        //     },
+        //     () => {},
+        //     {
+        //         maximumAge: 0,
+        //         timeout: CONST.GPS.TIMEOUT,
+        //     },
+        // );
     }
 
-    const debouncedCheckPermissionAndUpdateLocation = useMemo(() => lodashDebounce(checkPermissionAndUpdateLocation, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [checkPermissionAndUpdateLocation]);
+    const debouncedCheckPermission = useMemo(() => lodashDebounce(checkPermission, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [checkPermission]);
 
     useEffect(() => {
         if (!showModal) {
@@ -49,18 +56,18 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         }
 
         const unsubscriber = Visibility.onVisibilityChange(() => {
-            debouncedCheckPermissionAndUpdateLocation();
+            debouncedCheckPermission();
         });
 
         const intervalId = setInterval(() => {
-            debouncedCheckPermissionAndUpdateLocation();
+            debouncedCheckPermission();
         }, CONST.TIMING.LOCATION_UPDATE_INTERVAL);
 
         return () => {
             unsubscriber();
             clearInterval(intervalId);
         };
-    }, [showModal, debouncedCheckPermissionAndUpdateLocation]);
+    }, [showModal, debouncedCheckPermission]);
 
 
     useEffect(() => {
