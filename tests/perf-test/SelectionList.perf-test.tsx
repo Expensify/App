@@ -105,7 +105,7 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
 
         if (canSelectMultiple) {
             if (selectedIds.includes(item.keyForList)) {
-                setSelectedIds(selectedIds.filter((selectedId) => selectedId === item.keyForList));
+                setSelectedIds(selectedIds.filter((selectedId) => selectedId !== item.keyForList));
             } else {
                 setSelectedIds([...selectedIds, item.keyForList]);
             }
