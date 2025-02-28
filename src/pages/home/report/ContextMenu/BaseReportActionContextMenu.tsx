@@ -346,7 +346,7 @@ function BaseReportActionContextMenu({
                             openOverflowMenu,
                             setIsEmojiPickerActive,
                             moneyRequestAction,
-                            hasCard: !!card,
+                            card,
                         };
 
                         if ('renderContent' in contextAction) {
