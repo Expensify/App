@@ -237,7 +237,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with disabled workflow if the onboarding purpose is not newDotManageTeam or newDotLookingAround', async () => {
+        it('create a new workspace with disabled workflows if the onboarding choice is not newDotManageTeam or newDotLookingAround', async () => {
             Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND});
             await waitForBatchedUpdates();
 
