@@ -170,10 +170,6 @@ function MoneyRequestAmountForm(
         [currency],
     );
 
-    const onFlipAmount = useCallback(() => {
-        setIsNegative((prevIsNegative) => !prevIsNegative);
-    }, []);
-
     useEffect(() => {
         if (amount >= 0) {
             return;
@@ -356,7 +352,7 @@ function MoneyRequestAmountForm(
                             shouldShowRightIcon
                             small
                             iconRight={Expensicons.PlusMinus}
-                            onPress={onFlipAmount}
+                            onPress={toggleNegative}
                             style={styles.minWidth18}
                             isContentCentered
                             text={translate('iou.flip')}
