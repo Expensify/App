@@ -218,7 +218,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with enabled workflow if the onboarding purpose is newDotManageTeam or newDotLookingAround', async () => {
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
             Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
 
