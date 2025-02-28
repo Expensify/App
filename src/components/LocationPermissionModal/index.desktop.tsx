@@ -14,6 +14,8 @@ import { useIsFocused } from '@react-navigation/native';
 import Visibility from '@libs/Visibility';
 import { clearUserLocation, setUserLocation } from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import lodashDebounce from 'lodash/debounce';
+
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -25,30 +27,41 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
+    const checkPermissionAndUpdateLocation = () => {
+        clearUserLocation();
+        getCurrentPosition(
+            (successData) => {
+                setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                onGrant();
+            },
+            () => {},
+            {
+                maximumAge: 0,
+                timeout: CONST.GPS.TIMEOUT,
+            },
+        );
+    }
+
+    const debouncedCheckPermissionAndUpdateLocation = useMemo(() => lodashDebounce(checkPermissionAndUpdateLocation, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [checkPermissionAndUpdateLocation]);
+
     useEffect(() => {
-        console.log("[wildebug] ~ index.desktop.tsx:32 ~ useEffect ~ useEffect:")
+        if (!showModal) {
+            return;
+        }
+
         const unsubscriber = Visibility.onVisibilityChange(() => {
-
-            clearUserLocation();
-            getCurrentPosition(
-                (successData) => {
-                    console.log("[wildebug] ~ index.tsx:214 ~ useEffect ~ successData:", successData)
-                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
-                    onGrant();
-                },
-                () => {},
-                {
-                    maximumAge: 0,
-                    timeout: CONST.GPS.TIMEOUT,
-                },
-            );
-
-            console.log("[wildebug] ~ index.tsx:34 ~ unsubscriber ~ Visibility.isVisible():", Visibility.isVisible())
-
+            debouncedCheckPermissionAndUpdateLocation();
         });
 
-        return unsubscriber;
-    }, []);
+        const intervalId = setInterval(() => {
+            debouncedCheckPermissionAndUpdateLocation();
+        }, CONST.TIMING.LOCATION_UPDATE_INTERVAL);
+
+        return () => {
+            unsubscriber();
+            clearInterval(intervalId);
+        };
+    }, [showModal, debouncedCheckPermissionAndUpdateLocation]);
 
 
     useEffect(() => {
@@ -106,11 +119,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             return translate('common.continue');
         }
 
-        if(locationSettingOpened) {
-            return translate('common.relaunch');
-        }
-
-        return translate('common.settings');
+        return isWeb ? translate('common.buttonConfirm') : translate('common.settings');
     };
 
     const closeModal = () => {
@@ -122,24 +131,23 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         window.electron.invoke(ELECTRON_EVENTS.RELAUNCH_APP);
     }
 
-    const locationErrorMessage = useMemo(() => (isWeb ? 'receipt.allowLocationFromSetting' : locationSettingOpened ? 'receipt.relaunchToTakeEffect' : 'receipt.locationErrorMessage'), [isWeb, locationSettingOpened]);
+    const locationErrorMessage = useMemo(() => (isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage'), [isWeb]);
 
     return (
         <ConfirmModal
             shouldShowCancelButton={!(isWeb && hasError)}
             onModalHide={() => {
                 setHasError(false);
-                setLocationSettingOpened(false);
                 resetPermissionFlow();
             }}
             isVisible={showModal}
-            onConfirm={hasError && locationSettingOpened ? relaunchApp : grantLocationPermission}
+            onConfirm={grantLocationPermission}
             onCancel={skipLocationPermission}
             onBackdropPress={closeModal}
             confirmText={getConfirmText()}
             cancelText={translate('common.notNow')}
             promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}
-            title={translate(hasError ? (locationSettingOpened ? 'receipt.locationRelaunchTitle' : 'receipt.locationErrorTitle') : 'receipt.locationAccessTitle')}
+            title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
             titleStyles={[styles.textHeadline]}
             iconSource={Illustrations.ReceiptLocationMarker}
