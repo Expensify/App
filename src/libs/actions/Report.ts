@@ -4678,6 +4678,9 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 
+/**
+ * Dismisses the change report's policy educational modal so that it doesn't show up again.
+ */
 function dismissChangePolicyModal() {
     const date = new Date();
     const optimisticData = [
@@ -4693,6 +4696,9 @@ function dismissChangePolicyModal() {
 }
 
 
+/**
+ * Changes the policy of a report and all its child reports, and moves the report to the new policy's workspace chat.
+ */
 function changeReportPolicy(reportID: string, policyID: string){
     if (!reportID || !policyID) {
         return;
@@ -4835,7 +4841,7 @@ function changeReportPolicy(reportID: string, policyID: string){
 
     // 5. If the dismissedProductTraining.changeReportModal is not set, 
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
-    if(!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]){
+    if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]){
         Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));;
     }
 
