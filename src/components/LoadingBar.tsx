@@ -15,23 +15,30 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
             isAnimating.set(true);
             opacity.set(withTiming(1, {duration: 300}));
 
-            left.set(withTiming(100, {duration: 1200}, () => {
-                requestAnimationFrame(() => {
-                    if (shouldShow) {
-                        left.set(-30);
-                        left.set(withTiming(100, {duration: 1200}));
-                    } else {
-                        opacity.set(withTiming(0, {duration: 300}, () => {
-                            isAnimating.set(false);
-                        }));
-                    }
-                });
-            }));
+            left.set(
+                withTiming(100, {duration: 1200}, () => {
+                    requestAnimationFrame(() => {
+                        if (shouldShow) {
+                            left.set(-30);
+                            left.set(withTiming(100, {duration: 1200}));
+                        } else {
+                            opacity.set(
+                                withTiming(0, {duration: 300}, () => {
+                                    isAnimating.set(false);
+                                }),
+                            );
+                        }
+                    });
+                }),
+            );
         } else if (!shouldShow) {
-            opacity.set(withTiming(0, {duration: 300}, () => {
-                isAnimating.set(false);
-            }));
+            opacity.set(
+                withTiming(0, {duration: 300}, () => {
+                    isAnimating.set(false);
+                }),
+            );
         }
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShow]);
 
     const barStyle = useAnimatedStyle(() => ({
