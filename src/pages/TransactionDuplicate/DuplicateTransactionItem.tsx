@@ -35,7 +35,6 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
                 report={report}
                 parentReportAction={ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '')}
                 index={props.index}
-                reportActions={Object.values(reportActions ?? {})}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={false}
                 isMostRecentIOUReportAction={false}
