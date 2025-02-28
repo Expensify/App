@@ -174,6 +174,7 @@ function ReportActionsList({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
     const participantsContext = useContext(PersonalDetailsContext);
+    const [scrollOffset, setScrollOffset] = useState(0);
 
     useEffect(() => {
         const unsubscriber = Visibility.onVisibilityChange(() => {
@@ -501,6 +502,7 @@ function ReportActionsList({
     };
 
     const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        setScrollOffset(event.nativeEvent.contentOffset.y);
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
         onScroll?.(event);
@@ -607,7 +609,6 @@ function ReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
-                reportActions={sortedReportActions}
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 index={index}
@@ -633,7 +634,6 @@ function ReportActionsList({
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             parentReportAction,
-            sortedReportActions,
             transactionThreadReport,
             parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
@@ -698,6 +698,13 @@ function ReportActionsList({
 
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
+
+        requestAnimationFrame(() => {
+            reportScrollManager.ref?.current?.scrollToOffset({
+                offset: scrollingVerticalOffset.current - scrollOffset,
+                animated: false,
+            });
+        });
     }, [loadOlderChats]);
 
     // Parse Fullstory attributes on initial render
