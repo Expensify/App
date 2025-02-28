@@ -49,7 +49,7 @@ function ProcessMoneyRequestHoldMenu({onClose, onConfirm}: ProcessMoneyRequestHo
             confirmText={translate('common.buttonConfirm')}
             image={Illustrations.HoldExpense}
             contentFitImage="cover"
-            width={variables.changePolicyEducationModalWidth}
+            width={variables.holdEducationModalWidth}
             illustrationAspectRatio={39 / 22}
             contentInnerContainerStyles={styles.mb5}
             modalInnerContainerStyle={styles.pt0}
