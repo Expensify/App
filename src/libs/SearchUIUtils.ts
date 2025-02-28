@@ -1,4 +1,5 @@
 import type {TextStyle, ViewStyle} from 'react-native';
+import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -73,6 +74,14 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
+
+let currentAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        currentAccountID = session?.accountID;
+    },
+});
 
 const emptyPersonalDetails = {
     accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
@@ -355,7 +364,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     ) as SearchTransaction[];
 
     const allViolations = Object.fromEntries(Object.entries(data).filter(([itemKey]) => isViolationEntry(itemKey))) as OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    const shouldShowReview = hasViolations(report.reportID, allViolations, undefined, allReportTransactions);
+    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
+    const isSubmitter = report.ownerAccountID === currentAccountID;
+    const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isApprover = report.managerID === currentAccountID;
+    const shouldShowReview = hasViolations(report.reportID, allViolations, undefined, allReportTransactions) && (isSubmitter || isApprover || isAdmin);
 
     if (shouldShowReview) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
@@ -366,8 +379,6 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     if (isTransaction && !data[key].isFromOneTransactionReport) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
-
-    const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? {};
 
     const invoiceReceiverPolicy =
         isInvoiceReport(report) && report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS
