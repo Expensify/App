@@ -167,7 +167,6 @@ function AddressFormFields({
                         modalHeaderTitle={translate('countryStep.selectCountry')}
                         searchInputTitle={translate('countryStep.findCountry')}
                         value={values?.country}
-                        defaultValue={defaultValues?.country}
                         onValueChange={handleCountryChange}
                         stateInputIDToReset={inputKeys.state ?? 'stateInput'}
                     />
