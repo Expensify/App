@@ -5399,7 +5399,7 @@ function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicyID, toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
     const message = translateLocal('report.actions.type.changeReportPolicy', {
-        fromPolicyName: !!fromPolicyID ? getPolicyNameByID(fromPolicyID) : undefined,
+        fromPolicyName: fromPolicyID ? getPolicyNameByID(fromPolicyID) : undefined,
         toPolicyName: getPolicyNameByID(toPolicyID),
     });
     return message;
