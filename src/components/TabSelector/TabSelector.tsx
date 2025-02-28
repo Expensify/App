@@ -112,6 +112,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
 }
 
 TabSelector.displayName = 'TabSelector';
+
 export default TabSelector;
 
 export type {TabSelectorProps};

@@ -149,6 +149,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
             const visibleTooltip = determineVisibleTooltip();
+
             // If this is the highest priority visible tooltip, show it
             if (tooltipName === visibleTooltip) {
                 return true;
@@ -228,7 +229,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                 </View>
                 {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pb1]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pv2]}>
                         <Button
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
@@ -256,9 +257,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.justifyContentCenter,
         styles.mw100,
         styles.p2,
-        styles.pb1,
         styles.ph1,
         styles.productTrainingTooltipText,
+        styles.pv2,
         styles.textAlignCenter,
         styles.textBold,
         styles.textWrap,
@@ -270,6 +271,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const shouldShowProductTrainingTooltip = useMemo(() => {
         return shouldShow && shouldRenderTooltip(tooltipName);
     }, [shouldRenderTooltip, tooltipName, shouldShow]);
+
     const hideProductTrainingTooltip = useCallback(() => {
         if (!shouldShowProductTrainingTooltip) {
             return;

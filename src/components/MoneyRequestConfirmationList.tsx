@@ -975,6 +975,7 @@ function MoneyRequestConfirmationList({
                         message={errorMessage}
                     />
                 )}
+
                 <EducationalTooltip
                     shouldRender={shouldShowProductTrainingTooltip}
                     renderTooltipContent={renderProductTrainingTooltip}
