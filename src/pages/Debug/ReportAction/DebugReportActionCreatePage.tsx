@@ -12,11 +12,9 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as NumberUtils from '@libs/NumberUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import Debug from '@userActions/Debug';
 import CONST from '@src/CONST';
@@ -25,6 +23,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, ReportAction, Session} from '@src/types/onyx';
+import {rand64} from '@libs/NumberUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 
 type DebugReportActionCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION_CREATE>;
 
@@ -32,7 +32,7 @@ const getInitialReportAction = (reportID: string, session: OnyxEntry<Session>, p
     DebugUtils.stringifyJSON({
         actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         reportID,
-        reportActionID: NumberUtils.rand64(),
+        reportActionID: rand64(),
         created: DateUtils.getDBTime(),
         actorAccountID: session?.accountID,
         avatar: (session?.accountID && personalDetailsList?.[session.accountID]?.avatar) ?? '',
@@ -78,7 +78,7 @@ function DebugReportActionCreatePage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={canUseTouchScreen()}
             testID={DebugReportActionCreatePage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (

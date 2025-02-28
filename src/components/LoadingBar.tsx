@@ -11,35 +11,35 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     const isAnimating = useSharedValue(false);
 
     useEffect(() => {
-        if (shouldShow && !isAnimating.value) {
-            isAnimating.value = true;
-            opacity.value = withTiming(1, {duration: 300});
+        if (shouldShow && !isAnimating.get()) {
+            isAnimating.set(true);
+            opacity.set(withTiming(1, {duration: 300}));
 
-            left.value = withTiming(100, {duration: 1200}, () => {
+            left.set(withTiming(100, {duration: 1200}, () => {
                 requestAnimationFrame(() => {
                     if (shouldShow) {
-                        left.value = -30;
-                        left.value = withTiming(100, {duration: 1200});
+                        left.set(-30);
+                        left.set(withTiming(100, {duration: 1200}));
                     } else {
-                        opacity.value = withTiming(0, {duration: 300}, () => {
-                            isAnimating.value = false;
-                        });
+                        opacity.set(withTiming(0, {duration: 300}, () => {
+                            isAnimating.set(false);
+                        }));
                     }
                 });
-            });
+            }));
         } else if (!shouldShow) {
-            opacity.value = withTiming(0, {duration: 300}, () => {
-                isAnimating.value = false;
-            });
+            opacity.set(withTiming(0, {duration: 300}, () => {
+                isAnimating.set(false);
+            }));
         }
     }, [shouldShow]);
 
     const barStyle = useAnimatedStyle(() => ({
-        left: `${left.value}%`,
+        left: `${left.get()}%`,
         width: '30%',
         height: '100%',
         backgroundColor: colors.green,
-        opacity: opacity.value,
+        opacity: opacity.get(),
         borderRadius: 2,
     }));
 
