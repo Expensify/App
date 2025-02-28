@@ -435,7 +435,7 @@ describe('actions/Policy', () => {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                 waitForCollectionCallback: false,
                 callback: (policy) => {
-                    // Chekck if the autoReportingFrequency is updated to instand
+                    // Check if the autoReportingFrequency is updated to instant
                     expect(policy?.areWorkflowsEnabled).toBeFalsy();
                     expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
                 },
