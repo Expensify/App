@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 
 const {
-    PREFIX,
+    DIRECTOR_PREFIX,
     FULL_NAME,
     EMAIL,
     JOB_TITLE,
@@ -38,7 +38,7 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
         }
 
         directorIDs.forEach((directorID: string) => {
-            const fieldKey = `${PREFIX}_${directorID}_${fieldName}`;
+            const fieldKey = `${DIRECTOR_PREFIX}_${directorID}_${fieldName}`;
             if (directorID === 'currentUser') {
                 if (fieldName === DIRECTOR_FULL_NAME) {
                     signerDetails[fieldKey] = String(reimbursementAccountDraft?.[FULL_NAME]);
