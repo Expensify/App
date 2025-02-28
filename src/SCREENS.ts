@@ -198,6 +198,7 @@ const SCREENS = {
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
         DEBUG: 'Debug',
+        ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',

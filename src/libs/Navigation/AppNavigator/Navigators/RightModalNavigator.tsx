@@ -229,6 +229,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
                         component={ModalStackNavigators.MissingPersonalDetailsModalStackNavigator}
                     />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
+                        component={ModalStackNavigators.AddingUnreportedExpenseModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>

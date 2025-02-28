@@ -2134,6 +2134,7 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
     },
+    ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense',
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
         getRoute: (reportID: string | undefined) => `debug/report/${reportID}` as const,

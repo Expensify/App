@@ -569,7 +569,7 @@ function getAllTransactionViolationsLength() {
 }
 
 function getAllTransactions() {
-    return Object.keys(allTransactions ?? {}).length;
+    return allTransactions;
 }
 
 export {

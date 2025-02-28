@@ -712,6 +712,10 @@ const MissingPersonalDetailsModalStackNavigator = createModalStackNavigator<Miss
     [SCREENS.MISSING_PERSONAL_DETAILS_ROOT]: () => require<ReactComponentModule>('../../../../pages/MissingPersonalDetails').default,
 });
 
+const AddingUnreportedExpenseModalStackNavigator = createModalStackNavigator<MissingPersonalDetailsParamList>({
+    [SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/AddUnreportedExpense').default,
+});
+
 const DebugModalStackNavigator = createModalStackNavigator<DebugParamList>({
     [SCREENS.DEBUG.REPORT]: () => require<ReactComponentModule>('../../../../pages/Debug/Report/DebugReportPage').default,
     [SCREENS.DEBUG.REPORT_ACTION]: () => require<ReactComponentModule>('../../../../pages/Debug/ReportAction/DebugReportActionPage').default,
@@ -761,4 +765,5 @@ export {
     MissingPersonalDetailsModalStackNavigator,
     DebugModalStackNavigator,
     WorkspaceConfirmationModalStackNavigator,
+    AddingUnreportedExpenseModalStackNavigator
 };

@@ -385,6 +385,11 @@ function startNewChat() {
     Navigation.navigate(ROUTES.NEW);
 }
 
+function openUnreportedExpense() {
+    clearGroupChat();
+    Navigation.navigate(ROUTES.ADD_UNREPORTED_EXPENSE);
+}
+
 /** Get the private pusher channel name for a Report. */
 function getReportChannelName(reportID: string): string {
     return `${CONST.PUSHER.PRIVATE_REPORT_CHANNEL_PREFIX}${reportID}${CONFIG.PUSHER.SUFFIX}`;
@@ -4739,6 +4744,7 @@ export {
     shouldShowReportActionNotification,
     showReportActionNotification,
     startNewChat,
+    openUnreportedExpense,
     subscribeToNewActionEvent,
     subscribeToReportLeavingEvents,
     subscribeToReportTypingEvents,
