@@ -107,7 +107,6 @@ function DebugReportActionCreatePage({
                                 <ReportActionItem
                                     action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
                                     report={{reportID}}
-                                    reportActions={[]}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}
                                     isMostRecentIOUReportAction={false}

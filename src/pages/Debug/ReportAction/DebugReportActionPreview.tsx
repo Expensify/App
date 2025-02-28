@@ -19,7 +19,6 @@ function DebugReportActionPreview({reportAction}: DebugReportActionPreviewProps)
             <ReportActionItem
                 action={reportAction ?? ({} as ReportAction)}
                 report={report ?? ({} as Report)}
-                reportActions={[]}
                 parentReportAction={undefined}
                 displayAsGroup={false}
                 isMostRecentIOUReportAction={false}
