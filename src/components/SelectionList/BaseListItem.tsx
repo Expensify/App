@@ -90,11 +90,8 @@ function BaseListItem<TItem extends ListItem>({
     }, [onLongPressRow, item]);
 
     const computedPressableStyle = useMemo(
-        () => [
-            pressableStyle,
-            isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-        ],
-        [pressableStyle, isFocused, StyleUtils, item.isSelected, item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG, styles],
+        () => [pressableStyle, isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)],
+        [pressableStyle, isFocused, StyleUtils, item.isSelected, item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG],
     );
 
     const computedWrapperStyle = useMemo(
