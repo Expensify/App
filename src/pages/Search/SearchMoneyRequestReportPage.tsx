@@ -8,6 +8,7 @@ import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +23,7 @@ import SearchTypeMenu from './SearchTypeMenu';
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
 // We will figure out later, when this view is actually being finalized, how to pass down an actual query
-const tempJSONQuery = buildSearchQueryJSON('')!;
+const tempJSONQuery = buildSearchQueryJSON('') as unknown as SearchQueryJSON;
 
 type TemporaryMoneyRequestReportViewProps = {
     /** The report */
@@ -69,10 +70,17 @@ function SearchMoneyRequestReportPage({route}: SearchPageProps) {
 
     if (shouldUseNarrowLayout) {
         return (
-            <TemporaryMoneyRequestReportView
-                report={report}
-                policy={policy}
-            />
+            <ScreenWrapper
+                testID={SearchMoneyRequestReportPage.displayName}
+                shouldEnableMaxHeight
+                offlineIndicatorStyle={styles.mtAuto}
+                headerGapStyles={styles.searchHeaderGap}
+            >
+                <TemporaryMoneyRequestReportView
+                    report={report}
+                    policy={policy}
+                />
+            </ScreenWrapper>
         );
     }
 
