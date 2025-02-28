@@ -238,7 +238,13 @@ type TrackExpenseInformation = {
     onyxData: OnyxData;
 };
 
-type TrackedExpenseTransactionParams = BaseTransactionParams & {waypoints?: string; transactionID: string | undefined; receipt?: Receipt};
+type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
+    waypoints?: string;
+    transactionID: string | undefined;
+    receipt?: Receipt;
+    taxCode: string;
+    taxAmount: number;
+};
 
 type TrackedExpensePolicyParams = {
     policyID: string | undefined;
