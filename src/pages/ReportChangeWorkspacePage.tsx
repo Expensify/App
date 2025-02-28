@@ -11,17 +11,17 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {changeReportPolicy} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyAdmin, isWorkspaceEligibleForReportChange, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import { changeReportPolicy } from '@libs/actions/Report';
-import type { ReportChangeWorkspaceNavigatorParamList } from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { WithReportOrNotFoundProps } from './home/report/withReportOrNotFound';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportChangeWorkspacePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
@@ -57,7 +57,12 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         }
 
         return Object.values(policies)
-            .filter((policy) => shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending)
+            .filter(
+                (policy) =>
+                    shouldShowPolicy(policy, !!isOffline, currentUserLogin) &&
+                    !policy?.isJoinRequestPending &&
+                    isWorkspaceEligibleForReportChange(policy, report?.ownerAccountID, report?.managerID, currentUserLogin),
+            )
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
@@ -74,7 +79,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 isPolicyAdmin: isPolicyAdmin(policy),
                 isSelected: report.policyID === policy?.id,
             }));
-    }, [policies, isOffline, currentUserLogin, report.policyID]);
+    }, [policies, isOffline, currentUserLogin, report.policyID, report?.ownerAccountID, report?.managerID]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () =>
