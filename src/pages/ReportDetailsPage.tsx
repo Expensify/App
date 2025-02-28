@@ -299,7 +299,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID || CONST.DEFAULT_NUMBER_ID}`);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
 
     const shouldShowDeleteButton = isCardTransaction ? transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW : shouldShowTaskDeleteButton || canDeleteRequest;
