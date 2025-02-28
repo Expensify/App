@@ -61,6 +61,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import getPlatform from '@libs/getPlatform';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -220,6 +221,11 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
+
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+
+
     /**
      * Whether a message is NOT from the active user and it was received while the user was offline.
      */
@@ -710,12 +716,14 @@ function ReportActionsList({
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
 
-        requestAnimationFrame(() => {
-            reportScrollManager.ref?.current?.scrollToOffset({
-                offset: scrollingVerticalOffset.current - scrollOffset,
-                animated: false,
+        if (isWebOrDesktop) {
+            requestAnimationFrame(() => {
+                reportScrollManager.ref?.current?.scrollToOffset({
+                    offset: scrollingVerticalOffset.current - scrollOffset,
+                    animated: false,
+                });
             });
-        });
+        }
     }, [loadOlderChats]);
 
     // Parse Fullstory attributes on initial render
