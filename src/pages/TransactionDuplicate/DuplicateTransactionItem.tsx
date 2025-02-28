@@ -5,9 +5,9 @@ import {useOnyx} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import CONST from '@src/CONST';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
