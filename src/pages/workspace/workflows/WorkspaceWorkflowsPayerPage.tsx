@@ -18,6 +18,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -110,10 +111,9 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
-            const filteredOptions = [...formattedPolicyAdmins, ...formattedAuthorizedPayer].filter((option) => {
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
-                return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-            });
+            const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
+            const filteredOptions = tokenizedSearch([...formattedPolicyAdmins, ...formattedAuthorizedPayer], searchValue, (option) => [option.text ?? '', option.login ?? '']);
+
             return [
                 {
                     title: undefined,
