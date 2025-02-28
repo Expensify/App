@@ -1790,7 +1790,7 @@ function buildPolicyData(
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 harvesting: {
-                    enabled: false,
+                    enabled: true,
                 },
                 customUnits,
                 areCategoriesEnabled: true,
