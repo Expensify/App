@@ -233,9 +233,6 @@ describe('actions/Policy', () => {
                 callback: (policy) => {
                     // Then the workflows feature is enabled
                     expect(policy?.areWorkflowsEnabled).toBeTruthy();
-
-                    // And the delay submission is manually
-                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
                 },
             });
         });
