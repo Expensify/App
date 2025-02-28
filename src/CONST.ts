@@ -3444,6 +3444,11 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        TRACK: {
+            SUBMIT: 'submit',
+            CATEGORIZE: 'categorize',
+            SHARE: 'share',
+        },
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -6689,6 +6694,8 @@ const CONST = {
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
+        SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
+        SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
     },
     SMART_BANNER_HEIGHT: 152,
 
