@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
 import Navigation from '@libs/Navigation/Navigation';
 import {substituteRouteParameters} from '@libs/SidePaneUtils';
+import NAVIGATORS from '@src/NAVIGATORS';
 import getHelpContent from './getHelpContent';
 
 function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
@@ -21,10 +22,10 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop} = useSidePane();
 
-    const route = useNavigationState((state) => {
+    const {route, isInNarrowPaneModal} = useNavigationState((state) => {
         const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
         const activeRoute = Navigation.getActiveRouteWithoutParams();
-        return substituteRouteParameters(activeRoute, params);
+        return {route: substituteRouteParameters(activeRoute, params), isInNarrowPaneModal: state.routes.some((r) => r.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)};
     });
 
     const onClose = useCallback(
@@ -55,7 +56,7 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     return (
         <>
             <View>
-                {shouldShowOverlay && !shouldHideSidePaneBackdrop && (
+                {shouldShowOverlay && !shouldHideSidePaneBackdrop && !isInNarrowPaneModal && (
                     <Backdrop
                         onBackdropPress={onClose}
                         style={styles.sidePaneOverlay}
