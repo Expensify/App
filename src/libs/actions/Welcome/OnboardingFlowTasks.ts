@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type {Video} from '@libs/actions/Report';
 import {translateLocal} from '@libs/Localize';
-import CONST from '@src/CONST'
+import CONST from '@src/CONST';
 import type {OnboardingPurpose} from '@src/CONST';
 
 type OnboardingTask = {
@@ -206,16 +206,16 @@ const getOnboardingMessages = () => {
                 tasks: [meetGuideTask, submitExpenseTask, reviewWorkspaceSettingsTask],
             },
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: {
-                message:translateLocal('onboarding.messages.lookingAround'),
+                message: translateLocal('onboarding.messages.lookingAround'),
                 tasks: [],
             },
         } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
-        COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES: {
-            [CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
-            [CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-            [CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-        } satisfies Record<ValueOf<typeof CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES>, OnboardingMessage>,
+        CREATE_EXPENSE_ONBOARDING_MESSAGES: {
+            [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
+            [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+            [CONST.CREATE_EXPENSE_ONBOARDING_CHOICES.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+        } satisfies Record<ValueOf<typeof CONST.CREATE_EXPENSE_ONBOARDING_CHOICES>, OnboardingMessage>,
     };
 };
 

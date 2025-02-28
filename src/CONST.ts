@@ -89,7 +89,7 @@ const onboardingChoices = {
     ...backendOnboardingChoices,
 } as const;
 
-const combinedTrackSubmitOnboardingChoices = {
+const createExpenseOnboardingChoices = {
     PERSONAL_SPEND: selectableOnboardingChoices.PERSONAL_SPEND,
     EMPLOYER: selectableOnboardingChoices.EMPLOYER,
     SUBMIT: backendOnboardingChoices.SUBMIT,
@@ -562,7 +562,6 @@ const CONST = {
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
@@ -3265,6 +3264,11 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        TRACK: {
+            SUBMIT: 'submit',
+            CATEGORIZE: 'categorize',
+            SHARE: 'share',
+        },
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -4971,7 +4975,7 @@ const CONST = {
 
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
-    COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES: {...combinedTrackSubmitOnboardingChoices},
+    CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
@@ -6279,6 +6283,7 @@ const CONST = {
 
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
+        SINGLE_NEW_DOT_ENTRY: 'singleNewDotEntry',
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
@@ -6294,6 +6299,8 @@ const CONST = {
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
+        SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
+        SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
     },
     SMART_BANNER_HEIGHT: 152,
 
