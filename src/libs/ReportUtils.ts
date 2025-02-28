@@ -9,7 +9,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageChangePolicy, OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, NSQSSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
@@ -91,6 +91,7 @@ import {
     getForwardsToAccount,
     getManagerAccountEmail,
     getPolicyEmployeeListByIdWithoutCurrentUser,
+    getPolicyNameByID,
     getRuleApprovers,
     getSubmitToAccountID,
     isExpensifyTeam,
@@ -5394,6 +5395,13 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
+function getPolicyChangeMessage(action: ReportAction) {
+    const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
+    const {fromPolicyID, toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
+    const message = translateLocal('report.actions.type.changeReportPolicy', {fromPolicyName: getPolicyNameByID(fromPolicyID ?? ''), toPolicyName: getPolicyNameByID(toPolicyID)});
+    return message;
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -5685,18 +5693,18 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
     const toPolicy = getPolicy(toPolicyID);
 
     const changePolicyReportActionMessage = [
-    {
+        {
             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             text: `changed the workspace to ${toPolicy?.name}`,
-      },
-      ...(fromPolicyID
-        ? [
-              {
-                  type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                  text: `(previously ${fromPolicy?.name})`,
-              },
-          ]
-        : []),
+        },
+        ...(fromPolicyID
+            ? [
+                  {
+                      type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                      text: `(previously ${fromPolicy?.name})`,
+                  },
+              ]
+            : []),
     ];
 
     return {
@@ -5716,7 +5724,7 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
         reportActionID: rand64(),
         shouldShow: true,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-  }
+    };
 }
 
 /**
@@ -9586,6 +9594,7 @@ export {
     prepareOnboardingOnyxData,
     getReportSubtitlePrefix,
     buildOptimisticChangePolicyReportAction,
+    getPolicyChangeMessage,
 };
 
 export type {

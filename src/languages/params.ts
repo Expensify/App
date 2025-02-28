@@ -293,6 +293,8 @@ type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 
+type ChangeReportPolicyParams = {fromPolicyName?: string; toPolicyName: string};
+
 type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
 
 type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
@@ -828,6 +830,7 @@ export type {
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
     ChangePolicyParams,
+    ChangeReportPolicyParams,
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
