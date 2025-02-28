@@ -180,6 +180,7 @@ import {
     getTag,
     getTaxAmount,
     getTaxCode,
+    getTransaction,
     getAmount as getTransactionAmount,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
@@ -187,7 +188,7 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
-    isCardTransaction,
+    isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest,
     isDuplicate,
     isExpensifyCardTransaction,
@@ -2159,11 +2160,18 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
  * Can only delete if the author is this user and the action is an ADD_COMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  */
-function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string): boolean {
+function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string, moneyRequestAction?: ReportAction): boolean {
     const report = getReportOrDraftReport(reportID);
-
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
+    const iouTransactionID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUTransactionID : '';
+
+    const transaction = getTransaction(iouTransactionID);
+    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
+
+    if (isCardTransaction && transaction?.comment?.liabilityType !== CONST.TRANSACTION.LIABILITY_TYPE.ALLOW) {
+        return false;
+    }
 
     if (isMoneyRequestAction(reportAction)) {
         // For now, users cannot delete split actions
@@ -3603,7 +3611,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
 
     if (
         (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY || fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) &&
-        isCardTransaction(transaction)
+        isCardTransactionTransactionUtils(transaction)
     ) {
         return false;
     }
