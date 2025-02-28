@@ -30,9 +30,11 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import NetworkConnection from '@libs/NetworkConnection';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as Pusher from '@libs/Pusher/pusher';
+import Pusher from '@libs/Pusher';
+import type {PingPongEvent} from '@libs/Pusher/types';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -892,6 +894,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
     });
 }
 
+let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
 function subscribeToPusherPong() {
@@ -905,11 +908,15 @@ function subscribeToPusherPong() {
         lastPongReceivedTimestamp = Date.now();
 
         // Calculate the latency between the client and the server
-        const pongEvent = pushJSON as Pusher.PingPongEvent;
+        const pongEvent = pushJSON as PingPongEvent;
         const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
 
         Timing.end(CONST.TIMING.PUSHER_PING_PONG);
+
+        // When any PONG event comes in, reset this flag so that checkforLatePongReplies will resume looking for missed PONGs
+        pongHasBeenMissed = false;
+        NetworkConnection.setOfflineStatus(false, 'PONG event was recieved from the server so assuming that means the client is back online');
     });
 }
 
@@ -933,6 +940,9 @@ function pingPusher() {
     const pingID = NumberUtils.rand64();
     const pingTimestamp = Date.now();
 
+    // Reset this flag so that checkforLatePongReplies will resume looking for missed PONGs (in the case we are coming back online after being offline for a bit)
+    pongHasBeenMissed = false;
+
     // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
     // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
     if (pingTimestamp - lastPingSentTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
@@ -947,6 +957,16 @@ function pingPusher() {
 }
 
 function checkforLatePongReplies() {
+    if (isOffline()) {
+        Log.info('[Pusher PINGPONG] Skipping checkforLatePongReplies because the client is offline');
+        return;
+    }
+
+    if (pongHasBeenMissed) {
+        Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
+        return;
+    }
+
     Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
     const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
 
@@ -956,24 +976,26 @@ function checkforLatePongReplies() {
 
         // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
         lastPingSentTimestamp = Date.now();
+        pongHasBeenMissed = true;
+        NetworkConnection.setOfflineStatus(true, 'PONG event was not received from the server in time so assuming that means the client is offline');
     } else {
         Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
     }
 }
 
-let pingPongStarted = false;
+let pingPusherIntervalID: ReturnType<typeof setInterval>;
+let checkforLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
 function initializePusherPingPong() {
+    // Skip doing the ping pong during tests so that the network isn't knocked offline, forcing tests to timeout
+    if (process.env.NODE_ENV === 'test') {
+        return;
+    }
+
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
         return;
     }
-
-    // Ignore any additional calls to initialize the ping pong if it's already been started
-    if (pingPongStarted) {
-        return;
-    }
-    pingPongStarted = true;
 
     Log.info(`[Pusher PINGPONG] Starting Pusher PING PONG and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
 
@@ -981,14 +1003,23 @@ function initializePusherPingPong() {
     // so there could be a little delay before the client is actually listening to this event.
     subscribeToPusherPong();
 
+    // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
+    if (pingPusherIntervalID) {
+        clearInterval(pingPusherIntervalID);
+    }
+
     // Send a ping to pusher on a regular interval
-    setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
+    pingPusherIntervalID = setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
 
     // Delay the start of this by double the length of PING_INTERVAL_LENGTH_IN_SECONDS to give a chance for the first
     // events to be sent and received
     setTimeout(() => {
+        // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
+        if (checkforLatePongRepliesIntervalID) {
+            clearInterval(checkforLatePongRepliesIntervalID);
+        }
         // Check for any missing pong events on a regular interval
-        setInterval(checkforLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
+        checkforLatePongRepliesIntervalID = setInterval(checkforLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
     }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 

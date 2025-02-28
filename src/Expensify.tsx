@@ -17,6 +17,7 @@ import * as CONFIG from './CONFIG';
 import CONST from './CONST';
 import useLocalize from './hooks/useLocalize';
 import {updateLastRoute} from './libs/actions/App';
+import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
@@ -234,8 +235,18 @@ function Expensify() {
         if (!isAuthenticated) {
             return;
         }
-        setCrashlyticsUserId(session?.accountID ?? -1);
+        setCrashlyticsUserId(session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     }, [isAuthenticated, session?.accountID]);
+
+    useEffect(() => {
+        if (!account?.delegatedAccess?.delegate) {
+            return;
+        }
+        if (account?.delegatedAccess?.delegates?.some((d) => d.email === account?.delegatedAccess?.delegate)) {
+            return;
+        }
+        disconnect();
+    }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
@@ -275,7 +286,7 @@ function Expensify() {
                         <RequireTwoFactorAuthenticationModal
                             onSubmit={() => {
                                 setShouldShowRequire2FAModal(false);
-                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.HOME));
+                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.HOME));
                             }}
                             isVisible
                             description={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}
