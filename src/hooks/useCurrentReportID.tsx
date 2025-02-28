@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
     currentReportID: string | undefined;
+    currentReportIDFromPath: string | undefined;
 };
 
 type CurrentReportIDContextProviderProps = {
@@ -50,7 +51,8 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
     const contextValue = useMemo(
         (): CurrentReportIDContextValue => ({
             updateCurrentReportID,
-            currentReportID: lastAccessReportFromPath || currentReportID,
+            currentReportID,
+            currentReportIDFromPath: lastAccessReportFromPath || undefined,
         }),
         [updateCurrentReportID, currentReportID, lastAccessReportFromPath],
     );
