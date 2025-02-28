@@ -1,13 +1,14 @@
 import type { Meta, StoryFn } from '@storybook/react';
 import React from 'react';
-import { View } from "react-native";
+import { ImageSourcePropType, View } from "react-native";
 import { Hourglass } from "@components/Icon/Expensicons";
 import TransactionPreview from "@components/ReportActionItem/MoneyRequestPreview/TransactionPreviewUI";
 import ThemeProvider from "@components/ThemeProvider";
 import ThemeStylesProvider from "@components/ThemeStylesProvider";
 import CONST from "@src/CONST";
 import type TransactionPreviewProps from "@src/types/TransactionPreviewUI.type";
-import iconImage from "@assets/images/icon.png";
+import previewIcon from "@assets/images/transactionPreviewIcon.png";
+import previewIcon2 from "@assets/images/transactionPreviewIcon2.png";
 import type { ThumbnailAndImageURI } from "@libs/ReceiptUtils";
 import type { LocaleContextProps } from "@components/LocaleContextProvider";
 
@@ -26,20 +27,20 @@ const story: Meta<typeof TransactionPreview> = {
 const fakeTranslate = (text: string, options?: {amount: string})  => {
     switch (text) {
       case 'iou.pendingConversionMessage':
-        return 'test1';
+        return 'Pending';
       case 'iou.yourSplit':
-        return `test2 ${options?.amount}`;
+        return `Split ${options?.amount}`;
       case 'violations.keepThisOne':
-        return 'test3';
+        return 'Keep this one';
       default:
-        return 'idk';
+        return 'Default';
     }
   };
 
-const fakeData: TransactionPreviewProps = {
+const generateFakeData = (amount: string, tag: string, merchantOrDescription: string, date: string, thumbnail: ImageSourcePropType, category: string): TransactionPreviewProps => ({
   pendingAction: undefined,
   walletTermsErrors: undefined,
-  containerStyles: undefined,
+  containerStyles: [{margin: 10}],
   offlineWithFeedbackOnClose(): void {
   },
   isDeleted: false,
@@ -49,40 +50,40 @@ const fakeData: TransactionPreviewProps = {
   shouldShowSkeleton: false,
   isSettled: false,
   isPartialHold: false,
-  category: 'Grocery stores',
+  category,
   isBillSplit: false,
   shouldShowRBR: false,
   isApproved: true,
   shouldShowKeepButton: false,
-  displayAmount: '$60.00',
+  displayAmount: amount,
   shouldDisableOnPress: false,
-  showCashOrCard: 'lmao',
+  showCashOrCard: '',
   isSettlementOrApprovalPartial: false,
   isReviewDuplicateTransactionPage: false,
   shouldShowDescription: true,
   shouldShowMerchant: true,
   shouldShowCategory: true,
-  tag: 'New Jersey Office',
+  tag,
   requestAmount: 123,
   sortedParticipantAvatars: [],
-  merchantOrDescription: 'Acme',
+  merchantOrDescription,
   shouldShowTag: true,
-  shouldShowPendingConversionMessage: true,
+  shouldShowPendingConversionMessage: false,
   isCurrentUserManager: false,
   splitShare: 0,
   requestCurrency: 'PLN',
-  pendingMessageProps: ((blad = false) => {
-    if (blad) {return {shouldShow: true, messageIcon: Hourglass, messageDescription: 'problem'}}
+  pendingMessageProps: ((error = false) => {
+    if (error) {return {shouldShow: true, messageIcon: Hourglass, messageDescription: 'error'}}
     return {shouldShow: false}
   })(),
   showContextMenu: () => undefined,
-  previewHeaderText: `Jan 21 ${CONST.DOT_SEPARATOR} Cash`,
+  previewHeaderText: `${date} ${CONST.DOT_SEPARATOR} Cash`,
   translate: fakeTranslate as LocaleContextProps['translate'],
   navigateToReviewFields: () => undefined,
   onPreviewPressed: () => undefined,
   receiptImages: [
     {
-      'thumbnail': iconImage,
+      'thumbnail': thumbnail,
       "isEmptyReceipt": true,
       "transaction": {
         "amount": 1234,
@@ -111,24 +112,29 @@ const fakeData: TransactionPreviewProps = {
         "posted": "",
         "receipt": {},
         "reimbursable": true,
-        "reportID": "795181802749855",
+        "reportID": "111111111111111",
         "status": "Posted",
         "tag": "",
-        "transactionID": "6822762180021829710",
+        "transactionID": "1111111111111111111",
         "hasEReceipt": false,
       }
     }
   ] as ThumbnailAndImageURI[]
-};
+});
+
+
+const fakeData1 = generateFakeData('$60.00', 'New Jersey Office', 'Acme', 'Jan 21', previewIcon, 'Grocery stores');
+const fakeData2 = generateFakeData('$40.00', 'New Jersey Office', 'Wawa', 'Nov 19', previewIcon2, 'Gas stations');
 
 function Template() {
-  // eslint-disable-next-line react/jsx-props-no-spreading
   return (
     <ThemeProvider theme={CONST.THEME.LIGHT}>
       <ThemeStylesProvider>
-        <View style={{height: '100vh'}}>
-          {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <TransactionPreview {...fakeData} />
+        <View style={{flexDirection: 'row'}}>
+          {/* eslint-disable react/jsx-props-no-spreading */}
+            <TransactionPreview {...fakeData1} />
+            <TransactionPreview {...fakeData2} />
+          {/* eslint-enable react/jsx-props-no-spreading */}
         </View>
       </ThemeStylesProvider>
     </ThemeProvider>
@@ -138,7 +144,6 @@ function Template() {
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default: TransactionPreviewStory = Template.bind({});
-
 
 export default story;
 export { Default };

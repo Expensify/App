@@ -60,24 +60,25 @@ import SCREENS from '@src/SCREENS';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import { Hourglass } from "@components/Icon/Expensicons";
+import DateUtils from "@libs/DateUtils";
 import TransactionPreviewUI from "./TransactionPreviewUI";
 import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
 
 function TransactionPreview({
-                                      isBillSplit,
-                                      action,
-                                      contextMenuAnchor,
-                                      chatReportID,
-                                      reportID,
-                                      onPreviewPressed,
-                                      containerStyles,
-                                      checkIfContextMenuActive = () => {},
-                                      shouldShowPendingConversionMessage = false,
-                                      isHovered = false,
-                                      isWhisper = false,
-                                      shouldDisplayContextMenu = true,
-                                      iouReportID,
-                                    }: MoneyRequestPreviewProps) {
+  isBillSplit,
+  action,
+  contextMenuAnchor,
+  chatReportID,
+  reportID,
+  onPreviewPressed,
+  containerStyles,
+  checkIfContextMenuActive = () => {},
+  shouldShowPendingConversionMessage = false,
+  isHovered = false,
+  isWhisper = false,
+  shouldDisplayContextMenu = true,
+  iouReportID,
+}: MoneyRequestPreviewProps) {
   const {translate} = useLocalize();
   const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
   const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -197,11 +198,10 @@ function TransactionPreview({
   const getPreviewHeaderText = (): string => {
     let message = '';
 
-    // todo: change this
     if (!isCreatedMissing(transaction)) {
-      const transactionDate = getFormattedCreated(transaction);
-      message += new Date(transactionDate).toLocaleString('en-US', { month: 'short', day: 'numeric' });
-      message += ` ${CONST.DOT_SEPARATOR} `;
+      const created = getFormattedCreated(transaction);
+      const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+      message += `${date} ${CONST.DOT_SEPARATOR} `;
     }
 
     message += showCashOrCard;
