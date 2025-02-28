@@ -17,13 +17,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
-import {generateDomainFeedsData, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardFeedNames} from '@libs/FeedUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, isCannedSearchQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
-import {getCardFeedNames} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -77,9 +77,9 @@ function SearchPageHeaderInput({queryJSON, children}: SearchPageHeaderInputProps
     const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
-
-    const domainFeeds = useMemo(() => generateDomainFeedsData(userCardList), [userCardList]);
-    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, domainFeeds, translate), [domainFeeds, translate, workspaceCardFeeds]);
+    const cardFeedNames = useMemo(() => {
+        return getCardFeedNames({workspaceCardFeeds, userCardList, translate});
+    }, [translate, workspaceCardFeeds, userCardList]);
     const {type, inputQuery: originalInputQuery} = queryJSON;
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNames);

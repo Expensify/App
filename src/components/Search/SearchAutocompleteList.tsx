@@ -17,7 +17,8 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
-import {generateDomainFeedsData, getCardDescription, getCardFeedKey, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardDescription, getCardFeedKey, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardFeedNames} from '@libs/FeedUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -33,10 +34,10 @@ import {
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
-import {getCardFeedNames} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {WorkspaceCardsList} from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from './types';
@@ -152,9 +153,9 @@ function SearchAutocompleteList(
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
-
-    const domainFeeds = useMemo(() => generateDomainFeedsData(userCardList), [userCardList]);
-    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, domainFeeds, translate), [domainFeeds, translate, workspaceCardFeeds]);
+    const cardFeedNames = useMemo(() => {
+        return getCardFeedNames({workspaceCardFeeds, userCardList, translate});
+    }, [translate, workspaceCardFeeds, userCardList]);
     const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNames).map(([value, key]) => ({value, key})), [cardFeedNames]);
 
     const participantsAutocompleteList = useMemo(() => {
@@ -349,11 +350,10 @@ function SearchAutocompleteList(
                     .filter((feed) => feed.key.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.key))
                     .sort()
                     .slice(0, 10);
-
                 return filteredFeeds.map((feed) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
                     text: feed.key,
-                    autocompleteID: getCardFeedKey(feed.value),
+                    autocompleteID: getCardFeedKey(workspaceCardFeeds, feed.value),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 }));
             }

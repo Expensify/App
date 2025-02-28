@@ -55,6 +55,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     tag: 'tag',
     taxRate: 'tax-rate',
     cardID: 'card',
+    feed: 'feed',
     reportID: 'reportid',
     keyword: 'keyword',
     in: 'in',
@@ -63,7 +64,6 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     paid: 'paid',
     exported: 'exported',
     posted: 'posted',
-    feed: 'feed',
 };
 
 /**

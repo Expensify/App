@@ -20,7 +20,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
-import {generateDomainFeedsData, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardFeedNames} from '@libs/FeedUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getAllTaxRates} from '@libs/PolicyUtils';
 import {hasInvoiceReports} from '@libs/ReportUtils';
@@ -36,7 +37,6 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
-import {getCardFeedNames} from './SearchAdvancedFiltersPage/SearchFiltersCardPage';
 import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 type SearchTypeMenuProps = {
@@ -73,8 +73,9 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
-    const domainFeeds = useMemo(() => generateDomainFeedsData(userCardList), [userCardList]);
-    const cardFeedNames = useMemo(() => getCardFeedNames(workspaceCardFeeds, domainFeeds, translate), [domainFeeds, translate, workspaceCardFeeds]);
+    const cardFeedNames = useMemo(() => {
+        return getCardFeedNames({workspaceCardFeeds, userCardList, translate});
+    }, [translate, workspaceCardFeeds, userCardList]);
 
     const typeMenuItems: SearchTypeMenuItem[] = [
         {
@@ -165,6 +166,7 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
             shouldShowProductTrainingTooltip,
             hideProductTrainingTooltip,
             renderProductTrainingTooltip,
+            cardFeedNames,
         ],
     );
 

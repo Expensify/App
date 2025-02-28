@@ -16,8 +16,9 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAllFilters, saveSearch} from '@libs/actions/Search';
-import {generateDomainFeedsData, getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import {getCardFeedNames} from '@libs/FeedUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
@@ -33,7 +34,6 @@ import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardList, PersonalDetailsList, Policy, PolicyTagLists, Report, WorkspaceCardsList} from '@src/types/onyx';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCardFeedNames} from './SearchAdvancedFiltersPage/SearchFiltersCardPage';
 
 const baseFilterConfig = {
     date: {
@@ -216,16 +216,17 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList) {
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
-    const groupedCards: Record<string, WorkspaceCardsList> = {};
-    const domainFeeds = generateDomainFeedsData(cards);
-
-    Object.entries(cards).forEach(([cardKey, card]) => {
+    const workspaceCardFeeds = Object.entries(cards).reduce<Record<string, WorkspaceCardsList>>((acc, [cardKey, card]) => {
         const groupKey = `${card.fundID}_${card.bank}`;
-        groupedCards[groupKey] ??= {};
-        groupedCards[groupKey][cardKey] = card;
-    });
+        acc[groupKey] = acc[groupKey] ?? {};
+        acc[groupKey][cardKey] = card;
+        return acc;
+    }, {});
 
-    const cardFeedNames = getCardFeedNames(groupedCards, domainFeeds);
+    const cardFeedNames = getCardFeedNames({
+        workspaceCardFeeds,
+        userCardList: cards,
+    });
 
     const cardNames = Object.values(cards)
         .filter((card) => cardIdsFilter.includes(card.cardID.toString()) && !feedFilter.includes(`${card.fundID}_${card.bank}`))
@@ -469,7 +470,7 @@ function AdvancedSearchFilters() {
         .map((section) => {
             return section
                 .map((key) => {
-                    // visually feeds resist into cards so they cannot be pressed directly and are not redirecting anywhere
+                    // 'feed' filter row does not appear in advanced filters, it is created using selected cards
                     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
                         return;
                     }

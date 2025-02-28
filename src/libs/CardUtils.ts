@@ -70,24 +70,28 @@ function isCorporateCard(cardID: number) {
 }
 
 /**
- * @param cardID
  * @returns string with the 'cards_' part removed from the beginning
  */
-function getCardFeedKey(cardID: string): string {
-    const splittedCardID = cardID.split('_');
-    if (splittedCardID.at(0) === 'cards') {
-        return splittedCardID.slice(1).join('_');
+// todo: this works only for workspace cards
+const getCardFeedKey = (workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined, key: string) => {
+    const workspaceFeed = workspaceCardFeeds ? workspaceCardFeeds[key] : undefined;
+    if (!workspaceFeed) {
+        return 'NO_FEED';
     }
-    return cardID;
-}
+    const representativeCard = Object.values(workspaceFeed).find((cardFeedItem) => isCard(cardFeedItem));
+    if (!representativeCard) {
+        return 'NO_FEED';
+    }
+    const {fundID, bank} = representativeCard;
+    return `${fundID}_${bank}`;
+};
 
 /**
- * @param cardID
  * @returns string with added 'cards_' substring at the beginning
  */
 function getWorkspaceCardFeedKey(cardID: string) {
-    if (cardID.split('_').at(0) !== 'cards') {
-        return `cards_${cardID}`;
+    if (!cardID.startsWith(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST)) {
+        return `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardID}`;
     }
     return cardID;
 }

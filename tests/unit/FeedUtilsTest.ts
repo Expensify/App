@@ -1,4 +1,4 @@
-import {getCardFeedNames, getSelectedCardsFromFeeds} from '@pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage';
+import {getCardFeedNames, getSelectedCardsFromFeeds} from '@libs/FeedUtils';
 import type {WorkspaceCardsList} from '@src/types/onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -53,18 +53,30 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
         },
     },
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
-describe('Card Feeds convertion (workspace & domain)', () => {
-    it('Fetches display name of workspace & domain cards', () => {
-        const names = getCardFeedNames(fakeWorkspace, {});
+describe('Feed Utils', () => {
+    it('returns display name of workspace & domain cards', () => {
+        const names = getCardFeedNames({workspaceCardFeeds: fakeWorkspace, userCardList: {}});
         expect(Object.keys(names).length).toBe(2);
         expect(Object.values(names).every((name) => name === 'All Expensify')).toBe(true);
     });
 
-    it('Converts feeds to selected cards', () => {
+    it('returns feeds to selected cards', () => {
         const feeds = ['22222222_Expensify Card'];
         const selected = getSelectedCardsFromFeeds(fakeWorkspace, feeds);
         expect(selected.length).toBe(1);
         expect(selected.at(0)).toEqual('33333333');
+    });
+
+    it('returns empty object when workspaceCardFeeds is empty', () => {
+        const names = getCardFeedNames({workspaceCardFeeds: {key: {}}, userCardList: {}});
+        expect(names).toEqual({});
+    });
+
+    it('returns empty array when selectedFeeds contains a non-existent feed', () => {
+        const feeds = ['99999999_Expensify Card'];
+        const selected = getSelectedCardsFromFeeds(fakeWorkspace, feeds);
+        expect(selected).toEqual([]);
     });
 });
