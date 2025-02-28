@@ -2166,7 +2166,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
     const iouTransactionID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUTransactionID : '';
 
-    const transaction = getTransaction(iouTransactionID);
+    const transaction = getTransaction(iouTransactionID ?? CONST.DEFAULT_NUMBER_ID);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
 
     if (isCardTransaction && transaction?.comment?.liabilityType !== CONST.TRANSACTION.LIABILITY_TYPE.ALLOW) {
