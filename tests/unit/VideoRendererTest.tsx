@@ -56,7 +56,7 @@ describe('VideoRenderer', () => {
         jest.clearAllMocks();
     });
 
-    it('navigates to the correct route when show modal button is pressed with isAuthTokenRequired=true', () => {
+    it('should open the report attachment with isAuthTokenRequired=true', () => {
         // Given a VideoRenderer component with a valid attributes
         render(
             <ShowContextMenuContext.Provider value={mockShowContextMenuValue}>
