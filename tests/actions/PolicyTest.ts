@@ -382,6 +382,7 @@ describe('actions/Policy', () => {
     });
 
     const TEST_EMAIL = 'esh@gmail.com';
+    const TEST_EMAIL_2 = 'eshofficial@gmail.com';
     const TEST_ACCOUNT_ID = 1;
     const TEST_DISPLAY_NAME = 'Esh Gupta';
     const TEST_PHONE_NUMBER = '1234567890';
@@ -423,7 +424,8 @@ describe('actions/Policy', () => {
         });
 
         it('should generate a workspace name based on the username when the domain is public and display name is not available', () => {
-            const username = 'esh';
+            const emailParts = TEST_EMAIL_2.split('@');
+            const username = emailParts.at(0) ?? '';
             const displayNameForWorkspace = Str.UCFirst(username);
 
             jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockReturnValue({
@@ -432,7 +434,7 @@ describe('actions/Policy', () => {
                 accountID: TEST_ACCOUNT_ID,
             });
 
-            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
+            const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL_2);
 
             expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace}));
         });
