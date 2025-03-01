@@ -64,7 +64,7 @@ describe('VideoRenderer', () => {
                     {/* @ts-expect-error - Ignoring type errors for testing purposes */}
                     <VideoRenderer tnode={{attributes: mockTNodeAttributes}} />
                 </AttachmentContext.Provider>
-            </ShowContextMenuContext.Provider>
+            </ShowContextMenuContext.Provider>,
         );
 
         // When the user presses the show modal button
