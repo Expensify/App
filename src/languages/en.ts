@@ -2888,6 +2888,7 @@ const translations = {
             locations: 'Locations',
             customers: 'Customers/projects',
             accountsDescription: 'Your QuickBooks Online chart of accounts will import into Expensify as categories.',
+            autoSyncDescription: 'Sync QuickBooks Online and Expensify automatically, every day. Export finalized report in realtime',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
@@ -3222,18 +3223,6 @@ const translations = {
                         [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Supervisor and accounting approved',
                     },
                 },
-                accountingMethods: {
-                    label: 'When to Export',
-                    description: 'Choose when to export the expenses:',
-                    values: {
-                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
-                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
-                    },
-                    alternateText: {
-                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
-                        [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
-                    },
-                },
                 exportVendorBillsTo: {
                     label: 'Vendor bill approval level',
                     description: 'Once a vendor bill is approved in Expensify and exported to NetSuite, you can set an additional level of approval in NetSuite prior to posting.',
@@ -3525,6 +3514,18 @@ const translations = {
                     default:
                         return 'mappings';
                 }
+            },
+        },
+        accountingMethods: {
+            label: 'When to Export',
+            description: 'Choose when to export the expenses:',
+            values: {
+                [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+            },
+            alternateText: {
+                [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
             },
         },
         multiConnectionSelector: {

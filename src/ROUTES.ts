@@ -1131,6 +1131,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC: {
+        route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: {
+        route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync/accounting-method',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync/accounting-method` as const,
+    },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
         getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
