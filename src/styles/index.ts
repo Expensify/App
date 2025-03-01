@@ -631,6 +631,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
+            ...spacing.gap4,
             minHeight: 64,
         },
 
