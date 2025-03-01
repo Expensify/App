@@ -307,7 +307,7 @@ type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName
 
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
-type AddedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
 
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
@@ -883,7 +883,7 @@ export type {
     EditDestinationSubtitleParams,
     FlightLayoverParams,
     AddedOrDeletedPolicyReportFieldParams,
-    AddedPolicyCustomUnitRateParams,
+    UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyTagParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagFieldParams,

@@ -1940,6 +1940,18 @@ function getWorkspaceCustomUnitRateAddedMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getWorkspaceCustomUnitRateDeletedMessage(action: ReportAction): string {
+    const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE>) ?? {};
+    if (customUnitName && rateName) {
+        return translateLocal('workspaceActions.deleteCustomUnitRate', {
+            customUnitName,
+            rateName,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
     const {fieldName, fieldType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
@@ -2362,6 +2374,7 @@ export {
     getWorkspaceReportFieldDeleteMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getWorkspaceCustomUnitRateDeletedMessage,
 };
 
 export type {LastVisibleMessage};
