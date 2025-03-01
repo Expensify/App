@@ -19,6 +19,7 @@ import {isPolicyAdmin, isWorkspaceEligibleForReportChange, shouldShowPolicy, sor
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
@@ -49,6 +50,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             if (!policyID) {
                 return;
             }
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             changeReportPolicy(reportID, policyID);
         },
         [reportID],

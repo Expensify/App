@@ -4787,16 +4787,17 @@ function changeReportPolicy(reportID: string, policyID: string) {
             value: {[optimisticReportPreviewAction.reportActionID]: null},
         });
 
-        // Set the new report preview action it as a parent of the moved report
+        // Set the new report preview action it as a parent of the moved report,
+        // and set the parentReportID on the moved report as the workspace chat reportID
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {parentReportActionID: optimisticReportPreviewAction.reportActionID},
+            value: {parentReportActionID: optimisticReportPreviewAction.reportActionID, parentReportID: policyExpenseChat.reportID},
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {parentReportActionID: reportToMove.parentReportActionID},
+            value: {parentReportActionID: reportToMove.parentReportActionID, parentReportID: reportToMove.parentReportID},
         });
 
         // Set lastVisibleActionCreated
@@ -4848,9 +4849,7 @@ function changeReportPolicy(reportID: string, policyID: string) {
     // navigate to CHANGE_POLICY_EDUCATIONAL and a backTo param for the report page.
     if (!nvpDismissedProductTraining?.[CONST.CHANGE_POLICY_TRAINING_MODAL]) {
         Navigation.navigate(ROUTES.CHANGE_POLICY_EDUCATIONAL.getRoute(ROUTES.REPORT_WITH_ID.getRoute(reportToMove.reportID)));
-        return;
     }
-    Navigation.goBack();
 }
 
 export type {Video};
