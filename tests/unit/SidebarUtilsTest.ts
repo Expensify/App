@@ -217,7 +217,7 @@ describe('SidebarUtils', () => {
                 hasViolations: false,
             });
 
-            const optionDataNotPinned = SidebarUtils.getOptionData({
+            const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
                 reportNameValuePairs: {},
                 reportActions: {},
@@ -229,7 +229,7 @@ describe('SidebarUtils', () => {
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
-            expect(optionDataNotPinned?.isPinned).toBe(false);
+            expect(optionDataUnpinned?.isPinned).toBe(false);
         });
     });
 
