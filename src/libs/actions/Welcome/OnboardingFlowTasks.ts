@@ -44,129 +44,128 @@ type OnboardingMessage = {
     type?: string;
 };
 
-const selfGuidedTourTask: OnboardingTask = {
-    type: 'viewTour',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.selfGuidedTourTask.title'),
-    description: ({navatticURL}) => translateLocal('onboarding.tasks.selfGuidedTourTask.description', {navatticURL}),
-};
-
-const createWorkspaceTask: OnboardingTask = {
-    type: 'createWorkspace',
-    autoCompleted: true,
-    title: translateLocal('onboarding.tasks.createWorkspaceTask.title'),
-    description: ({workspaceSettingsLink}) => translateLocal('onboarding.tasks.createWorkspaceTask.description', {workspaceSettingsLink}),
-};
-
-const meetGuideTask: OnboardingTask = {
-    type: 'meetGuide',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.meetGuideTask.title'),
-    description: ({adminsRoomLink}) => translateLocal('onboarding.tasks.meetGuideTask.description', {adminsRoomLink}),
-};
-
-const setupCategoriesTask: OnboardingTask = {
-    type: 'setupCategories',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.setupCategoriesTask.title'),
-    description: ({workspaceCategoriesLink}) => translateLocal('onboarding.tasks.setupCategoriesTask.description', {workspaceCategoriesLink}),
-};
-
-const submitExpenseTask: OnboardingTask = {
-    type: 'submitExpense',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.submitExpenseTask.title'),
-    description: translateLocal('onboarding.tasks.submitExpenseTask.description'),
-};
-
-const trackExpenseTask: OnboardingTask = {
-    type: 'trackExpense',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.trackExpenseTask.title'),
-    description: translateLocal('onboarding.tasks.trackExpenseTask.description'),
-};
-
-const setupCategoriesAndTagsTask: OnboardingTask = {
-    type: 'setupCategoriesAndTags',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.setupCategoriesAndTagsTask.title'),
-    description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-        translateLocal('onboarding.tasks.setupCategoriesAndTagsTask.description', {workspaceCategoriesLink, workspaceAccountingLink}),
-};
-
-const setupTagsTask: OnboardingTask = {
-    type: 'setupTags',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.setupTagsTask.title'),
-    description: ({workspaceMoreFeaturesLink}) => translateLocal('onboarding.tasks.setupTagsTask.description', {workspaceMoreFeaturesLink}),
-};
-const addExpenseApprovalsTask: OnboardingTask = {
-    type: 'addExpenseApprovals',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.addExpenseApprovalsTask.title'),
-    description: ({workspaceMoreFeaturesLink}) => translateLocal('onboarding.tasks.addExpenseApprovalsTask.description', {workspaceMoreFeaturesLink}),
-};
-const inviteTeamTask: OnboardingTask = {
-    type: 'inviteTeam',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.inviteTeamTask.title'),
-    description: ({workspaceMembersLink}) => translateLocal('onboarding.tasks.inviteTeamTask.description', {workspaceMembersLink}),
-};
-
-const addAccountingIntegrationTask: OnboardingTask = {
-    type: 'addAccountingIntegration',
-    autoCompleted: false,
-    title: ({integrationName}) => translateLocal('onboarding.tasks.addAccountingIntegrationTask.title', {integrationName}),
-    description: ({integrationName, workspaceAccountingLink}) => translateLocal('onboarding.tasks.addAccountingIntegrationTask.description', {integrationName, workspaceAccountingLink}),
-};
-const inviteAccountantTask: OnboardingTask = {
-    type: 'inviteAccountant',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.inviteAccountantTask.title'),
-    description: ({workspaceMembersLink}) => translateLocal('onboarding.tasks.inviteAccountantTask.description', {workspaceMembersLink}),
-};
-
-const startChatTask: OnboardingTask = {
-    type: 'startChat',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.startChatTask.title'),
-    description: translateLocal('onboarding.tasks.startChatTask.description'),
-};
-const splitExpenseTask: OnboardingTask = {
-    type: 'splitExpense',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.splitExpenseTask.title'),
-    description: translateLocal('onboarding.tasks.splitExpenseTask.description'),
-};
-
-const reviewWorkspaceSettingsTask: OnboardingTask = {
-    type: 'reviewWorkspaceSettings',
-    autoCompleted: false,
-    title: translateLocal('onboarding.tasks.reviewWorkspaceSettingsTask.title'),
-    description: translateLocal('onboarding.tasks.reviewWorkspaceSettingsTask.description'),
-};
-
-const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
-    message: translateLocal('onboarding.messages.employerOrSubmitMessage'),
-    tasks: [selfGuidedTourTask, submitExpenseTask],
-};
-
-const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
-    ...onboardingEmployerOrSubmitMessage,
-    tasks: [selfGuidedTourTask, submitExpenseTask],
-};
-
-const onboardingPersonalSpendMessage: OnboardingMessage = {
-    message: translateLocal('onboarding.messages.personalSpendMessage'),
-
-    tasks: [selfGuidedTourTask, trackExpenseTask],
-};
-const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
-    ...onboardingPersonalSpendMessage,
-    tasks: [selfGuidedTourTask, trackExpenseTask],
-};
-
 const getOnboardingMessages = () => {
+    const selfGuidedTourTask: OnboardingTask = {
+        type: 'viewTour',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.selfGuidedTourTask.title'),
+        description: ({navatticURL}) => translateLocal('onboarding.tasks.selfGuidedTourTask.description', {navatticURL}),
+    };
+
+    const createWorkspaceTask: OnboardingTask = {
+        type: 'createWorkspace',
+        autoCompleted: true,
+        title: translateLocal('onboarding.tasks.createWorkspaceTask.title'),
+        description: ({workspaceSettingsLink}) => translateLocal('onboarding.tasks.createWorkspaceTask.description', {workspaceSettingsLink}),
+    };
+
+    const meetGuideTask: OnboardingTask = {
+        type: 'meetGuide',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.meetGuideTask.title'),
+        description: ({adminsRoomLink}) => translateLocal('onboarding.tasks.meetGuideTask.description', {adminsRoomLink}),
+    };
+
+    const setupCategoriesTask: OnboardingTask = {
+        type: 'setupCategories',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.setupCategoriesTask.title'),
+        description: ({workspaceCategoriesLink}) => translateLocal('onboarding.tasks.setupCategoriesTask.description', {workspaceCategoriesLink}),
+    };
+
+    const submitExpenseTask: OnboardingTask = {
+        type: 'submitExpense',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.submitExpenseTask.title'),
+        description: translateLocal('onboarding.tasks.submitExpenseTask.description'),
+    };
+
+    const trackExpenseTask: OnboardingTask = {
+        type: 'trackExpense',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.trackExpenseTask.title'),
+        description: translateLocal('onboarding.tasks.trackExpenseTask.description'),
+    };
+
+    const setupCategoriesAndTagsTask: OnboardingTask = {
+        type: 'setupCategoriesAndTags',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.setupCategoriesAndTagsTask.title'),
+        description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+            translateLocal('onboarding.tasks.setupCategoriesAndTagsTask.description', {workspaceCategoriesLink, workspaceAccountingLink}),
+    };
+
+    const setupTagsTask: OnboardingTask = {
+        type: 'setupTags',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.setupTagsTask.title'),
+        description: ({workspaceMoreFeaturesLink}) => translateLocal('onboarding.tasks.setupTagsTask.description', {workspaceMoreFeaturesLink}),
+    };
+    const addExpenseApprovalsTask: OnboardingTask = {
+        type: 'addExpenseApprovals',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.addExpenseApprovalsTask.title'),
+        description: ({workspaceMoreFeaturesLink}) => translateLocal('onboarding.tasks.addExpenseApprovalsTask.description', {workspaceMoreFeaturesLink}),
+    };
+    const inviteTeamTask: OnboardingTask = {
+        type: 'inviteTeam',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.inviteTeamTask.title'),
+        description: ({workspaceMembersLink}) => translateLocal('onboarding.tasks.inviteTeamTask.description', {workspaceMembersLink}),
+    };
+
+    const addAccountingIntegrationTask: OnboardingTask = {
+        type: 'addAccountingIntegration',
+        autoCompleted: false,
+        title: ({integrationName}) => translateLocal('onboarding.tasks.addAccountingIntegrationTask.title', {integrationName}),
+        description: ({integrationName, workspaceAccountingLink}) => translateLocal('onboarding.tasks.addAccountingIntegrationTask.description', {integrationName, workspaceAccountingLink}),
+    };
+    const inviteAccountantTask: OnboardingTask = {
+        type: 'inviteAccountant',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.inviteAccountantTask.title'),
+        description: ({workspaceMembersLink}) => translateLocal('onboarding.tasks.inviteAccountantTask.description', {workspaceMembersLink}),
+    };
+
+    const startChatTask: OnboardingTask = {
+        type: 'startChat',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.startChatTask.title'),
+        description: translateLocal('onboarding.tasks.startChatTask.description'),
+    };
+    const splitExpenseTask: OnboardingTask = {
+        type: 'splitExpense',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.splitExpenseTask.title'),
+        description: translateLocal('onboarding.tasks.splitExpenseTask.description'),
+    };
+
+    const reviewWorkspaceSettingsTask: OnboardingTask = {
+        type: 'reviewWorkspaceSettings',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.reviewWorkspaceSettingsTask.title'),
+        description: translateLocal('onboarding.tasks.reviewWorkspaceSettingsTask.description'),
+    };
+
+    const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
+        message: translateLocal('onboarding.messages.employerOrSubmitMessage'),
+        tasks: [selfGuidedTourTask, submitExpenseTask],
+    };
+
+    const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
+        ...onboardingEmployerOrSubmitMessage,
+        tasks: [selfGuidedTourTask, submitExpenseTask],
+    };
+
+    const onboardingPersonalSpendMessage: OnboardingMessage = {
+        message: translateLocal('onboarding.messages.personalSpendMessage'),
+
+        tasks: [selfGuidedTourTask, trackExpenseTask],
+    };
+    const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
+        ...onboardingPersonalSpendMessage,
+        tasks: [selfGuidedTourTask, trackExpenseTask],
+    };
     return {
         ONBOARDING_MESSAGES: {
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
