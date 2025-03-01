@@ -18,7 +18,7 @@ import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
