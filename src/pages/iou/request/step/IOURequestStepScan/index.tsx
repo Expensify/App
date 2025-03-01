@@ -28,6 +28,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -43,8 +44,6 @@ import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
-
 import {
     replaceReceipt,
     requestMoney,
@@ -63,6 +62,8 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
+import { getLocationPermission } from './LocationPermission';
+import { RESULTS } from 'react-native-permissions';
 
 function IOURequestStepScan({
     report,
@@ -204,25 +205,31 @@ function IOURequestStepScan({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
 
-
     useEffect(() => {
         const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
-        if (gpsRequired) {
-            clearUserLocation();
-            getCurrentPosition(
-                (successData) => {
-                    console.log("[wildebug] ~ index.tsx:214 ~ useEffect ~ successData:", successData)
-                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
-                },
-                () => {},
-                {
-                    maximumAge: CONST.GPS.MAX_AGE,
-                    timeout: CONST.GPS.TIMEOUT,
-                },
-            );
+        if (!gpsRequired) {
+            return;
         }
-    }, [transaction?.amount, iouType, setUserLocation]);
 
+        getLocationPermission()
+            .then((status) => {
+                if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                    return;
+                }
+
+                clearUserLocation();
+                getCurrentPosition(
+                    (successData) => {
+                        setUserLocation({ longitude: successData.coords.longitude, latitude: successData.coords.latitude });
+                    },
+                    () => { },
+                    {
+                        maximumAge: CONST.GPS.MAX_AGE,
+                        timeout: CONST.GPS.TIMEOUT,
+                    },
+                );
+            });
+    }, [transaction?.amount, iouType, setUserLocation]);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);

@@ -28,9 +28,11 @@ function getLocationPermission(): Promise<PermissionStatus> {
                     // If user denies permission, error.code will be 1 (PERMISSION_DENIED)
                     if (error.code === 1) {
                         resolve(RESULTS.BLOCKED);
-                    } else if (error.code === 2) { // POSITION_UNAVAILABLE
+                    } else if (error.code === 2) {
+                        // POSITION_UNAVAILABLE
                         resolve(RESULTS.BLOCKED);
-                    } else if (error.code === 3) { // TIMEOUT
+                    } else if (error.code === 3) {
+                        // TIMEOUT
                         resolve(RESULTS.BLOCKED);
                     } else {
                         resolve(RESULTS.DENIED);
@@ -39,7 +41,7 @@ function getLocationPermission(): Promise<PermissionStatus> {
                 {
                     timeout: CONST.GPS.TIMEOUT,
                     enableHighAccuracy: true,
-                }
+                },
             );
         } else {
             resolve(RESULTS.UNAVAILABLE);

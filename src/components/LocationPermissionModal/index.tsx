@@ -1,17 +1,17 @@
+import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
+import Visibility from '@libs/Visibility';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
-import Visibility from '@libs/Visibility';
-import lodashDebounce from 'lodash/debounce';
-import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -22,7 +22,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
-
     const checkPermission = () => {
         getLocationPermission().then((status) => {
             if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
@@ -30,7 +29,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             }
             onGrant();
         });
-    }
+    };
 
     const debouncedCheckPermission = useMemo(() => lodashDebounce(checkPermission, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [checkPermission]);
 
