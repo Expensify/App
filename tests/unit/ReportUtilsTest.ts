@@ -33,6 +33,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -219,10 +220,11 @@ const policy: Policy = {
     isPolicyExpenseChatEnabled: false,
 };
 
-Onyx.init({keys: ONYXKEYS});
-
 describe('ReportUtils', () => {
     beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
@@ -399,7 +401,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: true,
                             ownerAccountID: 1,
                         }),
-                    ).toBe('Vikings Policy');
+                    ).toBe(`Ragnar Lothbrok's expenses`);
                 });
 
                 test('as admin', () => {
@@ -411,7 +413,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: false,
                             ownerAccountID: 1,
                         }),
-                    ).toBe('Ragnar Lothbrok');
+                    ).toBe(`Ragnar Lothbrok's expenses`);
                 });
             });
 
@@ -436,9 +438,11 @@ describe('ReportUtils', () => {
 
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
+                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
+                    );
                 });
 
                 test('as admin', async () => {
@@ -447,9 +451,11 @@ describe('ReportUtils', () => {
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
+                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
+                    );
                 });
             });
         });
@@ -1154,6 +1160,7 @@ describe('ReportUtils', () => {
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
             const accountID = 2;
+            const report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
             await Onyx.multiSet({
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
@@ -1163,10 +1170,7 @@ describe('ReportUtils', () => {
                 },
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
             });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]),
-            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             expect(isChatUsedForOnboarding(report)).toBeTruthy();
         });
