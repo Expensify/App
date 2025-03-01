@@ -9,11 +9,9 @@ import getPlatform from '@libs/getPlatform';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import CONST from '@src/CONST';
 import type {LocationPermissionModalProps} from './types';
-import { useIsFocused } from '@react-navigation/native';
 import Visibility from '@libs/Visibility';
 import lodashDebounce from 'lodash/debounce';
-import { clearUserLocation, setUserLocation } from '@libs/actions/UserLocation';
-import getCurrentPosition from '@libs/getCurrentPosition';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -32,19 +30,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             }
             onGrant();
         });
-
-        // clearUserLocation();
-        // getCurrentPosition(
-        //     (successData) => {
-        //         setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
-        //         onGrant();
-        //     },
-        //     () => {},
-        //     {
-        //         maximumAge: 0,
-        //         timeout: CONST.GPS.TIMEOUT,
-        //     },
-        // );
     }
 
     const debouncedCheckPermission = useMemo(() => lodashDebounce(checkPermission, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [checkPermission]);
@@ -68,9 +53,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         };
     }, [showModal, debouncedCheckPermission]);
 
-
-
-
     useEffect(() => {
         if (!startPermissionFlow) {
             return;
@@ -90,51 +72,45 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const handledBlockedPermission = (cb: () => void) => () => {
         if (hasError) {
+            // native
             if (Linking.openSettings) {
                 Linking.openSettings();
-            } else {
-                console.log('[wildebug] aosidjfiasd')
-
+                setShowModal(false);
+            } else if (isWeb) {
                 // check one more time in case user enabled location before continue
                 getLocationPermission().then((status) => {
                     if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                        return onGrant();
+                        onGrant();
+                    } else {
+                        onDeny?.();
                     }
-        
-                    onDeny?.();
                 });
+                setShowModal(false);
+            } else {
+                // desktop
+                window.electron.invoke(ELECTRON_EVENTS.OPEN_LOCATION_SETTING);
             }
-            setShowModal(false);
             return;
         }
         cb();
     };
 
     const grantLocationPermission = handledBlockedPermission(() => {
-        console.log("[wildebug] ~ grantLocationPermission ~ requestLocationPermission called");
         requestLocationPermission()
             .then((status) => {
-                console.log("[wildebug] ~ grantLocationPermission ~ requestLocationPermission status:", status);
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                    console.log("[wildebug] ~ grantLocationPermission ~ onGrant called");
                     onGrant();
                 } else {
-                    console.log("[wildebug] ~ grantLocationPermission ~ onDeny called");
-                console.log('[wildebug] asdifmasdf')
-
                     onDeny();
                 }
             })
             .finally(() => {
-                console.log("[wildebug] ~ grantLocationPermission ~ finally block");
                 setShowModal(false);
                 setHasError(false);
             });
     });
 
     const skipLocationPermission = () => {
-        console.log('[wildebug] asidofaisdf')
-
         onDeny();
         setShowModal(false);
         setHasError(false);
