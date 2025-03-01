@@ -45,6 +45,7 @@ In that case, what are the differences in each script?
 		- `./Mobile-Expensify/iOS/build`
 
 The scripts will also remove some deeper hidden cache, but crucial thing to understand is that cache for HybridApp are *mostly* located in `Mobile-Expensify` submodule, alongside the native code.
+As the final step in both standalone and HybridApp scenarios, it runs `npm ci` (clean install), so an explicit `node_modules` installation is not necessary after cleaning.
 
 ## `npm run android` and `npm run ios`
 - **Without access to HybridApp**: 
