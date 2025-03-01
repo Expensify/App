@@ -2697,6 +2697,18 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'center',
         },
 
+        videoErrorText: {
+            ...headlineFont,
+            color: theme.heading,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+            marginTop: 20,
+            marginBottom: 8,
+            paddingLeft: 20,
+            paddingRight: 20,
+            textAlign: 'center',
+        },
+
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 400,
