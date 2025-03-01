@@ -49,6 +49,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getAddedConnectionMessage,
     getAllReportActions,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
@@ -956,6 +957,8 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             const {label, errorMessage} = getOriginalMessage(action) ?? {label: '', errorMessage: ''};
             children = <ReportActionItemBasicMessage message={translate('report.actions.type.integrationSyncFailed', {label, errorMessage})} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
+            children = <ReportActionItemBasicMessage message={getAddedConnectionMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
             children = <ReportActionItemBasicMessage message={getRemovedConnectionMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {

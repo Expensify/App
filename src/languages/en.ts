@@ -4859,7 +4859,7 @@ const translations = {
             return `updated the tag "${tagName}" on the list "${tagListName}" by adding a ${updatedField} of "${newValue}"`;
         },
         addCustomUnitRate: ({customUnitName, rateName}: UpdatedPolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
-        deleteCustomUnitRate: ({customUnitName, rateName}: UpdatedPolicyCustomUnitRateParams) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
+        deleteCustomUnitRate: ({customUnitName, rateName}: UpdatedPolicyCustomUnitRateParams) => `removed the "${customUnitName}" rate "${rateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `set the default value of report field "${fieldName}" to "${defaultValue}"`,
         deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `removed ${fieldType} Report Field "${fieldName}"`,
@@ -5182,6 +5182,7 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} left the workspace`,
                 removeMember: ({email, role}: AddEmployeeParams) => `removed ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `removed connection to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                addedConnection: ({connectionName}: ConnectionNameParams) => `connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
     },

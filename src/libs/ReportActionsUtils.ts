@@ -2085,6 +2085,15 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     return translateLocal('report.actions.type.removeMember', {email, role});
 }
 
+function getAddedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const connectionName = originalMessage?.connectionName;
+    return connectionName ? translateLocal('report.actions.type.addedConnection', {connectionName}) : '';
+}
+
 function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
         return '';
@@ -2375,6 +2384,7 @@ export {
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
+    getAddedConnectionMessage,
 };
 
 export type {LastVisibleMessage};

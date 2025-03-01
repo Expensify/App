@@ -22,6 +22,7 @@ import Parser from './Parser';
 import Performance from './Performance';
 import {getCleanedTagName, getPolicy} from './PolicyUtils';
 import {
+    getAddedConnectionMessage,
     getCardIssuedMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
@@ -617,6 +618,8 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
+            result.alternateText = getAddedConnectionMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION) {
             result.alternateText = getRemovedConnectionMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE) {
