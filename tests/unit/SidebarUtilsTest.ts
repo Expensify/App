@@ -201,7 +201,7 @@ describe('SidebarUtils', () => {
                 reportID: '1',
                 isPinned: true,
             };
-            const MOCK_REPORT_NOT_PINNED: Report = {
+            const MOCK_REPORT_UNPINNED: Report = {
                 reportID: '2',
                 isPinned: false,
             };
@@ -218,7 +218,7 @@ describe('SidebarUtils', () => {
             });
 
             const optionDataNotPinned = SidebarUtils.getOptionData({
-                report: MOCK_REPORT_NOT_PINNED,
+                report: MOCK_REPORT_UNPINNED,
                 reportNameValuePairs: {},
                 reportActions: {},
                 personalDetails: {},
