@@ -1940,6 +1940,23 @@ function getWorkspaceCustomUnitRateAddedMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getWorkspaceCustomUnitRateUpdatedMessage(action: ReportAction): string {
+    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue} =
+        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
+
+    if (customUnitName && customUnitRateName && updatedField && typeof oldValue === 'string' && typeof newValue === 'string') {
+        return translateLocal('workspaceActions.updatedCustomUnitRate', {
+            customUnitName,
+            customUnitRateName,
+            updatedField,
+            oldValue,
+            newValue,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceCustomUnitRateDeletedMessage(action: ReportAction): string {
     const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE>) ?? {};
     if (customUnitName && rateName) {
@@ -2385,6 +2402,7 @@ export {
     getUpdatedManualApprovalThresholdMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getAddedConnectionMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
 };
 
 export type {LastVisibleMessage};

@@ -378,6 +378,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom unit name */
     customUnitName?: string;
 
+    /** Rate name of the custom unit */
+    customUnitRateName?: string;
+
     /** Custom unit name */
     rateName?: string;
 

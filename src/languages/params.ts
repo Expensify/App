@@ -307,7 +307,9 @@ type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName
 
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
-type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+
+type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; customUnitRateName: string; oldValue: string; newValue: string; updatedField: string};
 
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
@@ -894,4 +896,5 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
+    AddOrDeletePolicyCustomUnitRateParams,
 };

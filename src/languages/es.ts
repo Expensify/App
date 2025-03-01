@@ -6,6 +6,7 @@ import type {
     ActionsAreCurrentlyRestricted,
     AddedOrDeletedPolicyReportFieldParams,
     AddEmployeeParams,
+    AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
@@ -4910,8 +4911,10 @@ const translations = {
             }
             return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
         },
-        addCustomUnitRate: ({customUnitName, rateName}: UpdatedPolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
-        deleteCustomUnitRate: ({customUnitName, rateName}: UpdatedPolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
+            `actualizó la tasa del ${customUnitName} ${updatedField} "${customUnitRateName}" de "${oldValue}" a "${newValue}"`,
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
