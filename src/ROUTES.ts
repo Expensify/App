@@ -2098,6 +2098,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/mapping-type/:mapping',
         getRoute: (policyID: string, mapping: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/mapping-type/${mapping}` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/tax',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/tax` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX_MAPPING: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/tax/mapping',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/tax/mapping` as const,
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/user-dimensions',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const,

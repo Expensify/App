@@ -449,6 +449,8 @@ const SCREENS = {
             SAGE_INTACCT_IMPORT: 'Policy_Accounting_Sage_Intacct_Import',
             SAGE_INTACCT_TOGGLE_MAPPING: 'Policy_Accounting_Sage_Intacct_Toggle_Mapping',
             SAGE_INTACCT_MAPPING_TYPE: 'Policy_Accounting_Sage_Intacct_Mapping_Type',
+            SAGE_INTACCT_IMPORT_TAX: 'Policy_Accounting_Sage_Intacct_Import_Tax',
+            SAGE_INTACCT_IMPORT_TAX_MAPPING: 'Policy_Accounting_Sage_Intacct_Import_Tax_Mapping',
             SAGE_INTACCT_USER_DIMENSIONS: 'Policy_Accounting_Sage_Intacct_User_Dimensions',
             SAGE_INTACCT_ADD_USER_DIMENSION: 'Policy_Accounting_Sage_Intacct_Add_User_Dimension',
             SAGE_INTACCT_EDIT_USER_DIMENSION: 'Policy_Accounting_Sage_Intacct_Edit_User_Dimension',

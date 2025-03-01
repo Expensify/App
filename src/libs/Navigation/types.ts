@@ -701,6 +701,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         mapping: SageIntacctMappingName;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT_TAX]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADD_USER_DIMENSION]: {
         policyID: string;
     };

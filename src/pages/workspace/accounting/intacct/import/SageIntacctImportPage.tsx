@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import Onyx from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,6 +15,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctConnectionsConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
@@ -46,6 +48,20 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
 
     const policyID: string = policy?.id ?? '-1';
     const sageIntacctConfig = policy?.connections?.intacct?.config;
+    const sageIntacctData = policy?.connections?.intacct?.data;
+
+    useEffect(() => {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            connections: {
+                intacct: {
+                    data: {
+                        taxSolutionIDs: ['Australia - GST', 'United Kingdom - VAT', 'Canadian Sales Taxn- SYS', 'South Africa - VAT'],
+                    },
+                },
+            },
+        });
+        console.log('sageIntacctData', sageIntacctData);
+    }, [policyID]);
 
     const mapingItems = useMemo(
         () =>
@@ -110,18 +126,23 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 </OfflineWithFeedback>
             ))}
 
-            <ToggleSettingOptionRow
-                title={translate('common.tax')}
-                subtitle={translate('workspace.intacct.importTaxDescription')}
-                switchAccessibilityLabel={translate('workspace.intacct.importTaxDescription')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={sageIntacctConfig?.tax?.syncTax ?? false}
-                onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !sageIntacctConfig?.tax?.syncTax)}
-                pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX], sageIntacctConfig?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.TAX)}
-                onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.TAX)}
-            />
+            {sageIntacctData?.taxSolutionIDs && sageIntacctData?.taxSolutionIDs.length > 0 && (
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.pendingFields)}>
+                    <MenuItemWithTopDescription
+                        title={
+                            sageIntacctConfig?.tax?.syncTax ? sageIntacctConfig?.tax?.taxSolutionID || sageIntacctData?.taxSolutionIDs?.at(0) : translate('workspace.accounting.notImported')
+                        }
+                        description={translate('common.tax')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID))}
+                        brickRoadIndicator={
+                            areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.TAX, CONST.SAGE_INTACCT_CONFIG.TAX_SOLUTION_ID], sageIntacctConfig?.errorFields)
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined
+                        }
+                    />
+                </OfflineWithFeedback>
+            )}
 
             <OfflineWithFeedback pendingAction={checkForUserDimensionWithPendingAction(sageIntacctConfig) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
                 <MenuItemWithTopDescription
