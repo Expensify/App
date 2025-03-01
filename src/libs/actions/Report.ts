@@ -15,6 +15,7 @@ import type {
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
     CompleteGuidedSetupParams,
+    DeleteAppReportParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
     FlagCommentParams,
@@ -2528,6 +2529,15 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
     }
 }
 
+/** Deletes a report and unreports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
+function deleteAppReport(reportID: string) {
+    const parameters: DeleteAppReportParams = {
+        reportID,
+    };
+    console.log('DeleteAppReport - CALLED');
+    API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters);
+}
+
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
@@ -4675,6 +4685,7 @@ export {
     clearReportFieldKeyErrors,
     completeOnboarding,
     deleteReport,
+    deleteAppReport,
     deleteReportActionDraft,
     deleteReportComment,
     deleteReportField,

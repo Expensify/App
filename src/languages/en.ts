@@ -703,8 +703,28 @@ const translations = {
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
         editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}?`,
+        deleteAction: ({action, isMultiTransactionReport = false}: DeleteActionParams) => {
+            let deleteType = '';
+
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                deleteType = isMultiTransactionReport ? 'report' : 'expense';
+            } else {
+                deleteType = 'comment';
+            }
+
+            return `Delete ${deleteType}`;
+        },
+        deleteConfirmation: ({action, isMultiTransactionReport = false}: DeleteConfirmationParams) => {
+            let deleteType = '';
+
+            if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                deleteType = isMultiTransactionReport ? 'report' : 'expense';
+            } else {
+                deleteType = 'comment';
+            }
+
+            return `Are you sure you want to delete this ${deleteType}?`;
+        },
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
@@ -5137,6 +5157,8 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
         genericUpdateReporNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
+        deleteAppReportTitle: 'Delete report',
+        deleteAppReportConfirmation: 'Are you sure you want to delete this report?',
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} from ${oldValue} to ${newValue}`,

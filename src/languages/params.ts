@@ -57,10 +57,12 @@ type EditActionParams = {
 
 type DeleteActionParams = {
     action: OnyxInputOrEntry<ReportAction>;
+    isMultiTransactionReport?: boolean;
 };
 
 type DeleteConfirmationParams = {
     action: OnyxInputOrEntry<ReportAction>;
+    isMultiTransactionReport?: boolean;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
