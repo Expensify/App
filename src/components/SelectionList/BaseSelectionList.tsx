@@ -970,15 +970,6 @@ function BaseSelectionList<TItem extends ListItem>(
         return listHeaderContent;
     }, [shouldShowTextInput, shouldShowTextInputAfterHeader, listHeaderContent, renderInput, shouldShowHeaderMessageAfterHeader, headerMessageContent]);
 
-    // return (
-    // <View>
-    //     {sections.map((section) => section.data.map((item) => <Text>{item.text}</Text>))}
-    //     {children}
-        
-    //     </View>
-    // );
-
-    // TODO: test _every_ component that uses SelectionList
     return (
         <View style={[styles.flex1, (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle, containerStyle]}>
             {shouldShowTextInput && !shouldShowTextInputAfterHeader && renderInput()}
