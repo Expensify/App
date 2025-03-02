@@ -1717,6 +1717,7 @@ const CONST = {
         REPORT: 'r',
         NOTE: 'n',
         SEARCH: 's',
+        ONBOARDING: 'o',
     },
 
     IMAGE_HIGH_RESOLUTION_THRESHOLD: 7000,
@@ -5199,7 +5200,9 @@ const CONST = {
                         '6. Navigate to *Tags* in the workspace editor.\n' +
                         '7. Click *+ Add tag* to make your own.\n' +
                         '\n' +
-                        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
+                        `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
+                        '\n' +
+                        `![video](https://d2k5nsl2zxldvw.cloudfront.net/videos/guided-setup-manage-team-v2.mp4)`,
                 },
                 {
                     type: 'addExpenseApprovals',
