@@ -74,6 +74,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         InputComponent={TextInput}

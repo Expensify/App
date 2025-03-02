@@ -59,6 +59,7 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNum
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysPhoneNumber')}</Text>
             <InputWrapper

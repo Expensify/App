@@ -76,6 +76,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             validate={validateEdit || validate}
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <InputWrapper
                 ref={inputCallbackRef}

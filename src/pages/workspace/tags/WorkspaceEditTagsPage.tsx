@@ -87,6 +87,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                     validate={validateTagName}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

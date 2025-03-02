@@ -120,6 +120,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            shouldHideFixErrorsAlert={(accountHolderDetailsFields?.length ?? 0) <= 1}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>

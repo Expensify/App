@@ -58,6 +58,7 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={submitButtonStyles}
             isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{title}</Text>
             <Text style={[styles.pv3, styles.textSupporting]}>{description}</Text>

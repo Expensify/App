@@ -62,6 +62,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}: NameBusinessPro
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterTheNameOfYourBusiness')}</Text>
             <InputWrapper

@@ -84,6 +84,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 submitButtonText={translate('common.save')}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
+                shouldHideFixErrorsAlert
             >
                 <PaymentCardCurrencyHeader />
                 <>

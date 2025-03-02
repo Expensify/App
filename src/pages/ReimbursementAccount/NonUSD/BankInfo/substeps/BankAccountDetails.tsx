@@ -87,6 +87,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             isSubmitDisabled={!inputs}
+            shouldHideFixErrorsAlert={(bankAccountDetailsFields?.length ?? 0) <= 1}
         >
             <>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>

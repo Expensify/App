@@ -59,6 +59,7 @@ function Size({onNext}: SizeProps) {
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <View>
                 <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.subscriptionSize.yourSize')}</Text>

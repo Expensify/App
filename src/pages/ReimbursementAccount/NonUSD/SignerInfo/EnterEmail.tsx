@@ -56,6 +56,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
             onSubmit={onSubmit}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
+            shouldHideFixErrorsAlert={!shouldGatherBothEmails}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail')}</Text>
             {!shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}

@@ -88,6 +88,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         InputComponent={TextInput}

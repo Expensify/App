@@ -179,6 +179,7 @@ function StatusClearAfterPage() {
                 scrollContextEnabled={false}
                 isSubmitButtonVisible={false}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <View>
                     {timePeriodOptions()}

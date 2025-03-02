@@ -63,6 +63,7 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
             enabledWhenOffline
             submitFlexEnabled
             shouldUseScrollView
+            shouldHideFixErrorsAlert
         >
             <View style={styles.ph5}>
                 <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>

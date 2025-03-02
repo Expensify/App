@@ -72,6 +72,7 @@ function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
+            shouldHideFixErrorsAlert
         >
             <InputWrapper
                 InputComponent={AddPlaidBankAccount}

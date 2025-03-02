@@ -65,6 +65,7 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
                     style={[styles.flexGrow1, styles.ph5]}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         InputComponent={DatePicker}

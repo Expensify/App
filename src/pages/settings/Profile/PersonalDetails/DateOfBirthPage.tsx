@@ -61,6 +61,7 @@ function DateOfBirthPage() {
                         onSubmit={PersonalDetails.updateDateOfBirth}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
+                        shouldHideFixErrorsAlert
                     >
                         <InputWrapper
                             InputComponent={DatePicker}

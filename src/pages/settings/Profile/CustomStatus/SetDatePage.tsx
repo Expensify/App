@@ -65,6 +65,7 @@ function SetDatePage({customStatus}: SetDatePageProps) {
                 submitButtonText={translate('common.save')}
                 validate={validate}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={DatePicker}
