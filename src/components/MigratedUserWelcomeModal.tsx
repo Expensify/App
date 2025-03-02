@@ -1,5 +1,6 @@
-import React, {useLayoutEffect} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -7,8 +8,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
 import {parseFSAttributes} from '@libs/Fullstory';
+import Navigation from '@libs/Navigation/Navigation';
+import {tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
@@ -36,6 +42,26 @@ function OnboardingWelcomeVideo() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [isModalVisible, setIsModalVisible] = useState(true);
+
+    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+        selector: tryNewDotOnyxSelector,
+    });
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+
+    const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
+
+    useEffect(() => {
+        if (isLoadingOnyxValue(tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
+            return;
+        }
+
+        if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
+            return;
+        }
+        setIsModalVisible(false);
+        Navigation.navigate(ROUTES.HOME);
+    }, [hasBeenAddedToNudgeMigration, dismissedProductTraining?.migratedUserWelcomeModal, setIsModalVisible, tryNewDotdMetadata, dismissedProductTrainingMetadata]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
@@ -62,6 +88,7 @@ function OnboardingWelcomeVideo() {
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
             contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
             modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
+            isVisible={isModalVisible}
         >
             <View
                 style={[styles.gap3, styles.pt1, styles.pl1]}
