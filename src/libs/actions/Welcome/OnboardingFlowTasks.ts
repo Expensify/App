@@ -73,11 +73,17 @@ const getOnboardingMessages = () => {
         description: ({workspaceCategoriesLink}) => translateLocal('onboarding.tasks.setupCategoriesTask.description', {workspaceCategoriesLink}),
     };
 
-    const submitExpenseTask: OnboardingTask = {
+    const submitExpenseAdminTask: OnboardingTask = {
         type: 'submitExpense',
         autoCompleted: false,
-        title: translateLocal('onboarding.tasks.submitExpenseTask.title'),
-        description: translateLocal('onboarding.tasks.submitExpenseTask.description'),
+        title: translateLocal('onboarding.tasks.submitExpenseAdminTask.title'),
+        description: translateLocal('onboarding.tasks.submitExpenseAdminTask.description'),
+    };
+    const submitExpenseEmployerTask: OnboardingTask = {
+        type: 'submitExpense',
+        autoCompleted: false,
+        title: translateLocal('onboarding.tasks.submitExpenseEmployerTask.title'),
+        description: translateLocal('onboarding.tasks.submitExpenseEmployerTask.description'),
     };
 
     const trackExpenseTask: OnboardingTask = {
@@ -149,12 +155,12 @@ const getOnboardingMessages = () => {
 
     const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
         message: translateLocal('onboarding.messages.employerOrSubmitMessage'),
-        tasks: [selfGuidedTourTask, submitExpenseTask],
+        tasks: [selfGuidedTourTask, submitExpenseEmployerTask],
     };
 
     const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
         ...onboardingEmployerOrSubmitMessage,
-        tasks: [selfGuidedTourTask, submitExpenseTask],
+        tasks: [selfGuidedTourTask, submitExpenseEmployerTask],
     };
 
     const onboardingPersonalSpendMessage: OnboardingMessage = {
@@ -202,7 +208,7 @@ const getOnboardingMessages = () => {
             },
             [CONST.ONBOARDING_CHOICES.ADMIN]: {
                 message: translateLocal('onboarding.messages.adminMessage'),
-                tasks: [meetGuideTask, submitExpenseTask, reviewWorkspaceSettingsTask],
+                tasks: [meetGuideTask, submitExpenseAdminTask, reviewWorkspaceSettingsTask],
             },
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: {
                 message: translateLocal('onboarding.messages.lookingAround'),

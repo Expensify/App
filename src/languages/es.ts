@@ -1919,19 +1919,36 @@ const translations = {
                     `[Llévame a la configuración de categorías del espacio de trabajo](${workspaceCategoriesLink}).`,
             },
 
-            submitExpenseTask: {
-                title: 'Envía un gasto',
+            submitExpenseEmployerTask: {
+                title: 'Presenta un gasto',
                 description:
-                    '*Envía un gasto* ingresando un monto o escaneando un recibo.\n' +
+                    '*Envía un gasto* introduciendo un monto o escaneando un recibo.\n' +
                     '\n' +
-                    'Así es como puedes enviar un gasto:\n' +
+                    'Aquí tienes cómo enviar un gasto:\n' +
                     '\n' +
                     '1. Haz clic en el botón verde *+*.\n' +
                     '2. Elige *Crear gasto*.\n' +
-                    '3. Ingresa un monto o escanea un recibo.\n' +
-                    '4. Agrega a la persona que te reembolsará en la solicitud.\n' +
+                    '3. Introduce un monto o escanea un recibo.\n' +
+                    `4. Añade el correo electrónico o número de teléfono de tu jefe.\n` +
+                    '5. Haz clic en *Crear*.\n' +
                     '\n' +
-                    'Luego, envía tu solicitud y espera ese dulce “¡Cha-ching!” cuando se complete.',
+                    `¡Y listo!`,
+            },
+            
+            submitExpenseAdminTask: {
+                title: 'Presenta un gasto',
+                description:
+                    '*Envía un gasto* introduciendo un monto o escaneando un recibo.\n' +
+                    '\n' +
+                    'Aquí tienes cómo enviar un gasto:\n' +
+                    '\n' +
+                    '1. Haz clic en el botón verde *+*.\n' +
+                    '2. Elige *Crear gasto*.\n' +
+                    '3. Introduce un monto o escanea un recibo.\n' +
+                    '4. Confirma los detalles.\n' +
+                    '5. Haz clic en *Crear*.\n' +
+                    '\n' +
+                    `¡Y listo!`,
             },
             trackExpenseTask: {
                 title: 'Registrar un gasto',

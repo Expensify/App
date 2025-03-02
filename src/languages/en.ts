@@ -1914,7 +1914,7 @@ const translations = {
                     '\n' +
                     `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
             },
-            submitExpenseTask: {
+            submitExpenseEmployerTask: {
                 title: 'Submit an expense',
                 description:
                     '*Submit an expense* by entering an amount or scanning a receipt.\n' +
@@ -1924,10 +1924,26 @@ const translations = {
                     '1. Click the green *+* button.\n' +
                     '2. Choose *Create expense*.\n' +
                     '3. Enter an amount or scan a receipt.\n' +
-                    '4. Add your reimburser to the request.\n' +
+                    `4. Add your boss's email or phone number.\n` +
+                    '5. Click *Create*.\n' +
                     '\n' +
-                    'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
-            },//this
+                    `And you're done!`,
+            },
+            submitExpenseAdminTask: {
+                title: 'Submit an expense',
+                description:
+                    '*Submit an expense* by entering an amount or scanning a receipt.\n' +
+                    '\n' +
+                    'Here’s how to submit an expense:\n' +
+                    '\n' +
+                    '1. Click the green *+* button.\n' +
+                    '2. Choose *Create expense*.\n' +
+                    '3. Enter an amount or scan a receipt.\n' +
+                    '4. Confirm details.\n' +
+                    '5. Click *Create*.\n' +
+                    '\n' +
+                    `And you're done!`,
+            },
             trackExpenseTask: {
                 title: 'Track an expense',
                 description:
