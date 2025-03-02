@@ -160,7 +160,7 @@ function FeatureTrainingModal({
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
             if (!isVisibleProp) {
-                setIsModalVisible(false)
+                setIsModalVisible(false);
                 return;
             }
             setIsModalVisible(true);
