@@ -87,7 +87,13 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
         shouldSaveDraft: isEditing,
     });
 
-    const testForShouldHideFixErrorsAlert = [isDocumentNeededStatus.isProofOfOwnershipNeeded, isDocumentNeededStatus.isCopyOfIDNeeded, isDocumentNeededStatus.isProofOfAddressNeeded, isDocumentNeededStatus.isCodiceFiscaleNeeded].filter(Boolean).length <= 1;
+    const testForShouldHideFixErrorsAlert =
+        [
+            isDocumentNeededStatus.isProofOfOwnershipNeeded,
+            isDocumentNeededStatus.isCopyOfIDNeeded,
+            isDocumentNeededStatus.isProofOfAddressNeeded,
+            isDocumentNeededStatus.isCodiceFiscaleNeeded,
+        ].filter(Boolean).length <= 1;
 
     return (
         <FormProvider
