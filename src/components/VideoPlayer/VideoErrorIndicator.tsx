@@ -2,18 +2,18 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
 
 type VideoErrorIndicatorProps = {
     /** Whether it is a preview or not */
     isPreview?: boolean;
-}
+};
 
-function VideoErrorIndicator({isPreview=false}: VideoErrorIndicatorProps) {
+function VideoErrorIndicator({isPreview = false}: VideoErrorIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();

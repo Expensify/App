@@ -499,7 +499,7 @@ function BaseVideoPlayer({
                                             {!hasError && ((isLoading && !isOffline) || (isBuffering && !isPlaying)) && (
                                                 <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
                                             )}
-                                            {hasError && !isOffline && <VideoErrorIndicator isPreview={isPreview}/>}
+                                            {hasError && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
                                         </View>
                                     </View>
                                 )}
@@ -507,11 +507,7 @@ function BaseVideoPlayer({
                             {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && (
                                 <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
                             )}
-                            {isLoading && (isOffline || !isBuffering) && (
-                                <AttachmentOfflineIndicator
-                                    isPreview={isPreview}
-                                />
-                            )}
+                            {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                 <VideoPlayerControls
                                     duration={duration}
