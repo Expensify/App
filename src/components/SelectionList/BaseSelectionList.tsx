@@ -150,10 +150,25 @@ function BaseSelectionList<TItem extends ListItem>(
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
-    const [itemLayoutMap, setItemLayoutMap] = useState<Map<number, {length: number; offset: number; index: number}>>(new Map());
-    const itemHeightsRef = useRef(new Map<string, number>());
 
     const incrementPage = useCallback(() => setCurrentPage((prev) => prev + 1), []);
+
+    const internalItemHeightsRef = useRef(new Map<string, number>());
+    const getItemHeightCached = useCallback(
+        (item: TItem) => {
+            if (!item.keyForList) {
+                return 0;
+            }
+
+            if (internalItemHeightsRef.current.has(item.keyForList)) {
+                return internalItemHeightsRef.current.get(item.keyForList) ?? 0;
+            }
+            const height = getItemHeight?.(item) ?? 0;
+            internalItemHeightsRef.current.set(item.keyForList, height);
+            return height;
+        },
+        [getItemHeight],
+    );
 
     /**
      * Iterates through the sections and items inside each section, and builds 4 arrays along the way:
@@ -222,7 +237,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 // Cache item height
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = getItemHeight ? getItemHeight(item) : itemHeightsRef.current.get(item?.keyForList ?? '');
+                const fullItemHeight = getItemHeightCached(item);
                 itemLayouts.push({length: fullItemHeight ?? 0, offset});
                 offset += fullItemHeight ?? 0;
 
@@ -248,7 +263,7 @@ function BaseSelectionList<TItem extends ListItem>(
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    }, [sections, customListHeader, customListHeaderHeight, getItemHeight]);
+    }, [sections, customListHeader, customListHeaderHeight, getItemHeightCached]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -305,9 +320,9 @@ function BaseSelectionList<TItem extends ListItem>(
             // the top of the viewable area at all times by adjusting the viewOffset.
             if (shouldKeepFocusedItemAtTopOfViewableArea) {
                 const firstPreviousItem = index > 0 ? flattenedSections.allOptions.at(index - 1) : undefined;
-                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? itemHeightsRef.current.get(firstPreviousItem.keyForList) ?? 0 : 0;
+                const firstPreviousItemHeight = firstPreviousItem && firstPreviousItem.keyForList ? getItemHeightCached(firstPreviousItem) : 0;
                 const secondPreviousItem = index > 1 ? flattenedSections.allOptions.at(index - 2) : undefined;
-                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? itemHeightsRef.current.get(secondPreviousItem.keyForList) ?? 0 : 0;
+                const secondPreviousItemHeight = secondPreviousItem && secondPreviousItem?.keyForList ? getItemHeightCached(secondPreviousItem) ?? 0 : 0;
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
@@ -456,6 +471,50 @@ function BaseSelectionList<TItem extends ListItem>(
 
         selectRow(focusedOption);
     }, [getFocusedOption, selectRow]);
+
+    const itemLayoutMap = useMemo(() => {
+        const newItemLayoutMap = new Map<number, {length: number; offset: number; index: number}>();
+        let currentIndex = 0;
+        let offset = 0;
+        const sectionHeaderHeight = 40;
+
+        // Pre-compute layout for all items
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < slicedSections.length; i++) {
+            // Section header
+            newItemLayoutMap.set(currentIndex, {
+                length: sectionHeaderHeight,
+                offset,
+                index: currentIndex,
+            });
+            offset += sectionHeaderHeight;
+            currentIndex++;
+            // Check if the section exists and has data
+            const section = slicedSections?.at(i);
+            if (section && section.data.length > 0) {
+                // Items in this section
+                // eslint-disable-next-line @typescript-eslint/prefer-for-of
+                for (let j = 0; j < section.data.length; j++) {
+                    // Make sure getItemHeight is defined before calling it
+                    if (getItemHeight) {
+                        const item = section.data[j];
+                        const length = getItemHeight(item);
+
+                        newItemLayoutMap.set(currentIndex, {
+                            length,
+                            offset,
+                            index: currentIndex,
+                        });
+
+                        offset += length;
+                        currentIndex++;
+                    }
+                }
+            }
+        }
+
+        return newItemLayoutMap;
+    }, [slicedSections, getItemHeight]);
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -911,50 +970,13 @@ function BaseSelectionList<TItem extends ListItem>(
         return listHeaderContent;
     }, [shouldShowTextInput, shouldShowTextInputAfterHeader, listHeaderContent, renderInput, shouldShowHeaderMessageAfterHeader, headerMessageContent]);
 
-    // Add this effect to pre-compute layouts when sections change
-    useEffect(() => {
-        const newItemLayoutMap = new Map<number, {length: number; offset: number; index: number}>();
-        let currentIndex = 0;
-        let offset = 0;
-        const sectionHeaderHeight = 40;
-
-        // Pre-compute layout for all items
-        // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let i = 0; i < slicedSections.length; i++) {
-            // Section header
-            newItemLayoutMap.set(currentIndex, {
-                length: sectionHeaderHeight,
-                offset,
-                index: currentIndex,
-            });
-            offset += sectionHeaderHeight;
-            currentIndex++;
-            // Check if the section exists and has data
-            const section = slicedSections?.at(i);
-            if (section && section.data.length > 0) {
-                // Items in this section
-                // eslint-disable-next-line @typescript-eslint/prefer-for-of
-                for (let j = 0; j < section.data.length; j++) {
-                    // Make sure getItemHeight is defined before calling it
-                    if (getItemHeight) {
-                        const item = section.data[j];
-                        const length = getItemHeight(item);
-
-                        newItemLayoutMap.set(currentIndex, {
-                            length,
-                            offset,
-                            index: currentIndex,
-                        });
-
-                        offset += length;
-                        currentIndex++;
-                    }
-                }
-            }
-        }
-
-        setItemLayoutMap(newItemLayoutMap);
-    }, [slicedSections, getItemHeight]);
+    // return (
+    // <View>
+    //     {sections.map((section) => section.data.map((item) => <Text>{item.text}</Text>))}
+    //     {children}
+        
+    //     </View>
+    // );
 
     // TODO: test _every_ component that uses SelectionList
     return (
@@ -969,6 +991,10 @@ function BaseSelectionList<TItem extends ListItem>(
             ) : (
                 <>
                     {!listHeaderContent && header()}
+                    {/* <View>
+                        {sections.map((section) => section.data.map((item) => <Text>{item.text}</Text>))}
+                        {children}
+                    </View> */}
                     <SectionList
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
