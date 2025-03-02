@@ -982,10 +982,6 @@ function BaseSelectionList<TItem extends ListItem>(
             ) : (
                 <>
                     {!listHeaderContent && header()}
-                    {/* <View>
-                        {sections.map((section) => section.data.map((item) => <Text>{item.text}</Text>))}
-                        {children}
-                    </View> */}
                     <SectionList
                         removeClippedSubviews={removeClippedSubviews}
                         ref={listRef}
