@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -45,7 +45,7 @@ const renderPage = (initialRouteName: typeof SCREENS.ATTACHMENTS, initialParams:
     );
 };
 
-// // Given report attachment data results consisting of involved user login, user account id, report & report action + attachment id
+// // Given report attachment data results consisting of involved user login, user account id, report & report action and attachment id
 const TEST_USER_LOGIN = 'test@test.com';
 const TEST_USER_ACCOUNT_ID = 1;
 const reportAttachmentID = '7487537791562875';
@@ -175,12 +175,12 @@ describe('ReportAttachments', () => {
         };
 
         // And ReportAttachmments is opened
-        const {queryByText} = renderPage(SCREENS.ATTACHMENTS, params);
+        renderPage(SCREENS.ATTACHMENTS, params);
 
         await waitForBatchedUpdatesWithAct();
 
         // Then the blocking view or not here page should not appear.
-        expect(queryByText(translateLocal('notFound.notHere'))).toBeNull();
+        expect(screen.queryByText(translateLocal('notFound.notHere'))).toBeNull();
     });
     it('should fetch the report id, if the report has not yet been opened by the user', async () => {
         // Given the report attachments params
