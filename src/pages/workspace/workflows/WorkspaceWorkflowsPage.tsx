@@ -29,7 +29,7 @@ import {
     updateGeneralSettings,
 } from '@libs/actions/Policy/Policy';
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
-import {getAllCardsForWorkspace, isSmartLimitEnable as isSmartLimitEnableUtil} from '@libs/CardUtils';
+import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -67,7 +67,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const workspaceAccountID = getWorkspaceAccountID(route.params.policyID);
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
-    const isSmartLimitEnable = isSmartLimitEnableUtil(workspaceCards);
+    const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const policyApproverEmail = policy?.approver;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -177,8 +177,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             },
             {
                 title: translate('workflowsPage.addApprovalsTitle'),
-                subtitle: isSmartLimitEnable ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
-                switchAccessibilityLabel: isSmartLimitEnable ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
+                subtitle: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
+                switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
                     setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
@@ -207,7 +207,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                     </>
                 ),
-                disabled: isSmartLimitEnable,
+                disabled: isSmartLimitEnabled,
                 isActive:
                     ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
@@ -310,7 +310,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         onPressAutoReportingFrequency,
         approvalWorkflows,
         addApprovalAction,
-        isSmartLimitEnable,
+        isSmartLimitEnabled,
         isOffline,
         theme.spinner,
         isPolicyAdmin,

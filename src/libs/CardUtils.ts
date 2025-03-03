@@ -470,7 +470,7 @@ function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCo
     return cards;
 }
 
-function isSmartLimitEnable(cards: CardList) {
+function isSmartLimitEnabled(cards: CardList) {
     return Object.values(cards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
@@ -589,7 +589,7 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
-    isSmartLimitEnable,
+    isSmartLimitEnabled,
     hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,
