@@ -234,7 +234,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
     callback: (value) => (conciergeChatReportID = value),
 });
 
@@ -1568,14 +1568,6 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         }
 
         saveReportDraftComment(preexistingReportID, draftReportComment, callback);
-
-        return;
-    }
-
-    if (reportID) {
-        if (isConciergeChatReport(report)) {
-            conciergeChatReportID = reportID;
-        }
     }
 }
 
@@ -3643,15 +3635,14 @@ function prepareOnboardingOnyxData(
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
 ) {
-    // If the user has the "combinedTrackSubmit" beta enabled we'll show different tasks for track and submit expense.
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
-        data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
+        data = CONST.CREATE_EXPENSE_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
     }
 
     if (engagementChoice === CONST.ONBOARDING_CHOICES.EMPLOYER || engagementChoice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         // eslint-disable-next-line no-param-reassign
-        data = CONST.COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
+        data = CONST.CREATE_EXPENSE_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.
@@ -4656,9 +4647,6 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
 
     fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
-function getConciergeReportID() {
-    return conciergeChatReportID;
-}
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
     Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
@@ -4696,7 +4684,6 @@ export {
     exportReportToCSV,
     exportToIntegration,
     flagComment,
-    getConciergeReportID,
     getCurrentUserAccountID,
     getDraftPrivateNote,
     getMostRecentReportID,

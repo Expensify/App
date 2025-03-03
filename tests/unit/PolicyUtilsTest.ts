@@ -2,7 +2,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {getActivePolicies, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActivePolicies, getPolicyNameByID, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
@@ -472,6 +472,31 @@ describe('PolicyUtils', () => {
             const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
             // The result should be false since it is a policy which is pending deletion.
             expect(result).toEqual(false);
+        });
+    });
+
+    describe('getPolicyNameByID', () => {
+        it('should return the policy name for a given policyID', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                name: 'testName',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+            expect(getPolicyNameByID('1')).toBe('testName');
+        });
+
+        it('should return the policyID if the name is not set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                name: null!,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+            expect(getPolicyNameByID('1')).toBe('1');
         });
     });
 });
