@@ -236,13 +236,15 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
                     .then((result) => {
                         console.debug('[dev] result', result);
                         if (result?.updateInfo.version === downloadedVersion) {
+                            console.debug('[dev] if - versions match, installing');
                             quitAndInstallWithUpdate();
                         } else {
-                            return autoUpdater.downloadUpdate();
+                            console.debug('[dev] else - downloading new update');
+                            return autoUpdater.downloadUpdate().then(() => {
+                                console.debug('[dev] download complete, installing');
+                                quitAndInstallWithUpdate();
+                            });
                         }
-                    })
-                    .then(() => {
-                        quitAndInstallWithUpdate();
                     })
                     .catch((error) => {
                         console.debug('[dev] error', error);
