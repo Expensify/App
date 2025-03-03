@@ -1768,6 +1768,8 @@ function buildPolicyData(
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
+    const shouldEnableWorkflowsByDefault =
+        !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     const optimisticData: OnyxUpdate[] = [
@@ -1794,7 +1796,7 @@ function buildPolicyData(
                 areCategoriesEnabled: true,
                 areTagsEnabled: false,
                 areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: false,
+                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 employeeList: {
@@ -3145,6 +3147,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ? {
                               approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                               autoReporting: false,
+                              autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                               harvesting: {
                                   enabled: false,
                               },
@@ -3157,6 +3160,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                               }
@@ -3194,6 +3198,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                         ? {
                               approvalMode: policy?.approvalMode,
                               autoReporting: policy?.autoReporting,
+                              autoReportingFrequency: policy?.autoReportingFrequency,
                               harvesting: policy?.harvesting,
                               reimbursementChoice: policy?.reimbursementChoice,
                           }
@@ -3204,6 +3209,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
+                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
