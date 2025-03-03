@@ -379,6 +379,11 @@ describe('CardUtils', () => {
             const companyFeeds = getCompanyFeeds(undefined);
             expect(companyFeeds).toStrictEqual({});
         });
+
+        it('Should return only feeds that are not pending', () => {
+            const companyFeeds = getCompanyFeeds(cardFeedsCollection.FAKE_ID_4, false, true);
+            expect(Object.keys(companyFeeds).length).toStrictEqual(1);
+        })
     });
 
     describe('getSelectedFeed', () => {

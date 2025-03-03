@@ -62,7 +62,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
-    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const companyFeeds = getCompanyFeeds(cardFeeds, false, true);
     const isFeedExpired = isSelectedFeedExpired((selectedFeed as CompanyCardFeed) ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed] : undefined);
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
@@ -121,7 +121,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => ({
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).filter(feed => Boolean(feed)).map((key) => ({
         value: key,
         text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
         keyForList: key,
@@ -137,6 +137,8 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             />
         ),
     }));
+
+    console.log(Object.keys(companyFeeds), cardFeeds, companyFeeds);
 
     const feeds = shouldShowExpensifyCard
         ? [
