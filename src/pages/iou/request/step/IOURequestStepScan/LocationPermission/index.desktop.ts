@@ -19,6 +19,8 @@ function requestLocationPermission(): Promise<PermissionStatus> {
     });
 }
 
+// Using navigator.permissions.query does not provide accurate results on desktop. 
+// Therefore, we use getCurrentPosition instead and assume the user has not enabled location services if it reaches timeout.
 function getLocationPermission(): Promise<PermissionStatus> {
     return new Promise((resolve) => {
         if (navigator.geolocation) {
@@ -48,21 +50,5 @@ function getLocationPermission(): Promise<PermissionStatus> {
         }
     });
 }
-
-// function getLocationPermission(): Promise<PermissionStatus> {
-//     return new Promise((resolve) => {
-//         if (navigator.geolocation) {
-//             navigator.permissions.query({name: 'geolocation'}).then((result) => {
-//                 if (result.state === 'prompt') {
-//                     resolve(RESULTS.DENIED);
-//                     return;
-//                 }
-//                 resolve(result.state === 'granted' ? RESULTS.GRANTED : RESULTS.BLOCKED);
-//             });
-//         } else {
-//             resolve(RESULTS.UNAVAILABLE);
-//         }
-//     });
-// }
 
 export {requestLocationPermission, getLocationPermission};

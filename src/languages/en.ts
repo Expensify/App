@@ -867,7 +867,6 @@ const translations = {
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
         addReceipt: 'Add receipt',
-        relaunchToTakeEffect: 'Please enable location access, then relaunch the app for changes to take effect',
     },
     quickAction: {
         scanReceipt: 'Scan receipt',

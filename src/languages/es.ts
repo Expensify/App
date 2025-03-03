@@ -861,7 +861,6 @@ const translations = {
         deleteReceipt: 'Eliminar recibo',
         deleteConfirmation: '¿Estás seguro de que quieres borrar este recibo?',
         addReceipt: 'Añadir recibo',
-        relaunchToTakeEffect: 'Vuelve a lanzar la aplicación para que los cambios surtan efecto.',
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
