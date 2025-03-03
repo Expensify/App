@@ -1,12 +1,11 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import EReceipt from './EReceipt';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
+import EReceiptWithSizeCalculation from './EReceiptWithSizeCalculation';
 import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
@@ -115,15 +114,6 @@ function ReceiptImage({
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
-    const [scale, setScale] = useState<number>(1);
-
-    const onParentLayout = (event: LayoutChangeEvent) => {
-        const parentWidth = event.nativeEvent.layout.width;
-        const desiredWidth = 335; // Replace with the original width of your component
-        const scaleFactor = Math.min(parentWidth / desiredWidth, 1);
-        setScale(scaleFactor);
-    };
-
     if (isEmptyReceipt) {
         return (
             <ReceiptEmptyState
@@ -145,18 +135,10 @@ function ReceiptImage({
 
     if (isEReceipt) {
         return (
-            <View style={[styles.mw100, styles.h100, styles.overflowHidden]}>
-                <View
-                    onLayout={onParentLayout}
-                    style={style ?? [styles.mw100, styles.h100, {transform: `scale(${scale})`, transformOrigin: 'top left'}]}
-                >
-                    <EReceipt
-                        transactionID={transactionID}
-                        transactionItem={transactionItem}
-                        isThumbnail
-                    />
-                </View>
-            </View>
+            <EReceiptWithSizeCalculation
+                transactionID={transactionID}
+                transactionItem={transactionItem}
+            />
         );
     }
 
