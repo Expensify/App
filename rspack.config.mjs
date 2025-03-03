@@ -30,7 +30,7 @@ export default {
             ...Repack.getJsTransformRules(),
             ...Repack.getAssetTransformRules(),
             {
-                test: /.lottie$/,
+                test: /\.lottie$/,
                 use: '@callstack/repack/assets-loader',
             },
         ],
