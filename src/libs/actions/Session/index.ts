@@ -147,26 +147,6 @@ function getShortLivedLoginParams() {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                isAuthenticatingWithShortLivedToken: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                isAuthenticatingWithShortLivedToken: false,
-            },
-        },
-    ];
-
     // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'finallyData' to ensure the user is logged out on refresh
     const finallyData: OnyxUpdate[] = [
         {
@@ -181,19 +161,20 @@ function getShortLivedLoginParams() {
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: null,
+                isAuthenticatingWithShortLivedToken: false,
             },
         },
     ];
 
-    return {optimisticData, successData, failureData, finallyData};
+    return {optimisticData, finallyData};
 }
 
 /**
  * This method should be used when we are being redirected from oldDot to NewDot on a supportal request
  */
 function signInWithSupportAuthToken(authToken: string) {
-    const {optimisticData, successData, failureData, finallyData} = getShortLivedLoginParams();
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, successData, failureData, finallyData});
+    const {optimisticData, finallyData} = getShortLivedLoginParams();
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
 }
 
 /**
@@ -651,8 +632,8 @@ function beginGoogleSignIn(token: string | null) {
  * re-authenticating after an authToken expires.
  */
 function signInWithShortLivedAuthToken(authToken: string) {
-    const {optimisticData, finallyData, successData, failureData} = getShortLivedLoginParams();
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, successData, failureData, finallyData});
+    const {optimisticData, finallyData} = getShortLivedLoginParams();
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
 }
 
 /**
