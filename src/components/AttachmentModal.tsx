@@ -553,7 +553,7 @@ function AttachmentModal({
                             />
                         )}
                         {!shouldShowNotFoundPage &&
-                            (!isEmptyObject(report) && !isReceiptAttachment && type !== CONST.ATTACHMENT_TYPE.ONBOARDING ? (
+                            (!isEmptyObject(report) && !isReceiptAttachment ? (
                                 <AttachmentCarousel
                                     accountID={accountID}
                                     type={type}

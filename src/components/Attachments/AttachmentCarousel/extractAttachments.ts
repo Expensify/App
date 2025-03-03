@@ -24,6 +24,7 @@ function extractAttachments(
     }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; report: OnyxEntry<Report>},
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
+    const description = report?.description ?? '';
     const attachments: Attachment[] = [];
     const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
@@ -107,6 +108,13 @@ function extractAttachments(
 
     if (type === CONST.ATTACHMENT_TYPE.NOTE) {
         htmlParser.write(targetNote);
+        htmlParser.end();
+
+        return attachments.reverse();
+    }
+
+    if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
+        htmlParser.write(description);
         htmlParser.end();
 
         return attachments.reverse();
