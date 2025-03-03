@@ -1,4 +1,5 @@
-import React, {useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -45,18 +46,20 @@ function BaseListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
-
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
-    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
-        bind.onMouseLeave();
-        e.stopPropagation();
-        setMouseUp();
-    };
+    const handleMouseLeave = useCallback(
+        (e: React.MouseEvent<Element, MouseEvent>) => {
+            bind.onMouseLeave();
+            e.stopPropagation();
+            setMouseUp();
+        },
+        [bind, setMouseUp],
+    );
 
-    const rightHandSideComponentRender = () => {
+    const rightHandSideComponentRender = useMemo(() => {
         if (canSelectMultiple || !rightHandSideComponent) {
             return null;
         }
@@ -66,7 +69,35 @@ function BaseListItem<TItem extends ListItem>({
         }
 
         return rightHandSideComponent;
-    };
+    }, [canSelectMultiple, rightHandSideComponent, item, isFocused]);
+
+    const handlePress = useCallback(
+        (e?: KeyboardEvent | GestureResponderEvent) => {
+            if (isMouseDownOnInput) {
+                e?.stopPropagation(); // Preventing the click action
+                return;
+            }
+            if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                return;
+            }
+            onSelectRow(item);
+        },
+        [isMouseDownOnInput, shouldPreventEnterKeySubmit, onSelectRow, item],
+    );
+
+    const handleLongPress = useCallback(() => {
+        onLongPressRow?.(item);
+    }, [onLongPressRow, item]);
+
+    const computedPressableStyle = useMemo(
+        () => [pressableStyle, isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)],
+        [pressableStyle, isFocused, StyleUtils, item.isSelected, item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG],
+    );
+
+    const computedWrapperStyle = useMemo(
+        () => [wrapperStyle, isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)],
+        [wrapperStyle, isFocused, item.isSelected, item.isDisabled, theme, StyleUtils],
+    );
 
     return (
         <OfflineWithFeedback
@@ -80,19 +111,8 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
-                onLongPress={() => {
-                    onLongPressRow?.(item);
-                }}
-                onPress={(e) => {
-                    if (isMouseDownOnInput) {
-                        e?.stopPropagation(); // Preventing the click action
-                        return;
-                    }
-                    if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-                        return;
-                    }
-                    onSelectRow(item);
-                }}
+                onLongPress={handleLongPress}
+                onPress={handlePress}
                 disabled={isDisabled && !item.isSelected}
                 interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
@@ -104,10 +124,7 @@ function BaseListItem<TItem extends ListItem>({
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
-                style={[
-                    pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                ]}
+                style={computedPressableStyle}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
                 tabIndex={item.tabIndex}
@@ -116,10 +133,7 @@ function BaseListItem<TItem extends ListItem>({
                 <View
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                     accessibilityState={{selected: !!isFocused}}
-                    style={[
-                        wrapperStyle,
-                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                    ]}
+                    style={computedWrapperStyle}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
@@ -128,14 +142,13 @@ function BaseListItem<TItem extends ListItem>({
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
                         >
-                            <View>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
+                            <Icon
+                                src={Expensicons.Checkmark}
+                                fill={theme.success}
+                            />
                         </View>
                     )}
+
                     {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <Icon
@@ -145,7 +158,7 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {rightHandSideComponentRender()}
+                    {rightHandSideComponentRender}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>

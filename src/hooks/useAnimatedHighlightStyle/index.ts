@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
+import {cancelAnimation, Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
@@ -88,6 +88,7 @@ export default function useAnimatedHighlightStyle({
             return;
         }
         setStartHighlight(false);
+
         InteractionManager.runAfterInteractions(() => {
             runOnJS(() => {
                 nonRepeatableProgress.set(
@@ -109,6 +110,11 @@ export default function useAnimatedHighlightStyle({
                 );
             })();
         });
+
+        return () => {
+            cancelAnimation(nonRepeatableProgress);
+            cancelAnimation(repeatableProgress);
+        };
     }, [
         didScreenTransitionEnd,
         startHighlight,

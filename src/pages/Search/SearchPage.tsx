@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderGap from '@components/HeaderGap';
@@ -36,19 +36,78 @@ function SearchPage({route}: SearchPageProps) {
     const {q, name, groupBy} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
+        if (!q) {
+            return {queryJSON: undefined, policyID: undefined};
+        }
+
         const parsedQuery = buildSearchQueryJSON(q);
-        const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
+        const extractedPolicyID = parsedQuery ? getPolicyIDFromSearchQuery(parsedQuery) : undefined;
 
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
-
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-    const {clearSelectedTransactions} = useSearchContext();
 
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
+
+    const handleOnBackButtonPress = useCallback(() => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()})), []);
+
+    const {clearSelectedTransactions} = useSearchContext();
+
+    const handleSelectionBackPress = useCallback(() => {
+        clearSelectedTransactions();
+        turnOffMobileSelectionMode();
+    }, [clearSelectedTransactions]);
+
+    const searchContent = useMemo(() => {
+        if (!queryJSON) {
+            return undefined;
+        }
+
+        return (
+            <View style={styles.searchSplitContainer}>
+                <View style={styles.searchSidebar}>
+                    {queryJSON ? (
+                        <View style={styles.flex1}>
+                            <HeaderGap />
+                            <TopBar
+                                activeWorkspaceID={policyID}
+                                breadcrumbLabel={translate('common.reports')}
+                                shouldDisplaySearch={false}
+                            />
+                            <SearchTypeMenu
+                                queryJSON={queryJSON}
+                                shouldGroupByReports={shouldGroupByReports}
+                            />
+                        </View>
+                    ) : (
+                        <HeaderWithBackButton
+                            title={translate('common.selectMultiple')}
+                            onBackButtonPress={handleSelectionBackPress}
+                        />
+                    )}
+                    <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
+                </View>
+                <ScreenWrapper
+                    testID={Search.displayName}
+                    shouldShowOfflineIndicatorInWideScreen
+                    offlineIndicatorStyle={styles.mtAuto}
+                >
+                    <SearchPageHeader
+                        queryJSON={queryJSON}
+                        shouldGroupByReports={shouldGroupByReports}
+                    />
+                    <SearchStatusBar queryJSON={queryJSON} />
+                    <Search
+                        key={queryJSON.hash}
+                        queryJSON={queryJSON}
+                        shouldGroupByReports={shouldGroupByReports}
+                    />
+                </ScreenWrapper>
+            </View>
+        );
+    }, [queryJSON, policyID, shouldGroupByReports, styles, translate, handleSelectionBackPress]);
 
     if (shouldUseNarrowLayout) {
         return (
@@ -62,7 +121,6 @@ function SearchPage({route}: SearchPageProps) {
             </FreezeWrapper>
         );
     }
-
     return (
         <FreezeWrapper>
             <FullPageNotFoundView
@@ -71,51 +129,7 @@ function SearchPage({route}: SearchPageProps) {
                 onBackButtonPress={handleOnBackButtonPress}
                 shouldShowLink={false}
             >
-                {!!queryJSON && (
-                    <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
-                            {queryJSON ? (
-                                <View style={styles.flex1}>
-                                    <HeaderGap />
-                                    <TopBar
-                                        activeWorkspaceID={policyID}
-                                        breadcrumbLabel={translate('common.reports')}
-                                        shouldDisplaySearch={false}
-                                    />
-                                    <SearchTypeMenu
-                                        queryJSON={queryJSON}
-                                        shouldGroupByReports={shouldGroupByReports}
-                                    />
-                                </View>
-                            ) : (
-                                <HeaderWithBackButton
-                                    title={translate('common.selectMultiple')}
-                                    onBackButtonPress={() => {
-                                        clearSelectedTransactions();
-                                        turnOffMobileSelectionMode();
-                                    }}
-                                />
-                            )}
-                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
-                        </View>
-                        <ScreenWrapper
-                            testID={Search.displayName}
-                            shouldShowOfflineIndicatorInWideScreen
-                            offlineIndicatorStyle={styles.mtAuto}
-                        >
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                shouldGroupByReports={shouldGroupByReports}
-                            />
-                            <SearchStatusBar queryJSON={queryJSON} />
-                            <Search
-                                key={queryJSON.hash}
-                                queryJSON={queryJSON}
-                                shouldGroupByReports={shouldGroupByReports}
-                            />
-                        </ScreenWrapper>
-                    </View>
-                )}
+                {searchContent}
             </FullPageNotFoundView>
         </FreezeWrapper>
     );
