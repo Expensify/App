@@ -1,22 +1,18 @@
-diff --git a/node_modules/expo/src/winter/runtime.native.ts b/node_modules/expo/src/winter/runtime.native.ts
-index a3c0b73..df8f519 100644
---- a/node_modules/expo/src/winter/runtime.native.ts
-+++ b/node_modules/expo/src/winter/runtime.native.ts
-@@ -4,7 +4,7 @@
- // @ts-ignore: PolyfillFunctions does not have types exported
- import { polyfillGlobal as installGlobal } from 'react-native/Libraries/Utilities/PolyfillFunctions';
- 
--import { installFormDataPatch } from './FormData';
-+// import { installFormDataPatch } from './FormData';
- // Add a well-known shared symbol that doesn't show up in iteration or inspection
- // this can be used to detect if the global object abides by the Expo team's documented
- // built-in requirements.
-@@ -30,7 +30,7 @@ install('URL', () => require('./url').URL);
- // https://url.spec.whatwg.org/#urlsearchparams
- install('URLSearchParams', () => require('./url').URLSearchParams);
- 
--installFormDataPatch(FormData);
-+// installFormDataPatch(FormData);
- 
- // Polyfill async iterator symbol for Hermes.
- // @ts-expect-error: readonly property only applies when the engine supports it
+diff --git a/node_modules/expo/src/winter/FormData.ts b/node_modules/expo/src/winter/FormData.ts
+index d78f165..9c8e95b 100644
+--- a/node_modules/expo/src/winter/FormData.ts
++++ b/node_modules/expo/src/winter/FormData.ts
+@@ -70,7 +70,12 @@ function normalizeArgs(
+   blobFilename: string | undefined
+ ): [string, File | string] {
+   if (value instanceof Blob) {
+-    value = { type: value.type, name: blobFilename || 'blob', blob: value };
++    // @ts-expect-error: `Blob.data.__collector` is react-native's proprietary property.
++    if (value.data?.__collector == null) {
++      // For react-native's BlobManager created Blob objects,
++      // we need to keep it as-is without breaking its functionality.
++      value = { type: value.type, name: blobFilename || 'blob', blob: value };
++    }
+   } else if (typeof value !== 'object') {
+     value = String(value);
+   }
