@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
 import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
 
 type HelpButtonProps = {
     style?: StyleProp<ViewStyle>;
@@ -21,9 +22,10 @@ function HelpButton({style}: HelpButtonProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
-    if (!sidePane) {
+    if (!sidePane || language !== CONST.LOCALES.EN) {
         return null;
     }
 
