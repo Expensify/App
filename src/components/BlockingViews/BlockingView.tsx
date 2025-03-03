@@ -49,9 +49,7 @@ type BaseBlockingViewProps = {
     /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /**
-     * Whether to add bottom safe area padding to the view.
-     */
+    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
 };
 

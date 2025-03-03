@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
@@ -40,14 +40,10 @@ type FormWrapperProps = ChildrenProps &
         /** Whether the form is loading */
         isLoading?: boolean;
 
-        /**
-         * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
-         */
+        /** If enabled, the content will have a bottom padding equal to account for the safe bottom area inset. */
         addBottomSafeAreaPadding?: boolean;
 
-        /**
-         * Whether the submit button should stick to the bottom of the screen.
-         */
+        /** Whether the submit button should stick to the bottom of the screen. */
         shouldSubmitButtonStickToBottom?: boolean;
     };
 
@@ -71,6 +67,7 @@ function FormWrapper({
     disablePressOnEnter = false,
     isSubmitDisabled = false,
     isLoading = false,
+    shouldScrollToEnd = false,
     addBottomSafeAreaPadding = false,
     shouldSubmitButtonStickToBottom = false,
 }: FormWrapperProps) {
@@ -183,13 +180,24 @@ function FormWrapper({
             <FormElement
                 key={formID}
                 ref={formContentRef}
+                // Note: the paddingBottom is only grater 0 if no parent has applied the inset yet:
                 style={[style, styles.pb5]}
+                onLayout={() => {
+                    if (!shouldScrollToEnd) {
+                        return;
+                    }
+                    InteractionManager.runAfterInteractions(() => {
+                        requestAnimationFrame(() => {
+                            formRef.current?.scrollToEnd({animated: true});
+                        });
+                    });
+                }}
             >
                 {children}
                 {!shouldSubmitButtonStickToBottom && SubmitButton}
             </FormElement>
         ),
-        [formID, style, styles.pb5, children, shouldSubmitButtonStickToBottom, SubmitButton],
+        [formID, style, styles.pb5, children, shouldSubmitButtonStickToBottom, SubmitButton, shouldScrollToEnd],
     );
 
     if (!shouldUseScrollView) {

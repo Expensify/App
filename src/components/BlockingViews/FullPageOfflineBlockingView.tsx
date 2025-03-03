@@ -7,9 +7,7 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import BlockingView from './BlockingView';
 
 type FullPageOfflineBlockingViewProps = ChildrenProps & {
-    /**
-     * Whether to add bottom safe area padding to the view.
-     */
+    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
 };
 

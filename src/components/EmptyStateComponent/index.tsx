@@ -91,7 +91,7 @@ function EmptyStateComponent({
             style={styles.flex1}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
-            <View style={styles.skeletonBackground}>
+            <View style={[styles.skeletonBackground, styles.overflowHidden]}>
                 <SkeletonComponent
                     gradientOpacityEnabled
                     shouldAnimate={false}

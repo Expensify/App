@@ -396,7 +396,12 @@ function Button(
         ],
     );
 
-    const buttonForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
+    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
+        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
+        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
+    );
+
+    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
         if (!shouldBlendOpacity) {
             return undefined;
         }
@@ -464,7 +469,7 @@ function Button(
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     style,
                 ]}
-                style={[buttonStyles, shouldBlendOpacity && {backgroundColor: theme.appBG, opacity: 1, position: 'relative', overflow: 'hidden'}]}
+                style={buttonContainerStyles}
                 isNested={isNested}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -481,7 +486,7 @@ function Button(
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}
             >
-                {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonForegroundStyle]} />}
+                {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
                 {isLoading && (
                     <ActivityIndicator

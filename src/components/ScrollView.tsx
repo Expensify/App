@@ -6,9 +6,7 @@ import type {ScrollViewProps as RNScrollViewProps} from 'react-native';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 
 type ScrollViewProps = RNScrollViewProps & {
-    /**
-     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
-     */
+    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
 };
 

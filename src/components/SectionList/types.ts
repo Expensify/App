@@ -2,9 +2,7 @@ import type {ForwardedRef} from 'react';
 import type {SectionListProps as RNSectionListProps, SectionList} from 'react-native';
 
 type SectionListProps<ItemT, SectionT> = RNSectionListProps<ItemT, SectionT> & {
-    /**
-     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
-     */
+    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
 };
 
