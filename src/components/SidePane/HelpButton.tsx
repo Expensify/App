@@ -10,8 +10,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
-import ONYXKEYS from '@src/ONYXKEYS';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type HelpButtonProps = {
     style?: StyleProp<ViewStyle>;
@@ -34,7 +34,7 @@ function HelpButton({style}: HelpButtonProps) {
             <PressableWithoutFeedback
                 accessibilityLabel={translate('common.help')}
                 style={[styles.flexRow, styles.touchableButtonImage, styles.pr2, style]}
-                onPress={() => triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openMobile, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth})}
+                onPress={() => triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.openLargeScreen : !sidePane?.openNarrowScreen, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth})}
             >
                 <Icon
                     src={Expensicons.QuestionMark}

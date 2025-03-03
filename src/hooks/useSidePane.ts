@@ -12,11 +12,11 @@ import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
 function isSidePaneHidden(sidePane: OnyxEntry<OnyxTypes.SidePane>, isExtraLargeScreenWidth: boolean) {
-    if (!isExtraLargeScreenWidth && !sidePane?.openMobile) {
+    if (!isExtraLargeScreenWidth && !sidePane?.openNarrowScreen) {
         return true;
     }
 
-    if (isExtraLargeScreenWidth && !sidePane?.open) {
+    if (isExtraLargeScreenWidth && !sidePane?.openLargeScreen) {
         return true;
     }
 

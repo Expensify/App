@@ -1,9 +1,9 @@
 type SidePane = {
     /** Whether the side pane is open on large screens */
-    open: boolean;
+    openLargeScreen: boolean;
 
     /** Whether the side pane is open on small screens */
-    openMobile: boolean;
+    openNarrowScreen: boolean;
 };
 
 export default SidePane;
