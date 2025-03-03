@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View } from 'react-native';
+import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -16,7 +16,6 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
     const [scaleFactor, setScaleFactor] = useState(0);
     const styles = useThemeStyles();
 
-    
     const onLayout = (e: LayoutChangeEvent) => {
         const {width} = e.nativeEvent.layout;
         setScaleFactor(Math.min(width / variables.eReceiptBGHWidth, 1));
@@ -36,8 +35,8 @@ function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {
             </View>
         </View>
     ) : (
-        <View 
-            style={[styles.w100, styles.h100]} 
+        <View
+            style={[styles.w100, styles.h100]}
             onLayout={onLayout}
         />
     );
