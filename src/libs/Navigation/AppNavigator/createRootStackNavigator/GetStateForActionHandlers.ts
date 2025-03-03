@@ -89,26 +89,30 @@ function handleSwitchPolicyID(
     setActiveWorkspaceID: (workspaceID: string | undefined) => void,
 ) {
     const lastRoute = state.routes.at(-1);
-    if (lastRoute?.name === SCREENS.SEARCH.ROOT) {
-        const currentParams = lastRoute.params as RootNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
-        if (!queryJSON) {
-            return null;
+    if (lastRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+        const searchRoute = lastRoute.state?.routes?.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+        if (searchRoute?.name === SCREENS.SEARCH.ROOT) {
+            // Fixme something is wrong in this state
+            const searchParams = searchRoute?.params;
+            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(searchParams.q);
+            if (!queryJSON) {
+                return null;
+            }
+
+            if (action.payload.policyID) {
+                queryJSON.policyID = action.payload.policyID;
+            } else {
+                delete queryJSON.policyID;
+            }
+
+            const newAction = StackActions.push(SCREENS.SEARCH.ROOT, {
+                ...searchRoute,
+                q: SearchQueryUtils.buildSearchQueryString(queryJSON),
+            });
+
+            setActiveWorkspaceID(action.payload.policyID);
+            return stackRouter.getStateForAction(state, newAction, configOptions);
         }
-
-        if (action.payload.policyID) {
-            queryJSON.policyID = action.payload.policyID;
-        } else {
-            delete queryJSON.policyID;
-        }
-
-        const newAction = StackActions.push(SCREENS.SEARCH.ROOT, {
-            ...currentParams,
-            q: SearchQueryUtils.buildSearchQueryString(queryJSON),
-        });
-
-        setActiveWorkspaceID(action.payload.policyID);
-        return stackRouter.getStateForAction(state, newAction, configOptions);
     }
     if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
         const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
@@ -182,37 +186,42 @@ function handlePushSearchPageAction(
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
     setActiveWorkspaceID: (workspaceID: string | undefined) => void,
 ) {
-    const currentParams = action.payload.params as RootNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-    const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
-
-    if (!queryJSON) {
-        return null;
-    }
-
-    if (!queryJSON.policyID) {
-        const policyID = getPolicyIDFromState(state as State<RootNavigatorParamList>);
-
-        if (policyID) {
-            queryJSON.policyID = policyID;
-        } else {
-            delete queryJSON.policyID;
+    let updatedAction = action;
+    const currentParams = action.payload.params as RootNavigatorParamList[typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR];
+    if (currentParams?.screen === SCREENS.SEARCH.ROOT) {
+        const searchParams = currentParams?.params;
+        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(searchParams.q);
+        if (!queryJSON) {
+            return null;
         }
-    } else {
-        setActiveWorkspaceID(queryJSON.policyID);
+
+        if (!queryJSON.policyID) {
+            const policyID = getPolicyIDFromState(state as State<RootNavigatorParamList>);
+
+            if (policyID) {
+                queryJSON.policyID = policyID;
+            } else {
+                delete queryJSON.policyID;
+            }
+        } else {
+            setActiveWorkspaceID(queryJSON.policyID);
+        }
+
+        updatedAction = {
+            ...action,
+            payload: {
+                ...action.payload,
+                params: {
+                    ...action.payload.params,
+                    params: {
+                        q: SearchQueryUtils.buildSearchQueryString(queryJSON),
+                    },
+                },
+            },
+        };
     }
 
-    const modifiedAction = {
-        ...action,
-        payload: {
-            ...action.payload,
-            params: {
-                ...action.payload.params,
-                q: SearchQueryUtils.buildSearchQueryString(queryJSON),
-            },
-        },
-    };
-
-    return stackRouter.getStateForAction(state, modifiedAction, configOptions);
+    return stackRouter.getStateForAction(state, updatedAction, configOptions);
 }
 
 /**

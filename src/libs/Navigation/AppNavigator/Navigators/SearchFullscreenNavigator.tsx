@@ -2,6 +2,7 @@ import React from 'react';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
+import useRootNavigatorScreenOptions from '@navigation/AppNavigator/useRootNavigatorScreenOptions';
 import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
@@ -11,11 +12,13 @@ const loadSearchMoneyReportPage = () => require<ReactComponentModule>('@pages/Se
 
 const Stack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 
-function SearchNavigator() {
+function SearchFullscreenNavigator() {
+    const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
+
     return (
         <FreezeWrapper>
             <Stack.Navigator
-                screenOptions={{headerShown: false}}
+                screenOptions={rootNavigatorScreenOptions.fullScreen}
                 defaultCentralScreen={SCREENS.SEARCH.ROOT}
             >
                 <Stack.Screen
@@ -32,6 +35,6 @@ function SearchNavigator() {
     );
 }
 
-SearchNavigator.displayName = 'SearchNavigator';
+SearchFullscreenNavigator.displayName = 'SearchFullscreenNavigator';
 
-export default SearchNavigator;
+export default SearchFullscreenNavigator;

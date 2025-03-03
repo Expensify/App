@@ -79,9 +79,17 @@ describe('Switch policy ID', () => {
                         index: 0,
                         routes: [
                             {
-                                name: SCREENS.SEARCH.ROOT,
-                                params: {
-                                    q: 'type:expense status:all sortBy:date sortOrder:desc',
+                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SEARCH.ROOT,
+                                            params: {
+                                                q: 'type:expense status:all sortBy:date sortOrder:desc',
+                                            },
+                                        },
+                                    ],
                                 },
                             },
                         ],
@@ -165,9 +173,17 @@ describe('Switch policy ID', () => {
                         index: 0,
                         routes: [
                             {
-                                name: SCREENS.SEARCH.ROOT,
-                                params: {
-                                    q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
+                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SEARCH.ROOT,
+                                            params: {
+                                                q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
+                                            },
+                                        },
+                                    ],
                                 },
                             },
                         ],
