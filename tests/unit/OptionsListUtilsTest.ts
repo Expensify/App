@@ -195,7 +195,7 @@ describe('OptionsListUtils', () => {
             type: CONST.REPORT.TYPE.CHAT,
             policyID,
             policyName: POLICY.name,
-            parentReportActionID: '1',
+            parentReportActionID: '123',
             parentReportID: '123',
         },
     };
@@ -768,8 +768,8 @@ describe('OptionsListUtils', () => {
         // When we pass an empty search value
         let results = getShareDestinationOptions(filteredReports, OPTIONS.personalDetails, []);
 
-        // Then we should expect all the recent reports to show but exclude the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
+        // Then we should expect all the recent reports to show but exclude the archived rooms and the hidden thread
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 2);
 
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
         const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
@@ -784,8 +784,8 @@ describe('OptionsListUtils', () => {
         // When we also have a policy to return rooms in the results
         results = getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, []);
         // Then we should expect the DMS, the group chats and the workspace room to show
-        // We should expect all the recent reports to show, excluding the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
+        // We should expect all the recent reports to show, excluding the archived rooms and the hidden thread
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 2);
     });
 
     describe('getShareLogOptions', () => {
@@ -797,7 +797,7 @@ describe('OptionsListUtils', () => {
             const results = getShareLogOptions(OPTIONS, []);
 
             // Then the report with reportID of 10 should not be included on the list
-            expect(results.recentReports.length).toBe(10);
+            expect(results.recentReports.length).toBe(9);
             expect(results.recentReports.find((report) => report.reportID === '10')).toBeUndefined();
         });
     });
