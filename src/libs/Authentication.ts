@@ -23,11 +23,11 @@ type Parameters = {
     authToken?: string;
 };
 
-let isAuthenticatingWithShortLiveToken = false;
+let isAuthenticatingWithShortLivedToken = false;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        isAuthenticatingWithShortLiveToken = !!value?.isAuthenticatingWithShortLiveToken;
+        isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
     },
 });
 
@@ -63,7 +63,7 @@ function Authenticate(parameters: Parameters): Promise<Response> {
  */
 function reauthenticate(command = ''): Promise<void> | undefined {
     // Prevent re-authentication if authentication with shortLiveToken is in progress
-    if (isAuthenticatingWithShortLiveToken) {
+    if (isAuthenticatingWithShortLivedToken) {
         return;
     }
 

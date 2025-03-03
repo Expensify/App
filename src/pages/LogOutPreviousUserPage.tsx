@@ -48,8 +48,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             return;
         }
 
-        // Even if the user was already authenticated in NewDot, we need to sign in and fetch a new authToken,
-        // because their authToken stored in Onyx can be invalid.
+        // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
+        // because the old authToken stored in Onyx may be invalid.
         const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
         signInWithShortLivedAuthToken(shortLivedAuthToken);
 
