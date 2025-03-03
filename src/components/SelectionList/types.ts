@@ -669,14 +669,10 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether the screen is focused or not. (useIsFocused state does not work in tab screens, e.g. SearchPageBottomTab) */
     isScreenFocused?: boolean;
 
-    /**
-     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
-     */
+    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
 
-    /**
-     * Whether the footer content should stick to the bottom of the screen.
-     */
+    /** Whether the footer content should stick to the bottom of the screen. */
     shouldFooterContentStickToBottom?: boolean;
 } & TRightHandSideComponent<TItem>;
 

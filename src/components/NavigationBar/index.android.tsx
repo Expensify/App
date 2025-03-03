@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 
+/** NavigationBar renders a semi-translucent background behind the three-button navigation bar on Android. */
 function NavigationBar() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -16,5 +17,6 @@ function NavigationBar() {
 
     return isSoftKeyNavigation ? <View style={[{position: 'absolute', bottom: 0, left: 0, right: 0, height: insets.bottom, backgroundColor: theme.navigationBarBackgroundColor}]} /> : null;
 }
+NavigationBar.displayName = 'NavigationBar';
 
 export default NavigationBar;

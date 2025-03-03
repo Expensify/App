@@ -26,9 +26,7 @@ type SharedProps<T> = {
     minModalHeight?: number;
     showsVerticalScrollIndicator?: boolean;
 
-    /**
-     * Whether to add bottom safe area padding to the view.
-     */
+    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
 };
 

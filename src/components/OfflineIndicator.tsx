@@ -19,9 +19,7 @@ type OfflineIndicatorProps = {
     /** Optional styles for the container */
     style?: StyleProp<ViewStyle>;
 
-    /**
-     * Whether to add bottom safe area padding to the view.
-     */
+    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
 };
 
