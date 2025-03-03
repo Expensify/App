@@ -10,6 +10,7 @@ import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/o
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {queueOnyxUpdates} from './QueuedOnyxUpdates';
+import { signOutAndRedirectToSignIn } from './Session';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -42,6 +43,12 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
             if (response.jsonCode === 200 && request.successData) {
                 return updateHandler(request.successData);
             }
+
+            if(response.jsonCode === 408 && response.message?.includes('The account you are trying to use is deleted.')){
+                signOutAndRedirectToSignIn(true);
+                return Promise.resolve();
+            }
+
             if (response.jsonCode !== 200 && request.failureData) {
                 // 460 jsonCode in Expensify world means "admin required".
                 // Typically, this would only happen if a user attempts an API command that requires policy admin access when they aren't an admin.
