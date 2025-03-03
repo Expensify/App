@@ -489,11 +489,10 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
             };
-            
+
             if (isIOUReport) {
                 reportIDToTransactions[reportKey].reportName = getIOUReportName(data, reportIDToTransactions[reportKey]);
             }
-            
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
