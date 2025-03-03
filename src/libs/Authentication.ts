@@ -3,13 +3,13 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/onyx/Response';
-import * as Delegate from './actions/Delegate';
+import {isConnectedAsDelegate, restoreDelegateSession} from './actions/Delegate';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
-import * as ErrorUtils from './ErrorUtils';
+import {getAuthenticateErrorMessage} from './ErrorUtils';
 import Log from './Log';
-import * as Network from './Network';
-import * as NetworkStore from './Network/NetworkStore';
+import {post} from './Network';
+import {getCredentials, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
 
 type Parameters = {
@@ -36,7 +36,7 @@ function Authenticate(parameters: Parameters): Promise<Response> {
 
     requireParameters(['partnerName', 'partnerPassword', 'partnerUserID', 'partnerUserSecret'], parameters, commandName);
 
-    return Network.post(commandName, {
+    return post(commandName, {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check
         // for credentials for the expensify partnerID to let users Authenticate with their expensify user
         // and password.
@@ -68,9 +68,9 @@ function reauthenticate(command = ''): Promise<void> | undefined {
     }
 
     // Prevent any more requests from being processed while authentication happens
-    NetworkStore.setIsAuthenticating(true);
+    setIsAuthenticating(true);
 
-    const credentials = NetworkStore.getCredentials();
+    const credentials = getCredentials();
     return Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -86,8 +86,8 @@ function reauthenticate(command = ''): Promise<void> | undefined {
 
         // If authentication fails and we are online then log the user out
         if (response.jsonCode !== 200) {
-            const errorMessage = ErrorUtils.getAuthenticateErrorMessage(response);
-            NetworkStore.setIsAuthenticating(false);
+            const errorMessage = getAuthenticateErrorMessage(response);
+            setIsAuthenticating(false);
             Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
                 command,
                 error: errorMessage,
@@ -98,9 +98,9 @@ function reauthenticate(command = ''): Promise<void> | undefined {
 
         // If we reauthenticated due to an expired delegate token, restore the delegate's original account.
         // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
-        if (Delegate.isConnectedAsDelegate()) {
+        if (isConnectedAsDelegate()) {
             Log.info('Reauthenticated while connected as a delegate. Restoring original account.');
-            Delegate.restoreDelegateSession(response);
+            restoreDelegateSession(response);
             return;
         }
 
@@ -110,10 +110,10 @@ function reauthenticate(command = ''): Promise<void> | undefined {
         // Note: It is important to manually set the authToken that is in the store here since any requests that are hooked into
         // reauthenticate .then() will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
         // enough to do the updateSessionAuthTokens() call above.
-        NetworkStore.setAuthToken(response.authToken ?? null);
+        setAuthToken(response.authToken ?? null);
 
         // The authentication process is finished so the network can be unpaused to continue processing requests
-        NetworkStore.setIsAuthenticating(false);
+        setIsAuthenticating(false);
     });
 }
 
