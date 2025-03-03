@@ -19,7 +19,7 @@ function requestLocationPermission(): Promise<PermissionStatus> {
     });
 }
 
-// Using navigator.permissions.query does not provide accurate results on desktop. 
+// Using navigator.permissions.query does not provide accurate results on desktop.
 // Therefore, we use getCurrentPosition instead and assume the user has not enabled location services if it reaches timeout.
 function getLocationPermission(): Promise<PermissionStatus> {
     return new Promise((resolve) => {
