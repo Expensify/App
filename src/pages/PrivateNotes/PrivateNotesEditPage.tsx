@@ -105,9 +105,10 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
 
     const validate = useCallback((): Errors => {
         const errors: Errors = {};
-        if (privateNote.trim().length > CONST.MAX_COMMENT_LENGTH) {
+        const privateNoteLength = privateNote.trim().length;
+        if (privateNoteLength > CONST.MAX_COMMENT_LENGTH) {
             errors.privateNotes = translate('common.error.characterLimitExceedCounter', {
-                length: privateNote.trim().length,
+                length: privateNoteLength,
                 limit: CONST.MAX_COMMENT_LENGTH,
             });
         }

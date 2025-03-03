@@ -65,9 +65,10 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
 
     const validate = useCallback((): Errors => {
         const errors: Errors = {};
-        if (description.trim().length > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
+        const descriptionLength = description.trim().length;
+        if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
             errors.reportDescription = translate('common.error.characterLimitExceedCounter', {
-                length: description.trim().length,
+                length: descriptionLength,
                 limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH,
             });
         }

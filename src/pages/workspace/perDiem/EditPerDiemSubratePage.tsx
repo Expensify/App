@@ -43,10 +43,12 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
 
-            if (!values.subrate.trim()) {
+            const subrateTrimmed = values.subrate.trim();
+
+            if (!subrateTrimmed) {
                 errors.subrate = translate('common.error.fieldRequired');
-            } else if (values.subrate.trim().length > CONST.MAX_LENGTH_256) {
-                errors.subrate = translate('common.error.characterLimitExceedCounter', {length: values.subrate.trim().length, limit: CONST.MAX_LENGTH_256});
+            } else if (subrateTrimmed.length > CONST.MAX_LENGTH_256) {
+                errors.subrate = translate('common.error.characterLimitExceedCounter', {length: subrateTrimmed.length, limit: CONST.MAX_LENGTH_256});
             }
 
             return errors;

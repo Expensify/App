@@ -44,10 +44,12 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
 
-            if (!values.destination.trim()) {
+            const destinationTrimmed = values.destination.trim();
+
+            if (!destinationTrimmed) {
                 errors.destination = translate('common.error.fieldRequired');
-            } else if (values.destination.trim().length > CONST.MAX_LENGTH_256) {
-                errors.destination = translate('common.error.characterLimitExceedCounter', {length: values.destination.trim().length, limit: CONST.MAX_LENGTH_256});
+            } else if (destinationTrimmed.length > CONST.MAX_LENGTH_256) {
+                errors.destination = translate('common.error.characterLimitExceedCounter', {length: destinationTrimmed.length, limit: CONST.MAX_LENGTH_256});
             }
 
             return errors;
