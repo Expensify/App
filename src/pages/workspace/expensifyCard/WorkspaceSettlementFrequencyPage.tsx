@@ -68,7 +68,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
         >
             <ScreenWrapper
                 testID={WorkspaceSettlementFrequencyPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -82,6 +82,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
                     onSelectRow={({value}) => updateSettlementFrequency(value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={selectedFrequency}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

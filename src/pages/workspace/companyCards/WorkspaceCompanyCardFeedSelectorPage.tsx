@@ -98,6 +98,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 testID={WorkspaceCompanyCardFeedSelectorPage.displayName}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('workspace.companyCards.selectCards')}
@@ -110,6 +111,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     shouldUpdateFocusedIndex
                     isAlternateTextMultilineSupported
                     initiallyFocusedOptionKey={selectedFeed}
+                    addBottomSafeAreaPadding
                     listFooterContent={
                         <MenuItem
                             title={translate('workspace.companyCards.addCards')}

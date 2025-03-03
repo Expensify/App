@@ -69,7 +69,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
             testID={NSQSSetupPage.displayName}
         >
@@ -88,6 +88,7 @@ function NSQSSetupPage({policy}: WithPolicyConnectionsProps) {
                         enabledWhenOffline
                         shouldValidateOnBlur
                         shouldValidateOnChange
+                        addBottomSafeAreaPadding
                     >
                         <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('workspace.nsqs.setup.description')}</Text>
                         <InputWrapper

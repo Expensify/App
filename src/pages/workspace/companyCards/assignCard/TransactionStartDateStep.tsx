@@ -90,6 +90,7 @@ function TransactionStartDateStep() {
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseTransactionStartDate')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
@@ -101,6 +102,16 @@ function TransactionStartDateStep() {
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
+                    addBottomSafeAreaPadding
+                    footerContent={
+                        <Button
+                            success
+                            large
+                            pressOnEnter
+                            text={translate(isEditing ? 'common.confirm' : 'common.next')}
+                            onPress={submit}
+                        />
+                    }
                     listFooterContent={
                         dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
                             <>
@@ -121,14 +132,6 @@ function TransactionStartDateStep() {
                     }
                 />
             </View>
-            <Button
-                success
-                large
-                pressOnEnter
-                text={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onPress={submit}
-                style={styles.m5}
-            />
         </InteractiveStepWrapper>
     );
 }

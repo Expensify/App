@@ -56,6 +56,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {sections.map((section) => (
                 <OfflineWithFeedback pendingAction={settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}>

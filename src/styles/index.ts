@@ -781,6 +781,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textLight,
         },
 
+        buttonBlendContainer: {
+            backgroundColor: theme.appBG,
+            opacity: 1,
+            position: 'relative',
+            overflow: 'hidden',
+        },
+
         hoveredComponentBG: {
             backgroundColor: theme.hoverComponentBG,
         },

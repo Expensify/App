@@ -47,11 +47,13 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
                 testID={TransactionStartDateSelectorModal.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('common.date')}
@@ -65,6 +67,7 @@ function TransactionStartDateSelectorModal({isVisible, date, handleSelectDate, o
                     style={[styles.flexGrow1, styles.ph5]}
                     enabledWhenOffline
                     validate={validate}
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={DatePicker}

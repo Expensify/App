@@ -27,7 +27,7 @@ function EmptyCardView({isBankAccountVerified}: EmptyCardViewProps) {
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
     return (
-        <ScrollView>
+        <ScrollView addBottomSafeAreaPadding>
             <View style={[{height: windowHeight - headerHeight}, styles.pt5]}>
                 <EmptyStateComponent
                     SkeletonComponent={CardRowSkeleton}
