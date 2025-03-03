@@ -130,7 +130,7 @@ key "key"
       / posted
     )
 
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
 
 identifier
   = (","+)? parts:(quotedString / alphanumeric)|1.., ","+| empty:(","+)? {
