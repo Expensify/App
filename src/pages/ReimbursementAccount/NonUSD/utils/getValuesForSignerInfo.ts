@@ -57,16 +57,15 @@ function getValuesForSignerInfo(directorIDs: string[], reimbursementAccountDraft
         state: reimbursementAccountDraft[signerInfoKeys.STATE] ?? '',
         street: reimbursementAccountDraft[signerInfoKeys.STREET] ?? '',
         zipCode: reimbursementAccountDraft[signerInfoKeys.ZIP_CODE] ?? '',
-        directors: directorIDs.map((directorID) => {
-            const directorKey = `${directorsPrefix}_${directorID}`;
-
-            return {
-                directorID,
-                fullName: reimbursementAccountDraft[`${directorKey}_${signerInfoKeys.DIRECTOR_FULL_NAME}`] ?? '',
-                jobTitle: reimbursementAccountDraft[`${directorKey}_${signerInfoKeys.DIRECTOR_JOB_TITLE}`] ?? '',
-                occupation: reimbursementAccountDraft[`${directorKey}_${signerInfoKeys.DIRECTOR_OCCUPATION}`] ?? '',
-            } as SignerInfoDirector;
-        }),
+        directors: directorIDs.map(
+            (directorID) =>
+                ({
+                    directorID,
+                    fullName: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.DIRECTOR_FULL_NAME}`] ?? '',
+                    jobTitle: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.DIRECTOR_JOB_TITLE}`] ?? '',
+                    occupation: reimbursementAccountDraft[`${directorsPrefix}_${directorID}_${signerInfoKeys.DIRECTOR_OCCUPATION}`] ?? '',
+                } as SignerInfoDirector),
+        ),
         proofOfDirectors: reimbursementAccountDraft[`${signerPrefix}_${signerInfoKeys.PROOF_OF_DIRECTORS}`] ?? [],
         copyOfId: reimbursementAccountDraft[`${signerPrefix}_${signerInfoKeys.COPY_OF_ID}`] ?? [],
         addressProof: reimbursementAccountDraft[`${signerPrefix}_${signerInfoKeys.ADDRESS_PROOF}`] ?? [],
