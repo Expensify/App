@@ -579,7 +579,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             beginPDFExport();
                         }
                     },
-                });
+                },
+            );
         }
 
         if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
