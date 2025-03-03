@@ -5446,10 +5446,7 @@ const styles = (theme: ThemeColors) =>
 
         sidePaneOverlay: {
             ...positioning.pFixed,
-            left: 0,
-            top: 0,
-            bottom: 0,
-            right: 0,
+            right: -variables.sideBarWidth,
             backgroundColor: theme.overlay,
             opacity: variables.overlayOpacity,
         },
