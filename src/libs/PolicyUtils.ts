@@ -1354,6 +1354,19 @@ function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
     return employeeEmails.length > 1;
 }
 
+function isAutoSyncEnabled(policy: Policy) {
+    const values = [
+        policy.connections?.intacct?.config?.autoSync?.enabled,
+        policy.connections?.netsuite?.config?.autoSync?.enabled,
+        policy.connections?.netsuiteQuickStart?.config?.autoSync?.enabled,
+        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
+        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
+        policy.connections?.xero?.config?.autoSync?.enabled,
+    ];
+
+    return values.some((value) => !!value);
+}
+
 export {
     canEditTaxRate,
     canEnablePreventSelfApprovals,
@@ -1492,6 +1505,7 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
+    isAutoSyncEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
