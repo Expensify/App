@@ -109,6 +109,7 @@ function IOURequestStepConfirmation({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login))
     const payeePersonalDetails = useMemo(() => {
         if (personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1]) {
             return personalDetails?.[transaction?.splitPayerAccountIDs?.at(0) ?? -1];
@@ -125,7 +126,7 @@ function IOURequestStepConfirmation({
         };
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
-    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile;
+    const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile && !isTestTransaction ;
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const headerTitle = useMemo(() => {

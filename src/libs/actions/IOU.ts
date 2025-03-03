@@ -1267,7 +1267,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         const date = new Date();
         const optimisticIOUReportAction = buildOptimisticIOUReportAction(
             CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            0,
+            iou.report?.total ?? 0,
             iou.report?.currency ?? '',
             '',
             transaction.participants ?? [],
@@ -1288,8 +1288,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    total: CONST.TEST_RECEIPT.AMOUNT,
-                    currency: CONST.TEST_RECEIPT.CURRENCY,
+                    total: isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : iou.report?.total,
+                    currency: isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : iou.report?.currency,
                     lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
                     lastMessageText: getReportActionText(optimisticIOUReportAction),
                     lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
@@ -1311,6 +1311,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     },
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {...transaction, amount: isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount, currency: isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency},
+            }
         );
     }
 
