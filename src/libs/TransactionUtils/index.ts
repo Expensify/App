@@ -820,7 +820,7 @@ function shouldShowBrokenConnectionViolation(
             // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
             throw new Error('Invalid argument combination. If a transactionIDList is passed in, then an OnyxCollection of violations is expected');
         }
-        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[id] ?? []);
+        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
     } else {
         if (!Array.isArray(transactionViolations)) {
             // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.

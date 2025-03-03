@@ -19,7 +19,7 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {
-    hasPendingRTERViolation,
+    allHavePendingRTERViolation,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -135,10 +135,8 @@ function isReviewDuplicatesAction(report: Report, policy: Policy, reportTransact
 }
 
 function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>) {
-    const violationsArray = Object.values(violations ?? {})
-        .filter((v) => !!v)
-        .flat();
-    const hasAllPendingRTERViolations = hasPendingRTERViolation(violationsArray);
+    const transactionIDs = reportTransactions.map((t) => t.transactionID);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -148,12 +146,7 @@ function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: 
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(
-        reportTransactions.map((t) => t.transactionID),
-        report,
-        policy,
-        violations,
-    );
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, report, policy, violations);
 
     const userControllsReport = isSubmitter || isApprover || isAdmin;
     return userControllsReport && shouldShowBrokenConnectionViolation;

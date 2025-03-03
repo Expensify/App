@@ -189,6 +189,10 @@ describe('getPrimaryAction', () => {
         const policy = {};
         const TRANSACTION_ID = 'TRANSACTION_ID';
 
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+        } as unknown as Transaction;
+
         const violation = {
             name: CONST.VIOLATIONS.RTER,
             data: {
@@ -197,7 +201,9 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getPrimaryAction(report, policy as Policy, [], {[TRANSACTION_ID]: [violation]})).toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
+        expect(getPrimaryAction(report, policy as Policy, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]})).toBe(
+            CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH,
+        );
     });
 
     it('should return MARK AS CASH for broken connection', async () => {
@@ -223,6 +229,8 @@ describe('getPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getPrimaryAction(report, policy as Policy, [transaction], {[TRANSACTION_ID]: [violation]})).toBe(CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH);
+        expect(getPrimaryAction(report, policy as Policy, [transaction], {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]})).toBe(
+            CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH,
+        );
     });
 });
