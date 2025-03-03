@@ -2,6 +2,7 @@ import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
@@ -26,7 +27,7 @@ export default function () {
         keys: ONYXKEYS,
 
         // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
-        maxCachedKeysCount: 20000,
+        maxCachedKeysCount: 100000,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         initialKeyStates: {
             // Clear any loading and error messages so they do not appear on app startup
@@ -44,6 +45,8 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
+
+    initOnyxDerivedValues();
 
     setDeviceID();
 
