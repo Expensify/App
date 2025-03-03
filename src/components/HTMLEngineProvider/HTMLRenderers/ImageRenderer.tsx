@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
+import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import {Document, GalleryNotFound} from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -119,8 +120,9 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
                                 showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
                             }}
+                            isNested
                             shouldUseHapticsOnLongPress
-                            accessibilityRole={CONST.ROLE.BUTTON}
+                            role={getButtonRole(true)}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         >
                             {thumbnailImageComponent}

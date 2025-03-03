@@ -147,6 +147,7 @@ function AttachmentCarousel({report, source, reportActionID, onNavigate, setDown
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
                         ref={pagerRef}
+                        reportID={report.reportID}
                     />
                 </>
             )}

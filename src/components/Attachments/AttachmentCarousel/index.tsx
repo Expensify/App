@@ -237,10 +237,11 @@ function AttachmentCarousel({report, reportActionID, source, onNavigate, setDown
                     isFocused={activeAttachmentID === (item.reportActionID ?? item.source)}
                     onPress={canUseTouchScreen ? handleTap : undefined}
                     isModalHovered={shouldShowArrows}
+                    reportID={report.reportID}
                 />
             </View>
         ),
-        [activeAttachmentID, canUseTouchScreen, cellWidth, handleTap, shouldShowArrows, styles.h100],
+        [activeAttachmentID, canUseTouchScreen, cellWidth, handleTap, report.reportID, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(
