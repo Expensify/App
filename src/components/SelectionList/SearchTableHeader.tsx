@@ -85,7 +85,7 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
 ];
 
-export const SearchColumns = {
+const SearchColumns = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
     [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
     [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
@@ -151,3 +151,4 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
 SearchTableHeader.displayName = 'SearchTableHeader';
 
 export default SearchTableHeader;
+export {SearchColumns};
