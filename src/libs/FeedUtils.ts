@@ -1,12 +1,12 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
+import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IllustrationsType from '@styles/theme/illustrations/types';
-import type { DomainFeedData} from "./CardUtils";
-import { isCardClosed ,generateDomainFeedData, getBankName, getCardFeedIcon, isCard, isCardHiddenFromSearch} from "./CardUtils";
+import type {DomainFeedData} from './CardUtils';
+import {generateDomainFeedData, getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
@@ -134,9 +134,9 @@ function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repe
     const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
     const cardName =
-      cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
-        ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
-        : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+        cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
+            ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
+            : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
 
     return {
         cardName,
@@ -152,9 +152,9 @@ function getDomainCardFeedData(domainFeed: DomainFeedData, repeatingBanks: strin
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
     const cardFeedLabel = isBankRepeating ? getDescriptionForPolicyDomainCard(domainName) : undefined;
     const cardName =
-      cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
-        ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
-        : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+        cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
+            ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
+            : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
     return {
         cardName,
         bank,
@@ -211,7 +211,7 @@ function createCardFeedItem({
     cardFeedKey,
     correspondingCardIDs,
     selectedCards,
-    illustrations
+    illustrations,
 }: {
     cardName: string;
     bank: string;

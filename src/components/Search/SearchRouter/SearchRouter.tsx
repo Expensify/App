@@ -122,7 +122,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
             let roomType: ValueOf<typeof CONST.SEARCH.DATA_TYPES> = CONST.SEARCH.DATA_TYPES.CHAT;
             let autocompleteID: string | undefined = reportForContextualSearch.reportID;
 
-
             if (reportForContextualSearch.isInvoiceRoom) {
                 roomType = CONST.SEARCH.DATA_TYPES.INVOICE;
                 const report = reportForContextualSearch as SearchOption<Report>;

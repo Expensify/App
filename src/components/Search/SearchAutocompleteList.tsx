@@ -385,7 +385,25 @@ function SearchAutocompleteList(
                 return [];
             }
         }
-    }, [autocompleteQueryValue, tagAutocompleteList, recentTagsAutocompleteList, categoryAutocompleteList, recentCategoriesAutocompleteList, currencyAutocompleteList, recentCurrencyAutocompleteList, taxAutocompleteList, participantsAutocompleteList, searchOptions.recentReports, typeAutocompleteList, statusAutocompleteList, expenseTypes, feedAutoCompleteList, workspaceCardFeeds, cardAutocompleteList, allCards]);
+    }, [
+        autocompleteQueryValue,
+        tagAutocompleteList,
+        recentTagsAutocompleteList,
+        categoryAutocompleteList,
+        recentCategoriesAutocompleteList,
+        currencyAutocompleteList,
+        recentCurrencyAutocompleteList,
+        taxAutocompleteList,
+        participantsAutocompleteList,
+        searchOptions.recentReports,
+        typeAutocompleteList,
+        statusAutocompleteList,
+        expenseTypes,
+        feedAutoCompleteList,
+        workspaceCardFeeds,
+        cardAutocompleteList,
+        allCards,
+    ]);
 
     const sortedRecentSearches = useMemo(() => {
         return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
