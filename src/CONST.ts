@@ -3440,6 +3440,11 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        TRACK: {
+            SUBMIT: 'submit',
+            CATEGORIZE: 'categorize',
+            SHARE: 'share',
+        },
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -6670,6 +6675,7 @@ const CONST = {
 
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
+        SINGLE_NEW_DOT_ENTRY: 'singleNewDotEntry',
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
