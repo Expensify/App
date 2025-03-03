@@ -64,12 +64,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             },
             title: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined,
             subscribedSettings: [exportDestinationSettingName],
-            onCloseError: () => {
-                if (!policyID) {
-                    return;
-                }
-                clearNetSuiteErrorField(policyID, exportDestinationSettingName);
-            },
+            onCloseError: () => clearNetSuiteErrorField(policyID, exportDestinationSettingName),
             helperText: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.${helperTextType}`) : undefined,
             shouldParseHelperText: true,
         },
@@ -83,12 +78,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             },
             title: defaultVendor ? defaultVendor.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR],
-            onCloseError: () => {
-                if (!policyID) {
-                    return;
-                }
-                clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR);
-            },
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR),
             shouldHide: shouldHideReimbursableDefaultVendor(isReimbursable, config),
         },
         {
@@ -101,12 +91,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             },
             title: selectedPayableAccount ? selectedPayableAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.PAYABLE_ACCT],
-            onCloseError: () => {
-                if (!policyID) {
-                    return;
-                }
-                clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PAYABLE_ACCT);
-            },
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PAYABLE_ACCT),
             shouldHide: shouldHideNonReimbursableJournalPostingAccount(isReimbursable, config),
         },
         {
@@ -119,12 +104,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             },
             title: selectedReimbursablePayableAccount ? selectedReimbursablePayableAccount.name : undefined,
             subscribedSettings: [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT],
-            onCloseError: () => {
-                if (!policyID) {
-                    return;
-                }
-                clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT);
-            },
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT),
             shouldHide: shouldHideReimbursableJournalPostingAccount(isReimbursable, config),
         },
         {
@@ -139,12 +119,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 ? translate(`workspace.netsuite.journalPostingPreference.values.${config.journalPostingPreference}`)
                 : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
             subscribedSettings: [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE],
-            onCloseError: () => {
-                if (!policyID) {
-                    return;
-                }
-                clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE);
-            },
+            onCloseError: () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE),
             shouldHide: shouldHideJournalPostingPreference(isReimbursable, config),
         },
     ];
