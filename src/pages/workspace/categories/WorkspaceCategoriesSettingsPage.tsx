@@ -43,7 +43,8 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const [groupID, setGroupID] = useState<string>();
     const isQuickSettingsFlow = backTo;
 
-    const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? `${translate('workspace.categories.needCategoryForExportToIntegration')} ${currentConnectionName}.` : undefined;
+    const toggleSubtitle =
+        isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
         setWorkspaceRequiresCategory(policyID, value);

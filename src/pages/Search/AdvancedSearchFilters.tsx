@@ -394,9 +394,9 @@ function AdvancedSearchFilters() {
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const policyID = searchAdvancedFilters.policyID;
-    const [userCardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds, userCardList, true), [userCardList, workspaceCardFeeds]);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
 
@@ -447,7 +447,7 @@ function AdvancedSearchFilters() {
     const applyFiltersAndNavigate = () => {
         clearAllFilters();
         Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+            ROUTES.SEARCH_ROOT.getRoute({
                 query: queryString,
             }),
             {forceReplace: true},
@@ -543,7 +543,8 @@ function AdvancedSearchFilters() {
                 <View>
                     {filters.map((section, index) => {
                         return (
-                            <>
+                            // eslint-disable-next-line react/no-array-index-key
+                            <View key={`${section.at(0)?.key}-${index}`}>
                                 {index !== 0 && (
                                     <SpacerView
                                         shouldShow
@@ -562,7 +563,7 @@ function AdvancedSearchFilters() {
                                         />
                                     );
                                 })}
-                            </>
+                            </View>
                         );
                     })}
                 </View>

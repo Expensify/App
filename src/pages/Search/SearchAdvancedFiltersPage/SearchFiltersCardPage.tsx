@@ -9,11 +9,12 @@ import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/Search/CardListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
 import {generateDomainFeedData} from '@libs/CardUtils';
 import type {CardFilterItem} from '@libs/FeedUtils';
-import {buildCardFeedsData, buildIndividualCardsData, generateSelectedCards, getSelectedCardsFromFeeds} from '@libs/FeedUtils';
+import {buildCardFeedsData, buildCardsData, generateSelectedCards, getSelectedCardsFromFeeds} from '@libs/FeedUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +23,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useThemeIllustrations();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -41,15 +43,20 @@ function SearchFiltersCardPage() {
     }, []);
 
     const individualCardsSectionData = useMemo(
-        () => buildIndividualCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards),
-        [workspaceCardFeeds, userCardList, personalDetails, selectedCards],
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, false),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
+    );
+
+    const closedCardsSectionData = useMemo(
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, true),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
     );
 
     const domainFeedsData = useMemo(() => generateDomainFeedData(userCardList), [userCardList]);
 
     const cardFeedsSectionData = useMemo(
-        () => buildCardFeedsData(workspaceCardFeeds ?? {}, domainFeedsData, selectedCards, translate),
-        [domainFeedsData, workspaceCardFeeds, selectedCards, translate],
+        () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations),
+        [domainFeedsData, workspaceCardFeeds, selectedCards, translate, illustrations],
     );
 
     const shouldShowSearchInput =
@@ -71,7 +78,7 @@ function SearchFiltersCardPage() {
         }
 
         const newSections = [];
-        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected];
+        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected];
 
         newSections.push({
             title: undefined,
@@ -88,6 +95,11 @@ function SearchFiltersCardPage() {
             data: individualCardsSectionData.unselected.filter(searchFunction),
             shouldShow: individualCardsSectionData.unselected.length > 0,
         });
+        newSections.push({
+            title: translate('search.filters.card.closedCards'),
+            data: closedCardsSectionData.unselected.filter(searchFunction),
+            shouldShow: closedCardsSectionData.unselected.length > 0,
+        });
         return newSections;
     }, [
         searchAdvancedFiltersForm,
@@ -95,6 +107,8 @@ function SearchFiltersCardPage() {
         cardFeedsSectionData.unselected,
         individualCardsSectionData.selected,
         individualCardsSectionData.unselected,
+        closedCardsSectionData.selected,
+        closedCardsSectionData.unselected,
         searchFunction,
         translate,
     ]);
