@@ -135,14 +135,19 @@ function isReviewDuplicatesAction(report: Report, policy: Policy, reportTransact
 }
 
 function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>) {
+    const violationsArray = Object.values(violations ?? {})
+        .flat()
+        .filter((v) => !!v);
+    const hasAllPendingRTERViolations = hasPendingRTERViolation(violationsArray);
+
+    if (hasAllPendingRTERViolations) {
+        return true;
+    }
+
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const x = Object.values(violations ?? {})
-        .flat()
-        .filter((v) => !!v);
-    const hasAllPendingRTERViolations = hasPendingRTERViolation(x);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(
         reportTransactions.map((t) => t.transactionID),
         report,
@@ -151,7 +156,7 @@ function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: 
     );
 
     const userControllsReport = isSubmitter || isApprover || isAdmin;
-    return hasAllPendingRTERViolations || (userControllsReport && shouldShowBrokenConnectionViolation);
+    return userControllsReport && shouldShowBrokenConnectionViolation;
 }
 
 function getPrimaryAction(
