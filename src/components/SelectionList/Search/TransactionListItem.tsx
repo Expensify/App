@@ -22,13 +22,14 @@ function TransactionListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     isLoading,
+    shouldAnimateOnRemove,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {currentSearchHash} = useSearchContext();
+    const {currentSearchHash, isAllStatus} = useSearchContext();
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
@@ -71,12 +72,13 @@ function TransactionListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
+            shouldAnimateOnRemove={shouldAnimateOnRemove}
         >
             <TransactionListItemRow
                 item={transactionItem}
                 showTooltip={showTooltip}
                 onButtonPress={() => {
-                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
+                    handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item), isAllStatus);
                 }}
                 onCheckboxPress={() => onCheckboxPress?.(item)}
                 isDisabled={!!isDisabled}

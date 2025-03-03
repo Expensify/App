@@ -172,8 +172,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     useEffect(() => {
         clearSelectedTransactions(hash);
-        setCurrentSearchHash(hash);
-    }, [hash, clearSelectedTransactions, setCurrentSearchHash]);
+        setCurrentSearchHash(hash, queryJSON.status);
+    }, [hash, clearSelectedTransactions, setCurrentSearchHash, queryJSON.status]);
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
@@ -549,6 +549,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
             shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
             isScreenFocused={isSearchScreenFocused}
             initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
+            shouldAnimateOnRemove
         />
     );
 }
