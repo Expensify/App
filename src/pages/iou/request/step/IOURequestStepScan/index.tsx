@@ -206,6 +206,7 @@ function IOURequestStepScan({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
 
+    // this effect will pre-fect location in web and desktop if the location already granted to optimize the flow
     useEffect(() => {
         const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
         if (!gpsRequired) {
