@@ -93,6 +93,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         ref={inputCallbackRef}

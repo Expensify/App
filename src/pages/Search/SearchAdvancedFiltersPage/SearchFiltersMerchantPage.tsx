@@ -50,6 +50,7 @@ function SearchFiltersMerchantPage() {
                 onSubmit={updateMerchantFilter}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <View style={styles.mb5}>
                     <InputWrapper

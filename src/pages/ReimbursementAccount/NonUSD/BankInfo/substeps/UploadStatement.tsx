@@ -80,6 +80,7 @@ function UploadStatement({onNext, isEditing}: UploadStatementProps) {
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.mh5, styles.flex1]}
+            shouldHideFixErrorsAlert
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.uploadYourLatest')}</Text>

@@ -97,6 +97,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
                     {!!rest.inputID && (

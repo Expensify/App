@@ -78,6 +78,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

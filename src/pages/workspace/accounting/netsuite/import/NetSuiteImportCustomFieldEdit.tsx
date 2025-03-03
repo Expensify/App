@@ -129,6 +129,7 @@ function NetSuiteImportCustomFieldEdit({
                     shouldValidateOnBlur
                     shouldValidateOnChange
                     isSubmitDisabled={!!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         InputComponent={TextInput}

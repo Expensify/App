@@ -74,6 +74,7 @@ function ExitSurveyReasonPage() {
                     submitButtonText={translate('common.next')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
+                    shouldHideFixErrorsAlert
                 >
                     {isOffline && <ExitSurveyOffline />}
                     {!isOffline && (

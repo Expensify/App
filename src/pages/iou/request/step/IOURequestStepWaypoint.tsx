@@ -208,6 +208,7 @@ function IOURequestStepWaypoint({
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
+                    shouldHideFixErrorsAlert
                 >
                     <View>
                         <InputWrapperWithRef

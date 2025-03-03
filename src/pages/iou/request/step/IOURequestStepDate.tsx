@@ -125,6 +125,7 @@ function IOURequestStepDate({
                 onSubmit={updateDate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={DatePicker}

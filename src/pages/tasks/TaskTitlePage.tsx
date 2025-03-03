@@ -95,6 +95,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         onSubmit={submit}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
+                        shouldHideFixErrorsAlert
                     >
                         <View style={[styles.mb4]}>
                             <InputWrapper

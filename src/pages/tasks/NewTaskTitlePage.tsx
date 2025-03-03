@@ -74,6 +74,7 @@ function NewTaskTitlePage({task, route}: NewTaskTitlePageProps) {
                 validate={validate}
                 onSubmit={onSubmit}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <View style={styles.mb5}>
                     <InputWrapperWithRef

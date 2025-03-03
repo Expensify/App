@@ -88,6 +88,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.pb4}>
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>

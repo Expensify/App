@@ -68,6 +68,7 @@ function RulesMaxExpenseAgePage({
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

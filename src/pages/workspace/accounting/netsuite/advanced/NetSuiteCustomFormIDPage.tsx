@@ -86,6 +86,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                     submitButtonText={translate('common.confirm')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
+                    shouldHideFixErrorsAlert
                 >
                     <OfflineWithFeedback
                         pendingAction={settingsPendingAction([customFormIDKey], config?.pendingFields)}

@@ -58,6 +58,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         InputComponent={TextInput}

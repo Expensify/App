@@ -65,6 +65,7 @@ function CardNameStep() {
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={TextInput}

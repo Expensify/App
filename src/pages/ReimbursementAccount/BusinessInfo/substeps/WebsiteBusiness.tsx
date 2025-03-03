@@ -60,6 +60,7 @@ function WebsiteBusiness({onNext, isEditing}: SubStepProps) {
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysWebsite')}</Text>
             <Text style={[styles.label, styles.textSupporting]}>{translate('common.websiteExample')}</Text>

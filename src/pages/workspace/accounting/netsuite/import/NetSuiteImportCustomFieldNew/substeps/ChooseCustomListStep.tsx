@@ -39,6 +39,7 @@ function ChooseCustomListStep({policy, onNext, isEditing, netSuiteCustomFieldFor
             enabledWhenOffline
             submitFlexEnabled
             shouldUseScrollView
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.mb3, styles.ph5, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.import.importCustomFields.customLists.addForm.listNameTitle`)}</Text>
             <InputWrapper

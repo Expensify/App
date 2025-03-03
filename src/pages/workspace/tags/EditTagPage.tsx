@@ -99,6 +99,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         InputComponent={TextInput}
