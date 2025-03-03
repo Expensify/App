@@ -15,11 +15,11 @@ const __dirname = path.dirname(__filename);
  * Learn about Re.Pack configuration: https://re-pack.dev/docs/guides/configuration
  */
 
-export default {
+export default (env) => ({
     context: __dirname,
     entry: './index.js',
     resolve: {
-        ...Repack.getResolveOptions(),
+        ...Repack.getResolveOptions(env.platform),
         tsConfig: {
             configFile: path.resolve(__dirname, './tsconfig.json'),
             references: 'auto',
@@ -56,4 +56,4 @@ export default {
             resourceRegExp: /^react-native-reanimated\/src\/reanimated2\/core$/,
         }),
     ],
-};
+});
