@@ -85,7 +85,7 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
 ];
 
-const SearchColumns = {
+export const SearchColumns = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
     [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
     [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
