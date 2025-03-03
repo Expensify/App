@@ -195,6 +195,8 @@ describe('OptionsListUtils', () => {
             type: CONST.REPORT.TYPE.CHAT,
             policyID,
             policyName: POLICY.name,
+            parentReportActionID: '1',
+            parentReportID: '123',
         },
     };
 
@@ -547,7 +549,7 @@ describe('OptionsListUtils', () => {
         // Filtering of personalDetails that have reports is done in filterOptions
         expect(results.personalDetails.length).toBe(9);
 
-        // Then all of the reports should be shown including the archived rooms, except for the report with notificationPreferences hidden.
+        // Then all of the reports should be shown including the archived rooms, except for the thread report with notificationPreferences hidden.
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length - 1);
     });
 
