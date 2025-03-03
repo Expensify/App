@@ -803,31 +803,23 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
 }
 
 /**
- * Check if user should see broken connection violation warning.
+ * Check if user should see broken connection violation warning based on violations list.
  */
-function shouldShowBrokenConnectionViolation(
-    transactionOrIDList: Transaction | string[] | undefined,
+function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy, transactionViolations: TransactionViolation[]): boolean {
+    const brokenConnectionViolations = transactionViolations.filter((violation) => isBrokenConnectionViolation(violation));
+    return brokenConnectionViolations.length > 0 && (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)));
+}
+
+/**
+ * Check if user should see broken connection violation warning based on selected transactions.
+ */
+function shouldShowBrokenConnectionViolationForMultipleTransactions(
+    transactionIDs: string[],
     report: OnyxEntry<Report> | SearchReport,
     policy: OnyxEntry<Policy> | SearchPolicy,
-    transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]> | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
-    if (!transactionOrIDList) {
-        return false;
-    }
-    let violations: TransactionViolation[];
-    if (Array.isArray(transactionOrIDList)) {
-        if (Array.isArray(transactionViolations)) {
-            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
-            throw new Error('Invalid argument combination. If a transactionIDList is passed in, then an OnyxCollection of violations is expected');
-        }
-        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
-    } else {
-        if (!Array.isArray(transactionViolations)) {
-            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
-            throw new Error('Invalid argument combination. If a single transaction is passed in, then an array of violations for that transaction is expected');
-        }
-        violations = transactionViolations;
-    }
+    const violations = transactionIDs.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
 
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
     return brokenConnectionViolations.length > 0 && (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)));
@@ -1497,6 +1489,7 @@ export {
     hasViolation,
     hasBrokenConnectionViolation,
     shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,

@@ -18,12 +18,7 @@ import {
     isReportApproved,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {
-    allHavePendingRTERViolation,
-    isDuplicate,
-    isOnHold as isOnHoldTransactionUtils,
-    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
-} from './TransactionUtils';
+import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function isSubmitAction(report: Report, policy: Policy) {
     const isExpense = isExpenseReport(report);
@@ -146,7 +141,7 @@ function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: 
     const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, report, policy, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
 
     const userControllsReport = isSubmitter || isApprover || isAdmin;
     return userControllsReport && shouldShowBrokenConnectionViolation;
