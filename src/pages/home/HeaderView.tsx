@@ -119,7 +119,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
 
-    const participants = getParticipantsAccountIDsForDisplay(report, false, true).slice(0, 5);
+    const fullParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
+    const participants = fullParticipants.slice(0, CONST.PARTICIPANTS_LIMIT);
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);
@@ -197,6 +198,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
+    const shouldAddEllipsis = fullParticipants?.length > CONST.PARTICIPANTS_LIMIT && !shouldUseGroupTitle;
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
@@ -290,6 +292,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                                 textStyles={[styles.headerText, styles.pre]}
                                                 shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
                                                 renderAdditionalText={renderAdditionalText}
+                                                shouldAddEllipsis={shouldAddEllipsis}
                                             />
                                         </CaretWrapper>
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
