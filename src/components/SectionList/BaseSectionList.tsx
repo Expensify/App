@@ -19,6 +19,6 @@ function BaseSectionList<ItemT, SectionT>(
     );
 }
 
-BaseSectionList.displayName = 'SectionList';
+BaseSectionList.displayName = 'BaseSectionList';
 
 export default forwardRef(BaseSectionList);
