@@ -25,7 +25,7 @@ type BaseImageProps = {
     style?: StyleProp<ImageStyle>;
 
     /** The image cache policy */
-    cachePolicy?: ImagePrefetchOptions;
+    cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 };
 
 type ImageOwnProps = BaseImageProps & {
