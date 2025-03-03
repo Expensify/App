@@ -136,8 +136,8 @@ function isReviewDuplicatesAction(report: Report, policy: Policy, reportTransact
 
 function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>) {
     const violationsArray = Object.values(violations ?? {})
-        .flat()
-        .filter((v) => !!v);
+        .filter((v) => !!v)
+        .flat();
     const hasAllPendingRTERViolations = hasPendingRTERViolation(violationsArray);
 
     if (hasAllPendingRTERViolations) {
