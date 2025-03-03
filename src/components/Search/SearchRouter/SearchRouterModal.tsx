@@ -30,7 +30,7 @@ function SearchRouterModal() {
             popoverAnchorPosition={{right: 6, top: 6}}
             fullscreen
             propagateSwipe
-            swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
+            swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
             shouldHandleNavigationBack={isMobileChrome()}
             onClose={closeSearchRouter}
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
