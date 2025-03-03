@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import * as IOUUtils from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -40,10 +41,10 @@ type TaxPickerProps = {
     /** The type of IOU */
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
 
-    onDismiss: () => void;
+    onDismiss?: () => void;
 };
 
-function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSubmit, action, iouType, onDismiss}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSubmit, action, iouType, onDismiss = Navigation.goBack}: TaxPickerProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
