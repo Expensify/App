@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import lodashEscape from 'lodash/escape';
@@ -1665,7 +1666,7 @@ function isHiddenForCurrentUser(reportOrPreference: OnyxEntry<Report> | string |
  * by cross-referencing the accountIDs with personalDetails since guides that are participants
  * of the user's chats should have their personal details in Onyx.
  */
-function hasExpensifyGuidesEmails(accountIDs: number[]): boolean {
+function hasExpensifyGuidesEmails(accountIDs: Array<string | number>): boolean {
     return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EMAIL.GUIDES_DOMAIN);
 }
 
@@ -6894,57 +6895,14 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
     return reportToLook.ownerAccountID === currentUserAccountID;
 }
 
-/**
- * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
- * the various subsets of users we've allowed to use default rooms.
- */
-function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
-    // Include archived rooms
-    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
-        return true;
-    }
-
-    // If the room has an assigned guide, it can be seen.
-    if (hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))) {
-        return true;
-    }
-
-    // Include any admins and announce rooms, since only non partner-managed domain rooms are on the beta now.
-    if (isAdminRoom(report) || isAnnounceRoom(report)) {
-        return true;
-    }
-
-    // For all other cases, just check that the user belongs to the default rooms beta
-    return Permissions.canUseDefaultRooms(betas ?? []);
-}
-
-function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
-    // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
-    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
-        return false;
-    }
-
-    if (report?.errorFields?.notFound) {
-        return false;
-    }
-
-    return true;
-}
-
 // eslint-disable-next-line rulesdir/no-negated-variables
 function isReportNotFound(report: OnyxEntry<Report>): boolean {
     return !!report?.errorFields?.notFound;
 }
 
-/**
- * Check if the report is the parent report of the currently viewed report or at least one child report has report action
- */
-function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string | undefined): boolean {
-    const currentReport = getReportOrDraftReport(currentReportId);
-    const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
-    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
-    const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
-    return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
+function hasComments(reportID: string): boolean {
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
+    return Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
 }
 
 /**
@@ -7113,75 +7071,262 @@ function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveVio
     );
 }
 
+const REPORT_FLAGS = {
+    HAS_VALID_STRUCTURE: 1 << 0, // 1
+    IS_SUPPORTED_TYPE: 1 << 1, // 2
+    HAS_DRAFT_COMMENT: 1 << 2, // 4
+    IS_PINNED: 1 << 3, // 8
+    HAS_ADD_WORKSPACE_ERROR: 1 << 4, // 16
+    IS_UNREAD: 1 << 5, // 32
+    IS_ARCHIVED: 1 << 6, // 64
+    IS_EMPTY_CHAT: 1 << 7, // 128
+    IS_SELF_DM: 1 << 8, // 256
+    HAS_VIOLATIONS: 1 << 9, // 512
+    IS_SINGLE_TRANSACTION_THREAD: 1 << 10, // 1024
+    HAS_GBR: 1 << 11, // 2048
+    IS_CHAT_ROOM: 1 << 12,
+    IS_CHAT_THREAD: 1 << 13,
+    IS_SYSTEM_CHAT: 1 << 14,
+    IS_GROUP_CHAT: 1 << 15,
+    IS_MONEY_REQUEST: 1 << 16,
+    IS_TASK_REPORT: 1 << 17,
+    IS_ADMIN_ROOM: 1 << 18,
+    IS_THREAD: 1 << 19,
+    IS_ONE_TRANSACTION_THREAD: 1 << 20,
+    IS_EXPENSE_REQUEST: 1 << 21,
+    IS_EXPENSE_REPORT: 1 << 22,
+    IS_DEFAULT_ROOM: 1 << 23,
+    IS_CHAT_REPORT: 1 << 24,
+    SHOULD_ADMIN_ROOM_BE_VISIBLE: 1 << 25,
+    IS_POLICY_EXPENSE_CHAT: 1 << 26,
+    IS_ARCHIVED_NON_EXPENSE_REPORT: 1 << 27,
+    HAS_EXPENSIFY_GUIDED_EMAILS: 1 << 28,
+    IS_ANNOUNCE_ROOM: 1 << 29,
+    HAS_COMMENTS: 1 << 30, // has thread replies
+    // NOTE: WE CAN'T HAVE MORE THAN 31 FLAGS (due to numbers being 32-bit signed integers)
+} as const;
+
+// Type for the flags
+type ReportFlag = keyof typeof REPORT_FLAGS;
+type ReportFlagValue = (typeof REPORT_FLAGS)[ReportFlag];
+
+// Cache to store computed flags
+const reportFlagsCache = new Map<string, ReportFlagValue>();
+
+/**
+ * Computes the flags for a report and caches the result
+ */
+function computeReportFlags(report: Report): number {
+    let flags = 0;
+
+    if (isChatRoom(report)) {
+        flags |= REPORT_FLAGS.IS_CHAT_ROOM;
+    }
+    if (isChatReport(report)) {
+        flags |= REPORT_FLAGS.IS_CHAT_REPORT;
+        if (isChatThread(report)) {
+            flags |= REPORT_FLAGS.IS_CHAT_THREAD;
+        }
+    }
+    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+    if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
+        flags |= REPORT_FLAGS.IS_ARCHIVED;
+    }
+    if (isMoneyRequestReport(report)) {
+        flags |= REPORT_FLAGS.IS_MONEY_REQUEST;
+    }
+    if (isTaskReport(report)) {
+        flags |= REPORT_FLAGS.IS_TASK_REPORT;
+    }
+    if (isSelfDM(report)) {
+        flags |= REPORT_FLAGS.IS_SELF_DM;
+    }
+    if (isSystemChat(report)) {
+        flags |= REPORT_FLAGS.IS_SYSTEM_CHAT;
+    }
+    if (isGroupChat(report)) {
+        flags |= REPORT_FLAGS.IS_GROUP_CHAT;
+    }
+    // Check basic report structure
+    const reportType = report.type;
+    if (
+        report.reportID &&
+        reportType &&
+        report.reportName !== undefined &&
+        (!!report?.participants ||
+            flags & REPORT_FLAGS.IS_CHAT_ROOM ||
+            flags & REPORT_FLAGS.IS_CHAT_THREAD ||
+            flags & REPORT_FLAGS.IS_ARCHIVED ||
+            flags & REPORT_FLAGS.IS_MONEY_REQUEST ||
+            flags & REPORT_FLAGS.IS_TASK_REPORT ||
+            flags & REPORT_FLAGS.IS_SELF_DM ||
+            flags & REPORT_FLAGS.IS_SYSTEM_CHAT ||
+            flags & REPORT_FLAGS.IS_GROUP_CHAT)
+    ) {
+        flags |= REPORT_FLAGS.HAS_VALID_STRUCTURE;
+    } else {
+        // if the report has no valid structure we don't need to continue computing other flags.
+        // other checking sites should check first if the report has a valid structure before checking other flags.
+        return flags;
+    }
+
+    // Check if type is supported
+    if (!(Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(reportType)) {
+        flags |= REPORT_FLAGS.IS_SUPPORTED_TYPE;
+    } else {
+        return flags;
+    }
+
+    // TODO: optimize: are there flags that will only be set if another flag is set first? (reduce calculations per report)
+    //       are there things that we can else-if
+
+    if (isAdminRoom(report)) {
+        flags |= REPORT_FLAGS.IS_ADMIN_ROOM;
+        if (shouldAdminsRoomBeVisible(report)) {
+            flags |= REPORT_FLAGS.SHOULD_ADMIN_ROOM_BE_VISIBLE;
+        }
+    }
+    if (isThread(report)) {
+        flags |= REPORT_FLAGS.IS_THREAD;
+    }
+
+    if (hasValidDraftComment(report.reportID)) {
+        flags |= REPORT_FLAGS.HAS_DRAFT_COMMENT;
+    }
+    // TODO: think about these two which are O(1) access, this might be a bit duplicated work…
+    if (report.isPinned) {
+        flags |= REPORT_FLAGS.IS_PINNED;
+    }
+    if (report.errorFields?.addWorkspaceRoom) {
+        flags |= REPORT_FLAGS.HAS_ADD_WORKSPACE_ERROR;
+    }
+
+    if (isUnread(report)) {
+        flags |= REPORT_FLAGS.IS_UNREAD;
+    }
+    if (isEmptyReport(report)) {
+        flags |= REPORT_FLAGS.IS_EMPTY_CHAT;
+    }
+    if (isExpenseRequest(report)) {
+        flags |= REPORT_FLAGS.IS_EXPENSE_REQUEST;
+    }
+
+    if (requiresAttentionFromCurrentUser(report)) {
+        flags |= REPORT_FLAGS.HAS_GBR;
+    }
+    if (isPolicyExpenseChat(report)) {
+        flags |= REPORT_FLAGS.IS_POLICY_EXPENSE_CHAT;
+    }
+
+    if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
+        flags |= REPORT_FLAGS.IS_ARCHIVED_NON_EXPENSE_REPORT;
+    }
+
+    if (hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}))) {
+        flags |= REPORT_FLAGS.HAS_EXPENSIFY_GUIDED_EMAILS;
+    }
+
+    if (isAnnounceRoom(report)) {
+        flags |= REPORT_FLAGS.IS_ANNOUNCE_ROOM;
+    }
+
+    if (isDefaultRoom(report)) {
+        flags |= REPORT_FLAGS.IS_DEFAULT_ROOM;
+    }
+    // TODO: IT MIGHT BE VERY STUPID TO RUN THIS ONE ON EVERY REPORT (but we did this before anyways?)
+    // This is one of the things that would need to be reevaluated with every new report comment :thinking:
+    if (hasComments(report.reportID)) {
+        flags |= REPORT_FLAGS.HAS_COMMENTS;
+    }
+
+    return flags;
+}
+
+function getReportFlags(report: Report, forceRecompute = process.env.NODE_ENV === 'test'): number {
+    const cacheKey = report.reportID;
+    const cachedData = reportFlagsCache.get(cacheKey);
+
+    // Cache miss or force recompute
+    if (!cachedData || forceRecompute) {
+        const flags = computeReportFlags(report);
+        reportFlagsCache.set(cacheKey, flags);
+        return flags;
+    }
+
+    return cachedData;
+}
+
+/**
+ * Check if the report is either …
+ *  … the parent report of the currently viewed report or
+ *  … at least one child report has report action
+ */
+function shouldHideReport(reportID: string, reportFlags: ReportFlagValue, currentReportId: string | undefined): boolean {
+    const currentReport = getReportOrDraftReport(currentReportId);
+    const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
+    const isChildReportHasComment = reportFlags & REPORT_FLAGS.HAS_COMMENTS;
+    return parentReport?.reportID !== reportID && !isChildReportHasComment;
+}
+
+/**
+ * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
+ * the various subsets of users we've allowed to use default rooms.
+ */
+function canSeeDefaultRoom(reportFlags: ReportFlagValue, betas: OnyxEntry<Beta[]>): boolean {
+    // Include archived rooms
+    if (reportFlags & REPORT_FLAGS.IS_ARCHIVED_NON_EXPENSE_REPORT) {
+        return true;
+    }
+
+    // If the room has an assigned guide, it can be seen.
+    if (reportFlags & REPORT_FLAGS.HAS_EXPENSIFY_GUIDED_EMAILS) {
+        return true;
+    }
+
+    // Include any admins and announce rooms, since only non partner-managed domain rooms are on the beta now.
+    if (reportFlags & REPORT_FLAGS.IS_ADMIN_ROOM || reportFlags & REPORT_FLAGS.IS_ANNOUNCE_ROOM) {
+        return true;
+    }
+
+    // For all other cases, just check that the user belongs to the default rooms beta
+    return Permissions.canUseDefaultRooms(betas ?? []);
+}
+
+function canAccessReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>): boolean {
+    if (!report) {
+        return true;
+    }
+
+    const reportFlags = getReportFlags(report);
+    // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
+    if (reportFlags & REPORT_FLAGS.IS_DEFAULT_ROOM && !canSeeDefaultRoom(reportFlags, betas)) {
+        return false;
+    }
+
+    if (report?.errorFields?.notFound) {
+        return false;
+    }
+
+    return true;
+}
+
 type ShouldReportBeInOptionListParams = {
-    report: OnyxEntry<Report>;
+    report: Report;
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     betas: OnyxEntry<Beta[]>;
-    policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
     login?: string;
     includeDomainEmail?: boolean;
+    forceRecompute?: boolean;
 };
 
-function reasonForReportToBeInOptionList({
-    report,
-    currentReportId,
-    isInFocusMode,
-    betas,
-    policies,
-    excludeEmptyChats,
-    doesReportHaveViolations,
-    includeSelfDM = false,
-    login,
-    includeDomainEmail = false,
-}: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
-    const isInDefaultMode = !isInFocusMode;
-    // Exclude reports that have no data because there wouldn't be anything to show in the option item.
-    // This can happen if data is currently loading from the server or a report is in various stages of being created.
-    // This can also happen for anyone accessing a public room or archived room for which they don't have access to the underlying policy.
-    // Optionally exclude reports that do not belong to currently active workspace
+function reasonForReportToBeInOptionList(params: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
+    const {report, currentReportId, isInFocusMode, betas, excludeEmptyChats, doesReportHaveViolations, includeSelfDM = false, login, includeDomainEmail = false, forceRecompute} = params;
 
-    const parentReportAction = isThread(report) ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] : undefined;
-
-    if (
-        !report?.reportID ||
-        !report?.type ||
-        report?.reportName === undefined ||
-        (!report?.participants &&
-            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
-            // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
-            !isChatRoom(report) &&
-            !isChatThread(report) &&
-            !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
-            !isMoneyRequestReport(report) &&
-            !isTaskReport(report) &&
-            !isSelfDM(report) &&
-            !isSystemChat(report) &&
-            !isGroupChat(report))
-    ) {
-        return null;
-    }
-
-    // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
-    // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
-    // show that chat
-    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && isEmptyReport(report)) {
-        return null;
-    }
-
-    if (!canAccessReport(report, policies, betas)) {
-        return null;
-    }
-
-    // If this is a transaction thread associated with a report that only has one transaction, omit it
-    if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
-        return null;
-    }
-
-    if ((Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(report?.type ?? '')) {
+    if (!report?.reportID) {
         return null;
     }
 
@@ -7192,66 +7337,105 @@ function reasonForReportToBeInOptionList({
         return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
     }
 
-    // Retrieve the draft comment for the report and convert it to a boolean
-    const hasDraftComment = hasValidDraftComment(report.reportID);
+    const flags = getReportFlags(report, forceRecompute);
 
-    // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (hasDraftComment) {
+    if (!(flags & REPORT_FLAGS.HAS_VALID_STRUCTURE)) {
+        return null;
+    }
+
+    // We used to use the system DM for A/B testing onboarding tasks, but now only create them in the Concierge chat. We
+    // still need to allow existing users who have tasks in the system DM to see them, but otherwise we don't need to
+    // show that chat
+    if (report?.participants?.[CONST.ACCOUNT_ID.NOTIFICATIONS] && flags & REPORT_FLAGS.IS_EMPTY_CHAT) {
+        return null;
+    }
+
+    if (!(flags & REPORT_FLAGS.IS_SUPPORTED_TYPE)) {
+        return null;
+    }
+
+    if (!canAccessReport(report, betas)) {
+        return null;
+    }
+
+    const parentReportAction =
+        flags & REPORT_FLAGS.IS_CHAT_THREAD && !!report.parentReportID && !!report.parentReportActionID
+            ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
+            : undefined;
+    if (isOneTransactionThread(report.reportID, report.parentReportID, parentReportAction)) {
+        return null;
+    }
+
+    // Include the currently viewed report. If we excluded the currently viewed report, then there
+    // would be no way to highlight it in the options list and it would be confusing to users because they lose
+    // a sense of context.
+    if (report.reportID === currentReportId) {
+        return CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED;
+    }
+
+    if (flags & REPORT_FLAGS.HAS_DRAFT_COMMENT) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
-    if (requiresAttentionFromCurrentUser(report)) {
+    if (flags & REPORT_FLAGS.HAS_GBR) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
 
-    const isEmptyChat = isEmptyReport(report);
-    const canHideReport = shouldHideReport(report, currentReportId);
-
     // Include reports if they are pinned
-    if (report.isPinned) {
+    if (flags & REPORT_FLAGS.IS_PINNED) {
         return CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER;
     }
 
-    const reportIsSettled = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-
     // Always show IOU reports with violations unless they are reimbursed
-    if (isExpenseRequest(report) && doesReportHaveViolations && !reportIsSettled) {
-        return CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS;
+    if (flags & REPORT_FLAGS.IS_EXPENSE_REQUEST && doesReportHaveViolations) {
+        if (report.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED) {
+            return CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS;
+        }
     }
 
+    const canHideReport = shouldHideReport(report.reportID, flags, currentReportId);
+
     // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && canHideReport && isEmptyChat) {
+    if (flags & REPORT_FLAGS.IS_CHAT_THREAD && flags & REPORT_FLAGS.IS_EMPTY_CHAT && canHideReport) {
         return null;
     }
 
     // Show #admins room only when it has some value to the user.
-    if (isAdminRoom(report) && !shouldAdminsRoomBeVisible(report)) {
+    if (flags & REPORT_FLAGS.IS_ADMIN_ROOM && !(flags & REPORT_FLAGS.SHOULD_ADMIN_ROOM_BE_VISIBLE)) {
         return null;
     }
 
     // Include reports that have errors from trying to add a workspace
     // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
-    if (report.errorFields?.addWorkspaceRoom) {
+    if (flags & REPORT_FLAGS.HAS_ADD_WORKSPACE_ERROR) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS;
     }
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInFocusMode) {
-        return isUnread(report) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD : null;
+        return flags & REPORT_FLAGS.IS_UNREAD && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD : null;
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
-    if (isInDefaultMode && isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+    if (!isInFocusMode && flags & REPORT_FLAGS.IS_ARCHIVED) {
         return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && !isSystemChat(report) && !isGroupChat(report) && canHideReport) {
+    if (
+        excludeEmptyChats &&
+        flags & REPORT_FLAGS.IS_EMPTY_CHAT &&
+        flags & REPORT_FLAGS.IS_CHAT_REPORT &&
+        !(flags & REPORT_FLAGS.IS_CHAT_ROOM) &&
+        !(flags & REPORT_FLAGS.IS_POLICY_EXPENSE_CHAT) &&
+        !(flags & REPORT_FLAGS.IS_SYSTEM_CHAT) &&
+        !(flags & REPORT_FLAGS.IS_GROUP_CHAT) &&
+        canHideReport
+    ) {
         return null;
     }
 
-    if (isSelfDM(report)) {
+    if (flags & REPORT_FLAGS.IS_SELF_DM) {
         return includeSelfDM ? CONST.REPORT_IN_LHN_REASONS.IS_SELF_DM : null;
     }
 
@@ -8254,7 +8438,7 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
  * Check to see if the current user has access to view the report.
  */
 function canCurrentUserOpenReport(report: OnyxEntry<Report>): boolean {
-    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allPolicies, allBetas);
+    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allBetas);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {

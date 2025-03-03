@@ -27,6 +27,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     isAllowedToApproveExpenseReport,
     isChatUsedForOnboarding,
+    reasonForReportToBeInOptionList,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
     shouldReportBeInOptionList,
@@ -37,6 +38,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
@@ -1408,7 +1410,7 @@ describe('ReportUtils', () => {
             const currentReportId = report.reportID;
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
         });
 
         it('should return true when the report has outstanding violations', async () => {
@@ -1465,7 +1467,7 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
+
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
                 }),
@@ -1480,9 +1482,7 @@ describe('ReportUtils', () => {
             const currentReportId = '3';
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            expect(
-                shouldReportBeInOptionList({report: chatReport, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false}),
-            ).toBeTruthy();
+            expect(shouldReportBeInOptionList({report: chatReport, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
         });
 
         it('should return true when the report has valid draft comment', async () => {
@@ -1493,7 +1493,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
 
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
         });
 
         it('should return true when the report is pinned', () => {
@@ -1504,17 +1504,17 @@ describe('ReportUtils', () => {
             const currentReportId = '3';
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
         });
 
-        it('should return true when the report is unread and we are in the focus mode', async () => {
+        it('should return true when the report is unread and we are in the focus mode', () => {
             const report: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 lastReadTime: '1',
                 lastVisibleActionCreated: '2',
                 type: CONST.REPORT.TYPE.CHAT,
                 participants: {
-                    '1': {
+                    [currentUserAccountID]: {
                         notificationPreference: 'always',
                     },
                 },
@@ -1524,11 +1524,7 @@ describe('ReportUtils', () => {
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
 
-            await Onyx.merge(ONYXKEYS.SESSION, {
-                accountID: 1,
-            });
-
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeTruthy();
         });
 
         it('should return true when the report is an archived report and we are in the default mode', async () => {
@@ -1552,7 +1548,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -1580,7 +1575,7 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
+
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -1602,7 +1597,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM,
@@ -1622,7 +1616,7 @@ describe('ReportUtils', () => {
             const currentReportId = '';
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
         });
 
         it('should return false when the report does not have participants', () => {
@@ -1630,7 +1624,7 @@ describe('ReportUtils', () => {
             const currentReportId = '';
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
         });
 
         it('should return false when the report is the report that the user cannot access due to policy restrictions', () => {
@@ -1641,7 +1635,7 @@ describe('ReportUtils', () => {
             const currentReportId = '';
             const isInFocusMode = false;
             const betas: Beta[] = [];
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
         });
 
         it('should return false when the report is the single transaction thread', async () => {
@@ -1683,7 +1677,7 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
+
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -1695,7 +1689,7 @@ describe('ReportUtils', () => {
             const currentReportId = '';
             const isInFocusMode = false;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: true})).toBeFalsy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: true})).toBeFalsy();
         });
 
         it('should return false when the user’s email is domain-based and the includeDomainEmail is false', () => {
@@ -1709,7 +1703,7 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
+
                     doesReportHaveViolations: false,
                     login: '+@domain.com',
                     excludeEmptyChats: false,
@@ -1749,7 +1743,7 @@ describe('ReportUtils', () => {
                 [parentReportAction.reportActionID]: parentReportAction,
             });
 
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
         });
 
         it('should return false when the report is read and we are in the focus mode', () => {
@@ -1757,7 +1751,466 @@ describe('ReportUtils', () => {
             const currentReportId = '';
             const isInFocusMode = true;
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, policies: {}, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
+            expect(shouldReportBeInOptionList({report, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false})).toBeFalsy();
+        });
+    });
+
+    describe('reasonForReportToBeInOptionList', () => {
+        // Basic validation tests
+        describe('returns null for invalid reports', () => {
+            it('should return null when report is missing reportID', () => {
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report: {} as Report,
+                        betas: [],
+                        currentReportId: '',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBeNull();
+            });
+
+            it('should return null when report is missing type', () => {
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report: {reportID: '1'} as Report,
+                        betas: [],
+                        currentReportId: '',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBeNull();
+            });
+
+            it('should return null when reportName is undefined', () => {
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report: {
+                            reportID: '1',
+                            type: CONST.REPORT.TYPE.CHAT,
+                        } as Report,
+                        betas: [],
+                        currentReportId: '',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBeNull();
+            });
+        });
+
+        // Access control tests
+        describe('returns null for inaccessible reports', () => {
+            it('should return null when user cannot access default room', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+                    participants: {1: {} as Participant},
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [],
+                        currentReportId: '',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBeNull();
+            });
+
+            it('should return null when report has notFound error', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    errorFields: {notFound: {}},
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [],
+                        currentReportId: '',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBeNull();
+            });
+        });
+
+        // Priority reasons tests
+        describe('returns correct reason based on priority', () => {
+            it('should return IS_FOCUSED when report matches currentReportId', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '1',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_FOCUSED);
+            });
+
+            it('should return HAS_DRAFT_COMMENT when report has draft', async () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                } as Report;
+
+                // Add a draft for the report not to be empty:
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, 'fake draft');
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, null);
+            });
+
+            it('should return PINNED_BY_USER when report is pinned', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    isPinned: true,
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
+            });
+
+            it('should return IS_ARCHIVED when report is archived and not in focus mode', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    private_isArchived: 'thisisastringnotaboolokay',
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
+            });
+
+            it('should return HAS_GBR if item requires attention from user', () => {});
+        });
+
+        describe('handles error cases', () => {
+            it('should return HAS_ADD_WORKSPACE_ROOM_ERRORS if there are errors from typing to add a workspace', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    errorFields: {addWorkspaceRoom: {error: 'error'}},
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
+            });
+
+            it('should return HAS_IOU_VIOLATIONS if report has them', async () => {
+                const report = {
+                    reportID: '1',
+                    parentReportID: '2',
+                    parentReportActionID: '3',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                } as Report;
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+                    '3': {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        message: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUDetails: {
+                                amount: 1,
+                                comment: '',
+                                currency: 'USD',
+                            },
+                        },
+                    },
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+                    reportID: report.parentReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                } as Report);
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: true,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
+            });
+        });
+
+        // Focus mode tests
+        describe('handles focus mode correctly', () => {
+            it('should return IS_UNREAD in focus mode for unread report', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {[currentUserAccountID]: {} as Participant},
+                    lastMessageText: 'hey, answer me?!?!',
+                    lastVisibleActionCreated: '2024-01-01',
+                    lastReadTime: '2023-01-01',
+                } as Report;
+
+                const params = {
+                    report,
+                    betas: [CONST.BETAS.DEFAULT_ROOMS],
+                    currentReportId: '2',
+
+                    isInFocusMode: true,
+                    doesReportHaveViolations: false,
+                    excludeEmptyChats: false,
+                };
+
+                expect(reasonForReportToBeInOptionList(params)).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
+
+                // Expect nothing is the user has muted preference
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                report.participants![currentUserAccountID].notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+                expect(reasonForReportToBeInOptionList(params)).toBeNull();
+            });
+
+            it('should return null in focus mode for read report', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    lastReadTime: '2023-01-02',
+                    lastVisibleActionCreated: '2023-01-01',
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: true,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBeNull();
+            });
+        });
+
+        // Special report types tests
+        describe('handles special report types correctly', () => {
+            it('should return null for self DM when not included', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                        includeSelfDM: false,
+                    }),
+                ).toBeNull();
+            });
+
+            it('should return IS_SELF_DM for self DM when included', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                        includeSelfDM: true,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_SELF_DM);
+            });
+        });
+
+        // Domain email tests
+        describe('handles domain email correctly', () => {
+            it('should return null for domain email when not included', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                        login: '+@domain.com',
+                        includeDomainEmail: false,
+                    }),
+                ).toBeNull();
+            });
+
+            it('should return DEFAULT for domain email when included', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                        login: 'test@domain.com',
+                        includeDomainEmail: true,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+            });
+        });
+
+        // Empty chat tests
+        describe('handles empty chats correctly', () => {
+            it('should return null for empty chat when excluded', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    lastMessageText: '',
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: true,
+                    }),
+                ).toBeNull();
+            });
+
+            it('should return DEFAULT for empty chat when not excluded', () => {
+                const report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'test',
+                    participants: {1: {} as Participant},
+                    lastMessageText: '',
+                } as Report;
+
+                expect(
+                    reasonForReportToBeInOptionList({
+                        report,
+                        betas: [CONST.BETAS.DEFAULT_ROOMS],
+                        currentReportId: '2',
+
+                        isInFocusMode: false,
+                        doesReportHaveViolations: false,
+                        excludeEmptyChats: false,
+                    }),
+                ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
+            });
         });
     });
 
