@@ -112,12 +112,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.EXPORTER], pendingFields)}
             errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => {
-                if (!policyID) {
-                    return;
-                }
-                clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER);
-            }}
+            onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
         />
     );
 }
