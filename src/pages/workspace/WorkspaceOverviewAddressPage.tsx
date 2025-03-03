@@ -12,11 +12,11 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 
-type WorkspaceProfileAddressPagePolicyProps = WithPolicyProps;
+type WorkspaceOverviewAddressPagePolicyProps = WithPolicyProps;
 
-type WorkspaceProfileAddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceProfileAddressPagePolicyProps;
+type WorkspaceOverviewAddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ADDRESS> & WorkspaceOverviewAddressPagePolicyProps;
 
-function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPageProps) {
+function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressPageProps) {
     const {translate} = useLocalize();
     const backTo = route.params.backTo;
     const address: Address = useMemo(() => {
@@ -58,6 +58,6 @@ function WorkspaceProfileAddressPage({policy, route}: WorkspaceProfileAddressPag
     );
 }
 
-WorkspaceProfileAddressPage.displayName = 'WorkspaceProfileAddressPage';
+WorkspaceOverviewAddressPage.displayName = 'WorkspaceOverviewAddressPage';
 
-export default withPolicy(WorkspaceProfileAddressPage);
+export default withPolicy(WorkspaceOverviewAddressPage);
