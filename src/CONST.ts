@@ -105,6 +105,7 @@ const signupQualifiers = {
 const selfGuidedTourTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
+    mediaAttributes: {},
     title: 'Take a 2-minute tour',
     description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
 };
@@ -112,6 +113,7 @@ const selfGuidedTourTask: OnboardingTask = {
 const createWorkspaceTask: OnboardingTask = {
     type: 'createWorkspace',
     autoCompleted: true,
+    mediaAttributes: {},
     title: 'Create a workspace',
     description: ({workspaceSettingsLink}) =>
         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
@@ -127,6 +129,7 @@ const createWorkspaceTask: OnboardingTask = {
 const setupCategoriesTask: OnboardingTask = {
     type: 'setupCategories',
     autoCompleted: false,
+    mediaAttributes: {},
     title: 'Set up categories',
     description: ({workspaceCategoriesLink}) =>
         '*Set up categories* so your team can code expenses for easy reporting.\n' +
@@ -150,6 +153,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
         {
             type: 'submitExpense',
             autoCompleted: false,
+            mediaAttributes: {},
             title: 'Submit an expense',
             description:
                 '*Submit an expense* by entering an amount or scanning a receipt.\n' +
@@ -173,6 +177,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
         {
             type: 'submitExpense',
             autoCompleted: false,
+            mediaAttributes: {},
             title: 'Submit an expense',
             description:
                 '*Submit an expense* by entering an amount or scanning a receipt.\n' +
@@ -197,6 +202,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
         {
             type: 'trackExpense',
             autoCompleted: false,
+            mediaAttributes: {},
             title: 'Track an expense',
             description:
                 '*Track an expense* in any currency, whether you have a receipt or not.\n' +
@@ -220,6 +226,7 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
         {
             type: 'trackExpense',
             autoCompleted: false,
+            mediaAttributes: {},
             title: 'Track an expense',
             description:
                 '*Track an expense* in any currency, whether you have a receipt or not.\n' +
@@ -262,6 +269,7 @@ type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 type OnboardingTask = {
     type: string;
     autoCompleted: boolean;
+    mediaAttributes: Record<string, string>;
     title:
         | string
         | ((
@@ -5176,6 +5184,7 @@ const CONST = {
                 {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: 'Set up categories and tags',
                     description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                         '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
@@ -5187,6 +5196,9 @@ const CONST = {
                     type: 'setupTags',
                     autoCompleted: false,
                     title: 'Set up tags',
+                    mediaAttributes: {
+                        [`${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg"`,
+                    },
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
                         '\n' +
@@ -5202,11 +5214,12 @@ const CONST = {
                         '\n' +
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
-                        `![video](https://d2k5nsl2zxldvw.cloudfront.net/videos/guided-setup-manage-team-v2.mp4)`,
+                        `![video](${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4)`,
                 },
                 {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: 'Add expense approvals',
                     description: ({workspaceMoreFeaturesLink}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
@@ -5227,6 +5240,7 @@ const CONST = {
                 {
                     type: 'inviteTeam',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: 'Invite your team',
                     description: ({workspaceMembersLink}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
@@ -5245,6 +5259,7 @@ const CONST = {
                 {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: ({integrationName}) => `Connect to ${integrationName}`,
                     description: ({integrationName, workspaceAccountingLink}) =>
                         `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
@@ -5277,6 +5292,7 @@ const CONST = {
                 {
                     type: 'inviteAccountant',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: 'Invite your accountant',
                     description: ({workspaceMembersLink}) =>
                         '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
@@ -5305,6 +5321,7 @@ const CONST = {
                 {
                     type: 'startChat',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: 'Start a chat',
                     description:
                         '*Start a chat* with a friend or group using their email or phone number.\n' +
@@ -5322,6 +5339,7 @@ const CONST = {
                 {
                     type: 'splitExpense',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: 'Split an expense',
                     description:
                         '*Split an expense* right in your chat with one or more friends.\n' +
@@ -5344,6 +5362,7 @@ const CONST = {
                 {
                     type: 'reviewWorkspaceSettings',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: 'Review your workspace settings',
                     description:
                         "Here's how to review and update your workspace settings:" +
@@ -5356,6 +5375,7 @@ const CONST = {
                 {
                     type: 'submitExpense',
                     autoCompleted: false,
+                    mediaAttributes: {},
                     title: 'Submit an expense',
                     description:
                         '*Submit an expense* by entering an amount or scanning a receipt.\n' +
