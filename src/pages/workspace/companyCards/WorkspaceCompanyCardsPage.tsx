@@ -67,7 +67,9 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
 
-    useFocusEffect(fetchCompanyCards);
+    useEffect(() => {
+        fetchCompanyCards();
+    }, [fetchCompanyCards]);
 
     useEffect(() => {
         if (isLoading || !selectedFeed || isPending) {
