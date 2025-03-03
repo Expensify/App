@@ -1,5 +1,5 @@
 import lodashDebounce from 'lodash/debounce';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
@@ -22,14 +22,14 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
-    const checkPermission = () => {
+    const checkPermission = useCallback(() => {
         getLocationPermission().then((status) => {
             if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
                 return;
             }
             onGrant();
         });
-    };
+    }, [onGrant]);
 
     const debouncedCheckPermission = useMemo(() => lodashDebounce(checkPermission, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [checkPermission]);
 

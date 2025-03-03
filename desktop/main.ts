@@ -326,7 +326,7 @@ const mainWindow = (): Promise<void> => {
                                 command = 'gnome-control-center';
                                 break;
                             default:
-                                console.log('Platform not supported for location settings');
+                                // Platform not supported for location settings
                                 resolve(undefined);
                                 return;
                         }

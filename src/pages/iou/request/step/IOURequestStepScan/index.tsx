@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {RESULTS} from 'react-native-permissions';
 import type Webcam from 'react-webcam';
 import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
@@ -60,10 +61,9 @@ import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
-import { getLocationPermission } from './LocationPermission';
-import { RESULTS } from 'react-native-permissions';
 
 function IOURequestStepScan({
     report,
@@ -211,25 +211,24 @@ function IOURequestStepScan({
             return;
         }
 
-        getLocationPermission()
-            .then((status) => {
-                if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
-                    return;
-                }
+        getLocationPermission().then((status) => {
+            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                return;
+            }
 
-                clearUserLocation();
-                getCurrentPosition(
-                    (successData) => {
-                        setUserLocation({ longitude: successData.coords.longitude, latitude: successData.coords.latitude });
-                    },
-                    () => { },
-                    {
-                        maximumAge: CONST.GPS.MAX_AGE,
-                        timeout: CONST.GPS.TIMEOUT,
-                    },
-                );
-            });
-    }, [transaction?.amount, iouType, setUserLocation]);
+            clearUserLocation();
+            getCurrentPosition(
+                (successData) => {
+                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                },
+                () => {},
+                {
+                    maximumAge: CONST.GPS.MAX_AGE,
+                    timeout: CONST.GPS.TIMEOUT,
+                },
+            );
+        });
+    }, [transaction?.amount, iouType]);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);

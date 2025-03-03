@@ -955,6 +955,7 @@ function MoneyRequestConfirmationList({
                 }}
                 enterKeyEventListenerPriority={1}
                 useKeyboardShortcuts
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 isLoading={isConfirmed || isConfirming}
             />
         ) : (
@@ -965,6 +966,7 @@ function MoneyRequestConfirmationList({
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
                 useKeyboardShortcuts
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 isLoading={isConfirmed || isConfirming}
             />
         );
@@ -1009,6 +1011,7 @@ function MoneyRequestConfirmationList({
         styles.productTrainingTooltipWrapper,
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
+        isConfirming,
     ]);
 
     const listFooterContent = (
