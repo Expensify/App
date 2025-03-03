@@ -57,33 +57,31 @@ function TabSelectorItem({
     const [isHovered, setIsHovered] = useState(false);
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, shouldShowTestReceiptTooltip);
 
-    const content = () => {
-        return (
-            <AnimatedPressableWithFeedback
-                accessibilityLabel={title}
-                style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-                wrapperStyle={[styles.flexGrow1]}
-                onPress={onPress}
-                onHoverIn={() => setIsHovered(true)}
-                onHoverOut={() => setIsHovered(false)}
-                role={CONST.ROLE.BUTTON}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-            >
-                <TabIcon
-                    icon={icon}
+    const content = () => (
+        <AnimatedPressableWithFeedback
+            accessibilityLabel={title}
+            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
+            wrapperStyle={[styles.flexGrow1]}
+            onPress={onPress}
+            onHoverIn={() => setIsHovered(true)}
+            onHoverOut={() => setIsHovered(false)}
+            role={CONST.ROLE.BUTTON}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+        >
+            <TabIcon
+                icon={icon}
+                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+            />
+            {(shouldShowLabelWhenInactive || isActive) && (
+                <TabLabel
+                    title={title}
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                 />
-                {(shouldShowLabelWhenInactive || isActive) && (
-                    <TabLabel
-                        title={title}
-                        activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                        inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
-                    />
-                )}
-            </AnimatedPressableWithFeedback>
-        );
-    };
+            )}
+        </AnimatedPressableWithFeedback>
+    );
 
     return shouldShowTestReceiptTooltip ? (
         <EducationalTooltip
@@ -95,7 +93,7 @@ function TabSelectorItem({
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
             wrapperStyle={styles.productTrainingTooltipWrapper}
-            shiftVertical={25}
+            shiftVertical={18}
         >
             {content()}
         </EducationalTooltip>

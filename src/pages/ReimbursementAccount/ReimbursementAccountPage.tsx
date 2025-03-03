@@ -152,7 +152,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        setReimbursementAccountLoading(true);
+        if (policyIDParam) {
+            setReimbursementAccountLoading(true);
+        }
         clearReimbursementAccountDraft();
 
         // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
@@ -232,6 +234,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     );
 
     const continueUSDVBBASetup = () => {
+        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
         setShouldShowContinueSetupButton(false);
         setUSDBankAccountStep(currentStep);
     };
@@ -307,6 +310,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                     goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
                 } else if (!isOffline && achData?.state === BankAccount.STATE.PENDING) {
                     setShouldShowContinueSetupButton(true);
+                    setUSDBankAccountStep(null);
                 } else {
                     Navigation.goBack();
                 }
