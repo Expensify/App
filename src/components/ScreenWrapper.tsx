@@ -171,7 +171,7 @@ function ScreenWrapper(
 
     const route = useRoute();
     const shouldReturnToOldDot = useMemo(() => {
-        return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
+        return !!route?.params && CONST.HYBRID_APP.SINGLE_NEW_DOT_ENTRY in route.params && route.params[CONST.HYBRID_APP.SINGLE_NEW_DOT_ENTRY] === 'true';
     }, [route?.params]);
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
