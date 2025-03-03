@@ -411,11 +411,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         if (!isEmptyObject(policyChatForActivePolicy)) {
             const onSelected = () => {
                 interceptAnonymousUser(() => {
-                    selectOption(() => {
-                        hideProductTrainingTooltip();
-                        const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
-                        startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
-                    }, true);
+                    hideProductTrainingTooltip();
+                    if (policyChatForActivePolicy?.policyID && shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
+                        return;
+                    }
+
+                    const quickActionReportID = policyChatForActivePolicy?.reportID || generateReportID();
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                 });
             };
 
