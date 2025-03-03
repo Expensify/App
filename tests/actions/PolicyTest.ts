@@ -529,6 +529,8 @@ describe('actions/Policy', () => {
             const workspaceName = Policy.generateDefaultWorkspaceName(TEST_EMAIL);
 
             expect(workspaceName).toBe(translateLocal('workspace.new.workspaceName', {userName: TEST_DISPLAY_NAME, workspaceNumber: 2}));
+        });
+    });
 
     describe('enablePolicyWorkflows', () => {
         it('should update delayed submission to instant when disabling the workflows feature', async () => {
