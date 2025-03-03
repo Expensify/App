@@ -1315,7 +1315,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                 value: {...transaction, amount: isScanRequest ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount, currency: isScanRequest ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency},
-            }
+            },
         );
     }
 
