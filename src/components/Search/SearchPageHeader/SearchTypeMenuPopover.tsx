@@ -119,7 +119,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 shouldCallAfterModalHide: true,
             };
         },
-        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards],
+        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType],
     );
 
     const savedSearchItems = useMemo(() => {
