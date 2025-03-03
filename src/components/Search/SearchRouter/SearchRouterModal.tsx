@@ -1,9 +1,12 @@
 import React, {useState} from 'react';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import Modal from '@components/Modal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import SearchRouter from './SearchRouter';
@@ -12,7 +15,9 @@ import {useSearchRouterContext} from './SearchRouterContext';
 const isMobileWebSafari = isMobileSafari();
 
 function SearchRouterModal() {
+    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
     const viewportOffsetTop = useViewportOffsetTop();
     const safeAreaInsets = useSafeAreaInsets();
@@ -35,14 +40,19 @@ function SearchRouterModal() {
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}
         >
-            {isSearchRouterDisplayed && (
-                <FocusTrapForModal active={isSearchRouterDisplayed}>
-                    <SearchRouter
-                        onRouterClose={closeSearchRouter}
-                        shouldHideInputCaret={shouldHideInputCaret}
-                    />
-                </FocusTrapForModal>
-            )}
+            <KeyboardAvoidingView
+                behavior="padding"
+                style={[styles.flex1, {maxHeight: windowHeight}]}
+            >
+                {isSearchRouterDisplayed && (
+                    <FocusTrapForModal active={isSearchRouterDisplayed}>
+                        <SearchRouter
+                            onRouterClose={closeSearchRouter}
+                            shouldHideInputCaret={shouldHideInputCaret}
+                        />
+                    </FocusTrapForModal>
+                )}
+            </KeyboardAvoidingView>
         </Modal>
     );
 }
