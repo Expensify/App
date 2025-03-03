@@ -237,7 +237,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.CONCIERGE_REPORT_ID,
+    key: ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID,
     callback: (value) => (conciergeChatReportID = value),
 });
 
@@ -1571,14 +1571,6 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         }
 
         saveReportDraftComment(preexistingReportID, draftReportComment, callback);
-
-        return;
-    }
-
-    if (reportID) {
-        if (isConciergeChatReport(report)) {
-            conciergeChatReportID = reportID;
-        }
     }
 }
 
@@ -4689,10 +4681,6 @@ function downloadReportPDF(fileName: string, reportName: string) {
     fileDownload(pdfURL, downloadFileName);
 }
 
-function getConciergeReportID() {
-    return conciergeChatReportID;
-}
-
 function setDeleteTransactionNavigateBackUrl(url: string) {
     Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
 }
@@ -4731,7 +4719,6 @@ export {
     exportReportToPDF,
     exportToIntegration,
     flagComment,
-    getConciergeReportID,
     getCurrentUserAccountID,
     getDraftPrivateNote,
     getMostRecentReportID,
