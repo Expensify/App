@@ -20,7 +20,7 @@ function triggerSidePane(isOpen: boolean, {shouldUpdateNarrowLayout = false, sho
     const value: OnyxMergeInput<typeof ONYXKEYS.NVP_SIDE_PANE> = {};
 
     if (!shouldOnlyUpdateNarrowLayout) {
-        value.openLargeScreen = isOpen;
+        value.open = isOpen;
     }
     if (shouldUpdateNarrowLayout || shouldOnlyUpdateNarrowLayout) {
         value.openNarrowScreen = isOpen;

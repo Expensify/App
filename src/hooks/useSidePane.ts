@@ -16,7 +16,7 @@ function isSidePaneHidden(sidePane: OnyxEntry<OnyxTypes.SidePane>, isExtraLargeS
         return true;
     }
 
-    if (isExtraLargeScreenWidth && !sidePane?.openLargeScreen) {
+    if (isExtraLargeScreenWidth && !sidePane?.open) {
         return true;
     }
 
