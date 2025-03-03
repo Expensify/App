@@ -44,7 +44,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                 if (!sourceURL || !type) {
                                     return;
                                 }
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, type, sourceURL, accountID);
+                                const route = ROUTES.ATTACHMENTS.getRoute({reportID: report?.reportID, type, source: sourceURL, accountID});
                                 Navigation.navigate(route);
                             }}
                         />

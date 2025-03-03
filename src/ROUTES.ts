@@ -355,22 +355,42 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (
-            reportID: string | undefined,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
-            url: string,
-            accountID?: number,
-            isAuthTokenRequired?: boolean,
-            fileName?: string,
-            attachmentLink?: string,
-        ) => {
-            const reportParam = reportID ? `&reportID=${reportID}` : '';
-            const accountParam = accountID ? `&accountID=${accountID}` : '';
+        getRoute: ({
+            fileName,
+            reportID,
+            type,
+            accountID,
+            isAuthTokenRequired,
+            attachmentLink,
+            ...restParams
+        }: {
+            type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+            reportID?: string | number;
+            accountID?: number;
+            isAuthTokenRequired?: boolean;
+            fileName?: string;
+            attachmentLink?: string;
+        } & (
+            | {
+                  attachmentId: string;
+              }
+            | {
+                  source: string;
+              }
+        )) => {
+            if ('attachmentId' in restParams) {
+                return `attachment?attachmentId=${encodeURIComponent(restParams.attachmentId)}` as const;
+            }
+
+            const sourceParam = `?source=${encodeURIComponent(restParams.source)}`;
+            const typeParam = type ? `&type=${type as string}` : '';
+            const reportIDParam = reportID ? `&reportID=${reportID}` : '';
+            const accountIDParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${type as string}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            return `attachment${sourceParam}${typeParam}${reportIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
@@ -391,7 +411,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
+        getRoute: (reportID: string | number | undefined, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS route');
             }
