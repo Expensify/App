@@ -27,7 +27,7 @@ function AttachmentCarousel({report, source, reportActionID, onNavigate, setDown
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
-    const [activeAttachment, setActiveAttachmentID] = useState<AttachmentSource | string>(reportActionID ?? source);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | string>(reportActionID ?? source);
     const compareImage = useCallback((attachment: Attachment) => (reportActionID ? attachment.reportActionID === reportActionID : attachment.source === source), [reportActionID, source]);
 
     useEffect(() => {
@@ -142,7 +142,7 @@ function AttachmentCarousel({report, source, reportActionID, onNavigate, setDown
                     <AttachmentCarouselPager
                         items={attachments}
                         initialPage={page}
-                        activeSource={activeAttachment}
+                        activeAttachmentID={activeAttachmentID}
                         setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
