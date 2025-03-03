@@ -173,9 +173,18 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
-        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
+        if (isLoadingTransaction) {
             return;
         }
+
+        const isCurrentReportID = transaction?.isFromGlobalCreate
+            ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
+            : transaction?.reportID === reportID;
+        
+        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && isCurrentReportID) {
+            return;
+        }
+
         startMoneyRequest(
             CONST.IOU.TYPE.CREATE,
             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
@@ -183,7 +192,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction]);
+    }, [isLoadingTransaction, reportID]);
 
     useEffect(() => {
         if (!transaction?.category) {
