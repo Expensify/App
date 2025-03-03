@@ -51,9 +51,7 @@ type FullPageNotFoundViewProps = {
     /** Whether we should display the button that opens new SearchRouter */
     shouldDisplaySearchRouter?: boolean;
 
-    /**
-     * Whether to add bottom safe area padding to the view.
-     */
+    /** Whether to add bottom safe area padding to the view. */
     addBottomSafeAreaPadding?: boolean;
 };
 
