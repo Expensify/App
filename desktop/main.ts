@@ -6,7 +6,7 @@ import type {ElectronLog} from 'electron-log';
 import {autoUpdater} from 'electron-updater';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
-import * as Localize from '@libs/Localize';
+import {translate} from '@libs/Localize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -71,9 +71,9 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
 function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => void {
     return contextMenu({
         labels: {
-            cut: Localize.translate(preferredLocale, 'desktopApplicationMenu.cut'),
-            paste: Localize.translate(preferredLocale, 'desktopApplicationMenu.paste'),
-            copy: Localize.translate(preferredLocale, 'desktopApplicationMenu.copy'),
+            cut: translate(preferredLocale, 'desktopApplicationMenu.cut'),
+            paste: translate(preferredLocale, 'desktopApplicationMenu.paste'),
+            copy: translate(preferredLocale, 'desktopApplicationMenu.copy'),
         },
         append: (defaultActions, parameters, browserWindow) => [
             {
@@ -81,10 +81,10 @@ function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => voi
                 visible: parameters.isEditable && parameters.editFlags.canPaste,
                 role: 'pasteAndMatchStyle',
                 accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AND_MATCH_STYLE,
-                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
+                label: translate(preferredLocale, 'desktopApplicationMenu.pasteAndMatchStyle'),
             },
             {
-                label: Localize.translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
+                label: translate(preferredLocale, 'desktopApplicationMenu.pasteAsPlainText'),
                 visible: parameters.isEditable && parameters.editFlags.canPaste && clipboard.readText().length > 0,
                 accelerator: DESKTOP_SHORTCUT_ACCELERATOR.PASTE_AS_PLAIN_TEXT,
                 click: () => pasteAsPlainText(browserWindow),
@@ -126,7 +126,7 @@ let hasUpdate = false;
 let downloadedVersion: string;
 let isSilentUpdating = false;
 
-// Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
+// Note that we have to subscribe to this separately and cannot use translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
 const preferredLocale: Locale = CONST.LOCALES.DEFAULT;
@@ -165,23 +165,23 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
             if (downloadPromise) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdating}),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
+                    message: translate(preferredLocale, 'checkForUpdatesModal.available.title'),
+                    detail: translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdating}),
+                    buttons: [translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && 'error' in result && result.error) {
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.error.message'),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
+                    message: translate(preferredLocale, 'checkForUpdatesModal.error.title'),
+                    detail: translate(preferredLocale, 'checkForUpdatesModal.error.message'),
+                    buttons: [translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
-                    message: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.message'),
-                    buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
+                    message: translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
+                    detail: translate(preferredLocale, 'checkForUpdatesModal.notAvailable.message'),
+                    buttons: [translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                     cancelId: 2,
                 });
             }
@@ -267,7 +267,7 @@ const localizeMenuItems = (submenu: MenuItemConstructorOptions[], updatedLocale:
     submenu.map((menu) => {
         const newMenu: MenuItemConstructorOptions = {...menu};
         if (menu.id) {
-            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}` as TranslationPaths);
+            const labelTranslation = translate(updatedLocale, `desktopApplicationMenu.${menu.id}` as TranslationPaths);
             if (labelTranslation) {
                 newMenu.label = labelTranslation;
             }
@@ -378,14 +378,14 @@ const mainWindow = (): Promise<void> => {
                 const initialMenuTemplate: MenuItemConstructorOptions[] = [
                     {
                         id: 'mainMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
-                            {id: 'update', label: Localize.translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
-                            {id: 'checkForUpdates', label: Localize.translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
+                            {id: 'update', label: translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
+                            {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
                                 accelerator: 'CmdOrCtrl+J',
                                 click: () => {
                                     showKeyboardShortcutsPage(browserWindow);
@@ -403,12 +403,12 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'fileMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
                         submenu: [{id: 'closeWindow', role: 'close', accelerator: 'Cmd+w'}],
                     },
                     {
                         id: 'editMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.editMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.editMenu`),
                         submenu: [
                             {id: 'undo', role: 'undo'},
                             {id: 'redo', role: 'redo'},
@@ -431,7 +431,7 @@ const mainWindow = (): Promise<void> => {
                             {type: 'separator'},
                             {
                                 id: 'speechSubmenu',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
                                 submenu: [
                                     {id: 'startSpeaking', role: 'startSpeaking'},
                                     {id: 'stopSpeaking', role: 'stopSpeaking'},
@@ -441,7 +441,7 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'viewMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
                         submenu: [
                             {id: 'reload', role: 'reload'},
                             {id: 'forceReload', role: 'forceReload'},
@@ -456,7 +456,7 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'historyMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
                         submenu: [
                             {
                                 id: 'back',
@@ -497,33 +497,33 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'helpMenu',
-                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
+                        label: translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
                         role: 'help',
                         submenu: [
                             {
                                 id: 'learnMore',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.learnMore`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.learnMore`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.LEARN_MORE);
                                 },
                             },
                             {
                                 id: 'documentation',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.documentation`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.documentation`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.DOCUMENTATION);
                                 },
                             },
                             {
                                 id: 'communityDiscussions',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
                                 },
                             },
                             {
                                 id: 'searchIssues',
-                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
+                                label: translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
                                 },
