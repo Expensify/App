@@ -232,15 +232,6 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         [isLargeScreenWidth],
     );
 
-    const getItemHeightMemoized = memoize(getItemHeight, {
-        transformKey: ([item]) => {
-            // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
-            // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
-            const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
-            return `${hash}-${item.keyForList}-${screenSizeHash}`;
-        },
-    });
-
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
@@ -491,12 +482,13 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
 
     return (
         <SearchList
+            ref={handleSelectionListScroll(sortedSelectedData)}
             data={sortedSelectedData}
             ListItem={ListItem}
             onSelectRow={openReport}
             onCheckboxPress={toggleTransaction}
             onAllCheckboxPress={toggleAllTransactions}
-            canSelectMultiple={isLargeScreenWidth}
+            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
             SearchTableHeader={
                 !isLargeScreenWidth ? undefined : (
                     <SearchTableHeader
@@ -510,7 +502,19 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                     />
                 )
             }
+            contentContainerStyle={[contentContainerStyle, styles.pb3]}
+            containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
             onScroll={onSearchListScroll}
+            onEndReachedThreshold={0.75}
+            onEndReached={fetchMoreResults}
+            ListFooterComponent={
+                shouldShowLoadingMoreItems ? (
+                    <SearchRowSkeleton
+                        shouldAnimate
+                        fixedNumItems={5}
+                    />
+                ) : undefined
+            }
         />
     );
 

@@ -189,7 +189,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
                             onContentSizeChange={onContentSizeChange}
-                            contentContainerStyle={!selectionMode?.isEnabled ? [styles.searchListContentContainerStyles] : undefined}
+                            contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
                             shouldGroupByReports={shouldGroupByReports}
                         />
                     </View>
