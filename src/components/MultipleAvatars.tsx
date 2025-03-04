@@ -94,6 +94,10 @@ function MultipleAvatars({
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
         () => ({
+            [CONST.AVATAR_SIZE.SUBSCRIPT]: {
+                singleAvatarStyle: styles.singleAvatarSubscript,
+                secondAvatarStyles: styles.secondAvatarSubscript,
+            },
             [CONST.AVATAR_SIZE.SMALL]: {
                 singleAvatarStyle: styles.singleAvatarSmall,
                 secondAvatarStyles: styles.secondAvatarSmall,

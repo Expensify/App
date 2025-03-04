@@ -2433,6 +2433,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 12,
         },
 
+        singleAvatarSubscript: {
+            height: 8,
+            width: 8,
+            backgroundColor: theme.icon,
+            borderRadius: 4,
+        },
+
         singleAvatarSmall: {
             height: 16,
             width: 16,
@@ -4544,7 +4551,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         expenseAndReportPreviewTextButtonContainer: {
-            gap: 16,
+            gap: 12,
         },
 
         reportActionItemImagesContainer: {
