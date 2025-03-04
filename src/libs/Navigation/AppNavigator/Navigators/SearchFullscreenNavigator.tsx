@@ -1,16 +1,16 @@
 import React from 'react';
+import createSearchFullscreenNavigator from '@libs/Navigation/AppNavigator/createSearchFullscreenNavigator';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
 import useRootNavigatorScreenOptions from '@navigation/AppNavigator/useRootNavigatorScreenOptions';
-import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/SearchPage').default;
 const loadSearchMoneyReportPage = () => require<ReactComponentModule>('@pages/Search/SearchMoneyRequestReportPage').default;
 
-const Stack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
+const Stack = createSearchFullscreenNavigator<SearchFullscreenNavigatorParamList>();
 
 function SearchFullscreenNavigator() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
