@@ -10,9 +10,9 @@ import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import getUAForWebView from '@libs/getUAForWebView';
 import Log from '@libs/Log';
-import * as LoginUtils from '@libs/LoginUtils';
+import {postSAMLLogin, handleSAMLLoginError} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
+import {signInWithShortLivedAuthToken, clearSignInData, setAccountError} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +28,7 @@ function SAMLSignInPage() {
     useEffect(() => {
         // If we don't have a valid login to pass here, direct the user back to a clean sign in state to try again
         if (!credentials?.login) {
-            LoginUtils.handleSAMLLoginError(translate('common.error.email'), true);
+            handleSAMLLoginError(translate('common.error.email'), true);
             return;
         }
 
@@ -41,16 +41,16 @@ function SAMLSignInPage() {
         body.append('email', credentials.login);
         body.append('referer', CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER);
         body.append('platform', getPlatform());
-        LoginUtils.postSAMLLogin(body)
+        postSAMLLogin(body)
             .then((response) => {
                 if (!response || !response.url) {
-                    LoginUtils.handleSAMLLoginError(translate('common.error.login'), false);
+                    handleSAMLLoginError(translate('common.error.login'), false);
                     return;
                 }
                 setSAMLUrl(response.url);
             })
             .catch((error: Error) => {
-                LoginUtils.handleSAMLLoginError(error.message ?? translate('common.error.login'), false);
+                handleSAMLLoginError(error.message ?? translate('common.error.login'), false);
             });
     }, [credentials?.login, SAMLUrl, translate]);
 
@@ -68,13 +68,13 @@ function SAMLSignInPage() {
             const shortLivedAuthToken = searchParams.get('shortLivedAuthToken');
             if (!account?.isLoading && credentials?.login && !!shortLivedAuthToken) {
                 Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-                Session.signInWithShortLivedAuthToken(shortLivedAuthToken);
+                signInWithShortLivedAuthToken(shortLivedAuthToken);
             }
 
             // If the login attempt is unsuccessful, set the error message for the account and redirect to sign in page
             if (searchParams.has('error')) {
-                Session.clearSignInData();
-                Session.setAccountError(searchParams.get('error') ?? '');
+                clearSignInData();
+                setAccountError(searchParams.get('error') ?? '');
 
                 Navigation.isNavigationReady().then(() => {
                     // We must call goBack() to remove the /transition route from history
@@ -96,7 +96,7 @@ function SAMLSignInPage() {
                 <HeaderWithBackButton
                     title=""
                     onBackButtonPress={() => {
-                        Session.clearSignInData();
+                        clearSignInData();
                         Navigation.isNavigationReady().then(() => {
                             Navigation.goBack();
                         });

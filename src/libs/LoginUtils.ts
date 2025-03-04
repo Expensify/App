@@ -4,7 +4,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as Session from './actions/Session';
+import {clearSignInData, setAccountError} from '@userActions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
 
@@ -94,10 +94,10 @@ function postSAMLLogin(body: FormData): Promise<Response | void> {
 
 function handleSAMLLoginError(errorMessage: string, cleanSignInData: boolean) {
     if (cleanSignInData) {
-        Session.clearSignInData();
+        clearSignInData();
     }
 
-    Session.setAccountError(errorMessage);
+    setAccountError(errorMessage);
     Navigation.goBack(ROUTES.HOME);
 }
 
