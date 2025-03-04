@@ -21,7 +21,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
-import getPlatform from '@libs/getPlatform';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -221,9 +220,6 @@ function ReportActionsList({
     }, [report.reportID]);
 
     const prevUnreadMarkerReportActionID = useRef<string | null>(null);
-
-    const platform = getPlatform();
-    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
 
     /**
      * Whether a message is NOT from the active user and it was received while the user was offline.
@@ -715,14 +711,12 @@ function ReportActionsList({
     const onEndReached = useCallback(() => {
         loadOlderChats(false);
 
-        if (isWebOrDesktop) {
-            requestAnimationFrame(() => {
-                reportScrollManager.ref?.current?.scrollToOffset({
-                    offset: scrollingVerticalOffset.current - scrollOffset,
-                    animated: false,
-                });
+        requestAnimationFrame(() => {
+            reportScrollManager.ref?.current?.scrollToOffset({
+                offset: scrollingVerticalOffset.current - scrollOffset,
+                animated: false,
             });
-        }
+        });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [loadOlderChats]);
 
