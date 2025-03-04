@@ -1,13 +1,10 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSafari} from '@libs/Browser';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import useModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/useModalCardStyleInterpolator';
-import useSideModalStackScreenOptions from '@libs/Navigation/AppNavigator/useSideModalStackScreenOptions';
+import useCustomScreenOptions from '@libs/Navigation/AppNavigator/useCustomScreenOptions';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ConsoleNavigatorParamList, PublicScreensParamList} from '@libs/Navigation/types';
@@ -22,23 +19,9 @@ const Stack = createPlatformStackNavigator<ConsoleNavigatorParamList>();
 function PublicRightModalNavigatorComponent({navigation}: PublicRightModalNavigatorComponentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const modalNavigatorOptions = useSideModalStackScreenOptions();
-    const customInterpolator = useModalCardStyleInterpolator();
 
-    const screenOptions = useMemo(() => {
-        // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-        if (isSafari()) {
-            return {
-                ...modalNavigatorOptions,
-                web: {
-                    ...modalNavigatorOptions.web,
-                    cardStyleInterpolator: (props: StackCardInterpolationProps) => customInterpolator({props}),
-                },
-            };
-        }
+    const screenOptions = useCustomScreenOptions();
 
-        return modalNavigatorOptions;
-    }, [customInterpolator, modalNavigatorOptions]);
     return (
         <NoDropZone>
             {!shouldUseNarrowLayout && <Overlay onPress={navigation.goBack} />}
