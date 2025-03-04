@@ -173,6 +173,7 @@ import {
 import {canAnonymousUserAccessRoute, hasAuthToken, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {isOnboardingFlowCompleted, onServerDataReady, setOnboardingErrorMessage} from './Welcome';
 import {startOnboardingFlow} from './Welcome/OnboardingFlow';
+import * as Download from "@userActions/Download";
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -4679,7 +4680,8 @@ function downloadReportPDF(fileName: string, reportName: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-    fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari());
+    Download.setDownload(downloadFileName, true);
+    fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari()).then(() => Download.setDownload(downloadFileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
