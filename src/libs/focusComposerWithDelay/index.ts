@@ -32,7 +32,8 @@ function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithD
                 return;
             }
             // When the closing modal has a focused text input focus() needs a delay to properly work.
-            setTimeout(() => textInput.focus(), 0);
+            // Setting 150ms here is a temporary workaround for the Android HybridApp. It should be reverted once we identify the real root cause of this issue: https://github.com/Expensify/App/issues/56311.
+            setTimeout(() => textInput.focus(), 150);
             if (forcedSelectionRange) {
                 setTextInputSelection(textInput, forcedSelectionRange);
             }

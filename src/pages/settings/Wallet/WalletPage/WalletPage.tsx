@@ -413,6 +413,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
                                     title={translate('common.bankAccounts')}
                                     isCentralPane
+                                    subtitleMuted
                                     titleStyles={styles.accountSettingsSectionTitle}
                                     illustration={LottieAnimations.BankVault}
                                     illustrationStyle={styles.walletIllustration}
@@ -438,6 +439,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         subtitle={translate('walletPage.assignedCardsDescription')}
                                         title={translate('walletPage.assignedCards')}
                                         isCentralPane
+                                        subtitleMuted
                                         titleStyles={styles.accountSettingsSectionTitle}
                                     >
                                         <PaymentMethodList
@@ -462,6 +464,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         subtitle={translate(`walletPage.sendAndReceiveMoney`)}
                                         title={translate('walletPage.expensifyWallet')}
                                         isCentralPane
+                                        subtitleMuted
                                         titleStyles={styles.accountSettingsSectionTitle}
                                     >
                                         <>
@@ -677,7 +680,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 title={translate('workspace.common.viewTransactions')}
                                 onPress={() => {
                                     Navigation.navigate(
-                                        ROUTES.SEARCH_CENTRAL_PANE.getRoute({
+                                        ROUTES.SEARCH_ROOT.getRoute({
                                             query: buildCannedSearchQuery({
                                                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                                                 status: CONST.SEARCH.STATUS.EXPENSE.ALL,

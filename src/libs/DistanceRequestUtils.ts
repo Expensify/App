@@ -202,6 +202,11 @@ function getDistanceForDisplay(
     return `${distanceInUnits} ${unitString}`;
 }
 
+function getDistanceForDisplayLabel(distanceInMeters: number, unit: Unit): string {
+    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
+    return `${distanceInUnits} ${unit}`;
+}
+
 /**
  * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
@@ -363,7 +368,8 @@ function getRate({
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
-    const customMileageRate = customUnitRateID ? mileageRates?.[customUnitRateID] : defaultMileageRate;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
@@ -407,6 +413,7 @@ export default {
     getUpdatedDistanceUnit,
     getRate,
     getRateByCustomUnitRateID,
+    getDistanceForDisplayLabel,
 };
 
 export type {MileageRate};

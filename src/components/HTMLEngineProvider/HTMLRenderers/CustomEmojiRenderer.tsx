@@ -21,9 +21,9 @@ function CustomEmojiRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
         const image = (
             <View style={styles.customEmoji}>
                 <ImageSVG
+                    height={variables.fontSizeNormalHeight}
+                    width={variables.fontSizeNormalHeight}
                     src={emojiMap[emojiKey]}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
                 />
             </View>
         );

@@ -1,4 +1,6 @@
-import React from 'react';
+import React, {useMemo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -7,13 +9,24 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {canEnablePreventSelfApprovals, getAllSelfApprovers, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {
+    enableAutoApprovalOptions,
+    enablePolicyAutoReimbursementLimit,
+    enablePolicyDefaultReportTitle,
+    setPolicyPreventMemberCreatedTitle,
+    setPolicyPreventSelfApproval,
+} from '@userActions/Policy/Policy';
+import {updateApprovalWorkflow} from '@userActions/Workflow';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -23,11 +36,47 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const customReportNamesUnavailable = !policy?.areReportFieldsEnabled;
     // Auto-approvals and self-approvals are unavailable due to the policy workflows settings
-    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+
+    const [isPreventSelfApprovalsModalVisible, setIsPreventSelfApprovalsModalVisible] = useState(false);
+    const isPreventSelfApprovalsDisabled = !canEnablePreventSelfApprovals(policy) && !policy?.preventSelfApproval;
+    const selfApproversEmails = getAllSelfApprovers(policy);
+
+    function handleTogglePreventSelfApprovals(isEnabled: boolean) {
+        if (!isEnabled) {
+            setPolicyPreventSelfApproval(policyID, false);
+            return;
+        }
+
+        if (selfApproversEmails.length === 0) {
+            setPolicyPreventSelfApproval(policyID, true);
+        } else {
+            setIsPreventSelfApprovalsModalVisible(true);
+        }
+    }
+
+    const {currentApprovalWorkflows, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
+        if (!policy || !personalDetails) {
+            return {};
+        }
+
+        const defaultApprover = policy?.approver ?? policy.owner;
+        const result = convertPolicyEmployeesToApprovalWorkflows({
+            employees: policy.employeeList ?? {},
+            defaultApprover,
+            personalDetails,
+        });
+
+        return {
+            defaultWorkflowMembers: result.availableMembers,
+            usedApproverEmails: result.usedApproverEmails,
+            currentApprovalWorkflows: result.approvalWorkflows.filter((workflow) => !workflow.isDefault),
+        };
+    }, [personalDetails, policy]);
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         return (
@@ -60,7 +109,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             disabled: customReportNamesUnavailable,
             showLockIcon: customReportNamesUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowCustomReportTitleOption,
-            onToggle: (isEnabled: boolean) => PolicyActions.enablePolicyDefaultReportTitle(policyID, isEnabled),
+            onToggle: (isEnabled: boolean) => enablePolicyDefaultReportTitle(policyID, isEnabled),
             subMenuItems: [
                 <OfflineWithFeedback
                     pendingAction={!policy?.pendingFields?.shouldShowCustomReportTitleOption && reportTitlePendingFields.defaultValue ? reportTitlePendingFields.defaultValue : null}
@@ -82,21 +131,27 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
                     titleStyle={styles.pv2}
                     isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
-                    onToggle={(isEnabled) => PolicyActions.setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
+                    onToggle={(isEnabled) => setPolicyPreventMemberCreatedTitle(policyID, isEnabled)}
                 />,
             ],
         },
         {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
-            subtitle: workflowApprovalsUnavailable
-                ? renderFallbackSubtitle({featureName: translate('common.approvals').toLowerCase()})
-                : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
+            subtitle: (() => {
+                if (workflowApprovalsUnavailable) {
+                    return renderFallbackSubtitle({featureName: translate('common.approvals').toLowerCase()});
+                }
+                if (isPreventSelfApprovalsDisabled) {
+                    return translate('workspace.rules.expenseReportRules.preventSelfApprovalsDisabledSubtitle');
+                }
+                return translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle');
+            })(),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval && !workflowApprovalsUnavailable,
-            disabled: workflowApprovalsUnavailable,
-            showLockIcon: workflowApprovalsUnavailable,
+            disabled: workflowApprovalsUnavailable || isPreventSelfApprovalsDisabled,
+            showLockIcon: workflowApprovalsUnavailable || isPreventSelfApprovalsDisabled,
             pendingAction: policy?.pendingFields?.preventSelfApproval,
-            onToggle: (isEnabled: boolean) => PolicyActions.setPolicyPreventSelfApproval(policyID, isEnabled),
+            onToggle: (isEnabled: boolean) => handleTogglePreventSelfApprovals(isEnabled),
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
@@ -109,7 +164,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions,
             onToggle: (isEnabled: boolean) => {
-                PolicyActions.enableAutoApprovalOptions(policyID, isEnabled);
+                enableAutoApprovalOptions(policyID, isEnabled);
             },
             subMenuItems: [
                 <OfflineWithFeedback
@@ -118,10 +173,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoApproveReportsUnderTitle')}
-                        title={CurrencyUtils.convertToDisplayString(
-                            policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS,
-                            policy?.outputCurrency ?? CONST.CURRENCY.USD,
-                        )}
+                        title={convertToDisplayString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_APPROVE_REPORTS_UNDER.getRoute(policyID))}
@@ -150,7 +202,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
             onToggle: (isEnabled: boolean) => {
-                PolicyActions.enablePolicyAutoReimbursementLimit(policyID, isEnabled);
+                enablePolicyAutoReimbursementLimit(policyID, isEnabled);
             },
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,
@@ -167,10 +219,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                        title={CurrencyUtils.convertToDisplayString(
-                            policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS,
-                            policy?.outputCurrency ?? CONST.CURRENCY.USD,
-                        )}
+                        title={convertToDisplayString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS, policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                         shouldShowRightIcon
                         style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                         onPress={() => Navigation.navigate(ROUTES.RULES_AUTO_PAY_REPORTS_UNDER.getRoute(policyID))}
@@ -181,36 +230,92 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     ];
 
     return (
-        <Section
-            isCentralPane
-            title={translate('workspace.rules.expenseReportRules.title')}
-            subtitle={translate('workspace.rules.expenseReportRules.subtitle')}
-            titleStyles={styles.accountSettingsSectionTitle}
-            subtitleMuted
-        >
-            {optionItems.map(({title, subtitle, isActive, subMenuItems, showLockIcon, disabled, onToggle, pendingAction}, index) => {
-                const showBorderBottom = index !== optionItems.length - 1;
+        <>
+            <Section
+                isCentralPane
+                title={translate('workspace.rules.expenseReportRules.title')}
+                subtitle={translate('workspace.rules.expenseReportRules.subtitle')}
+                titleStyles={styles.accountSettingsSectionTitle}
+                subtitleMuted
+            >
+                {optionItems.map(({title, subtitle, isActive, subMenuItems, showLockIcon, disabled, onToggle, pendingAction}, index) => {
+                    const showBorderBottom = index !== optionItems.length - 1;
 
-                return (
-                    <ToggleSettingOptionRow
-                        key={title}
-                        title={title}
-                        subtitle={subtitle}
-                        switchAccessibilityLabel={title}
-                        wrapperStyle={[styles.pv6, showBorderBottom && styles.borderBottom]}
-                        shouldPlaceSubtitleBelowSwitch
-                        titleStyle={styles.pv2}
-                        subtitleStyle={styles.pt1}
-                        isActive={!!isActive}
-                        showLockIcon={showLockIcon}
-                        disabled={disabled}
-                        subMenuItems={subMenuItems}
-                        onToggle={onToggle}
-                        pendingAction={pendingAction}
-                    />
-                );
-            })}
-        </Section>
+                    return (
+                        <ToggleSettingOptionRow
+                            key={title}
+                            title={title}
+                            subtitle={subtitle}
+                            switchAccessibilityLabel={title}
+                            wrapperStyle={[styles.pv6, showBorderBottom && styles.borderBottom]}
+                            shouldPlaceSubtitleBelowSwitch
+                            titleStyle={styles.pv2}
+                            subtitleStyle={styles.pt1}
+                            isActive={!!isActive}
+                            showLockIcon={showLockIcon}
+                            disabled={disabled}
+                            subMenuItems={subMenuItems}
+                            onToggle={onToggle}
+                            pendingAction={pendingAction}
+                        />
+                    );
+                })}
+            </Section>
+            <ConfirmModal
+                isVisible={isPreventSelfApprovalsModalVisible}
+                title={translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle')}
+                prompt={translate('workspace.rules.expenseReportRules.preventSelfApprovalsModalText', {
+                    managerEmail: policy?.approver ?? '',
+                })}
+                confirmText={translate('workspace.rules.expenseReportRules.preventSelfApprovalsConfirmButton')}
+                cancelText={translate('common.cancel')}
+                onConfirm={() => {
+                    setPolicyPreventSelfApproval(policyID, true);
+
+                    const defaultApprover = policy?.approver ?? policy?.owner;
+                    if (!defaultApprover) {
+                        setIsPreventSelfApprovalsModalVisible(false);
+                        return;
+                    }
+
+                    currentApprovalWorkflows?.forEach((workflow: ApprovalWorkflow) => {
+                        const oldApprovers = workflow.approvers ?? [];
+                        const approversToRemove = oldApprovers.filter((approver: Approver) => selfApproversEmails.includes(approver?.email));
+                        const newApprovers = oldApprovers.filter((approver: Approver) => !selfApproversEmails.includes(approver?.email));
+
+                        if (!newApprovers.some((a) => a.email === defaultApprover)) {
+                            newApprovers.unshift({
+                                email: defaultApprover,
+                                displayName: defaultApprover,
+                            });
+                        }
+
+                        const oldMembers = workflow.members ?? [];
+                        const newMembers = oldMembers.map((member: Member) => {
+                            const isSelfApprover = selfApproversEmails.includes(member.email);
+                            return isSelfApprover ? {...member, submitsTo: defaultApprover} : member;
+                        });
+
+                        const newWorkflow = {
+                            ...workflow,
+                            approvers: newApprovers,
+                            availableMembers: [...workflow.members, ...defaultWorkflowMembers],
+                            members: newMembers,
+                            usedApproverEmails,
+                            isDefault: workflow.isDefault ?? false,
+                            action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+                            errors: null,
+                        };
+
+                        const membersToRemove: Member[] = [];
+
+                        updateApprovalWorkflow(policyID, newWorkflow, membersToRemove, approversToRemove);
+                    });
+                    setIsPreventSelfApprovalsModalVisible(false);
+                }}
+                onCancel={() => setIsPreventSelfApprovalsModalVisible(false)}
+            />
+        </>
     );
 }
 

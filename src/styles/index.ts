@@ -5,8 +5,6 @@ import type {LineLayer} from 'react-map-gl';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {Platform, StyleSheet} from 'react-native';
-// eslint-disable-next-line no-restricted-imports -- will be removed in the future PR
-import type {CustomAnimation} from 'react-native-animatable';
 import type {PickerStyle} from 'react-native-picker-select';
 import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -23,7 +21,6 @@ import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
 import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
-import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
@@ -75,8 +72,6 @@ type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | nu
 type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
 type WorkspaceUpgradeIntroBoxParams = {isExtraSmallScreenWidth: boolean};
 
-type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
-
 type OfflineFeedbackStyle = Record<'deleted' | 'pending' | 'default' | 'error' | 'container' | 'textContainer' | 'text' | 'errorDot', ViewStyle | TextStyle>;
 
 type MapDirectionStyle = Pick<LineLayerStyleProps, 'lineColor' | 'lineWidth'>;
@@ -93,7 +88,7 @@ type Styles = Record<
     | MapDirectionStyle
     | MapDirectionLayerStyle
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomAnimation | CustomPickerStyle)
+    | ((...args: any[]) => ViewStyle | TextStyle | ImageStyle | AnchorPosition | CustomPickerStyle)
 >;
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
@@ -206,10 +201,9 @@ const webViewStyles = (theme: ThemeColors) =>
 
             code: {
                 ...baseCodeTagStyles(theme),
-                ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
-                ...FontUtils.fontFamily.platform.MONOSPACE,
+                fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
                 // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
@@ -379,6 +373,9 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
+        verticalAlignBottom: {
+            verticalAlign: 'bottom',
+        },
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
@@ -439,7 +436,15 @@ const styles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeExtraSmall,
         },
-
+        textDoubleDecker: {
+            fontSize: variables.fontSizeSmall,
+            opacity: 0.8,
+            fontWeight: FontUtils.fontWeight.bold,
+            lineHeight: 12,
+        },
+        noPaddingBottom: {
+            paddingBottom: 0,
+        },
         textNormal: {
             fontSize: variables.fontSizeNormal,
         },
@@ -566,6 +571,20 @@ const styles = (theme: ThemeColors) =>
         borderRadiusComponentLarge: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
+
+        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+            // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
+            // On natives we can use absolute positioning.
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            paddingBottom: bottomSafeAreaOffset,
+            bottom: 0,
+
+            // There is a missing border right on the wide layout
+            borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
+            borderColor: theme.border,
+        }),
 
         bottomTabBarContainer: {
             flexDirection: 'row',
@@ -1087,7 +1106,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 1,
+            zIndex: variables.searchTopBarZIndex + 2,
             backgroundColor: theme.appBG,
         },
 
@@ -1583,6 +1602,19 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        searchSplitContainer: {
+            flex: 1,
+            flexDirection: 'row',
+        },
+
+        searchSidebar: {
+            width: variables.sideBarWidth,
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderColor: theme.border,
+        },
+
         // Sidebar Styles
         sidebar: {
             backgroundColor: theme.sidebar,
@@ -1678,7 +1710,10 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             verticalAlign: 'bottom',
-            ...(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -variables.iconSizeNormal / 4} : {}),
+            ...(getPlatform() === CONST.PLATFORM.IOS ? {marginBottom: -variables.fontSizeNormalHeight / 4} : {}),
+            // `fontSizeNormal` value for scale factor 1 is 15
+            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -(variables.fontSizeEmojiNormal - 10)} : {}),
+            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginRight: -(variables.fontSizeEmojiNormal - 15)} : {}),
         },
 
         sidebarFooterUsername: {
@@ -2094,7 +2129,7 @@ const styles = (theme: ThemeColors) =>
         chatItemRight: {
             flexGrow: 1,
             flexShrink: 1,
-            flexBasis: 0,
+            flexBasis: 'auto',
             position: 'relative',
         },
 
@@ -2118,6 +2153,11 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontSize: variables.fontSizeSmall,
             paddingTop: 2,
+        },
+
+        chatItemMessageHeaderPolicy: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
         },
 
         chatItemMessage: {
@@ -2689,6 +2729,25 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.transparent,
         },
 
+        modalContainer: {height: '100%'},
+
+        modalAnimatedContainer: {width: '100%'},
+
+        modalContainerBox: {
+            zIndex: 2,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+
+        modalBackdrop: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: 'black',
+        },
+
         reportActionContextMenuMiniButton: {
             height: 28,
             width: 28,
@@ -3062,8 +3121,6 @@ const styles = (theme: ThemeColors) =>
         sectionDividerLine: {
             height: 1,
             backgroundColor: theme.border,
-            ...spacing.mh5,
-            ...spacing.mv6,
         },
 
         unreadIndicatorText: {
@@ -3097,6 +3154,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             opacity: 0,
             left: -9999,
+            top: -9999,
         },
 
         containerWithSpaceBetween: {
@@ -3309,10 +3367,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        codeWordWrapper: {
-            ...codeStyles.codeWordWrapper,
-        },
-
         codeWordStyle: {
             borderLeftWidth: 0,
             borderRightWidth: 0,
@@ -3323,7 +3377,6 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
             paddingRight: 0,
             justifyContent: 'center',
-            ...codeStyles.codeWordStyle,
         },
 
         codeFirstWordStyle: {
@@ -3338,10 +3391,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: 4,
             borderBottomRightRadius: 4,
             paddingRight: 5,
-        },
-
-        codePlainTextStyle: {
-            ...codeStyles.codePlainTextStyle,
         },
 
         fullScreenLoading: {
@@ -3394,16 +3443,6 @@ const styles = (theme: ThemeColors) =>
                 transform: [{translateY: translateY.get()}],
             };
         },
-
-        makeSlideInTranslation: (translationType: Translation, fromValue: number) =>
-            ({
-                from: {
-                    [translationType]: fromValue,
-                },
-                to: {
-                    [translationType]: 0,
-                },
-            } satisfies CustomAnimation),
 
         growlNotificationBox: {
             backgroundColor: theme.inverse,
@@ -3717,7 +3756,13 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
-        searchTopBarStyle: {
+        narrowSearchHeaderStyle: {
+            paddingTop: 1,
+            backgroundColor: theme.appBG,
+            flex: 1,
+        },
+
+        narrowSearchRouterInactiveStyle: {
             left: 0,
             right: 0,
             position: 'absolute',
@@ -4004,6 +4049,19 @@ const styles = (theme: ThemeColors) =>
         textReactionSenders: {
             color: theme.tooltipPrimaryText,
             ...wordBreak.breakWord,
+        },
+
+        distanceLabelWrapper: {
+            backgroundColor: colors.green500,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        distanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.productLight100,
         },
 
         productTrainingTooltipWrapper: {
@@ -4371,12 +4429,8 @@ const styles = (theme: ThemeColors) =>
                 fontSize: variables.fontSizeLabel,
             } satisfies TextStyle),
 
-        animatedTabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
         }),
 
         tabOpacity: (
@@ -5403,6 +5457,22 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
+
+        sidePaneOverlay: {
+            ...positioning.pFixed,
+            right: -variables.sideBarWidth,
+            backgroundColor: theme.overlay,
+            opacity: variables.overlayOpacity,
+        },
+        sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            right: 0,
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            height: '100%',
+            backgroundColor: theme.modalBackground,
+            borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
+            borderLeftColor: theme.border,
+        }),
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

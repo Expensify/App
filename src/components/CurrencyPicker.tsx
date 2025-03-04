@@ -72,14 +72,17 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 onClose={hidePickerModal}
                 onModalHide={hidePickerModal}
                 hideModalContentWhileAnimating
+                shouldEnableNewFocusManagement
                 useNativeDriver
                 onBackdropPress={Navigation.dismissModal}
+                shouldUseModalPaddingStyle={false}
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
-                    includePaddingTop={false}
+                    includePaddingTop
                     includeSafeAreaPaddingBottom
                     testID={CurrencyPicker.displayName}
+                    shouldEnableMaxHeight
                 >
                     <HeaderWithBackButton
                         title={label}

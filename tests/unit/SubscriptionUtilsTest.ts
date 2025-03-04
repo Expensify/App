@@ -489,6 +489,7 @@ describe('SubscriptionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID,
+                    type: CONST.POLICY.TYPE.TEAM,
                 },
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
@@ -502,18 +503,20 @@ describe('SubscriptionUtils', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID,
+                    type: CONST.POLICY.TYPE.TEAM,
                 },
                 [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010,
             });
             expect(shouldShowDiscountBanner()).toBeFalsy();
         });
 
-        it.skip('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
+        it('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID,
+                    type: CONST.POLICY.TYPE.TEAM,
                 },
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
