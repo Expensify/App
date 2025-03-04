@@ -34,8 +34,8 @@ Onyx.connect({
             return;
         }
         isSingleNewDotEntry = value;
-    }
-})
+    },
+});
 
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
