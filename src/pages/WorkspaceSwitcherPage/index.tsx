@@ -10,12 +10,12 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
+import useWorkspaceList from '@hooks/useWorkspaceList';
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { WorkspaceListItem } from '@hooks/useWorkspaceList';
-import useWorkspaceList from '@hooks/useWorkspaceList';
 import switchPolicyAfterInteractions from './switchPolicyAfterInteractions';
 import WorkspaceCardCreateAWorkspace from './WorkspaceCardCreateAWorkspace';
 
@@ -68,12 +68,7 @@ function WorkspaceSwitcherPage() {
         [unreadStatusesForPolicies],
     );
 
-    const {
-        sections,
-        shouldShowNoResultsFoundMessage,
-        shouldShowSearchInput,
-        shouldShowCreateWorkspace,
-    } = useWorkspaceList({
+    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput, shouldShowCreateWorkspace} = useWorkspaceList({
         policies,
         isOffline,
         currentUserLogin,
@@ -82,7 +77,7 @@ function WorkspaceSwitcherPage() {
         isWorkspaceSwitcher: true,
         hasUnreadData,
         getIndicatorTypeForPolicy,
-        });
+    });
 
     const selectPolicy = useCallback(
         (policyID?: string) => {

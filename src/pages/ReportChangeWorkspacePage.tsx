@@ -9,6 +9,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
+import useWorkspaceList from '@hooks/useWorkspaceList';
 import {changeReportPolicy} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -17,8 +19,6 @@ import {isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { WorkspaceListItem } from '@hooks/useWorkspaceList';
-import useWorkspaceList from '@hooks/useWorkspaceList';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
@@ -47,18 +47,14 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         [reportID],
     );
 
-    const {
-        sections,
-        shouldShowNoResultsFoundMessage,
-        shouldShowSearchInput,
-    } = useWorkspaceList({
+    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
         isOffline,
         selectedPolicyID: report.policyID,
         searchTerm: debouncedSearchTerm,
         additionalFilter: (policy) => isWorkspaceEligibleForReportChange(policy, report?.ownerAccountID, report?.managerID, currentUserLogin),
-        });
+    });
 
     return (
         <ScreenWrapper

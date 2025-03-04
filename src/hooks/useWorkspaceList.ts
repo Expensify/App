@@ -1,13 +1,13 @@
 import {useMemo} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import {shouldShowPolicy, isPolicyAdmin, sortWorkspacesBySelected} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {Policy} from '@src/types/onyx';
-import type { ListItem, SectionListDataType } from '@components/SelectionList/types';
-import type { BrickRoad } from '@libs/WorkspacesSettingsUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
+import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceListItem = {
     text: string;
@@ -23,18 +23,18 @@ type UseWorkspaceListParams = {
     selectedPolicyID: string | undefined;
     searchTerm: string;
     additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
-  } & (
+} & (
     | {
-        isWorkspaceSwitcher: true;
-        hasUnreadData: (policyID?: string) => boolean;
-        getIndicatorTypeForPolicy: (policyID?: string) => BrickRoad;
+          isWorkspaceSwitcher: true;
+          hasUnreadData: (policyID?: string) => boolean;
+          getIndicatorTypeForPolicy: (policyID?: string) => BrickRoad;
       }
     | {
-        isWorkspaceSwitcher?: false | undefined;
-        hasUnreadData?: never;
-        getIndicatorTypeForPolicy?: never;
+          isWorkspaceSwitcher?: false | undefined;
+          hasUnreadData?: never;
+          getIndicatorTypeForPolicy?: never;
       }
-  );
+);
 
 function useWorkspaceList({
     policies,
@@ -47,37 +47,35 @@ function useWorkspaceList({
     getIndicatorTypeForPolicy,
     additionalFilter,
 }: UseWorkspaceListParams) {
-
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];
         }
 
         return Object.values(policies)
-            .filter((policy) => !!policy &&
-                    shouldShowPolicy(policy, !!isOffline, currentUserLogin) &&
-                    !policy?.isJoinRequestPending &&
-                    (additionalFilter ? additionalFilter(policy) : true))
+            .filter((policy) => !!policy && shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending && (additionalFilter ? additionalFilter(policy) : true))
             .map((policy) => ({
-                    text: policy?.name ?? '',
-                    policyID: policy?.id,
-                    icons: [
-                        {
-                            source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                            name: policy?.name,
-                            type: CONST.ICON_TYPE_WORKSPACE,
-                            id: policy?.id,
-                        },
-                    ],
-                    keyForList: policy?.id,
-                    isPolicyAdmin: isPolicyAdmin(policy),
-                    isSelected: selectedPolicyID === policy?.id,
-                    ...(isWorkspaceSwitcher && hasUnreadData && getIndicatorTypeForPolicy && {
+                text: policy?.name ?? '',
+                policyID: policy?.id,
+                icons: [
+                    {
+                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
+                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        name: policy?.name,
+                        type: CONST.ICON_TYPE_WORKSPACE,
+                        id: policy?.id,
+                    },
+                ],
+                keyForList: policy?.id,
+                isPolicyAdmin: isPolicyAdmin(policy),
+                isSelected: selectedPolicyID === policy?.id,
+                ...(isWorkspaceSwitcher &&
+                    hasUnreadData &&
+                    getIndicatorTypeForPolicy && {
                         isBold: hasUnreadData(policy?.id),
                         brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                     }),
-                }));
+            }));
     }, [policies, isOffline, currentUserLogin, additionalFilter, selectedPolicyID, getIndicatorTypeForPolicy, hasUnreadData, isWorkspaceSwitcher]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
@@ -102,7 +100,7 @@ function useWorkspaceList({
     const shouldShowNoResultsFoundMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length;
     const shouldShowSearchInput = usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const shouldShowCreateWorkspace = isWorkspaceSwitcher && usersWorkspaces.length === 0;
-    
+
     return {
         sections,
         shouldShowNoResultsFoundMessage,
