@@ -37,10 +37,10 @@ type TemporaryMoneyRequestReportViewProps = {
  * TODO
  * This is a completely temporary component, displayed to:
  *  - show other devs that SearchMoneyRequestReportPage works
- *  - unblock work for other devs for Report Creation
+ *  - unblock work for other devs for Report Creation (https://github.com/Expensify/App/issues/57654)
  *
  *  This component is not displayed to any users.
- *  It will be removed once we fully implement SearchMoneyRequestReportPage.
+ *  It will be removed once we fully implement SearchMoneyRequestReportPage (https://github.com/Expensify/App/issues/57508)
  */
 function TemporaryMoneyRequestReportView({report, policy}: TemporaryMoneyRequestReportViewProps) {
     const styles = useThemeStyles();

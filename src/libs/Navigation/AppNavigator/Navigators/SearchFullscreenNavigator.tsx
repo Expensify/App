@@ -1,7 +1,7 @@
 import React from 'react';
-import createSearchFullscreenNavigator from '@libs/Navigation/AppNavigator/createSearchFullscreenNavigator';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
+import createSearchFullscreenNavigator from '@navigation/AppNavigator/createSearchFullscreenNavigator';
 import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
 import useRootNavigatorScreenOptions from '@navigation/AppNavigator/useRootNavigatorScreenOptions';
 import SCREENS from '@src/SCREENS';

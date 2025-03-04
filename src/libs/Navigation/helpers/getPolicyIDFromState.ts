@@ -8,7 +8,7 @@ import extractPolicyIDFromQuery from './extractPolicyIDFromQuery';
  *
  * PolicyID in this app can be stored in two ways:
  *  - on NAVIGATORS.REPORTS_SPLIT_NAVIGATOR as `policyID` param
- *  - on Search related screens as policyID filter inside `q` (SearchQuery) param (only for SEARCH_CENTRAL_PANE)
+ *  - on Search related screens as policyID filter inside `q` (SearchQuery) param (only for Search_Root)
  */
 const getPolicyIDFromState = (state: State<RootNavigatorParamList>): string | undefined => {
     const lastPolicyRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);

@@ -14,7 +14,7 @@ import {
     handleOpenWorkspaceSplitAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
-    handleSwitchPolicyID,
+    handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
 import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions, SwitchPolicyIdActionType} from './types';
@@ -75,7 +75,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
             }
 
             if (isSwitchPolicyIdAction(action)) {
-                return handleSwitchPolicyID(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                return handleSwitchPolicyIDAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
             }
 
             if (isDismissModalAction(action)) {

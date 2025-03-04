@@ -77,11 +77,11 @@ function handleOpenWorkspaceSplitAction(
 }
 
 /**
- * Handles the SWITCH_POLICY_ID action.
- * Information about the currently selected policy can be found in the last ReportsSplitNavigator or Search_Root.
- * As the policy can only be changed from Search or Inbox Tab, after changing the policy a new ReportsSplitNavigator or Search_Root with the changed policy has to be pushed to the navigation state.
+ * Handles the SWITCH_POLICY_ID action for `SearchFullscreenNavigator`.
+ * Information about the currently selected policy can be found in the last Search_Root.
+ * After user changes the policy while on Search, a new Search_Root with the changed policy inside query param has to be pushed to the navigation state.
  */
-function handleSwitchPolicyID(
+function handleSwitchPolicyIDFromSearchAction(
     state: StackNavigationState<ParamListBase>,
     action: SwitchPolicyIdActionType,
     configOptions: RouterConfigOptions,
@@ -89,31 +89,44 @@ function handleSwitchPolicyID(
     setActiveWorkspaceID: (workspaceID: string | undefined) => void,
 ) {
     const lastRoute = state.routes.at(-1);
-    if (lastRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-        const searchRoute = lastRoute.state?.routes?.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-        if (searchRoute?.name === SCREENS.SEARCH.ROOT) {
-            // Fixme something is wrong in this state
-            const searchParams = searchRoute?.params;
-            const queryJSON = SearchQueryUtils.buildSearchQueryJSON(searchParams.q);
-            if (!queryJSON) {
-                return null;
-            }
-
-            if (action.payload.policyID) {
-                queryJSON.policyID = action.payload.policyID;
-            } else {
-                delete queryJSON.policyID;
-            }
-
-            const newAction = StackActions.push(SCREENS.SEARCH.ROOT, {
-                ...searchRoute,
-                q: SearchQueryUtils.buildSearchQueryString(queryJSON),
-            });
-
-            setActiveWorkspaceID(action.payload.policyID);
-            return stackRouter.getStateForAction(state, newAction, configOptions);
+    if (lastRoute?.name === SCREENS.SEARCH.ROOT) {
+        const currentParams = lastRoute.params as RootNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+        const queryJSON = SearchQueryUtils.buildSearchQueryJSON(currentParams.q);
+        if (!queryJSON) {
+            return null;
         }
+
+        if (action.payload.policyID) {
+            queryJSON.policyID = action.payload.policyID;
+        } else {
+            delete queryJSON.policyID;
+        }
+
+        const newAction = StackActions.push(SCREENS.SEARCH.ROOT, {
+            ...currentParams,
+            q: SearchQueryUtils.buildSearchQueryString(queryJSON),
+        });
+
+        setActiveWorkspaceID(action.payload.policyID);
+        return stackRouter.getStateForAction(state, newAction, configOptions);
     }
+    // We don't have other navigators that should handle switch policy action.
+    return null;
+}
+
+/**
+ * Handles the SWITCH_POLICY_ID action for `ReportsSplitNavigator`.
+ * Information about the currently selected policy can be found in the last ReportsSplitNavigator.
+ * After user changes the policy while on Inbox, a new ReportsSplitNavigator with the changed policy has to be pushed to the navigation state.
+ */
+function handleSwitchPolicyIDAction(
+    state: StackNavigationState<ParamListBase>,
+    action: SwitchPolicyIdActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+    setActiveWorkspaceID: (workspaceID: string | undefined) => void,
+) {
+    const lastRoute = state.routes.at(-1);
     if (lastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
         const newAction = StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {policyID: action.payload.policyID});
 
@@ -262,7 +275,8 @@ export {
     handleDismissModalAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
-    handleSwitchPolicyID,
+    handleSwitchPolicyIDAction,
+    handleSwitchPolicyIDFromSearchAction,
     handleNavigatingToModalFromModal,
     workspaceSplitsWithoutEnteringAnimation,
     reportsSplitsWithEnteringAnimation,
