@@ -57,12 +57,6 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             return;
         }
 
-        // Spotnana requires an address anytime an entity is created for a policy
-        if (isEmptyObject(policy?.address)) {
-            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_ADDRESS.getRoute(policy?.id, Navigation.getActiveRoute()));
-            return;
-        }
-
         const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id)
@@ -91,6 +85,9 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             const adminDomains = getAdminsPrivateEmailDomains(policy);
             if (adminDomains.length === 0) {
                 Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
+            } else if (isEmptyObject(policy?.address)) {
+                // Spotnana requires an address anytime an entity is created for a policy
+                Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_ADDRESS.getRoute(policy?.id, Navigation.getActiveRoute()));
             } else if (adminDomains.length === 1) {
                 navigateToAcceptTerms(adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN);
             } else {
