@@ -78,6 +78,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
                     const {icon, title} = getIconAndTitle(route.name, translate);
                     const shouldShowTestReceiptTooltip =
                         route.name === CONST.TAB_REQUEST.SCAN && isActive && !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas);
+
                     const onPress = () => {
                         if (isActive) {
                             return;
@@ -120,6 +121,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position, onFocu
 }
 
 TabSelector.displayName = 'TabSelector';
+
 export default TabSelector;
 
 export type {TabSelectorProps};
