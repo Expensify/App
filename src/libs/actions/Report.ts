@@ -160,8 +160,8 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as Download from '@userActions/Download';
 import {clearByKey} from './CachedPDFPaths';
-import * as Download from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {
