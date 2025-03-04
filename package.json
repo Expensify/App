@@ -370,7 +370,10 @@
     "body-parser": "1.20.3",
     "path-to-regexp": "0.1.10",
     "send": "0.19.0",
-    "regexpu-core": "5.3.2"
+    "regexpu-core": "5.3.2",
+    "lottie-react-native": {
+      "@lottiefiles/dotlottie-react": "^0.10.0"
+    }
   },
   "expo": {
     "autolinking": {
