@@ -104,7 +104,7 @@ const companyCardsSettingsWithOnePendingFeed = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: {
         pending: false,
     },
-}
+};
 
 const oAuthAccountDetails = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: {
@@ -399,7 +399,7 @@ describe('CardUtils', () => {
         it('Should return only feeds that are not pending', () => {
             const companyFeeds = getCompanyFeeds(cardFeedsCollection.FAKE_ID_4, false, true);
             expect(Object.keys(companyFeeds).length).toStrictEqual(1);
-        })
+        });
     });
 
     describe('getSelectedFeed', () => {
