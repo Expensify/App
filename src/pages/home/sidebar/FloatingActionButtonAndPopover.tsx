@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
@@ -48,6 +48,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+import CONFIG from '@src/CONFIG';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
@@ -570,8 +572,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 isVisible={modalVisible}
                 onConfirm={() => {
                     setModalVisible(false);
-                    if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                    if (CONFIG.IS_HYBRID_APP) {
+                        HybridAppModule.closeReactNativeApp(false, true);
                         setRootStatusBarEnabled(false);
                         return;
                     }
