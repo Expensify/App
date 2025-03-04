@@ -9,6 +9,7 @@ const useCustomScreenOptions = () => {
     const customInterpolator = useModalCardStyleInterpolator();
 
     return useMemo(() => {
+        // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
         if (isSafari()) {
             return {
                 ...modalNavigatorOptions,
