@@ -19,27 +19,27 @@ type ChangeWorkspaceMenuSection = {
     titleTranslationKey: TranslationPaths;
 };
 
+const changeWorkspaceMenuSections: ChangeWorkspaceMenuSection[] = [
+    {
+        icon: Illustrations.FolderOpen,
+        titleTranslationKey: 'iou.changePolicyEducational.reCategorize',
+    },
+    {
+        icon: Illustrations.Workflows,
+        titleTranslationKey: 'iou.changePolicyEducational.workflows',
+    },
+];
+
 function ChangeWorkspaceMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const changeWorkspaceMenuSections: ChangeWorkspaceMenuSection[] = [
-        {
-            icon: Illustrations.FolderOpen,
-            titleTranslationKey: 'iou.changePolicyEducational.reCategorize',
-        },
-        {
-            icon: Illustrations.Workflows,
-            titleTranslationKey: 'iou.changePolicyEducational.workflows',
-        },
-    ];
 
     return (
         <>
             {changeWorkspaceMenuSections.map((section, i) => (
                 <View
                     // eslint-disable-next-line react/no-array-index-key
-                    key={i}
+                    key={`${i}-${section.titleTranslationKey}`}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mt5]}
                 >
                     <Icon

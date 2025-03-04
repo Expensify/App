@@ -6743,6 +6743,7 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+    ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

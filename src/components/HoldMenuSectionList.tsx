@@ -18,27 +18,27 @@ type HoldMenuSection = {
     titleTranslationKey: TranslationPaths;
 };
 
+const holdMenuSections: HoldMenuSection[] = [
+    {
+        icon: Illustrations.Stopwatch,
+        titleTranslationKey: 'iou.holdIsLeftBehind',
+    },
+    {
+        icon: Illustrations.RealtimeReport,
+        titleTranslationKey: 'iou.unholdWhenReady',
+    },
+];
+
 function HoldMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const holdMenuSections: HoldMenuSection[] = [
-        {
-            icon: Illustrations.Stopwatch,
-            titleTranslationKey: 'iou.holdIsLeftBehind',
-        },
-        {
-            icon: Illustrations.RealtimeReport,
-            titleTranslationKey: 'iou.unholdWhenReady',
-        },
-    ];
 
     return (
         <>
             {holdMenuSections.map((section, i) => (
                 <View
                     // eslint-disable-next-line react/no-array-index-key
-                    key={i}
+                    key={`${i}-${section.titleTranslationKey}`}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mt5]}
                 >
                     <Icon

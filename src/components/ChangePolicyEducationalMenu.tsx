@@ -1,10 +1,11 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React from 'react';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ChangeWorkspaceMenuSectionList from './ChangeWorkspaceMenuSectionList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import * as Illustrations from './Icon/Illustrations';
@@ -17,15 +18,9 @@ type ChangePolicyEducationalMenuProps = {
 function ChangePolicyEducationalMenu({onConfirm}: ChangePolicyEducationalMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const navigation = useNavigation();
     const StyleUtils = useStyleUtils();
 
-    useEffect(() => {
-        const unsub = navigation.addListener('beforeRemove', () => {
-            onConfirm();
-        });
-        return unsub;
-    }, [navigation, onConfirm]);
+    useBeforeRemove(onConfirm);
 
     return (
         <FeatureTrainingModal
@@ -37,8 +32,9 @@ function ChangePolicyEducationalMenu({onConfirm}: ChangePolicyEducationalMenuPro
             imageHeight={variables.changePolicyEducationModalIconHeight}
             contentFitImage="cover"
             width={variables.changePolicyEducationModalWidth}
-            illustrationAspectRatio={39 / 22}
-            illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, styles.cardSectionIllustration, StyleUtils.getBackgroundColorStyle(colors.blue700)]}
+            illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}
+            illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, StyleUtils.getBackgroundColorStyle(colors.blue700)]}
+            modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.p0}
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
             onClose={onConfirm}
