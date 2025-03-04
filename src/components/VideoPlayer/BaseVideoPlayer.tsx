@@ -496,14 +496,11 @@ function BaseVideoPlayer({
                                                     setHasError(true);
                                                 }}
                                             />
-                                            {!hasError && ((isLoading && !isOffline) || (isBuffering && !isPlaying)) && (
-                                                <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
-                                            )}
-                                            {hasError && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
                                         </View>
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
+                            {hasError && !isBuffering && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
                             {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && (
                                 <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
                             )}
