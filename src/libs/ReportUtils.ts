@@ -1265,7 +1265,7 @@ function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string 
         return false;
     }
 
-    if (isEmptyObject(report) || report.isWaitingOnBankAccount) {
+    if (isEmptyObject(report)) {
         return false;
     }
 
