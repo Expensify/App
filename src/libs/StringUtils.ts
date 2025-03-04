@@ -1,6 +1,6 @@
 import deburr from 'lodash/deburr';
 import CONST from '@src/CONST';
-import { isSafari } from './Browser';
+import {isSafari} from './Browser';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
