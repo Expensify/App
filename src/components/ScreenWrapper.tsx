@@ -178,10 +178,12 @@ function ScreenWrapper(
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
     UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
-        if (CONFIG.IS_HYBRID_APP) {
-            HybridAppModule.closeReactNativeApp(false, false);
-            setRootStatusBarEnabled(false);
+        if (!CONFIG.IS_HYBRID_APP) {
+            return;
         }
+        HybridAppModule.closeReactNativeApp(false, false);
+        setRootStatusBarEnabled(false);
+
     });
 
     const panResponder = useRef(
