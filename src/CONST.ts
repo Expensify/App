@@ -755,7 +755,7 @@ const CONST = {
                 PROOF_OF_DIRECTORS: 'proofOfDirectors',
                 COPY_OF_ID: 'copyOfID',
                 ADDRESS_PROOF: 'addressProof',
-                CODICE_FISCALE: 'codiceFisclaleTaxID',
+                CODICE_FISCALE: 'codiceFiscaleTaxID',
                 PRD_AND_SFG: 'PRDAndFSG',
                 DIRECTOR_OCCUPATION: 'occupation',
                 DIRECTOR_FULL_NAME: 'fullName',
