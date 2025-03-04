@@ -139,9 +139,4 @@ describe('ReportActionsUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() => ReportActionsUtils.getLastClosedReportAction(reportActions));
     });
-
-    test('[ReportActionsUtils] getMostRecentReportActionLastModified', async () => {
-        await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getMostRecentReportActionLastModified());
-    });
 });
