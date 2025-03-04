@@ -195,6 +195,42 @@ describe('SidebarUtils', () => {
 
             expect(result).toBeNull();
         });
+
+        it('returns isPinned true only when report.isPinned is true', () => {
+            const MOCK_REPORT_PINNED: Report = {
+                reportID: '1',
+                isPinned: true,
+            };
+            const MOCK_REPORT_UNPINNED: Report = {
+                reportID: '2',
+                isPinned: false,
+            };
+
+            const optionDataPinned = SidebarUtils.getOptionData({
+                report: MOCK_REPORT_PINNED,
+                reportNameValuePairs: {},
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale: CONST.LOCALES.DEFAULT,
+                policy: undefined,
+                parentReportAction: undefined,
+                hasViolations: false,
+            });
+
+            const optionDataUnpinned = SidebarUtils.getOptionData({
+                report: MOCK_REPORT_UNPINNED,
+                reportNameValuePairs: {},
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale: CONST.LOCALES.DEFAULT,
+                policy: undefined,
+                parentReportAction: undefined,
+                hasViolations: false,
+            });
+
+            expect(optionDataPinned?.isPinned).toBe(true);
+            expect(optionDataUnpinned?.isPinned).toBe(false);
+        });
     });
 
     describe('shouldShowRedBrickRoad', () => {

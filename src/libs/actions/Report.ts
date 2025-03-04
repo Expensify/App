@@ -4098,23 +4098,7 @@ function prepareOnboardingOnyxData(
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
         let createdAction: ReportAction;
-        if (selfDMReport) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-                value: {
-                    isPinned: true,
-                },
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-                value: {
-                    isPinned: selfDMReport?.isPinned,
-                },
-            });
-        } else {
+        if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
             selfDMReport = buildOptimisticSelfDMReport(currentTime);
             createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
