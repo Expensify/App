@@ -27,7 +27,7 @@ export default (env) => ({
     },
     module: {
         rules: [
-            ...Repack.getJsTransformRules(),
+            ...Repack.getJsTransformRules({swc: {lazyImports: true}}),
             ...Repack.getAssetTransformRules(),
             {
                 test: /\.lottie$/,

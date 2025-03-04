@@ -28,7 +28,7 @@ PODS:
     - AppAuth/Core
   - AppLogs (0.1.0)
   - boost (1.84.0)
-  - callstack-repack (5.0.0-rc.10):
+  - callstack-repack (5.0.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3325,7 +3325,7 @@ SPEC CHECKSUMS:
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: d7090b1a93a9798c029277a8288114f2948f471c
-  callstack-repack: 3ffe9c49dd09333ddb3cd0ac85ff6724dd6fa560
+  callstack-repack: b72d890302b7b8be273ff6123c02527e78bdc7cb
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXAV: 9773c9799767c9925547b05e41a26a0240bb8ef2
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
