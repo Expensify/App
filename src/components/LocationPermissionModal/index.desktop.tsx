@@ -73,20 +73,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const handledBlockedPermission = (cb: () => void) => () => {
         setIsLoading(true);
         if (hasError) {
-            if (Linking.openSettings) {
-                Linking.openSettings();
-                setShowModal(false);
-            } else {
-                // check one more time in case user enabled location before continue
-                getLocationPermission().then((status) => {
-                    if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                        onGrant();
-                    } else {
-                        onDeny?.();
-                    }
-                });
-                setShowModal(false);
-            }
+            window.electron.invoke(ELECTRON_EVENTS.OPEN_LOCATION_SETTING);
             return;
         }
         cb();
