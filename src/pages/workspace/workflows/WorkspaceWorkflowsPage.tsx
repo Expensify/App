@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
@@ -13,7 +13,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,7 +26,6 @@ import {
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceReimbursement,
-    updateGeneralSettings,
 } from '@libs/actions/Policy/Policy';
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
 import {getLatestErrorField} from '@libs/ErrorUtils';
@@ -63,7 +62,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const policyApproverEmail = policy?.approver;
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
+    const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
@@ -92,10 +91,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         if (!policy) {
             return;
         }
-        updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-        setIsCurrencyModalOpen(false);
-        navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID, setIsCurrencyModalOpen]);
+        setIsUpdateWorkspaceCurrencyModalOpen(false);
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
+    }, [policy, setIsUpdateWorkspaceCurrencyModalOpen]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
@@ -244,7 +242,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 description={getPaymentMethodDescription(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT, policy?.achAccount ?? {})}
                                 onPress={() => {
                                     if (!isCurrencySupportedForDirectReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
-                                        setIsCurrencyModalOpen(true);
+                                        setIsUpdateWorkspaceCurrencyModalOpen(true);
                                         return;
                                     }
                                     navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
@@ -303,7 +301,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         displayNameForAuthorizedPayer,
         route.params.policyID,
         updateApprovalMode,
-        setIsCurrencyModalOpen,
+        setIsUpdateWorkspaceCurrencyModalOpen,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -328,6 +326,14 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         </Section>
     );
 
+    // TODO add proper link - https://github.com/Expensify/App/issues/50912
+    const updateWorkspaceCurrencyPrompt = (
+        <Text>
+            {translate('workspace.bankAccount.yourWorkspace')}{' '}
+            <TextLink href={CONST.DELEGATE_ROLE_HELPDOT_ARTICLE_LINK}>{translate('workspace.bankAccount.listOfSupportedCurrencies')}</TextLink>.
+        </Text>
+    );
+
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
@@ -350,14 +356,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
                     <ConfirmModal
-                        title={translate('workspace.bankAccount.workspaceCurrency')}
-                        isVisible={isCurrencyModalOpen}
+                        title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
+                        isVisible={isUpdateWorkspaceCurrencyModalOpen}
                         onConfirm={confirmCurrencyChangeAndHideModal}
-                        onCancel={() => setIsCurrencyModalOpen(false)}
-                        prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                        confirmText={translate('workspace.bankAccount.updateToUSD')}
+                        onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
+                        prompt={updateWorkspaceCurrencyPrompt}
+                        confirmText={translate('workspace.bankAccount.updateWorkspaceCurrency')}
                         cancelText={translate('common.cancel')}
-                        danger
                     />
                 </View>
             </WorkspacePageWithSections>

@@ -4471,6 +4471,10 @@ const translations = {
             workspaceCurrency: 'Workspace currency',
             updateCurrencyPrompt: 'It looks like your workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
             updateToUSD: 'Update to USD',
+            updateWorkspaceCurrency: 'Update workspace currency',
+            workspaceCurrencyNotSupported: 'Workspace currency not supported',
+            yourWorkspace: 'Your workspace is set to an unsupported currency. View the',
+            listOfSupportedCurrencies: 'list of supported currencies',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transfer owner',

@@ -18,6 +18,7 @@ import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccoun
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
 function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
@@ -39,6 +40,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
         [subStepKeys, reimbursementAccount, reimbursementAccountDraft],
     );
+    const defaultBankAccountCountry = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
@@ -57,7 +59,6 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                     errors[fieldID] = translate('common.error.fieldRequired');
                 }
 
-                // TODO accountHolderCountry doesnt get errorMessage returned from corpayFields - not sure where we fix it FE/BE
                 field.validationRules.forEach((rule) => {
                     if (!rule.regEx) {
                         return;
@@ -89,7 +90,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             optionsList={CONST.ALL_COUNTRIES}
                             description={field.label}
                             shouldSaveDraft={!isEditing}
-                            defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
+                            defaultValue={String(defaultValues[field.id] !== '' ? defaultValues[field.id] : defaultBankAccountCountry)}
                             modalHeaderTitle={translate('countryStep.selectCountry')}
                             searchInputTitle={translate('countryStep.findCountry')}
                             inputID={field.id}
@@ -115,7 +116,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                 </View>
             );
         });
-    }, [accountHolderDetailsFields, styles.mb6, styles.mhn5, defaultValues, isEditing, translate]);
+    }, [accountHolderDetailsFields, styles.mb6, styles.mhn5, defaultValues, isEditing, defaultBankAccountCountry, translate]);
 
     return (
         <FormProvider

@@ -4519,6 +4519,10 @@ const translations = {
             updateCurrencyPrompt:
                 'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
             updateToUSD: 'Actualizar a USD',
+            updateWorkspaceCurrency: 'Actualizar la moneda del espacio de trabajo',
+            workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
+            yourWorkspace: 'Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la',
+            listOfSupportedCurrencies: 'lista de monedas soportadas',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir la propiedad',
