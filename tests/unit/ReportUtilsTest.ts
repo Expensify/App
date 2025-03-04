@@ -1321,9 +1321,9 @@ describe('ReportUtils', () => {
                 expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
-            it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async () => {
+            it('Should show 5 participants name with ellipsis if count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two');
+                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
