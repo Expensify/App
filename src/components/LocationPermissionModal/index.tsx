@@ -47,7 +47,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         }, CONST.TIMING.LOCATION_UPDATE_INTERVAL);
 
         return () => {
-            unsubscriber();
+            unsubscribe();
             clearInterval(intervalId);
         };
     }, [showModal, debouncedCheckPermission]);
@@ -58,7 +58,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         }
 
         getLocationPermission().then((status) => {
-            onInitialGetLocationCompleted?.(status);
+            onInitialGetLocationCompleted?.();
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
             }

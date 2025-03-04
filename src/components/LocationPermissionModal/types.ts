@@ -1,5 +1,3 @@
-import type {PermissionStatus} from 'react-native-permissions';
-
 type LocationPermissionModalProps = {
     /** A callback to call when the permission has been granted */
     onGrant: () => void;
@@ -14,7 +12,7 @@ type LocationPermissionModalProps = {
     resetPermissionFlow: () => void;
 
     /** A callback to call when the initial get location is completed */
-    onInitialGetLocationCompleted?: (status: PermissionStatus) => void;
+    onInitialGetLocationCompleted?: () => void;
 };
 
 export default {};
