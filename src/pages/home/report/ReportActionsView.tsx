@@ -78,7 +78,7 @@ function ReportActionsView({
     parentReportAction,
     reportActions: allReportActions,
     isLoadingInitialReportActions,
-    isLoadingOlderReportActions = true,
+    isLoadingOlderReportActions,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
