@@ -119,9 +119,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
 
-    const fullParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
-    const shouldAddEllipsis = fullParticipants?.length > CONST.PARTICIPANTS_LIMIT;
-    const participants = fullParticipants.slice(0, CONST.PARTICIPANTS_LIMIT);
+    const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
+    const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
+    const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);

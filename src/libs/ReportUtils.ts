@@ -2602,9 +2602,9 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
         Object.keys(report?.participants ?? {})
             .map(Number)
             .filter((accountID) => !pendingMemberAccountIDs.has(accountID.toString()));
-    const shouldAddEllipsis = participantAccountIDs.length > CONST.PARTICIPANTS_LIMIT;
+    const shouldAddEllipsis = participantAccountIDs.length > CONST.DISPLAY_PARTICIPANTS_LIMIT && shouldApplyLimit;
     if (shouldApplyLimit) {
-        participantAccountIDs = participantAccountIDs.slice(0, CONST.PARTICIPANTS_LIMIT);
+        participantAccountIDs = participantAccountIDs.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
     }
     const isMultipleParticipantReport = participantAccountIDs.length > 1;
 
@@ -2618,7 +2618,7 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
             .filter(Boolean)
             .join(', ')
             .slice(0, CONST.REPORT_NAME_LIMIT)
-            .concat(shouldAddEllipsis && shouldApplyLimit ? '...' : '');
+            .concat(shouldAddEllipsis ? '...' : '');
     }
 
     return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
