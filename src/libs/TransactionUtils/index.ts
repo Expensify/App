@@ -26,7 +26,17 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportTransactions, isOpenExpenseReport, isProcessingReport, isReportIDApproved, isSettled, isThread} from '@libs/ReportUtils';
+import {
+    getReportTransactions,
+    isCurrentUserSubmitter,
+    isOpenExpenseReport,
+    isProcessingReport,
+    isReportApproved,
+    isReportIDApproved,
+    isReportManuallyReimbursed,
+    isSettled,
+    isThread,
+} from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -820,7 +830,7 @@ function shouldShowBrokenConnectionViolation(
             // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
             throw new Error('Invalid argument combination. If a transactionIDList is passed in, then an OnyxCollection of violations is expected');
         }
-        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[id] ?? []);
+        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
     } else {
         if (!Array.isArray(transactionViolations)) {
             // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
@@ -830,7 +840,24 @@ function shouldShowBrokenConnectionViolation(
     }
 
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
-    return brokenConnectionViolations.length > 0 && (!isPolicyAdmin(policy) || isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy)));
+
+    if (brokenConnectionViolations.length > 0) {
+        if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
+            return true;
+        }
+        return isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy));
+    }
+
+    return false;
+}
+
+function checkIfShouldShowMarkAsCashButton(hasRTERVPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    if (hasRTERVPendingViolation) {
+        return true;
+    }
+    return (
+        shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report)
+    );
 }
 
 /**
@@ -1518,6 +1545,7 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isBrokenConnectionViolation,
+    checkIfShouldShowMarkAsCashButton,
     shouldShowRTERViolationMessage,
 };
 
