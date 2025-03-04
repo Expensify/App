@@ -771,6 +771,12 @@ const CONST = {
         GB: 'GB',
         IT: 'IT',
     },
+    SWIPE_DIRECTION: {
+        DOWN: 'down',
+        LEFT: 'left',
+        RIGHT: 'right',
+        UP: 'up',
+    },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
         INSTALLED: 'installed',
