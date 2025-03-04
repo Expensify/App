@@ -4872,6 +4872,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData} = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
+    const parsedComment = getParsedComment(transactionData.comment ?? '');
+    transactionData.comment = parsedComment;
     const {
         amount,
         currency,
@@ -5074,6 +5076,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
+                description: parsedComment,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
