@@ -1,12 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import {
-    getLastVisibleAction,
-    getLastVisibleMessage,
-    getLastClosedReportAction,
-    getSortedReportActionsForDisplay,
-    getMostRecentIOURequestActionID
-} from '@libs/ReportActionsUtils';
+import {getLastClosedReportAction, getLastVisibleAction, getLastVisibleMessage, getMostRecentIOURequestActionID, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
