@@ -1,7 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -20,7 +19,6 @@ function ChangePolicyEducationalMenu({onConfirm}: ChangePolicyEducationalMenuPro
     const styles = useThemeStyles();
     const navigation = useNavigation();
     const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
         const unsub = navigation.addListener('beforeRemove', () => {
