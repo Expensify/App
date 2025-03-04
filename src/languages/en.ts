@@ -109,6 +109,7 @@ import type {
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     NeedCategoryForExportToIntegrationParams,
+    NewWorkspaceNameParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -523,7 +524,9 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
+        help: 'Help',
         expenseReports: 'Expense Reports',
+        rateOutOfPolicy: 'Rate out of policy',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -2639,10 +2642,6 @@ const translations = {
             title: 'Get started with Expensify Travel',
             message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
         },
-        maintenance: {
-            title: 'Expensify Travel is getting an upgrade! 🚀',
-            message: `It'll be unavailable February 23-24, but back and better than ever after that. If you need help with a current trip, please call +1 866-296-7768. Thanks!`,
-        },
     },
     workspace: {
         common: {
@@ -4027,6 +4026,8 @@ const translations = {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
             confirmWorkspace: 'Confirm Workspace',
+            myGroupWorkspace: 'My Group Workspace',
+            workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}'s Workspace${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
             genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',
@@ -4868,6 +4869,12 @@ const translations = {
             `changed the maximum expense amount for violations to ${newValue} (previously ${oldValue})`,
         updateMaxExpenseAge: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `updated "Max expense age (days)" to "${newValue}" (previously "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
+        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
+            if (!oldValue) {
+                return `set the monthly report submission date to "${newValue}"`;
+            }
+            return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
+        },
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedRoomActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
@@ -5020,6 +5027,7 @@ const translations = {
                 cardFeeds: 'Card feeds',
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `All ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `All CSV Imported Cards${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
             },
             current: 'Current',
             past: 'Past',
@@ -5140,7 +5148,7 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} from ${oldValue} to ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to ${newValue}`,
-                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `changed workspace from ${fromPolicy} to ${toPolicy}`,
+                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `changed the workspace to ${toPolicy} (previously ${fromPolicy})`,
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
@@ -5946,7 +5954,7 @@ const translations = {
         },
         scanTestTooltip: {
             part1: 'Want to see how Scan works?',
-            part2: ' Try a test receipt!',
+            part2: ' Try a test \nreceipt!',
             part3: 'Choose our',
             part4: ' test manager',
             part5: ' to try it out!',

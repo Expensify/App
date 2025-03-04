@@ -33,7 +33,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
-import {getCurrentUserAccountID} from './actions/Report';
+import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
@@ -224,6 +224,10 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy> | SearchPolicy, currentU
     }
 
     return policy?.employeeList?.[currentUserLogin]?.role;
+}
+
+function getPolicyNameByID(policyID: string): string {
+    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? policyID;
 }
 
 /**
@@ -799,7 +803,7 @@ function findSelectedTaxAccountWithDefaultSelect(taxAccounts: NetSuiteTaxAccount
 }
 
 function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
-    const vendors = policy?.connections?.netsuite.options.data.vendors;
+    const vendors = policy?.connections?.netsuite?.options.data.vendors;
 
     const selectedVendor = findSelectedVendorWithDefaultSelect(vendors, selectedVendorId);
 
@@ -812,7 +816,7 @@ function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: 
 }
 
 function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
 
     const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
 
@@ -825,7 +829,7 @@ function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBa
 }
 
 function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const receivableAccounts = policy?.connections?.netsuite.options.data.receivableList;
+    const receivableAccounts = policy?.connections?.netsuite?.options.data.receivableList;
 
     const selectedReceivableAccount = findSelectedBankAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
 
@@ -838,7 +842,7 @@ function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selecte
 }
 
 function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
-    const invoiceItems = policy?.connections?.netsuite.options.data.items;
+    const invoiceItems = policy?.connections?.netsuite?.options.data.items;
 
     const selectedInvoiceItem = findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId);
 
@@ -851,7 +855,7 @@ function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemI
 }
 
 function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCountry?: string, selectedAccountId?: string): SelectorType[] {
-    const taxAccounts = policy?.connections?.netsuite.options.data.taxAccountsList;
+    const taxAccounts = policy?.connections?.netsuite?.options.data.taxAccountsList;
     const accountOptions = (taxAccounts ?? []).filter(({country}) => country === subsidiaryCountry);
 
     const selectedTaxAccount = findSelectedTaxAccountWithDefaultSelect(accountOptions, selectedAccountId);
@@ -877,7 +881,7 @@ function getFilteredReimbursableAccountOptions(payableAccounts: NetSuiteAccount[
 }
 
 function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
 
     const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
@@ -895,7 +899,7 @@ function getFilteredCollectionAccountOptions(payableAccounts: NetSuiteAccount[] 
 }
 
 function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
 
     const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
@@ -913,7 +917,7 @@ function getFilteredApprovalAccountOptions(payableAccounts: NetSuiteAccount[] | 
 }
 
 function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
-    const payableAccounts = policy?.connections?.netsuite.options.data.payableList;
+    const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const defaultApprovalAccount: NetSuiteAccount = {
         id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
         name: translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
@@ -1350,6 +1354,33 @@ function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
     return employeeEmails.length > 1;
 }
 
+function isPrefferedExporter(policy: Policy) {
+    const user = getCurrentUserEmail();
+    const exporters = [
+        policy.connections?.intacct?.config?.export?.exporter,
+        policy.connections?.netsuite?.options?.config?.exporter,
+        policy.connections?.netsuiteQuickStart?.config?.exporter,
+        policy.connections?.quickbooksDesktop?.config?.export?.exporter,
+        policy.connections?.quickbooksOnline?.config?.export?.exporter,
+        policy.connections?.xero?.config?.export?.exporter,
+    ];
+
+    return exporters.some((exporter) => exporter && exporter === user);
+}
+
+function isAutoSyncEnabled(policy: Policy) {
+    const values = [
+        policy.connections?.intacct?.config?.autoSync?.enabled,
+        policy.connections?.netsuite?.config?.autoSync?.enabled,
+        policy.connections?.netsuiteQuickStart?.config?.autoSync?.enabled,
+        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
+        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
+        policy.connections?.xero?.config?.autoSync?.enabled,
+    ];
+
+    return values.some((value) => !!value);
+}
+
 export {
     canEditTaxRate,
     canEnablePreventSelfApprovals,
@@ -1485,8 +1516,11 @@ export {
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
+    getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
+    isPrefferedExporter,
+    isAutoSyncEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
