@@ -1,43 +1,52 @@
 ---
 title: Expense Types
-description: Details of the different Expense filters and Expense Types
+description: Learn how to organize reports by expense type and identify different expense categories in Expensify.
 ---
 
-## Organize a Report by Expense Type
-Organizing a report by expense type can make it easier to review expenses on a report.
+Understanding expense types in Expensify helps you track and categorize business spending more effectively. This guide covers how to organize reports by expense type and explains the differences between reimbursable, non-reimbursable, and billable expenses.
+
+# Organize a Report by Expense Type
+
+Organizing reports by expense type helps streamline expense review:
 
 1. Open the desired report.
-2. Click Details in the upper right corner of the report.
-3. Click the View dropdown and select Detailed. 
-4. Click the Split by dropdown and select Reimbursable or Billable.
+2. Click **Details** in the upper-right corner.
+3. Click the **View** dropdown and select **Detailed**.
+4. Click the **Split by** dropdown and select **Reimbursable** or **Billable**.
+5. To group expenses further, use the **Group by** dropdown to select **Category** or **Tags**.
 
-To group the expenses by category or tag, you can also click the Group by dropdown and select Category or Tags.
+---
 
-## Identify Expense Types
-The right side of every report provides the total for all the expenses. Under the total, there is a breakdown of reimbursable, billable, and non-reimbursable amounts (depending on the expense types that exist on the report).
+# Identify Expense Types
+The right side of every report displays total expenses, broken down by **reimbursable**, **billable**, and **non-reimbursable** amounts.
 
-- Reimbursable expenses: Expenses paid to the employee, including:
-    - Cash & personal card: Expenses paid for by the employee on behalf of the business.
-    - Per diem: Expenses for a daily or partial daily rate [configured in your Workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses).
-    - Time: An hourly rate for your employees or jobs as [set for your workspace](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates). This expense type is usually used by contractors or small businesses billing the customer via [Expensify Invoicing](https://help.expensify.com/articles/expensify-classic/workspaces/Set-Up-Invoicing).
-    - Distance: Expenses related to business travel.
-- Non-reimbursable expenses: Expenses directly covered by the business, typically on company cards.
-- Billable expenses: Business or employee expenses that must be billed to a specific client or vendor. This option is for tracking expenses for invoicing to customers, clients, or other departments. Any kind of expense can be billable, in _addition_ to being either reimbursable or non-reimbursable.
+## Reimbursable Expenses
+Expenses paid by employees on behalf of the business, including:
+- **Cash & Personal Card:** Out-of-pocket business expenses.
+- **Per Diem:** Daily expense allowances configured in your [workspace settings](https://help.expensify.com/articles/expensify-classic/workspaces/Enable-per-diem-expenses).
+- **Time:** Hourly wages for jobs, typically used for contractor invoicing. Configure rates [here](https://help.expensify.com/articles/expensify-classic/workspaces/Set-time-and-distance-rates).
+- **Distance:** Mileage-related expenses.
+
+## Non-Reimbursable Expenses
+Expenses that are directly covered by the business, usually on company cards.
+
+## Billable Expenses
+Expenses billed to a client or vendor. Any expense—reimbursable or non-reimbursable—can also be billable.
 
 ![Image of a report showing multiple expense totals]({{site.url}}/assets/images/amounts.png){:width="100%"}
 
-{% include faq-begin.md %}
+---
 
-**What’s the difference between an expense, a receipt, and a report attachment?**
+# FAQ
 
-- **Expense:** Created when you SmartScan or manually upload a receipt from a purchase.
-- **Receipt:** A picture file that is automatically attached to the expense during the SmartScan process.
-- **Report Attachments:** Additional documents that need to be submitted to your approver (e.g., supplemental documents to the purchase) can be added to a report any time by clicking the paperclip icon in the comments at the bottom of the report.
+## What’s the difference between an expense, a receipt, and a report attachment?
+- **Expense:** Created when you SmartScan or manually upload a receipt.
+- **Receipt:** Image file automatically attached to an expense via SmartScan.
+- **Report Attachment:** Additional documents (e.g., supporting documents) added via the paperclip icon in report comments.
 
-**How are credits or refunds displayed in Expensify?**
+## How are credits or refunds displayed in Expensify?
+Credits appear as **negative expenses** (e.g., -$1.00). They offset the total report amount.
 
-In Expensify, a credit is displayed as an expense with a minus in front of it (e.g., -$1.00). Expensify defaults all expenses as something that needs to be paid by the company. So a credit that is returned to the company is displayed as a negative expense.
-
-If a report includes a credit or a refund expense, it will offset the total amount on the report. For example, if the report has two reimbursable expenses, one for $400 and one for $500, then the total reimbursable amount is $900. Conversely, an expense for -$400 and one for $500 will be a total reimbursable amount of $500.
-
-{% include faq-end.md %}
+For example:
+- A report with **$400** and **$500** reimbursable expenses shows a total of **$900**.
+- A report with **-$400** and **$500** expenses results in a **$100** total.
