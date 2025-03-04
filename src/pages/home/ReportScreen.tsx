@@ -731,8 +731,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
-                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                        isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
+                                        reportMetadata={reportMetadata}
                                         hasNewerActions={hasNewerActions}
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
