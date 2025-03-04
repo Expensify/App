@@ -10,7 +10,7 @@ import type {Middleware} from '@libs/Request';
 const handleCopilotDeleted: Middleware = (requestResponse) =>
     requestResponse.then((response) => {
         if (response?.jsonCode !== 408 || !response?.message?.includes('The account you are trying to use is deleted.')) {
-            return;
+            return response;
         }
         signOutAndRedirectToSignIn(true);
     });
