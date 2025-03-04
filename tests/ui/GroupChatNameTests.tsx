@@ -191,7 +191,7 @@ describe('Tests for group chat name', () => {
             const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
             const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-            return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E'));
+            return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...'));
         }));
 
     it('Check if group name shows fine for report header', () =>
@@ -238,7 +238,7 @@ describe('Tests for group chat name', () => {
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E');
+                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...');
 
                 return navigateToSidebarOption(0);
             })
