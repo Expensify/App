@@ -74,7 +74,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         if (hasError) {
             if (Linking.openSettings) {
                 Linking.openSettings();
-                setShowModal(false);
             } else {
                 // check one more time in case user enabled location before continue
                 getLocationPermission().then((status) => {
@@ -84,8 +83,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
                         onDeny?.();
                     }
                 });
-                setShowModal(false);
             }
+            setShowModal(false);
             return;
         }
         cb();
