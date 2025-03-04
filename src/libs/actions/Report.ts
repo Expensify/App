@@ -2978,6 +2978,10 @@ function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
 
+function getCurrentUserEmail(): string | undefined {
+    return currentUserEmail;
+}
+
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
@@ -4689,6 +4693,7 @@ export {
     exportToIntegration,
     flagComment,
     getCurrentUserAccountID,
+    getCurrentUserEmail,
     getDraftPrivateNote,
     getMostRecentReportID,
     getNewerActions,
