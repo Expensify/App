@@ -216,7 +216,7 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction],
     );
 
-    const showLoadingBar = isLoadingOlderReportActions || !!(visibleReportActions.length > 0 && isLoadingInitialReportActions);
+    const showLoadingBar = !!isLoadingOlderReportActions || !!(visibleReportActions.length > 0 && isLoadingInitialReportActions);
 
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions?.map((action) => action.reportActionID);
