@@ -1,11 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -15,23 +13,16 @@ import {changeReportPolicy} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin, isWorkspaceEligibleForReportChange, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+import {isWorkspaceEligibleForReportChange} from '@libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { WorkspaceListItem } from '@hooks/useWorkspaceList';
+import useWorkspaceList from '@hooks/useWorkspaceList';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportChangeWorkspacePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
-
-type WorkspaceListItem = {
-    text: string;
-    policyID?: string;
-    isPolicyAdmin?: boolean;
-} & ListItem;
 
 function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     const reportID = report?.reportID;
@@ -56,56 +47,18 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         [reportID],
     );
 
-    const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
-        if (!policies || isEmptyObject(policies)) {
-            return [];
-        }
-
-        return Object.values(policies)
-            .filter(
-                (policy) =>
-                    shouldShowPolicy(policy, !!isOffline, currentUserLogin) &&
-                    !policy?.isJoinRequestPending &&
-                    isWorkspaceEligibleForReportChange(policy, report?.ownerAccountID, report?.managerID, currentUserLogin),
-            )
-            .map((policy) => ({
-                text: policy?.name ?? '',
-                policyID: policy?.id,
-                icons: [
-                    {
-                        source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                        name: policy?.name,
-                        type: CONST.ICON_TYPE_WORKSPACE,
-                        id: policy?.id,
-                    },
-                ],
-                keyForList: policy?.id,
-                isPolicyAdmin: isPolicyAdmin(policy),
-                isSelected: report.policyID === policy?.id,
-            }));
-    }, [policies, isOffline, currentUserLogin, report.policyID, report?.ownerAccountID, report?.managerID]);
-
-    const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
-        () =>
-            usersWorkspaces
-                .filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, report.policyID)),
-        [debouncedSearchTerm, usersWorkspaces, report.policyID],
-    );
-
-    const sections = useMemo(() => {
-        const options: Array<SectionListDataType<WorkspaceListItem>> = [
-            {
-                data: filteredAndSortedUserWorkspaces,
-                shouldShow: true,
-                indexOffset: 1,
-            },
-        ];
-        return options;
-    }, [filteredAndSortedUserWorkspaces]);
-
-    const headerMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length ? translate('common.noResultsFound') : '';
+    const {
+        sections,
+        shouldShowNoResultsFoundMessage,
+        shouldShowSearchInput,
+    } = useWorkspaceList({
+        policies,
+        currentUserLogin,
+        isOffline,
+        selectedPolicyID: report.policyID,
+        searchTerm: debouncedSearchTerm,
+        additionalFilter: (policy) => isWorkspaceEligibleForReportChange(policy, report?.ownerAccountID, report?.managerID, currentUserLogin),
+        });
 
     return (
         <ScreenWrapper
@@ -126,10 +79,10 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                             ListItem={UserListItem}
                             sections={sections}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
-                            textInputLabel={usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
+                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
                             textInputValue={searchTerm}
                             onChangeText={setSearchTerm}
-                            headerMessage={headerMessage}
+                            headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
                             initiallyFocusedOptionKey={report.policyID}
                             showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                         />
