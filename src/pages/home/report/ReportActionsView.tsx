@@ -54,11 +54,8 @@ type ReportActionsViewProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** The report metadata loading states */
-    isLoadingInitialReportActions?: boolean;
-
-    /** Are we loading more report actions? */
-    isLoadingOlderReportActions?: boolean;
+    /** The report's metadata */
+    reportMetadata: OnyxTypes.ReportMetadata;
 
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -77,8 +74,7 @@ function ReportActionsView({
     report,
     parentReportAction,
     reportActions: allReportActions,
-    isLoadingInitialReportActions,
-    isLoadingOlderReportActions,
+    reportMetadata,
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
@@ -107,6 +103,8 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
+
+    const {isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions} = reportMetadata;
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -216,7 +214,7 @@ function ReportActionsView({
         [reportActions, isOffline, canPerformWriteAction],
     );
 
-    const showLoadingBar = !!isLoadingOlderReportActions || !!(visibleReportActions.length > 0 && isLoadingInitialReportActions);
+    const showLoadingBar = !!isLoadingOlderReportActions || !!isLoadingNewerReportActions || !!(visibleReportActions.length > 0 && isLoadingInitialReportActions);
 
     const reportActionIDMap = useMemo(() => {
         const reportActionIDs = allReportActions?.map((action) => action.reportActionID);
