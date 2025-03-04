@@ -53,11 +53,11 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
             : [],
     };
 
-    const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${COPY_OF_ID}`] as FileObject[]);
-    const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`] as FileObject[]);
-    const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`] as FileObject[]);
-    const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${CODICE_FISCALE}`] as FileObject[]);
-    const [uploadedPRDandSFG, setUploadedPRDandSFG] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${PRD_AND_SFG}`] as FileObject[]);
+    const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${COPY_OF_ID}`]);
+    const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`]);
+    const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`]);
+    const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${CODICE_FISCALE}`]);
+    const [uploadedPRDandSFG, setUploadedPRDandSFG] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${PRD_AND_SFG}`]);
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         return getFieldRequiredErrors(values, STEP_FIELDS);

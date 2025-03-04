@@ -8,7 +8,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 
 type OccupationProps = SubStepProps & {directorID?: string};
 

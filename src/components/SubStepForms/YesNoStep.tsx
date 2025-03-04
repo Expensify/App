@@ -1,6 +1,5 @@
 import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
@@ -32,7 +31,6 @@ type YesNoStepProps = {
 function YesNoStep({title, description, defaultValue, onSelectedValue, submitButtonStyles, isLoading}: YesNoStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [value, setValue] = useState(defaultValue);
 
     const handleSubmit = () => {
