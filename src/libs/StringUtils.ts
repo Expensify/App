@@ -86,8 +86,8 @@ function normalizeCRLF(value?: string): string | undefined {
 /**
  * Replace all line breaks with white spaces
  */
-function lineBreaksToSpaces(text = '') {
-    return text.replace(CONST.REGEX.LINE_BREAK, ' ');
+function lineBreaksToSpaces(text = '', useNonBreakingSpace = false) {
+    return text.replace(CONST.REGEX.LINE_BREAK, useNonBreakingSpace ? '\u00A0' : ' ');
 }
 
 /**
