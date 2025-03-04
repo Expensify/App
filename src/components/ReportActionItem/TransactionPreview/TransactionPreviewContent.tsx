@@ -7,7 +7,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
@@ -47,7 +46,6 @@ import {
   isPerDiemRequest as isPerDiemRequestTransactionUtils,
   isReceiptBeingScanned,
   removeSettledAndApprovedTransactions,
-  shouldShowBrokenConnectionViolation
 } from "@libs/TransactionUtils";
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -59,7 +57,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import { Hourglass } from "@components/Icon/Expensicons";
 import DateUtils from "@libs/DateUtils";
 import type {TransactionPreviewProps } from './types';
 import TransactionPreviewContentUI from "./TransactionPreviewContentUI";
@@ -73,7 +70,6 @@ function TransactionPreviewContent({
   onPreviewPressed,
   containerStyles,
   checkIfContextMenuActive = () => {},
-  shouldShowPendingConversionMessage = false,
   isHovered = false,
   isWhisper = false,
   shouldDisplayContextMenu = true,
@@ -86,7 +82,6 @@ function TransactionPreviewContent({
   const [session] = useOnyx(ONYXKEYS.SESSION);
   const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
 
-  const policy = usePolicy(iouReport?.policyID);
   const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
   const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
   const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -104,9 +99,6 @@ function TransactionPreviewContent({
   if (isPolicyExpenseChat && isBillSplit) {
     sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));
   }
-
-  // Pay button should only be visible to the manager of the report.
-  const isCurrentUserManager = managerID === sessionAccountID;
 
   const {
     amount: requestAmount,
@@ -267,15 +259,6 @@ function TransactionPreviewContent({
     return message;
   };
 
-  const getPendingMessageProps: () => PendingMessageProps = () => {
-    if (shouldShowBrokenConnectionViolation(transaction, iouReport, policy, violations)) {
-      return {shouldShow: true, messageIcon: Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
-    }
-    return {shouldShow: false};
-  };
-
-  const pendingMessageProps = getPendingMessageProps();
-
   const getDisplayAmountText = (): string => {
     if (isScanning) {
       return translate('iou.receiptStatusTitle');
@@ -350,10 +333,8 @@ function TransactionPreviewContent({
       isWhisper={isWhisper}
       isHovered={isHovered}
       isSettled={isSettled}
-      isPartialHold={isPartialHold}
       isBillSplit={isBillSplit}
       isApproved={isApproved}
-      isCurrentUserManager={isCurrentUserManager}
       isSettlementOrApprovalPartial={isSettlementOrApprovalPartial}
       isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
       shouldShowSkeleton={shouldShowSkeleton}
@@ -364,7 +345,6 @@ function TransactionPreviewContent({
       shouldShowMerchant={shouldShowMerchant}
       shouldShowCategory={shouldShowCategory}
       shouldShowTag={shouldShowTag}
-      shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
       displayAmount={displayAmount}
       category={category}
       showCashOrCard={showCashOrCard}
@@ -376,7 +356,6 @@ function TransactionPreviewContent({
       splitShare={splitShare}
       receiptImages={receiptImages}
       sortedParticipantAvatars={sortedParticipantAvatars}
-      pendingMessageProps={pendingMessageProps}
       walletTermsErrors={walletTerms?.errors}
       pendingAction={action.pendingAction}
       showContextMenu={showContextMenu}

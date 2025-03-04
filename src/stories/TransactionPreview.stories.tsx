@@ -1,7 +1,7 @@
 import type { Meta, StoryFn } from '@storybook/react';
 import React from 'react';
-import { ImageSourcePropType, View } from "react-native";
-import { Hourglass } from "@components/Icon/Expensicons";
+import type { ImageSourcePropType} from "react-native";
+import { View } from "react-native";
 import TransactionPreview from "@components/ReportActionItem/TransactionPreview/TransactionPreviewContentUI";
 import ThemeProvider from "@components/ThemeProvider";
 import ThemeStylesProvider from "@components/ThemeStylesProvider";
@@ -49,7 +49,6 @@ const generateFakeData = (amount: string, tag: string, merchantOrDescription: st
   isHovered: false,
   shouldShowSkeleton: false,
   isSettled: false,
-  isPartialHold: false,
   category,
   isBillSplit: false,
   shouldShowRBR: false,
@@ -68,14 +67,8 @@ const generateFakeData = (amount: string, tag: string, merchantOrDescription: st
   sortedParticipantAvatars: [],
   merchantOrDescription,
   shouldShowTag: true,
-  shouldShowPendingConversionMessage: false,
-  isCurrentUserManager: false,
   splitShare: 0,
   requestCurrency: 'PLN',
-  pendingMessageProps: ((error = false) => {
-    if (error) {return {shouldShow: true, messageIcon: Hourglass, messageDescription: 'error'}}
-    return {shouldShow: false}
-  })(),
   showContextMenu: () => undefined,
   previewHeaderText: `${date} ${CONST.DOT_SEPARATOR} Cash`,
   translate: fakeTranslate as LocaleContextProps['translate'],

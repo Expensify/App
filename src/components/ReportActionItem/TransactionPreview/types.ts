@@ -73,10 +73,8 @@ type TransactionPreviewUIProps = {
   isWhisper: boolean;
   isHovered: boolean;
   isSettled: boolean;
-  isPartialHold: boolean;
   isBillSplit: boolean;
   isApproved: boolean;
-  isCurrentUserManager: boolean;
   isSettlementOrApprovalPartial: boolean;
   isReviewDuplicateTransactionPage: boolean;
   shouldShowSkeleton: boolean;
@@ -87,7 +85,6 @@ type TransactionPreviewUIProps = {
   shouldShowMerchant: boolean;
   shouldShowCategory: boolean;
   shouldShowTag: boolean;
-  shouldShowPendingConversionMessage: boolean;
   displayAmount: string;
   category?: string;
   showCashOrCard: string;
@@ -99,7 +96,6 @@ type TransactionPreviewUIProps = {
   splitShare: number;
   receiptImages: ThumbnailAndImageURI[];
   sortedParticipantAvatars: Icon[];
-  pendingMessageProps: PendingMessageProps;
   containerStyles?: StyleProp<ViewStyle>
   walletTermsErrors: Errors | undefined;
   pendingAction: PendingAction | undefined;

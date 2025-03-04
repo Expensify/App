@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import {  View  } from "react-native";
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import { Checkmark, DotIndicator, Folder, Tag } from '@components/Icon/Expensicons';
+import { DotIndicator, Folder, Tag } from '@components/Icon/Expensicons';
 import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -27,10 +27,8 @@ function TransactionPreviewContentUI({
     isWhisper,
     isHovered,
     isSettled,
-    isPartialHold,
     isBillSplit,
     isApproved,
-    isCurrentUserManager,
     isSettlementOrApprovalPartial,
     isReviewDuplicateTransactionPage,
     shouldShowSkeleton,
@@ -41,7 +39,6 @@ function TransactionPreviewContentUI({
     shouldShowMerchant,
     shouldShowCategory,
     shouldShowTag,
-    shouldShowPendingConversionMessage,
     displayAmount,
     category,
     showCashOrCard,
@@ -53,7 +50,6 @@ function TransactionPreviewContentUI({
     splitShare,
     receiptImages,
     sortedParticipantAvatars,
-    pendingMessageProps,
     containerStyles,
     walletTermsErrors,
     pendingAction,
@@ -153,14 +149,6 @@ function TransactionPreviewContentUI({
                         >
                           {displayAmount}
                         </Text>
-                        {isSettled && !isPartialHold && !isBillSplit && (
-                          <View style={styles.defaultCheckmarkWrapper}>
-                            <Icon
-                              src={Checkmark}
-                              fill={theme.iconSuccessFill}
-                            />
-                          </View>
-                        )}
                       </View>
                       {isBillSplit && (
                         <View style={styles.moneyRequestPreviewBoxAvatar}>
@@ -174,28 +162,12 @@ function TransactionPreviewContentUI({
                       )}
                     </View>
                     <View style={[styles.flexRow]}>
-                      <View style={[styles.flex1]}>
-                        {!isCurrentUserManager && shouldShowPendingConversionMessage && (
-                          <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
-                        )}
-                      </View>
                       {!!splitShare && (
                         <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
                           {translate('iou.yourSplit', {amount: convertToDisplayString(splitShare, requestCurrency)})}
                         </Text>
                       )}
                     </View>
-                    {pendingMessageProps.shouldShow && (
-                      <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
-                        <Icon
-                          src={pendingMessageProps.messageIcon}
-                          height={variables.iconSizeExtraSmall}
-                          width={variables.iconSizeExtraSmall}
-                          fill={theme.icon}
-                        />
-                        <Text style={[styles.textMicroSupporting, styles.ml1, styles.amountSplitPadding]}>{pendingMessageProps.messageDescription}</Text>
-                      </View>
-                    )}
                   </View>
                   {shouldShowCategoryOrTag && (
                     <View style={[styles.flexRow, styles.pt1, styles.alignItemsCenter]}>
