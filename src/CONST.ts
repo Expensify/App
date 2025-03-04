@@ -90,7 +90,7 @@ const onboardingChoices = {
     ...backendOnboardingChoices,
 } as const;
 
-const combinedTrackSubmitOnboardingChoices = {
+const createExpenseOnboardingChoices = {
     PERSONAL_SPEND: selectableOnboardingChoices.PERSONAL_SPEND,
     EMPLOYER: selectableOnboardingChoices.EMPLOYER,
     SUBMIT: backendOnboardingChoices.SUBMIT,
@@ -122,16 +122,6 @@ const createWorkspaceTask: OnboardingTask = {
         '2. Click *Workspaces* > *New workspace*.\n' +
         '\n' +
         `*Your new workspace is ready!* [Check it out](${workspaceSettingsLink}).`,
-};
-
-const meetGuideTask: OnboardingTask = {
-    type: 'meetGuide',
-    autoCompleted: false,
-    title: 'Meet your setup specialist',
-    description: ({adminsRoomLink}) =>
-        `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
-        '\n' +
-        `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
 };
 
 const setupCategoriesTask: OnboardingTask = {
@@ -386,7 +376,7 @@ const CONST = {
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
     ANIMATION_THUMBSUP_DURATION: 250,
     ANIMATION_THUMBSUP_DELAY: 200,
-    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -681,6 +671,14 @@ const CONST = {
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
         },
+        BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
+            ACCOUNT_HOLDER_NAME: 'addressName',
+            ACCOUNT_HOLDER_REGION: 'addressState',
+            ACCOUNT_HOLDER_CITY: 'addressCity',
+            ACCOUNT_HOLDER_ADDRESS: 'addressStreet',
+            ACCOUNT_HOLDER_POSTAL_CODE: 'addressZipCode',
+            ROUTING_CODE: 'routingNumber',
+        },
         BUSINESS_INFO_STEP: {
             PICKLIST: {
                 ANNUAL_VOLUME_RANGE: 'AnnualVolumeRange',
@@ -748,7 +746,6 @@ const CONST = {
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
-        COMBINED_TRACK_SUBMIT: 'combinedTrackSubmit',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
@@ -1112,6 +1109,15 @@ const CONST = {
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
+        PRIMARY_ACTIONS: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            REMOVE_HOLD: 'removeHold',
+            REVIEW_DUPLICATES: 'reviewDuplicates',
+            MARK_AS_CASH: 'markAsCash',
+        },
         ACTIONS: {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
@@ -3324,7 +3330,7 @@ const CONST = {
     GUIDES_CALL_TASK_IDS: {
         CONCIERGE_DM: 'NewExpensifyConciergeDM',
         WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_PROFILE: 'WorkspaceProfile',
+        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
         WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
@@ -3451,6 +3457,11 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        TRACK: {
+            SUBMIT: 'submit',
+            CATEGORIZE: 'categorize',
+            SHARE: 'share',
+        },
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -5157,7 +5168,7 @@ const CONST = {
 
     ONBOARDING_CHOICES: {...onboardingChoices},
     SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
-    COMBINED_TRACK_SUBMIT_ONBOARDING_CHOICES: {...combinedTrackSubmitOnboardingChoices},
+    CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
     ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
@@ -5178,7 +5189,6 @@ const CONST = {
             tasks: [
                 createWorkspaceTask,
                 selfGuidedTourTask,
-                meetGuideTask,
                 {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
@@ -5277,7 +5287,6 @@ const CONST = {
             },
             tasks: [
                 createWorkspaceTask,
-                meetGuideTask,
                 setupCategoriesTask,
                 {
                     type: 'inviteAccountant',
@@ -5346,7 +5355,6 @@ const CONST = {
         [onboardingChoices.ADMIN]: {
             message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
             tasks: [
-                meetGuideTask,
                 {
                     type: 'reviewWorkspaceSettings',
                     autoCompleted: false,
@@ -5384,11 +5392,11 @@ const CONST = {
         },
     } satisfies Record<OnboardingPurpose, OnboardingMessage>,
 
-    COMBINED_TRACK_SUBMIT_ONBOARDING_MESSAGES: {
-        [combinedTrackSubmitOnboardingChoices.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
-        [combinedTrackSubmitOnboardingChoices.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-        [combinedTrackSubmitOnboardingChoices.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
-    } satisfies Record<ValueOf<typeof combinedTrackSubmitOnboardingChoices>, OnboardingMessage>,
+    CREATE_EXPENSE_ONBOARDING_MESSAGES: {
+        [createExpenseOnboardingChoices.PERSONAL_SPEND]: combinedTrackSubmitOnboardingPersonalSpendMessage,
+        [createExpenseOnboardingChoices.EMPLOYER]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+        [createExpenseOnboardingChoices.SUBMIT]: combinedTrackSubmitOnboardingEmployerOrSubmitMessage,
+    } satisfies Record<ValueOf<typeof createExpenseOnboardingChoices>, OnboardingMessage>,
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
@@ -6684,6 +6692,7 @@ const CONST = {
 
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
+        SINGLE_NEW_DOT_ENTRY: 'singleNewDotEntry',
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
@@ -6699,6 +6708,8 @@ const CONST = {
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
         SCAN_TEST_TOOLTIP: 'scanTestTooltip',
+        SCAN_TEST_TOOLTIP_MANAGER: 'scanTestTooltipManager',
+        SCAN_TEST_CONFIRMATION: 'scanTestConfirmation',
     },
     SMART_BANNER_HEIGHT: 152,
 
