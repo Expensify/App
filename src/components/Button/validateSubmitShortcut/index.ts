@@ -1,5 +1,7 @@
 import type ValidateSubmitShortcut from './types';
 
+const IGNORED_NODE_NAMES = ['TEXTAREA', 'INPUT'];
+
 /**
  * Validate if the submit shortcut should be triggered depending on the button state
  *
@@ -13,7 +15,7 @@ const validateSubmitShortcut: ValidateSubmitShortcut = (isDisabled, isLoading, e
     const eventTarget = event?.target as HTMLElement;
 
     // If the event target node is for an input, such as when there's a stray "Enter" event from an autocomplete input, then ignore it because it's not meant for this button
-    if (isDisabled || isLoading || eventTarget.nodeName === 'TEXTAREA' || eventTarget.nodeName === 'INPUT' || (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)) {
+    if (isDisabled || isLoading || IGNORED_NODE_NAMES.includes(eventTarget.nodeName) || (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)) {
         return false;
     }
 
