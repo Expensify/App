@@ -4551,7 +4551,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         expenseAndReportPreviewTextButtonContainer: {
-            gap: 12,
+            gap: 16,
         },
 
         reportActionItemImagesContainer: {

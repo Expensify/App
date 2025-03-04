@@ -99,7 +99,7 @@ function TransactionPreviewContentUI({
                         <MoneyRequestSkeletonView />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
-                            <View style={styles.expenseAndReportPreviewTextButtonContainer}>
+                            <View style={styles.gap3}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{previewHeaderText}</Text>
@@ -119,7 +119,7 @@ function TransactionPreviewContentUI({
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                                 {(shouldShowMerchant || shouldShowDescription) && (
                                                     <Text
-                                                        fontSize={variables.fontSizeLarge}
+                                                        fontSize={variables.fontSizeNormal}
                                                         style={[isDeleted && styles.lineThrough]}
                                                         numberOfLines={1}
                                                     >
@@ -127,7 +127,7 @@ function TransactionPreviewContentUI({
                                                     </Text>
                                                 )}
                                                 <Text
-                                                    fontSize={variables.fontSizeLarge}
+                                                    fontSize={variables.fontSizeNormal}
                                                     style={[isDeleted && styles.lineThrough]}
                                                     numberOfLines={1}
                                                 >
@@ -239,7 +239,7 @@ function TransactionPreviewContentUI({
                 <Button
                     text={translate('violations.keepThisOne')}
                     success
-                    style={[styles.ph4, styles.pb4]}
+                    style={[styles.ph4, styles.pb2]}
                     onPress={navigateToReviewFields}
                 />
             )}
