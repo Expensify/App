@@ -312,25 +312,14 @@ const mainWindow = (): Promise<void> => {
 
                 ipcMain.handle(ELECTRON_EVENTS.REQUEST_DEVICE_ID, () => machineId());
                 ipcMain.handle(ELECTRON_EVENTS.OPEN_LOCATION_SETTING, () => {
+                    if (process.platform !== 'darwin') {
+                        // Platform not supported for location settings
+                        return Promise.resolve(undefined);
+                    }
+                
                     return new Promise((resolve, reject) => {
-                        let command = '';
-
-                        switch (process.platform) {
-                            case 'darwin':
-                                command = 'open x-apple.systempreferences:com.apple.preference.security?Privacy_Location';
-                                break;
-                            case 'win32':
-                                command = 'start ms-settings:privacy-location';
-                                break;
-                            case 'linux':
-                                command = 'gnome-control-center';
-                                break;
-                            default:
-                                // Platform not supported for location settings
-                                resolve(undefined);
-                                return;
-                        }
-
+                        const command = 'open x-apple.systempreferences:com.apple.preference.security?Privacy_Location';
+                
                         exec(command, (error) => {
                             if (error) {
                                 console.error('Error opening location settings:', error);
