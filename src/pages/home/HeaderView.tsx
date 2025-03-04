@@ -120,6 +120,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
 
     const fullParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
+    const shouldAddEllipsis = fullParticipants?.length > CONST.PARTICIPANTS_LIMIT;
     const participants = fullParticipants.slice(0, CONST.PARTICIPANTS_LIMIT);
     const isMultipleParticipant = participants.length > 1;
 
@@ -198,7 +199,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report);
     const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
-    const shouldAddEllipsis = fullParticipants?.length > CONST.PARTICIPANTS_LIMIT && !shouldUseGroupTitle;
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
