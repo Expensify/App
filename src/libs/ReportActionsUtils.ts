@@ -16,12 +16,14 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
@@ -61,6 +63,17 @@ Onyx.connect({
             return;
         }
         allReportActions = actions;
+    },
+});
+
+let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        preferredLocale = value;
     },
 });
 
@@ -2001,7 +2014,29 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
             newValue,
         });
     }
-
+    if (
+        updatedField &&
+        updatedField === CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET &&
+        (typeof oldValue === 'string' || typeof oldValue === 'number') &&
+        (typeof newValue === 'string' || typeof newValue === 'number')
+    ) {
+        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) => {
+            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                return translateLocal('workflowsPage.frequencies.lastDayOfMonth');
+            }
+            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                return translateLocal('workflowsPage.frequencies.lastBusinessDayOfMonth');
+            }
+            if (typeof autoReportingOffset === 'number') {
+                return toLocaleOrdinal(preferredLocale, autoReportingOffset, false);
+            }
+            return '';
+        };
+        return translateLocal('workspaceActions.updateMonthlyOffset', {
+            newValue: getAutoReportingOffsetToDisplay(newValue),
+            oldValue: getAutoReportingOffsetToDisplay(oldValue),
+        });
+    }
     return getReportActionText(action);
 }
 
