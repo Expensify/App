@@ -520,9 +520,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
                 });
             });
 
@@ -546,9 +549,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value)
+                    },
                 });
             });
 
@@ -576,9 +582,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connection)
+                        resolve(value);
+                    },
                 });
             });
 
@@ -606,9 +615,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
                 });
             });
 
@@ -644,9 +656,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
                 });
             });
 
@@ -677,9 +692,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
                 });
             });
 
@@ -717,9 +735,12 @@ describe('actions/PolicyMember', () => {
             await waitForBatchedUpdates();
 
             const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
-                Onyx.connect({
+                const connection = Onyx.connect({
                     key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                    callback: resolve,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
                 });
             });
 
