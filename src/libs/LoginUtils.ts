@@ -108,4 +108,14 @@ function formatE164PhoneNumber(phoneNumber: string) {
     return parsedPhoneNumber.number?.e164;
 }
 
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, postSAMLLogin, handleSAMLLoginError, formatE164PhoneNumber};
+export {
+    getPhoneNumberWithoutSpecialChars,
+    appendCountryCode,
+    isEmailPublicDomain,
+    validateNumber,
+    getPhoneLogin,
+    areEmailsFromSamePrivateDomain,
+    postSAMLLogin,
+    handleSAMLLoginError,
+    formatE164PhoneNumber,
+};
