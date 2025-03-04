@@ -64,7 +64,7 @@ type RequestData = {
      */
     initiatedOffline?: boolean;
 
-    /** The created time of the request */
+    /** The unique ID of the request */
     requestID?: number;
 };
 
