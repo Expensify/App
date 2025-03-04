@@ -40,7 +40,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIsUserSubmittedExpenseOrScannedReceipt, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -54,6 +54,7 @@ import variables from '@styles/variables';
 import {
     replaceReceipt,
     requestMoney,
+    setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     startSplitBill,
@@ -248,18 +249,23 @@ function IOURequestStepScan({
         }
     }, [iouType, reportID, transactionID]);
 
-    const navigateToConfirmationPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
+    const navigateToConfirmationPage = useCallback(
+        (isTestTransaction = false) => {
+            switch (iouType) {
+                case CONST.IOU.TYPE.REQUEST:
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                    break;
+                case CONST.IOU.TYPE.SEND:
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+                    break;
+                default:
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID),
+                    );
+            }
+        },
+        [iouType, reportID, transactionID],
+    );
 
     const createTransaction = useCallback(
         (receipt: Receipt, participant: Participant) => {
@@ -301,7 +307,7 @@ function IOURequestStepScan({
         [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
     );
     const navigateToConfirmationStep = useCallback(
-        (file: FileObject, source: string, locationPermissionGranted = false) => {
+        (file: FileObject, source: string, locationPermissionGranted = false, isTestTransaction = false) => {
             if (backTo) {
                 Navigation.goBack(backTo);
                 return;
@@ -323,6 +329,12 @@ function IOURequestStepScan({
                         ),
                     );
                 } else {
+                    if (isTestTransaction) {
+                        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                        setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, selected: true}]);
+                        navigateToConfirmationPage(true);
+                        return;
+                    }
                     navigateToParticipantPage();
                 }
                 return;
@@ -496,7 +508,7 @@ function IOURequestStepScan({
                     }
 
                     setMoneyRequestReceipt(transactionID, file.uri, filename, !isEditing, file.type, CONST.IOU.RECEIPT_STATE.SCANCOMPLETE);
-                    navigateToConfirmationStep(file, file.uri, false);
+                    navigateToConfirmationStep(file, file.uri, false, true);
                 })
                 .catch((error) => {
                     Log.warn('Error downloading test receipt:', {message: error});

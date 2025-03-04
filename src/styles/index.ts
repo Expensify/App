@@ -5443,6 +5443,9 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
+        tooltipButton: {
+            width: 139,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

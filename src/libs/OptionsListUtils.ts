@@ -2150,6 +2150,11 @@ function shouldUseBoldText(report: OptionData): boolean {
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
+function getManagerMcTestParticipant(): Participant | undefined {
+    const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
+    return managerMcTestPersonalDetails ? getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails) : undefined;
+}
+
 export {
     getAvatarsForAccountIDs,
     isCurrentUser,
@@ -2204,6 +2209,7 @@ export {
     filterSelfDMChat,
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
+    getManagerMcTestParticipant,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

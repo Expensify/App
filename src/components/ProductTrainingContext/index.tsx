@@ -208,7 +208,17 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >
-                <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter, styles.gap3, styles.p2]}>
+                <View
+                    style={[
+                        styles.alignItemsCenter,
+                        styles.flexRow,
+                        tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
+                        styles.flexWrap,
+                        styles.textAlignCenter,
+                        styles.gap3,
+                        styles.p2,
+                    ]}
+                >
                     <Icon
                         src={Expensicons.Lightbulb}
                         fill={theme.tooltipHighlightText}
@@ -229,16 +239,16 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                 </View>
                 {!!tooltip?.shouldRenderActionButtons && (
-                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph1, styles.pv2]}>
+                    <View style={[styles.alignItemsCenter, styles.justifyContentBetween, styles.flexRow, styles.ph2, styles.pv2, styles.gap2]}>
                         <Button
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
-                            style={[styles.flex1, styles.ph1]}
+                            style={[styles.flex1, styles.tooltipButton]}
                             onPress={config.onConfirm}
                         />
                         <Button
                             text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
-                            style={[styles.flex1, styles.ph1]}
+                            style={[styles.flex1, styles.tooltipButton]}
                             onPress={config.onDismiss}
                         />
                     </View>
