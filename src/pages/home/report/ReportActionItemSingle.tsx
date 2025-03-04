@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import {setShouldShowTranslation} from '@libs/actions/ReportActions';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -97,6 +98,8 @@ function ReportActionItemSingle({
     iouReport,
     isHovered = false,
     isActive = false,
+    showOriginal = false,
+    setShowOriginal = () => {}
 }: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -281,6 +284,7 @@ function ReportActionItemSingle({
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
+    console.log('over here', action?.shouldShowTranslation)
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
@@ -309,6 +313,8 @@ function ReportActionItemSingle({
                             {personArray?.map((fragment, index) => (
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
+                                    reportID={reportID}
+                                    reportAction={action}
                                     key={`person-${action?.reportActionID}-${index}`}
                                     accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
@@ -328,6 +334,18 @@ function ReportActionItemSingle({
                             </Tooltip>
                         )}
                         <ReportActionItemDate created={action?.created ?? ''} />
+                        {action?.message?.[0]?.translatedText && (
+                            <PressableWithoutFeedback
+                                style={[styles.ml1]}
+                                onPress={() => setShowOriginal(!showOriginal)}
+                                accessibilityLabel={actorHint}
+                                role={CONST.ROLE.BUTTON}
+                            >
+                                <Text style={[styles.chatItemMessageHeaderTimestamp, styles.link]}>
+                                    {translate(showOriginal ? 'languagePage.showTranslation' : 'languagePage.viewOriginal')}
+                                </Text>
+                            </PressableWithoutFeedback>
+                        )}
                     </View>
                 ) : null}
                 {!!action?.delegateAccountID && (

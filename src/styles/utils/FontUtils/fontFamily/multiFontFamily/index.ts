@@ -66,6 +66,11 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
     },
+    INTER: {
+        fontFamily: 'Inter, Segoe UI Emoji, Noto Color Emoji',
+        fontStyle: 'normal',
+        fontWeight: fontWeight.normal,
+    },
 };
 
 if (getOperatingSystem() === CONST.OS.WINDOWS) {

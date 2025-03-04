@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTranslateLive from '@hooks/useTranslateLive';
 import ReportActionItemDate from '@pages/home/report/ReportActionItemDate';
 import ReportActionItemFragment from '@pages/home/report/ReportActionItemFragment';
 import variables from '@styles/variables';
@@ -143,6 +144,8 @@ function ChatListItem<TItem extends ListItem>({
                                             {reportActionItem.message.map((fragment, index) => (
                                                 <ReportActionItemFragment
                                                     // eslint-disable-next-line react/no-array-index-key
+                                                    reportID={item.reportID}
+                                                    reportAction={reportActionItem}
                                                     key={`actionFragment-${reportActionItem.reportActionID}-${index}`}
                                                     fragment={fragment}
                                                     actionName={reportActionItem.actionName}

@@ -2583,11 +2583,23 @@ const CONST = {
         ES: 'es',
         ES_ES: 'es-ES',
         ES_ES_ONFIDO: 'es_ES',
+        PT: 'pt',
+        IT: 'it',
+        DE: 'de',
+        FR: 'fr',
+        NL: 'nl',
+        PL: 'pl',
+        RU: 'ru',
+        TR: 'tr',
+        KO: 'ko',
+        CH: 'ch',
+        JA: 'ja',
+        RO: 'ro',
 
         DEFAULT: 'en',
     },
 
-    LANGUAGES: ['en', 'es'],
+    LANGUAGES: ['en', 'es', 'pt', 'it', 'de', 'fr', 'nl', 'pl', 'ru', 'tr', 'ko', 'ch', 'ja', 'ro'],
 
     PRONOUNS_LIST: [
         'coCos',
