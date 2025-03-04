@@ -218,6 +218,7 @@ function PaymentMethodList({
 
             const assignedCardsGrouped: PaymentMethodItem[] = [];
             assignedCardsSorted.forEach((card) => {
+                const isDisabled = card.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !!card.errors;
                 const icon = getCardFeedIcon(card.bank as CompanyCardFeed, illustrations);
 
                 if (!isExpensifyCard(card.cardID)) {
@@ -226,7 +227,8 @@ function PaymentMethodList({
                         key: card.cardID.toString(),
                         title: maskCardNumber(card.cardName, card.bank),
                         description: getDescriptionForPolicyDomainCard(card.domainName),
-                        interactive: true,
+                        interactive: !isDisabled,
+                        disabled: isDisabled,
                         canDismissError: false,
                         shouldShowRightIcon,
                         errors: card.errors,
@@ -282,7 +284,8 @@ function PaymentMethodList({
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
-                    interactive: true,
+                    interactive: !isDisabled,
+                    disabled: isDisabled,
                     canDismissError: true,
                     errors: card.errors,
                     pendingAction: card.pendingAction,
