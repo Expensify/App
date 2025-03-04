@@ -854,10 +854,10 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
                 if (curr.role !== employee.role) {
-                    return {...acc, updated: acc.updated + 1};
+                    acc.updated++;
                 }
             } else {
-                return {...acc, added: acc.added + 1};
+                acc.added++;
             }
             return acc;
         },
