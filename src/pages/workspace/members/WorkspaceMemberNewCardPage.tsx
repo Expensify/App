@@ -121,7 +121,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).filter(feed => Boolean(feed)).map((key) => ({
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => ({
         value: key,
         text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
         keyForList: key,
@@ -137,8 +137,6 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             />
         ),
     }));
-
-    console.log(Object.keys(companyFeeds), cardFeeds, companyFeeds);
 
     const feeds = shouldShowExpensifyCard
         ? [
