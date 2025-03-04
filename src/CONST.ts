@@ -6690,10 +6690,6 @@ const CONST = {
         },
     },
 
-    HYBRID_APP: {
-        SINGLE_NEW_DOT_ENTRY: 'singleNewDotEntry',
-    },
-
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
