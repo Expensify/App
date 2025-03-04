@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
+import {formatReportLastMessageText} from '@libs/ReportUtils';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import type DisplayNamesProps from './types';
 
@@ -65,7 +65,7 @@ function DisplayNamesWithToolTip({
             testID={DisplayNamesWithToolTip.displayName}
         >
             {shouldUseFullTitle
-                ? ReportUtils.formatReportLastMessageText(fullTitle)
+                ? formatReportLastMessageText(fullTitle)
                 : displayNamesWithTooltips?.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>
