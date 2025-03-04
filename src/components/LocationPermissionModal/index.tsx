@@ -38,7 +38,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             return;
         }
 
-        const unsubscriber = Visibility.onVisibilityChange(() => {
+        const unsubscribe = Visibility.onVisibilityChange(() => {
             debouncedCheckPermission();
         });
 
