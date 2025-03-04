@@ -282,7 +282,7 @@ function MoneyRequestPreviewContent({
     };
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
-        if (shouldShowBrokenConnectionViolation(transaction, iouReport, policy, violations)) {
+        if (shouldShowBrokenConnectionViolation(iouReport, policy, violations)) {
             return {shouldShow: true, messageIcon: Hourglass, messageDescription: translate('violations.brokenConnection530Error')};
         }
         return {shouldShow: false};
