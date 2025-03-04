@@ -1122,6 +1122,15 @@ const CONST = {
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
         },
+        PRIMARY_ACTIONS: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            REMOVE_HOLD: 'removeHold',
+            REVIEW_DUPLICATES: 'reviewDuplicates',
+            MARK_AS_CASH: 'markAsCash',
+        },
         ACTIONS: {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts

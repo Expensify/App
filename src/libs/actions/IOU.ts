@@ -123,6 +123,7 @@ import {
     isInvoiceRoom,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOneOnOneChat,
+    isOneTransactionThread,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isOptimisticPersonalDetail,
@@ -161,7 +162,7 @@ import {
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
     removeSettledAndApprovedTransactions,
-    shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -3563,6 +3564,15 @@ function getUpdateMoneyRequestParams(
             value: getOutstandingChildRequest(updatedMoneyRequestReport),
         },
     );
+    if (isOneTransactionThread(transactionThreadReportID, iouReport?.reportID, undefined)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                lastReadTime: updatedReportAction.created,
+            },
+        });
+    }
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -8275,7 +8285,7 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
-    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
+    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, report, policy, allViolations);
 
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
@@ -8503,6 +8513,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportExpenseActionIDs,
     };
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
