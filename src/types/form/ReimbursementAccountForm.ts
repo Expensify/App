@@ -49,6 +49,26 @@ const INPUT_IDS = {
         HAS_OTHER_BENEFICIAL_OWNERS: 'hasOtherBeneficialOwners',
         BENEFICIAL_OWNERS: 'beneficialOwners',
     },
+    SIGNER_INFO_STEP: {
+        SIGNER_FULL_NAME: 'signerFullName',
+        SIGNER_DATE_OF_BIRTH: 'signerDateOfBirth',
+        SIGNER_JOB_TITLE: 'signerJobTitle',
+        SIGNER_EMAIL: 'signerEmail',
+        SIGNER_CITY: 'signer_city',
+        SIGNER_STREET: 'signer_street',
+        SIGNER_STATE: 'signer_state',
+        SIGNER_ZIP_CODE: 'signer_zipCode',
+        SIGNER_COUNTRY: 'signer_nationality',
+        SIGNER_PROOF_OF_DIRECTORS: 'signer_proofOfDirectors',
+        SIGNER_ADDRESS_PROOF: 'signer_addressProof',
+        SIGNER_COPY_OF_ID: 'signer_copyOfID',
+        SIGNER_CODICE_FISCALE: 'signer_codiceFiscaleTaxID',
+        SIGNER_PRD_AND_SFG: 'signer_PRDAndFSG',
+        SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+        DIRECTOR_OCCUPATION: 'occupation',
+        DIRECTOR_FULL_NAME: 'fullName',
+        DIRECTOR_JOB_TITLE: 'jobTitle',
+    },
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
     AMOUNT3: 'amount3',
@@ -115,6 +135,10 @@ const INPUT_IDS = {
             BENEFICIAL_OWNERS: 'beneficialOwners',
             FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
             FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
+            PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
+            AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
+            CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
+            AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
             COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
             COMPANY_DIRECTORS_JOB_TITLE: 'companyDirectorsJobTitle',
             COMPANY_DIRECTORS_OCCUPATION: 'companyDirectorsOccupation',
@@ -129,10 +153,6 @@ const INPUT_IDS = {
             SIGNER_CODICE_FISCALE: 'codiceFiscaleTaxID',
             SIGNER_PRD_AND_SFG: 'PRDAndFSG',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
-            PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
-            AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
-            CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
-            AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
         },
     },
 } as const;
@@ -153,8 +173,6 @@ type BeneficialOwnersStepExtraProps = {
     [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
 };
-
-type SignerInfoStepProps = Record<string, string | FileObject[]>;
 
 type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;
 
@@ -207,6 +225,33 @@ type ReimbursementAccountProps = {
     [INPUT_IDS.AMOUNT2]: string;
     [INPUT_IDS.AMOUNT3]: string;
 };
+
+type SignerInfoStepBaseProps = {
+    [INPUT_IDS.SIGNER_INFO_STEP.DIRECTOR_FULL_NAME]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.DIRECTOR_JOB_TITLE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.DIRECTOR_OCCUPATION]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_FULL_NAME]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_DATE_OF_BIRTH]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_JOB_TITLE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_EMAIL]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_CITY]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_STREET]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_STATE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ZIP_CODE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COUNTRY]: string;
+    // [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_PROOF_OF_DIRECTORS]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ADDRESS_PROOF]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COPY_OF_ID]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_CODICE_FISCALE]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_PRD_AND_SFG]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SECOND_SIGNER_EMAIL]: FileObject[];
+};
+
+type SignerInfoDirectorDataKey = `director_${string}_${string}`;
+type SignerInfoStepExtraProps = Record<SignerInfoDirectorDataKey, string>;
+
+type SignerInfoStepProps = SignerInfoStepBaseProps & SignerInfoStepExtraProps;
 
 /** Additional props for non-USD reimbursement account */
 type NonUSDReimbursementAccountAdditionalProps = {
@@ -409,10 +454,12 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
 export type {
     ReimbursementAccountForm,
     BeneficialOwnerDataKey,
+    SignerInfoDirectorDataKey,
     BankAccountStepProps,
     CompanyStepProps,
     RequestorStepProps,
     BeneficialOwnersStepProps,
+    SignerInfoStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
     NonUSDReimbursementAccountAdditionalProps,

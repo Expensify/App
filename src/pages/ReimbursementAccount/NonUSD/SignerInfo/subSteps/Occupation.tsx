@@ -8,6 +8,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 
 type OccupationProps = SubStepProps & {directorID?: string};
 
@@ -17,7 +18,7 @@ function Occupation({onNext, onMove, isEditing, directorID}: OccupationProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const inputID = `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_OCCUPATION}`;
+    const inputID = `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_OCCUPATION}` as keyof SignerInfoStepProps;
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(

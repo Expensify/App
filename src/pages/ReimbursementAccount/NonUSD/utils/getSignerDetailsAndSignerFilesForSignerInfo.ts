@@ -2,6 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
+import type {SignerInfoDirectorDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 
 const {
     DIRECTOR_PREFIX,
@@ -31,14 +32,14 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
     const signerDetails: Record<string, string | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject> = {};
 
-    signerDetailsFields.forEach((fieldName: string) => {
+    signerDetailsFields.forEach((fieldName: keyof SignerInfoStepProps) => {
         if (fieldName === EMAIL) {
             signerDetails[fieldName] = signerEmail;
             return;
         }
 
         directorIDs.forEach((directorID: string) => {
-            const fieldKey = `${DIRECTOR_PREFIX}_${directorID}_${fieldName}`;
+            const fieldKey: SignerInfoDirectorDataKey = `${DIRECTOR_PREFIX}_${directorID}_${fieldName}`;
             if (directorID === 'currentUser') {
                 if (fieldName === DIRECTOR_FULL_NAME) {
                     signerDetails[fieldKey] = String(reimbursementAccountDraft?.[FULL_NAME]);
@@ -71,7 +72,7 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
     });
 
     signerFilesFields.forEach((fieldName) => {
-        const key = `signer_${fieldName}`;
+        const key = `signer_${fieldName}` as keyof SignerInfoStepProps;
 
         if (!reimbursementAccountDraft?.[key]) {
             return;

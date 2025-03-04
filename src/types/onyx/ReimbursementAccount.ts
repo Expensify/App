@@ -75,12 +75,6 @@ type Corpay = {
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
     /**  */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_SOURCE_COUNTRIES]: string;
-    /** Director full name */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_DIRECTORS_FULL_NAME]: string;
-    /** Director job title */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_DIRECTORS_JOB_TITLE]: string;
-    /** Director occupation */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_DIRECTORS_OCCUPATION]: string;
     /** Is user also an owner */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.OWNS_MORE_THAN_25_PERCENT]: boolean;
     /** Are the more owners */
