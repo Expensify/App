@@ -179,9 +179,24 @@ describe('OptionsListUtils', () => {
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
+        '11': {
+            lastReadTime: '2021-01-14 11:25:39.200',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.001',
+            reportID: '11',
+            isPinned: false,
+            participants: {
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+            reportName: '',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID,
+            policyName: POLICY.name,
+        },
 
         // Thread report with notification preference = hidden
-        '11': {
+        '12': {
             lastReadTime: '2021-01-14 11:25:39.200',
             lastVisibleActionCreated: '2022-11-22 03:26:02.001',
             reportID: '11',
@@ -797,7 +812,7 @@ describe('OptionsListUtils', () => {
             const results = getShareLogOptions(OPTIONS, []);
 
             // Then the report with reportID of 10 should not be included on the list
-            expect(results.recentReports.length).toBe(9);
+            expect(results.recentReports.length).toBe(10);
             expect(results.recentReports.find((report) => report.reportID === '10')).toBeUndefined();
         });
     });
@@ -836,7 +851,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions(OPTIONS, [CONST.BETAS.ALL]);
             const filteredOptions = filterAndOrderOptions(options, '');
 
-            expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(12);
+            expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(13);
         });
 
         it('should return filtered options in correct order', () => {
@@ -925,7 +940,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions(OPTIONS);
             const filteredOptions = filterAndOrderOptions(options, searchText);
 
-            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports.length).toBe(3);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
         });
@@ -1153,7 +1168,7 @@ describe('OptionsListUtils', () => {
             const options = getSearchOptions(OPTIONS);
             const filteredOptions = filterAndOrderOptions(options, 'fantastic');
 
-            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports.length).toBe(3);
             expect(filteredOptions.recentReports.at(0)?.text).toBe('Mister Fantastic');
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
 
