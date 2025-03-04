@@ -974,6 +974,7 @@ describe('actions/Report', () => {
         await waitForNetworkPromises();
 
         const newComment = PersistedRequests.getAll().at(1);
+
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
