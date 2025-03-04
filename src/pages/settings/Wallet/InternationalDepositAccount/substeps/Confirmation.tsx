@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
@@ -68,7 +69,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const summaryItems: MenuItemProps[] = [
         {
             description: translate('common.country'),
-            title: formValues.bankCountry,
+            title: translate(`allCountries.${formValues.bankCountry}` as TranslationPaths),
             shouldShowRightIcon: !isOffline,
             onPress: () => {
                 onMove(STEP_INDEXES.COUNTRY_SELECTOR);
@@ -127,7 +128,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         .forEach(([fieldName, field]) => {
             summaryItems.push({
                 description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-                title: formValues[fieldName],
+                title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues[fieldName]}` as TranslationPaths) : formValues[fieldName],
                 shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
                 onPress: () => {
                     onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
