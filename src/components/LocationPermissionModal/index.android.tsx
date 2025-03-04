@@ -46,20 +46,22 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     };
 
     const grantLocationPermission = handledBlockedPermission(() => {
-        requestLocationPermission().then((status) => {
-            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                onGrant();
-            } else if (status === RESULTS.BLOCKED) {
-                setHasError(true);
-                return;
-            } else {
-                onDeny();
-            }
-            setShowModal(false);
-            setHasError(false);
-        }).finally(() => {
-            setIsLoading(false);
-        });
+        requestLocationPermission()
+            .then((status) => {
+                if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+                    onGrant();
+                } else if (status === RESULTS.BLOCKED) {
+                    setHasError(true);
+                    return;
+                } else {
+                    onDeny();
+                }
+                setShowModal(false);
+                setHasError(false);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     });
 
     const skipLocationPermission = () => {

@@ -1,6 +1,5 @@
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';

@@ -316,10 +316,10 @@ const mainWindow = (): Promise<void> => {
                         // Platform not supported for location settings
                         return Promise.resolve(undefined);
                     }
-                
+
                     return new Promise((resolve, reject) => {
                         const command = 'open x-apple.systempreferences:com.apple.preference.security?Privacy_Location';
-                
+
                         exec(command, (error) => {
                             if (error) {
                                 console.error('Error opening location settings:', error);
