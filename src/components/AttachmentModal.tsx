@@ -577,7 +577,7 @@ function AttachmentModal({
                                             onToggleKeyboard={setIsConfirmButtonDisabled}
                                             onPDFLoadError={() => {
                                                 isPDFLoadError.current = true;
-                                                setIsModalOpen(false);
+                                                closeModal();
                                             }}
                                             isWorkspaceAvatar={isWorkspaceAvatar}
                                             maybeIcon={maybeIcon}
