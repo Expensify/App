@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOnboardingMessages from '@libs/actions/Welcome/OnboardingFlowTasks';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,6 +48,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isPrivateDomain = Session.isUserOnPrivateDomain();
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {ONBOARDING_MESSAGES} = getOnboardingMessages();
 
     useEffect(() => {
         Welcome.setOnboardingErrorMessage('');
@@ -60,7 +62,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             Report.completeOnboarding(
                 onboardingPurposeSelected,
-                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                ONBOARDING_MESSAGES[onboardingPurposeSelected],
                 firstName,
                 lastName,
                 onboardingAdminsChatReportID ?? undefined,
