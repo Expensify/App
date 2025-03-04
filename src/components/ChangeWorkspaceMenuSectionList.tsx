@@ -40,7 +40,7 @@ function ChangeWorkspaceMenuSectionList() {
                 <View
                     // eslint-disable-next-line react/no-array-index-key
                     key={`${i}-${section.titleTranslationKey}`}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt5]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
                 >
                     <Icon
                         width={variables.menuIconSize}
