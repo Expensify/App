@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,7 +27,7 @@ import type {ReimbursementAccount} from '@src/types/onyx';
 import BOTTOM_TABS from './BottomTabBar/BOTTOM_TABS';
 
 type DebugTabViewProps = {
-    selectedTab?: string;
+    selectedTab?: ValueOf<typeof BOTTOM_TABS>;
     chatTabBrickRoad: BrickRoad;
     activeWorkspaceID?: string;
 };
@@ -96,7 +97,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     }
 }
 
-function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) {
+function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -152,7 +153,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
         }
     }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, orderedReportIDs, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([BOTTOM_TABS.HOME, BOTTOM_TABS.SETTINGS] as string[]).includes(selectedTab) || !indicator) {
+    if (!([BOTTOM_TABS.HOME, BOTTOM_TABS.SETTINGS] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
     }
 
