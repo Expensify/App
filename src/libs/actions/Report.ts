@@ -133,7 +133,6 @@ import {getNavatticURL} from '@libs/TourUtils';
 import {addTrailingForwardSlash} from '@libs/Url';
 import {generateAccountID} from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
-import * as Download from '@userActions/Download';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting, OnboardingCompanySize} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -162,6 +161,7 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
+import * as Download from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {
