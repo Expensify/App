@@ -508,11 +508,13 @@ describe('actions/PolicyMember', () => {
 
     describe('importPolicyMembers', () => {
         it('should show a "single member added message" when a new member is added', async () => {
+            // Given a workspace
             const policyID = '1';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                 ...createRandomPolicy(Number(policyID)),
             });
 
+            // When importing 1 new member to the workspace
             Member.importPolicyMembers(policyID, [{email: 'user@gmail.com', role: 'user'}]);
 
             await waitForBatchedUpdates();
@@ -524,15 +526,18 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Then it should show the singular member added success message
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 1, updated: 0}));
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
+            // Given a workspace
             const policyID = '1';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                 ...createRandomPolicy(Number(policyID)),
             });
 
+            // When importing multiple new members to the workspace
             Member.importPolicyMembers(policyID, [
                 {email: 'user@gmail.com', role: 'user'},
                 {email: 'user2@gmail.com', role: 'user'},
@@ -547,10 +552,12 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Then it should show the plural member added success message
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 2, updated: 0}));
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
+            // Given a workspace
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
@@ -563,6 +570,7 @@ describe('actions/PolicyMember', () => {
                 },
             });
 
+            // When importing 1 existing member to the workspace with the same role
             Member.importPolicyMembers(policyID, [{email: userEmail, role: userRole}]);
 
             await waitForBatchedUpdates();
@@ -574,10 +582,12 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Then it should show the no member added/updated message
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 0}));
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
+            // Given a workspace
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
@@ -590,6 +600,7 @@ describe('actions/PolicyMember', () => {
                 },
             });
 
+            // When importing 1 existing member with a different role
             Member.importPolicyMembers(policyID, [{email: userEmail, role: 'admin'}]);
 
             await waitForBatchedUpdates();
@@ -601,10 +612,12 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Then it should show the singular member updated success message
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 1}));
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
+            // Given a workspace
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
@@ -622,6 +635,7 @@ describe('actions/PolicyMember', () => {
                 },
             });
 
+            // When importing multiple existing members with a different role
             Member.importPolicyMembers(policyID, [
                 {email: userEmail, role: 'admin'},
                 {email: userEmail2, role: 'admin'},
@@ -636,10 +650,12 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Then it should show the plural member updated success message
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 2}));
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
+            // Given a workspace
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
@@ -652,6 +668,7 @@ describe('actions/PolicyMember', () => {
                 },
             });
 
+            // When importing 1 new member and 1 existing member with a different role
             Member.importPolicyMembers(policyID, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: userEmail, role: 'admin'},
@@ -666,10 +683,12 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Then it should show the singular member added and updated success message
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 1, updated: 1}));
         });
 
         it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
+            // Given a workspace
             const policyID = '1';
             const userEmail = 'user@gmail.com';
             const userRole = 'user';
@@ -687,6 +706,7 @@ describe('actions/PolicyMember', () => {
                 },
             });
 
+            // When importing multiple new members and multiple existing members with a different role
             Member.importPolicyMembers(policyID, [
                 {email: 'new_user@gmail.com', role: 'user'},
                 {email: 'new_user2@gmail.com', role: 'user'},
@@ -703,6 +723,7 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Then it should show the plural member added and updated success message
             expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 2, updated: 2}));
         });
     });
