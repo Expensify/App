@@ -2169,8 +2169,8 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
     const transaction = getTransaction(iouTransactionID ?? CONST.DEFAULT_NUMBER_ID);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
 
-    if (isCardTransaction && transaction?.comment?.liabilityType !== CONST.TRANSACTION.LIABILITY_TYPE.ALLOW) {
-        return false;
+    if (isCardTransaction) {
+        return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
     }
 
     if (isMoneyRequestAction(reportAction)) {
