@@ -160,8 +160,8 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as Download from '@userActions/Download';
 import {clearByKey} from './CachedPDFPaths';
+import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {
@@ -4680,8 +4680,8 @@ function downloadReportPDF(fileName: string, reportName: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
-    Download.setDownload(downloadFileName, true);
-    fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari() || Browser.isMobileChrome()).then(() => Download.setDownload(downloadFileName, false));
+    setDownload(downloadFileName, true);
+    fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari() || Browser.isMobileChrome()).then(() => setDownload(downloadFileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
