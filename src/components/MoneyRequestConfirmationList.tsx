@@ -171,7 +171,7 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
 
-    /** Whether the expense is confirming or not */
+    /** Whether the expense is in the process of being confirmed */
     isConfirming?: boolean;
 };
 
