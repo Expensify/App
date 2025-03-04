@@ -83,6 +83,9 @@ type Comment = {
 
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
+
+    /** Selected attendees */
+    attendees?: Attendee[];
 };
 
 /** Model of transaction custom unit */
@@ -383,6 +386,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         amount: number;
 
         /** Selected attendees */
+        // TODO move inside `Comment` type
         attendees?: Attendee[];
 
         /** The transaction tax amount */
