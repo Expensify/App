@@ -1002,6 +1002,8 @@ const READ_COMMANDS = {
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
+    GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
+    OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1071,6 +1073,8 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: Parameters.GetAssignedSupportDataParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
+    [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
+    [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

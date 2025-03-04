@@ -77,6 +77,7 @@ import {
     getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
+    getReportSubtitlePrefix,
     getWorkspaceNameUpdatedMessage,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
@@ -378,6 +379,7 @@ function shouldShowRedBrickRoad(report: Report, reportActions: OnyxEntry<ReportA
  */
 function getOptionData({
     report,
+    oneTransactionThreadReport,
     reportNameValuePairs,
     reportActions,
     personalDetails,
@@ -390,6 +392,7 @@ function getOptionData({
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
+    oneTransactionThreadReport: OnyxEntry<Report>;
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
     reportActions: OnyxEntry<ReportActions>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -467,7 +470,7 @@ function getOptionData({
     result.statusNum = report.statusNum;
     // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report) && !!report.lastActorAccountID;
+    result.isUnread = isUnread(report, oneTransactionThreadReport) && !!report.lastActorAccountID;
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -527,6 +530,7 @@ function getOptionData({
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage || isGroupChat) && !result.private_isArchived) {
         const lastActionName = lastAction?.actionName ?? report.lastActionType;
+        const prefix = getReportSubtitlePrefix(report);
 
         if (isRenamedAction(lastAction)) {
             result.alternateText = getRenamedAction(lastAction);
@@ -617,10 +621,12 @@ function getOptionData({
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
                     : getLastVisibleMessage(report.reportID, result.isAllowedToComment, {}, lastAction)?.lastMessageText;
+
             if (!result.alternateText) {
                 result.alternateText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
             }
         }
+        result.alternateText = prefix + result.alternateText;
     } else {
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
