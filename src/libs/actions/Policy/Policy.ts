@@ -655,7 +655,10 @@ function clearQBDErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksDesktop: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearXeroErrorField(policyID: string, fieldName: string) {
+function clearXeroErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {xero: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
@@ -688,7 +691,10 @@ function removeNetSuiteCustomFieldByIndex(allRecords: NetSuiteCustomSegment[] | 
     });
 }
 
-function clearSageIntacctErrorField(policyID: string, fieldName: string) {
+function clearSageIntacctErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
@@ -3221,6 +3227,11 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
     };
 
     const parameters: EnablePolicyWorkflowsParams = {policyID, enabled};
+
+    // When disabling workflows, set autoreporting back to "immediately"
+    if (!enabled) {
+        setWorkspaceAutoReportingFrequency(policyID, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+    }
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
