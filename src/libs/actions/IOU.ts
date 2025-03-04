@@ -123,6 +123,7 @@ import {
     isInvoiceRoom,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOneOnOneChat,
+    isOneTransactionThread,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isOptimisticPersonalDetail,
@@ -3622,6 +3623,15 @@ function getUpdateMoneyRequestParams(
             value: getOutstandingChildRequest(updatedMoneyRequestReport),
         },
     );
+    if (isOneTransactionThread(transactionThreadReportID, iouReport?.reportID, undefined)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                lastReadTime: updatedReportAction.created,
+            },
+        });
+    }
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
@@ -8561,6 +8571,7 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
         optimisticHoldReportExpenseActionIDs,
     };
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
