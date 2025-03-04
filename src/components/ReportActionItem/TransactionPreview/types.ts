@@ -1,7 +1,6 @@
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type * as OnyxTypes from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type { ThumbnailAndImageURI } from "@libs/ReceiptUtils";
 import type { Errors, Icon, PendingAction } from "@src/types/onyx/OnyxCommon";
 import type { LocaleContextProps } from "@components/LocaleContextProvider";
@@ -54,58 +53,122 @@ type TransactionPreviewProps = {
   shouldDisplayContextMenu?: boolean;
 };
 
-type NoPendingProps = {shouldShow: false};
+type UIProps = {
+  /** Indicates whether a skeleton loading screen should be displayed. */
+  shouldShowSkeleton: boolean;
 
-type PendingProps = {
-  /** Whether to show the pending message or not */
-  shouldShow: true;
+  /** Determines whether the RBR should be visible. */
+  shouldShowRBR: boolean;
 
-  /** The icon to be displayed if a request is pending */
-  messageIcon: IconAsset;
+  /** Controls whether the onPress event should be disabled. */
+  shouldDisableOnPress: boolean;
 
-  /** The description to be displayed if a request is pending */
-  messageDescription: string;
+  /** Specifies if a 'Keep this one' button should be visible. */
+  shouldShowKeepButton: boolean;
+
+  /** Flag indicating whether the description of the transaction should be displayed. */
+  shouldShowDescription: boolean;
+
+  /** Determines if the merchant's name or identifier should be visible in the transaction UI. */
+  shouldShowMerchant: boolean;
+
+  /** Specifies whether the category of the transaction should be visible to the user. */
+  shouldShowCategory: boolean;
+
+  /** Indicates whether tags associated with the transaction should be displayed. */
+  shouldShowTag: boolean;
 };
 
-type TransactionPreviewUIProps = {
+type TransactionStatus = {
+  /** Marks the transaction as deleted. */
   isDeleted: boolean;
-  isScanning: boolean;
-  isWhisper: boolean;
-  isHovered: boolean;
-  isSettled: boolean;
-  isBillSplit: boolean;
+
+  /** Indicates approval status. */
   isApproved: boolean;
+
+  /** Flag to determine if a transaction involves a bill split among multiple parties. */
+  isBillSplit: boolean;
+
+  /** Reflects whether the transaction has been settled. */
+  isSettled: boolean;
+
+  /** Indicates if settlement or approval is partial. */
   isSettlementOrApprovalPartial: boolean;
+
+  /** A flag to determine if the current page is a review for a suspected duplicate transaction. */
   isReviewDuplicateTransactionPage: boolean;
-  shouldShowSkeleton: boolean;
-  shouldShowRBR: boolean;
-  shouldDisableOnPress: boolean;
-  shouldShowKeepButton: boolean;
-  shouldShowDescription: boolean;
-  shouldShowMerchant: boolean;
-  shouldShowCategory: boolean;
-  shouldShowTag: boolean;
-  displayAmount: string;
-  category?: string;
-  showCashOrCard: string;
-  tag?: string;
-  requestCurrency?: string;
-  merchantOrDescription: string;
-  previewHeaderText: string;
-  requestAmount?: number;
-  splitShare: number;
-  receiptImages: ThumbnailAndImageURI[];
-  sortedParticipantAvatars: Icon[];
-  containerStyles?: StyleProp<ViewStyle>
-  walletTermsErrors: Errors | undefined;
-  pendingAction: PendingAction | undefined;
+};
+
+type CallbackFunctions = {
+  /** Function to display the context menu in response to an event. */
   showContextMenu: (event: GestureResponderEvent) => void;
+
+  /** Handles the UI response and data clean-up when the transaction goes offline. */
   offlineWithFeedbackOnClose: () => void;
-  translate: LocaleContextProps['translate'],
+
+  /** Navigates the user to a separate view or component for reviewing or editing transaction fields. */
   navigateToReviewFields: () => void;
+
+  /** General callback for handling presses on the preview component, can also handle keyboard events. */
   onPreviewPressed: (event?: (GestureResponderEvent | KeyboardEvent | undefined)) => void;
 };
 
-type PendingMessageProps = PendingProps | NoPendingProps;
+type TransactionData = {
+  /** Amount of money involved in the transaction, represented as a string. */
+  displayAmount: string;
 
-export type {TransactionPreviewProps, TransactionPreviewUIProps, PendingMessageProps};
+  /** Optional category label for the transaction. */
+  category?: string;
+
+  /** Indicator if the transaction was made via cash or card. */
+  showCashOrCard: string;
+
+  /** Optional tag for additional categorization or notes. */
+  tag?: string;
+
+  /** Currency in which the request was made. */
+  requestCurrency?: string;
+
+  /** Merchant's name or a description of the transaction. */
+  merchantOrDescription: string;
+
+  /** Header text displayed on the transaction preview, providing contextual information. */
+  previewHeaderText: string;
+
+  /** Optional detailed request amount, may differ from display amount based on currency conversions. */
+  requestAmount?: number;
+
+  /** Share of the split transaction owed by the current user, only applicable in split scenarios. */
+  splitShare: number;
+};
+
+type TransactionPreviewUIProps = TransactionStatus & UIProps & TransactionData & CallbackFunctions & {
+  /** Indicates if the transaction or document is currently being scanned. */
+  isScanning: boolean;
+
+  /** Whether the transaction is whisper. */
+  isWhisper: boolean;
+
+  /** Determines if the element is currently hovered over. */
+  isHovered: boolean;
+
+  /** Collection of thumbnail images linked to the transaction. */
+  receiptImages: ThumbnailAndImageURI[];
+
+  /** List of avatars representing participants in the transaction. */
+  sortedParticipantAvatars: Icon[];
+
+  /** Optional custom styles to be applied to container components. */
+  containerStyles?: StyleProp<ViewStyle>;
+
+  /** Records any errors related to wallet terms. */
+  walletTermsErrors: Errors | undefined;
+
+  /** Represents any pending actions that need to be taken */
+  pendingAction: PendingAction | undefined;
+
+  /** Localization or translation function, essential for supporting multiple languages in UI. */
+  translate: LocaleContextProps['translate'];
+};
+
+export type {TransactionPreviewProps, TransactionPreviewUIProps};

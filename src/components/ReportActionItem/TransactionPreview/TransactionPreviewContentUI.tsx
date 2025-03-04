@@ -163,7 +163,7 @@ function TransactionPreviewContentUI({
                     </View>
                     <View style={[styles.flexRow]}>
                       {!!splitShare && (
-                        <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
+                        <Text style={[styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
                           {translate('iou.yourSplit', {amount: convertToDisplayString(splitShare, requestCurrency)})}
                         </Text>
                       )}
