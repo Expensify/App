@@ -1,8 +1,8 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import colors from '@styles/theme/colors';
 import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 
 type LoadingBarProps = {
     // Whether to show the loading bar
