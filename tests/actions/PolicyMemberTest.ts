@@ -1,13 +1,14 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -502,6 +503,207 @@ describe('actions/PolicyMember', () => {
                 });
             });
             expect(isArchived).toBe(true);
+        });
+    });
+
+    describe('importPolicyMembers', () => {
+        it('should show a "single member added message" when a new member is added', async () => {
+            const policyID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+            });
+
+            Member.importPolicyMembers(policyID, [{email: 'user@gmail.com', role: 'user'}]);
+
+            await waitForBatchedUpdates();
+
+            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: resolve,
+                });
+            });
+
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 1, updated: 0}));
+        });
+
+        it('should show a "multiple members added message" when multiple new members are added', async () => {
+            const policyID = '1';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+            });
+
+            Member.importPolicyMembers(policyID, [
+                {email: 'user@gmail.com', role: 'user'},
+                {email: 'user2@gmail.com', role: 'user'},
+            ]);
+
+            await waitForBatchedUpdates();
+
+            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: resolve,
+                });
+            });
+
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 2, updated: 0}));
+        });
+
+        it('should show a "no members added/updated message" when no new members are added or updated', async () => {
+            const policyID = '1';
+            const userEmail = 'user@gmail.com';
+            const userRole = 'user';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [userEmail]: {
+                        role: userRole,
+                    },
+                },
+            });
+
+            Member.importPolicyMembers(policyID, [{email: userEmail, role: userRole}]);
+
+            await waitForBatchedUpdates();
+
+            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: resolve,
+                });
+            });
+
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 0}));
+        });
+
+        it('should show a "single member updated message" when a member is updated', async () => {
+            const policyID = '1';
+            const userEmail = 'user@gmail.com';
+            const userRole = 'user';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [userEmail]: {
+                        role: userRole,
+                    },
+                },
+            });
+
+            Member.importPolicyMembers(policyID, [{email: userEmail, role: 'admin'}]);
+
+            await waitForBatchedUpdates();
+
+            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: resolve,
+                });
+            });
+
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 1}));
+        });
+
+        it('should show a "multiple members updated message" when multiple members are updated', async () => {
+            const policyID = '1';
+            const userEmail = 'user@gmail.com';
+            const userRole = 'user';
+            const userEmail2 = 'user2@gmail.com';
+            const userRole2 = 'user';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [userEmail]: {
+                        role: userRole,
+                    },
+                    [userEmail2]: {
+                        role: userRole2,
+                    },
+                },
+            });
+
+            Member.importPolicyMembers(policyID, [
+                {email: userEmail, role: 'admin'},
+                {email: userEmail2, role: 'admin'},
+            ]);
+
+            await waitForBatchedUpdates();
+
+            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: resolve,
+                });
+            });
+
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 2}));
+        });
+
+        it('should show a "single member added and updated message" when a member is both added and updated', async () => {
+            const policyID = '1';
+            const userEmail = 'user@gmail.com';
+            const userRole = 'user';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [userEmail]: {
+                        role: userRole,
+                    },
+                },
+            });
+
+            Member.importPolicyMembers(policyID, [
+                {email: 'new_user@gmail.com', role: 'user'},
+                {email: userEmail, role: 'admin'},
+            ]);
+
+            await waitForBatchedUpdates();
+
+            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: resolve,
+                });
+            });
+
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 1, updated: 1}));
+        });
+
+        it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
+            const policyID = '1';
+            const userEmail = 'user@gmail.com';
+            const userRole = 'user';
+            const userEmail2 = 'user2@gmail.com';
+            const userRole2 = 'user';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [userEmail]: {
+                        role: userRole,
+                    },
+                    [userEmail2]: {
+                        role: userRole2,
+                    },
+                },
+            });
+
+            Member.importPolicyMembers(policyID, [
+                {email: 'new_user@gmail.com', role: 'user'},
+                {email: 'new_user2@gmail.com', role: 'user'},
+                {email: userEmail, role: 'admin'},
+                {email: userEmail2, role: 'admin'},
+            ]);
+
+            await waitForBatchedUpdates();
+
+            const importedSpreadsheet = await new Promise<OnyxEntry<ImportedSpreadsheet>>((resolve) => {
+                Onyx.connect({
+                    key: ONYXKEYS.IMPORTED_SPREADSHEET,
+                    callback: resolve,
+                });
+            });
+
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 2, updated: 2}));
         });
     });
 });
