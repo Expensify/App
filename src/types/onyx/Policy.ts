@@ -1371,6 +1371,32 @@ type QBDConnectionData = {
 };
 
 /**
+ * Export config for QuickBook Desktop
+ */
+type QBDExportConfig = {
+    /** E-mail of the exporter */
+    exporter: string;
+
+    /** Defines how reimbursable expenses are exported */
+    reimbursable: QBDReimbursableExportAccountType;
+
+    /** Account that receives the reimbursable expenses */
+    reimbursableAccount: string;
+
+    /** Export date type */
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+    /** Defines how non-reimbursable expenses are exported */
+    nonReimbursable: QBDNonReimbursableExportAccountType;
+
+    /** Account that receives the non reimbursable expenses */
+    nonReimbursableAccount: string;
+
+    /** Default vendor of non reimbursable bill */
+    nonReimbursableBillDefaultVendor: string;
+};
+
+/**
  * User configuration for the QuickBooks Desktop accounting integration.
  */
 type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -1397,28 +1423,7 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         importItems: boolean;
 
         /** Configuration of the export */
-        export: {
-            /** E-mail of the exporter */
-            exporter: string;
-
-            /** Defines how reimbursable expenses are exported */
-            reimbursable: QBDReimbursableExportAccountType;
-
-            /** Account that receives the reimbursable expenses */
-            reimbursableAccount: string;
-
-            /** Export date type */
-            exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
-
-            /** Defines how non-reimbursable expenses are exported */
-            nonReimbursable: QBDNonReimbursableExportAccountType;
-
-            /** Account that receives the non reimbursable expenses */
-            nonReimbursableAccount: string;
-
-            /** Default vendor of non reimbursable bill */
-            nonReimbursableBillDefaultVendor: string;
-        };
+        export: QBDExportConfig;
 
         /** Configuration of import settings from QuickBooks Desktop to the app */
         mappings: {
@@ -1435,7 +1440,7 @@ type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collections of form field errors */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    'exporter'
+    keyof QBDExportConfig
 >;
 
 /** State of integration connection */

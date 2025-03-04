@@ -315,14 +315,15 @@ function removeOptimisticRoomMembers(
 
     return roomMembers;
 }
-/** This function will reset the preferred exporter to the owner of the workspace
+/**
+ * This function will reset the preferred exporter to the owner of the workspace
  * if the current preferred exporter is removed from the admin role.
  * @param [policyID] The id of the policy.
  * @param [loginList] The logins of the users whose roles are being updated to non-admin role or are removed from a workspace
  */
 function resetAccountingPreferredExporter(policyID: string, loginList: string[]): OnyxDataReturnType {
     const policy = getPolicy(policyID);
-    const owner = ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
+    const owner = policy?.owner ?? ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -335,10 +336,12 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
     }
 
     connections.forEach((connection) => {
-        if (!policy?.connections?.[connection]?.config.export.exporter || !adminLoginList.includes(policy?.connections?.[connection]?.config.export.exporter)) {
+        const exporter = policy?.connections?.[connection]?.config.export.exporter;
+        if (!exporter || !adminLoginList.includes(exporter)) {
             return;
         }
 
+        const pendingFieldKey = connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? CONST.QUICKBOOKS_CONFIG.EXPORT : CONST.QUICKBOOKS_CONFIG.EXPORTER;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -347,7 +350,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
                     [connection]: {
                         config: {
                             export: {exporter: owner},
-                            pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            pendingFields: {[pendingFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                         },
                     },
                 },
@@ -357,7 +360,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                connections: {[connection]: {config: {pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: null}}}},
+                connections: {[connection]: {config: {pendingFields: {[pendingFieldKey]: null}}}},
             },
         });
         failureData.push({
@@ -368,7 +371,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
                     [connection]: {
                         config: {
                             export: {exporter: policy?.connections?.[connection]?.config.export.exporter},
-                            pendingFields: {[connection === CONST.POLICY.CONNECTIONS.NAME.QBO ? 'export' : 'exporter']: null},
+                            pendingFields: {[pendingFieldKey]: null},
                         },
                     },
                 },
@@ -376,7 +379,8 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
         });
     });
 
-    if (policy?.connections?.netsuite?.options.config.exporter && adminLoginList.includes(policy?.connections?.netsuite?.options.config.exporter)) {
+    const exporter = policy?.connections?.netsuite?.options.config.exporter;
+    if (exporter && adminLoginList.includes(exporter)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
