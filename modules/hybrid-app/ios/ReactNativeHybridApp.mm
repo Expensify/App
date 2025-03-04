@@ -7,11 +7,18 @@ RCT_EXPORT_MODULE()
     return @false;
 }
 
-- (void)closeReactNativeApp:(BOOL)shouldSignOut shouldSetNVP:(BOOL)shouldSetNVP {}
+- (void)closeReactNativeApp:(BOOL)shouldSignOut shouldSetNVP:(BOOL)shouldSetNVP {
+    NSLog(@"[ReactNativeHybridApp] `closeReactNativeApp` should never be called in standalone `New Expensify` app");
+}
 
-- (void)completeOnboarding:(BOOL)status {}
+- (void)completeOnboarding:(BOOL)status {
+    NSLog(@"[ReactNativeHybridApp] `completeOnboarding` should never be called in standalone `New Expensify` app");
 
-- (void)switchAccount:(NSString *)newDotCurrentAccountEmail authToken:(NSString *)authToken policyID:(NSString *)policyID accountID:(NSString *)accountID {}
+}
+
+- (void)switchAccount:(NSString *)newDotCurrentAccountEmail authToken:(NSString *)authToken policyID:(NSString *)policyID accountID:(NSString *)accountID {
+    NSLog(@"[ReactNativeHybridApp] `switchAccount` should never be called in standalone `New Expensify` app");
+}
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params

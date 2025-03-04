@@ -34,7 +34,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={reservationsData.length === 0 || (!canUseSpotnanaTravel && !CONFIG.IS_HYBRID_APP) || (isBlockedFromSpotnanaTravel && !CONFIG.IS_HYBRID_APP)}
+                shouldShow={reservationsData.length === 0 || (!CONFIG.IS_HYBRID_APP && (!canUseSpotnanaTravel || isBlockedFromSpotnanaTravel))}
             >
                 <HeaderWithBackButton
                     title={translate(`travel.tripDetails`)}

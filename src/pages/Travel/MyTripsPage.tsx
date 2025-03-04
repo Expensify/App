@@ -21,7 +21,7 @@ function MyTripsPage() {
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
-                shouldShow={(!canUseSpotnanaTravel && !CONFIG.IS_HYBRID_APP) || (isBlockedFromSpotnanaTravel && !CONFIG.IS_HYBRID_APP)}
+                shouldShow={!CONFIG.IS_HYBRID_APP && (!canUseSpotnanaTravel || isBlockedFromSpotnanaTravel)}
             >
                 <HeaderWithBackButton
                     title={translate('travel.header')}

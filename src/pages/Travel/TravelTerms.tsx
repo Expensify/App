@@ -81,7 +81,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             shouldEnableMaxHeight
             testID={TravelTerms.displayName}
         >
-            <FullPageNotFoundView shouldShow={(!canUseSpotnanaTravel && !CONFIG.IS_HYBRID_APP) || (isBlockedFromSpotnanaTravel && !CONFIG.IS_HYBRID_APP)}>
+            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && (!canUseSpotnanaTravel || isBlockedFromSpotnanaTravel)}>
                 <HeaderWithBackButton
                     title={translate('travel.termsAndConditions.header')}
                     onBackButtonPress={() => Navigation.goBack()}
