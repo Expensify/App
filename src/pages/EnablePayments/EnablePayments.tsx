@@ -60,7 +60,7 @@ function EnablePaymentsPage() {
             >
                 <HeaderWithBackButton
                     title={translate('personalInfoStep.personalInfo')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET, true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                 />
                 <FailedKYC />
             </ScreenWrapper>

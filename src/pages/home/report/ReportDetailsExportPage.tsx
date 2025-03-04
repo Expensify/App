@@ -92,7 +92,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     description={translate('workspace.export.notReadyDescription')}
                     shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
-                    onButtonPress={Navigation.goBack}
+                    onButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}
                 />
             </ScreenWrapper>

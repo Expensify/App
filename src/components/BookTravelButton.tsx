@@ -9,7 +9,7 @@ import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdminsPrivateEmailDomains} from '@libs/PolicyUtils';
+import {getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,9 +52,14 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             return;
         }
 
+        if (!isPaidGroupPolicy(policy)) {
+            Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
+            return;
+        }
+
         // Spotnana requires an address anytime an entity is created for a policy
         if (isEmptyObject(policy?.address)) {
-            Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_ADDRESS.getRoute(policy?.id, Navigation.getActiveRoute()));
             return;
         }
 

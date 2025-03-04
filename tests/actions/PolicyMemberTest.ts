@@ -1,11 +1,13 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, Report, ReportAction} from '@src/types/onyx';
+import type {Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -99,11 +101,14 @@ describe('actions/PolicyMember', () => {
                     },
                 },
             };
+            const adminRoom: Report = {...createRandomReport(1), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID: fakePolicy.id};
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`, adminRoom);
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
+            // When a user's role is set as admin on a policy
             Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
@@ -113,9 +118,21 @@ describe('actions/PolicyMember', () => {
                     callback: (policy) => {
                         Onyx.disconnect(connection);
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
+                        // Then the policy employee role of the user should be set to admin.
                         expect(employee?.role).toBe(CONST.POLICY.ROLE.ADMIN);
 
                         resolve();
+                    },
+                });
+            });
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                        // Then the user's notification preference on the admin room should be set to always.
+                        expect(report?.participants?.[fakeUser2.accountID].notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
                     },
                 });
             });
@@ -130,6 +147,34 @@ describe('actions/PolicyMember', () => {
                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
                         expect(employee?.pendingAction).toBeFalsy();
                         resolve();
+                    },
+                });
+            });
+            await waitForBatchedUpdates();
+            // When an admin is demoted from their admin role to a user role
+            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                        const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
+                        // Then the policy employee role of the user should be set to user.
+                        expect(employee?.role).toBe(CONST.POLICY.ROLE.USER);
+                    },
+                });
+            });
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve();
+                        // Then the user should be removed from the admin room participants list of the policy.
+                        expect(report?.participants?.[fakeUser2.accountID]).toBeUndefined();
                     },
                 });
             });
@@ -262,6 +307,201 @@ describe('actions/PolicyMember', () => {
                 });
             });
             await mockFetch?.resume?.();
+        });
+
+        it('Add new members with admin/auditor role to the #admins room', async () => {
+            // Given a policy and an #admins room
+            const policyID = '1';
+            const adminRoomID = '1';
+            const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
+            const adminAccountID = 1234;
+            const adminEmail = 'admin@example.com';
+            const auditorAccountID = 1235;
+            const auditorEmail = 'auditor@example.com';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                approver: defaultApprover,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
+                ...createRandomReport(Number(adminRoomID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: 'always'},
+                },
+            });
+
+            // When adding a new admin, auditor, and user members
+            Member.addMembersToWorkspace({[adminEmail]: adminAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.ADMIN);
+            Member.addMembersToWorkspace({[auditorEmail]: auditorAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.AUDITOR);
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+
+            await waitForBatchedUpdates();
+
+            // Then only the admin and auditor should be added to the #admins room
+            const adminRoom = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(adminRoom?.participants?.[adminAccountID]).toBeTruthy();
+            expect(adminRoom?.participants?.[auditorAccountID]).toBeTruthy();
+            expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
+        });
+
+        it('should unarchive existing workspace chat when adding back a member', async () => {
+            // Given an archived workspace chat
+            const policyID = '1';
+            const workspaceReportID = '1';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
+                ...createRandomReport(Number(workspaceReportID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: userAccountID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+
+            // When adding the user to the workspace
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+
+            await waitForBatchedUpdates();
+
+            // Then the member workspace chat should be unarchived optimistically
+            const isArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isArchived).toBe(false);
+        });
+    });
+
+    describe('removeMembers', () => {
+        it('Remove members with admin/auditor role from the #admins room', async () => {
+            // Given a policy and an #admins room
+            const policyID = '1';
+            const adminRoomID = '1';
+            const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminAccountID = 1234;
+            const adminEmail = 'admin@example.com';
+            const auditorAccountID = 1235;
+            const auditorEmail = 'auditor@example.com';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [adminAccountID]: {login: adminEmail},
+                [auditorAccountID]: {login: auditorEmail},
+                [userAccountID]: {login: userEmail},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                approver: defaultApprover,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [auditorEmail]: {role: CONST.POLICY.ROLE.AUDITOR},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
+                ...createRandomReport(Number(adminRoomID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: 'always'},
+                    [adminAccountID]: {notificationPreference: 'always'},
+                    [auditorAccountID]: {notificationPreference: 'always'},
+                    [userAccountID]: {notificationPreference: 'always'},
+                },
+            });
+
+            // When removing am admin, auditor, and user members
+            mockFetch?.pause?.();
+            Member.removeMembers([adminAccountID, auditorAccountID, userAccountID], policyID);
+
+            await waitForBatchedUpdates();
+
+            // Then only the admin and auditor should be removed from the #admins room
+            const optimisticAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
+                    callback: (reportMetadata) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportMetadata);
+                    },
+                });
+            });
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.length).toBe(2);
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(adminAccountID))?.pendingAction).toBe(
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+            expect(optimisticAdminRoomMetadata?.pendingChatMembers?.find((pendingMember) => pendingMember.accountID === String(auditorAccountID))?.pendingAction).toBe(
+                CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
+            await mockFetch?.resume?.();
+
+            const successAdminRoomMetadata = await new Promise<OnyxEntry<ReportMetadata>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${adminRoomID}`,
+                    callback: (reportMetadata) => {
+                        Onyx.disconnect(connection);
+                        resolve(reportMetadata);
+                    },
+                });
+            });
+            expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
+        });
+
+        it('should archive the member workspace chat', async () => {
+            // Given a workspace chat
+            const policyID = '1';
+            const workspaceReportID = '1';
+            const userAccountID = 1236;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
+                ...createRandomReport(Number(workspaceReportID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: userAccountID,
+            });
+
+            // When removing a member from the workspace
+            mockFetch?.pause?.();
+            Member.removeMembers([userAccountID], policyID);
+
+            await waitForBatchedUpdates();
+
+            // Then the member workspace chat should be archived optimistically
+            const isArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isArchived).toBe(true);
         });
     });
 });
