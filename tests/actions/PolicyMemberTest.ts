@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Member from '@src/libs/actions/Policy/Member';
@@ -355,6 +356,41 @@ describe('actions/PolicyMember', () => {
             expect(adminRoom?.participants?.[auditorAccountID]).toBeTruthy();
             expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
         });
+
+        it('should unarchive existing workspace chat when adding back a member', async () => {
+            // Given an archived workspace chat
+            const policyID = '1';
+            const workspaceReportID = '1';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
+                ...createRandomReport(Number(workspaceReportID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: userAccountID,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+
+            // When adding the user to the workspace
+            Member.addMembersToWorkspace({[userEmail]: userAccountID}, 'Welcome', policyID, [], CONST.POLICY.ROLE.USER);
+
+            await waitForBatchedUpdates();
+
+            // Then the member workspace chat should be unarchived optimistically
+            const isArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isArchived).toBe(false);
+        });
     });
 
     describe('removeMembers', () => {
@@ -434,6 +470,38 @@ describe('actions/PolicyMember', () => {
                 });
             });
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
+        });
+
+        it('should archive the member workspace chat', async () => {
+            // Given a workspace chat
+            const policyID = '1';
+            const workspaceReportID = '1';
+            const userAccountID = 1236;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
+                ...createRandomReport(Number(workspaceReportID)),
+                policyID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ownerAccountID: userAccountID,
+            });
+
+            // When removing a member from the workspace
+            mockFetch?.pause?.();
+            Member.removeMembers([userAccountID], policyID);
+
+            await waitForBatchedUpdates();
+
+            // Then the member workspace chat should be archived optimistically
+            const isArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isArchived).toBe(true);
         });
     });
 });
