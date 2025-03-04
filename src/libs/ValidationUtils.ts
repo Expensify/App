@@ -418,6 +418,15 @@ function isValidRoomName(roomName: string): boolean {
 }
 
 /**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ */
+function isValidRoomNameWithoutLimits(roomName: string): boolean {
+    return CONST.REGEX.ROOM_NAME_WITHOUT_LIMIT.test(roomName);
+}
+
+/**
  * Checks if tax ID consists of 9 digits
  */
 function isValidTaxID(taxID: string): boolean {
@@ -679,6 +688,7 @@ export {
     isReservedRoomName,
     isExistingRoomName,
     isValidRoomName,
+    isValidRoomNameWithoutLimits,
     isValidTaxID,
     isValidValidateCode,
     isValidCompanyName,
