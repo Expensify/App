@@ -1590,7 +1590,7 @@ function isProcessingReport(report: OnyxEntry<Report>): boolean {
 }
 
 function isOpenReport(report: OnyxEntry<Report>): boolean {
-    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN; // TODO Verify
+    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {

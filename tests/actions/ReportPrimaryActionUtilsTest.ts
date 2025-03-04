@@ -106,7 +106,7 @@ describe('getPrimaryAction', () => {
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
         const report = {
             reportID: REPORT_ID,
-            // type: CONST.REPORT.TYPE.EXPENSE,
+            type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
         } as unknown as Report;
@@ -126,7 +126,7 @@ describe('getPrimaryAction', () => {
         expect(getPrimaryAction(report, policy as Policy, [], {})).toBe(CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING);
     });
 
-    it('should return REMOVE HOLD for reports on hold', async () => {
+    it('should return REMOVE HOLD for reports with transactions on hold', async () => {
         const report = {
             reportID: REPORT_ID,
         } as unknown as Report;

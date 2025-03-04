@@ -16,6 +16,7 @@ import {
     isPayer,
     isProcessingReport,
     isReportApproved,
+    isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
@@ -74,6 +75,11 @@ function isPayAction(report: Report, policy: Policy) {
 }
 
 function isExportAction(report: Report, policy: Policy) {
+    const hasAccountingConnection = hasAccountingConnections(policy);
+    if (!hasAccountingConnection) {
+        return false;
+    }
+
     const isExporter = isPrefferedExporter(policy);
     if (!isExporter) {
         return false;
@@ -84,12 +90,7 @@ function isExportAction(report: Report, policy: Policy) {
         return false;
     }
 
-    const hasAccountingConnection = hasAccountingConnections(policy);
-    if (!hasAccountingConnection) {
-        return false;
-    }
-
-    const isReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isReimbursed = isSettled(report);
     const isApproved = isReportApproved({report});
     const isClosed = isClosedReport(report);
 
@@ -143,8 +144,8 @@ function isMarkAsCashAction(report: Report, policy: Policy, reportTransactions: 
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
 
-    const userControllsReport = isSubmitter || isApprover || isAdmin;
-    return userControllsReport && shouldShowBrokenConnectionViolation;
+    const userControlsReport = isSubmitter || isApprover || isAdmin;
+    return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
 function getPrimaryAction(
@@ -152,7 +153,7 @@ function getPrimaryAction(
     policy: Policy,
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
-): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | undefined {
+): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     if (isSubmitAction(report, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
@@ -180,6 +181,8 @@ function getPrimaryAction(
     if (isMarkAsCashAction(report, policy, reportTransactions, violations)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
+
+    return '';
 }
 
 export default getPrimaryAction;
