@@ -2,13 +2,18 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import colors from '@styles/theme/colors';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-type LoadingBarProps = {shouldShow: boolean};
+type LoadingBarProps = {
+    // Whether to show the loading bar
+    shouldShow: boolean;
+};
 
 function LoadingBar({shouldShow}: LoadingBarProps) {
     const left = useSharedValue(-30);
     const opacity = useSharedValue(0);
     const isAnimating = useSharedValue(false);
+    const styles = useThemeStyles();
 
     useEffect(() => {
         if (shouldShow && !isAnimating.get()) {
@@ -51,7 +56,7 @@ function LoadingBar({shouldShow}: LoadingBarProps) {
     }));
 
     return (
-        <View style={{height: 2, overflow: 'hidden'}}>
+        <View style={[styles.progressBarWrapper]}>
             <Animated.View style={barStyle} />
         </View>
     );

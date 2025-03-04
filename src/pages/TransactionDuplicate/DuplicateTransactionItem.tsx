@@ -34,7 +34,7 @@ function DuplicateTransactionItem(props: DuplicateTransactionItemProps) {
             <ReportActionItem
                 action={action}
                 report={report}
-                parentReportAction={getReportAction(report?.parentReportID ?? undefined, report?.parentReportActionID ?? undefined)}
+                parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
                 index={props.index}
                 displayAsGroup={false}
                 shouldDisplayNewMarker={false}
