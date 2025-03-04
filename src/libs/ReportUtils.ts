@@ -2169,10 +2169,6 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
     const transaction = getTransaction(iouTransactionID ?? CONST.DEFAULT_NUMBER_ID);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
 
-    if (isCardTransaction) {
-        return transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
-    }
-
     if (isMoneyRequestAction(reportAction)) {
         // For now, users cannot delete split actions
         const isSplitAction = getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
@@ -2183,7 +2179,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
-                return canDeleteTransaction(report);
+                return canDeleteTransaction(report) && (!isCardTransaction || (isCardTransaction && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW));
             }
             return true;
         }
