@@ -164,7 +164,7 @@ import {
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
     removeSettledAndApprovedTransactions,
-    shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -8343,7 +8343,7 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
-    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDList, report, policy, allViolations);
+    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, report, policy, allViolations);
 
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
