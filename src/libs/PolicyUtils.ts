@@ -1492,6 +1492,7 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
+    getManagerAccountID,
 };
 
 export type {MemberEmailsToAccountIDs};
