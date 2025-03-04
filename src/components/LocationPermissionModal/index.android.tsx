@@ -11,6 +11,7 @@ import type {LocationPermissionModalProps} from './types';
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -33,6 +34,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
+        setIsLoading(true);
         if (hasError && Linking.openSettings) {
             Linking.openSettings();
             setShowModal(false);
@@ -55,6 +57,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             }
             setShowModal(false);
             setHasError(false);
+        }).finally(() => {
+            setIsLoading(false);
         });
     });
 
@@ -88,6 +92,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             iconHeight={120}
             shouldCenterIcon
             shouldReverseStackedButtons
+            isConfirmLoading={isLoading}
         />
     );
 }
