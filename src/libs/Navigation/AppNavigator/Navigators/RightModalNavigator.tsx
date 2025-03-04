@@ -91,7 +91,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH}
                         component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                         listeners={{
-                            blur: () => {
+                            beforeRemove: () => {
                                 InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
                             },
                         }}
