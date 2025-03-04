@@ -1099,7 +1099,7 @@ const translations = {
             title: 'You moved this report!',
             description: 'Double-check these items, which tend to change when moving reports to a new workspace.',
             reCategorize: '<strong>Re-categorize any expenses</strong> to comply with workspace rules.',
-            workflows: 'This report may now be subject to a different approval <strong>workflow.</strong>',
+            workflows: 'This report may now be subject to a different <strong>approval workflow.</strong>',
         },
         changeWorkspace: 'Change workspace',
         set: 'set',

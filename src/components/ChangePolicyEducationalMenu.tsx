@@ -11,14 +11,11 @@ import FeatureTrainingModal from './FeatureTrainingModal';
 import * as Illustrations from './Icon/Illustrations';
 
 type ChangePolicyEducationalMenuProps = {
-    /** Method to trigger when pressing outside of the popover menu to close it */
-    onClose: () => void;
-
-    /** Method to trigger when pressing confirm button */
+    /** Method to trigger when pressing confirm button or outside of the popover menu to close it */
     onConfirm: () => void;
 };
 
-function ChangePolicyEducationalMenu({onClose, onConfirm}: ChangePolicyEducationalMenuProps) {
+function ChangePolicyEducationalMenu({onConfirm}: ChangePolicyEducationalMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const navigation = useNavigation();
@@ -27,10 +24,10 @@ function ChangePolicyEducationalMenu({onClose, onConfirm}: ChangePolicyEducation
 
     useEffect(() => {
         const unsub = navigation.addListener('beforeRemove', () => {
-            onClose();
+            onConfirm();
         });
         return unsub;
-    }, [navigation, onClose]);
+    }, [navigation, onConfirm]);
 
     return (
         <FeatureTrainingModal
@@ -46,9 +43,7 @@ function ChangePolicyEducationalMenu({onClose, onConfirm}: ChangePolicyEducation
             illustrationInnerContainerStyle={[styles.alignItemsCenter, styles.justifyContentCenter, styles.cardSectionIllustration, StyleUtils.getBackgroundColorStyle(colors.blue700)]}
             illustrationOuterContainerStyle={styles.p0}
             contentInnerContainerStyles={[styles.mb5, styles.gap2]}
-            contentOuterContainerStyles={!shouldUseNarrowLayout && [styles.mt8, styles.mh8]}
-            modalInnerContainerStyle={{...styles.pt0, ...(shouldUseNarrowLayout ? {} : styles.pb8)}}
-            onClose={onClose}
+            onClose={onConfirm}
             onConfirm={onConfirm}
         >
             <ChangeWorkspaceMenuSectionList />

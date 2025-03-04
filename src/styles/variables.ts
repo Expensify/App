@@ -213,7 +213,7 @@ export default {
     onboardingModalWidth: 500,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
-    changePolicyEducationModalIconWidth: 147.7,
+    changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
 
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),

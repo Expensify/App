@@ -23,12 +23,7 @@ function ChangePolicyEducationalModal() {
         dismissChangePolicyModal();
     }, []);
 
-    return (
-        <ChangePolicyEducationalMenu
-            onClose={onConfirm}
-            onConfirm={onConfirm}
-        />
-    );
+    return <ChangePolicyEducationalMenu onConfirm={onConfirm} />;
 }
 
 ChangePolicyEducationalModal.displayName = 'ChangePolicyEducationalModal';

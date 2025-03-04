@@ -38,7 +38,7 @@ import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
-import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -1104,7 +1104,7 @@ const isWorkspaceEligibleForReportChange = (
         return !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
     }
     if (curretUserAccountID === reportManagerID) {
-        const reportSubmitterLogin = (!!reportOwnerAccountID && getLoginsByAccountIDs([reportOwnerAccountID]).at(0)) ?? '';
+        const reportSubmitterLogin = (!!reportOwnerAccountID && getLoginByAccountID(reportOwnerAccountID)) ?? '';
         return !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin] && !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
     }
     return isUserPolicyAdmin(newPolicy, currentUserLogin);
