@@ -176,7 +176,7 @@ describe('Tests for group chat name', () => {
             return waitFor(() => expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D'));
         }));
 
-    it('Should show limited names in LHN when 8 participants are present', () =>
+    it('Should show limited names with ellipsis in LHN when 8 participants are present', () =>
         signInAndGetApp('', participantAccountIDs8).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
@@ -222,7 +222,7 @@ describe('Tests for group chat name', () => {
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
             }));
 
-    it('Should show only 5 names when there are 8 participants in the report header', () =>
+    it('Should show only 5 names with ellipsis when there are 8 participants in the report header', () =>
         signInAndGetApp('', participantAccountIDs8)
             .then(() => {
                 // Verify the sidebar links are rendered
