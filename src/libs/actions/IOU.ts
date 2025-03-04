@@ -132,6 +132,7 @@ import {
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportApproved,
     isSelectedManagerMcTest,
+    isReportManager,
     isSelfDM,
     isSettled,
     isTestTransactionReport,
@@ -8260,6 +8261,16 @@ function canApproveIOU(
     return reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport;
 }
 
+function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
+    return (
+        isExpenseReport(iouReport) &&
+        (isReportManager(iouReport) || isPolicyAdmin(policy)) &&
+        isReportApproved({report: iouReport}) &&
+        !isSubmitAndClose(policy) &&
+        !iouReport?.isWaitingOnBankAccount
+    );
+}
+
 function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
@@ -8329,6 +8340,10 @@ function canIOUBePaid(
         (!shouldBeApproved || !shouldCheckApprovedState) &&
         !isPayAtEndExpenseReport
     );
+}
+
+function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
+    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
 }
 
 function canSubmitReport(
@@ -8860,6 +8875,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                isWaitingOnBankAccount: false,
                 lastVisibleActionCreated: optimisticReportAction?.created,
                 lastMessageText: getReportActionText(optimisticReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticReportAction),
@@ -8902,6 +8918,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
             },
         },
     ];
@@ -10035,8 +10052,10 @@ export {
     getNextApproverAccountID,
     approveMoneyRequest,
     canApproveIOU,
+    canUnapproveIOU,
     cancelPayment,
     canIOUBePaid,
+    canCancelPayment,
     cleanUpMoneyRequest,
     clearMoneyRequest,
     completeSplitBill,
