@@ -1,17 +1,17 @@
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
+import ChangeWorkspaceMenuSectionList from '@components/ChangeWorkspaceMenuSectionList';
+import FeatureTrainingModal from '@components/FeatureTrainingModal';
+import * as Illustrations from '@components/Icon/Illustrations';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissChangePolicyModal} from '@libs/actions/Report';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import { dismissChangePolicyModal } from '@libs/actions/Report';
-import ChangeWorkspaceMenuSectionList from './ChangeWorkspaceMenuSectionList';
-import FeatureTrainingModal from './FeatureTrainingModal';
-import * as Illustrations from './Icon/Illustrations';
 
-function ChangePolicyEducationalMenu() {
+function ChangePolicyEducationalModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -45,6 +45,6 @@ function ChangePolicyEducationalMenu() {
     );
 }
 
-ChangePolicyEducationalMenu.displayName = 'ChangePolicyEducationalMenu';
+ChangePolicyEducationalModal.displayName = 'ChangePolicyEducationalModal';
 
-export default ChangePolicyEducationalMenu;
+export default ChangePolicyEducationalModal;
