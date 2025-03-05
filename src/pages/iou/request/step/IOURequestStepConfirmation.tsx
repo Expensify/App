@@ -173,14 +173,17 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
+        // Exit early if the transaction is still loading
         if (isLoadingTransaction) {
             return;
         }
-
+        
+        // Check if the transaction belongs to the current report
         const isCurrentReportID = transaction?.isFromGlobalCreate
             ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
             : transaction?.reportID === reportID;
-        
+
+        // Exit if the transaction already exists and is associated with the current report
         if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && isCurrentReportID) {
             return;
         }
