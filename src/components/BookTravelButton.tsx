@@ -7,6 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
+import * as Illustrations from '@components/Icon/Illustrations';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -132,6 +133,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 title={translate('travel.blockedFeatureModal.title')}
                 onConfirm={hidePreventionModal}
                 onCancel={hidePreventionModal}
+                image={Illustrations.RocketDude}
                 isVisible={isPreventionModalVisible}
                 prompt={translate('travel.blockedFeatureModal.message')}
                 confirmText={translate('common.buttonConfirm')}

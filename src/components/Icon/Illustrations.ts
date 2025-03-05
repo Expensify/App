@@ -54,6 +54,7 @@ import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg
 import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.svg';
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
+import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
 import RocketOrange from '@assets/images/product-illustrations/rocket--orange.svg';
 import SafeBlue from '@assets/images/product-illustrations/safe.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
@@ -185,6 +186,7 @@ export {
     ReceiptYellow,
     ReceiptWrangler,
     RocketBlue,
+    RocketDude,
     RocketOrange,
     SanFrancisco,
     SafeBlue,
