@@ -89,7 +89,7 @@ type EducationalTooltipProps = ChildrenProps &
         shouldHideOnNavigate?: boolean;
 
         /** whether tooltip should hide during scrolling  */
-        shouldHideOnEdge?: boolean;
+        shouldHideOnScroll?: boolean;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {

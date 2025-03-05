@@ -19,7 +19,7 @@ type ScrollingEventData = {
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnEdge = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, ...props}: EducationalTooltipProps) {
     const genericTooltipStateRef = useRef<GenericTooltipState>();
     const tooltipElRef = useRef<React.Component & Readonly<NativeMethods>>();
 
@@ -31,7 +31,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
 
     const setTooltipPosition = useCallback(
         (isScrolling: boolean) => {
-            if (!shouldHideOnEdge || !genericTooltipStateRef.current || !tooltipElRef.current) {
+            if (!shouldHideOnScroll || !genericTooltipStateRef.current || !tooltipElRef.current) {
                 return;
             }
 
@@ -62,11 +62,11 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 });
             }
         },
-        [insets, shouldHideOnEdge],
+        [insets, shouldHideOnScroll],
     );
 
     useLayoutEffect(() => {
-        if (!shouldRender || !shouldHideOnEdge) {
+        if (!shouldRender || !shouldHideOnScroll) {
             return;
         }
         setTooltipPosition(false);
@@ -75,7 +75,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         });
 
         return () => scrollingListener.remove();
-    }, [shouldRender, shouldHideOnEdge, setTooltipPosition]);
+    }, [shouldRender, shouldHideOnScroll, setTooltipPosition]);
 
     useEffect(() => {
         return () => {
