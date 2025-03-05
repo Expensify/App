@@ -35,6 +35,8 @@ function DisablePage() {
 
     const closeModal = useCallback(() => {
         clearDisableTwoFactorAuthErrors();
+
+        // Go back to the previous page because the user can't disable 2FA and this page is no longer relevant
         Navigation.goBack();
     }, []);
 
