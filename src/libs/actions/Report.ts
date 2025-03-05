@@ -3762,6 +3762,7 @@ function prepareOnboardingOnyxData(
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                task.mediaAttributes,
                 !['submitExpense', 'trackExpense', 'startChat', 'splitExpense'].includes(task.type),
             );
             const emailCreatingAction =
