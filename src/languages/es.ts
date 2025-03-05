@@ -2537,6 +2537,15 @@ const translations = {
         sendReminder: 'Enviar un recordatorio',
         chooseFile: 'Seleccionar archivo',
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
+        // TODO: translate it:
+        occupation: 'Occupation',
+        whatsYourOccupation: "What's your occupation?",
+        proofOfDirectors: 'Proof of directors',
+        codiceFiscale: 'Codice fiscale',
+        PRDandSFD: 'PRD and SFD',
+        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a signer or director of the business entity.',
+        proofOfDirectorsDescription: 'Please provide a proof of being director or senior officer. (Needs to be verified).',
+        PRDandFSGDescription: 'Please provide PRD and FSG documents (Needs to be verified).',
     },
     agreementsStep: {
         agreements: 'Acuerdos',
