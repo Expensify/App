@@ -108,6 +108,7 @@ import type {
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     NeedCategoryForExportToIntegrationParams,
+    NewWorkspaceNameParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -513,6 +514,7 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
     },
@@ -2663,10 +2665,6 @@ const translations = {
             title: 'Comienza con Expensify Travel',
             message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
         },
-        maintenance: {
-            title: '¡Expensify Travel está recibiendo una actualización! 🚀',
-            message: `No estará disponible del 23 al 24 de febrero, pero volverá mejor que nunca después de eso. Si necesitas ayuda con un viaje actual, por favor llama al +1 866-296-7768. ¡Gracias!`,
-        },
     },
     workspace: {
         common: {
@@ -4073,6 +4071,8 @@ const translations = {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
             confirmWorkspace: 'Confirmar espacio de trabajo',
+            myGroupWorkspace: 'Mi Espacio de Trabajo en Grupo',
+            workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Espacio de trabajo${workspaceNumber ? ` ${workspaceNumber}` : ''} de ${userName}`,
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',

@@ -67,6 +67,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -75,7 +76,7 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
+import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import type {OnboardingPurpose} from '@src/CONST';
@@ -1585,40 +1586,46 @@ function removeWorkspace(policyID: string) {
  */
 function generateDefaultWorkspaceName(email = ''): string {
     const emailParts = email ? email.split('@') : sessionEmail.split('@');
-    let defaultWorkspaceName = '';
     if (!emailParts || emailParts.length !== 2) {
-        return defaultWorkspaceName;
+        return '';
     }
     const username = emailParts.at(0) ?? '';
     const domain = emailParts.at(1) ?? '';
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
     const displayName = userDetails?.displayName?.trim();
+    let displayNameForWorkspace = '';
 
     if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
-        defaultWorkspaceName = `${Str.UCFirst(domain.split('.').at(0) ?? '')}'s Workspace`;
+        displayNameForWorkspace = Str.UCFirst(domain.split('.').at(0) ?? '');
     } else if (displayName) {
-        defaultWorkspaceName = `${Str.UCFirst(displayName)}'s Workspace`;
+        displayNameForWorkspace = Str.UCFirst(displayName);
     } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
-        defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
+        displayNameForWorkspace = Str.UCFirst(username);
     } else {
-        defaultWorkspaceName = userDetails?.phoneNumber ?? '';
+        displayNameForWorkspace = userDetails?.phoneNumber ?? '';
     }
 
-    if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
-        defaultWorkspaceName = 'My Group Workspace';
+    if (`@${domain}` === CONST.SMS.DOMAIN) {
+        return translateLocal('workspace.new.myGroupWorkspace');
     }
 
     if (isEmptyObject(allPolicies)) {
-        return defaultWorkspaceName;
+        return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
     // find default named workspaces and increment the last number
-    const numberRegEx = new RegExp(`${escapeRegExp(defaultWorkspaceName)} ?(\\d*)`, 'i');
-    const parsedWorkspaceNumbers = Object.values(allPolicies ?? {})
-        .filter((policy) => policy?.name && numberRegEx.test(policy.name))
-        .map((policy) => Number(numberRegEx.exec(policy?.name ?? '')?.[1] ?? '1')); // parse the number at the end
-    const lastWorkspaceNumber = Math.max(...parsedWorkspaceNumbers);
-    return lastWorkspaceNumber !== -Infinity ? `${defaultWorkspaceName} ${lastWorkspaceNumber + 1}` : defaultWorkspaceName;
+    const escapedName = escapeRegExp(displayNameForWorkspace);
+    const workspaceTranslations = CONST.LANGUAGES.map((lang) => translate(lang, 'workspace.common.workspace')).join('|');
+
+    const workspaceRegex = new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
+
+    const workspaceNumbers = Object.values(allPolicies)
+        .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
+        .filter(Boolean) // Remove null matches
+        .map((match) => Number(match?.[1] ?? '0'));
+    const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
+
+    return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
 }
 
 /**
