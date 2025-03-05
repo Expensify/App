@@ -15,6 +15,7 @@ import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isValidDraftComment} from '@libs/DraftCommentUtils';
@@ -67,6 +68,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
         onFirstItemRendered();
     }, [onFirstItemRendered]);
+
+    // this function handles the visibility of the educational tooltip based on the user's scroll actions.
+    // It hides or shows the tooltip accordingly.
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const emptyLHNSubtitle = useMemo(
         () => (
@@ -262,8 +267,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (isWebOrDesktop) {
                 saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
             }
+            triggerScrollEvent();
         },
-        [estimatedItemSize, isWebOrDesktop, route, saveScrollIndex, saveScrollOffset],
+        [estimatedItemSize, isWebOrDesktop, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
     );
 
     const onLayout = useCallback(() => {
