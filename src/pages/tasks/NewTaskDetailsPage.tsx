@@ -1,7 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -25,20 +24,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
-import type {Task} from '@src/types/onyx';
 
-type NewTaskDetailsPageOnyxProps = {
-    /** Task Creation Data */
-    task: OnyxEntry<Task>;
-};
+type NewTaskDetailsPageProps = PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
-type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
-
-function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
+function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
+    const [task] = useOnyx(ONYXKEYS.TASK);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
     const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
+    const titleDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskTitle)), [taskTitle]);
+    const descriptionDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskDescription)), [taskDescription]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -47,7 +43,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
     const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
 
     useEffect(() => {
-        setTaskTitle(task?.title ?? '');
+        setTaskTitle(Parser.htmlToMarkdown(Parser.replace(task?.title ?? '')));
         setTaskDescription(Parser.htmlToMarkdown(Parser.replace(task?.description ?? '')));
     }, [task]);
 
@@ -57,8 +53,8 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
             addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
-        } else if (values.taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
-            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+        } else if (values.taskTitle.length > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
         }
         const taskDescriptionLength = getCommentLength(values.taskDescription);
         if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
@@ -76,7 +72,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
             playSound(SOUNDS.DONE);
-            createTaskAndNavigate(task?.parentReportID ?? '-1', values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
+            createTaskAndNavigate(task?.parentReportID, values.taskTitle, values.taskDescription ?? '', task?.assignee ?? '', task.assigneeAccountID, task.assigneeChatReport);
         } else {
             Navigation.navigate(ROUTES.NEW_TASK.getRoute(backTo));
         }
@@ -110,9 +106,13 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
                         inputID={INPUT_IDS.TASK_TITLE}
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
+                        defaultValue={titleDefaultValue}
                         value={taskTitle}
                         onValueChange={setTaskTitle}
                         autoCorrect={false}
+                        type="markdown"
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -126,7 +126,7 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        defaultValue={Parser.htmlToMarkdown(Parser.replace(taskDescription))}
+                        defaultValue={descriptionDefaultValue}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
                         type="markdown"
@@ -139,8 +139,4 @@ function NewTaskDetailsPage({task, route}: NewTaskDetailsPageProps) {
 
 NewTaskDetailsPage.displayName = 'NewTaskDetailsPage';
 
-export default withOnyx<NewTaskDetailsPageProps, NewTaskDetailsPageOnyxProps>({
-    task: {
-        key: ONYXKEYS.TASK,
-    },
-})(NewTaskDetailsPage);
+export default NewTaskDetailsPage;

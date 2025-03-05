@@ -132,6 +132,10 @@ const headlineFont = {
     ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
 } satisfies TextStyle;
 
+const headlineItalicFont = {
+    ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM_ITALIC,
+} satisfies TextStyle;
+
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
@@ -156,12 +160,6 @@ const webViewStyles = (theme: ThemeColors) =>
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
-            },
-
-            strong: {
-                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
-                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
-                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
             },
 
             a: link(theme),
@@ -227,7 +225,8 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
-                fontSize: variables.fontSizeLarge,
+                fontSize: undefined,
+                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -272,6 +271,18 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+
+        h1: {
+            fontSize: variables.fontSizeLarge,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            marginBottom: 8,
+        },
+
+        strong: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+            fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
         },
 
         autoCompleteSuggestionContainer: {
@@ -4271,6 +4282,14 @@ const styles = (theme: ThemeColors) =>
         taskTitleMenuItem: {
             ...writingDirection.ltr,
             ...headlineFont,
+            fontSize: variables.fontSizeXLarge,
+            maxWidth: '100%',
+            ...wordBreak.breakWord,
+        },
+
+        taskTitleMenuItemItalic: {
+            ...writingDirection.ltr,
+            ...headlineItalicFont,
             fontSize: variables.fontSizeXLarge,
             maxWidth: '100%',
             ...wordBreak.breakWord,

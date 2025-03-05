@@ -628,8 +628,14 @@ function getModalPaddingStyles({
 /**
  * Returns the font size for the HTML code tag renderer.
  */
-function getCodeFontSize(isInsideH1: boolean) {
-    return isInsideH1 ? 15 : 13;
+function getCodeFontSize(isInsideH1: boolean, isInsideTaskTitle?: boolean) {
+    if (isInsideH1 && !isInsideTaskTitle) {
+        return 15;
+    }
+    if (isInsideTaskTitle) {
+        return 19;
+    }
+    return 13;
 }
 
 /**
