@@ -62,7 +62,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 });
             }
         },
-        [insets, name],
+        [insets],
     );
 
     useLayoutEffect(() => {
@@ -75,7 +75,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
         });
 
         return () => scrollingListener.remove();
-    }, [shouldRender, name, shouldHideOnEdge, setTooltipPosition]);
+    }, [shouldRender, shouldHideOnEdge, setTooltipPosition]);
 
     useEffect(() => {
         return () => {
