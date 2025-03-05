@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -6,19 +6,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import { dismissChangePolicyModal } from '@libs/actions/Report';
 import ChangeWorkspaceMenuSectionList from './ChangeWorkspaceMenuSectionList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import * as Illustrations from './Icon/Illustrations';
 
-type ChangePolicyEducationalMenuProps = {
-    /** Method to trigger when pressing confirm button or outside of the popover menu to close it */
-    onConfirm: () => void;
-};
-
-function ChangePolicyEducationalMenu({onConfirm}: ChangePolicyEducationalMenuProps) {
+function ChangePolicyEducationalMenu() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    const onConfirm = useCallback(() => {
+        dismissChangePolicyModal();
+    }, []);
 
     useBeforeRemove(onConfirm);
 
