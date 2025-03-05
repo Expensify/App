@@ -11,9 +11,9 @@ import usePolicy from '@hooks/usePolicy';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {calculateAmount} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
+import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
@@ -61,10 +61,10 @@ import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import { Hourglass } from "@components/Icon/Expensicons";
 import DateUtils from "@libs/DateUtils";
-import TransactionPreviewUI from "./TransactionPreviewUI";
-import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
+import type {TransactionPreviewProps } from './types';
+import TransactionPreviewContentUI from "./TransactionPreviewContentUI";
 
-function TransactionPreview({
+function TransactionPreviewContent({
   isBillSplit,
   action,
   contextMenuAnchor,
@@ -78,7 +78,7 @@ function TransactionPreview({
   isWhisper = false,
   shouldDisplayContextMenu = true,
   iouReportID,
-}: MoneyRequestPreviewProps) {
+}: TransactionPreviewProps) {
   const {translate} = useLocalize();
   const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
   const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -344,7 +344,7 @@ function TransactionPreview({
   }, [chatReportID])
 
   return (
-    <TransactionPreviewUI
+    <TransactionPreviewContentUI
       isDeleted={isDeleted}
       isScanning={isScanning}
       isWhisper={isWhisper}
@@ -390,6 +390,6 @@ function TransactionPreview({
 
 }
 
-TransactionPreview.displayName = 'TransactionPreview';
+TransactionPreviewContent.displayName = 'TransactionPreviewContent';
 
-export default TransactionPreview;
+export default TransactionPreviewContent;

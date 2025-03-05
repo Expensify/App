@@ -19,9 +19,9 @@ import { convertToDisplayString } from '@libs/CurrencyUtils';
 import { canUseTouchScreen } from '@libs/DeviceCapabilities';
 import { getCleanedTagName } from '@libs/PolicyUtils';
 import variables from '@styles/variables';
-import type TransactionPreviewUIProps from '@src/types/TransactionPreviewUI.type';
+import type { TransactionPreviewUIProps } from './types';
 
-function TransactionPreviewUI({
+function TransactionPreviewContentUI({
     isDeleted,
     isScanning,
     isWhisper,
@@ -285,6 +285,6 @@ function TransactionPreviewUI({
   );
 }
 
-TransactionPreviewUI.displayName = 'TransactionPreviewUI';
+TransactionPreviewContentUI.displayName = 'TransactionPreviewContentUI';
 
-export default TransactionPreviewUI;
+export default TransactionPreviewContentUI;

@@ -2,11 +2,11 @@ import type { Meta, StoryFn } from '@storybook/react';
 import React from 'react';
 import { ImageSourcePropType, View } from "react-native";
 import { Hourglass } from "@components/Icon/Expensicons";
-import TransactionPreview from "@components/ReportActionItem/MoneyRequestPreview/TransactionPreviewUI";
+import TransactionPreview from "@components/ReportActionItem/TransactionPreview/TransactionPreviewContentUI";
 import ThemeProvider from "@components/ThemeProvider";
 import ThemeStylesProvider from "@components/ThemeStylesProvider";
 import CONST from "@src/CONST";
-import type TransactionPreviewProps from "@src/types/TransactionPreviewUI.type";
+import type {TransactionPreviewUIProps} from "@components/ReportActionItem/TransactionPreview/types";
 import previewIcon from "@assets/images/transactionPreviewIcon.png";
 import previewIcon2 from "@assets/images/transactionPreviewIcon2.png";
 import type { ThumbnailAndImageURI } from "@libs/ReceiptUtils";
@@ -37,7 +37,7 @@ const fakeTranslate = (text: string, options?: {amount: string})  => {
     }
   };
 
-const generateFakeData = (amount: string, tag: string, merchantOrDescription: string, date: string, thumbnail: ImageSourcePropType, category: string): TransactionPreviewProps => ({
+const generateFakeData = (amount: string, tag: string, merchantOrDescription: string, date: string, thumbnail: ImageSourcePropType, category: string): TransactionPreviewUIProps => ({
   pendingAction: undefined,
   walletTermsErrors: undefined,
   containerStyles: [{margin: 10}],
