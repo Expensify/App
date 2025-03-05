@@ -519,7 +519,7 @@ function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActio
                 onConfirm={() => {
                     setModalVisible(false);
                     if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                         setRootStatusBarEnabled(false);
                         return;
                     }
