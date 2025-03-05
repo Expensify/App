@@ -2,9 +2,10 @@
 title: Create a Workspace for Yourself
 description: Get started with Expensify by creating a workspace to track your expenses as a freelancer or individual user.
 ---
-<div id="expensify-classic" markdown="1">
 
 Creating a workspace in Expensify Classic is the first step to organizing your expenses and managing your finances efficiently. This guide walks you through setting up your workspace so you can seamlessly track receipts, submit reports, and stay on top of your spending.
+
+All Expensify accounts include an Individual Workspace, which allows you to track personal expenses. If you want to connect your personal expenses to an accounting or travel integration, you can create a Group Workspace — even if you are the only member.
 
 ---
 # 1. Download the Mobile App
@@ -19,7 +20,7 @@ Your personal assistant, **Concierge**, is available on your Expensify Home page
 - Alerts when more information is needed on a report.
 - Updates on new and improved features.  
 
-**Need help?** Click the green chat bubble in the bottom-right corner to chat with Concierge for direct support.
+**Need help?** Click the green chat bubble at the bottom of your screen to chat with Concierge for direct support.
 
 ---
 # 3. Create a Workspace

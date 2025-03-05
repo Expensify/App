@@ -11,8 +11,6 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@src/components/ConfirmedRoute.tsx');
-
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
 const approverAccountID = 1111111;
