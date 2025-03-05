@@ -1581,7 +1581,7 @@ function getValidOptions(
 
     if (excludeHiddenThreads) {
         recentReportOptions = recentReportOptions.filter(
-            (option) => (!option.parentReportActionID && !option.parentReportID) || option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            (option) => !option.isThread || option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         );
     }
 
