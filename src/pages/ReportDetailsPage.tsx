@@ -648,6 +648,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         return items;
     }, [
         beginPDFExport,
+        canUsePDFExport,
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
