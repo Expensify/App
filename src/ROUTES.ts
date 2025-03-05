@@ -1168,11 +1168,15 @@ const ROUTES = {
     WORKSPACE_UPGRADE: {
         route: 'settings/workspaces/:policyID?/upgrade/:featureName?',
         getRoute: (policyID?: string, featureName?: string, backTo?: string) =>
-            policyID ? getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo) : (`settings/workspaces/upgrade` as const),
+            getUrlWithBackToParam(
+                policyID ? (`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`settings/workspaces/upgrade` as const),
+                backTo,
+            ),
     },
     WORKSPACE_DOWNGRADE: {
         route: 'settings/workspaces/:policyID?/downgrade/',
-        getRoute: (policyID?: string) => (policyID ? (`settings/workspaces/${policyID}/downgrade/` as const) : `settings/workspaces/downgrade`),
+        getRoute: (policyID?: string, backTo?: string) =>
+            getUrlWithBackToParam(policyID ? (`settings/workspaces/${policyID}/downgrade/` as const) : (`settings/workspaces/downgrade` as const), backTo),
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
