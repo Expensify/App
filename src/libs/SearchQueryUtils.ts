@@ -572,10 +572,17 @@ function getFilterDisplayValue(
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
         const workspaceFeedKey = getWorkspaceCardFeedKey(filterValue);
-        if (cardFeedNamesWithType[workspaceFeedKey].type === 'workspace') {
-            return cardFeedNamesWithType[workspaceFeedKey].name;
+
+        const workspaceValue = cardFeedNamesWithType[workspaceFeedKey];
+        const domainValue = cardFeedNamesWithType[filterValue];
+
+        if (workspaceValue && workspaceValue.type === 'workspace') {
+            return workspaceValue.name;
         }
-        return cardFeedNamesWithType[filterValue].name;
+
+        if (domainValue && domainValue.type === 'domain') {
+            return domainValue.name;
+        }
     }
     return filterValue;
 }
