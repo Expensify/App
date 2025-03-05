@@ -245,7 +245,7 @@ describe('Tests for group chat name', () => {
             .then(waitForBatchedUpdates)
             .then(async () => {
                 await act(() => transitionEndCB?.());
-                const name = 'A, B, C, D, E';
+                const name = 'A, B, C, D, E...';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
             }));
