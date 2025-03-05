@@ -177,7 +177,7 @@ function IOURequestStepConfirmation({
         if (isLoadingTransaction) {
             return;
         }
-        
+
         // Check if the transaction belongs to the current report
         const isCurrentReportID = transaction?.isFromGlobalCreate
             ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
