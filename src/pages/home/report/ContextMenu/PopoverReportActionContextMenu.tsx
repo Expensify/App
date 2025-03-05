@@ -237,18 +237,12 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
         // After we have called the action, reset it.
         onPopoverShow.current = () => {};
-    };
-
-    useEffect(() => {
-        if (!isPopoverVisible) {
-            return;
-        }
 
         // After the context menu opening animation ends reset isContextMenuOpening.
         setTimeout(() => {
             setIsContextMenuOpening(false);
         }, CONST.ANIMATED_TRANSITION);
-    }, [isPopoverVisible]);
+    };
 
     /** Run the callback and return a noop function to reset it */
     const runAndResetCallback = (callback: () => void) => {
