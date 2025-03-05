@@ -18,6 +18,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
+import getPlatform from '@libs/getPlatform';
 import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as PolicyUtilsIsPolicyAdmin} from '@libs/PolicyUtils';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
 import {
@@ -46,12 +47,12 @@ type BaseReportActionContextMenuProps = {
     reportID: string | undefined;
 
     /** The ID of the report action this context menu is attached to. */
-    reportActionID: string;
+    reportActionID: string | undefined;
 
     /** The ID of the original report from which the given reportAction is first created. */
     // originalReportID is used in withOnyx to get the reportActions for the original report
     // eslint-disable-next-line react/no-unused-prop-types
-    originalReportID: string;
+    originalReportID: string | undefined;
 
     /**
      * If true, this component will be a small, row-oriented menu that displays icons but not text.
@@ -151,7 +152,7 @@ function BaseReportActionContextMenu({
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
-        if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1') {
+        if (isEmptyObject(reportActions) || !reportActionID || reportActionID === '0' || reportActionID === '-1') {
             return;
         }
         return reportActions[reportActionID];
@@ -323,9 +324,11 @@ function BaseReportActionContextMenu({
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
     const isPolicyAdmin = PolicyUtilsIsPolicyAdmin(getPolicy(policyID));
     const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
+    const isUsingBottomDockedModal =
+        getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS || (shouldUseNarrowLayout && getPlatform(true) === CONST.PLATFORM.MOBILEWEB);
 
     return (
-        (isVisible || shouldKeepOpen) && (
+        (isVisible || shouldKeepOpen || isUsingBottomDockedModal) && (
             <FocusTrapForModal active={!isMini && !isSmallScreenWidth}>
                 <View
                     ref={contentRef}
