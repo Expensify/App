@@ -6,14 +6,29 @@ import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentM
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
+import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {FundList} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/GoogleTagManager');
 
 // Mock the Overlay since it doesn't work in tests
 jest.mock('@libs/Navigation/AppNavigator/Navigators/Overlay');
+
+const FUND_LIST: FundList = {
+    defaultCard: {
+        isDefault: true,
+        accountData: {
+            cardYear: new Date().getFullYear(),
+            cardMonth: new Date().getMonth() + 1,
+            additionalData: {
+                isBillingCard: true,
+            },
+        },
+    },
+};
 
 describe('GoogleTagManagerTest', () => {
     const accountID = 123456;
@@ -126,5 +141,24 @@ describe('GoogleTagManagerTest', () => {
         // Then we publish a paid_adoption event only once
         expect(GoogleTagManager.publishEvent).toBeCalledTimes(1);
         expect(GoogleTagManager.publishEvent).toBeCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    });
+
+    it('addSubscriptionPaymentCard when changing payment card, will not publish event paid_adoption', async () => {
+        await Onyx.multiSet({
+            [ONYXKEYS.FUND_LIST]: FUND_LIST,
+        });
+
+        addSubscriptionPaymentCard(accountID, {
+            cardNumber: 'cardNumber',
+            cardYear: 'cardYear',
+            cardMonth: 'cardMonth',
+            cardCVV: 'cardCVV',
+            addressName: 'addressName',
+            addressZip: 'addressZip',
+            currency: 'USD',
+        });
+
+        expect(!!getCardForSubscriptionBilling()).toBe(true);
+        expect(GoogleTagManager.publishEvent).toBeCalledTimes(0);
     });
 });
