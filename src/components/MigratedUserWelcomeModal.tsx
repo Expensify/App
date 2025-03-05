@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
@@ -49,19 +50,20 @@ function OnboardingWelcomeVideo() {
     });
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
-    const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
     useEffect(() => {
         if (isLoadingOnyxValue(tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
             return;
         }
+        const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
         if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
             return;
         }
         setIsModalVisible(false);
-        Navigation.navigate(ROUTES.HOME);
-    }, [hasBeenAddedToNudgeMigration, dismissedProductTraining?.migratedUserWelcomeModal, setIsModalVisible, tryNewDotdMetadata, dismissedProductTrainingMetadata]);
+        const defaultCannedQuery = buildCannedSearchQuery();
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalVisible, tryNewDotdMetadata, dismissedProductTrainingMetadata, tryNewDot]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
