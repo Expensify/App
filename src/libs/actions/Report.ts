@@ -969,7 +969,9 @@ function openReport(
             parameters.file = avatar;
         }
 
-        clearGroupChat();
+        InteractionManager.runAfterInteractions(() => {
+            clearGroupChat();
+        });
     }
 
     if (isFromDeepLink) {
