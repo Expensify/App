@@ -153,6 +153,12 @@ Credits appear as negative expenses (e.g., -$1.00). They offset the total report
 - A report with $400 and $500 reimbursable expenses shows a total of $900.
 - A report with -$400 and $500 expenses results in a $100 total.
 
+## What’s the difference between an expense, a receipt, and a report attachment?
+
+- **Expense:** Created when you SmartScan or manually upload a receipt.
+- **Receipt:** Image file automatically attached to an expense via SmartScan.
+- **Report Attachment:** Additional documents (e.g., supporting documents) added via the paperclip icon in report comments.
+
 ## What’s the Difference Between Expense Reports, Bills, and Invoices?
 
 - **Expense Report**: Submitted by an employee to their employer. This may include:
