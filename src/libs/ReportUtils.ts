@@ -4438,9 +4438,14 @@ function getReportNameInternal({
         return getIOUUnapprovedMessage(parentReportAction);
     }
 
+    if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
+        return translateLocal('parentReportAction.deletedTask');
+    }
+
     if (isTaskReport(report)) {
         return Parser.htmlToText(report?.reportName ?? '');
     }
+
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
@@ -4499,15 +4504,11 @@ function getReportNameInternal({
         return translateLocal('parentReportAction.deletedReport');
     }
 
-    if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
-        return translateLocal('parentReportAction.deletedTask');
-    }
-
     if (isGroupChat(report)) {
         return getGroupChatName(undefined, true, report) ?? '';
     }
 
-    if (isChatRoom(report) || isTaskReport(report)) {
+    if (isChatRoom(report)) {
         formattedName = report?.reportName;
     }
 
