@@ -225,7 +225,7 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
-function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true) {
+function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSession?: boolean, killHybridApp = true, shouldHandleCopilotSignout?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
@@ -255,6 +255,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 [ONYXKEYS.STASHED_SESSION]: session,
             };
         }
+
         // If this is a supportal token, and we've received the parameters to stashSession as true, and
         // we already have a stashedSession, that means we are supportaled, currently supportaling
         // into another account and we want to keep the stashed data from the original account.
@@ -272,6 +273,16 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 [ONYXKEYS.SESSION]: stashedSession,
             };
         }
+
+        // Now if this is a copilot access, we do not want to stash the current session and we have a
+        // stashed session, then we need to restore the stashed session instead of completely logging out
+        if(shouldHandleCopilotSignout && shouldStashSession && hasStashedSession()){
+            onyxSetParams = {
+                [ONYXKEYS.CREDENTIALS]: stashedCredentials,
+                [ONYXKEYS.SESSION]: stashedSession,
+            };
+        }
+
         if (isSupportal && !shouldStashSession && !hasStashedSession()) {
             Log.info('No stashed session found for supportal access, clearing the session');
         }
