@@ -11,12 +11,14 @@ import CardListItem from '@components/SelectionList/Search/CardListItem';
 import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
-import {getBankName, getCardFeedIcon, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
+import {getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,10 +45,10 @@ function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Re
     return Object.keys(bankFrequency).filter((bank) => bankFrequency[bank] > 1);
 }
 
-function createIndividualCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[]): CardFilterItem {
+function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsList, selectedCards: string[], illustrations: IllustrationsType): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
-    const icon = getCardFeedIcon(card?.bank as CompanyCardFeed);
+    const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations);
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
 
@@ -66,23 +68,27 @@ function createIndividualCardFilterItem(card: Card, personalDetailsList: Persona
     };
 }
 
-function buildIndividualCardsData(
+function buildCardsData(
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
     userCardList: CardList,
     personalDetailsList: PersonalDetailsList,
     selectedCards: string[],
+    illustrations: IllustrationsType,
+    isClosedCards = false,
 ): ItemsGroupedBySelection {
+    // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
+    const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
-        .filter((card) => !isCardHiddenFromSearch(card))
-        .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
+        .filter((card) => filterCondition(card))
+        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
         .filter((cardFeed) => !isEmptyObject(cardFeed))
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as Record<string, Card>)
-                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && !isCardHiddenFromSearch(card))
-                .map((card) => createIndividualCardFilterItem(card, personalDetailsList, selectedCards));
+                .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
+                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations));
         });
 
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
@@ -105,6 +111,7 @@ function createCardFeedItem({
     correspondingCardIDs,
     selectedCards,
     translate,
+    illustrations,
 }: {
     bank: string;
     cardFeedLabel: string | undefined;
@@ -112,12 +119,16 @@ function createCardFeedItem({
     correspondingCardIDs: string[];
     selectedCards: string[];
     translate: LocaleContextProps['translate'];
+    illustrations: IllustrationsType;
 }): CardFilterItem {
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
-    const text = translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
+    const text =
+        cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
+            ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
+            : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
 
-    const icon = getCardFeedIcon(bank as CompanyCardFeed);
+    const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations);
     return {
         text,
         keyForList,
@@ -136,6 +147,7 @@ function buildCardFeedsData(
     domainFeedsData: Record<string, DomainFeedData>,
     selectedCards: string[],
     translate: LocaleContextProps['translate'],
+    illustrations: IllustrationsType,
 ): ItemsGroupedBySelection {
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
     const selectedFeeds: CardFilterItem[] = [];
@@ -152,6 +164,7 @@ function buildCardFeedsData(
             translate,
             keyForList: `${domainName}-${bank}`,
             selectedCards,
+            illustrations,
         });
         if (feedItem.isSelected) {
             selectedFeeds.push(feedItem);
@@ -172,6 +185,7 @@ function buildCardFeedsData(
             const isBankRepeating = repeatingBanks.includes(bank);
             const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
             const correspondingPolicy = getPolicy(policyID?.toUpperCase());
+            // We need to assign correspondingCardIDs for closed cards as well, because we need to be able to select on "all" both closed and individual cards
             const correspondingCardIDs = Object.entries(cardFeed ?? {})
                 .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
                 .map(([cardKey]) => cardKey);
@@ -183,6 +197,7 @@ function buildCardFeedsData(
                 translate,
                 keyForList: cardFeedKey,
                 selectedCards,
+                illustrations,
             });
             if (feedItem.isSelected) {
                 selectedFeeds.push(feedItem);
@@ -197,6 +212,7 @@ function buildCardFeedsData(
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useThemeIllustrations();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -211,8 +227,13 @@ function SearchFiltersCardPage() {
     }, []);
 
     const individualCardsSectionData = useMemo(
-        () => buildIndividualCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards),
-        [workspaceCardFeeds, userCardList, personalDetails, selectedCards],
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, false),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
+    );
+
+    const closedCardsSectionData = useMemo(
+        () => buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, true),
+        [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
     );
 
     const domainFeedsData = useMemo(
@@ -232,8 +253,8 @@ function SearchFiltersCardPage() {
     );
 
     const cardFeedsSectionData = useMemo(
-        () => buildCardFeedsData(workspaceCardFeeds ?? {}, domainFeedsData, selectedCards, translate),
-        [domainFeedsData, workspaceCardFeeds, selectedCards, translate],
+        () => buildCardFeedsData(workspaceCardFeeds ?? {}, domainFeedsData, selectedCards, translate, illustrations),
+        [domainFeedsData, workspaceCardFeeds, selectedCards, translate, illustrations],
     );
 
     const shouldShowSearchInput =
@@ -251,7 +272,7 @@ function SearchFiltersCardPage() {
 
     const sections = useMemo(() => {
         const newSections = [];
-        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected];
+        const selectedItems = [...cardFeedsSectionData.selected, ...individualCardsSectionData.selected, ...closedCardsSectionData.selected];
 
         newSections.push({
             title: undefined,
@@ -268,8 +289,22 @@ function SearchFiltersCardPage() {
             data: individualCardsSectionData.unselected.filter(searchFunction),
             shouldShow: individualCardsSectionData.unselected.length > 0,
         });
+        newSections.push({
+            title: translate('search.filters.card.closedCards'),
+            data: closedCardsSectionData.unselected.filter(searchFunction),
+            shouldShow: closedCardsSectionData.unselected.length > 0,
+        });
         return newSections;
-    }, [cardFeedsSectionData.selected, cardFeedsSectionData.unselected, individualCardsSectionData.selected, individualCardsSectionData.unselected, searchFunction, translate]);
+    }, [
+        cardFeedsSectionData.selected,
+        cardFeedsSectionData.unselected,
+        individualCardsSectionData.selected,
+        individualCardsSectionData.unselected,
+        closedCardsSectionData.selected,
+        closedCardsSectionData.unselected,
+        searchFunction,
+        translate,
+    ]);
 
     const handleConfirmSelection = useCallback(() => {
         updateAdvancedFilters({
@@ -354,4 +389,4 @@ function SearchFiltersCardPage() {
 SearchFiltersCardPage.displayName = 'SearchFiltersCardPage';
 
 export default SearchFiltersCardPage;
-export {buildIndividualCardsData, buildCardFeedsData};
+export {buildCardsData, buildCardFeedsData};

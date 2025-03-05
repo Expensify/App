@@ -88,6 +88,18 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             return;
         }
 
+        // Handle initial personal details load. This initialization is required here specifically to prevent
+        // UI freezing that occurs when resetting the app from the troubleshooting page.
+        if (!prevPersonalDetails) {
+            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, reports);
+            setOptions((prevOptions) => ({
+                ...prevOptions,
+                personalDetails: newPersonalDetailsOptions,
+                reports: newReports,
+            }));
+            return;
+        }
+
         const newReportOptions: Array<{
             replaceIndex: number;
             newReportOption: SearchOption<Report>;
@@ -139,10 +151,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [personalDetails, reports]);
 
     const initializeOptions = useCallback(() => {
-        if (areOptionsInitialized.current) {
-            return;
-        }
-
         loadOptions();
         areOptionsInitialized.current = true;
     }, [loadOptions]);

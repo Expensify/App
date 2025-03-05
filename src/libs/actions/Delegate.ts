@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -209,11 +209,13 @@ function disconnect() {
         .then((response) => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
+                restoreDelegateSession(stashedSession);
                 return;
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
+                restoreDelegateSession(stashedSession);
                 return;
             }
 
@@ -532,10 +534,9 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                         delegate.email === email
                             ? {
                                   ...delegate,
-                                  role,
+                                  isLoading: true,
                                   pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                   pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                                  isLoading: true,
                               }
                             : delegate,
                     ),
@@ -560,9 +561,9 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
                             ? {
                                   ...delegate,
                                   role,
+                                  isLoading: false,
                                   pendingAction: null,
                                   pendingFields: {role: null},
-                                  isLoading: false,
                               }
                             : delegate,
                     ),
@@ -672,6 +673,10 @@ function restoreDelegateSession(authenticateResponse: Response) {
     });
 }
 
+function openSecuritySettingsPage() {
+    API.read(READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE, null);
+}
+
 export {
     connect,
     disconnect,
@@ -686,5 +691,6 @@ export {
     clearDelegateRolePendingAction,
     updateDelegateRole,
     removeDelegate,
+    openSecuritySettingsPage,
     KEYS_TO_PRESERVE_DELEGATE_ACCESS,
 };

@@ -26,9 +26,10 @@
 * [Offline First](contributingGuides/OFFLINE_UX.md)
 * [Contributing to Expensify](contributingGuides/CONTRIBUTING.md)
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
-* [Contributor License Agreement](contributingGuides/CLA.md)
+* [Contributor License Agreement](CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
 * [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
+* [HybridApp - additional info & troubleshooting](contributingGuides/HYBRID_APP.md)
 
 ----
 
@@ -556,25 +557,9 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 
 `npx patch-package <PACKAGE_NAME> --patch-dir Mobile-Expensify/patches`
 
-### HybridApp troubleshooting
+### Additional information and troubleshooting
 
-#### Cleaning the repo
-- `npm run clean` - deep clean of all HybridApp artifacts (including NewDot's `node_modules`)
-- `npm run clean -- --ios` - clean only iOS HybridApp artifacts (`Pods`, `build` folder, `DerivedData`)
-- `npm run clean -- --android` - clean only Android HybridApp artifacts (`.cxx`, `build`, and `.gradle` folders, execute `./gradlew clean`)
-
-If you'd like to do it manually, remember to `cd Mobile-Expensify` first!
-
-#### Common errors
-1. **Please check your internet connection** - set `_isOnDev` in `api.js` to always return `false` 
-2. **CDN: trunk URL couldn't be downloaded** - `cd Mobile-Expensify/iOS && pod repo remove trunk`
-
-3. **Task :validateSigningRelease FAILED** - open `Mobile-Expensify/Android/build.gradle` and do the following:
-    ```
-    - signingConfig signingConfigs.release
-    + signingConfig signingConfigs.debug
-    ```
-4. **Build service could not create build operation: unknown error while handling message: MsgHandlingError(message: "unable to initiate PIF transfer session (operation in progress?)")** - reopen XCode
+If you seek some addtional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
 
 ----
 
@@ -823,6 +808,16 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 ### finishReleaseCycle
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
+### testBuild
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
+
+### testBuildHybrid
+The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+- A PR number from the App repository for testing New Dot (ND) changes.
+- A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
+
+Both PR numbers can be entered simultaneously if the changes from both repositories need to be combined and tested. Additionally, contributors can explicitly link related PRs from the Mobile-Expensify repository in the App repository PR description if required. Guidance on linking PRs can be found [in PR template](https://github.com/Expensify/App/blob/main/.github/PULL_REQUEST_TEMPLATE.md?plain=1#L25-L30)
+
 ## Local production builds
 Sometimes it might be beneficial to generate a local production version instead of testing on production. Follow the steps below for each client:
 
@@ -854,3 +849,14 @@ In order to compile a production iOS build, run `npm run ios-build`, this will g
 
 #### Local production build the Android app
 To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
+
+# Onyx derived values
+Onyx derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
+
+## Creating new Onyx derived values
+1. Add the new Onyx key. The keys for Onyx derived values are stored in `ONYXKEYS.ts`, in the `ONYXKEYS.DERIVED` object.
+2. Declare the type for the derived value in `ONYXKEYS.ts`, in the `OnyxDerivedValuesMapping` type.
+3. Add the derived value config to `ONYX_DERIVED_VALUES` in `src/libs/OnyxDerived.ts`. A derived value config is defined by:
+   1. The Onyx key for the derived value
+   2. An array of dependent Onyx keys (which can be any keys, not including the one from the previous step. Including other derived values!)
+   3. A `compute` function, which takes an array of dependent Onyx values (in the same order as the array of keys from the previous step), and returns a value matching the type you declared in `OnyxDerivedValuesMapping`
