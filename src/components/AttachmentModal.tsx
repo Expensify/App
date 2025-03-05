@@ -554,6 +554,7 @@ function AttachmentModal({
                             />
                         )}
                         {!shouldShowNotFoundPage &&
+                            !isLoading &&
                             (!isEmptyObject(report) && !isReceiptAttachment ? (
                                 <AttachmentCarousel
                                     accountID={accountID}
@@ -567,8 +568,7 @@ function AttachmentModal({
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&
-                                shouldLoadAttachment &&
-                                !isLoading && (
+                                shouldLoadAttachment && (
                                     <AttachmentCarouselPagerContext.Provider value={context}>
                                         <AttachmentView
                                             containerStyles={[styles.mh5]}

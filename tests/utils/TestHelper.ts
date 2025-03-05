@@ -343,6 +343,7 @@ export {
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
+    getFetchMockCalls,
     getGlobalFetchMock,
     setPersonalDetails,
     signInWithTestUser,
