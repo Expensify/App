@@ -28,4 +28,4 @@ To check your Smart Limit,
 
 ![Insert alt text for accessibility here]({{site.url}}/assets/images/wallet-01.png){:width=“100%“}
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/assets/images/wallet-02.png){:width=“100%“}
+![Insert alt text for accessibility here]({{site.url}}/assets/images/wallet-02.png){:width=“100%“}
