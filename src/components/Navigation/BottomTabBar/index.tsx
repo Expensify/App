@@ -1,9 +1,7 @@
-import React, {memo, useCallback, useContext, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {FABPopoverContext} from '@components/FABPopoverProvider';
-import FloatingActionButton from '@components/FloatingActionButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import DebugTabView from '@components/Navigation/DebugTabView';
@@ -31,6 +29,7 @@ import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {AuthScreensParamList, RootNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
+import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -73,7 +72,6 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
 }
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
-    const {isCreateMenuActive, toggleCreateMenu, fabRef} = useContext(FABPopoverContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -285,14 +283,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     onPress={showSettingsPage}
                 />
                 <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <FloatingActionButton
-                        accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
-                        role={CONST.ROLE.BUTTON}
-                        isActive={isCreateMenuActive}
-                        ref={fabRef}
-                        onPress={() => toggleCreateMenu(isCreateMenuActive)}
-                        isTooltipAllowed={isTooltipAllowed}
-                    />
+                    <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
                 </View>
             </View>
         </>
