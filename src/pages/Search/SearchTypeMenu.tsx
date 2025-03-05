@@ -36,10 +36,9 @@ import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON;
-    shouldGroupByReports?: boolean;
 };
 
-function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) {
+function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {type, hash} = queryJSON;
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -166,7 +165,7 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
     const isCannedQuery = isCannedSearchQuery(queryJSON);
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {
-              if (shouldGroupByReports) {
+              if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
                   return item.translationPath === 'common.expenseReports' && item.type === type;
               }
               return item.type === type;

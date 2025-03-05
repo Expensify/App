@@ -20,7 +20,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
@@ -45,8 +44,6 @@ function SearchPage({route}: SearchPageProps) {
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
 
-    const shouldGroupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
-
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
@@ -56,7 +53,6 @@ function SearchPage({route}: SearchPageProps) {
                 <SearchPageNarrow
                     queryJSON={queryJSON}
                     policyID={policyID}
-                    shouldGroupByReports={shouldGroupByReports}
                     searchName={searchName}
                 />
             </FreezeWrapper>
@@ -82,10 +78,7 @@ function SearchPage({route}: SearchPageProps) {
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                     />
-                                    <SearchTypeMenu
-                                        queryJSON={queryJSON}
-                                        shouldGroupByReports={shouldGroupByReports}
-                                    />
+                                    <SearchTypeMenu queryJSON={queryJSON} />
                                 </View>
                             ) : (
                                 <HeaderWithBackButton
@@ -103,15 +96,11 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <SearchPageHeader
-                                queryJSON={queryJSON}
-                                shouldGroupByReports={shouldGroupByReports}
-                            />
+                            <SearchPageHeader queryJSON={queryJSON} />
                             <SearchStatusBar queryJSON={queryJSON} />
                             <Search
                                 key={queryJSON.hash}
                                 queryJSON={queryJSON}
-                                shouldGroupByReports={shouldGroupByReports}
                             />
                         </ScreenWrapper>
                     </View>

@@ -578,14 +578,10 @@ function buildUserReadableQueryString(
     taxRates: Record<string, string[]>,
     cardList: OnyxTypes.CardList,
 ) {
-    const {type, status, groupBy} = queryJSON;
+    const {type, status} = queryJSON;
     const filters = queryJSON.flatFilters;
 
     let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
-
-    if (groupBy) {
-        title += ` group-by:${groupBy}`;
-    }
 
     for (const filterObject of filters) {
         const key = filterObject.key;
