@@ -5,7 +5,6 @@ import type Transaction from '@src/types/onyx/Transaction';
 
 type TransactionItemComponentStory = StoryFn<typeof TransactionItemComponent>;
 
-// const transactionItemList : Array<TransactionListItemType & {bank:string,billable:boolean,cardID:number,cardName:string,cardNumber:string,filename:string}> = [
 const transactionItemList : Array<Transaction&{mcc:string,modifiedMCC:string}> = [
     {
         "amount": -769900,
@@ -39,7 +38,7 @@ const transactionItemList : Array<Transaction&{mcc:string,modifiedMCC:string}> =
         "reimbursable": false,
         "reportID": "0",
         "status": "Posted",
-        "tag": "privat",
+        "tag": "private",
         "transactionID": "1564303948126109676"
     }]
 
