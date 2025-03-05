@@ -5452,6 +5452,20 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
+
+        expenseWidgetSeparator:{
+            marginHorizontal: 8,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeXLarge,
+            color: theme.textSupporting,
+        },
+        expenseWidgetMargin:{
+            margin:5
+        },
+
+        expenseWidgetRadius:{
+            borderRadius: variables.componentBorderRadiusNormal,
+        }
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

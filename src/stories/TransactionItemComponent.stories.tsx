@@ -54,7 +54,8 @@ const story: Meta<typeof TransactionItemComponent> = {
     component: TransactionItemComponent,
     args: {
         transactionItem: transactionItemList.at(0),
-        isLargeScreenWidth:false
+        isLargeScreenWidth:false,
+        isSelected:false
     },
     argTypes: {
         transactionItem: {
@@ -63,19 +64,21 @@ const story: Meta<typeof TransactionItemComponent> = {
         isLargeScreenWidth:{
             control:'boolean'
         },
+        isSelected:{
+            control:'boolean'
+        }
     },
 };
 
-// Użycie args w story
-function Template({ transactionItem,isLargeScreenWidth,}: { transactionItem: Transaction;isLargeScreenWidth:boolean;}) {
-    return <TransactionItemComponent transactionItem={transactionItem} isLargeScreenWidth={isLargeScreenWidth}/>;
+function Template({ transactionItem,isLargeScreenWidth,isSelected}: { transactionItem: Transaction;isLargeScreenWidth:boolean;isSelected:boolean }) {
+    return <TransactionItemComponent transactionItem={transactionItem} isLargeScreenWidth={isLargeScreenWidth} isSelected={isSelected}/>;
 }
 
-// Default Story
 const Default: TransactionItemComponentStory = Template.bind({});
 Default.args = {
     transactionItem: transactionItemList.at(0),
-    isLargeScreenWidth:false
+    isLargeScreenWidth:false,
+    isSelected:false
 };
 
 

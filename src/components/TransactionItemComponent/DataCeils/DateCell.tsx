@@ -4,10 +4,11 @@ import {getCreated as getTransactionCreated} from '@libs/TransactionUtils';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import TextWithTooltip from '@components/TextWithTooltip';
-import type Transaction from '@src/types/onyx/Transaction';
+import colors from '@styles/theme/colors';
+import DataCellProps from '@components/TransactionItemComponent/DataCeils/DateCellProps';
 
 
-function DateCell({transactionItem, showTooltip, isLargeScreenWidth} :any) {
+function DateCell({transactionItem, showTooltip, isLargeScreenWidth} :DataCellProps) {
     const styles = useThemeStyles();
 
     const created = getTransactionCreated(transactionItem);
@@ -17,7 +18,7 @@ function DateCell({transactionItem, showTooltip, isLargeScreenWidth} :any) {
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={date}
-            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter,styles.textLabelSupporting]}
+            style={[styles.pre, styles.justifyContentCenter,isLargeScreenWidth? {color:colors.green800} : styles.textLabelSupporting]}
         />
     );
 }

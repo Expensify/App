@@ -4,26 +4,11 @@ import useLocalize from '@hooks/useLocalize';
 import {getCurrency as getTransactionCurrency, hasReceipt, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import TextWithTooltip from '@components/TextWithTooltip';
-import type {TransactionListItemType} from '@components/SelectionList/types';
 import colors from '@styles/theme/colors';
+import type DataCellProps from './DateCellProps';
 
-type CellProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
-    showTooltip: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
-    isLargeScreenWidth: boolean;
-};
 
-type TransactionCellProps = {
-    transactionItem: TransactionListItemType;
-} & CellProps;
-
-type TotalCellProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
-    isChildListItem: boolean;
-} & TransactionCellProps;
-
-function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCellProps) {
+function TotalCell({showTooltip, transactionItem}: DataCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);

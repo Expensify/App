@@ -1,54 +1,38 @@
 import useTheme from '@hooks/useTheme';
 import Icon from '@components/Icon';
-import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import CONST from '@src/CONST';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type {TransactionListItemType} from '@components/SelectionList/types';
 import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Expensicons from '@components/Icon/Expensicons';
+import type DataCellProps from './DateCellProps';
 
-const getTypeIcon = (type?: SearchTransactionType) => {
+const getTypeIcon = (type?: string) => {
     switch (type) {
-        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+        case CONST.EXPENSE.TYPE.CASH_CARD_NAME:
             return Expensicons.Cash;
-        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
-            return Expensicons.CreditCard;
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            return Expensicons.Car;
+        case undefined:
+            return Expensicons.Cash;
         default:
             return Expensicons.Cash;
     }
 };
 
-const getTypeText = (type?: SearchTransactionType) => {
+const getTypeText = (type?: string) => {
     switch (type) {
-        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
+        case CONST.EXPENSE.TYPE.CASH_CARD_NAME:
             return "Cash";
-        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
+        case undefined:
+            return "Cash";
+        default:
             return "CreditCard";
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            return "Car";
-        default:
-            return "Cash";
     }
 };
 
-type TransactionCellProps = {
-    transactionItem: TransactionListItemType;
-} & CellProps;
-
-type CellProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
-    showTooltip: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
-    isLargeScreenWidth: boolean;
-};
-
-function TypeCell({transactionItem, isLargeScreenWidth, showTooltip}: TransactionCellProps) {
+function TypeCell({transactionItem, isLargeScreenWidth, showTooltip}: DataCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.transactionType);
-    const typeText = getTypeText(transactionItem.transactionType);
+    const typeIcon = getTypeIcon(transactionItem.cardName);
+    const typeText = getTypeText(transactionItem.cardName);
     const styles = useThemeStyles();
 
     return isLargeScreenWidth ? (
