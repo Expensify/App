@@ -5,7 +5,7 @@ import TextWithIconCell from '@components/SelectionList/Search/TextWithIconCell'
 import * as Expensicons from '@components/Icon/Expensicons';
 import React from 'react';
 import colors from '@styles/theme/colors';
-import DataCellProps from '@components/TransactionItemComponent/DataCeils/DateCellProps';
+import type DataCellProps from './DateCellProps';
 
 
 function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: DataCellProps) {

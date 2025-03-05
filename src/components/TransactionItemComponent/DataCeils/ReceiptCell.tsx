@@ -10,7 +10,7 @@ import { getFileName } from '@libs/fileDownload/FileUtils';
 import { getThumbnailAndImageURIs } from '@libs/ReceiptUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
-import {Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 
 
 function ReceiptCell({transactionItem}: {transactionItem: Transaction}) {

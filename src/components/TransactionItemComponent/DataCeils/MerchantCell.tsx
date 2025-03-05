@@ -2,7 +2,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import TextWithTooltip from '@components/TextWithTooltip';
 import React from 'react';
 import colors from '@styles/theme/colors';
-import DataCellProps from '@components/TransactionItemComponent/DataCeils/DateCellProps';
+import type DataCellProps from './DateCellProps';
 
 function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: DataCellProps) {
     const styles = useThemeStyles();

@@ -4,7 +4,7 @@ import React from 'react';
 import TextWithIconCell from '@components/SelectionList/Search/TextWithIconCell';
 import * as Expensicons from '@components/Icon/Expensicons';
 import colors from '@styles/theme/colors';
-import type DataCellProps from '@components/TransactionItemComponent/DataCeils/DateCellProps';
+import type DataCellProps from './DateCellProps';
 
 
 function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: DataCellProps) {

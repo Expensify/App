@@ -5,7 +5,7 @@ import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import TextWithTooltip from '@components/TextWithTooltip';
 import colors from '@styles/theme/colors';
-import DataCellProps from '@components/TransactionItemComponent/DataCeils/DateCellProps';
+import type DataCellProps from './DateCellProps';
 
 
 function DateCell({transactionItem, showTooltip, isLargeScreenWidth} :DataCellProps) {
