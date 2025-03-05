@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
+import SearchTableHeader, {SearchColumns} from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -379,7 +379,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    const shouldShowEmptyState = !isDataLoaded || data.length === 0;
+    const shouldShowEmptyState = !isDataLoaded || data.length === 0 || !Object.hasOwn(SearchColumns, searchResults?.search.type);
 
     if (shouldShowEmptyState) {
         return (
