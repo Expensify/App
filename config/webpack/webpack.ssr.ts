@@ -41,8 +41,10 @@ const emailsConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
                         loader: 'css-loader',
                         options: {
                             modules: false,
+                            importLoaders: 1,
                         },
                     },
+                    'postcss-loader',
                 ],
             },
         ],

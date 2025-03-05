@@ -1,4 +1,4 @@
-import StyleContext from 'isomorphic-style-loader-react18';
+import StyleContext from 'isomorphic-style-loader-react18/StyleContext';
 import React, {ReactNode} from 'react';
 import {View} from 'react-native';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
