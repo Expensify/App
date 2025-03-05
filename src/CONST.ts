@@ -75,9 +75,9 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
 };
 
 const connectionsVideoPaths = {
-    [ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]: "videos/walkthrough-connect_to_qbo.mp4",
-    [ONBOARDING_ACCOUNTING_MAPPING.xero]: "videos/walkthrough-connect_to_xero.mp4",
-    [ONBOARDING_ACCOUNTING_MAPPING.netsuite]: "videos/walkthrough-connect_to_netsuite.mp4"
+    [ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]: 'videos/walkthrough-connect_to_qbo.mp4',
+    [ONBOARDING_ACCOUNTING_MAPPING.xero]: 'videos/walkthrough-connect_to_xero.mp4',
+    [ONBOARDING_ACCOUNTING_MAPPING.netsuite]: 'videos/walkthrough-connect_to_netsuite.mp4',
 };
 
 // Explicit type annotation is required
@@ -304,7 +304,7 @@ type OnboardingTask = {
                   workspaceCategoriesLink: string;
                   workspaceMoreFeaturesLink: string;
                   workspaceMembersLink: string;
-                  integrationName: (typeof ONBOARDING_ACCOUNTING_MAPPING)[keyof typeof ONBOARDING_ACCOUNTING_MAPPING]
+                  integrationName: string;
                   workspaceAccountingLink: string;
                   workspaceSettingsLink: string;
                   navatticURL: string;
@@ -5304,30 +5304,35 @@ const CONST = {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png"`,
-                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png"`,
-                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png"`,
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png"`,
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png"`,
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png"`,
                     },
                     title: ({integrationName}) => `Connect to ${integrationName}`,
-                    description: ({ integrationName, workspaceAccountingLink }) =>
-                        `Connect to ${  integrationName  } for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                    description: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         `\n` +
-                        `Here’s how to connect to ${  integrationName  }:\n` +
+                        `Here’s how to connect to ${integrationName}:\n` +
                         `\n` +
                         `1. Click *Settings*.\n` +
                         `2. Go to *Workspaces*.\n` +
                         `3. Select your workspace.\n` +
                         `4. Click *Accounting*.\n` +
-                        `5. Find ${  integrationName  }.\n` +
+                        `5. Find ${integrationName}.\n` +
                         `6. Click *Connect*.\n` +
                         `\n` +
-                        `${ 
-                        integrationName && connectionsVideoPaths[integrationName]
-                            ? `[Take me to workspace members](${workspaceAccountingLink}).\n\n![video](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
-                            : `[Take me to workspace members](${workspaceAccountingLink}).`}`,
-
-                    },
-                    
+                        `${
+                            integrationName && connectionsVideoPaths[integrationName]
+                                ? `[Take me to workspace members](${workspaceAccountingLink}).\n\n![video](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
+                                : `[Take me to workspace members](${workspaceAccountingLink}).`
+                        }`,
+                },
             ],
         },
         [onboardingChoices.TRACK_WORKSPACE]: {
