@@ -15,7 +15,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "source-map-support": "^0.5.21"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
