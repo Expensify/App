@@ -359,10 +359,10 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
-        expect(getReportActions()).toHaveLength(10);
+        expect(getReportActions()).toHaveLength(15);
 
         // Simulate the backend returning no new messages to simulate reaching the start of the chat.
         mockGetNewerActions(0);
@@ -374,9 +374,9 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 3);
 
         // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
-        expect(getReportActions()).toHaveLength(10);
+        expect(getReportActions()).toHaveLength(15);
     });
 });
