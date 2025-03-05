@@ -2,7 +2,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import {getActivePolicies, getPolicyNameByID, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActivePolicies, getManagerAccountID, getPolicyNameByID, getRateDisplayValue, getSubmitToAccountID, getUnitRateValue, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
@@ -20,6 +20,12 @@ const CARLOS_ACCOUNT_ID = 1;
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
+const GENERATED_ACCOUNT_ID = '555555';
+
+jest.mock('@libs/UserUtils', () => ({
+    // generateAccountID: () => GENERATED_ACCOUNT_ID,
+    generateAccountID: jest.fn().mockReturnValue(GENERATED_ACCOUNT_ID),
+}));
 
 const testDate = DateUtils.getDBTime();
 const employeeList: PolicyEmployeeList = {
@@ -67,19 +73,22 @@ const categoryapprover2AccountID = 4;
 const tagapprover1AccountID = 5;
 const tagapprover2AccountID = 6;
 const ownerAccountID = 7;
+const employeeEmail = 'employee@test.com';
+const adminEmail = 'admin@test.com';
+const categoryApprover1Email = 'categoryapprover1@test.com';
 
 const personalDetails: PersonalDetailsList = {
     '1': {
         accountID: adminAccountID,
-        login: 'admin@test.com',
+        login: adminEmail,
     },
     '2': {
         accountID: employeeAccountID,
-        login: 'employee@test.com',
+        login: employeeEmail,
     },
     '3': {
         accountID: categoryapprover1AccountID,
-        login: 'categoryapprover1@test.com',
+        login: categoryApprover1Email,
     },
     '4': {
         accountID: categoryapprover2AccountID,
@@ -497,6 +506,87 @@ describe('PolicyUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
             expect(getPolicyNameByID('1')).toBe('1');
+        });
+    });
+
+    describe('getManagerAccountID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should return default approver for personal workspaces', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.PERSONAL,
+                approver: categoryApprover1Email,
+            };
+            const report: Report = {
+                ...createRandomReport(0),
+            };
+            const result = getManagerAccountID(policy, report);
+
+            expect(result).toBe(categoryapprover1AccountID);
+        });
+
+        it('should return -1 if there is no employee or default approver', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: undefined,
+                approver: undefined,
+                owner: '',
+            };
+            const report: Report = {
+                ...createRandomReport(0),
+            };
+
+            const result = getManagerAccountID(policy, report);
+
+            expect(result).toBe(-1);
+        });
+
+        it('should return submitsTo account ID', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: undefined,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        submitsTo: adminEmail,
+                    },
+                },
+            };
+            const report: Report = {
+                ...createRandomReport(0),
+                ownerAccountID: employeeAccountID,
+            };
+
+            const result = getManagerAccountID(policy, report);
+
+            expect(result).toBe(adminAccountID);
+        });
+
+        it('should return the default approver', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(0),
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: undefined,
+                approver: categoryApprover1Email,
+            };
+            const report: Report = {
+                ...createRandomReport(0),
+                ownerAccountID: employeeAccountID,
+            };
+
+            const result = getManagerAccountID(policy, report);
+
+            expect(result).toBe(categoryapprover1AccountID);
         });
     });
 });

@@ -92,6 +92,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {isCardTransaction as isCardTransactionTransactionUtils} from '@libs/TransactionUtils';
 import {
     canCancelPayment,
     cancelPayment as cancelPaymentAction,
@@ -159,7 +160,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
         selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
     });
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || CONST.DEFAULT_NUMBER_ID}`);
@@ -174,7 +175,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline), [report.reportID, reportActions, isOffline]);
 
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID || CONST.DEFAULT_NUMBER_ID}`);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -294,7 +296,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
+    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
+
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID || CONST.DEFAULT_NUMBER_ID}`);
+    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
+
+    const shouldShowDeleteButton =
+        shouldShowTaskDeleteButton || (canDeleteRequest && (!isCardTransaction || (isCardTransaction && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW)));
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -365,8 +374,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
     const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && canCancelPayment(moneyRequestReport, session);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
 
     const cancelPayment = useCallback(() => {
         if (!chatReport) {

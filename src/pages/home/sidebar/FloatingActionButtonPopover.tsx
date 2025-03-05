@@ -1,14 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {NativeModules, View} from 'react-native';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useState} from 'react';
+import {NativeModules} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ConfirmModal from '@components/ConfirmModal';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
-import FloatingActionButton from '@components/FloatingActionButton';
+import {FABPopoverContext} from '@components/FABPopoverProvider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -51,18 +51,7 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
-type FloatingActionButtonAndPopoverProps = {
-    /* Callback function when the menu is shown */
-    onShowCreateMenu?: () => void;
-
-    /* Callback function before the menu is hidden */
-    onHideCreateMenu?: () => void;
-
-    /* If the tooltip is allowed to be shown */
-    isTooltipAllowed: boolean;
-};
-
-type FloatingActionButtonAndPopoverRef = {
+type FloatingActionButtonPopoverRef = {
     hideCreateMenu: () => void;
 };
 
@@ -161,7 +150,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * Responsible for rendering the {@link PopoverMenu}, and the accompanying
  * FAB that can open or close the menu.
  */
-function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isTooltipAllowed}: FloatingActionButtonAndPopoverProps, ref: ForwardedRef<FloatingActionButtonAndPopoverRef>) {
+function FloatingActionButtonPopover(_: unknown, ref: ForwardedRef<FloatingActionButtonPopoverRef>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -184,9 +173,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
 
-    const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
+    const {isCreateMenuActive, hideCreateMenu, fabRef} = useContext(FABPopoverContext);
     const [modalVisible, setModalVisible] = useState(false);
-    const fabRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -280,38 +268,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         [isFocused, prevIsFocused],
     );
 
-    /**
-     * Method called when we click the floating action button
-     */
-    const showCreateMenu = useCallback(
-        () => {
-            if (!isFocused && shouldUseNarrowLayout) {
-                return;
-            }
-            setIsCreateMenuActive(true);
-            onShowCreateMenu?.();
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [isFocused, shouldUseNarrowLayout],
-    );
-
-    /**
-     * Method called either when:
-     * - Pressing the floating action button to open the CreateMenu modal
-     * - Selecting an item on CreateMenu or closing it by clicking outside of the modal component
-     */
-    const hideCreateMenu = useCallback(
-        () => {
-            if (!isCreateMenuActive) {
-                return;
-            }
-            setIsCreateMenuActive(false);
-            onHideCreateMenu?.();
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [isCreateMenuActive],
-    );
-
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
             return;
@@ -326,14 +282,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             hideCreateMenu();
         },
     }));
-
-    const toggleCreateMenu = () => {
-        if (isCreateMenuActive) {
-            hideCreateMenu();
-        } else {
-            showCreateMenu();
-        }
-    };
 
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
         return [
@@ -541,10 +489,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     ];
 
     return (
-        <View style={styles.flexGrow1}>
+        <>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
+                isVisible={isCreateMenuActive}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
@@ -571,7 +519,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 onConfirm={() => {
                     setModalVisible(false);
                     if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp(false, true);
+                        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                         setRootStatusBarEnabled(false);
                         return;
                     }
@@ -582,20 +530,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 confirmText={translate('exitSurvey.goToExpensifyClassic')}
                 cancelText={translate('common.cancel')}
             />
-            <FloatingActionButton
-                isTooltipAllowed={isTooltipAllowed}
-                accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
-                role={CONST.ROLE.BUTTON}
-                isActive={isCreateMenuActive}
-                ref={fabRef}
-                onPress={toggleCreateMenu}
-            />
-        </View>
+        </>
     );
 }
 
-FloatingActionButtonAndPopover.displayName = 'FloatingActionButtonAndPopover';
+FloatingActionButtonPopover.displayName = 'FloatingActionButtonPopover';
 
-export default forwardRef(FloatingActionButtonAndPopover);
+export default forwardRef(FloatingActionButtonPopover);
 
 export type {PolicySelector};
