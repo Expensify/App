@@ -104,7 +104,7 @@ function ReportActionsView({
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
 
-    const {isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions} = reportMetadata;
+    const {isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions, hasLoadingNewerReportActionsError} = reportMetadata;
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -287,7 +287,7 @@ function ReportActionsView({
                     isOffline ||
                     // If there was an error only try again once on initial mount. We should also still load
                     // more in case we have cached messages.
-                    didLoadNewerChats.current ||
+                    !!(didLoadNewerChats.current && hasLoadingNewerReportActionsError) ||
                     newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             ) {
                 return;
@@ -308,7 +308,7 @@ function ReportActionsView({
                 getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, transactionThreadReport, reportActionIDMap, reportID],
+        [reportActionID, isFocused, newestReportAction, hasNewerActions, isOffline, hasLoadingNewerReportActionsError, transactionThreadReport, reportActionIDMap, reportID],
     );
 
     /**
