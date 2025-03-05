@@ -6634,6 +6634,7 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
             const message = updatedReportPreviewAction.message.at(0);
             if (message) {
                 message.text = messageText;
+                message.html = messageText;
                 message.deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
             }
         } else if (!Array.isArray(updatedReportPreviewAction.message) && updatedReportPreviewAction.message) {
