@@ -1885,6 +1885,7 @@ describe('ReportUtils', () => {
             const transactionID = 1;
             const moneyRequestAction = {
                 ...parentReportAction,
+                actorAccountID: currentUserAccountID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 originalMessage: {
                     IOUReportID: '1',
@@ -1908,6 +1909,7 @@ describe('ReportUtils', () => {
                     liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
                 },
             };
+
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
                 expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
             });
