@@ -41,6 +41,7 @@ import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getPolicyBrickRoadIndicatorStatus, getWorkspaceAccountID, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
+import useHandleBackButton from '@pages/Search/useHandleBackButton';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -434,6 +435,13 @@ function WorkspacesListPage() {
         />
     );
 
+    const onBackButtonPress = () => {
+        Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS);
+        return true;
+    };
+
+    useHandleBackButton(onBackButtonPress);
+
     if (isEmptyObject(workspaces)) {
         return (
             <ScreenWrapper
@@ -447,7 +455,7 @@ function WorkspacesListPage() {
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS)}
+                    onBackButtonPress={onBackButtonPress}
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
@@ -487,7 +495,7 @@ function WorkspacesListPage() {
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS)}
+                    onBackButtonPress={onBackButtonPress}
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 >
