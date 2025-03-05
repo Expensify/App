@@ -200,6 +200,7 @@ const WRITE_COMMANDS = {
     SPLIT_BILL: 'SplitBill',
     SPLIT_BILL_AND_OPEN_REPORT: 'SplitBillAndOpenReport',
     DELETE_MONEY_REQUEST: 'DeleteMoneyRequest',
+    DELETE_APP_REPORT: 'DeleteAppReport',
     CREATE_DISTANCE_REQUEST: 'CreateDistanceRequest',
     START_SPLIT_BILL: 'StartSplitBill',
     SEND_MONEY_ELSEWHERE: 'SendMoneyElsewhere',
@@ -646,6 +647,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SPLIT_BILL]: Parameters.SplitBillParams;
     [WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT]: Parameters.SplitBillParams;
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST]: Parameters.DeleteMoneyRequestParams;
+    [WRITE_COMMANDS.DELETE_APP_REPORT]: Parameters.DeleteAppReportParams;
     [WRITE_COMMANDS.CREATE_DISTANCE_REQUEST]: Parameters.CreateDistanceRequestParams;
     [WRITE_COMMANDS.START_SPLIT_BILL]: Parameters.StartSplitBillParams;
     [WRITE_COMMANDS.SEND_MONEY_ELSEWHERE]: Parameters.SendMoneyParams;

@@ -152,6 +152,7 @@ export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestPara
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
 export type {default as SplitBillParams} from './SplitBillParams';
 export type {default as DeleteMoneyRequestParams} from './DeleteMoneyRequestParams';
+export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
 export type {default as CreateDistanceRequestParams} from './CreateDistanceRequestParams';
 export type {default as StartSplitBillParams} from './StartSplitBillParams';
 export type {default as SendMoneyParams} from './SendMoneyParams';
