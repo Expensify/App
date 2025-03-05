@@ -7,6 +7,10 @@ import * as Search from '@libs/actions/Search';
 jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
+afterEach(() => {
+    jest.clearAllMocks();
+});
+
 describe('useSearchHighlightAndScroll', () => {
     it('should trigger Search when transactionIDs list change', () => {
         const initialProps: UseSearchHighlightAndScroll = {
@@ -187,6 +191,88 @@ describe('useSearchHighlightAndScroll', () => {
         rerender(changedProp);
 
         // Then Search will be triggerred.
+        expect(Search.search).toHaveBeenCalled();
+    });
+
+    it('should trigger Search when report actions change', () => {
+        const initialProps: UseSearchHighlightAndScroll = {
+            searchResults: {
+                data: {personalDetailsList: {}},
+                search: {
+                    columnsToShow: {
+                        shouldShowCategoryColumn: true,
+                        shouldShowTagColumn: true,
+                        shouldShowTaxColumn: true,
+                    },
+                    hasMoreResults: false,
+                    hasResults: true,
+                    offset: 0,
+                    status: 'all',
+                    type: 'expense',
+                    isLoading: false,
+                },
+            },
+            transactions: {},
+            previousTransactions: {},
+            reportActions: {
+                reportActions_209647397999267: {
+                    1: {
+                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        reportActionID: '1',
+                        created: '',
+                    },
+                },
+            },
+            previousReportActions: {
+                reportActions_209647397999267: {
+                    1: {
+                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        reportActionID: '1',
+                        created: '',
+                    },
+                },
+            },
+            queryJSON: {
+                type: 'expense',
+                status: 'all',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                filters: {operator: 'and', left: 'tag', right: ''},
+                inputQuery: 'type:expense status:all sortBy:date sortOrder:desc',
+                flatFilters: [],
+                hash: 243428839,
+                recentSearchHash: 422547233,
+            },
+            offset: 0,
+        };
+    
+        const changedProps: UseSearchHighlightAndScroll = {
+            ...initialProps,
+            reportActions: {
+                reportActions_209647397999268: {
+                    1: {
+                        actionName: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                        reportActionID: '1',
+                        created: '',
+                    },
+                    2: {
+                        actionName: 'ADDCOMMENT',
+                        reportActionID: '2',
+                        created: '',
+                    },
+                },
+            },
+        };
+    
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            initialProps,
+        });
+        expect(Search.search).not.toHaveBeenCalled();
+    
+        // When report actions change
+        rerender(changedProps);
+    
+        // Then Search will be triggered
         expect(Search.search).toHaveBeenCalled();
     });
 });
