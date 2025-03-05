@@ -106,6 +106,7 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    MergeAccountGenericParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     NeedCategoryForExportToIntegrationParams,
@@ -1364,6 +1365,62 @@ const translations = {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
+    },
+    mergeAccountsPage: {
+        mergeAccount: 'Merge accounts',
+        accountDetails: {
+            accountToMergeInto: ({email}: MergeAccountGenericParams) => `Enter the account you want to merge into ${email}`,
+            notReversibleConsent: 'I understand this is not reversible',
+        },
+        accountValidate: {
+            confirmMerge: 'Are you sure you want to merge accounts?',
+            lossOfUnsubmittedData: ({email}: MergeAccountGenericParams) => `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for ${email}`,
+            enterMagicCode: ({email}: MergeAccountGenericParams) => `To continue, please enter the magic code sent to ${email}`,
+        },
+        mergeSuccess: {
+            accountsMerged: 'Accounts merged!',
+            successfullyMergedAllData: ({email, newEmail}: MergeAccountGenericParams & {newEmail: string}) =>
+                `You've successfully merged all data from ${email} into ${newEmail}. Moving forward, you can use either login for this account.`,
+        },
+        mergePendingSAML: {
+            weAreWorkingOnIt: 'We’re working on it',
+            limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
+            reachOutForHelp: {
+                beforeLink: 'Feel free to ',
+                linkText: 'reach out to Concierge',
+                afterLink: ' if you have any questions!',
+            },
+            goToExpensifyClassic: 'Go to Expensify Classic',
+        },
+        mergeFailureSAMLDomainControl: {
+            beforeLink: ({email}: MergeAccountGenericParams) => `You can't merge ${email} because it's controlled by ${email.split('@').at(0)}. Please `,
+            linkText: 'reach out to Concierge',
+            afterLink: ' for assistance.',
+        },
+        mergeFailureSAMLAccount: ({email}: MergeAccountGenericParams) =>
+            `You can’t merge ${email} into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.`,
+        mergeFailure2FA: {
+            oldAccount2FAEnabled: ({email}: MergeAccountGenericParams) =>
+                `You can’t merge accounts because ${email} has two-factor authentication (2FA) enabled. Please disable 2FA for ${email} and try again.`,
+            learnMore: 'Learn more about merging accounts.',
+        },
+        mergeFailureAccountLocked: {
+            beforeLink: ({email}: MergeAccountGenericParams) => `You can't merge ${email} because it's locked. Please `,
+            linkText: 'reach out to Concierge ',
+            afterLink: `for assistance.`,
+        },
+        mergeFailureUncreatedAccount: {
+            noExpensifyAccount: ({email}: MergeAccountGenericParams) => `You can’t merge accounts because ${email} doesn’t have an Expensify account.`,
+            addContactMethod: {
+                beforeLink: 'Please ',
+                linkText: 'add it as a contact method',
+                afterLink: ' instead.',
+            },
+        },
+        mergeFailureSmartScannerAccount: ({email}: MergeAccountGenericParams) => `You can’t merge ${email} into other accounts. Please merge other accounts into it instead.`,
+        mergeFailureInvoicedAccount: ({email}: MergeAccountGenericParams) =>
+            `You can’t merge ${email} into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.`,
+        mergeFailureGenericHeading: 'Can’t merge accounts',
     },
     passwordPage: {
         changePassword: 'Change password',
