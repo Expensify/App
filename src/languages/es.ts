@@ -2549,7 +2549,7 @@ const translations = {
         error: {
             authorized: 'Debe ser un funcionario controlador con autorización para operar la cuenta bancaria comercial',
             certify: 'Por favor certifique que la información es verdadera y exacta',
-            consent: 'Por favor, consienta el aviso de privacidad',
+            consent: 'Por favor, acepte el aviso de privacidad',
         },
     },
     finishStep: {
