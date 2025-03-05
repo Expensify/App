@@ -54,7 +54,10 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
 
         // Check if there is a change in the transactions or report actions list
         // NOTE: This if statement should NOT assume report actions can only change
-        // in the chat type, i.e.: isChat && hasReportActionsIDsChange
+        // in one type, i.e.: isChat && hasReportActionsIDsChange
+        // because they can also change in other types such as CONST.SEARCH.DATA_TYPES.EXPENSE.
+        // Assuming they can only change in one type leads to issues such as
+        // https://github.com/Expensify/App/issues/57605
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
