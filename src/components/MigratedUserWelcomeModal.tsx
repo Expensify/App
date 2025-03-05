@@ -10,12 +10,12 @@ import convertToLTR from '@libs/convertToLTR';
 import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
 import {tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
@@ -49,7 +49,6 @@ function OnboardingWelcomeVideo() {
         selector: tryNewDotOnyxSelector,
     });
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-
 
     useEffect(() => {
         if (isLoadingOnyxValue(tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
