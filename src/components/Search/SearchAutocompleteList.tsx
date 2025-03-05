@@ -357,7 +357,9 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
                 const filteredFeeds = feedAutoCompleteList
-                    .filter((feed) => feed.cardFeedName.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.cardFeedName.name.toLowerCase()))
+                    .filter(
+                        (feed) => feed.cardFeedName.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.cardFeedName.name.toLowerCase()),
+                    )
                     .sort()
                     .slice(0, 10);
                 return filteredFeeds.map((feed) => ({
