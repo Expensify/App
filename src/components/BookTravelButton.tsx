@@ -17,6 +17,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
+import ConfirmModal from './ConfirmModal';
+import usePermissions from '@hooks/usePermissions';
 
 type BookTravelButtonProps = {
     text: string;
@@ -39,13 +41,22 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {isBlockedFromSpotnanaTravel} = usePermissions();
+    const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
 
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
     const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
+    const hidePreventionModal = () => setPreventionModalVisibility(false);
+
     const bookATrip = useCallback(() => {
         setErrorMessage('');
+
+        if (isBlockedFromSpotnanaTravel) {
+            setPreventionModalVisibility(true);
+            return;
+        }
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
@@ -116,6 +127,15 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 style={styles.w100}
                 success
                 large
+            />
+            <ConfirmModal
+                title={translate('travel.blockedFeatureModal.title')}
+                onConfirm={hidePreventionModal}
+                onCancel={hidePreventionModal}
+                isVisible={isPreventionModalVisible}
+                prompt={translate('travel.blockedFeatureModal.message')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
             />
         </>
     );
