@@ -163,6 +163,79 @@ function changeMappingsValueFromDefaultToTag(policyID: string, mappings?: SageIn
     }
 }
 
+function UpdateSageIntacctTaxSolutionID(policyID: string, taxSolutionID: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                taxSolutionID,
+                            },
+                            pendingFields: {
+                                tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                taxSolutionID: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                taxSolutionID: null,
+                            },
+                            pendingFields: {
+                                tax: null,
+                            },
+                            errorFields: {
+                                taxSolutionID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            pendingFields: {
+                                tax: null,
+                            },
+                            errorFields: {
+                                taxSolutionID: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TAX_SOLUTION_ID, {policyID, taxSolutionID}, {optimisticData, failureData, successData});
+}
+
 function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -849,4 +922,5 @@ export {
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctEntity,
     changeMappingsValueFromDefaultToTag,
+    UpdateSageIntacctTaxSolutionID,
 };
