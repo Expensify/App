@@ -5329,8 +5329,8 @@ const CONST = {
                         '\n' +
                         `${
                             integrationName && connectionsVideoPaths[integrationName]
-                                ? `[Take me to workspace members](${workspaceAccountingLink}).\n\n![video](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
-                                : `[Take me to workspace members](${workspaceAccountingLink}).`
+                                ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![video](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
+                                : `[Take me to accounting](${workspaceAccountingLink}).`
                         }`,
                 },
             ],
