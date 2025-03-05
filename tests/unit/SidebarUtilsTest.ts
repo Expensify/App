@@ -59,6 +59,7 @@ describe('SidebarUtils', () => {
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        showInReview: true,
                     },
                 ],
             };
@@ -271,6 +272,7 @@ describe('SidebarUtils', () => {
                     {
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                        showInReview: true,
                     },
                 ],
             };
