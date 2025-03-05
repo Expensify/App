@@ -1,8 +1,9 @@
 import path from 'path';
-import {DefinePlugin} from 'webpack';
 import type {Configuration} from 'webpack';
 import {merge} from 'webpack-merge';
 import baseConfig from './webpack.base';
+
+process.env.IS_SSR_BUILD = 'true';
 
 /**
  * Webpack configuration for server-side rendering emails.
@@ -23,12 +24,6 @@ const emailsConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
         concatenateModules: false, // Ensures modules are not tree-shaken for easier debugging
     },
     watch: true,
-    plugins: [
-        new DefinePlugin({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'process.env.IS_SSR_BUILD': true,
-        }),
-    ],
     module: {
         rules: [
             {
