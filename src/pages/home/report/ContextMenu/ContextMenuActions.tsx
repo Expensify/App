@@ -768,7 +768,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, reportAction);
+            showDeleteModal(reportID, moneyRequestAction ?? reportAction);
         },
         getDescription: () => {},
     },
