@@ -1,14 +1,8 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
+import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
@@ -19,12 +13,11 @@ type ConfirmationProps = SubStepProps & {ownerBeingModifiedID: string};
 
 const {PREFIX, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-function Confirmation({onNext, onMove, ownerBeingModifiedID}: ConfirmationProps) {
+function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: ConfirmationProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const values = getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft);
+    const values = useMemo(() => getValuesForBeneficialOwner(ownerBeingModifiedID, reimbursementAccountDraft), [ownerBeingModifiedID, reimbursementAccountDraft]);
     const beneficialOwnerCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
     const beneficialOwnerCountry = String(reimbursementAccountDraft?.[beneficialOwnerCountryInputID] ?? '');
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -33,108 +26,134 @@ function Confirmation({onNext, onMove, ownerBeingModifiedID}: ConfirmationProps)
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForBeneficialOwner(currency, countryStepCountryValue, beneficialOwnerCountry);
 
+    const summaryItems = useMemo(
+        () => [
+            {
+                title: `${values.firstName} ${values.lastName}`,
+                description: translate('ownershipInfoStep.legalName'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(0);
+                },
+            },
+            {
+                title: values.ownershipPercentage,
+                description: translate('ownershipInfoStep.ownershipPercentage'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(1);
+                },
+            },
+            {
+                title: values.dob,
+                description: translate('common.dob'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(2);
+                },
+            },
+            ...(beneficialOwnerCountry === CONST.COUNTRY.US
+                ? [
+                      {
+                          title: values.ssnLast4,
+                          description: translate('ownershipInfoStep.last4'),
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              onMove(4);
+                          },
+                      },
+                  ]
+                : []),
+            {
+                title: `${values.street}, ${values.city}, ${values.state} ${values.zipCode}`,
+                description: translate('ownershipInfoStep.address'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(3);
+                },
+            },
+            ...(isDocumentNeededStatus.isProofOfOwnershipNeeded
+                ? [
+                      {
+                          title: values.proofOfOwnership.map((file) => file.name).join(', '),
+                          description: translate('ownershipInfoStep.proofOfBeneficialOwner'),
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              onMove(5);
+                          },
+                      },
+                  ]
+                : []),
+            ...(isDocumentNeededStatus.isCopyOfIDNeeded
+                ? [
+                      {
+                          title: values.copyOfID.map((file) => file.name).join(', '),
+                          description: translate('ownershipInfoStep.copyOfID'),
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              onMove(5);
+                          },
+                      },
+                  ]
+                : []),
+            ...(isDocumentNeededStatus.isProofOfAddressNeeded
+                ? [
+                      {
+                          title: values.addressProof.map((file) => file.name).join(', '),
+                          description: translate('ownershipInfoStep.proofOfAddress'),
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              onMove(5);
+                          },
+                      },
+                  ]
+                : []),
+            ...(isDocumentNeededStatus.isCodiceFiscaleNeeded
+                ? [
+                      {
+                          title: values.codiceFisacle.map((file) => file.name).join(', '),
+                          description: translate('ownershipInfoStep.codiceFiscale'),
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              onMove(5);
+                          },
+                      },
+                  ]
+                : []),
+        ],
+        [
+            beneficialOwnerCountry,
+            isDocumentNeededStatus.isCodiceFiscaleNeeded,
+            isDocumentNeededStatus.isCopyOfIDNeeded,
+            isDocumentNeededStatus.isProofOfAddressNeeded,
+            isDocumentNeededStatus.isProofOfOwnershipNeeded,
+            onMove,
+            translate,
+            values.addressProof,
+            values.city,
+            values.codiceFisacle,
+            values.copyOfID,
+            values.dob,
+            values.firstName,
+            values.lastName,
+            values.ownershipPercentage,
+            values.proofOfOwnership,
+            values.ssnLast4,
+            values.state,
+            values.street,
+            values.zipCode,
+        ],
+    );
+
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <ScrollView
-                    style={styles.pt0}
-                    contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}
-                >
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('ownershipInfoStep.letsDoubleCheck')}</Text>
-                    <MenuItemWithTopDescription
-                        description={translate('ownershipInfoStep.legalName')}
-                        title={`${values.firstName} ${values.lastName}`}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(0);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('ownershipInfoStep.ownershipPercentage')}
-                        title={values.ownershipPercentage}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(1);
-                        }}
-                    />
-                    <MenuItemWithTopDescription
-                        description={translate('common.dob')}
-                        title={values.dob}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(2);
-                        }}
-                    />
-                    {beneficialOwnerCountry === CONST.COUNTRY.US && (
-                        <MenuItemWithTopDescription
-                            description={translate('ownershipInfoStep.last4')}
-                            title={values.ssnLast4}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                onMove(4);
-                            }}
-                        />
-                    )}
-                    <MenuItemWithTopDescription
-                        description={translate('ownershipInfoStep.address')}
-                        title={`${values.street}, ${values.city}, ${values.state} ${values.zipCode}`}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(3);
-                        }}
-                    />
-                    {isDocumentNeededStatus.isProofOfOwnershipNeeded && values.proofOfOwnership.length > 0 && (
-                        <MenuItemWithTopDescription
-                            description={translate('ownershipInfoStep.proofOfBeneficialOwner')}
-                            title={values.proofOfOwnership.map((file) => file.name).join(', ')}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                onMove(5);
-                            }}
-                        />
-                    )}
-                    {isDocumentNeededStatus.isCopyOfIDNeeded && values.copyOfID.length > 0 && (
-                        <MenuItemWithTopDescription
-                            description={translate('ownershipInfoStep.copyOfID')}
-                            title={values.copyOfID.map((file) => file.name).join(', ')}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                onMove(5);
-                            }}
-                        />
-                    )}
-                    {isDocumentNeededStatus.isProofOfAddressNeeded && values.addressProof.length > 0 && (
-                        <MenuItemWithTopDescription
-                            description={translate('ownershipInfoStep.proofOfAddress')}
-                            title={values.addressProof.map((file) => file.name).join(', ')}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                onMove(5);
-                            }}
-                        />
-                    )}
-                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && values.codiceFisacle.length > 0 && (
-                        <MenuItemWithTopDescription
-                            description={translate('ownershipInfoStep.codiceFiscale')}
-                            title={values.codiceFisacle.map((file) => file.name).join(', ')}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                onMove(5);
-                            }}
-                        />
-                    )}
-                    <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
-                        <Button
-                            success
-                            style={[styles.w100]}
-                            onPress={onNext}
-                            large
-                            text={translate('common.confirm')}
-                        />
-                    </View>
-                </ScrollView>
-            )}
-        </SafeAreaConsumer>
+        <ConfirmationStep
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
+            pageTitle={translate('ownershipInfoStep.letsDoubleCheck')}
+            summaryItems={summaryItems}
+            showOnfidoLinks={false}
+        />
     );
 }
 
