@@ -1,45 +1,45 @@
 ---
 title: Require Tags and Categories for Expenses
-description: Learn how to make tags and/or categories mandatory for all expenses in a workspace.
+description: Learn how to make tags and/or categories mandatory for all expenses in a Workspace.
 ---
 
-To require workspace members to add **tags** and/or **categories** to their expenses, follow these steps:
+To ensure expenses are properly categorized, you can require Workspace members to add tags and categories before submitting them. This guide walks you through enabling this setting on both desktop and mobile and managing default spend categories for smarter expense tracking.
 
-## Desktop
+## Require Tags or Categories in a Workspace
+
+**Desktop:**
 1. Click **Settings** in the bottom left menu.
 2. Scroll down and click **Workspaces**.
-3. Select a workspace.
+3. Select a Workspace.
 4. Click **Tags** or **Categories**.
 5. Click **Settings** at the top right.
-6. Enable the **“Members must tag/categorize all expenses”** toggle.
+6. Enable the **“Members must tag or categorize all expenses”** toggle.
 7. If needed, repeat steps 4-6 for the other option (tags or categories).
 
-## Mobile
+**Mobile:**
 1. Tap **Settings** in the bottom menu.
 2. Tap **Workspaces**.
-3. Select a workspace.
+3. Select a Workspace.
 4. Tap **Tags** or **Categories**.
 5. Tap **Settings** at the top right.
-6. Enable the **“Members must tag/categorize all expenses”** toggle.
+6. Enable the **“Members must tag or categorize all expenses”** toggle.
 7. If needed, repeat steps 4-6 for the other option (tags or categories).
 
 ![Workspace Categories Setting with Required Toggle Highlighted]({{site.url}}/assets/images/Workspace_category_toggle.png){:width="100%"}
 
-Once enabled, the **tag and/or category field will be marked as required** on all expenses.
+Once enabled, the **Tag** or **Category** field will be marked as **required** on all expenses.
 
-{% include info.html %}
-Even if tags and/or categories are set as required, expenses can still be submitted without them. However, the submitter and approver will see an **orange dot** on the expense details, indicating that a tag/category is missing.
-{% include end-info.html %}
+> **Note:** If Tags or Categories are required, expenses can still be submitted without them. However, the submitter and approver will see an orange dot on the expense, indicating that the required Tag or Category is missing.
 
 ---
 
 # Default Spend Categories
-Expensify learns how you categorize certain merchants over time and then automatically applies that category to the same merchant in the future. You can always change the category. Expensify will also learn your corrections over time and adjust how it automatically categorizes them.
+Expensify learns how you categorize certain merchants over time and automatically applies that category to future expenses from the same merchant. You can always change the category, and Expensify will learn your corrections over time.
 
 ## Manage Default Spend Categories
 1. Click **Settings** in the bottom menu.
 2. Click **Workspaces**.
-3. Select a workspace.
+3. Select a Workspace.
 4. Click **Categories**.
 5. Click **Settings** at the top right.
 6. Click on any of the default categories and select one of your categories from there.
