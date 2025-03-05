@@ -2,6 +2,7 @@ import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import { isEmpty } from 'lodash';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
@@ -33,6 +34,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type SettlementButtonProps from './types';
+
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
@@ -117,6 +119,7 @@ function SettlementButton({
             onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true),
             value: formattedPaymentMethod?.methodID,
         }));
+
     }
 
     const latestBankItem = getLatestBankAccountItem();
@@ -162,13 +165,14 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         if (canUseWallet) {
+            console.log('canUseWallet', canUseWallet)
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
             if (activeAdminPolicies.length === 0) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
             }
         }
         if (isExpenseReport && shouldShowPaywithExpensifyOption) {
-            if (latestBankItem) {
+            if (!isEmpty(latestBankItem)) {
                 buttonOptions.push({
                     text: latestBankItem.at(0)?.text ?? '',
                     icon: latestBankItem.at(0)?.icon,
@@ -336,6 +340,9 @@ function SettlementButton({
 
         return undefined;
     };
+
+    console.log('paymentButtonOptions', paymentButtonOptions)
+
 
     return (
         <KYCWall
