@@ -1,9 +1,7 @@
+import type {TupleToUnion} from 'type-fest';
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
-import {View} from 'react-native';
-import blueBG from '@assets/images/eReceiptBGs/eReceiptBG_blue.png';
-import pinkBG from '@assets/images/eReceiptBGs/eReceiptBG_pink.png';
-import yellowBG from '@assets/images/eReceiptBGs/eReceiptBG_yellow.png';
+import { View } from "react-native";
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContentUI';
 import type {TransactionPreviewUIProps} from '@components/ReportActionItem/TransactionPreview/types';
@@ -12,17 +10,12 @@ import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import CONST from '@src/CONST';
 
-const bgs = {
-    pink: pinkBG,
-    blue: blueBG,
-    yellow: yellowBG,
-};
+const availableColors = ['pink', 'yellow', 'navy', 'blue', 'green', 'tangerine'];
+type BGColor = TupleToUnion<typeof availableColors>;
 
-type BGColor = keyof typeof bgs;
-
-const generateReceiptImage = (color: BGColor) =>
+const generateReceiptImage = (color: BGColor): ThumbnailAndImageURI =>
     ({
-        thumbnail: bgs[color],
+        thumbnail: `static/media/assets/images/eReceiptBGs/eReceiptBG_${color}.png`,
         isEmptyReceipt: true,
         transaction: {
             amount: 1234,
@@ -57,7 +50,7 @@ const generateReceiptImage = (color: BGColor) =>
             transactionID: '1111111111111111111',
             hasEReceipt: false,
         },
-    } as ThumbnailAndImageURI);
+    });
 
 const generateAvatars = (count: number) =>
     new Array(count).fill(0).map((_, i) => ({
@@ -67,20 +60,14 @@ const generateAvatars = (count: number) =>
         name: `qwerty${i}@xyz.com`,
     }));
 
-// const isArrayOfThumbnails = (thumbnail: ImageSourcePropType | ImageSourcePropType[]): thumbnail is ImageSourcePropType[] => typeof thumbnail !== 'string';
-
 const generateReceiptImages = (colors: BGColor | BGColor[]) => {
-    // if (!isArrayOfThumbnails(thumbnails)) {
-    //     return [generateReceiptImage(thumbnails)];
-    // }
-    // return thumbnails.map((thumbnail) => generateReceiptImage(thumbnail));
     if (typeof colors === 'string') {
         return [generateReceiptImage(colors)];
     }
     return colors.map((color) => generateReceiptImage(color));
 };
 
-const generateFakeData = (
+const generateProps = (
     amount: string,
     tag: string,
     merchantOrDescription: string,
@@ -110,7 +97,7 @@ const generateFakeData = (
     receiptImages: generateReceiptImages(colors),
 });
 
-const staleFakeData = {
+const staticProps = {
     translate: ((value: string, options?: {amount: string}) => {
         if (value === 'violations.keepThisOne') {
             return 'Keep this one';
@@ -141,7 +128,7 @@ const staleFakeData = {
     containerStyles: [{margin: 10}],
 };
 
-const disabledProperties = Object.keys(staleFakeData).reduce<Record<string, {table: {disable: boolean}}>>((storyProperties, fakeDataKey) => {
+const disabledProperties = Object.keys(staticProps).reduce<Record<string, {table: {disable: boolean}}>>((storyProperties, fakeDataKey) => {
     // eslint-disable-next-line no-param-reassign
     storyProperties[fakeDataKey] = {
         table: {
@@ -152,10 +139,11 @@ const disabledProperties = Object.keys(staleFakeData).reduce<Record<string, {tab
 }, {});
 
 type TransactionPreviewStory = StoryFn<typeof TransactionPreview>;
-
-const pinkReceipts = generateReceiptImages('pink');
-const blueReceipts = generateReceiptImages('blue');
-const yellowReceipts = generateReceiptImages('yellow');
+const receiptImagesMap = availableColors.reduce<Record<string, ThumbnailAndImageURI[]>>((mappings, color) => {
+    // eslint-disable-next-line no-param-reassign
+    mappings[color] = generateReceiptImages(color);
+    return mappings;
+}, {})
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -187,12 +175,8 @@ const story: Meta<typeof TransactionPreview> = {
             },
         },
         receiptImages: {
-            mapping: {
-                pink: pinkReceipts,
-                blue: blueReceipts,
-                yellow: yellowReceipts,
-            },
-            options: ['pink', 'blue', 'yellow'],
+            mapping: receiptImagesMap,
+            options: availableColors,
             control: 'select',
         },
     },
@@ -205,7 +189,7 @@ function Template(props: TransactionPreviewUIProps) {
                 <View style={{flexDirection: 'row'}}>
                     {/* eslint-disable react/jsx-props-no-spreading */}
                     <TransactionPreview
-                        {...staleFakeData}
+                        {...staticProps}
                         {...props}
                     />
                     {/* eslint-enable react/jsx-props-no-spreading */}
@@ -224,23 +208,23 @@ const MoreThan1ImageAndSplit: TransactionPreviewStory = Template.bind({});
 const DeletedSplitWithRBRAndKeepButton: TransactionPreviewStory = Template.bind({});
 
 Default.args = {
-    ...generateFakeData('$60.00', 'New Jersey Office', 'Acme', 'Nov 19', 'blue', 'Grocery stores', 'Cash'),
+    ...generateProps('$60.00', 'New Jersey Office', 'Acme', 'Nov 19', 'blue', 'Grocery stores', 'Cash'),
 };
 
 SplitAndKeepButton.args = {
-    ...generateFakeData('$40.00', 'New Jersey Office', 'Wawa', 'Nov 19', 'pink', 'Gas stations', 'Split', undefined, true, false, true),
+    ...generateProps('$40.00', 'New Jersey Office', 'Wawa', 'Nov 19', 'pink', 'Gas stations', 'Split', undefined, true, false, true),
 };
 
 MoreThan1ImageAndRBR.args = {
-    ...generateFakeData('2000.00€', 'Cracow', 'Orlen', 'Jan 21', new Array(10).fill('pink'), 'Gas stations', 'Card', 'Duplicate'),
+    ...generateProps('2000.00€', 'Cracow', 'Orlen', 'Jan 21', new Array(10).fill('tangerine'), 'Gas stations', 'Card', 'Duplicate'),
 };
 
 MoreThan1ImageAndSplit.args = {
-    ...generateFakeData('14000.00¥', 'Starbucks', 'Coffee', 'Feb 26', new Array(10).fill('yellow'), 'Food', 'Split', undefined, true),
+    ...generateProps('14000.00¥', 'Starbucks', 'Coffee', 'Feb 26', new Array(10).fill('yellow'), 'Food', 'Split', undefined, true),
 };
 
 DeletedSplitWithRBRAndKeepButton.args = {
-    ...generateFakeData('$1000.00', 'Nowhere', 'Bad', 'Dec 10', 'yellow', 'No existent', 'Split', 'Generic error', true, true, true),
+    ...generateProps('$1000.00', 'Nowhere', 'Bad', 'Dec 10', 'navy', 'No existent', 'Split', 'Generic error', true, true, true),
 };
 
 export default story;

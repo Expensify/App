@@ -190,58 +190,60 @@ function TransactionPreviewContent({
     };
 
     const getRBRmessage = () => {
-        let RBRmessage = '';
+        if (!shouldShowRBR || !transaction) {
+            return '';
+        }
 
-        if (shouldShowRBR && transaction) {
-            if (shouldShowHoldMessage) {
-                return `${RBRmessage} ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
-            }
-            const firstViolation = violations?.at(0);
-            if (firstViolation) {
-                const canEdit = isMoneyRequestAction && canEditMoneyRequest(action, transaction);
-                const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
-                const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
-                const isTooLong = violationsCount > 1 || violationMessage.length > 15;
-                const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
+        if (shouldShowHoldMessage) {
+            return translate('violations.hold');
+        }
 
-                return `${RBRmessage} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+        const firstViolation = violations?.at(0);
+
+        if (firstViolation) {
+            const canEdit = isMoneyRequestAction && canEditMoneyRequest(action, transaction);
+            const violationMessage = ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit);
+            const violationsCount = violations?.filter((v) => v.type === CONST.VIOLATION_TYPES.VIOLATION).length ?? 0;
+            const isTooLong = violationsCount > 1 || violationMessage.length > 15;
+            const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
+
+            return isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage;
+        }
+
+        if (hasFieldErrors) {
+            const isMerchantMissing = isMerchantMissingTransactionUtils(transaction);
+            const isAmountMissing = isAmountMissingTransactionUtils(transaction);
+            if (isAmountMissing && isMerchantMissing) {
+                return translate('violations.reviewRequired');
             }
-            if (hasFieldErrors) {
-                const isMerchantMissing = isMerchantMissingTransactionUtils(transaction);
-                const isAmountMissing = isAmountMissingTransactionUtils(transaction);
-                if (isAmountMissing && isMerchantMissing) {
-                    RBRmessage += ` ${CONST.DOT_SEPARATOR} ${translate('violations.reviewRequired')}`;
-                } else if (isAmountMissing) {
-                    RBRmessage += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingAmount')}`;
-                } else if (isMerchantMissing) {
-                    RBRmessage += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
-                }
-                return RBRmessage;
+            if (isAmountMissing) {
+                return translate('iou.missingAmount');
+            }
+            if (isMerchantMissing) {
+                return translate('iou.missingMerchant');
             }
         }
 
-        return RBRmessage;
+        return '';
     };
 
     const getPreviewHeaderText = (): string => {
-        let message = '';
+        let message = showCashOrCard;
+
+        if (isDistanceRequest) {
+            message = translate('common.distance');
+        } else if (isPerDiemRequest) {
+            message = translate('common.perDiem');
+        } else if (isScanning) {
+            message = translate('common.receipt');
+        } else if (isBillSplit) {
+            message = translate('iou.split');
+        }
 
         if (!isCreatedMissing(transaction)) {
             const created = getFormattedCreated(transaction);
             const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-            message += `${date} ${CONST.DOT_SEPARATOR} `;
-        }
-
-        message += showCashOrCard;
-
-        if (isDistanceRequest) {
-            message += translate('common.distance');
-        } else if (isPerDiemRequest) {
-            message += translate('common.perDiem');
-        } else if (isScanning) {
-            message += translate('common.receipt');
-        } else if (isBillSplit) {
-            message += translate('iou.split');
+            message = `${date} ${CONST.DOT_SEPARATOR} ${message}`;
         }
 
         if (isPending(transaction)) {
