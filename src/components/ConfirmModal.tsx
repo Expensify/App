@@ -94,6 +94,9 @@ type ConfirmModalProps = {
     /** Image to display with content */
     image?: IconAsset;
 
+    /** Styles for the image */
+    imageStyles?: StyleProp<ViewStyle>;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -126,6 +129,7 @@ function ConfirmModal({
     isVisible,
     onConfirm,
     image,
+    imageStyles,
     iconWidth,
     iconHeight,
     iconFill,
@@ -182,6 +186,7 @@ function ConfirmModal({
                 shouldStackButtons={shouldStackButtons}
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
+                imageStyles={imageStyles}
             />
         </Modal>
     );

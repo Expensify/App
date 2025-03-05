@@ -4,10 +4,8 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -96,6 +94,9 @@ type ConfirmContentProps = {
     /** Image to display with content */
     image?: IconAsset;
 
+    /** Styles for the image */
+    imageStyles?: StyleProp<ViewStyle>;
+
     /** Whether the modal is visibile */
     isVisible: boolean;
 };
@@ -124,6 +125,7 @@ function ConfirmContent({
     shouldCenterIcon = false,
     shouldShowDismissIcon = false,
     image,
+    imageStyles,
     titleContainerStyles,
     shouldReverseStackedButtons = false,
     isVisible,
@@ -132,14 +134,13 @@ function ConfirmContent({
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const StyleUtils = useStyleUtils();
 
     const isCentered = shouldCenterContent;
 
     return (
         <>
             {!!image && (
-                <View style={[StyleUtils.getBackgroundColorStyle(colors.pink800)]}>
+                <View style={imageStyles}>
                     <ImageSVG
                         contentFit="contain"
                         src={image}
