@@ -357,7 +357,7 @@ function WorkspacesListPage() {
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                 return;
             }
-            Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
         },
         [shouldUseNarrowLayout],
     );
