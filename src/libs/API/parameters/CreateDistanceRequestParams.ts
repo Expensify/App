@@ -20,6 +20,7 @@ type CreateDistanceRequestParams = {
     payerEmail?: string;
     splits?: string;
     chatType?: string;
+    description?: string;
 };
 
 export default CreateDistanceRequestParams;

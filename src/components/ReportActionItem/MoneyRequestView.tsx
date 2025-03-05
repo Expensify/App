@@ -603,7 +603,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>
                     <MenuItemWithTopDescription
                         description={translate('common.description')}
-                        shouldParseTitle
+                        shouldRenderAsHTML
                         title={updatedTransactionDescription ?? transactionDescription}
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
