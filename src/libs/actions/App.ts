@@ -31,7 +31,6 @@ import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
-import {triggerSidePane} from './SidePane';
 import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
@@ -112,14 +111,6 @@ Onyx.connect({
     key: ONYXKEYS.HAS_LOADED_APP,
     callback: (value) => {
         hasLoadedApp = value;
-    },
-});
-
-let nvpSidePane: OnyxEntry<OnyxTypes.SidePane>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_SIDE_PANE,
-    callback: (value) => {
-        nvpSidePane = value;
     },
 });
 
@@ -205,11 +196,6 @@ function setLocale(locale: Locale) {
 
 function setLocaleAndNavigate(locale: Locale) {
     setLocale(locale);
-
-    if (nvpSidePane) {
-        triggerSidePane(false, {shouldUpdateNarrowLayout: true});
-    }
-
     Navigation.goBack();
 }
 
