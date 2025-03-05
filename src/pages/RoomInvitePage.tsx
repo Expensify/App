@@ -208,7 +208,7 @@ function RoomInvitePage({
             Report.inviteToRoom(reportID, invitedEmailsToAccountIDs);
         }
         UserSearchPhraseActions.clearUserSearchPhrase();
-        Navigation.navigate(backRoute);
+        Navigation.goBack(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 
     const goBack = useCallback(() => {
