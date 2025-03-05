@@ -4842,6 +4842,7 @@ function sendInvoice(
         companyName,
         companyWebsite,
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
+        receipt: receiptFile,
     };
 
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
