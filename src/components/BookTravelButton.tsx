@@ -109,7 +109,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled]);
+    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled, isBlockedFromSpotnanaTravel]);
 
     return (
         <>
