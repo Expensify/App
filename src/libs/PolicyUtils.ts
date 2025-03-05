@@ -38,7 +38,7 @@ import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
-import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
@@ -1088,6 +1088,29 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
 };
 
 /**
+ * An eligible workspace is one that meets the following criteria:
+ * Submitters: workspaces where the submitter is a member of
+ * Approvers: workspaces where both the approver AND submitter are members of
+ * Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
+ */
+const isWorkspaceEligibleForReportChange = (
+    newPolicy: OnyxEntry<Policy>,
+    reportOwnerAccountID: number | undefined,
+    reportManagerID: number | undefined,
+    currentUserLogin: string | undefined,
+): boolean => {
+    const curretUserAccountID = getCurrentUserAccountID();
+    if (curretUserAccountID === reportOwnerAccountID) {
+        return !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
+    }
+    if (curretUserAccountID === reportManagerID) {
+        const reportSubmitterLogin = (!!reportOwnerAccountID && getLoginByAccountID(reportOwnerAccountID)) ?? '';
+        return !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin] && !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
+    }
+    return isUserPolicyAdmin(newPolicy, currentUserLogin);
+};
+
+/**
  * Takes removes pendingFields and errorFields from a customUnit
  */
 function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
@@ -1519,6 +1542,7 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
+    isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPrefferedExporter,
     isAutoSyncEnabled,

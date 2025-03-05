@@ -4,13 +4,14 @@ import type {ImageSourcePropType} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import convertToLTR from '@libs/convertToLTR';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
-import Text from './Text';
+import RenderHTML from './RenderHTML';
 
-type HoldMenuSection = {
+type ChangeWorkspaceMenuSection = {
     /** The icon supplied with the section */
     icon: React.FC<SvgProps> | ImageSourcePropType;
 
@@ -18,28 +19,28 @@ type HoldMenuSection = {
     titleTranslationKey: TranslationPaths;
 };
 
-const holdMenuSections: HoldMenuSection[] = [
+const changeWorkspaceMenuSections: ChangeWorkspaceMenuSection[] = [
     {
-        icon: Illustrations.Stopwatch,
-        titleTranslationKey: 'iou.holdIsLeftBehind',
+        icon: Illustrations.FolderOpen,
+        titleTranslationKey: 'iou.changePolicyEducational.reCategorize',
     },
     {
-        icon: Illustrations.RealtimeReport,
-        titleTranslationKey: 'iou.unholdWhenReady',
+        icon: Illustrations.Workflows,
+        titleTranslationKey: 'iou.changePolicyEducational.workflows',
     },
 ];
 
-function HoldMenuSectionList() {
+function ChangeWorkspaceMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     return (
         <>
-            {holdMenuSections.map((section, i) => (
+            {changeWorkspaceMenuSections.map((section, i) => (
                 <View
                     // eslint-disable-next-line react/no-array-index-key
                     key={`${i}-${section.titleTranslationKey}`}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt5]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
                 >
                     <Icon
                         width={variables.menuIconSize}
@@ -48,7 +49,7 @@ function HoldMenuSectionList() {
                         additionalStyles={[styles.mr4]}
                     />
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey)}</Text>
+                        <RenderHTML html={`<comment>${convertToLTR(translate(section.titleTranslationKey))}</comment>`} />
                     </View>
                 </View>
             ))}
@@ -56,8 +57,8 @@ function HoldMenuSectionList() {
     );
 }
 
-HoldMenuSectionList.displayName = 'HoldMenuSectionList';
+ChangeWorkspaceMenuSectionList.displayName = 'ChangeWorkspaceMenuSectionList';
 
-export type {HoldMenuSection};
+export type {ChangeWorkspaceMenuSection};
 
-export default HoldMenuSectionList;
+export default ChangeWorkspaceMenuSectionList;
