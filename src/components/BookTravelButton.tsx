@@ -35,8 +35,9 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const primaryLogin = account?.primaryLogin;
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // Flag indicating whether NewDot was launched exclusively for Travel,
@@ -47,7 +48,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
         setErrorMessage('');
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
-        if (!primaryLogin || Str.isSMSLogin(primaryLogin)) {
+        if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(translate('travel.phoneError'));
             return;
         }
@@ -97,7 +98,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryLogin, setRootStatusBarEnabled]);
+    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled]);
 
     return (
         <>
