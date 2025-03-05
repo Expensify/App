@@ -7,7 +7,7 @@ import type {Middleware} from '@libs/Request';
  * the function signs the user out and redirects them to the sign-in page.
  */
 
-const handleCopilotDeleted: Middleware = (requestResponse) =>
+const handleDeletedAccount: Middleware = (requestResponse) =>
     requestResponse.then((response) => {
         if (response?.jsonCode !== 408 || !response?.message?.includes('The account you are trying to use is deleted.')) {
             return response;
@@ -15,4 +15,4 @@ const handleCopilotDeleted: Middleware = (requestResponse) =>
         signOutAndRedirectToSignIn(true);
     });
 
-export default handleCopilotDeleted;
+export default handleDeletedAccount;
