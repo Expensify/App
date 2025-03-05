@@ -855,7 +855,6 @@ const translations = {
         cameraErrorTitle: 'Camera error',
         cameraErrorMessage: 'An error occurred while taking a photo. Please try again.',
         locationAccessTitle: 'Allow location access',
-        locationRelaunchTitle: 'Relaunch now?',
         locationAccessMessage: 'Location access helps us keep your timezone and currency accurate wherever you go.',
         locationErrorTitle: 'Allow location access',
         locationErrorMessage: 'Location access helps us keep your timezone and currency accurate wherever you go.',
