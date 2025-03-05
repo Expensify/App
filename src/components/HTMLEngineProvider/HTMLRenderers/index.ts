@@ -14,7 +14,7 @@ import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
 import StrongRenderer from './StrongRenderer';
-import TaskTitleRenderer from './TaskTitleRendered';
+import TaskTitleRenderer from './TaskTitleRenderer';
 import VideoRenderer from './VideoRenderer';
 
 /**

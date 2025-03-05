@@ -43,7 +43,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
         return (
             <Text
-                // style={[styles.link, isChildOfTaskTitle && {fontFamily: undefined, fontSize: undefined}]}
                 style={styles.link}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting

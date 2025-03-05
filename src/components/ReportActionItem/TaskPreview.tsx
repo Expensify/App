@@ -126,7 +126,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             </View>
                         </UserDetailsTooltip>
                     )}
-                    <RenderHTML html={`<comment>${taskReport?.reportName ?? ''}</comment>`} />
+                    <RenderHTML html={`<comment>${taskReport?.reportName ?? action?.childReportName ?? ''}</comment>`} />
                 </View>
                 {shouldShowGreenDotIndicator && (
                     <View style={iconWrapperStyle}>

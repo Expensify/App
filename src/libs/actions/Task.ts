@@ -545,8 +545,8 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskFieldReportAction({title, description});
 
-    // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
-    // const reportName = (title ?? report?.reportName)?.trim();
+    // Ensure title is defined before parsing it with getParsedComment. If title is undefined, fall back to reportName from report.
+    // Trim the final parsed title for consistency.
     const reportName = title ? ReportUtils.getParsedComment(title) : report?.reportName ?? '';
     const parsedTitle = (reportName ?? '').trim();
 
@@ -613,7 +613,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
 
     const parameters: EditTaskParams = {
         taskReportID: report.reportID,
-        htmlTitle: reportName,
+        htmlTitle: parsedTitle,
         description: reportDescription,
         editedTaskReportActionID: editTaskReportAction.reportActionID,
     };
