@@ -1504,6 +1504,10 @@ const CONST = {
             DRAFT: 'draft',
             BACKUP: 'backup',
         },
+        LIABILITY_TYPE: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
+        },
     },
 
     MCC_GROUPS: {
