@@ -1,11 +1,11 @@
 ---
 title: Require Tags and Categories for Expenses
-description: Learn how to make tags and/or categories mandatory for all expenses in a Workspace.
+description: Learn how to make Tags and Categories mandatory for all expenses in a Workspace.
 ---
 
 To ensure expenses are properly categorized, you can require Workspace members to add tags and categories before submitting them. This guide walks you through enabling this setting on both desktop and mobile and managing default spend categories for smarter expense tracking.
 
-## Require Tags or Categories in a Workspace
+# Require Tags or Categories for Workspace Expenses
 
 **Desktop:**
 1. Click **Settings** in the bottom left menu.
