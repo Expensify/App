@@ -4314,6 +4314,7 @@ const styles = (theme: ThemeColors) =>
 
         shareCodeContainer: {
             width: '100%',
+            maxHeight: 423,
             alignItems: 'center',
             paddingHorizontal: variables.qrShareHorizontalPadding,
             paddingVertical: 20,
