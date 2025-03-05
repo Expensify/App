@@ -1,10 +1,10 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import {clearSignInData, setAccountError} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
 

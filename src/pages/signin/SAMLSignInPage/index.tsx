@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import SAMLLoadingIndicator from '@components/SAMLLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
-import {postSAMLLogin, setAchandleSAMLLoginErrorcountError} from '@userActions/Session';
+import {handleSAMLLoginError, postSAMLLogin} from '@libs/LoginUtils';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 
