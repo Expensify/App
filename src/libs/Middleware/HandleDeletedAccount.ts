@@ -12,7 +12,7 @@ const handleDeletedAccount: Middleware = (requestResponse) =>
         if (response?.jsonCode !== 408 || !response?.message?.includes('The account you are trying to use is deleted.')) {
             return response;
         }
-        signOutAndRedirectToSignIn(true);
+        signOutAndRedirectToSignIn(true, true, true, true);
     });
 
 export default handleDeletedAccount;
