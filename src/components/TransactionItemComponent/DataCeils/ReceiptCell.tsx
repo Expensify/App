@@ -3,7 +3,6 @@ import React from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
-import type {TransactionListItemType} from '@components/SelectionList/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,27 +10,18 @@ import {getFileName} from '@libs/fileDownload/FileUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
-
-type CellProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
-    showTooltip: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
-    isLargeScreenWidth: boolean;
-};
-
-type TransactionCellProps = {
-    transactionItem: TransactionListItemType;
-} & CellProps;
+import type Transaction from '@src/types/onyx/Transaction';
 
 
-function ReceiptCell({transactionItem}: TransactionCellProps) {
+function ReceiptCell(transactionItem:Transaction) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-
-    const backgroundStyles = transactionItem.isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
+    const isSelected = false
+    const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
     let source = transactionItem?.receipt?.source ?? '';
+
     if (source && typeof source === 'string') {
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
@@ -57,7 +47,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     fallbackIcon={Expensicons.Receipt}
     fallbackIconSize={20}
     fallbackIconColor={theme.icon}
-    fallbackIconBackground={transactionItem.isSelected ? theme.buttonHoveredBG : undefined}
+    fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
     iconSize="x-small"
         />
         </View>
@@ -65,5 +55,4 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 }
 
 ReceiptCell.displayName = 'ReceiptCell';
-
 export default ReceiptCell;
