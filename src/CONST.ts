@@ -162,7 +162,7 @@ const setupCategoriesTask: OnboardingTask = {
         '\n' +
         `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
         '\n' +
-        `![video](${CLOUDFRONT_URL}/videos/walkthrough-categories.mp4)`,
+        `![Set up categories](${CLOUDFRONT_URL}/videos/walkthrough-categories.mp4)`,
 };
 
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
@@ -5250,7 +5250,7 @@ const CONST = {
                         '\n' +
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
-                        `![video](${CLOUDFRONT_URL}/videos/walkthrough-tags.mp4)`,
+                        `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags.mp4)`,
                 },
                 {
                     type: 'addExpenseApprovals',
@@ -5275,7 +5275,7 @@ const CONST = {
                         '\n' +
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
-                        `![video](${CLOUDFRONT_URL}/videos/walkthrough-approvals.mp4)`,
+                        `![Add expense approvals](${CLOUDFRONT_URL}/videos/walkthrough-approvals.mp4)`,
                 },
                 {
                     type: 'inviteTeam',
@@ -5298,7 +5298,7 @@ const CONST = {
                         '\n' +
                         `[Take me to workspace members](${workspaceMembersLink}).\n` +
                         '\n' +
-                        `![video](${CLOUDFRONT_URL}/videos/walkthrough-invite_members.mp4)`,
+                        `![Invite your team](${CLOUDFRONT_URL}/videos/walkthrough-invite_members.mp4)`,
                 },
                 {
                     type: 'addAccountingIntegration',
@@ -5329,7 +5329,7 @@ const CONST = {
                         '\n' +
                         `${
                             integrationName && connectionsVideoPaths[integrationName]
-                                ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![video](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
+                                ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
                                 : `[Take me to accounting](${workspaceAccountingLink}).`
                         }`,
                 },
