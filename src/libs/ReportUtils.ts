@@ -1589,6 +1589,10 @@ function isProcessingReport(report: OnyxEntry<Report>): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED;
 }
 
+function isOpenReport(report: OnyxEntry<Report>): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+}
+
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
@@ -5033,7 +5037,6 @@ function buildOptimisticSelfDMReport(created: string): Report {
         type: CONST.REPORT.TYPE.CHAT,
         chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
         isOwnPolicyExpenseChat: false,
-        isPinned: true,
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: undefined,
@@ -6683,6 +6686,7 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    shouldEscapeText = true,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -6697,7 +6701,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: title,
-        description: getParsedComment(description ?? ''),
+        description: getParsedComment(description ?? '', {shouldEscapeText}),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
@@ -9446,6 +9450,7 @@ export {
     isPolicyExpenseChat,
     isPolicyExpenseChatAdmin,
     isProcessingReport,
+    isOpenReport,
     isReportIDApproved,
     isAwaitingFirstLevelApproval,
     isPublicAnnounceRoom,
