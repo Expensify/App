@@ -809,7 +809,9 @@ function createOption(
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
-        result.isUnread = isUnread(report);
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        result.isUnread = isUnread(report, oneTransactionThreadReport);
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
@@ -1463,6 +1465,13 @@ function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
 }
 
 /**
+ * Helper method to check if participant email is Manager McTest
+ */
+function isSelectedManagerMcTest(email: string | null | undefined): boolean {
+    return email === CONST.EMAIL.MANAGER_MCTEST;
+}
+
+/**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
 function getValidOptions(
@@ -1485,7 +1494,7 @@ function getValidOptions(
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
         // Exclude Manager McTest if user submitted expense or scanned receipt and when selection is made from Create or Submit flow
-        [CONST.EMAIL.MANAGER_MCTEST]: !(Permissions.canUseManagerMcTest(config.betas) && !getIsUserSubmittedExpenseOrScannedReceipt() && canShowManagerMcTest),
+        [CONST.EMAIL.MANAGER_MCTEST]: !(!getIsUserSubmittedExpenseOrScannedReceipt() && canShowManagerMcTest && Permissions.canUseManagerMcTest(config.betas)),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -2201,6 +2210,8 @@ export {
     orderWorkspaceOptions,
     filterSelfDMChat,
     filterReports,
+    getIsUserSubmittedExpenseOrScannedReceipt,
+    isSelectedManagerMcTest,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
