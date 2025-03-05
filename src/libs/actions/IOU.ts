@@ -3679,6 +3679,9 @@ function getUpdateMoneyRequestParams(
             });
         }
     }
+    if (Array.isArray(params?.attendees)) {
+        params.attendees = JSON.stringify(params?.attendees);
+    }
 
     // Clear out the error fields and loading states on success
     successData.push({
