@@ -21,7 +21,7 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import { RocketDude } from './Icon/Illustrations';
+import {RocketDude} from './Icon/Illustrations';
 
 type BookTravelButtonProps = {
     text: string;
