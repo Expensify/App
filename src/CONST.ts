@@ -376,7 +376,7 @@ const CONST = {
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
     ANIMATION_THUMBSUP_DURATION: 250,
     ANIMATION_THUMBSUP_DELAY: 200,
-    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -670,6 +670,14 @@ const CONST = {
             SIGNER_INFO: 'SignerInfoStep',
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
+        },
+        BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
+            ACCOUNT_HOLDER_NAME: 'addressName',
+            ACCOUNT_HOLDER_REGION: 'addressState',
+            ACCOUNT_HOLDER_CITY: 'addressCity',
+            ACCOUNT_HOLDER_ADDRESS: 'addressStreet',
+            ACCOUNT_HOLDER_POSTAL_CODE: 'addressZipCode',
+            ROUTING_CODE: 'routingNumber',
         },
         BUSINESS_INFO_STEP: {
             PICKLIST: {
@@ -1101,6 +1109,15 @@ const CONST = {
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
+        PRIMARY_ACTIONS: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            REMOVE_HOLD: 'removeHold',
+            REVIEW_DUPLICATES: 'reviewDuplicates',
+            MARK_AS_CASH: 'markAsCash',
+        },
         ACTIONS: {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
@@ -6679,6 +6696,7 @@ const CONST = {
 
     HYBRID_APP: {
         REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
+        SINGLE_NEW_DOT_ENTRY: 'singleNewDotEntry',
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
