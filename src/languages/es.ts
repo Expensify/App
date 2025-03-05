@@ -2544,9 +2544,12 @@ const translations = {
         iCertify: 'Certifico que la información proporcionada es verdadera y correcta.',
         termsAndConditions: 'términos y condiciones.',
         accept: 'Agregar y aceptar cuenta bancaria',
+        iConsentToThe: 'Doy mi consentimiento para el',
+        privacyNotice: 'aviso de privacidad',
         error: {
             authorized: 'Debe ser un funcionario controlador con autorización para operar la cuenta bancaria comercial',
             certify: 'Por favor certifique que la información es verdadera y exacta',
+            consent: 'Por favor, consienta el aviso de privacidad',
         },
     },
     finishStep: {

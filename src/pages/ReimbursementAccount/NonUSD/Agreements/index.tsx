@@ -1,13 +1,15 @@
 import type {ComponentType} from 'react';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import {clearReimbursementAccountFinishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import Confirmation from './subSteps/Confirmation';
 
 type AgreementsProps = {
@@ -20,12 +22,30 @@ type AgreementsProps = {
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
 
+const INPUT_KEYS = {
+    PROVIDE_TRUTHFUL_INFORMATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
+    AGREE_TO_TERMS_AND_CONDITIONS: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AGREE_TO_TERMS_AND_CONDITIONS,
+    CONSENT_TO_PRIVACY_NOTICE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE,
+    AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
+};
+
 function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const submit = () => {
-        onSubmit();
+        finishCorpayBankAccountOnboarding({
+            inputs: JSON.stringify({
+                provideTruthfulInformation: agreementsStepValues.provideTruthfulInformation,
+                agreeToTermsAndConditions: agreementsStepValues.agreeToTermsAndConditions,
+                consentToPrivacyNotice: agreementsStepValues.consentToPrivacyNotice,
+                authorizedToBindClientToAgreement: agreementsStepValues.authorizedToBindClientToAgreement,
+            }),
+            bankAccountID,
+        });
     };
 
     useEffect(() => {

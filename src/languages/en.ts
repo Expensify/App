@@ -2520,9 +2520,12 @@ const translations = {
         iCertify: 'I certify that the information provided is true and accurate.',
         termsAndConditions: 'terms and conditions.',
         accept: 'Accept and add bank account',
+        iConsentToThe: 'I consent to the',
+        privacyNotice: 'privacy notice',
         error: {
             authorized: 'You must be a controlling officer with authorization to operate the business bank account',
             certify: 'Please certify that the information is true and accurate',
+            consent: 'Please consent to the privacy notice',
         },
     },
     finishStep: {
