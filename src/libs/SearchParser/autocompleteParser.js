@@ -264,7 +264,7 @@ function peg$parse(input, options) {
   var peg$e31 = peg$literalExpectation("exported", true);
   var peg$e32 = peg$literalExpectation("posted", true);
   var peg$e33 = peg$literalExpectation("groupBy", true);
-  var peg$e34 = peg$literalExpectation("group-by", false);
+  var peg$e34 = peg$literalExpectation("group-by", true);
   var peg$e35 = peg$otherExpectation("operator");
   var peg$e36 = peg$classExpectation([":", "="], false, false);
   var peg$e37 = peg$literalExpectation("!=", false);
@@ -1318,8 +1318,8 @@ function peg$parse(input, options) {
     }
     if (s0 === peg$FAILED) {
       s0 = peg$currPos;
-      if (input.substr(peg$currPos, 8) === peg$c33) {
-        s1 = peg$c33;
+      s1 = input.substr(peg$currPos, 8);
+      if (s1.toLowerCase() === peg$c33) {
         peg$currPos += 8;
       } else {
         s1 = peg$FAILED;

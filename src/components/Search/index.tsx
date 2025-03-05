@@ -265,8 +265,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         if (searchResults === undefined) {
             return [];
         }
-        return getSections(queryJSON, searchResults.data, searchResults.search);
-    }, [searchResults, queryJSON]);
+        return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
+    }, [searchResults, type, status, shouldGroupByReports]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -357,8 +357,8 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
-    const ListItem = getListItem(queryJSON);
-    const sortedData = getSortedSections(queryJSON, data);
+    const ListItem = getListItem(type, status, shouldGroupByReports);
+    const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports);
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const sortedSelectedData = sortedData.map((item) => {
         const baseKey = isChat

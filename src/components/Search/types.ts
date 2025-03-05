@@ -113,7 +113,7 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
-    groupBy: SearchGroupBy;
+    groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string;
 };

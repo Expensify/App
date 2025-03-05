@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {SearchColumnType, SearchQueryJSON, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -530,11 +530,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 /**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
-function getListItem({type, status, groupBy}: SearchQueryJSON): ListItemType<typeof type, typeof status> {
+function getListItem(type: SearchDataTypes, status: SearchStatus, shouldGroupByReports = false): ListItemType<typeof type, typeof status> {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
-    if (groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
+    if (!shouldGroupByReports) {
         return TransactionListItem;
     }
     return ReportListItem;
@@ -543,11 +543,11 @@ function getListItem({type, status, groupBy}: SearchQueryJSON): ListItemType<typ
 /**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
-function getSections({type, groupBy}: SearchQueryJSON, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) {
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], shouldGroupByReports = false) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
-    if (groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
+    if (!shouldGroupByReports) {
         return getTransactionsSections(data, metadata);
     }
     return getReportSections(data, metadata);
@@ -556,11 +556,18 @@ function getSections({type, groupBy}: SearchQueryJSON, data: OnyxTypes.SearchRes
 /**
  * Sorts sections of data based on a specified column and sort order for displaying sorted results.
  */
-function getSortedSections({type, sortBy, sortOrder, groupBy, status}: SearchQueryJSON, data: ListItemDataType<typeof type, typeof status>) {
+function getSortedSections(
+    type: SearchDataTypes,
+    status: SearchStatus,
+    data: ListItemDataType<typeof type, typeof status>,
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+    shouldGroupByReports = false,
+) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
-    if (groupBy !== CONST.SEARCH.GROUP_BY.REPORTS) {
+    if (!shouldGroupByReports) {
         return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
     }
     return getSortedReportData(data as ReportListItemType[]);
