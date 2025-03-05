@@ -147,6 +147,9 @@ const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): C
     },
     resolve: {
         alias: {
+            react: path.resolve(__dirname, '../../node_modules/react'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
             lodash: 'lodash-es',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'react-native-config': 'react-web-config',
