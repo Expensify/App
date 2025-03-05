@@ -1,18 +1,19 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as IOU from '@userActions/IOU';
-import * as Report from '@userActions/Report';
+import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {deleteMoneyRequest, deleteTrackExpense} from '@userActions/IOU';
+import {deleteReportComment} from '@userActions/Report';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -51,6 +52,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         horizontal: 0,
         vertical: 0,
     });
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
 
     const [instanceID, setInstanceID] = useState('');
 
@@ -262,6 +264,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             onPopoverHideActionCallback.current = onHideActionCallback;
         }
 
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: Actions.CLOSE_POPOVER,
+        });
         selectionRef.current = '';
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
@@ -270,15 +275,15 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
-        if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-            const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-            if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-                IOU.deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID ?? '-1', reportAction);
+        if (isMoneyRequestAction(reportAction)) {
+            const originalMessage = getOriginalMessage(reportAction);
+            if (isTrackExpenseAction(reportAction)) {
+                deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID ?? '-1', reportAction);
             } else {
-                IOU.deleteMoneyRequest(originalMessage?.IOUTransactionID ?? '-1', reportAction);
+                deleteMoneyRequest(originalMessage?.IOUTransactionID ?? '-1', reportAction);
             }
         } else if (reportAction) {
-            Report.deleteReportComment(reportIDRef.current, reportAction);
+            deleteReportComment(reportIDRef.current, reportAction);
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
