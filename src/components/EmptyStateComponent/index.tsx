@@ -89,7 +89,7 @@ function EmptyStateComponent({
             contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
             style={styles.flex1}
         >
-            <View style={styles.skeletonBackground}>
+            <View style={[styles.skeletonBackground, styles.overflowHidden]}>
                 <SkeletonComponent
                     gradientOpacityEnabled
                     shouldAnimate={false}
