@@ -18,6 +18,8 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReport from '../utils/collections/reports';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -1435,5 +1437,52 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
+    });
+
+    it('should clears lastMentionedTime when all mentions to the current user are deleted', async () => {
+        const reportID = '1';
+        const mentionActionID = '1';
+        const mentionActionID2 = '2';
+        const currentUserAccountID = 123;
+
+        const mentionAction = {
+            ...createRandomReportAction(Number(mentionActionID)),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            originalMessage: {
+                mentionedAccountIDs: [currentUserAccountID],
+            },
+        } as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
+
+        const mentionAction2 = {
+            ...createRandomReportAction(Number(mentionActionID2)),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            originalMessage: {
+                mentionedAccountIDs: [currentUserAccountID],
+            },
+        } as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+            [mentionActionID]: mentionAction,
+            [mentionActionID2]: mentionAction2,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            ...createRandomReport(Number(reportID)),
+            lastMentionedTime: mentionAction2.created,
+        });
+
+        Report.deleteReportComment(reportID, mentionAction);
+        Report.deleteReportComment(reportID, mentionAction2);
+
+        await waitForBatchedUpdates();
+
+        const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+            Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                callback: resolve,
+            });
+        });
+
+        expect(report?.lastMentionedTime).toBeUndefined();
     });
 });
