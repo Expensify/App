@@ -649,7 +649,6 @@ function getOptionData({
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
     if (isJoinRequestInAdminRoom(report)) {
-        result.isPinned = true;
         result.isUnread = true;
         result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
