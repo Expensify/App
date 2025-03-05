@@ -42,7 +42,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
 
     return (
-        <View style={styles.w100}>
+        <View style={[styles.w100, styles.zIndex10]}>
             <View
                 style={[styles.flexRow, styles.gap4, styles.mh5, styles.mv5, styles.alignItemsCenter, styles.justifyContentBetween]}
                 dataSet={{dragArea: true}}
