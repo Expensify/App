@@ -10,6 +10,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import DisplayNames from '@components/DisplayNames';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,12 +27,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import TextWithCopy from '@components/TextWithCopy';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getBase62ReportID from '@libs/getBase62ReportID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -963,7 +966,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     title={translate('common.details')}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
-                <ScrollView style={[styles.flex1]}>
+                <ScrollView contentContainerStyle={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
                         {isExpenseReport && (!shouldShowTitleField || !titleField) && nameSectionExpenseIOU}
@@ -1017,6 +1020,29 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             onPress={() => setIsDeleteModalVisible(true)}
                         />
                     )}
+
+                    <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
+                        <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={[styles.textMicroSupporting]}>Report ID: </Text>
+                                <TextWithCopy
+                                    copyText={getBase62ReportID(Number(report.reportID))}
+                                    style={[styles.textMicroSupporting]}
+                                >
+                                    {getBase62ReportID(Number(report.reportID))}
+                                </TextWithCopy>
+                            </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <Text style={[styles.textMicroSupporting]}>Long ID: </Text>
+                                <TextWithCopy
+                                    copyText={report.reportID}
+                                    style={[styles.textMicroSupporting]}
+                                >
+                                    {report.reportID}
+                                </TextWithCopy>
+                            </View>
+                        </View>
+                    </FixedFooter>
                 </ScrollView>
                 <ConfirmModal
                     danger
