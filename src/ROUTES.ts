@@ -80,10 +80,7 @@ const ROUTES = {
     },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/report/:reportID',
-        getRoute: ({reportID, backTo}: {reportID: string | undefined; backTo?: string}) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the SEARCH_MONEY_REQUEST_REPORT route');
-            }
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
             const baseRoute = `search/view/${reportID}` as const;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
