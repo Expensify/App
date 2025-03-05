@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -33,6 +33,8 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     const {translate} = useLocalize();
     const [taskTitle, setTaskTitle] = useState(task?.title ?? '');
     const [taskDescription, setTaskDescription] = useState(task?.description ?? '');
+    const titleDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskTitle)), [taskTitle]);
+    const descriptionDefaultValue = useMemo(() => Parser.htmlToMarkdown(Parser.replace(taskDescription)), [taskDescription]);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -104,7 +106,8 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         inputID={INPUT_IDS.TASK_TITLE}
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
-                        value={Parser.htmlToMarkdown(Parser.replace(taskTitle))}
+                        defaultValue={titleDefaultValue}
+                        value={taskTitle}
                         onValueChange={setTaskTitle}
                         autoCorrect={false}
                         type="markdown"
@@ -123,7 +126,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        defaultValue={Parser.htmlToMarkdown(Parser.replace(taskDescription))}
+                        defaultValue={descriptionDefaultValue}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
                         type="markdown"

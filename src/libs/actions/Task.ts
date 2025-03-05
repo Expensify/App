@@ -323,7 +323,6 @@ function createTaskAndNavigate(
         parentReportID,
         taskReportID: optimisticTaskReport.reportID,
         createdTaskReportActionID: optimisticTaskCreatedAction.reportActionID,
-        // title: optimisticTaskReport.reportName,
         htmlTitle: optimisticTaskReport.reportName,
         description: optimisticTaskReport.description,
         assignee: assigneeEmail,

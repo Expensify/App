@@ -88,45 +88,47 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
             shouldEnableMaxHeight
             testID={TaskTitlePage.displayName}
         >
-            <FullPageNotFoundView shouldShow={isTaskNonEditable}>
-                <HeaderWithBackButton
-                    title={translate('task.task')}
-                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
-                />
-                <FormProvider
-                    style={[styles.flexGrow1, styles.ph5]}
-                    formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
-                    validate={validate}
-                    onSubmit={submit}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                >
-                    <View style={[styles.mb4]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.TITLE}
-                            name={INPUT_IDS.TITLE}
-                            label={translate('task.title')}
-                            accessibilityLabel={translate('task.title')}
-                            defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
-                            ref={(element: AnimatedTextInputRef) => {
-                                if (!element) {
-                                    return;
-                                }
-                                if (!inputRef.current) {
-                                    updateMultilineInputRange(inputRef.current);
-                                }
-                                inputRef.current = element;
-                            }}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            shouldSubmitForm={false}
-                            type="markdown"
-                        />
-                    </View>
-                </FormProvider>
-            </FullPageNotFoundView>
+            {({didScreenTransitionEnd}) => (
+                <FullPageNotFoundView shouldShow={isTaskNonEditable}>
+                    <HeaderWithBackButton
+                        title={translate('task.task')}
+                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    />
+                    <FormProvider
+                        style={[styles.flexGrow1, styles.ph5]}
+                        formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
+                        validate={validate}
+                        onSubmit={submit}
+                        submitButtonText={translate('common.save')}
+                        enabledWhenOffline
+                    >
+                        <View style={[styles.mb4]}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.TITLE}
+                                name={INPUT_IDS.TITLE}
+                                label={translate('task.title')}
+                                accessibilityLabel={translate('task.title')}
+                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '')}
+                                ref={(element: AnimatedTextInputRef) => {
+                                    if (!element) {
+                                        return;
+                                    }
+                                    if (!inputRef.current && didScreenTransitionEnd) {
+                                        updateMultilineInputRange(inputRef.current);
+                                    }
+                                    inputRef.current = element;
+                                }}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                shouldSubmitForm={false}
+                                type="markdown"
+                            />
+                        </View>
+                    </FormProvider>
+                </FullPageNotFoundView>
+            )}
         </ScreenWrapper>
     );
 }
