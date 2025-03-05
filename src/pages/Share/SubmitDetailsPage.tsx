@@ -28,6 +28,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import {showErrorAlert} from './ShareRootPage';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
 function SubmitDetailsPage({
@@ -172,6 +173,12 @@ function SubmitDetailsPage({
                         receiptFilename={getFileName(currentAttachment?.content ?? '')}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
+                        onPDFLoadError={() => {
+                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                        }}
+                        onPDFPassword={() => {
+                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                        }}
                     />
                 </View>
             </FullPageNotFoundView>

@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
+import type {FileObject} from '@components/AttachmentModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
@@ -8,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addTempShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
@@ -16,6 +18,16 @@ import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
+
+function showErrorAlert(title: string, message: string) {
+    Alert.alert(title, message, [
+        {
+            onPress: () => {
+                Navigation.navigate(ROUTES.HOME);
+            },
+        },
+    ]);
+}
 
 function ShareRootPage() {
     const appState = useRef(AppState.currentState);
@@ -31,17 +43,34 @@ function ShareRootPage() {
         ShareActionHandler.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
             if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
-                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'), [
-                    {
-                        onPress: () => {
-                            Navigation.navigate(ROUTES.HOME);
-                        },
-                    },
-                ]);
+                showErrorAlert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                return;
             }
+
+            const fileRegexp = /image\/.*/;
+            if (fileRegexp.test(tempFile?.mimeType)) {
+                const fileObject: FileObject = {name: tempFile.id, uri: tempFile?.content, type: tempFile?.mimeType};
+                validateImageForCorruption(fileObject)
+                    .then(() => {
+                        if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                            showErrorAlert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+                        }
+
+                        if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                            showErrorAlert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+                        }
+
+                        return true;
+                    })
+                    .catch(() => {
+                        showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                    });
+            }
+
+            const {fileExtension} = splitExtensionFromFileName(tempFile?.content);
             if (tempFile) {
                 if (tempFile.mimeType) {
-                    if (receiptFileFormats.includes(tempFile.mimeType)) {
+                    if (receiptFileFormats.includes(tempFile.mimeType) && fileExtension) {
                         setIsFileScannable(true);
                     } else {
                         setIsFileScannable(false);
@@ -105,3 +134,5 @@ function ShareRootPage() {
 ShareRootPage.displayName = 'ShareRootPage';
 
 export default ShareRootPage;
+
+export {showErrorAlert};
