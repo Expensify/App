@@ -6352,6 +6352,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         policyParams = {},
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList} = policyParams;
+    const parsedComment = getParsedComment(transactionParams.comment);
+    transactionParams.comment = parsedComment;
     const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}} = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -6412,6 +6414,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             billable,
             splits: JSON.stringify(splits),
             chatType: splitData.chatType,
+            description: parsedComment,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -6478,6 +6481,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             createdReportActionIDForThread,
             payerEmail,
             customUnitRateID,
+            description: parsedComment,
         };
     }
 
