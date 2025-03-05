@@ -13,7 +13,6 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
 
 type ScrollingEventData = {
     isScrolling: boolean;
-    tooltipName: string;
 };
 /**
  * A component used to wrap an element intended for displaying a tooltip.
@@ -70,7 +69,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
             return;
         }
         setTooltipPosition(false);
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling}: ScrollingEventData = {isScrolling: false, tooltipName: ''}) => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling}: ScrollingEventData = {isScrolling: false}) => {
             setTooltipPosition(isScrolling);
         });
 
