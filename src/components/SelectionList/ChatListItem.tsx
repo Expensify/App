@@ -8,6 +8,8 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
+import { isInvoiceRoom, isPolicyExpenseChat } from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 
 function ChatListItem<TItem extends ListItem>({
     item,
@@ -76,6 +78,16 @@ function ChatListItem<TItem extends ListItem>({
                 index={item.index ?? 0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
+                shouldShowSubscriptAvatar={
+                    (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
+                    [
+                        CONST.REPORT.ACTIONS.TYPE.IOU,
+                        CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    ].some((type) => type === reportActionItem.actionName)
+                }
             />
         </BaseListItem>
     );
