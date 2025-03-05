@@ -42,6 +42,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}
             shouldShowNotFoundPage={!avatarURL}
+            maybeIcon
         />
     );
 }
