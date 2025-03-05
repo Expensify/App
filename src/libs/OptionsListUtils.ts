@@ -534,14 +534,10 @@ function uniqFast(items: string[]): string[] {
  * Get the last actor display name from last actor details.
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
-    if (!hasMultipleParticipants || !lastActorDetails) {
-        return '';
-    }
-
-    return lastActorDetails.accountID !== currentUserAccountID
+    return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
-        : translateLocal('common.you');
+        : '';
 }
 
 /**
