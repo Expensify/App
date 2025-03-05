@@ -65,6 +65,21 @@ const chatTypes = {
     SYSTEM: 'system',
 } as const;
 
+const ONBOARDING_ACCOUNTING_MAPPING = {
+    quickbooksOnline: 'QuickBooks Online',
+    xero: 'Xero',
+    netsuite: 'NetSuite',
+    netsuiteQuickStart: 'NSQS',
+    intacct: 'Sage Intacct',
+    quickbooksDesktop: 'QuickBooks Desktop',
+};
+
+const connectionsVideoPaths = {
+    [ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]: "videos/walkthrough-connect_to_qbo.mp4",
+    [ONBOARDING_ACCOUNTING_MAPPING.xero]: "videos/walkthrough-connect_to_xero.mp4",
+    [ONBOARDING_ACCOUNTING_MAPPING.netsuite]: "videos/walkthrough-connect_to_netsuite.mp4"
+};
+
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
@@ -129,7 +144,9 @@ const createWorkspaceTask: OnboardingTask = {
 const setupCategoriesTask: OnboardingTask = {
     type: 'setupCategories',
     autoCompleted: false,
-    mediaAttributes: {},
+    mediaAttributes: {
+        [`${CLOUDFRONT_URL}/videos/walkthrough-categories.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png"`,
+    },
     title: 'Set up categories',
     description: ({workspaceCategoriesLink}) =>
         '*Set up categories* so your team can code expenses for easy reporting.\n' +
@@ -143,7 +160,9 @@ const setupCategoriesTask: OnboardingTask = {
         "5. Disable any categories you don't need.\n" +
         '6. Add your own categories in the top right.\n' +
         '\n' +
-        `[Take me to workspace category settings](${workspaceCategoriesLink}).`,
+        `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
+        '\n' +
+        `![video](${CLOUDFRONT_URL}/videos/walkthrough-categories.mp4)`,
 };
 
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
@@ -285,7 +304,7 @@ type OnboardingTask = {
                   workspaceCategoriesLink: string;
                   workspaceMoreFeaturesLink: string;
                   workspaceMembersLink: string;
-                  integrationName: string;
+                  integrationName: (typeof ONBOARDING_ACCOUNTING_MAPPING)[keyof typeof ONBOARDING_ACCOUNTING_MAPPING]
                   workspaceAccountingLink: string;
                   workspaceSettingsLink: string;
                   navatticURL: string;
@@ -5165,14 +5184,7 @@ const CONST = {
     ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
     ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
-    ONBOARDING_ACCOUNTING_MAPPING: {
-        quickbooksOnline: 'QuickBooks Online',
-        xero: 'Xero',
-        netsuite: 'NetSuite',
-        netsuiteQuickStart: 'NSQS',
-        intacct: 'Sage Intacct',
-        quickbooksDesktop: 'QuickBooks Desktop',
-    },
+    ONBOARDING_ACCOUNTING_MAPPING,
     ONBOARDING_MESSAGES: {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
@@ -5197,7 +5209,7 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Set up tags',
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg"`,
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-tags.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-tags.png"`,
                     },
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
@@ -5214,12 +5226,14 @@ const CONST = {
                         '\n' +
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
-                        `![video](${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4)`,
+                        `![video](${CLOUDFRONT_URL}/videos/walkthrough-tags.mp4)`,
                 },
                 {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
-                    mediaAttributes: {},
+                    mediaAttributes: {
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png"`,
+                    },
                     title: 'Add expense approvals',
                     description: ({workspaceMoreFeaturesLink}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
@@ -5235,12 +5249,16 @@ const CONST = {
                         '7. Enable *Add approvals*.\n' +
                         '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
                         '\n' +
-                        `[Take me to more features](${workspaceMoreFeaturesLink}).`,
+                        `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
+                        '\n' +
+                        `![video](${CLOUDFRONT_URL}/videos/walkthrough-approvals.mp4)`,
                 },
                 {
                     type: 'inviteTeam',
                     autoCompleted: false,
-                    mediaAttributes: {},
+                    mediaAttributes: {
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png"`,
+                    },
                     title: 'Invite your team',
                     description: ({workspaceMembersLink}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
@@ -5254,27 +5272,38 @@ const CONST = {
                         '5. Enter emails or phone numbers. \n' +
                         '6. Add a custom invite message if you’d like!\n' +
                         '\n' +
-                        `[Take me to workspace members](${workspaceMembersLink}).`,
+                        `[Take me to workspace members](${workspaceMembersLink}).\n` +
+                        '\n' +
+                        `![video](${CLOUDFRONT_URL}/videos/walkthrough-invite_members.mp4)`,
                 },
                 {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
-                    mediaAttributes: {},
+                    mediaAttributes: {
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png"`,
+                    },
                     title: ({integrationName}) => `Connect to ${integrationName}`,
-                    description: ({integrationName, workspaceAccountingLink}) =>
-                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
-                        '\n' +
-                        `Here’s how to connect to ${integrationName}:\n` +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Accounting*.\n' +
-                        `5. Find ${integrationName}.\n` +
-                        '6. Click *Connect*.\n' +
-                        '\n' +
-                        `[Take me to accounting](${workspaceAccountingLink}).`,
-                },
+                    description: ({ integrationName, workspaceAccountingLink }) =>
+                        `Connect to ${  integrationName  } for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        `\n` +
+                        `Here’s how to connect to ${  integrationName  }:\n` +
+                        `\n` +
+                        `1. Click *Settings*.\n` +
+                        `2. Go to *Workspaces*.\n` +
+                        `3. Select your workspace.\n` +
+                        `4. Click *Accounting*.\n` +
+                        `5. Find ${  integrationName  }.\n` +
+                        `6. Click *Connect*.\n` +
+                        `\n` +
+                        `${ 
+                        integrationName && connectionsVideoPaths[integrationName]
+                            ? `[Take me to workspace members](${workspaceAccountingLink}).\n\n![video](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
+                            : `[Take me to workspace members](${workspaceAccountingLink}).`}`,
+
+                    },
+                    
             ],
         },
         [onboardingChoices.TRACK_WORKSPACE]: {
