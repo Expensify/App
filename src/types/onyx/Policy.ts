@@ -1371,7 +1371,7 @@ type QBDConnectionData = {
 };
 
 /**
- * Export config for QuickBook Desktop
+ * Export config for QuickBooks Desktop
  */
 type QBDExportConfig = {
     /** E-mail of the exporter */
