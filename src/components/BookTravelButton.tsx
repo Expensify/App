@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -22,6 +21,7 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
+import { RocketDude } from './Icon/Illustrations';
 
 type BookTravelButtonProps = {
     text: string;
@@ -136,7 +136,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 title={translate('travel.blockedFeatureModal.title')}
                 onConfirm={hidePreventionModal}
                 onCancel={hidePreventionModal}
-                image={Illustrations.RocketDude}
+                image={RocketDude}
                 imageStyles={[StyleUtils.getBackgroundColorStyle(colors.ice600)]}
                 isVisible={isPreventionModalVisible}
                 prompt={translate('travel.blockedFeatureModal.message')}
