@@ -132,10 +132,6 @@ const getBaseConfiguration = ({file = '.env', platform = 'web'}: Environment): C
                 ],
             },
             {
-                test: /\.css$/i,
-                use: ['style-loader', 'css-loader'],
-            },
-            {
                 test: /\.(woff|woff2)$/i,
                 type: 'asset',
             },

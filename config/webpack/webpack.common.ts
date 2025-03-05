@@ -106,6 +106,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         ],
         module: {
             rules: [
+                {
+                    test: /\.css$/i,
+                    use: ['style-loader', 'css-loader'],
+                },
                 // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
                 // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
                 {

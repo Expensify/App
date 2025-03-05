@@ -29,6 +29,24 @@ const emailsConfig: Configuration = merge(baseConfig({platform: 'ssr'}), {
             'process.env.IS_SSR_BUILD': true,
         }),
     ],
+    module: {
+        rules: [
+            {
+                test: /\.css$/,
+                use: [
+                    {
+                        loader: 'isomorphic-style-loader-react18',
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            modules: false,
+                        },
+                    },
+                ],
+            },
+        ],
+    },
 });
 
 export default emailsConfig;
