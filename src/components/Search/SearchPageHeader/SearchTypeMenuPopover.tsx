@@ -211,6 +211,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                     shouldUseScrollView
                     shouldUseModalPaddingStyle={false}
                     innerContainerStyle={{paddingBottom: unmodifiedPaddings.bottom}}
+                    shouldAvoidSafariException
                 />
             )}
             <DeleteConfirmModal />
