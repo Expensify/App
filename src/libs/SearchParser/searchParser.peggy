@@ -128,6 +128,7 @@ key "key"
       / paid
       / exported
       / posted
+      / feed
     )
 
 defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID)
