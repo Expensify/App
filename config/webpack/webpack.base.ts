@@ -43,32 +43,19 @@ const includeModules = [
  * This also skips packing web only dependencies to desktop and vice versa
  */
 function getFileExtensions(platform: Environment['platform']) {
-    const extensions = [
-        '.web.js',
-        ...(platform === 'desktop' ? ['.desktop.js'] : []),
-        ...(platform === 'web' ? ['.website.js'] : []),
-        '.js',
-        '.jsx',
-        '.web.ts',
-        ...(platform === 'desktop' ? ['.desktop.ts'] : []),
-        ...(platform === 'web' ? ['.website.ts'] : []),
-        ...(platform === 'desktop' ? ['.desktop.tsx'] : []),
-        ...(platform === 'web' ? ['website.tsx'] : []),
-        '.ts',
-        '.web.tsx',
-        '.tsx',
-    ];
+    const extensions: string[] = [];
     switch (platform) {
         case 'desktop':
-            extensions.push('desktop.js', 'desktop.ts', 'desktop.tsx');
+            extensions.push('.desktop.js', '.desktop.ts', '.desktop.tsx');
             break;
         case 'ssr':
-            extensions.push('ssr.ts', 'ssr.tsx');
+            extensions.push('.ssr.ts', '.ssr.tsx');
             break;
         case 'web':
         default:
-            extensions.push('website.js', 'website.ts', 'website.tsx');
+            extensions.push('.website.js', '.website.ts', '.website.tsx');
     }
+    extensions.push('.web.js', '.js', '.jsx', '.web.ts', '.ts', '.web.tsx', '.tsx');
     return extensions;
 }
 
