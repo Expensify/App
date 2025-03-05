@@ -1,11 +1,12 @@
 import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
-import {MarkdownTextInput, parseExpensiMark} from '@expensify/react-native-live-markdown';
+import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback} from 'react';
+import React, {forwardRef, useCallback, useEffect} from 'react';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
-import {decorateRangesWithShortMentions} from '@libs/ParsingUtils';
+import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
+import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
@@ -35,7 +36,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
     const {mentionsList, currentUserMention} = useShortMentionsList();
     const mentionsSharedVal = useSharedValue<string[]>(mentionsList);
 
-    // We accept parser passed down as a prop or use ExpensiMark if parser is not defined
+    // If `parser` prop was passed down we use it directly, otherwise we default to parsing with ExpensiMark
     const parserWorklet = useCallback(
         (text: string) => {
             'worklet';
@@ -44,16 +45,18 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ...props}: RNMarkdownTex
                 return parser(text);
             }
 
-            const parsedMentions = parseExpensiMark(text);
-            const availableMentions = mentionsSharedVal.get();
-            if (availableMentions.length === 0) {
-                return parsedMentions;
-            }
-
-            return decorateRangesWithShortMentions(parsedMentions, text, mentionsSharedVal.get(), currentUserMention);
+            return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMention);
         },
         [currentUserMention, mentionsSharedVal, parser],
     );
+
+    useEffect(() => {
+        runOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            mentionsSharedVal.set(mentionsList);
+        });
+    }, [mentionsList, mentionsSharedVal]);
 
     return (
         <AnimatedMarkdownTextInput
