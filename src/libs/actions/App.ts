@@ -115,6 +115,14 @@ Onyx.connect({
     },
 });
 
+let nvpSidePane: OnyxEntry<OnyxTypes.SidePane>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_SIDE_PANE,
+    callback: (value) => {
+        nvpSidePane = value;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
@@ -197,7 +205,11 @@ function setLocale(locale: Locale) {
 
 function setLocaleAndNavigate(locale: Locale) {
     setLocale(locale);
-    triggerSidePane(false, {shouldUpdateNarrowLayout: true});
+
+    if (nvpSidePane) {
+        triggerSidePane(false, {shouldUpdateNarrowLayout: true});
+    }
+
     Navigation.goBack();
 }
 
