@@ -19,7 +19,7 @@ type ScrollingEventData = {
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, name = '', shouldHideOnEdge = false, ...props}: EducationalTooltipProps) {
+function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnEdge = false, ...props}: EducationalTooltipProps) {
     const genericTooltipStateRef = useRef<GenericTooltipState>();
     const tooltipElRef = useRef<React.Component & Readonly<NativeMethods>>();
 
@@ -30,8 +30,8 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     const insets = useSafeAreaInsets();
 
     const setTooltipPosition = useCallback(
-        (isScrolling: boolean, tooltipName: string) => {
-            if (tooltipName !== name || !genericTooltipStateRef.current || !tooltipElRef.current) {
+        (isScrolling: boolean) => {
+            if (!shouldHideOnEdge || !genericTooltipStateRef.current || !tooltipElRef.current) {
                 return;
             }
 
@@ -43,7 +43,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                     updateTargetBounds(bounds);
                     const {y, height} = bounds;
 
-                    const offset = 10; // Buffer space
+                    const offset = 30; // Buffer space
                     const dimensions = Dimensions.get('window');
                     const top = y - (insets.top || 0);
                     const bottom = y + height + insets.bottom || 0;
@@ -66,12 +66,12 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     );
 
     useLayoutEffect(() => {
-        if (!shouldRender || !name || !shouldHideOnEdge) {
+        if (!shouldRender || !shouldHideOnEdge) {
             return;
         }
-        setTooltipPosition(false, name);
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling, tooltipName}: ScrollingEventData = {isScrolling: false, tooltipName: ''}) => {
-            setTooltipPosition(isScrolling, tooltipName);
+        setTooltipPosition(false);
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling}: ScrollingEventData = {isScrolling: false, tooltipName: ''}) => {
+            setTooltipPosition(isScrolling);
         });
 
         return () => scrollingListener.remove();

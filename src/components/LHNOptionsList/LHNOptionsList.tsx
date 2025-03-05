@@ -69,7 +69,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         onFirstItemRendered();
     }, [onFirstItemRendered]);
 
-    const triggerScrollEvent = useScrollEventEmitter({tooltipName: CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP});
+    // this function handles the visibility of the educational tooltip based on the user's scroll actions.
+    // It hides or shows the tooltip accordingly.
+    const triggerScrollEvent = useScrollEventEmitter();
 
     const emptyLHNSubtitle = useMemo(
         () => (

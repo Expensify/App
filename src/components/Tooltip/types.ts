@@ -88,9 +88,6 @@ type EducationalTooltipProps = ChildrenProps &
         /** Whether the tooltip should hide when navigating */
         shouldHideOnNavigate?: boolean;
 
-        /** This name can be used to distinguish between different tooltips  */
-        name?: string;
-
         /** whether tooltip should hide during scrolling  */
         shouldHideOnEdge?: boolean;
     };

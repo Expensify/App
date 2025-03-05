@@ -2,14 +2,10 @@ import {useCallback, useEffect, useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
 
-type ScrollingEventAdditionalData = {
-    tooltipName: string;
-};
-
 /**
  * This hook tracks scroll events and emits a "scrolling" event when scrolling starts and ends.
  */
-const useScrollEventEmitter = (additionalEmitData: ScrollingEventAdditionalData) => {
+const useScrollEventEmitter = () => {
     const isScrollingRef = useRef<boolean>(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -17,7 +13,6 @@ const useScrollEventEmitter = (additionalEmitData: ScrollingEventAdditionalData)
         const emitScrolling = (isScrolling: boolean) => {
             DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, {
                 isScrolling,
-                ...additionalEmitData,
             });
         };
 
@@ -36,7 +31,7 @@ const useScrollEventEmitter = (additionalEmitData: ScrollingEventAdditionalData)
             emitScrolling(false);
             isScrollingRef.current = false;
         }, 250);
-    }, [additionalEmitData]);
+    }, []);
 
     // Cleanup timeout on unmount
     useEffect(() => {
