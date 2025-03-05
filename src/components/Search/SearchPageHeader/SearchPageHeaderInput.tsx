@@ -44,18 +44,9 @@ type SearchPageHeaderInputProps = {
     onSearchRouterFocus?: () => void;
     searchName?: string;
     inputRightComponent: React.ReactNode;
-    shouldGroupByReports?: boolean;
 };
 
-function SearchPageHeaderInput({
-    queryJSON,
-    searchRouterListVisible,
-    hideSearchRouterList,
-    onSearchRouterFocus,
-    searchName,
-    inputRightComponent,
-    shouldGroupByReports,
-}: SearchPageHeaderInputProps) {
+function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
@@ -263,7 +254,6 @@ function SearchPageHeaderInput({
                             >
                                 <SearchTypeMenuPopover
                                     queryJSON={queryJSON}
-                                    shouldGroupByReports={shouldGroupByReports}
                                     searchName={searchName}
                                 />
                             </Animated.View>

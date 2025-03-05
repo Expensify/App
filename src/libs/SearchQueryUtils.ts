@@ -625,20 +625,26 @@ function buildCannedSearchQuery({
     status = CONST.SEARCH.STATUS.EXPENSE.ALL,
     policyID,
     cardID,
+    groupBy,
 }: {
     type?: SearchDataTypes;
     status?: SearchStatus;
     policyID?: string;
     cardID?: string;
+    groupBy?: string;
 } = {}): SearchQueryString {
     let queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
 
+    if (groupBy) {
+        queryString += ` group-by:${groupBy}`;
+    }
+
     if (policyID) {
-        queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status} policyID:${policyID}`;
+        queryString += ` policyID:${policyID}`;
     }
 
     if (cardID) {
-        queryString = `type:${type} status:${Array.isArray(status) ? status.join(',') : status} expense-type:card card:${cardID}`;
+        queryString += ` expense-type:card card:${cardID}`;
     }
 
     // Parse the query to fill all default query fields with values
