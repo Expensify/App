@@ -5317,16 +5317,16 @@ const CONST = {
                     title: ({integrationName}) => `Connect to ${integrationName}`,
                     description: ({integrationName, workspaceAccountingLink}) =>
                         `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
-                        `\n` +
+                        '\n' +
                         `Here’s how to connect to ${integrationName}:\n` +
-                        `\n` +
-                        `1. Click *Settings*.\n` +
-                        `2. Go to *Workspaces*.\n` +
-                        `3. Select your workspace.\n` +
-                        `4. Click *Accounting*.\n` +
+                        '\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *Accounting*.\n' +
                         `5. Find ${integrationName}.\n` +
-                        `6. Click *Connect*.\n` +
-                        `\n` +
+                        '6. Click *Connect*.\n' +
+                        '\n' +
                         `${
                             integrationName && connectionsVideoPaths[integrationName]
                                 ? `[Take me to workspace members](${workspaceAccountingLink}).\n\n![video](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
