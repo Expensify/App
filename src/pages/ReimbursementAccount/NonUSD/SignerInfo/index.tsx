@@ -40,7 +40,7 @@ const SUBSTEP: Record<string, number> = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_S
 const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
 const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, Occupation, DateOfBirth, Address, UploadDocuments, Confirmation];
-const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
+const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, Occupation, UploadDocuments, Confirmation];
 const userIsOwnerCadBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [UploadDocuments, Confirmation];
 const directorDetailsBodyContent: Array<ComponentType<DirectorDetailsFormProps>> = [Name, JobTitle, Occupation];
 
@@ -64,7 +64,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const [directorBeingModifiedID, setDirectorBeingModifiedID] = useState<string>(CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
 
     const submit = useCallback(() => {
-        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorKeys);
+        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', directorKeys, isUserDirector);
 
         if (currency === CONST.CURRENCY.AUD) {
             setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
