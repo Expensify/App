@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -22,11 +23,11 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import BOTTOM_TABS from './BottomTabBar/BOTTOM_TABS';
 
 type DebugTabViewProps = {
-    selectedTab?: string;
+    selectedTab?: ValueOf<typeof BOTTOM_TABS>;
     chatTabBrickRoad: BrickRoad;
     activeWorkspaceID?: string;
 };
@@ -96,7 +97,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
     }
 }
 
-function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) {
+function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugTabViewProps) {
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -106,7 +107,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
     const {orderedReportIDs} = useReportIDs();
 
     const message = useMemo((): TranslationPaths | undefined => {
-        if (selectedTab === SCREENS.HOME) {
+        if (selectedTab === BOTTOM_TABS.HOME) {
             if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 return 'debug.indicatorStatus.theresAReportAwaitingAction';
             }
@@ -114,13 +115,13 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                 return 'debug.indicatorStatus.theresAReportWithErrors';
             }
         }
-        if (selectedTab === SCREENS.SETTINGS.ROOT) {
+        if (selectedTab === BOTTOM_TABS.SETTINGS) {
             return getSettingsMessage(status);
         }
     }, [selectedTab, chatTabBrickRoad, status]);
 
     const indicator = useMemo(() => {
-        if (selectedTab === SCREENS.HOME) {
+        if (selectedTab === BOTTOM_TABS.HOME) {
             if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
                 return theme.success;
             }
@@ -128,7 +129,7 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
                 return theme.danger;
             }
         }
-        if (selectedTab === SCREENS.SETTINGS.ROOT) {
+        if (selectedTab === BOTTOM_TABS.SETTINGS) {
             if (status) {
                 return indicatorColor;
             }
@@ -136,14 +137,14 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
     }, [selectedTab, chatTabBrickRoad, theme.success, theme.danger, status, indicatorColor]);
 
     const navigateTo = useCallback(() => {
-        if (selectedTab === SCREENS.HOME && !!chatTabBrickRoad) {
+        if (selectedTab === BOTTOM_TABS.HOME && !!chatTabBrickRoad) {
             const report = getChatTabBrickRoadReport(activeWorkspaceID, orderedReportIDs);
 
             if (report) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
             }
         }
-        if (selectedTab === SCREENS.SETTINGS.ROOT) {
+        if (selectedTab === BOTTOM_TABS.SETTINGS) {
             const route = getSettingsRoute(status, reimbursementAccount, policyIDWithErrors);
 
             if (route) {
@@ -152,12 +153,15 @@ function DebugTabView({selectedTab = '', chatTabBrickRoad, activeWorkspaceID}: D
         }
     }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, orderedReportIDs, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([SCREENS.HOME, SCREENS.SETTINGS.ROOT] as string[]).includes(selectedTab) || !indicator) {
+    if (!([BOTTOM_TABS.HOME, BOTTOM_TABS.SETTINGS] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
     }
 
     return (
-        <View style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+        <View
+            testID={DebugTabView.displayName}
+            style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p3, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}
+        >
             <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
                 <Icon
                     src={Expensicons.DotIndicator}
