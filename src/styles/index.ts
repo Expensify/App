@@ -635,6 +635,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
+            ...spacing.gap4,
             minHeight: 64,
         },
 
@@ -3757,7 +3758,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         narrowSearchHeaderStyle: {
-            paddingTop: 1,
+            paddingTop: 12,
             backgroundColor: theme.appBG,
             flex: 1,
         },
@@ -5429,7 +5430,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             backgroundColor: theme.transparent,
             overflow: 'hidden',
-            marginBottom: -1,
+            position: 'absolute',
+            bottom: -1,
         },
 
         progressBar: {
