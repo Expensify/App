@@ -1,8 +1,8 @@
-diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
-index 3332d68..b1bc786 100644
---- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
-+++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/Binding.cpp
-@@ -486,7 +486,7 @@ void Binding::schedulerDidFinishTransaction(
+diff --git a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+index ebe6f1d..0d9897b 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
++++ b/node_modules/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.cpp
+@@ -543,7 +543,7 @@ void FabricUIManagerBinding::schedulerDidFinishTransaction(
              mountingTransaction->getSurfaceId();
        });
  
