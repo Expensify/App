@@ -2644,7 +2644,7 @@ const translations = {
         blockedFeatureModal: {
             title: 'Travel is disabled',
             message: `Your admin has disabled Expensify Travel. Please book travel according to your company's booking policy`,
-        }
+        },
     },
     workspace: {
         common: {

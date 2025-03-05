@@ -3,6 +3,7 @@ import React, {useCallback, useContext, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
@@ -15,10 +16,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
+import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import ConfirmModal from './ConfirmModal';
-import usePermissions from '@hooks/usePermissions';
 
 type BookTravelButtonProps = {
     text: string;
