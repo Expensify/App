@@ -35,23 +35,6 @@ Labels and hints are enabled by passing the appropriate props to each input:
 />
 ```
 
-### Character Limits
-
-If a field has a character limit, we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
-
-```jsx
-<InputWrapper
-    InputComponent={TextInput}
-    maxLength={20}
-/>
-```
-Note: We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
-The phone number can be formatted in different ways.
-
-- 2109400803
-- +12109400803
-- (210)-940-0803
-
 ### Native Keyboards
 
 We should always set people up for success on native platforms by enabling the best keyboard for the type of input we’re asking them to provide. See [inputMode](https://reactnative.dev/docs/textinput#inputmode) in the React Native documentation.
