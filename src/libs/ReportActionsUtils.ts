@@ -148,10 +148,6 @@ function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean 
 function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): boolean {
     const message = reportAction?.message ?? [];
 
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM) {
-        return false;
-    }
-
     if (!Array.isArray(message)) {
         return message?.html === '' || !!message?.deleted;
     }
