@@ -518,6 +518,7 @@ function AttachmentModal({
                     }
                 }}
                 propagateSwipe
+                swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
                 initialFocus={() => {
                     if (!submitRef.current) {
                         return false;
@@ -582,7 +583,7 @@ function AttachmentModal({
                                             onToggleKeyboard={setIsConfirmButtonDisabled}
                                             onPDFLoadError={() => {
                                                 isPDFLoadError.current = true;
-                                                setIsModalOpen(false);
+                                                closeModal();
                                             }}
                                             isWorkspaceAvatar={isWorkspaceAvatar}
                                             maybeIcon={maybeIcon}
