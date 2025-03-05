@@ -44,7 +44,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                 if (!sourceURL || !type) {
                                     return;
                                 }
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, type, sourceURL, accountID);
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, undefined, type, sourceURL, accountID);
                                 Navigation.navigate(route);
                             }}
                         />
