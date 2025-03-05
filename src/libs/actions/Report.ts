@@ -1231,7 +1231,8 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  * @param parentReportID The reportID of the parent
  */
 function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
-    if (childReportID) {
+    const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
+    if (childReport?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
@@ -1251,10 +1252,18 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
             getChildReportNotificationPreference(parentReportAction),
             parentReportAction.reportActionID,
             parentReportID,
+            undefined,
+            undefined,
+            childReportID,
         );
 
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
+        if (!childReportID) {
+            const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
+            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
+        } else {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
+        }
+
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
     }
 }
@@ -3761,6 +3770,7 @@ function prepareOnboardingOnyxData(
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                !['submitExpense', 'trackExpense', 'startChat', 'splitExpense'].includes(task.type),
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE : CONST.EMAIL.CONCIERGE;
@@ -4108,23 +4118,7 @@ function prepareOnboardingOnyxData(
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
         let createdAction: ReportAction;
-        if (selfDMReport) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-                value: {
-                    isPinned: true,
-                },
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`,
-                value: {
-                    isPinned: selfDMReport?.isPinned,
-                },
-            });
-        } else {
+        if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
             selfDMReport = buildOptimisticSelfDMReport(currentTime);
             createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);

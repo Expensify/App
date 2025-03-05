@@ -514,6 +514,7 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
     },
@@ -2670,10 +2671,6 @@ const translations = {
         publicDomainError: {
             title: 'Comienza con Expensify Travel',
             message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
-        },
-        maintenance: {
-            title: '¡Expensify Travel está recibiendo una actualización! 🚀',
-            message: `No estará disponible del 23 al 24 de febrero, pero volverá mejor que nunca después de eso. Si necesitas ayuda con un viaje actual, por favor llama al +1 866-296-7768. ¡Gracias!`,
         },
     },
     workspace: {
