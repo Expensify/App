@@ -98,6 +98,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                         onDowngrade={onDowngradeToTeam}
                         buttonDisabled={isOffline}
                         loading={policy?.isPendingDowngrade}
+                        backTo={route.params.backTo}
                     />
                 )}
             </ScrollView>

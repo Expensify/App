@@ -123,7 +123,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                             policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
-                                if (isReportFieldOfTypeTitle(reportField)) {
+                                if (isReportFieldOfTypeTitle(reportField) || (isReportFieldOfTypeTitle(reportField, false) && !reportField?.deletable)) {
                                     return null;
                                 }
 

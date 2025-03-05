@@ -13,15 +13,17 @@ import {openLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
     onDowngrade: () => void;
     policyID?: string;
+    backTo?: Route;
 };
 
-function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID}: Props) {
+function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -93,7 +95,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID}: Props)
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, {forceReplace: true})}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     large
                 />
             )}

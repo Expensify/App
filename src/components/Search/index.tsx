@@ -146,7 +146,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         lastSearchType,
         setLastSearchType,
     } = useSearchContext();
-    const {selectionMode} = useMobileSelectionMode(false);
+    const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
 
     const {type, status, sortBy, sortOrder, hash} = queryJSON;
@@ -509,7 +509,6 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
                     ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
                     : !!item.isSelected
             }
-            shouldAutoTurnOff={false}
             onScroll={onSearchListScroll}
             onContentSizeChange={onContentSizeChange}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}

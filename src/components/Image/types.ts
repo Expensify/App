@@ -1,4 +1,4 @@
-import type {ImageSource} from 'expo-image';
+import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
 import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -23,6 +23,9 @@ type BaseImageProps = {
 
     /** Styles for the Image */
     style?: StyleProp<ImageStyle>;
+
+    /** The image cache policy */
+    cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 };
 
 type ImageOwnProps = BaseImageProps & {

@@ -23,10 +23,6 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
-function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
-}
-
 /**
  * Link previews are temporarily disabled.
  */
@@ -60,7 +56,6 @@ export default {
     canUseSpotnanaTravel,
     isBlockedFromSpotnanaTravel,
     canUseNetSuiteUSATax,
-    canUsePerDiem,
     canUseMergeAccounts,
     canUseManagerMcTest,
     canUseInternationalBankAccount,

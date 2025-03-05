@@ -21,6 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -113,6 +114,10 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 styles: [styles.textSupporting],
                 isSelected: false,
                 shouldCallAfterModalHide: true,
+                icon: Expensicons.Bookmark,
+                iconWidth: variables.iconSizeNormal,
+                iconHeight: variables.iconSizeNormal,
+                shouldIconUseAutoWidthStyle: false,
             };
         },
         [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards],

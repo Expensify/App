@@ -9,7 +9,7 @@ import type HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 
-type MouseEvents = 'onMouseEnter' | 'onMouseLeave' | 'onMouseMove' | 'onBlur';
+type MouseEvents = 'onMouseEnter' | 'onMouseLeave' | 'onMouseMove';
 
 type OnMouseEvents = Record<MouseEvents, (e: MouseEvent) => void>;
 
@@ -78,7 +78,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     }, []);
 
     const handleMouseEvents = useCallback(
-        (type: 'enter' | 'leave' | 'blur') => () => {
+        (type: 'enter' | 'leave') => () => {
             if (shouldFreezeCapture) {
                 return;
             }
@@ -94,7 +94,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
 
     const child = useMemo(() => getReturnValue(children, isHovered), [children, isHovered]);
 
-    const {onMouseEnter, onMouseLeave, onBlur} = child.props as OnMouseEvents;
+    const {onMouseEnter, onMouseLeave} = child.props as OnMouseEvents;
 
     return cloneElement(child, {
         ref: mergeRefs(elementRef, outerRef, child.ref),
@@ -105,10 +105,6 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
         onMouseLeave: (e: MouseEvent) => {
             handleMouseEvents('leave')();
             onMouseLeave?.(e);
-        },
-        onBlur: (e: MouseEvent) => {
-            handleMouseEvents('blur')();
-            onBlur?.(e);
         },
     });
 }
