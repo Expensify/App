@@ -109,6 +109,7 @@ import type {
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     NeedCategoryForExportToIntegrationParams,
+    NewWorkspaceNameParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -522,6 +523,7 @@ const translations = {
         subrate: 'Subrate',
         perDiem: 'Per diem',
         validate: 'Validate',
+        help: 'Help',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
     },
@@ -2640,10 +2642,6 @@ const translations = {
             title: 'Get started with Expensify Travel',
             message: `You'll need to use your work email (e.g., name@company.com) with Expensify Travel, not your personal email (e.g., name@gmail.com).`,
         },
-        maintenance: {
-            title: 'Expensify Travel is getting an upgrade! 🚀',
-            message: `It'll be unavailable February 23-24, but back and better than ever after that. If you need help with a current trip, please call +1 866-296-7768. Thanks!`,
-        },
     },
     workspace: {
         common: {
@@ -4028,6 +4026,8 @@ const translations = {
             newWorkspace: 'New workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
             confirmWorkspace: 'Confirm Workspace',
+            myGroupWorkspace: 'My Group Workspace',
+            workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}'s Workspace${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
             genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',
