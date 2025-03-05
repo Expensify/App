@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import WhyLink from '@pages/ReimbursementAccount/NonUSD/WhyLink';
-import {setDraftValues} from '@userActions/FormActions';
+import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -80,10 +80,13 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
         setFiles((prev) => [...prev, ...files]);
     };
 
-    // TODO: check if this is necessary
-    const setError = (error: string) => {
-        // eslint-disable-next-line
-        console.info(error);
+    const setUploadError = (error: string, inputID: string) => {
+        if (!error) {
+            clearErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+            return;
+        }
+
+        setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
     };
 
     return (
@@ -114,7 +117,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedIDs}
                         inputID={`${SIGNER_PREFIX}_${COPY_OF_ID}`}
-                        setError={setError}
+                        setError={(error) => {
+                            setUploadError(error, `${SIGNER_PREFIX}_${COPY_OF_ID}`);
+                        }}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
                     {(isDocumentNeededStatus.isAddressProofNeeded ||
@@ -139,7 +144,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfAddress}
                         inputID={`${SIGNER_PREFIX}_${ADDRESS_PROOF}`}
-                        setError={setError}
+                        setError={(error) => {
+                            setUploadError(error, `${SIGNER_PREFIX}_${ADDRESS_PROOF}`);
+                        }}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
                     {(isDocumentNeededStatus.isProofOfDirecorsNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && (
@@ -163,7 +170,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedProofsOfDirectors}
                         inputID={`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`}
-                        setError={setError}
+                        setError={(error) => {
+                            setUploadError(error, `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`);
+                        }}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('signerInfoStep.proofOfDirectorsDescription')}</Text>
                     {(isDocumentNeededStatus.isCodiceFiscaleNeeded || isDocumentNeededStatus.isPRDandFSGNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
@@ -185,7 +194,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedCodiceFiscale}
                         inputID={`${SIGNER_PREFIX}_${CODICE_FISCALE}`}
-                        setError={setError}
+                        setError={(error) => {
+                            setUploadError(error, `${SIGNER_PREFIX}_${CODICE_FISCALE}`);
+                        }}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('ownershipInfoStep.codiceFiscaleDescription')}</Text>
                     {isDocumentNeededStatus.isPRDandFSGNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
@@ -207,7 +218,9 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
                         acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
                         value={uploadedPRDandSFG}
                         inputID={`${SIGNER_PREFIX}_${PRD_AND_SFG}`}
-                        setError={setError}
+                        setError={(error) => {
+                            setUploadError(error, `${SIGNER_PREFIX}_${PRD_AND_SFG}`);
+                        }}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mb3, styles.mt6]}>{translate('signerInfoStep.PRDandFSGDescription')}</Text>
                 </View>
