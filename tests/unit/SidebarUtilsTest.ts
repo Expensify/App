@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
 import {getReportActionMessageText} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -13,7 +14,6 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import DateUtils from '@libs/DateUtils';
 
 describe('SidebarUtils', () => {
     beforeAll(() =>
@@ -197,7 +197,6 @@ describe('SidebarUtils', () => {
             expect(result).toBeNull();
         });
 
-<<<<<<< Updated upstream
         it('returns isPinned true only when report.isPinned is true', () => {
             const MOCK_REPORT_PINNED: OnyxEntry<Report> = {
                 reportID: '1',
@@ -233,7 +232,8 @@ describe('SidebarUtils', () => {
 
             expect(optionDataPinned?.isPinned).toBe(true);
             expect(optionDataUnpinned?.isPinned).toBe(false);
-=======
+        });
+
         it('returns null when report is archived', async () => {
             const MOCK_REPORT: Report = {
                 reportID: '5',
@@ -242,10 +242,10 @@ describe('SidebarUtils', () => {
             const reportNameValuePairs = {
                 private_isArchived: DateUtils.getDBTime(),
             };
-        
+
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, reportNameValuePairs);
-        
+
             await waitForBatchedUpdates();
 
             const MOCK_REPORT_ACTION = {
@@ -272,7 +272,6 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBeNull();
->>>>>>> Stashed changes
         });
     });
 
