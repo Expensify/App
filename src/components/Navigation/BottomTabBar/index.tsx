@@ -74,6 +74,10 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
     const {isCreateMenuActive, toggleCreateMenu, fabRef} = useContext(FABPopoverContext);
+    const [isFabActionActive, setIsFabActionActive] = useState(isCreateMenuActive);
+    useEffect(() => {
+        setIsFabActionActive(isCreateMenuActive);
+    }, [isCreateMenuActive]);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -288,9 +292,9 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     <FloatingActionButton
                         accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                         role={CONST.ROLE.BUTTON}
-                        isActive={isCreateMenuActive}
+                        isActive={isFabActionActive}
                         ref={fabRef}
-                        onPress={() => toggleCreateMenu(isCreateMenuActive)}
+                        onPress={() => toggleCreateMenu(isFabActionActive)}
                         isTooltipAllowed={isTooltipAllowed}
                     />
                 </View>
