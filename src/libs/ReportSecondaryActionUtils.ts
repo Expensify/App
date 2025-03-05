@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasNoPolicyOtherThanPersonalType, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
 import {getReportActions} from './ReportActionsUtils';
 import {
     isClosedReport,
@@ -17,6 +17,7 @@ import {
     isPayer,
     isProcessingReport,
     isReportApproved,
+    isReportManager,
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
@@ -103,7 +104,7 @@ function isCancelPaymentAction(report: Report): boolean {
 
 function isExportAction(report: Report, policy: Policy): boolean {
     const isInvoice = isInvoiceReport(report);
-    const isSender = true; // TODO is sender the same as submitter?
+    const isSender = isCurrentUserSubmitter(report.reportID);
 
     if (isInvoice && isSender) {
         return true;
@@ -137,7 +138,7 @@ function isExportAction(report: Report, policy: Policy): boolean {
 
 function isMarkAsExportedAction(report: Report, policy: Policy): boolean {
     const isInvoice = isInvoiceReport(report);
-    const isSender = true; // TODO
+    const isSender = isCurrentUserSubmitter(report.reportID);
 
     if (isInvoice && isSender) {
         return true;
@@ -180,13 +181,13 @@ function isMarkAsExportedAction(report: Report, policy: Policy): boolean {
 
 function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
     const isExpense = isExpenseReport(report);
-    
+
     if (!isExpense) {
         return false;
     }
 
     const isOnHold = reportTransactions.some(isOnHoldTransactionUtils);
-    
+
     if (isOnHold) {
         return false;
     }
@@ -237,20 +238,21 @@ function isChangeWorkspaceAction(report: Report, policy: Policy, reportTransacti
 
     const userControlsReport = isSubmitter || isApprover || isAdmin;
     const hasReceiptMatchViolation = hasAllPendingRTERViolations || (userControlsReport && shouldShowBrokenConnectionViolation);
+    const isReportExported = isExported(getReportActions(report));
 
-    if (isAdmin && ((!isExported && (isApproved || isReimbursed || isClosed)) || hasReceiptMatchViolation)) {
+    if (isAdmin && ((!isReportExported && (isApproved || isReimbursed || isClosed)) || hasReceiptMatchViolation)) {
         return true;
     }
 
     const isIOU = isIOUReport(report);
-    const hasWorkspaces = true; // TODO
-    const isReceiver = true; // TODO
-    if (isIOU && hasWorkspaces && isReceiver && isReimbursed) {
+    const hasOnlyPersonalWorkspace = hasNoPolicyOtherThanPersonalType();
+    const isReceiver = isReportManager(report);
+    if (isIOU && !hasOnlyPersonalWorkspace && isReceiver && isReimbursed) {
         return true;
     }
 
-    const isSender = true; // TODO
-
+    const isSender = isCurrentUserSubmitter(report.reportID);
+    // it's already satisified in line 215
     if (isSender && isProcessing) {
         return true;
     }
