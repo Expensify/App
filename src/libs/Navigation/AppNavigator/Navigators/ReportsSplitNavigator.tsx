@@ -36,7 +36,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        return initialReport?.reportID;
+        return initialReport?.reportID ?? '';
     });
 
     return (
