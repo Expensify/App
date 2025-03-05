@@ -53,6 +53,8 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
         // Check if there is a change in the transactions or report actions list
+        // NOTE: This if statement should NOT assume report actions can only change
+        // in the chat type, i.e.: isChat && hasReportActionsIDsChange
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
