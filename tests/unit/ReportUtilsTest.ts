@@ -1909,7 +1909,7 @@ describe('ReportUtils', () => {
                 },
             };
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
-                expect(canDeleteReportAction(parentReportAction, currentReportId, moneyRequestAction)).toBe(false);
+                expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
             });
         });
     });
