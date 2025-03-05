@@ -468,20 +468,20 @@ function waitForProtectedRoutes() {
     });
 }
 
-type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; reportID?: string; reportActionID?: string; referrer?: string; policyIDToCheck?: string};
+type NavigateToReportWithPolicyCheckPayload = {report?: OnyxEntry<Report>; reportID?: string; reportActionID?: string; referrer?: string; policyIDToCheck?: string; backTo?: string};
 
 /**
  * Navigates to a report passed as a param (as an id or report object) and checks whether the target object belongs to the currently selected workspace.
  * If not, the current workspace is set to global.
  */
-function navigateToReportWithPolicyCheck({report, reportID, reportActionID, referrer, policyIDToCheck}: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) {
+function navigateToReportWithPolicyCheck({report, reportID, reportActionID, referrer, policyIDToCheck, backTo}: NavigateToReportWithPolicyCheckPayload, ref = navigationRef) {
     const targetReport = reportID ? {reportID, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]} : report;
     const policyID = policyIDToCheck ?? getPolicyIDFromState(navigationRef.getRootState() as State<RootNavigatorParamList>);
     const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
     const shouldOpenAllWorkspace = isEmptyObject(targetReport) ? true : !doesReportBelongToWorkspace(targetReport, policyMemberAccountIDs, policyID);
 
     if ((shouldOpenAllWorkspace && !policyID) || !shouldOpenAllWorkspace) {
-        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer));
+        linkTo(ref.current, ROUTES.REPORT_WITH_ID.getRoute(targetReport?.reportID, reportActionID, referrer, backTo));
         return;
     }
 
@@ -495,6 +495,10 @@ function navigateToReportWithPolicyCheck({report, reportID, reportActionID, refe
 
     if (referrer) {
         params.referrer = referrer;
+    }
+
+    if (backTo) {
+        params.backTo = backTo;
     }
 
     ref.dispatch(
