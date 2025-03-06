@@ -415,7 +415,7 @@ describe('actions/Policy', () => {
     });
 
     describe('enablePolicyWorkflows', () => {
-        it('should update delayed submission to instant when disabling the workflows feature', async () => {
+        it('should update delayed submission to immediate when disabling the workflows feature', async () => {
             (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy: PolicyType = {
@@ -437,7 +437,7 @@ describe('actions/Policy', () => {
                 callback: (policy) => {
                     // Check if the autoReportingFrequency is updated to instant
                     expect(policy?.areWorkflowsEnabled).toBeFalsy();
-                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
                 },
             });
         });
