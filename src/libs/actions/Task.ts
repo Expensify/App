@@ -1,3 +1,4 @@
+import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -332,7 +333,9 @@ function createTaskAndNavigate(
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        clearOutTaskInfo();
+        InteractionManager.runAfterInteractions(() => {
+            clearOutTaskInfo();
+        });
         Navigation.dismissModal(parentReportID);
     }
     notifyNewAction(parentReportID, currentUserAccountID);
