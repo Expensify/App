@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -470,6 +470,10 @@ function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCo
     return cards;
 }
 
+function isSmartLimitEnabled(cards: CardList) {
+    return Object.values(cards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
+}
+
 const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CardFeeds>): CompanyCardFeedWithNumber {
@@ -540,6 +544,13 @@ function hasCardListObject(workspaceAccountID: number, feedName: CompanyCardFeed
     return !!workspaceCards.cardList;
 }
 
+/**
+ * Check if the Expensify Card is fully set up and a new card can be issued
+ */
+function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): boolean {
+    return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -578,6 +589,8 @@ export {
     getFeedType,
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
+    isSmartLimitEnabled,
     hasIssuedExpensifyCard,
     hasCardListObject,
+    isExpensifyCardFullySetUp,
 };

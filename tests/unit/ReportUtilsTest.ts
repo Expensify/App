@@ -10,6 +10,7 @@ import {
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
+    canDeleteReportAction,
     canEditWriteCapability,
     getAllAncestorReportActions,
     getApprovalChain,
@@ -33,6 +34,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -219,10 +221,11 @@ const policy: Policy = {
     isPolicyExpenseChatEnabled: false,
 };
 
-Onyx.init({keys: ONYXKEYS});
-
 describe('ReportUtils', () => {
     beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
@@ -1158,6 +1161,7 @@ describe('ReportUtils', () => {
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
             const accountID = 2;
+            const report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
             await Onyx.multiSet({
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
@@ -1167,10 +1171,7 @@ describe('ReportUtils', () => {
                 },
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
             });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]),
-            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             expect(isChatUsedForOnboarding(report)).toBeTruthy();
         });
@@ -1854,6 +1855,64 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
+        });
+    });
+
+    describe('canDeleteReportAction', () => {
+        it('should return false for delete button visibility if transaction is not allowed to be deleted', () => {
+            const parentReport = LHNTestUtils.getFakeReport();
+            const report = LHNTestUtils.getFakeReport();
+            const parentReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        moderationDecision: {
+                            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                        },
+                    },
+                ],
+                childReportID: report.reportID,
+            };
+            report.parentReportID = parentReport.reportID;
+            report.parentReportActionID = parentReportAction.reportActionID;
+            const currentReportId = '';
+            const transactionID = 1;
+            const moneyRequestAction = {
+                ...parentReportAction,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: '1',
+                    amount: 100,
+                    participantAccountID: 1,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(transactionID),
+                category: '',
+                tag: '',
+                created: testDate,
+                reportID: currentReportId,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+            };
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
+                expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
+            });
         });
     });
 

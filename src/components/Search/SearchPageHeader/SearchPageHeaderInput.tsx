@@ -28,6 +28,7 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -130,11 +131,12 @@ function SearchPageHeaderInput({
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {
-            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
+            const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
+            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
 
-            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
+            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
             if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
@@ -258,7 +260,7 @@ function SearchPageHeaderInput({
                         {showPopupButton && (
                             <Animated.View
                                 entering={FadeInRight}
-                                exiting={isFocused ? FadeOutRight : undefined}
+                                exiting={isFocused && searchRouterListVisible ? FadeOutRight : undefined}
                                 style={[styles.pl3]}
                             >
                                 <SearchTypeMenuPopover
