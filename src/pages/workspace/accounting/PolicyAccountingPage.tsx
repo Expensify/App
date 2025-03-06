@@ -1,6 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -22,7 +21,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -78,7 +76,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {canUseNetSuiteUSATax, canUseNSQS} = usePermissions();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
@@ -192,6 +189,21 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         getAssignedSupportData(policyID);
     }, [policyID]);
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(async () => {
+        if (shouldUseNarrowLayout) {
+            return {horizontal: 0, vertical: 0};
+        }
+        const position = await new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        });
+        return position;
+    }, [shouldUseNarrowLayout]);
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
@@ -407,21 +419,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         color={theme.spinner}
                     />
                 ) : (
-                    <View
-                        ref={threeDotsMenuContainerRef}
-                        onLayout={(e: LayoutChangeEvent) => {
-                            const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
-                            target?.measureInWindow((x, y, width) => {
-                                setThreeDotsMenuPosition({
-                                    horizontal: x + width,
-                                    vertical: y,
-                                });
-                            });
-                        }}
-                    >
+                    <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
+                            getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                             menuItems={overflowMenu}
-                            anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -450,7 +451,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         datetimeToRelative,
         theme.spinner,
         overflowMenu,
-        threeDotsMenuPosition,
+        calculateAndSetThreeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
         isOffline,

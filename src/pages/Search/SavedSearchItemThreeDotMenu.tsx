@@ -1,9 +1,10 @@
-import React, {useRef, useState} from 'react';
-import type {LayoutChangeEvent, LayoutRectangle, NativeSyntheticEvent} from 'react-native';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 
 type SavedSearchItemThreeDotMenuProps = {
@@ -14,29 +15,34 @@ type SavedSearchItemThreeDotMenuProps = {
     shouldRenderTooltip: boolean;
 };
 
-type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
-
 function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip}: SavedSearchItemThreeDotMenuProps) {
     const threeDotsMenuContainerRef = useRef<View>(null);
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState({horizontal: 0, vertical: 0});
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(async () => {
+        if (shouldUseNarrowLayout) {
+            return {horizontal: 0, vertical: 0};
+        }
+        const position = await new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y,
+                });
+            });
+        });
+        return position;
+    }, [shouldUseNarrowLayout]);
+
     return (
         <View
             ref={threeDotsMenuContainerRef}
             style={[isDisabledItem && styles.pointerEventsNone]}
-            onLayout={(e: LayoutChangeEvent) => {
-                const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
-                target?.measureInWindow((x, y, width) => {
-                    setThreeDotsMenuPosition({
-                        horizontal: x + width,
-                        vertical: y,
-                    });
-                });
-            }}
         >
             <ThreeDotsMenu
                 menuItems={menuItems}
-                anchorPosition={threeDotsMenuPosition}
+                getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                 renderProductTrainingTooltipContent={renderTooltipContent}
                 shouldShowProductTrainingTooltip={shouldRenderTooltip}
                 anchorAlignment={{
