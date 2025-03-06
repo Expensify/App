@@ -4556,6 +4556,10 @@ describe('actions/IOU', () => {
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
+            if (expectedCommand === WRITE_COMMANDS.TRACK_EXPENSE) {
+                expect(params).toHaveProperty('policyName');
+            }
+
             // And the parameters should be supported by XMLHttpRequest
             Object.values(params as Record<string, unknown>).forEach((value) => {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
