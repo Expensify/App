@@ -134,12 +134,15 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             />
             <ConfirmModal
                 title={translate('travel.blockedFeatureModal.title')}
+                titleStyles={styles.textHeadlineH1}
+                titleContainerStyles={styles.mb2}
                 onConfirm={hidePreventionModal}
                 onCancel={hidePreventionModal}
                 image={RocketDude}
-                imageStyles={[StyleUtils.getBackgroundColorStyle(colors.ice600)]}
+                imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
                 isVisible={isPreventionModalVisible}
                 prompt={translate('travel.blockedFeatureModal.message')}
+                promptStyles={styles.mb2}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
