@@ -1,12 +1,13 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPolicy} from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -142,7 +143,7 @@ function SelectionScreen<T = string>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policy = getPolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     return (

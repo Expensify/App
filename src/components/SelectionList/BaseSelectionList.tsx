@@ -16,12 +16,14 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -114,7 +116,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listItemWrapperStyle,
         shouldIgnoreFocus = false,
         scrollEventThrottle,
-        contentContainerStyle,
+        contentContainerStyle: contentContainerStyleProp,
         shouldHighlightSelectedItem = false,
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
@@ -127,7 +129,6 @@ function BaseSelectionList<TItem extends ListItem>(
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
-        shouldFooterContentStickToBottom = false,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -140,6 +141,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const shouldShowSelectAll = !!onSelectAll;
     const activeElementRole = useActiveElementRole();
     const isFocused = useIsFocused();
+    const scrollEnabled = useScrollEnabled();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
     const {isKeyboardShown} = useKeyboardState();
@@ -823,11 +825,20 @@ function BaseSelectionList<TItem extends ListItem>(
             </View>
         );
 
-    const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const paddingBottomStyle = useMemo(
         () => (!isKeyboardShown || !!footerContent) && includeSafeAreaPaddingBottom && safeAreaPaddingBottomStyle,
         [footerContent, includeSafeAreaPaddingBottom, isKeyboardShown, safeAreaPaddingBottomStyle],
     );
+
+    // If the default confirm button is visible and it is bottom-sticky,
+    // we need to add additional padding bottom to the content container.
+    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: false, // Bottom safe area padding is already applied in the SectionList
+        style: contentContainerStyleProp,
+    });
+
+    const shouldHideContentBottomSafeAreaPadding = showConfirmButton || !!footerContent;
 
     // TODO: test _every_ component that uses SelectionList
     return (
@@ -883,11 +894,12 @@ function BaseSelectionList<TItem extends ListItem>(
                                 listHeaderContent
                             )
                         }
+                        scrollEnabled={scrollEnabled}
                         ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
-                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                        addBottomSafeAreaPadding={!shouldHideContentBottomSafeAreaPadding && addBottomSafeAreaPadding}
                         contentContainerStyle={contentContainerStyle}
                         CellRendererComponent={shouldPreventActiveCellVirtualization ? FocusAwareCellRendererComponent : undefined}
                     />
@@ -897,7 +909,6 @@ function BaseSelectionList<TItem extends ListItem>(
             {showConfirmButton && (
                 <FixedFooter
                     style={styles.mtAuto}
-                    shouldStickToBottom={shouldFooterContentStickToBottom}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 >
                     <Button
@@ -915,7 +926,6 @@ function BaseSelectionList<TItem extends ListItem>(
             {!!footerContent && (
                 <FixedFooter
                     style={styles.mtAuto}
-                    shouldStickToBottom={shouldFooterContentStickToBottom}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 >
                     {footerContent}

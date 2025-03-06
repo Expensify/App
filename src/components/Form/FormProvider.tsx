@@ -76,14 +76,10 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether the form is loading */
     isLoading?: boolean;
 
-    /**
-     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
-     */
+    /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
 
-    /**
-     * Whether the submit button should stick to the bottom of the screen.
-     */
+    /** Whether the submit button should stick to the bottom of the screen. */
     shouldSubmitButtonStickToBottom?: boolean;
 };
 

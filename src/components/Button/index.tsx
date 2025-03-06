@@ -17,7 +17,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {getButtonRole, getButtonStyle} from './utils';
+import {getButtonRole} from './utils';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonProps = Partial<ChildrenProps> & {
@@ -376,7 +376,6 @@ function Button(
             text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
             innerStyles,
             link && styles.bgTransparent,
-            getButtonStyle(styles, isNested),
         ],
         [
             StyleUtils,
@@ -384,7 +383,6 @@ function Button(
             icon,
             innerStyles,
             isDisabled,
-            isNested,
             large,
             link,
             medium,
@@ -398,7 +396,12 @@ function Button(
         ],
     );
 
-    const buttonForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
+    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
+        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
+        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
+    );
+
+    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
         if (!shouldBlendOpacity) {
             return undefined;
         }
@@ -466,7 +469,8 @@ function Button(
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     style,
                 ]}
-                style={[buttonStyles, shouldBlendOpacity && {backgroundColor: theme.appBG, opacity: 1, position: 'relative', overflow: 'hidden'}]}
+                style={buttonContainerStyles}
+                isNested={isNested}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
                     success && !isDisabled ? styles.buttonSuccessHovered : undefined,
@@ -482,7 +486,7 @@ function Button(
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}
             >
-                {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonForegroundStyle]} />}
+                {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
                 {isLoading && (
                     <ActivityIndicator

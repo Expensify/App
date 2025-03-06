@@ -1,7 +1,6 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {NavigationBarType} from '@libs/NavBarManager/types';
 
-type NavigationBarType = ValueOf<typeof CONST.NAVIGATION_BAR_TYPE>;
+type GetNavigationBarType = (insets?: EdgeInsets) => NavigationBarType;
 
-// eslint-disable-next-line import/prefer-default-export
-export type {NavigationBarType};
+export default GetNavigationBarType;

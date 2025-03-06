@@ -85,7 +85,7 @@ Browsers use the name prop to autofill information into the input. Here's a [ref
 
 ```jsx
 <InputWrapper
-    InputComponent={TextInput} 
+    InputComponent={TextInput}
     name="fname"
 />
 ```
@@ -135,7 +135,7 @@ Once a user has “touched” an input, i.e. blurred the input, we will also sta
 
 All form fields will additionally be validated when the form is submitted. Although we are validating on blur this additional step is necessary to cover edge cases where forms are auto-filled or when a form is submitted by pressing enter (i.e. there will be only a ‘submit’ event and no ‘blur’ event to hook into).
 
-The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. 
+The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`.
 
 Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
 
@@ -321,10 +321,10 @@ An example of this can be seen in the [ACHContractStep](https://github.com/Expen
 ### Safe Area Padding
 
 Any `FormProvider.tsx` that has a button at the bottom. If the `<FormProvider>` is inside a `<ScreenWrapper>`, the bottom safe area inset is handled automatically (`includeSafeAreaPaddingBottom` needs to be set to `true`, but its the default).
-If you have custom requirements and can't use `<ScreenWrapper includeSafeAreaPaddingBottom={true}>`, you can use the `useStyledSafeAreaInsets()` hook:
+If you have custom requirements and can't use `<ScreenWrapper includeSafeAreaPaddingBottom={true}>`, you can use the `useSafeAreaPaddings()` hook:
 
 ```jsx
-const { paddingTop, paddingBottom, safeAreaPaddingBottomStyle } = useStyledSafeAreaInsets();
+const { paddingTop, paddingBottom, safeAreaPaddingBottomStyle } = useSafeAreaPaddings();
 
 <View styles={[safeAreaPaddingBottomStyle, styles.pb5]}>
     <FormProvider>
@@ -340,3 +340,7 @@ In case there's a nested Picker in Form, we should pass the props below to Form,
 #### Enable ScrollContext
 
 Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is pressed, making sure the Picker is always in view and doesn't get covered by virtual keyboards for example.
+
+#### Enable Form to Scroll to the End
+
+Pass the `shouldScrollToEnd` prop to automatically scroll to the bottom when the form is opened. Ensure that the scrolling stops at the appropriate limit so that the button remains visible above the keypad.

@@ -1,9 +1,9 @@
 import CONST from '@src/CONST';
-import type {NavigationBarType} from './types';
+import type GetNavigationBarType from './types';
 
-function getNavigationBarType(): NavigationBarType {
+const getNavigationBarType: GetNavigationBarType = () => {
     // On web, there is no navigation bar.
     return CONST.NAVIGATION_BAR_TYPE.NONE;
-}
+};
 
 export default getNavigationBarType;

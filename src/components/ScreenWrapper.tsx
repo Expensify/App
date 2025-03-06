@@ -1,14 +1,16 @@
-import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -18,6 +20,7 @@ import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import CustomDevMenu from './CustomDevMenu';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
@@ -155,7 +158,7 @@ function ScreenWrapper(
         focusTrapSettings,
         bottomContent,
         enableEdgeToEdgeBottomSafeAreaPadding = false,
-        shouldKeyboardOffsetBottomSafeAreaPadding = false,
+        shouldKeyboardOffsetBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -173,6 +176,7 @@ function ScreenWrapper(
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     const includeSafeAreaPaddingBottom = enableEdgeToEdgeBottomSafeAreaPadding ? false : includeSafeAreaPaddingBottomProp;
 
@@ -186,14 +190,10 @@ function ScreenWrapper(
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
 
-    const route = useRoute();
-    const shouldReturnToOldDot = useMemo(() => {
-        return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
-    }, [route?.params]);
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
-    UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
-        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+    UNSTABLE_usePreventRemove(isSingleNewDotEntry ?? false, () => {
+        NativeModules.HybridAppModule?.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
         setRootStatusBarEnabled(false);
     });
 
@@ -278,7 +278,7 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets(enableEdgeToEdgeBottomSafeAreaPadding);
+    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useSafeAreaPaddings(enableEdgeToEdgeBottomSafeAreaPadding);
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     const paddingTopStyle: StyleProp<ViewStyle> = useMemo(() => {
@@ -292,19 +292,9 @@ function ScreenWrapper(
     }, [ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
 
     const showBottomContent = enableEdgeToEdgeBottomSafeAreaPadding ? !!bottomContent : true;
-    const bottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
+    const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const legacyBottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
         const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
-        let bottomStyle: StyleProp<ViewStyle> = {};
-
-        if (enableEdgeToEdgeBottomSafeAreaPadding) {
-            bottomStyle = safeAreaPaddingBottomStyle;
-            if (shouldUseUnmodifiedPaddings) {
-                // eslint-disable-next-line react-compiler/react-compiler
-                bottomStyle.paddingBottom = unmodifiedPaddings.bottom;
-            }
-            return bottomStyle;
-        }
-
         if (shouldUseUnmodifiedPaddings) {
             return {
                 paddingBottom: unmodifiedPaddings.bottom,
@@ -315,13 +305,14 @@ function ScreenWrapper(
             // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
             paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
         };
-    }, [enableEdgeToEdgeBottomSafeAreaPadding, ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings.bottom]);
-
-    const offlineIndicatorContainerStyle = useMemo(
-        () =>
-            includeSafeAreaPaddingBottom ? [styles.offlineIndicatorMobile] : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + styles.offlineIndicatorMobile.paddingBottom}],
-        [includeSafeAreaPaddingBottom, paddingBottom, styles.offlineIndicatorMobile],
+    }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
+    const bottomContentStyle = useMemo(
+        () => (enableEdgeToEdgeBottomSafeAreaPadding ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle),
+        [enableEdgeToEdgeBottomSafeAreaPadding, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
     );
+
+    const addMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : !includeSafeAreaPaddingBottom;
+    const addWidescreenOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true;
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -371,7 +362,8 @@ function ScreenWrapper(
                                     <>
                                         <OfflineIndicator
                                             style={[offlineIndicatorStyle]}
-                                            containerStyles={offlineIndicatorContainerStyle}
+                                            containerStyles={styles.offlineIndicatorMobile}
+                                            addBottomSafeAreaPadding={addMobileOfflineIndicatorBottomSafeAreaPadding}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
@@ -382,6 +374,7 @@ function ScreenWrapper(
                                         <OfflineIndicator
                                             containerStyles={[]}
                                             style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                            addBottomSafeAreaPadding={addWidescreenOfflineIndicatorBottomSafeAreaPadding}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
