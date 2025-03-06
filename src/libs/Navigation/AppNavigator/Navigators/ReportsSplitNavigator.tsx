@@ -36,7 +36,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
         }
 
         const initialReport = ReportUtils.findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom(), activeWorkspaceID);
-        // eslint-disable rulesdir/no-default-id-values
+        // eslint-disable-next-line rulesdir/no-default-id-values
         return initialReport?.reportID ?? '';
     });
 
