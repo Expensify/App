@@ -466,37 +466,35 @@ function BaseVideoPlayer({
                                             videoPlayerElementParentRef.current = el;
                                         }}
                                     >
-                                        <View style={styles.flex1}>
-                                            <Video
-                                                ref={videoPlayerRef}
-                                                style={[styles.w100, styles.h100, videoPlayerStyle]}
-                                                videoStyle={[styles.w100, styles.h100, videoStyle]}
-                                                source={{
-                                                    // if video is loading and is offline, we want to change uri to "" to
-                                                    // reset the video player after connection is back
-                                                    uri: !isLoading || (isLoading && !isOffline) ? sourceURL : '',
-                                                }}
-                                                shouldPlay={shouldPlay}
-                                                useNativeControls={false}
-                                                resizeMode={resizeMode as ResizeMode}
-                                                isLooping={isLooping}
-                                                onReadyForDisplay={(e) => {
-                                                    if (isCurrentlyURLSet && !isUploading) {
-                                                        playVideo();
-                                                    }
-                                                    onVideoLoaded?.(e);
-                                                    if (shouldUseNewRate) {
-                                                        return;
-                                                    }
-                                                    videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
-                                                }}
-                                                onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-                                                onFullscreenUpdate={handleFullscreenUpdate}
-                                                onError={() => {
-                                                    setHasError(true);
-                                                }}
-                                            />
-                                        </View>
+                                        <Video
+                                            ref={videoPlayerRef}
+                                            style={[styles.w100, styles.h100, videoPlayerStyle]}
+                                            videoStyle={[styles.w100, styles.h100, videoStyle]}
+                                            source={{
+                                                // if video is loading and is offline, we want to change uri to "" to
+                                                // reset the video player after connection is back
+                                                uri: !isLoading || (isLoading && !isOffline) ? sourceURL : '',
+                                            }}
+                                            shouldPlay={shouldPlay}
+                                            useNativeControls={false}
+                                            resizeMode={resizeMode as ResizeMode}
+                                            isLooping={isLooping}
+                                            onReadyForDisplay={(e) => {
+                                                if (isCurrentlyURLSet && !isUploading) {
+                                                    playVideo();
+                                                }
+                                                onVideoLoaded?.(e);
+                                                if (shouldUseNewRate) {
+                                                    return;
+                                                }
+                                                videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
+                                            }}
+                                            onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                                            onFullscreenUpdate={handleFullscreenUpdate}
+                                            onError={() => {
+                                                setHasError(true);
+                                            }}
+                                        />
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
