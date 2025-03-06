@@ -14,8 +14,9 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getWorkspaceChats} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -33,17 +34,22 @@ function NewReportWorkspaceSelectionPage() {
     const {translate} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [userData] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID})});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
-    const selectPolicy = useCallback((policyID?: string) => {
-        // Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-        if (!policyID) {
-            return;
-        }
-        createNewReport(policyID);
-    }, []);
+    const selectPolicy = useCallback(
+        (policyID?: string) => {
+            if (!policyID) {
+                return;
+            }
+            const reportID = generateReportID();
+            const reportActionID = rand64();
+            createNewReport('Test report 3', policyID, reportID, reportActionID, userData?.accountID);
+            // Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        },
+        [userData?.accountID],
+    );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
         if (!policies || isEmptyObject(policies)) {
@@ -51,7 +57,7 @@ function NewReportWorkspaceSelectionPage() {
         }
 
         return Object.values(policies)
-            .filter((policy) => shouldShowPolicy(policy, !!isOffline, currentUserLogin) && !policy?.isJoinRequestPending && policy?.isPolicyExpenseChatEnabled)
+            .filter((policy) => shouldShowPolicy(policy, !!isOffline, userData?.email) && !policy?.isJoinRequestPending && policy?.isPolicyExpenseChatEnabled)
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
@@ -68,7 +74,7 @@ function NewReportWorkspaceSelectionPage() {
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
             }));
-    }, [currentUserLogin, isOffline, policies]);
+    }, [userData?.email, isOffline, policies]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),

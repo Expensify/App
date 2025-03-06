@@ -77,12 +77,12 @@ import LocalNotification from '@libs/Notification/LocalNotification';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
+import {extractPolicyIDFromPath, getPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import type {OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
+import type {OptimisticAddCommentReportAction, OptimisticChatReport, OptimisticNewReport} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
@@ -101,9 +101,11 @@ import {
     findLastAccessedReport,
     findSelfDMReportID,
     formatReportLastMessageText,
+    generateReportID,
     getChatByParticipants,
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
+    getExpenseReportStateAndStatus,
     getFieldViolation,
     getLastVisibleMessage,
     getOptimisticDataForParentReportAction,
@@ -2384,6 +2386,48 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     } else {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), linkToOptions);
     }
+}
+
+function createNewReport(reportName: string, policyID: string, optimisticReportID: string, reportActionID: string, creatorAccountID?: number) {
+    // The amount for Expense reports are stored as negative value in the database
+    // const storedTotal = total * -1;
+    // const storedNonReimbursableTotal = nonReimbursableTotal * -1;
+    // const report = chatReportID ? getReport(chatReportID, allReports) : undefined;
+    // const policyName = getPolicyName({report});
+    // const formattedTotal = convertToDisplayString(storedTotal, currency);
+
+    const policy = getPolicy(policyID);
+
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
+
+    const optimisticData: OptimisticNewReport = {
+        reportID: optimisticReportID,
+        policyID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        ownerAccountID: creatorAccountID,
+        // currency,
+        // We don't translate reportName because the server response is always in English
+        reportName,
+        stateNum,
+        statusNum,
+        total: 0,
+        nonReimbursableTotal: 0,
+        participants: {},
+        // parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
+        // parentReportActionID, // TODO BE not ready
+    };
+
+    if (creatorAccountID) {
+        optimisticData.participants = {
+            [creatorAccountID]: {
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            },
+        };
+        optimisticData.ownerAccountID = creatorAccountID;
+    }
+
+    API.write('CreateAppReport', {reportName, type: 'expense', policyID, reportID: optimisticReportID, reportActionID});
 }
 
 /** Add a policy report (workspace room) optimistically and navigate to it. */
@@ -4682,6 +4726,7 @@ export {
     clearPrivateNotesError,
     clearReportFieldKeyErrors,
     completeOnboarding,
+    createNewReport,
     deleteReport,
     deleteReportActionDraft,
     deleteReportComment,
