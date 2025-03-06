@@ -53,7 +53,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         isOffline,
         selectedPolicyID: report.policyID,
         searchTerm: debouncedSearchTerm,
-        additionalFilter: (policy) => isWorkspaceEligibleForReportChange(policy, report?.ownerAccountID, report?.managerID, currentUserLogin),
+        additionalFilter: (policy) => isWorkspaceEligibleForReportChange(policy, report, currentUserLogin),
     });
 
     return (

@@ -1088,26 +1088,40 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
 };
 
 /**
- * An eligible workspace is one that meets the following criteria:
- * Submitters: workspaces where the submitter is a member of
- * Approvers: workspaces where both the approver AND submitter are members of
- * Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
+ * Determines whether the report can be moved to the workspace.
  */
 const isWorkspaceEligibleForReportChange = (
     newPolicy: OnyxEntry<Policy>,
-    reportOwnerAccountID: number | undefined,
-    reportManagerID: number | undefined,
+    report: OnyxEntry<Report>,
     currentUserLogin: string | undefined,
 ): boolean => {
-    const curretUserAccountID = getCurrentUserAccountID();
-    if (curretUserAccountID === reportOwnerAccountID) {
-        return !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
+    if (!isCurrentUserMember){
+        return false;
     }
-    if (curretUserAccountID === reportManagerID) {
-        const reportSubmitterLogin = (!!reportOwnerAccountID && getLoginByAccountID(reportOwnerAccountID)) ?? '';
-        return !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin] && !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
+
+    // Submitters: workspaces where the submitter is a member of
+    const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
+    if (isCurrentUserSubmitter) {
+        return true;
     }
-    return isUserPolicyAdmin(newPolicy, currentUserLogin);
+
+    // Approvers: workspaces where both the approver AND submitter are members of
+    const reportApproverAccountID = getManagerAccountID(newPolicy, report);
+    const isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
+    if (isCurrentUserApprover) {
+        const reportSubmitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
+        const isReportSubmitterMember = !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
+        return isCurrentUserApprover && isReportSubmitterMember;
+    }
+
+    // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
+    if (isPolicyOwner(newPolicy, currentUserAccountID) || isUserPolicyAdmin(newPolicy, currentUserLogin)){
+        return true;
+    }
+
+    return false;
 };
 
 /**
