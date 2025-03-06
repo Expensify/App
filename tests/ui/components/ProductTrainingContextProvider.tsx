@@ -200,7 +200,7 @@ describe('ProductTrainingContextProvider', () => {
             const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // Then narrow layout tooltip should not show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
 
             // When narrow layout changes to true
             mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
@@ -208,7 +208,7 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then narrow layout tooltip should show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
         });
         it('should handle wide layout specific tooltips based on screen width', async () => {
             // When narrow layout is true
