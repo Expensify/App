@@ -181,6 +181,7 @@ import {
     getTag,
     getTaxAmount,
     getTaxCode,
+    getTransaction,
     getAmount as getTransactionAmount,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
@@ -188,7 +189,7 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
-    isCardTransaction,
+    isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest,
     isDuplicate,
     isExpensifyCardTransaction,
@@ -2158,9 +2159,11 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
  */
 function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string): boolean {
     const report = getReportOrDraftReport(reportID);
-
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
+    const iouTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : '';
+    const transaction = getTransaction(iouTransactionID ?? CONST.DEFAULT_NUMBER_ID);
+    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
 
     if (isMoneyRequestAction(reportAction)) {
         // For now, users cannot delete split actions
@@ -2172,7 +2175,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
-                return canDeleteTransaction(report);
+                return canDeleteTransaction(report) && (!isCardTransaction || (isCardTransaction && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW));
             }
             return true;
         }
@@ -3600,7 +3603,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
 
     if (
         (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY || fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) &&
-        isCardTransaction(transaction)
+        isCardTransactionTransactionUtils(transaction)
     ) {
         return false;
     }
@@ -5037,7 +5040,6 @@ function buildOptimisticSelfDMReport(created: string): Report {
         type: CONST.REPORT.TYPE.CHAT,
         chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
         isOwnPolicyExpenseChat: false,
-        isPinned: true,
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: undefined,

@@ -7,7 +7,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
-import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -17,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 
@@ -31,10 +29,6 @@ const navigateToAcceptTerms = (domain: string) => {
     Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
 };
 
-// Spotnana has scheduled maintenance from February 23 at 7 AM EST (12 PM UTC) to February 24 at 12 PM EST (5 PM UTC).
-const SPOTNANA_BLACKOUT_PERIOD_START = '2025-02-23T11:59:00Z';
-const SPOTNANA_BLACKOUT_PERIOD_END = '2025-02-24T17:01:00Z';
-
 function BookTravelButton({text}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -42,27 +36,20 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const primaryLogin = account?.primaryLogin;
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const [isMaintenanceModalVisible, setMaintenanceModalVisibility] = useState(false);
 
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
     const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
-    const hideMaintenanceModal = () => setMaintenanceModalVisibility(false);
-
     const bookATrip = useCallback(() => {
         setErrorMessage('');
 
-        if (DateUtils.isCurrentTimeWithinRange(SPOTNANA_BLACKOUT_PERIOD_START, SPOTNANA_BLACKOUT_PERIOD_END)) {
-            setMaintenanceModalVisibility(true);
-            return;
-        }
-
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
-        if (!primaryLogin || Str.isSMSLogin(primaryLogin)) {
+        if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(translate('travel.phoneError'));
             return;
         }
@@ -90,7 +77,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    HybridAppModule.closeReactNativeApp(false, false);
+                    HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                     setRootStatusBarEnabled(false);
                 })
                 ?.catch(() => {
@@ -112,7 +99,7 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryLogin, setRootStatusBarEnabled]);
+    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled]);
 
     return (
         <>
@@ -130,15 +117,6 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 style={styles.w100}
                 success
                 large
-            />
-            <ConfirmModal
-                title={translate('travel.maintenance.title')}
-                onConfirm={hideMaintenanceModal}
-                onCancel={hideMaintenanceModal}
-                isVisible={isMaintenanceModalVisible}
-                prompt={translate('travel.maintenance.message')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
             />
         </>
     );

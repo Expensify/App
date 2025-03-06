@@ -1,9 +1,10 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
@@ -20,6 +21,7 @@ import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import CustomDevMenu from './CustomDevMenu';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
@@ -160,6 +162,7 @@ function ScreenWrapper(
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -171,19 +174,14 @@ function ScreenWrapper(
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
 
-    const route = useRoute();
-    const shouldReturnToOldDot = useMemo(() => {
-        return !!route?.params && CONST.HYBRID_APP.SINGLE_NEW_DOT_ENTRY in route.params && route.params[CONST.HYBRID_APP.SINGLE_NEW_DOT_ENTRY] === 'true';
-    }, [route?.params]);
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
-    UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
+    UNSTABLE_usePreventRemove(isSingleNewDotEntry ?? false, () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        HybridAppModule.closeReactNativeApp(false, false);
+        HybridAppModule?.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
         setRootStatusBarEnabled(false);
-
     });
 
     const panResponder = useRef(

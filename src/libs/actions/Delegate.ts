@@ -162,7 +162,12 @@ function connect(email: string) {
                         if (!CONFIG.IS_HYBRID_APP) {
                             return;
                         }
-                        HybridAppModule.switchAccount(email, restrictedToken, policyID, String(previousAccountID));
+                        HybridAppModule.switchAccount({
+                            newDotCurrentAccountEmail: email,
+                            authToken: restrictedToken,
+                            policyID,
+                            accountID: String(previousAccountID),
+                        });
                     });
                 });
         })
@@ -251,7 +256,12 @@ function disconnect() {
                         if (!CONFIG.IS_HYBRID_APP) {
                             return;
                         }
-                        HybridAppModule.switchAccount(requesterEmail, authToken, '', '');
+                        HybridAppModule.switchAccount({
+                            newDotCurrentAccountEmail: requesterEmail,
+                            authToken,
+                            policyID: '',
+                            accountID: '',
+                        });
                     });
                 });
         })

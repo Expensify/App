@@ -192,7 +192,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: Expensicons.Buildings,
                 screenName: SCREENS.SETTINGS.WORKSPACES,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES),
+                action: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route),
             },
             {
                 translationKey: 'allSettingsScreen.domains',
@@ -253,7 +253,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     ...(CONFIG.IS_HYBRID_APP
                         ? {
                               action: () => {
-                                  HybridAppModule.closeReactNativeApp(false, true);
+                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                                   setInitialURL(undefined);
                                   setRootStatusBarEnabled(false);
                               },

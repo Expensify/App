@@ -39,7 +39,7 @@ function SessionExpiredPage() {
                                     Navigation.goBack();
                                     return;
                                 }
-                                HybridAppModule.closeReactNativeApp(true, false);
+                                HybridAppModule.closeReactNativeApp({shouldSignOut: true, shouldSetNVP: false});
                             }}
                         >
                             {translate('deeplinkWrapper.signIn')}
