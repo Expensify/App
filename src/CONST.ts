@@ -75,9 +75,9 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
 };
 
 const connectionsVideoPaths = {
-    [ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]: 'videos/walkthrough-connect_to_qbo.mp4',
-    [ONBOARDING_ACCOUNTING_MAPPING.xero]: 'videos/walkthrough-connect_to_xero.mp4',
-    [ONBOARDING_ACCOUNTING_MAPPING.netsuite]: 'videos/walkthrough-connect_to_netsuite.mp4',
+    [ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]: 'videos/walkthrough-connect_to_qbo-v2.mp4',
+    [ONBOARDING_ACCOUNTING_MAPPING.xero]: 'videos/walkthrough-connect_to_xero-v2.mp4',
+    [ONBOARDING_ACCOUNTING_MAPPING.netsuite]: 'videos/walkthrough-connect_to_netsuite-v2.mp4',
 };
 
 // Explicit type annotation is required
@@ -145,7 +145,7 @@ const setupCategoriesTask: OnboardingTask = {
     type: 'setupCategories',
     autoCompleted: false,
     mediaAttributes: {
-        [`${CLOUDFRONT_URL}/videos/walkthrough-categories.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png"`,
+        [`${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png"`,
     },
     title: 'Set up categories',
     description: ({workspaceCategoriesLink}) =>
@@ -162,7 +162,7 @@ const setupCategoriesTask: OnboardingTask = {
         '\n' +
         `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
         '\n' +
-        `![Set up categories](${CLOUDFRONT_URL}/videos/walkthrough-categories.mp4)`,
+        `![Set up categories](${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
 };
 
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
@@ -5238,7 +5238,7 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Set up tags',
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-tags.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-tags.png"`,
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-tags.png"`,
                     },
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
@@ -5255,13 +5255,13 @@ const CONST = {
                         '\n' +
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
-                        `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags.mp4)`,
+                        `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
                 },
                 {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png"`,
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png"`,
                     },
                     title: 'Add expense approvals',
                     description: ({workspaceMoreFeaturesLink}) =>
@@ -5280,13 +5280,13 @@ const CONST = {
                         '\n' +
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
-                        `![Add expense approvals](${CLOUDFRONT_URL}/videos/walkthrough-approvals.mp4)`,
+                        `![Add expense approvals](${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4)`,
                 },
                 {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png"`,
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png"`,
                     },
                     title: 'Invite your team',
                     description: ({workspaceMembersLink}) =>
@@ -5303,7 +5303,7 @@ const CONST = {
                         '\n' +
                         `[Take me to workspace members](${workspaceMembersLink}).\n` +
                         '\n' +
-                        `![Invite your team](${CLOUDFRONT_URL}/videos/walkthrough-invite_members.mp4)`,
+                        `![Invite your team](${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
                 },
                 {
                     type: 'addAccountingIntegration',
