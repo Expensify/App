@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-at */
 import {useIsFocused} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
@@ -26,7 +27,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
 import {openExternalLink, openOldDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
-import {startNewChat} from '@libs/actions/Report';
+import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
 import {canActionTask as canActionTaskUtils, canModifyTask as canModifyTaskUtils, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
@@ -35,7 +36,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, canSendInvoice as canSendInvoicePolicyUtils, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSendInvoice as canSendInvoicePolicyUtils, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {canCreateRequest, generateReportID, getDisplayNameForParticipant, getIcons, getReportName, getWorkspaceChats, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getNavatticURL} from '@libs/TourUtils';
@@ -210,14 +211,19 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
     );
 
+    const paidworkspacesWithChatEnabled = useMemo(
+        () => Object.values((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {}).filter((policy) => policy?.isPolicyExpenseChatEnabled && isPaidGroupPolicy(policy)),
+        [allPolicies],
+    );
+
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
      * 1. on at least one group policy
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const shouldRedirectToExpensifyClassic = useMemo(() => {
-        return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<OnyxTypes.Policy>) ?? {});
-    }, [allPolicies]);
+        return paidworkspacesWithChatEnabled.length === 0;
+    }, [paidworkspacesWithChatEnabled.length]);
 
     const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy as OnyxEntry<OnyxTypes.Policy>, !!isOffline, session?.email));
 
@@ -468,6 +474,30 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const menuItems = [
         ...expenseMenuItems,
+        {
+            icon: Expensicons.Document,
+            text: translate('report.newReport.createReport'),
+            onSelected: () => {
+                interceptAnonymousUser(() => {
+                    if (shouldRedirectToExpensifyClassic) {
+                        setModalVisible(true);
+                        return;
+                    }
+
+                    // If the user has more than one paid group workspace with chat enabled, we need to redirect him to workspace selection
+                    if (paidworkspacesWithChatEnabled.length > 1) {
+                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                        return;
+                    }
+
+                    const defaultWorkspace = paidworkspacesWithChatEnabled[0];
+                    if (paidworkspacesWithChatEnabled.length === 1 && defaultWorkspace) {
+                        const createdReportID = createNewReport(defaultWorkspace.id, currentUserPersonalDetails);
+                        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                    }
+                });
+            },
+        },
         {
             icon: Expensicons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),

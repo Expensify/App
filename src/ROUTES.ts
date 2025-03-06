@@ -81,7 +81,7 @@ const ROUTES = {
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/report/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/view/${reportID}` as const;
+            const baseRoute = `search/report/${reportID}` as const;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },

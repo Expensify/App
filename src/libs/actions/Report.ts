@@ -74,10 +74,11 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
+import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {extractPolicyIDFromPath, getPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
+import {extractPolicyIDFromPath, getPolicy} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
@@ -145,6 +146,7 @@ import type {
     NewGroupChatDraft,
     Onboarding,
     OnboardingPurpose,
+    PersonalDetails,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -2400,46 +2402,52 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
-function createNewReport(reportName: string, policyID: string, optimisticReportID: string, reportActionID: string, creatorAccountID?: number) {
-    // The amount for Expense reports are stored as negative value in the database
-    // const storedTotal = total * -1;
-    // const storedNonReimbursableTotal = nonReimbursableTotal * -1;
-    // const report = chatReportID ? getReport(chatReportID, allReports) : undefined;
-    // const policyName = getPolicyName({report});
-    // const formattedTotal = convertToDisplayString(storedTotal, currency);
-
+function createNewReport(policyID: string, creatorPersonalDetails: PersonalDetails) {
     const policy = getPolicy(policyID);
+    const optimisticReportID = generateReportID();
+    const reportActionID = rand64();
+    const {firstName, accountID} = creatorPersonalDetails;
+    const reportName = `${firstName}'s report`;
 
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
 
-    const optimisticData: OptimisticNewReport = {
+    const optimisticDataValue: OptimisticNewReport = {
         reportID: optimisticReportID,
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
-        ownerAccountID: creatorAccountID,
-        // currency,
-        // We don't translate reportName because the server response is always in English
+        ownerAccountID: accountID,
         reportName,
         stateNum,
         statusNum,
         total: 0,
         nonReimbursableTotal: 0,
         participants: {},
-        // parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
-        // parentReportActionID, // TODO BE not ready
     };
 
-    if (creatorAccountID) {
-        optimisticData.participants = {
-            [creatorAccountID]: {
+    if (accountID) {
+        optimisticDataValue.participants = {
+            [accountID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             },
         };
-        optimisticData.ownerAccountID = creatorAccountID;
+        optimisticDataValue.ownerAccountID = accountID;
     }
 
-    API.write('CreateAppReport', {reportName, type: 'expense', policyID, reportID: optimisticReportID, reportActionID});
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+            value: optimisticDataValue,
+        },
+    ];
+
+    API.write(
+        WRITE_COMMANDS.CREATE_APP_REPORT,
+        {reportName, type: CONST.REPORT.TYPE.EXPENSE, policyID, reportID: optimisticReportID, reportActionID},
+        {optimisticData, successData: [], failureData: []},
+    );
+    return optimisticReportID;
 }
 
 /** Add a policy report (workspace room) optimistically and navigate to it. */

@@ -8,17 +8,18 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {rand64} from '@libs/NumberUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getWorkspaceChats} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceListItem = {
@@ -34,7 +35,7 @@ function NewReportWorkspaceSelectionPage() {
     const {translate} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [userData] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID})});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
@@ -43,12 +44,10 @@ function NewReportWorkspaceSelectionPage() {
             if (!policyID) {
                 return;
             }
-            const reportID = generateReportID();
-            const reportActionID = rand64();
-            createNewReport('Test report 3', policyID, reportID, reportActionID, userData?.accountID);
-            // Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            const createdReportID = createNewReport(policyID, currentUserPersonalDetails);
+            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}), {forceReplace: true});
         },
-        [userData?.accountID],
+        [currentUserPersonalDetails],
     );
 
     const usersWorkspaces = useMemo<WorkspaceListItem[]>(() => {
@@ -57,7 +56,7 @@ function NewReportWorkspaceSelectionPage() {
         }
 
         return Object.values(policies)
-            .filter((policy) => shouldShowPolicy(policy, !!isOffline, userData?.email) && !policy?.isJoinRequestPending && policy?.isPolicyExpenseChatEnabled)
+            .filter((policy) => shouldShowPolicy(policy, !!isOffline, currentUserPersonalDetails?.login) && !policy?.isJoinRequestPending && policy?.isPolicyExpenseChatEnabled)
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id,
@@ -74,7 +73,7 @@ function NewReportWorkspaceSelectionPage() {
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
             }));
-    }, [userData?.email, isOffline, policies]);
+    }, [policies, isOffline, currentUserPersonalDetails?.login]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),
