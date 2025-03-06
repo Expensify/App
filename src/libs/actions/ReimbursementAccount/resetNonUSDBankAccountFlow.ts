@@ -1,10 +1,10 @@
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import Onyx from "react-native-onyx";
-import type {OnyxCollection} from "react-native-onyx";
-import ONYXKEYS from "@src/ONYXKEYS";
-import CONST from "@src/CONST";
-import type * as OnyxTypes from "@src/types/onyx";
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 
 let allPolicies: OnyxCollection<OnyxTypes.Policy>;
 Onyx.connect({
@@ -21,7 +21,9 @@ function resetNonUSDBankAccountFlow(policyID: string | undefined) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
 
     API.write(
-        WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP, {policyID}, {
+        WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP,
+        {policyID},
+        {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -67,8 +69,8 @@ function resetNonUSDBankAccountFlow(policyID: string | undefined) {
                     },
                 },
             ],
-        }
-    )
+        },
+    );
 }
 
 export default resetNonUSDBankAccountFlow;
