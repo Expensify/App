@@ -1,86 +1,106 @@
 ---
-title: Changing your workspace plan
-description: How to change your plan or subscription
+title: Changing Your Workspace Plan
+description: How to change your Expensify plan or subscription
 ---
-# Overview
-Expensify offers various plans depending on your needs: Track, Submit, Collect, Control, and Free. Your choice of plan depends on whether you want to manage your expenses individually or for a group or company. You may need to upgrade from an individual plan to a group plan if you recently hired additional employees that need should be added to a Group Workspace, or you need access to Expensify's features that are only available on a paid plan.
 
-# How to change a subscription on an Individual Plan
-## Change Individual Plan
-### Web
-1. Go to **Settings > Workspaces > Individual > [Your Individual Workspace]**
-1. Click on **Plan** and select **Switch** under the plan you want to switch to
-### Mobile
-Open the Expensify app and:
-1. Tap the hamburger icon (three lines) on the top left
-1. Tap **Settings**
-1. Tap **View All** under your Workspace
-1. Select the Workspace you want to change under the "Individual" tab
-1. Tap **Current Plan** under **Plan**
-1. Find the **Switch** option under the plan you're not currently using
+Expensify offers several plans based on your needs: **Track, Submit, Collect, Control,** and **Free**. Your choice depends on whether you manage expenses individually or for a group or company. You may need to upgrade if you hire employees who need access to a **Group Workspace** or require features exclusive to paid plans.
+
+---
+
+# Changing a Subscription on an Individual Plan
+
+**Web:**
+1. Go to **Settings > Workspaces > Individual > [Your Individual Workspace]**.
+2. Click **Plan** and select **Switch** under your desired plan.
+
+**Mobile:**
+1. Open the Expensify app.
+2. Tap the **hamburger menu** (three lines) on the top left.
+3. Tap **Settings**.
+4. Tap **View All** under your Workspace.
+5. Select the Workspace under the **Individual** tab.
+6. Tap **Current Plan** under **Plan**.
+7. Tap **Switch** under the plan you're not currently using.
+
 ## Upgrade to a Group Plan
-To upgrade to a group plan, you will need to create a Group Workspace by heading to **Settings > Workspaces > Group** and choosing a Collect or Control plan.
+1. Go to **Settings > Workspaces > Group**.
+2. Select a **Collect** or **Control** plan.
 
-# How to change a subscription on a Group Plan
-## Change Group Plan
-## Web
-1. Go to **Settings > Workspaces > Group > [Your Group Workspace]**
-1. Click on **Plan** and select **Switch** under the plan you want to switch to.
+---
 
-## Mobile
-1. In the Expensify mobile app, navigate to **Settings > Workspaces > [Your Workspace] > Current Plan > Switch**.
+# Changing a Subscription on a Group Plan
 
-## Adjust subscription size
-When you first create a subscription, you can manually set your size by entering a number in the Subscription Size field of your subscription settings by heading to **Settings > Workspaces > Group > Subscription**.
+**Web:**
+1. Go to **Settings > Workspaces > Group > [Your Group Workspace]**.
+2. Click **Plan** and select **Switch** under your desired plan.
 
-If you choose not to set a size yourself, it will be calculated automatically for your first bill based on your depending on which scenario below fits your use case: 
-- If you’ve never had activity in Expensify, your subscription size is set automatically to match the number of active users you had your first month of using Expensify on your Annual Subscription. This means you’ll see the number update automatically after your first billing.
-- For existing Workspaces switching to an annual subscription, the subscription size is set to the number of active users on your last month’s billing history. 
+**Mobile:**
+1. Open the Expensify app.
+2. Navigate to **Settings > Workspaces > [Your Workspace] > Current Plan > Switch**.
 
-## Auto increase subscription size
-This feature manages your subscription by automatically increasing the count whenever there is activity that exceeds your subscription size. Whenever your subscription size is increased, you will start a new 12-month commitment for the new subscription size in full.
+---
 
-To enable automatically increasing your subscription size, head to **Settings > Workspaces > Group > Subscription** and toggle this feature on.
+## Adjust Subscription Size
+1. Go to **Settings > Workspaces > Group > Subscription**.
+2. Enter the desired number in the **Subscription Size** field.
+   - If left blank, your subscription size will be set automatically:
+     - **New Workspaces**: Based on active users in the first month.
+     - **Existing Workspaces Switching to Annual**: Based on the last month's active users.
 
-## Auto renew
-By default, your subscription is set to automatically renew after a year. To disable this, head to **Settings > Workspaces > Subscription** and use the toggle to turn this feature off before your current subscription ends.
+## Auto-Increase Subscription Size
+1. Go to **Settings > Workspaces > Group > Subscription**.
+2. Toggle **Auto Increase Subscription Size** on.
+3. When enabled, your subscription size will adjust automatically based on usage, triggering a new 12-month commitment for the updated size.
 
-If Auto Renew is disabled then the last bill at the annual rate will be issued on the date listed under the Auto Renew settings.
+## Auto-Renew Subscription
+1. Go to **Settings > Workspaces > Subscription**.
+2. Toggle **Auto Renew** off before your current subscription ends if you do not want it to renew.
+   - If **Auto Renew** is disabled, your final bill at the annual rate will be issued on the date listed under **Auto Renew Settings**.
 
-# How to downgrade to a free account from an Individual Plan
-## Web
-1. Log in to your account through a web browser.
-1. Go to **Settings > Workspaces > Individual > Subscription**.
-1. Click "Cancel Subscription" to end your Monthly Subscription.
+---
 
-Note: Your subscription is a pre-purchase for 30 days of unlimited SmartScanning. This means that when you cancel, you do not get a refund and instead get to use the remainder of the month of unlimited SmartScanning you purchased.
+# Downgrading to a Free Account from an Individual Plan
 
-## App Store
-If you subscribed via iOS, you must cancel your monthly subscription through the App Store by heading to App Store > click on your ID > Subscriptions. You can't cancel it directly in Expensify.
+**Web:**
+1. Log in via a web browser.
+2. Go to **Settings > Workspaces > Individual > Subscription**.
+3. Click **Cancel Subscription**.
+   - **Note**: The subscription is prepaid for 30 days of unlimited **SmartScanning**. No refunds are issued, but you retain access until the period ends.
 
-# How to downgrade to a free account from a Group Plan
-## Pay-per-use
-If you have a Group Workspace and use Pay-Per-Use billing, you can downgrade by going to **Settings > Workspaces > Group** and clicking the cog button next to your Workspace name, then choosing **Delete**.
+**App Store (iOS Users):**
+1. Go to the **App Store**.
+2. Tap your **Apple ID** > **Subscriptions**.
+3. Cancel your Expensify subscription.
+   - **Note**: This cannot be done within Expensify.
 
-Note: Deleting a Workspace removes its configurations and Workspace members but not their Expensify accounts.
+---
 
-When deleting your final paid Workspace, if any Workspace members have been active that month (this means anybody who created, edited, submitted, approved, exported, or deleted a report) you will be billed for their activity as part of the downgrade flow.
+# Downgrading to a Free Account from a Group Plan
 
-## Annual subscription
-If you recently started an annual subscription, you can downgrade for a full refund before the second bill. If you meet the criteria below, you can request a refund by going to **Settings > Your Account > Billing** in the web app:
-- Own Collect or Control Group Workspaces
-- Have only been billed for a single month 
-- Have not cleared a balance in the past
+## Pay-Per-Use Plan
+1. Go to **Settings > Workspaces > Group**.
+2. Click the **cog icon** next to your Workspace name.
+3. Select **Delete**.
+   - **Note**: Deleting a Workspace removes its settings and members but does not delete their Expensify accounts.
+   - If any members were active that month (submitted, approved, or edited reports), you will be billed for their usage.
 
-Note: Refunds apply to Collect or Control Group Workspaces with one month of billing and no previous balance.
+## Annual Subscription
+1. If eligible for a refund, go to **Settings > Your Account > Billing**.
+2. Click **Request a Refund** if:
+   - You own a **Collect** or **Control** Group Workspace.
+   - You have only been billed once.
+   - You have no outstanding balance.
 
-Once you’ve successfully downgraded to a free Expensify account, your Workspace will be deleted and you will see a refund line item added to your Billing History.
+Once downgraded, your Workspace will be deleted, and a refund line item will appear in your **Billing History**.
 
-{% include faq-begin.md %}
+---
+
+# FAQ
+
 ## Will I be charged for a monthly subscription even if I don't use SmartScans?
-Yes, the Monthly Subscription is prepaid and not based on activity, so you'll be charged regardless of usage.
 
-## I'm on a group workspace; do I need the monthly subscription too?
-Probably not. Group workspace members already have unlimited SmartScans, so there's usually no need to buy the subscription. However, you can use it for personal use if you leave your company's Workspace.
+Yes, monthly subscriptions are prepaid and not usage-based, so you will be charged regardless of activity.
 
-{% include faq-end.md %}
+## I'm on a Group Workspace. Do I need the monthly subscription too?
+No, Group Workspace members already have unlimited **SmartScans**. However, you can keep a subscription for personal use if you leave your company's Workspace.
+

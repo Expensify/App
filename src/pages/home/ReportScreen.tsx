@@ -359,7 +359,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         SearchActions.search({
             queryJSON,
-            // Retrieve the most recent messages
+            // Retrieve the most recent reports
             offset: 0
         });
     }, [route.params.q])

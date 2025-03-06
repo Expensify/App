@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearAllFilters} from '@libs/actions/Search';
+import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -58,6 +59,9 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const {unmodifiedPaddings} = useStyledSafeAreaInsets();
+    const cardFeedNamesWithType = useMemo(() => {
+        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
+    }, [translate, workspaceCardFeeds, userCardList]);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement>(null);
@@ -76,7 +80,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
 
     const typeMenuItems = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
     const isCannedQuery = isCannedSearchQuery(queryJSON);
-    const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards));
+    const title = searchName ?? (isCannedQuery ? undefined : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType));
     const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === queryJSON.type) : -1;
 
     const getOverflowMenu = useCallback(
@@ -89,7 +93,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
             let savedSearchTitle = item.name;
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
+                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
             }
 
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, hash);
@@ -120,7 +124,7 @@ function SearchTypeMenuPopover({queryJSON, searchName, shouldGroupByReports}: Se
                 shouldIconUseAutoWidthStyle: false,
             };
         },
-        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards],
+        [hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType],
     );
 
     const savedSearchItems = useMemo(() => {

@@ -26,6 +26,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -188,11 +189,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret}: SearchRouterProps, 
             if (autoScrollToRight) {
                 shouldScrollRef.current = true;
             }
-            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, userQuery);
+            const singleLineUserQuery = StringUtils.lineBreaksToSpaces(userQuery, true);
+            const updatedUserQuery = getAutocompleteQueryWithComma(textInputValue, singleLineUserQuery);
             setTextInputValue(updatedUserQuery);
             setAutocompleteQueryValue(updatedUserQuery);
 
-            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(userQuery, autocompleteSubstitutions);
+            const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
             if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }

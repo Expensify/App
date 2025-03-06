@@ -1,87 +1,87 @@
 ---
-title:  Unlimited Virtual Cards
-description: Learn more about virtual cards and how they can help your business gain efficiency and insight into company spending.
+title: Unlimited Virtual Cards  
+description: Learn about virtual cards and how they help businesses improve efficiency and gain better control over company spending.
 ---
 
 # Overview
 
-For admins to issue virtual cards, your company **must upgrade to Expensify’s new Expensify Visa® Commercial Card.** 
+To issue virtual cards, your company must upgrade to the **Expensify Visa® Commercial Card**.
 
-Once upgraded to the new Expensify Card, admins can issue an unlimited number of virtual cards with a fixed or monthly limit for specific company purchases or recurring subscription payments _(e.g., Marketing purchases, Advertising, Travel, Amazon Web Services, etc.)._
+Once upgraded, admins can issue an **unlimited number of virtual cards** with either a fixed or monthly limit for specific purchases or recurring subscriptions (e.g., Marketing, Advertising, Travel, AWS, etc.).  
 
-This feature supports businesses that require tighter controls on company spending. Customers can set fixed or monthly spending limits for each virtual card. 
+Virtual cards are ideal for businesses that need **tight control over spending**. You can set individual spending limits for each virtual card.
 
-Use virtual cards if your company needs or wants:
+Use virtual cards if your company needs:
 
-- To use one card per vendor or subscription,
-- To issue cards for one-time purchases with a fixed amount,
-- To issue cards for events or trips,
-- To issue cards with a low limit that renews monthly,
+- One card per vendor or subscription
+- Cards for one-time purchases with a fixed amount
+- Cards for events or trips
+- Cards with a low limit that renews monthly
 
-Admins can also name each virtual card, making it easy to categorize and assign them to specific accounts upon creation. Naming the card ensures a clear and organized overview of expenses within the Expensify platform.
+Admins can name each card for easy tracking and organization. This makes it simple to categorize expenses in the Expensify platform.
 
-# Set up virtual cards
+# Set up Virtual Cards
 
-After adopting the new Expensify Card, domain admins can issue virtual cards to any employee using an email matching your domain. Once created and assigned, the card will be visible under the name given to the card. 
+After upgrading to the Expensify Card, domain admins can issue virtual cards to any employee with an email matching your company domain. Once assigned, the virtual card will appear under the card's assigned name.
 
 **To assign a virtual card:**
 
-Head to **Settings** > **Domains** > [**Company Cards**](https://www.expensify.com/domain_companycards) and click the **Issue Virtual Cards** button. From there: 
+1. Go to **Settings** > **Domains** > [**Company Cards**](https://www.expensify.com/domain_companycards).
+2. Click **Issue Virtual Cards**.
+3. Enter a card name (e.g., "Google Ads").
+4. Select a domain member to assign the card to.
+5. Set a card limit.
+6. Choose **Limit Type** (Fixed or Monthly).
+7. Click **Issue Card**.
 
-1. Enter a card name (i.e., "Google Ads").
-2. Select a domain member to assign the card to.
-3. Enter a card limit.
-4. Select a **Limit Type** of _Fixed_ or _Monthly_.
-5. Click **Issue Card**.
+![The Issue Virtual Cards modal is open in the middle of the screen. There are four options to set; Card Name, Assignee, Card Limit, and Limit type. A cancel (left) and save (right) button are at the bottom right of the modal.]({{site.url}}/assets/images/AdminissuedVirtualCards.png)
 
-![The Issue Virtual Cards modal is open in the middle of the screen. There are four options to set; Card Name, Assignee, Card Limit, and Limit type. A cancel (left) and save (right) button are at the bottom right of the modal.]({{site.url}}/assets/images/AdminissuedVirtualCards.png){:width="100%"}
+# Edit Virtual Cards
 
-# Edit virtual cards
-
-Domain admin can update the details of a virtual card on the [Company Cards](https://www.expensify.com/domain_companycards) page.
+Domain admins can edit the details of any virtual card on the [Company Cards](https://www.expensify.com/domain_companycards) page.
 
 **To edit a virtual card:**
 
-1. Click the **Edit** button to the right of the card.
-2. Change the editable details.
-3. Click **Edit Card** to save the changes.
+1. Click the **Edit** button next to the card.
+2. Update the details as needed.
+3. Click **Edit Card** to save changes.
 
-# Terminate a virtual card
+# Terminate a Virtual Card
 
-Domain admin can also terminate a virtual card on the [Company Cards](https://www.expensify.com/domain_companycards) page by setting the limit to $0.
+Admins can terminate a virtual card by setting the limit to **$0**.
 
 **To terminate a virtual card:**
 
-1. Click the **Edit** button to the right of the card.
-2. Set the limit to $0.
+1. Click the **Edit** button next to the card.
+2. Set the limit to **$0**.
 3. Click **Save**.
-4. Refresh your web page, and the card will be removed from the list.
+4. Refresh the page, and the card will be removed from the list.
 
-{% include faq-begin.md %}
+# FAQ
 
-## What is the difference between a fixed limit and a monthly limit?
+## What’s the difference between a fixed limit and a monthly limit?
 
-There are two different limit types that are best suited for their intended purpose.
-- _Fixed-limit_ spend cards are ideal for one-time expenses or providing employees with access to a card for a designated purchase. 
-- _Monthly_ limit spend cards are perfect for managing recurring expenses such as subscriptions and memberships.
+- **Fixed-limit cards** are ideal for one-time purchases or specific purchases with a set amount.
+- **Monthly-limit cards** are best for recurring expenses like subscriptions or memberships.
 
-A virtual card with either of these limit types doesn't share its limit with any other cards, including the cardholder's smart limit cards. 
+Both limit types are independent of other cards, including any smart limit cards.
 
 ## Where can employees see their virtual cards?
 
-Employees can see their assigned virtual cards by navigating to **Settings** > **Account** > [**Credit Cards Import**](https://www.expensify.com/settings?param=%7B%22section%22:%22creditcards%22%7D) in their account.
+Employees can view their assigned virtual cards by going to **Settings** > **Account** > [**Credit Cards Import**](https://www.expensify.com/settings?param=%7B%22section%22:%22creditcards%22%7D) in their account.
 
-On this page, employees can see the remaining card limit, the type of card (e.g., fixed or monthly), and the name given to the card. 
+Here, they can see:
 
-When the employee needs to use the card, they’ll click the **Show Details** button to expose the card details for making purchases. 
+- Remaining card limit
+- Card type (e.g., fixed or monthly)
+- The name of the card
 
-_Note: If the employee doesn’t have Two-Factor Authentication (2FA) enabled when they display the card details, they’ll be prompted to enable it. Enabling 2FA for their account provides the best protection from fraud and is **required** to dispute virtual card expenses._ 
+To view card details, they’ll click **Show Details**.
 
-## What do I do when there is fraud on one of our virtual cards?
+_Note: If the employee hasn’t enabled Two-Factor Authentication (2FA), they will be prompted to enable it before displaying card details. 2FA is required for disputing virtual card charges._
 
-If you or an employee loses their virtual card, experiences fraud, or suspects the card details are no longer secure, please [request a new card](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Card) immediately. A domain admin can also set the limit for the card to $0 to terminate the specific card immediately if the employee cannot take action.
+## What should I do if there’s fraud on one of our virtual cards?
 
-When the employee requests a new card, the compromised card will be terminated immediately. This is best practice for any Expensify Card, and if fraud is suspected, action should be taken as soon as possible to reduce the company's financial impact.
+If a virtual card is lost, compromised, or you suspect fraud, request a new card immediately. The domain admin can set the card limit to **$0** to terminate it if the employee is unavailable.
 
-{% include faq-end.md %}
-
+When a new card is requested, the old card is immediately deactivated. Always act quickly in the case of fraud to minimize financial impact.

@@ -102,6 +102,9 @@ type ConfirmModalProps = {
 
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
+
+    /** Whether the confirm button is loading */
+    isConfirmLoading?: boolean;
 };
 
 function ConfirmModal({
@@ -135,6 +138,7 @@ function ConfirmModal({
     shouldReverseStackedButtons,
     shouldEnableNewFocusManagement,
     restoreFocusType,
+    isConfirmLoading,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -182,6 +186,7 @@ function ConfirmModal({
                 shouldStackButtons={shouldStackButtons}
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
+                isConfirmLoading={isConfirmLoading}
             />
         </Modal>
     );

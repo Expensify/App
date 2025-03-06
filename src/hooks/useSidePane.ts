@@ -27,7 +27,8 @@ function useSidePane() {
     const {windowWidth} = useWindowDimensions();
 
     const [sidePane] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
-    const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth);
+    const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const isPaneHidden = isSidePaneHidden(sidePane, isExtraLargeScreenWidth) || language !== CONST.LOCALES.EN;
 
     const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
     const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !isPaneHidden;

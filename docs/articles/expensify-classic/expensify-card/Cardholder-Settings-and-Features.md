@@ -6,56 +6,79 @@ description: Expensify Card Settings for Employees
 # Using Your Expensify Visa® Commercial Card
 
 ### Activate Your Card
-You can start using your card immediately upon receipt by logging into your Expensify account, heading to your Home tab, and following the prompts on the _**Activate your Expensify Card**_ task. 
+To activate your card:
+1. Log into your Expensify account.
+2. Go to your **Home tab**.
+3. Follow the prompts on the **Activate your Expensify Card** task.  
+Once activated, you can start using your card immediately!
 
-### Review your Card's Smart Limit
-Check your card’s Smart Limit via  _**Settings > Account > Credit Card Import**_: 
-- This limit is the total amount of unapproved expenses you can have on the card.
-- If a purchase is more than your card's Smart Limit, it will be declined. 
+### Review Your Card's Smart Limit
+You can check your card’s **Smart Limit** by navigating to **Settings > Account > Credit Card Import**.  
+- The **Smart Limit** is the total amount of unapproved expenses you can have on your card.
+- If a purchase exceeds your card's Smart Limit, it will be declined.
 
-## Managing Expenses
-- **Submit Expenses Promptly**: Submit your expenses regularly to restore your full limit. Contact your admin if you need a limit adjustment.
-- **Using Your Card**: Swipe your Expensify Card like any other card. You’ll receive instant alerts on your phone for SmartScan receipts. SmartScanned receipts will merge automatically with card expenses.
-- **eReceipts**: If your organization doesn’t require itemized receipts, Expensify will generate IRS-compliant eReceipts for all non-lodging transactions.
-- **Reporting Expenses**: Report and submit Expensify Card expenses as usual. Approved expenses refresh your Smart Limit.
+---
+
+## Managing Your Expenses
+
+- **Submit Expenses Promptly**: Regularly submit your expenses to restore your full limit. If needed, contact your admin for a limit adjustment.
+- **Using Your Card**: Swipe your Expensify Card like any other. You'll get instant alerts for **SmartScan receipts**, which will automatically merge with your card expenses.
+- **eReceipts**: If your organization doesn't require itemized receipts, Expensify will generate IRS-compliant **eReceipts** for all non-lodging transactions.
+- **Reporting Expenses**: Submit your **Expensify Card expenses** as usual. Once approved, your **Smart Limit** will be refreshed.
+
+---
 
 ## Enabling Notifications
-Download the Expensify mobile app and enable push notifications to stay updated on spending activity and potential fraud.
 
-#### For iPhone:
-1. Open the Expensify app and tap the three-bar icon in the upper-left corner.
-2. Tap _**Settings > enable Receive real-time alerts**_.
-3. Accept the confirmation to access your iPhone’s notification settings for Expensify.
-4. Turn on **Allow Notifications** and select your notification types.
+Stay updated on your spending activity and potential fraud by enabling **push notifications** in the Expensify mobile app.
 
-#### For Android:
-1. Go to _**Settings > Apps and Notifications**_.
-2. Find and open Expensify and enable notifications.
-3. Customize your alerts based on your phone model.
+### For iPhone:
+1. Open the Expensify app.
+2. Tap the **three-bar icon** in the top-left corner.
+3. Go to **Settings > Enable Receive real-time alerts**.
+4. Confirm the prompt to access your iPhone's notification settings.
+5. Turn on **Allow Notifications** and choose your preferred notification types.
+
+### For Android:
+1. Go to **Settings > Apps and Notifications**.
+2. Find and open **Expensify**.
+3. Enable notifications and customize the alerts based on your device model.
+
+---
 
 ## Using Your Virtual Card
-- **Access Details**: You can view your virtual card details (card number, expiration date, CVC) via _**Settings > Account > Credit Card Import > Show Details**_. The virtual and physical cards share the same limit.
-- **Purchases**: Use the virtual card for online, in-app, and in-person payments when linked to a mobile wallet (Apple Pay or Google Pay).
 
-#### Adding to a Digital Wallet
-To add your Expensify Card to a digital wallet, follow the steps below:
-  1. Tap the three-bar icon in the upper-left corner.
-  2. Tap _**Settings > Connected Cards**_.
-  3. Tap **Add to Apple Wallet** or **Add to Gpay**, depending on your device.
-  4. Complete the steps as prompted.
+### Accessing Virtual Card Details
+To view your virtual card details (card number, expiration date, CVC), go to **Settings > Account > Credit Card Import > Show Details**.  
+Note: The virtual and physical cards share the same **Smart Limit**.
+
+### Making Purchases
+Use the virtual card for **online, in-app, or in-person** payments when linked to a mobile wallet (e.g., **Apple Pay** or **Google Pay**).
+
+### Adding to a Digital Wallet
+1. Tap the **three-bar icon** in the top-left corner.
+2. Go to **Settings > Connected Cards**.
+3. Tap **Add to Apple Wallet** or **Add to Google Pay**, depending on your device.
+4. Follow the steps to complete the setup.
+
+---
 
 ## Handling Declines
-- **Real-Time Alerts**: Enable real-time alerts in the mobile app (_**Settings > toggle Receive real-time alerts**_) to get notifications for declines.
-- **Common Decline Reasons**:
-  - **Insufficient Limit**: Transactions exceeding the available limit will be declined. You can check your limit in _**Settings > Connected Cards**_ or _**Settings > Account > Credit Card Import**_.
-  - **Inactive or Disabled Card**: Ensure your card is active and not disabled by your Domain Admin.
-  - **Incorrect Information**: Entering incorrect card details (CVC, ZIP, expiration date) will result in declines.
-  - **Suspicious Activity**: Transactions may be blocked for unusual or suspicious activity. Check the Expensify Home page to approve unusual merchants. Suspicious spending may prompt a manual due diligence check, during which your cards will be locked.
-  - **Restricted Country**: Transactions from restricted countries will be declined.
 
-{% include faq-begin.md %}
+### Real-Time Decline Alerts
+To get alerts for declined transactions:
+1. Go to **Settings > Toggle Receive real-time alerts** in the mobile app.
 
-## I still haven't received my Expensify Card. What should I do? 
-For more information on why your card hasn't arrived, you can check out this resource on [Requesting a Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Card#what-if-i-havent-received-my-card-after-multiple-weeks).
+### Common Decline Reasons
+- **Insufficient Limit**: Transactions exceeding your available limit will be declined. Check your limit in **Settings > Connected Cards** or **Settings > Account > Credit Card Import**.
+- **Inactive or Disabled Card**: Ensure your card is active and not disabled by your Domain Admin.
+- **Incorrect Information**: Declines may occur due to incorrect card details (e.g., CVC, ZIP code, expiration date).
+- **Suspicious Activity**: Transactions may be blocked if flagged as suspicious. You can approve unusual merchants via your **Expensify Home page**. Suspicious activity may result in a manual review, and your cards could be locked temporarily.
+- **Restricted Country**: Transactions from restricted countries will be declined.
 
-{% include faq-end.md %}
+---
+
+## FAQ
+
+## I haven’t received my Expensify Card. What should I do?  
+For help with a missing card, visit our guide on [Requesting a Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Request-the-Card#what-if-i-havent-received-my-card-after-multiple-weeks).

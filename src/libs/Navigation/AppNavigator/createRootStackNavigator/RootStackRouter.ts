@@ -8,8 +8,14 @@ import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator'
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
-import * as GetStateForActionHandlers from './GetStateForActionHandlers';
+import {
+    handleDismissModalAction,
+    handleNavigatingToModalFromModal,
+    handleOpenWorkspaceSplitAction,
+    handlePushReportSplitAction,
+    handlePushSearchPageAction,
+    handleSwitchPolicyIDAction,
+} from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
 import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions, SwitchPolicyIdActionType} from './types';
 
@@ -65,24 +71,24 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
             if (isOpenWorkspaceSplitAction(action)) {
-                return GetStateForActionHandlers.handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
+                return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
             }
 
             if (isSwitchPolicyIdAction(action)) {
-                return GetStateForActionHandlers.handleSwitchPolicyID(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                return handleSwitchPolicyIDAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
             }
 
             if (isDismissModalAction(action)) {
-                return GetStateForActionHandlers.handleDismissModalAction(state, configOptions, stackRouter);
+                return handleDismissModalAction(state, configOptions, stackRouter);
             }
 
             if (isPushAction(action)) {
                 if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    return GetStateForActionHandlers.handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                    return handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
                 }
 
-                if (action.payload.name === SCREENS.SEARCH.ROOT) {
-                    return GetStateForActionHandlers.handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
+                    return handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
                 }
             }
 
@@ -93,7 +99,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
             }
 
             if (isNavigatingToModalFromModal(state, action)) {
-                return GetStateForActionHandlers.handleNavigatingToModalFromModal(state, action, configOptions, stackRouter);
+                return handleNavigatingToModalFromModal(state, action, configOptions, stackRouter);
             }
 
             return stackRouter.getStateForAction(state, action, configOptions);

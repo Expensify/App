@@ -154,9 +154,17 @@ describe('Navigate', () => {
                         index: 0,
                         routes: [
                             {
-                                name: SCREENS.SEARCH.ROOT,
-                                params: {
-                                    q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
+                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SEARCH.ROOT,
+                                            params: {
+                                                q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
+                                            },
+                                        },
+                                    ],
                                 },
                             },
                         ],
@@ -167,7 +175,7 @@ describe('Navigate', () => {
             const rootStateBeforeNavigate = navigationRef.current?.getRootState();
             const lastSplitBeforeNavigate = rootStateBeforeNavigate?.routes.at(-1);
             expect(rootStateBeforeNavigate?.index).toBe(0);
-            expect(lastSplitBeforeNavigate?.name).toBe(SCREENS.SEARCH.ROOT);
+            expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
             // When navigate to the Home page when the active workspace is set
             act(() => {
