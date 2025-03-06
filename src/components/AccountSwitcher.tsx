@@ -26,7 +26,9 @@ import * as Expensicons from './Icon/Expensicons';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
+import {useProductTrainingContext} from './ProductTrainingContext';
 import Text from './Text';
+import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 function AccountSwitcher() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -48,6 +50,11 @@ function AccountSwitcher() {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
     const processedTextArray = EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName);
+
+    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
+        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
+        canSwitchAccounts,
+    );
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
@@ -124,14 +131,17 @@ function AccountSwitcher() {
         return [currentUserMenuItem, ...delegatorMenuItems];
     };
 
+    const onPressSwitcher = () => {
+        hideProductTrainingTooltip();
+        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
+    };
+
     return (
         <>
             <PressableWithFeedback
                 accessible
                 accessibilityLabel={translate('common.profile')}
-                onPress={() => {
-                    setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
-                }}
+                onPress={onPressSwitcher}
                 ref={buttonRef}
                 interactive={canSwitchAccounts}
                 pressDimmingValue={canSwitchAccounts ? undefined : 1}
@@ -156,14 +166,27 @@ function AccountSwitcher() {
                                     : currentUserPersonalDetails?.displayName}
                             </Text>
                             {!!canSwitchAccounts && (
-                                <View style={styles.justifyContentCenter}>
-                                    <Icon
-                                        fill={theme.icon}
-                                        src={Expensicons.CaretUpDown}
-                                        height={variables.iconSizeSmall}
-                                        width={variables.iconSizeSmall}
-                                    />
-                                </View>
+                                <EducationalTooltip
+                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                    shouldRender={shouldShowProductTrainingTooltip}
+                                    renderTooltipContent={renderProductTrainingTooltip}
+                                    anchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                    }}
+                                    shiftVertical={variables.accountSwitcherTooltipShiftVertical}
+                                    wrapperStyle={styles.productTrainingTooltipWrapper}
+                                    onTooltipPress={onPressSwitcher}
+                                >
+                                    <View style={styles.justifyContentCenter}>
+                                        <Icon
+                                            fill={theme.icon}
+                                            src={Expensicons.CaretUpDown}
+                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeSmall}
+                                        />
+                                    </View>
+                                </EducationalTooltip>
                             )}
                         </View>
                         <Text

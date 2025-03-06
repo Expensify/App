@@ -47,10 +47,17 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {isOffline} = useNetwork();
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
-        shouldShowSavedSearchesMenuItemTitle,
-    );
+    const {
+        shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
+        renderProductTrainingTooltip: renderSavedSearchTooltip,
+        hideProductTrainingTooltip: hideSavedSearchTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, shouldShowSavedSearchesMenuItemTitle);
+    const {
+        shouldShowProductTrainingTooltip: shouldShowExpenseReportsTypeTooltip,
+        renderProductTrainingTooltip: renderExpenseReportsTypeTooltip,
+        hideProductTrainingTooltip: hideExpenseReportsTypeTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER, true);
+
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -84,9 +91,9 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
                     <SavedSearchItemThreeDotMenu
                         menuItems={getOverflowMenu(title, Number(key), item.query)}
                         isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                        hideProductTrainingTooltip={index === 0 && shouldShowProductTrainingTooltip ? hideProductTrainingTooltip : undefined}
-                        shouldRenderTooltip={index === 0 && shouldShowProductTrainingTooltip}
-                        renderTooltipContent={renderProductTrainingTooltip}
+                        hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
+                        shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
+                        renderTooltipContent={renderSavedSearchTooltip}
                     />
                 ),
                 style: [styles.alignItemsCenter],
@@ -97,19 +104,19 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
                 tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
                 tooltipShiftVertical: variables.savedSearchShiftVertical,
                 tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
-                renderTooltipContent: renderProductTrainingTooltip,
+                renderTooltipContent: renderSavedSearchTooltip,
             };
         },
         [
             hash,
             getOverflowMenu,
-            shouldShowProductTrainingTooltip,
-            hideProductTrainingTooltip,
+            shouldShowSavedSearchTooltip,
+            hideSavedSearchTooltip,
             styles.alignItemsCenter,
             styles.mh4,
             styles.pv2,
             styles.productTrainingTooltipWrapper,
-            renderProductTrainingTooltip,
+            renderSavedSearchTooltip,
             personalDetails,
             reports,
             taxRates,
@@ -181,7 +188,12 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
         >
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                 {typeMenuItems.map((item, index) => {
+                    const shouldShowTooltip = item.translationPath === 'common.expenseReports' && index !== activeItemIndex && shouldShowExpenseReportsTypeTooltip;
+
                     const onPress = singleExecution(() => {
+                        if (shouldShowTooltip) {
+                            hideExpenseReportsTypeTooltip();
+                        }
                         clearAllFilters();
                         clearSelectedTransactions();
                         Navigation.navigate(item.getRoute(queryJSON.policyID));
@@ -200,6 +212,15 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
                             focused={index === activeItemIndex}
                             onPress={onPress}
                             shouldIconUseAutoWidthStyle
+                            shouldRenderTooltip={shouldShowTooltip}
+                            renderTooltipContent={renderExpenseReportsTypeTooltip}
+                            tooltipAnchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
+                            tooltipShiftHorizontal={variables.expenseReportsTypeTooltipShiftHorizontal}
+                            tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                            onEducationTooltipPress={onPress}
                         />
                     );
                 })}

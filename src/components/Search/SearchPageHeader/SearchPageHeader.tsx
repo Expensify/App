@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,10 +8,8 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -75,23 +72,8 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isScreenFocused, setIsScreenFocused] = useState(false);
-
-    const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP,
-        isScreenFocused,
-    );
 
     const {status, hash} = queryJSON;
-
-    useFocusEffect(
-        useCallback(() => {
-            setIsScreenFocused(true);
-            return () => {
-                setIsScreenFocused(false);
-            };
-        }, []),
-    );
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -330,12 +312,11 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
     ]);
 
     const onFiltersButtonPress = useCallback(() => {
-        hideProductTrainingTooltip();
         const filterFormValues = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
         updateAdvancedFilters(filterFormValues);
 
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [allCards, currencyList, hideProductTrainingTooltip, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     const InputRightComponent = useMemo(() => {
         return headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || selectionMode?.isEnabled) ? (
@@ -349,33 +330,18 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
                 shouldUseStyleUtilityForAnchorPosition
             />
         ) : (
-            <EducationalTooltip
-                shouldRender={shouldShowProductTrainingTooltip}
-                anchorAlignment={{
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                }}
-                shiftHorizontal={variables.searchFiltersTooltipShiftHorizontal}
-                wrapperStyle={styles.productTrainingTooltipWrapper}
-                renderTooltipContent={renderProductTrainingTooltip}
-                onTooltipPress={onFiltersButtonPress}
-            >
-                <Button
-                    innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
-                    icon={Expensicons.Filters}
-                    onPress={onFiltersButtonPress}
-                />
-            </EducationalTooltip>
+            <Button
+                innerStyles={[styles.searchAutocompleteInputResults, styles.borderNone, styles.bgTransparent]}
+                icon={Expensicons.Filters}
+                onPress={onFiltersButtonPress}
+            />
         );
     }, [
         headerButtonsOptions,
         onFiltersButtonPress,
-        renderProductTrainingTooltip,
         selectedTransactionsKeys.length,
-        shouldShowProductTrainingTooltip,
         styles.bgTransparent,
         styles.borderNone,
-        styles.productTrainingTooltipWrapper,
         styles.searchAutocompleteInputResults,
         translate,
         selectionMode,

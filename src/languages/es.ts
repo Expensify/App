@@ -6437,6 +6437,8 @@ const translations = {
         },
     },
     productTrainingTooltip: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: {
             part1: '¡Comienza',
             part2: ' aquí!',
@@ -6445,33 +6447,37 @@ const translations = {
             part1: 'Renombra tus búsquedas guardadas',
             part2: ' aquí',
         },
-        quickActionButton: {
-            part1: '¡Acción rápida!',
-            part2: ' A solo un toque',
-        },
-        workspaceChatCreate: {
-            part1: 'Envía tus',
-            part2: ' gastos',
-            part3: ' aquí',
-        },
-        searchFilterButtonTooltip: {
-            part1: 'Personaliza tu búsqueda',
-            part2: ' aquí!',
-        },
         bottomNavInboxTooltip: {
-            part1: 'Tu lista de tareas',
-            part2: '\n🟢 = listo para ti',
-            part3: ' 🔴 = necesita revisión',
+            part1: 'Consulta lo que ',
+            part2: 'requiere tu atención',
+            part3: '\ny ',
+            part4: 'chatea sobre gastos.',
         },
         workspaceChatTooltip: {
-            part1: 'Envía gastos',
-            part2: ' y chatea con',
-            part3: '\naprobadores aquí!',
+            part1: 'Chatea con ',
+            part2: 'aprobadores',
         },
         globalCreateTooltip: {
             part1: 'Crea gastos',
             part2: ', comienza a chatear,',
             part3: '\ny mucho más!',
+            part4: ' ¡Pruébalo!',
+        },
+        expenseReportsFilter: {
+            part1: '¡Bienvenido!\nEncuentra todos los ',
+            part2: 'informes de tu empresa',
+            part3: ' aquí.',
+        },
+        GBRRBRChat: {
+            part1: 'Verás 🟢 en ',
+            part2: 'acciones a realizar',
+            part3: ', y 🔴 en ',
+            part4: 'errores para revisar.',
+        },
+        accountSwitcher: {
+            part1: 'Accede a tus ',
+            part2: 'cuentas Copilot',
+            part3: ' aquí',
         },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',
