@@ -10,6 +10,8 @@ const {
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
     EXPENSE_REPORTS_FILTER,
+    ACCOUNT_SWITCHER,
+    GBR_RBR_CHAT,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -66,6 +68,16 @@ type DismissedProductTraining = {
      * When user dismisses the expenseReportsFilter product training tooltip, we store the timestamp here.
      */
     [EXPENSE_REPORTS_FILTER]: string;
+
+    /**
+     * When user dismisses the accountSwitcher product training tooltip, we store the timestamp here.
+     */
+    [ACCOUNT_SWITCHER]: string;
+
+    /**
+     * When user dismisses the gbrRbrChat product training tooltip, we store the timestamp here.
+     */
+    [GBR_RBR_CHAT]: string;
 };
 
 export default DismissedProductTraining;
