@@ -80,6 +80,7 @@ function IOURequestStepConfirmation({
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportReal)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, reportDraft)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`);
+    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
@@ -128,6 +129,7 @@ function IOURequestStepConfirmation({
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && receiptFile && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(false);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -586,6 +588,14 @@ function IOURequestStepConfirmation({
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
+                        if (userLocation) {
+                            trackExpense(selectedParticipants, trimmedComment, receiptFile, {
+                                lat: userLocation.latitude,
+                                long: userLocation.longitude,
+                            });
+                            return;
+                        }
+
                         getCurrentPosition(
                             (successData) => {
                                 trackExpense(selectedParticipants, trimmedComment, receiptFile, {
@@ -621,13 +631,15 @@ function IOURequestStepConfirmation({
 
             if (receiptFile && !!transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                if (
-                    transaction.amount === 0 &&
-                    !isSharingTrackExpense &&
-                    !isCategorizingTrackExpense &&
-                    locationPermissionGranted &&
-                    !selectedParticipants.some((participant) => isSelectedManagerMcTest(participant.login))
-                ) {
+                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted && !selectedParticipants.some((participant) => isSelectedManagerMcTest(participant.login))) {
+                    if (userLocation) {
+                        requestMoney(selectedParticipants, trimmedComment, receiptFile, {
+                            lat: userLocation.latitude,
+                            long: userLocation.longitude,
+                        });
+                        return;
+                    }
+
                     getCurrentPosition(
                         (successData) => {
                             requestMoney(selectedParticipants, trimmedComment, receiptFile, {
@@ -676,6 +688,7 @@ function IOURequestStepConfirmation({
             policyCategories,
             trackExpense,
             submitPerDiemExpense,
+            userLocation,
         ],
     );
 
@@ -718,6 +731,7 @@ function IOURequestStepConfirmation({
     const isLoading = !!transaction?.originalCurrency;
 
     const onConfirm = (listOfParticipants: Participant[]) => {
+        setIsConfirming(true);
         setSelectedParticipantList(listOfParticipants);
 
         if (gpsRequired) {
@@ -733,6 +747,7 @@ function IOURequestStepConfirmation({
         }
 
         createTransaction(listOfParticipants);
+        setIsConfirming(false);
     };
 
     if (isLoadingTransaction) {
@@ -776,6 +791,9 @@ function IOURequestStepConfirmation({
                                 createTransaction(selectedParticipantList, false);
                             });
                         }}
+                        onInitialGetLocationCompleted={() => {
+                            setIsConfirming(false);
+                        }}
                     />
                 )}
                 <MoneyRequestConfirmationList
@@ -806,6 +824,7 @@ function IOURequestStepConfirmation({
                     payeePersonalDetails={payeePersonalDetails}
                     shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                     isConfirmed={isConfirmed}
+                    isConfirming={isConfirming}
                 />
             </View>
         </ScreenWrapper>

@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {RESULTS} from 'react-native-permissions';
 import type Webcam from 'react-webcam';
 import type {TupleToUnion} from 'type-fest';
 import TestReceipt from '@assets/images/fake-receipt.png';
@@ -32,6 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
+import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -67,6 +69,7 @@ import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
 
@@ -211,6 +214,32 @@ function IOURequestStepScan({
         // We only want to get the camera permission status when the component is mounted
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isTabActive]);
+
+    // this effect will pre-fetch location in web and desktop if the location permission is already granted to optimize the flow
+    useEffect(() => {
+        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+        if (!gpsRequired) {
+            return;
+        }
+
+        getLocationPermission().then((status) => {
+            if (status !== RESULTS.GRANTED && status !== RESULTS.LIMITED) {
+                return;
+            }
+
+            clearUserLocation();
+            getCurrentPosition(
+                (successData) => {
+                    setUserLocation({longitude: successData.coords.longitude, latitude: successData.coords.latitude});
+                },
+                () => {},
+                {
+                    maximumAge: CONST.GPS.MAX_AGE,
+                    timeout: CONST.GPS.TIMEOUT,
+                },
+            );
+        });
+    }, [transaction?.amount, iouType]);
 
     const hideRecieptModal = () => {
         setIsAttachmentInvalid(false);
