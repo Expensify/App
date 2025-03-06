@@ -3,13 +3,13 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseListItem from './BaseListItem';
 import type {ChatListItemProps, ListItem, ReportActionListItemType} from './types';
-import { isInvoiceRoom, isPolicyExpenseChat } from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 
 function ChatListItem<TItem extends ListItem>({
     item,
