@@ -1587,11 +1587,11 @@ function handleReportChanged(report: OnyxEntry<Report>) {
 }
 
 /** Deletes a comment from the report, basically sets it as empty string */
-function deleteReportComment(reportID: string, reportAction: ReportAction) {
+function deleteReportComment(reportID: string | undefined, reportAction: ReportAction) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
 
-    if (!reportActionID || !originalReportID) {
+    if (!reportActionID || !originalReportID || !reportID) {
         return;
     }
 
@@ -1639,7 +1639,10 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
         const latestMentioneReportAction = Object.values(reportActionsForReport ?? {}).find(
-            (action) => action.reportActionID !== reportAction.reportActionID && ReportActionsUtils.didMessageMentionCurrentUser(action),
+            (action) =>
+                action.reportActionID !== reportAction.reportActionID &&
+                ReportActionsUtils.didMessageMentionCurrentUser(action) &&
+                ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
         );
         optimisticReport.lastMentionedTime = latestMentioneReportAction?.created ?? null;
     }
@@ -3761,7 +3764,6 @@ function prepareOnboardingOnyxData(
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                !['submitExpense', 'trackExpense', 'startChat', 'splitExpense'].includes(task.type),
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE : CONST.EMAIL.CONCIERGE;
