@@ -17,6 +17,7 @@ import {createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CorpayFormField} from '@src/types/onyx';
 
 const STEP_INDEXES = CONST.CORPAY_FIELDS.INDEXES.MAPPING;
 
@@ -45,6 +46,18 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const [error, setError] = useState('');
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
     const {isOffline} = useNetwork();
+
+    const getTitle = (field: CorpayFormField, fieldName: string) => {
+        if ((field.valueSet ?? []).length > 0) {
+            return field.valueSet?.find((type) => type.id === formValues[fieldName])?.text ?? formValues[fieldName];
+        }
+
+        if ((field?.links?.[0]?.content?.regions ?? []).length > 0) {
+            return (field?.links?.[0]?.content?.regions ?? [])?.find(({code}) => code === formValues[fieldName])?.name ?? formValues[fieldName];
+        }
+
+        return formValues[fieldName];
+    };
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
         setError('');
@@ -90,7 +103,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).forEach(([fieldName, field]) => {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-            title: formValues[fieldName],
+            title: getTitle(field, fieldName),
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
@@ -99,10 +112,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     });
 
     Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] ?? {}).forEach(([fieldName, field]) => {
-        const title = field.valueSet?.find((type) => type.id === formValues[fieldName])?.text ?? formValues[fieldName];
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-            title,
+            title: getTitle(field, fieldName),
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(STEP_INDEXES.ACCOUNT_TYPE);
@@ -115,7 +127,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         .forEach(([fieldName, field]) => {
             summaryItems.push({
                 description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-                title: formValues[fieldName],
+                title: getTitle(field, fieldName),
                 shouldShowRightIcon: true,
                 onPress: () => {
                     onMove(STEP_INDEXES.BANK_INFORMATION);
@@ -128,7 +140,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         .forEach(([fieldName, field]) => {
             summaryItems.push({
                 description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-                title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues[fieldName]}` as TranslationPaths) : formValues[fieldName],
+                title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
                 shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
                 onPress: () => {
                     onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
