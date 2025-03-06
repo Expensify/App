@@ -165,7 +165,6 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         if (canUseWallet) {
-            console.log('canUseWallet', canUseWallet)
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
             if (activeAdminPolicies.length === 0) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
@@ -310,19 +309,19 @@ function SettlementButton({
     };
 
     const getCustomText = () => {
+        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            return undefined;
+        }
         if (shouldUseShortForm) {
             return translate('iou.pay');
         }
 
-        if (isInvoiceReport ?? !hasPreferredPaymentMethod ?? lastPaymentPolicy ?? bankAccount) {
-            return translate('iou.settlePayment', {formattedAmount});
-        }
+        return translate('iou.settlePayment', {formattedAmount});
 
-        return undefined;
     };
 
     const getSecondLineText = (): string | undefined => {
-        if (shouldUseShortForm) {
+        if (shouldUseShortForm || lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             return undefined;
         }
 
@@ -341,7 +340,10 @@ function SettlementButton({
         return undefined;
     };
 
-    console.log('paymentButtonOptions', paymentButtonOptions)
+    const customText = getCustomText();
+    const secondlineText = getSecondLineText();
+    console.log('secondlineText', secondlineText)
+    console.log('customText', customText)
 
 
     return (
