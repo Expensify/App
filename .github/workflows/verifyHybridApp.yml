@@ -19,7 +19,7 @@ on:
       - 'ios/project.pbxproj'
   pull_request_target:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches: [main]
     paths:
       - '**.kt'
       - '**.java'
