@@ -1,11 +1,12 @@
+import {fromZonedTime, toZonedTime} from 'date-fns-tz';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasNoPolicyOtherThanPersonalType, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
-import {getReportActions} from './ReportActionsUtils';
+import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
     isClosedReport,
     isCurrentUserSubmitter,
@@ -84,7 +85,7 @@ function isUnapproveAction(report: Report, policy: Policy): boolean {
     return isExpense && isApprover && isApproved;
 }
 
-function isCancelPaymentAction(report: Report): boolean {
+function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]): boolean {
     const isExpense = isExpenseReport(report);
 
     if (!isExpense) {
@@ -97,8 +98,27 @@ function isCancelPaymentAction(report: Report): boolean {
         return true;
     }
 
-    const isPaymentProcessing = true; // TODO
-    const hasDailyNachaCutoffPassed = false; // TODO
+    const isPaymentProcessing = isSettled(report);
+
+    const payActions = reportTransactions.reduce((acc, transaction) => {
+        const action = getIOUActionForReportID(report.reportID, transaction.transactionID);
+        if (action && isPayAction(action)) {
+            acc.push(action);
+        }
+        return acc;
+    }, [] as ReportAction[]);
+
+    const hasDailyNachaCutoffPassed = payActions.some((action) => {
+        const actionCreated = fromZonedTime(action.created, 'UTC');
+        const actionCreatedTime = actionCreated.getTime();
+        const day = actionCreated.getDate();
+        const month = actionCreated.getMonth() + 1; // getMonth return 0-11
+        const year = actionCreated.getFullYear();
+        const cutoff = `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day} 23:45:00`;
+        const cutoffTime = toZonedTime(cutoff, 'UTC').getTime();
+
+        return actionCreatedTime > cutoffTime;
+    });
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
@@ -251,12 +271,6 @@ function isChangeWorkspaceAction(report: Report, policy: Policy, reportTransacti
         return true;
     }
 
-    const isSender = isCurrentUserSubmitter(report.reportID);
-    // it's already satisified in line 215
-    if (isSender && isProcessing) {
-        return true;
-    }
-
     return false;
 }
 
@@ -302,7 +316,7 @@ function getSecondaryAction(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(report)) {
+    if (isCancelPaymentAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
