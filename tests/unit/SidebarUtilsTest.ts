@@ -197,11 +197,11 @@ describe('SidebarUtils', () => {
         });
 
         it('returns isPinned true only when report.isPinned is true', () => {
-            const MOCK_REPORT_PINNED: Report = {
+            const MOCK_REPORT_PINNED: OnyxEntry<Report> = {
                 reportID: '1',
                 isPinned: true,
             };
-            const MOCK_REPORT_UNPINNED: Report = {
+            const MOCK_REPORT_UNPINNED: OnyxEntry<Report> = {
                 reportID: '2',
                 isPinned: false,
             };
@@ -215,8 +215,8 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 hasViolations: false,
+                oneTransactionThreadReport: undefined,
             });
-
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
                 reportNameValuePairs: {},
@@ -226,6 +226,7 @@ describe('SidebarUtils', () => {
                 policy: undefined,
                 parentReportAction: undefined,
                 hasViolations: false,
+                oneTransactionThreadReport: undefined,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
