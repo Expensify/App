@@ -56,7 +56,6 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
 
     return (
         <>
-            <SidePane state={state} />
             <View style={styles.topLevelBottomTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
                 {/* We are not rendering BottomTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
@@ -66,6 +65,7 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
                     isTooltipAllowed={isReadyToDisplayBottomBar}
                 />
             </View>
+            <SidePane state={state} />
         </>
     );
 }
