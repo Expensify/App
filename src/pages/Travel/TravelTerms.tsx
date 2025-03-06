@@ -42,7 +42,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const groupPolicies = activePolicies.filter((policy) => policy.type !== CONST.POLICY.TYPE.PERSONAL);
     const isUserMemberOfSingleGroupPolicy = groupPolicies.length === 1;
     const activePolicy = getActivePolicy();
-    const isActivePolicyGroup = activePolicy?.type;
+    const isActivePolicyGroup = activePolicy?.type !== CONST.POLICY.TYPE.PERSONAL;
 
     useEffect(() => {
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
@@ -121,17 +121,20 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                 setErrorMessage('');
                             }
 
-                            if (!isActivePolicyGroup && !isUserMemberOfSingleGroupPolicy) {
-                                setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
+                            if (isActivePolicyGroup) {
+                                acceptSpotnanaTerms(domain);
                                 return;
                             }
 
-                            if (isUserMemberOfSingleGroupPolicy) {
+                            if (!isActivePolicyGroup && isUserMemberOfSingleGroupPolicy) {
                                 acceptSpotnanaTerms(domain, groupPolicies.at(0)?.id);
                                 return;
                             }
 
-                            acceptSpotnanaTerms(domain);
+                            if (!isActivePolicyGroup && !isUserMemberOfSingleGroupPolicy) {
+                                setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
+                                return;
+                            }
                         }}
                         message={errorMessage}
                         isAlertVisible={!!errorMessage}
