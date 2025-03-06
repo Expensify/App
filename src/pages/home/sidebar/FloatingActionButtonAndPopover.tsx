@@ -194,7 +194,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
-    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel, canUseTableReportView} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     const {environment} = useEnvironment();
@@ -474,30 +474,34 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const menuItems = [
         ...expenseMenuItems,
-        {
-            icon: Expensicons.Document,
-            text: translate('report.newReport.createReport'),
-            onSelected: () => {
-                interceptAnonymousUser(() => {
-                    if (shouldRedirectToExpensifyClassic) {
-                        setModalVisible(true);
-                        return;
-                    }
+        ...(canUseTableReportView
+            ? [
+                  {
+                      icon: Expensicons.Document,
+                      text: translate('report.newReport.createReport'),
+                      onSelected: () => {
+                          interceptAnonymousUser(() => {
+                              if (shouldRedirectToExpensifyClassic) {
+                                  setModalVisible(true);
+                                  return;
+                              }
 
-                    // If the user has more than one paid group workspace with chat enabled, we need to redirect him to workspace selection
-                    if (paidworkspacesWithChatEnabled.length > 1) {
-                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                        return;
-                    }
+                              // If the user has more than one paid group workspace with chat enabled, we need to redirect him to workspace selection
+                              if (paidworkspacesWithChatEnabled.length > 1) {
+                                  Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                  return;
+                              }
 
-                    const defaultWorkspace = paidworkspacesWithChatEnabled[0];
-                    if (paidworkspacesWithChatEnabled.length === 1 && defaultWorkspace) {
-                        const createdReportID = createNewReport(defaultWorkspace.id, currentUserPersonalDetails);
-                        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                    }
-                });
-            },
-        },
+                              const defaultWorkspace = paidworkspacesWithChatEnabled[0];
+                              if (paidworkspacesWithChatEnabled.length === 1 && defaultWorkspace) {
+                                  const createdReportID = createNewReport(defaultWorkspace.id, currentUserPersonalDetails);
+                                  Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                              }
+                          });
+                      },
+                  },
+              ]
+            : []),
         {
             icon: Expensicons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
