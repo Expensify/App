@@ -1,5 +1,5 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React, {useContext, useMemo, useState} from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
@@ -20,6 +20,7 @@ import {openOldDotLink} from '@userActions/Link';
 import {createWorkspace, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingCompanySize, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@userActions/Welcome';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -110,8 +111,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                         );
                     }
 
-                    if (NativeModules.HybridAppModule) {
-                        NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                    if (CONFIG.IS_HYBRID_APP) {
+                        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                         setRootStatusBarEnabled(false);
                     } else {
                         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
