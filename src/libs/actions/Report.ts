@@ -4673,7 +4673,7 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /**
- * Dismisses the change report's policy educational modal so that it doesn't show up again.
+ * Dismisses the change report policy educational modal so that it doesn't show up again.
  */
 function dismissChangePolicyModal() {
     const date = new Date();

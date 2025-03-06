@@ -1,18 +1,17 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ImageSourcePropType} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 type HoldMenuSection = {
     /** The icon supplied with the section */
-    icon: React.FC<SvgProps> | ImageSourcePropType;
+    icon: IconAsset;
 
     /** Translation key for the title */
     titleTranslationKey: TranslationPaths;
@@ -35,10 +34,10 @@ function HoldMenuSectionList() {
 
     return (
         <>
-            {holdMenuSections.map((section, i) => (
+            {holdMenuSections.map((section) => (
                 <View
                     // eslint-disable-next-line react/no-array-index-key
-                    key={`${i}-${section.titleTranslationKey}`}
+                    key={section.titleTranslationKey}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mt5]}
                 >
                     <Icon
@@ -57,7 +56,5 @@ function HoldMenuSectionList() {
 }
 
 HoldMenuSectionList.displayName = 'HoldMenuSectionList';
-
-export type {HoldMenuSection};
 
 export default HoldMenuSectionList;

@@ -1,19 +1,18 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ImageSourcePropType} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Illustrations from './Icon/Illustrations';
 import RenderHTML from './RenderHTML';
 
 type ChangeWorkspaceMenuSection = {
     /** The icon supplied with the section */
-    icon: React.FC<SvgProps> | ImageSourcePropType;
+    icon: IconAsset;
 
     /** Translation key for the title */
     titleTranslationKey: TranslationPaths;
@@ -36,10 +35,10 @@ function ChangeWorkspaceMenuSectionList() {
 
     return (
         <>
-            {changeWorkspaceMenuSections.map((section, i) => (
+            {changeWorkspaceMenuSections.map((section) => (
                 <View
                     // eslint-disable-next-line react/no-array-index-key
-                    key={`${i}-${section.titleTranslationKey}`}
+                    key={section.titleTranslationKey}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
                 >
                     <Icon
@@ -58,7 +57,4 @@ function ChangeWorkspaceMenuSectionList() {
 }
 
 ChangeWorkspaceMenuSectionList.displayName = 'ChangeWorkspaceMenuSectionList';
-
-export type {ChangeWorkspaceMenuSection};
-
 export default ChangeWorkspaceMenuSectionList;

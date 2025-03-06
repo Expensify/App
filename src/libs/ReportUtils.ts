@@ -5695,7 +5695,7 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
             ? [
                   {
                       type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                      text: `(previously ${fromPolicy?.name})`,
+                      text: ` (previously ${fromPolicy?.name})`,
                   },
               ]
             : []),
