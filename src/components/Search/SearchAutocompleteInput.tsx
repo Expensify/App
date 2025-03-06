@@ -13,6 +13,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
@@ -104,6 +105,7 @@ function SearchAutocompleteInput(
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const currencyAutocompleteList = Object.keys(currencyList ?? {});
@@ -174,6 +176,14 @@ function SearchAutocompleteInput(
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
+    const additionalMarkdownStyle = useMemo(
+        () => ({
+            mentionHere: styles.br1,
+            mentionUser: styles.br1,
+        }),
+        [styles.br1],
+    );
+
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
     // Parse Fullstory attributes on initial render
@@ -183,7 +193,7 @@ function SearchAutocompleteInput(
         <View style={[outerWrapperStyle]}>
             <Animated.View
                 style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}
-                layout={LinearTransition}
+                layout={shouldUseNarrowLayout ? LinearTransition : undefined}
             >
                 <View
                     style={styles.flex1}
@@ -206,6 +216,7 @@ function SearchAutocompleteInput(
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
                         disabled={disabled}
+                        markdownStyle={additionalMarkdownStyle}
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
