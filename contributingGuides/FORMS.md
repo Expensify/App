@@ -159,6 +159,34 @@ function validate(values) {
 
 For a working example, check [Form story](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/stories/Form.stories.js#L63-L72)
 
+### Character Limits
+
+If a field has a character limit, we should give that field a max limit. This is done by passing the character limit validation in the validate function.
+
+Here's an example for a form that has one input `name`, and has character limit of 100:
+
+```js
+function validate(values) {
+    const errors = {};
+    if (values.name.length > 100) {
+        ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: values.name.length, limit: 100}));
+    }
+    return errors;
+}
+```
+
+> [!NOTE]
+>  We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
+> The phone number can be formatted in different ways.
+> 
+> - 2109400803
+> - +12109400803
+> - (210)-940-0803
+
+> [!NOTE]
+>  If we want to count number of Unicode code points instead of the number of UTF-16 code units, we should use the spread syntax.
+> Example - `[...newCategoryName].length`
+
 ### Highlight Fields and Inline Errors
 
 Individual form fields should be highlighted with a red error outline and present supporting inline error text below the field. Error text will be required for all required fields and optional fields that require validation. This will keep our error handling consistent and ensure we put in a good effort to help the user fix the problem by providing more information than less.
