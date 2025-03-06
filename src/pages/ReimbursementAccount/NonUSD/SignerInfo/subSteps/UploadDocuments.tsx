@@ -1,10 +1,10 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
@@ -22,7 +22,6 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 type UploadDocumentsProps = SubStepProps;
 
 const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE, PRD_AND_SFG, SIGNER_PREFIX} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
-const STEP_FIELDS = [ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID];
 
 function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const {translate} = useLocalize();
@@ -37,31 +36,34 @@ function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
-    const defaultValues = {
-        [`${SIGNER_PREFIX}_${COPY_OF_ID}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${COPY_OF_ID}`]) ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${COPY_OF_ID}`] : [],
-        [`${SIGNER_PREFIX}_${ADDRESS_PROOF}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`])
-            ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`]
-            : [],
-        [`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`])
-            ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`]
-            : [],
-        [`${SIGNER_PREFIX}_${CODICE_FISCALE}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${CODICE_FISCALE}`])
-            ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${CODICE_FISCALE}`]
-            : [],
-        [`${SIGNER_PREFIX}_${PRD_AND_SFG}`]: Array.isArray(reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PRD_AND_SFG}`])
-            ? reimbursementAccountDraft?.[`${SIGNER_PREFIX}_${PRD_AND_SFG}`]
-            : [],
+    const copyOfIDInputID = `${SIGNER_PREFIX}_${COPY_OF_ID}` as const;
+    const addressProofInputID = `${SIGNER_PREFIX}_${ADDRESS_PROOF}` as const;
+    const directorsProofInputID = `${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}` as const;
+    const codiceFiscaleInputID = `${SIGNER_PREFIX}_${CODICE_FISCALE}` as const;
+    const prdAndSfgInputID = `${SIGNER_PREFIX}_${PRD_AND_SFG}` as const;
+
+    const defaultValues: Record<string, FileObject[]> = {
+        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? reimbursementAccountDraft?.[copyOfIDInputID] : [],
+        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? reimbursementAccountDraft?.[addressProofInputID] : [],
+        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? reimbursementAccountDraft?.[directorsProofInputID] : [],
+        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? reimbursementAccountDraft?.[codiceFiscaleInputID] : [],
+        [prdAndSfgInputID]: Array.isArray(reimbursementAccountDraft?.[prdAndSfgInputID]) ? reimbursementAccountDraft?.[prdAndSfgInputID] : [],
     };
 
-    const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${COPY_OF_ID}`]);
-    const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${ADDRESS_PROOF}`]);
-    const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${PROOF_OF_DIRECTORS}`]);
-    const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${CODICE_FISCALE}`]);
-    const [uploadedPRDandSFG, setUploadedPRDandSFG] = useState<FileObject[]>(defaultValues[`${SIGNER_PREFIX}_${PRD_AND_SFG}`]);
+    const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
+    const [uploadedProofsOfAddress, setUploadedProofOfAddress] = useState<FileObject[]>(defaultValues[addressProofInputID]);
+    const [uploadedProofsOfDirectors, setUploadedProofsOfDirectors] = useState<FileObject[]>(defaultValues[directorsProofInputID]);
+    const [uploadedCodiceFiscale, setUploadedCodiceFiscale] = useState<FileObject[]>(defaultValues[codiceFiscaleInputID]);
+    const [uploadedPRDandSFG, setUploadedPRDandSFG] = useState<FileObject[]>(defaultValues[prdAndSfgInputID]);
+
+    const STEP_FIELDS = useMemo(
+        (): Array<FormOnyxKeys<'reimbursementAccount'>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID, prdAndSfgInputID],
+        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID, prdAndSfgInputID],
+    );
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
         return getFieldRequiredErrors(values, STEP_FIELDS);
-    }, []);
+    }, [STEP_FIELDS]);
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
