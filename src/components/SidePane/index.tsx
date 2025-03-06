@@ -3,8 +3,8 @@ import React, {useCallback, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Backdrop from '@components/Modal/BottomDockedModal/Backdrop';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePane from '@hooks/useSidePane';
@@ -12,10 +12,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
 import Navigation from '@libs/Navigation/Navigation';
 import {substituteRouteParameters} from '@libs/SidePaneUtils';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import getHelpContent from './getHelpContent';
+import SidePaneOverlay from './SidePaneOverlay';
 
-function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
+function SidePane() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -49,6 +51,8 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
         }
     }, [isExtraLargeScreenWidth, onClose]);
 
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose(), {shouldBubble: shouldHideSidePane, isActive: !isExtraLargeScreenWidth});
+
     if (shouldHideSidePane) {
         return null;
     }
@@ -56,10 +60,10 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     return (
         <>
             <View>
-                {shouldShowOverlay && !shouldHideSidePaneBackdrop && !isInNarrowPaneModal && (
-                    <Backdrop
+                {!shouldHideSidePaneBackdrop && (
+                    <SidePaneOverlay
                         onBackdropPress={onClose}
-                        style={styles.sidePaneOverlay}
+                        isInNarrowPaneModal={isInNarrowPaneModal}
                     />
                 )}
             </View>
@@ -81,11 +85,6 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     );
 }
 
-function SidePaneWithOverlay() {
-    return <SidePane shouldShowOverlay />;
-}
-
 SidePane.displayName = 'SidePane';
 
 export default SidePane;
-export {SidePaneWithOverlay, useSidePane as useAnimatedPaddingRight};

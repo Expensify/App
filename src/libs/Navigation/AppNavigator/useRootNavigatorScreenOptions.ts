@@ -38,8 +38,6 @@ const useRootNavigatorScreenOptions = () => {
                 presentation: Presentation.TRANSPARENT_MODAL,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, shouldAnimateSidePane: true}),
             },
-            // @ts-expect-error SidePane is a custom screen option that was added in a patch (when we migrate to react-navigation v7 we can use screenLayout instead)
-            sidePane: SidePane,
         },
         basicModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
