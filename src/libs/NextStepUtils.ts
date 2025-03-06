@@ -88,7 +88,7 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
         message: [
             {
-                text: 'Oops! Looks like you\'re submitting to ',
+                text: "Oops! Looks like you're submitting to ",
             },
             {
                 text: 'yourself',
