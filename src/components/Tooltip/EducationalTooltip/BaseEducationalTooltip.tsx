@@ -42,8 +42,8 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                     updateTargetBounds(bounds);
                     const {y, height} = bounds;
 
-                    const offset = 30; // Buffer space
-                    const dimensions = Dimensions.get('window');
+                    const offset = 10; // Buffer space
+                    const dimensions = Dimensions.get('screen');
                     const top = y - (insets.top || 0);
                     const bottom = y + height + insets.bottom || 0;
 
