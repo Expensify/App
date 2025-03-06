@@ -122,15 +122,12 @@ function TravelTerms({route}: TravelTermsPageProps) {
                             }
 
                             if (!isActivePolicyGroup && !isUserMemberOfSingleGroupPolicy) {
-                                // This will be kept in en.ts and es.ts file seperately
-                                setErrorMessage(
-                                    'You need to set a default workspace to enable Expensify Travel. Go to Settings > Workspaces > click the three vertical dots next to a workspace > Set as default workspace, then try again!',
-                                );
+                                setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
                                 return;
                             }
 
                             if (isUserMemberOfSingleGroupPolicy) {
-                                acceptSpotnanaTerms(domain, groupPolicies[0].id);
+                                acceptSpotnanaTerms(domain, groupPolicies.at(0)?.id);
                                 return;
                             }
 
