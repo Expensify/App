@@ -182,9 +182,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
         isTax: false,
     };
 
-    const optimisticReportFieldDataForPolicy: OnyxValueWithOfflineFeedback<PolicyReportField> = {
-        ...newReportField,
-    };
+    const optimisticReportFieldDataForPolicy: OnyxValueWithOfflineFeedback<PolicyReportField> = newReportField;
 
     const policyExpenseReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE) as Report[];
 
