@@ -18,7 +18,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {clearAllFilters, saveSearch} from '@libs/actions/Search';
 import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import {createCardFeedKey, getCardFeedNamesWithType} from '@libs/FeedUtils';
+import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/FeedUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
@@ -217,9 +217,10 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
     const workspaceCardFeeds = Object.entries(cards).reduce<Record<string, WorkspaceCardsList>>((workspaceCardsFeed, [cardID, card]) => {
-        const workspaceFeedKey = `${createCardFeedKey(card.fundID, card.bank)}`;
+        const feedKey = `${createCardFeedKey(card.fundID, card.bank)}`;
+        const workspaceFeedKey = getWorkspaceCardFeedKey(feedKey);
         /* eslint-disable no-param-reassign */
-        workspaceCardsFeed[workspaceFeedKey] = workspaceCardsFeed[workspaceFeedKey] ?? {};
+        workspaceCardsFeed[workspaceFeedKey] ??= {};
         workspaceCardsFeed[workspaceFeedKey][cardID] = card;
         /* eslint-enable no-param-reassign */
         return workspaceCardsFeed;
@@ -236,7 +237,10 @@ function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, 
         .map((card) => getCardDescription(card.cardID, cards));
 
     const feedNames = Object.keys(cardFeedNamesWithType)
-        .filter((cardFeedKey) => feedFilter.includes(cardFeedKey))
+        .filter((workspaceCardFeedKey) => {
+            const feedKey = getCardFeedKey(workspaceCardFeeds, workspaceCardFeedKey);
+            return !!feedKey && feedFilter.includes(feedKey);
+        })
         .map((cardFeedKey) => cardFeedNamesWithType[cardFeedKey].name);
 
     return [...feedNames, ...cardNames].join(', ');
