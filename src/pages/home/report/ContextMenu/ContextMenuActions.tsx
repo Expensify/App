@@ -753,18 +753,22 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.deleteAction',
         icon: Expensicons.Trashcan,
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) =>
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID, moneyRequestAction}) =>
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && canDeleteReportAction(reportAction, reportID) && !isArchivedRoom && !isChronosReport && !isMessageDeleted(reportAction),
-        onPress: (closePopover, {reportID, reportAction}) => {
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            canDeleteReportAction(moneyRequestAction ?? reportAction, reportID) &&
+            !isArchivedRoom &&
+            !isChronosReport &&
+            !isMessageDeleted(reportAction),
+        onPress: (closePopover, {reportID, reportAction, moneyRequestAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
+                hideContextMenu(false, () => showDeleteModal(reportID, moneyRequestAction ?? reportAction));
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, reportAction);
+            showDeleteModal(reportID, moneyRequestAction ?? reportAction);
         },
         getDescription: () => {},
     },
