@@ -46,7 +46,7 @@ function FocusModeNotification() {
             }
             isVisible
             image={ThreeLeggedLaptopWoman}
-            imageStyles={[StyleUtils.getBackgroundColorStyle(colors.pink800)]}
+            imageStyles={StyleUtils.getBackgroundColorStyle(colors.pink800)}
             titleStyles={[styles.textHeadline, styles.mbn3]}
         />
     );
