@@ -594,7 +594,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             if (!transaction?.transactionID || !report?.reportID) {
                                 return;
                             }
-                            console.log('active route', getReportRHPActiveRoute());
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                             );
