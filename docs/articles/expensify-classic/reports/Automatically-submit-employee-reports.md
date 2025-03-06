@@ -38,4 +38,13 @@ If an expense has a violation, Scheduled Submit will not automatically submit it
 
 Although an Admin can disable scheduled submit for a workspace, employees have the ability to activate schedule submit for their account. If you disable Scheduled Submit but still receive reports from Concierge, the employee has Schedule Submit activated for their individual workspace. 
 
+**Can Scheduled Submit automatically create separate reports for each of my credit cards?** 
+
+No, Scheduled Submit collects all expenses into a single report and submits them based on your selected frequency. It does not automatically separate reports by card.
+
+If you need reports organized by card, follow these steps:
+
+- Create separate reports for each card and manually add expenses before submission.
+- Use filters to group expenses by card, then assign them to the correct reports before submission.
+
 </div>
