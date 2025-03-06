@@ -4,13 +4,9 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
 import android.util.Log
 
-@ReactModule(name = ReactNativeHybridAppModule.NAME)
+@ReactModule(name = NativeReactNativeHybridAppSpec.NAME)
 class ReactNativeHybridAppModule(reactContext: ReactApplicationContext) :
   NativeReactNativeHybridAppSpec(reactContext) {
-
-  override fun getName(): String {
-    return NAME
-  }
 
   override fun isHybridApp(): Boolean {
     return false
@@ -31,9 +27,5 @@ class ReactNativeHybridAppModule(reactContext: ReactApplicationContext) :
     accountID: String?
   ) {
     Log.d("ReactNativeHybridAppModule", "`switchAccount` should never be called in standalone `New Expensify` app")
-  }
-
-  companion object {
-    const val NAME = "ReactNativeHybridAppModule"
   }
 }
