@@ -503,13 +503,16 @@ describe('ReportUtils', () => {
         });
 
         describe('Task Report', () => {
+            const htmlTaskTitle = `<h1>heading with <a href="https://www.unknown.com" target="_blank" rel="noreferrer noopener">link</a></h1>`;
+
             it('Should return the text extracted from report name html', () => {
                 const report: Report = {...createRandomReport(1), type: 'task'};
-                expect(getReportName({...report, reportName: '<h1>23</h1>'})).toEqual('23');
+                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual('heading with link');
             });
+
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
-                expect(getReportName({...report, reportName: '<h1>23</h1>'})).toEqual(translateLocal('parentReportAction.deletedTask'));
+                expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
             });
         });
     });
