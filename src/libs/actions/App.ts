@@ -30,7 +30,6 @@ import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
-import {triggerSidePane} from './SidePane';
 import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
@@ -196,7 +195,6 @@ function setLocale(locale: Locale) {
 
 function setLocaleAndNavigate(locale: Locale) {
     setLocale(locale);
-    triggerSidePane(false, {shouldUpdateNarrowLayout: true});
     Navigation.goBack();
 }
 
