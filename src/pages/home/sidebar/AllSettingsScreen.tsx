@@ -9,9 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import {buildOldDotURL, openOldDotLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +39,7 @@ function AllSettingsScreen() {
                 icon: Expensicons.Building,
                 action: () => {
                     waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                     })();
                 },
                 focused: !shouldUseNarrowLayout,
@@ -51,11 +51,11 @@ function AllSettingsScreen() {
                           translationKey: 'allSettingsScreen.subscription',
                           icon: Expensicons.MoneyBag,
                           action: () => {
-                              Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
+                              openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
                           },
                           shouldShowRightIcon: true,
                           iconRight: Expensicons.NewWindow,
-                          link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
+                          link: () => buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
                       },
                   ]
                 : []),
@@ -63,11 +63,11 @@ function AllSettingsScreen() {
                 translationKey: 'allSettingsScreen.domains',
                 icon: Expensicons.Globe,
                 action: () => {
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
+                    openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
                 },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
+                link: () => buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
             },
         ];
         return baseMenuItems.map((item) => ({
