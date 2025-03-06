@@ -190,7 +190,7 @@ const webViewStyles = (theme: ThemeColors) =>
                 ...baseCodeTagStyles(theme),
                 paddingVertical: 8,
                 paddingHorizontal: 12,
-                fontSize: 13,
+                fontSize: undefined,
                 ...FontUtils.fontFamily.platform.MONOSPACE,
                 marginTop: 0,
                 marginBottom: 0,
@@ -201,7 +201,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
-                // Font size is determined by getCodeFontSize function in `StyleUtils.js`
             },
 
             img: {
