@@ -1,5 +1,5 @@
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -21,7 +21,7 @@ function resetPolicyIDInNavigationState() {
         return;
     }
 
-    const {q, ...rest} = lastPolicyRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.ROOT];
+    const {q, ...rest} = lastPolicyRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
     const queryJSON = SearchQueryUtils.buildSearchQueryJSON(q);
     if (!queryJSON || !queryJSON.policyID) {
         return;

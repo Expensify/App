@@ -156,7 +156,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to submit an expense:\n' +
                 '\n' +
-                '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
@@ -179,7 +179,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '\n' +
                 'Here’s how to submit an expense:\n' +
                 '\n' +
-                '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
@@ -203,7 +203,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to track an expense:\n' +
                 '\n' +
-                '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Choose your *personal* space.\n' +
@@ -226,7 +226,7 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to track an expense:\n' +
                 '\n' +
-                '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Choose your *personal* space.\n' +
@@ -1063,6 +1063,7 @@ const CONST = {
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
+        SIGN_OUT: 'signout',
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1464,6 +1465,7 @@ const CONST = {
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
         PUSHER_PING_PONG: 'pusher_ping_pong',
+        LOCATION_UPDATE_INTERVAL: 5000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1503,6 +1505,10 @@ const CONST = {
             CURRENT: 'current',
             DRAFT: 'draft',
             BACKUP: 'backup',
+        },
+        LIABILITY_TYPE: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
         },
     },
 
@@ -1664,6 +1670,7 @@ const CONST = {
     EMOJI_NUM_PER_ROW: 8,
 
     EMOJI_DEFAULT_SKIN_TONE: -1,
+    DISPLAY_PARTICIPANTS_LIMIT: 5,
 
     // Amount of emojis to render ahead at the end of the update cycle
     EMOJI_DRAW_AMOUNT: 250,
@@ -3244,6 +3251,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
+        ROOM_NAME_WITHOUT_LIMIT: /^#[\p{Ll}0-9-]+$/u,
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
 
@@ -3264,7 +3272,7 @@ const CONST = {
         EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\r\n|\r|\n/g,
+        LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -5334,7 +5342,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to start a chat:\n' +
                         '\n' +
-                        '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                        '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter emails or phone numbers.\n' +
                         '\n' +
@@ -5351,7 +5359,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                        '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter any email, SMS, or name of who you want to split with.\n' +
                         '4. From within the chat, click the *+* button on the message bar, and click *Split expense*.\n' +
@@ -5385,7 +5393,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to submit an expense:\n' +
                         '\n' +
-                        '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                        '1. Click the green *+* button.\n' +
                         '2. Choose *Create expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +
@@ -6305,6 +6313,7 @@ const CONST = {
             TAG: 'tag',
             TAX_RATE: 'taxRate',
             CARD_ID: 'cardID',
+            FEED: 'feed',
             REPORT_ID: 'reportID',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -6338,6 +6347,7 @@ const CONST = {
             TAG: 'tag',
             TAX_RATE: 'tax-rate',
             CARD_ID: 'card',
+            FEED: 'feed',
             REPORT_ID: 'reportid',
             KEYWORD: 'keyword',
             IN: 'in',
@@ -6697,11 +6707,6 @@ const CONST = {
                 SUCCESS: 6,
             },
         },
-    },
-
-    HYBRID_APP: {
-        REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
-        SINGLE_NEW_DOT_ENTRY: 'singleNewDotEntry',
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',
