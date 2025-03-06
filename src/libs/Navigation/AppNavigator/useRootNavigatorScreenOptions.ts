@@ -78,9 +78,7 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: {
-                    ...StyleUtils.getNavigationModalCardStyle(),
-                },
+                cardStyle: StyleUtils.getNavigationModalCardStyle(),
             },
         },
         fullScreen: {
@@ -88,6 +86,9 @@ const useRootNavigatorScreenOptions = () => {
             // We need to turn off animation for the full screen to avoid delay when closing screens.
             animation: Animations.NONE,
             web: {
+                cardStyle: {
+                    height: '100%',
+                },
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePane: true}),
             },
         },
