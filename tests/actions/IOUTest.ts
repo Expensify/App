@@ -4556,7 +4556,7 @@ describe('actions/IOU', () => {
             const [command, params] = writeSpy.mock.calls.at(0);
             expect(command).toBe(expectedCommand);
 
-            if (expectedCommand === WRITE_COMMANDS.TRACK_EXPENSE) {
+            if (expectedCommand === WRITE_COMMANDS.SHARE_TRACKED_EXPENSE) {
                 expect(params).toHaveProperty('policyName');
             }
 
