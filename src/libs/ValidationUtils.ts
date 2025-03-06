@@ -359,10 +359,6 @@ function isValidCompanyName(name: string) {
     return !name.match(CONST.REGEX.ALL_EMOJIS);
 }
 
-function isValidReportName(name: string) {
-    return new Blob([name.trim()]).size <= CONST.REPORT_NAME_LIMIT;
-}
-
 /**
  * Checks that the provided name doesn't contain any commas or semicolons
  */
@@ -703,7 +699,6 @@ export {
     prepareValues,
     isValidPersonName,
     isValidPercentage,
-    isValidReportName,
     isExistingTaxName,
     isValidSubscriptionSize,
     isExistingTaxCode,
