@@ -1,8 +1,7 @@
-import type {EdgeInsets} from 'react-native-safe-area-context';
-import type {NavigationBarType} from '@libs/NavBarManager/types';
 import CONST from '@src/CONST';
+import type GetNavigationBarType from './types';
 
-function getNavigationBarType(insets?: EdgeInsets): NavigationBarType {
+const getNavigationBarType: GetNavigationBarType = (insets) => {
     const bottomInset = insets?.bottom ?? 0;
 
     // If there is no bottom safe area inset, the device uses a physical navigation button.
@@ -12,6 +11,6 @@ function getNavigationBarType(insets?: EdgeInsets): NavigationBarType {
 
     // On iOS, if there is a bottom safe area inset, it means the device uses a gesture bar.
     return CONST.NAVIGATION_BAR_TYPE.GESTURE_BAR;
-}
+};
 
 export default getNavigationBarType;
