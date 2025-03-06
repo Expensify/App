@@ -365,9 +365,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             },
-            tooltipShiftHorizontal: variables.quickActionTooltipShiftHorizontal,
-            tooltipShiftVertical: styles.popoverMenuItem.paddingVertical / 2,
-            tooltipWrapperStyle: styles.productTrainingTooltipWrapper,
             shouldTeleportPortalToModalLayer: true,
         };
 
@@ -391,10 +388,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     text: quickActionTitle,
                     description: !hideQABSubtitle ? getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                     onSelected,
-                    onEducationTooltipPress: () => {
-                        hideCreateMenu();
-                        onSelected();
-                    },
                     shouldShowSubscriptRightAvatar: isPolicyExpenseChat(quickActionReport),
                 },
             ];
@@ -419,10 +412,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
                     onSelected,
-                    onEducationTooltipPress: () => {
-                        hideCreateMenu();
-                        onSelected();
-                    },
                     shouldShowSubscriptRightAvatar: true,
                 },
             ];
@@ -433,8 +422,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         translate,
         styles.pt3,
         styles.pb2,
-        styles.popoverMenuItem.paddingVertical,
-        styles.productTrainingTooltipWrapper,
         quickActionAvatars,
         quickAction,
         policyChatForActivePolicy,

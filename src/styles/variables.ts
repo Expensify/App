@@ -260,13 +260,15 @@ export default {
     searchTypeColumnWidth: 52,
 
     gbrTooltipShiftHorizontal: -15,
+    gbrTooltipShiftVertical: -10,
     fabTooltipShiftHorizontal: -11,
-    workspaceLHNtooltipShiftHorizontal: 23,
+    workspaceLHNTooltipShiftHorizontal: 23,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
     bottomTabInboxTooltipShiftHorizontal: 36,
     expenseReportsTypeTooltipShiftHorizontal: 10,
     accountSwitcherTooltipShiftVertical: 5,
+
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,

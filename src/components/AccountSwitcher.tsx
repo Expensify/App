@@ -10,11 +10,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getProcessedText, splitTextWithEmojis} from '@libs/EmojiUtils';
+import {getLatestError} from '@libs/ErrorUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
+import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -49,7 +49,7 @@ function AccountSwitcher() {
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const processedTextArray = EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName);
+    const processedTextArray = splitTextWithEmojis(currentUserPersonalDetails?.displayName);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
@@ -93,14 +93,14 @@ function AccountSwitcher() {
                 return [currentUserMenuItem];
             }
 
-            const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
-            const error = ErrorUtils.getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
+            const delegatePersonalDetails = getPersonalDetailByEmail(delegateEmail);
+            const error = getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
 
             return [
                 createBaseMenuItem(delegatePersonalDetails, error, {
                     onSelected: () => {
                         if (isOffline) {
-                            Modal.close(() => setShouldShowOfflineModal(true));
+                            close(() => setShouldShowOfflineModal(true));
                             return;
                         }
                         disconnect();
@@ -114,13 +114,13 @@ function AccountSwitcher() {
             .filter(({email}) => email !== currentUserPersonalDetails.login)
             .map(({email, role}) => {
                 const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                const error = ErrorUtils.getLatestError(errorFields?.connect?.[email]);
-                const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+                const error = getLatestError(errorFields?.connect?.[email]);
+                const personalDetails = getPersonalDetailByEmail(email);
                 return createBaseMenuItem(personalDetails, error, {
                     badgeText: translate('delegate.role', {role}),
                     onSelected: () => {
                         if (isOffline) {
-                            Modal.close(() => setShouldShowOfflineModal(true));
+                            close(() => setShouldShowOfflineModal(true));
                             return;
                         }
                         connect(email);
@@ -161,9 +161,7 @@ function AccountSwitcher() {
                                 numberOfLines={1}
                                 style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                             >
-                                {processedTextArray.length !== 0
-                                    ? EmojiUtils.getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji)
-                                    : currentUserPersonalDetails?.displayName}
+                                {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji) : currentUserPersonalDetails?.displayName}
                             </Text>
                             {!!canSwitchAccounts && (
                                 <EducationalTooltip
