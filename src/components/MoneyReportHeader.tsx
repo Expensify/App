@@ -10,6 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
@@ -200,7 +201,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
-    const shouldShowNextStep = !isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
+    
+    // When offline and prevent self-approval is enabled, we need to show the optimistic next step
+    const optimisticNextStep = isOffline && policy?.preventSelfApproval
+        ? buildOptimisticNextStepForPreventSelfApprovalsEnabled()
+        : nextStep;
+    
+    const shouldShowNextStep = !isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
         isDuplicate ||
         shouldShowSettlementButton ||
@@ -492,7 +499,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             />
                         )}
                     </View>
-                    {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
+                    {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
                     {!!statusBarProps && (
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}
