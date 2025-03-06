@@ -74,6 +74,7 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
     const {isCreateMenuActive, toggleCreateMenu, fabRef} = useContext(FABPopoverContext);
+    const [isFabActionActive, setIsFabActionActive] = useState(isCreateMenuActive);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -89,6 +90,11 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
         isTooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
     );
+
+    useEffect(() => {
+        setIsFabActionActive(isCreateMenuActive);
+    }, [isCreateMenuActive]);
+
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReportIDs));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
@@ -288,9 +294,9 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     <FloatingActionButton
                         accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
                         role={CONST.ROLE.BUTTON}
-                        isActive={isCreateMenuActive}
+                        isActive={isFabActionActive}
                         ref={fabRef}
-                        onPress={() => toggleCreateMenu(isCreateMenuActive)}
+                        onPress={() => toggleCreateMenu(isFabActionActive)}
                         isTooltipAllowed={isTooltipAllowed}
                     />
                 </View>
