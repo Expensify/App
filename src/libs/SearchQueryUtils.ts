@@ -601,10 +601,14 @@ function buildUserReadableQueryString(
     cardList: OnyxTypes.CardList,
     cardFeedNamesWithType: CardFeedNamesWithType,
 ) {
-    const {type, status} = queryJSON;
+    const {type, status, groupBy} = queryJSON;
     const filters = queryJSON.flatFilters;
 
     let title = `type:${type} status:${Array.isArray(status) ? status.join(',') : status}`;
+
+    if (groupBy) {
+        title += ` group-by:${groupBy}`;
+    }
 
     for (const filterObject of filters) {
         const key = filterObject.key;
@@ -687,7 +691,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 }
 
 function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
-    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters;
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy;
 }
 
 /**
