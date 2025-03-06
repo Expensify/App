@@ -4687,7 +4687,7 @@ function downloadReportPDF(fileName: string, reportName: string) {
     const downloadFileName = `${reportName}.pdf`;
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
     setDownload(downloadFileName, true);
-    fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari() || Browser.isMobileChrome()).then(() => setDownload(downloadFileName, false));
+    fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(downloadFileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
