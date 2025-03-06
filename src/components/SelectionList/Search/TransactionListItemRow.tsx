@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {getButtonRole, getButtonStyle} from '@components/Button/utils';
+import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -10,6 +10,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -28,6 +29,8 @@ import {
     getCurrency as getTransactionCurrency,
     getDescription as getTransactionDescription,
     hasReceipt,
+    isExpensifyCardTransaction,
+    isPending,
     isReceiptBeingScanned,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -183,15 +186,23 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCell
 
 function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     const theme = useTheme();
-    const typeIcon = getTypeIcon(transactionItem.transactionType);
+    const {translate} = useLocalize();
+    const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
+    const typeIcon = isPendingExpensifyCardTransaction ? Expensicons.CreditCardHourglass : getTypeIcon(transactionItem.transactionType);
+
+    const tooltipText = isPendingExpensifyCardTransaction ? translate('iou.pending') : '';
 
     return (
-        <Icon
-            src={typeIcon}
-            fill={theme.icon}
-            height={isLargeScreenWidth ? 20 : 12}
-            width={isLargeScreenWidth ? 20 : 12}
-        />
+        <Tooltip text={tooltipText}>
+            <View>
+                <Icon
+                    src={typeIcon}
+                    fill={theme.icon}
+                    height={isLargeScreenWidth ? 20 : 12}
+                    width={isLargeScreenWidth ? 20 : 12}
+                />
+            </View>
+        </Tooltip>
     );
 }
 
@@ -302,7 +313,8 @@ function TransactionListItemRow({
                             role={getButtonRole(true)}
                             disabled={isDisabled}
                             onPress={onCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1, getButtonStyle(styles, true)]}
+                            isNested
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                         >
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!isDisabled)]}>
                                 {!!item.isSelected && (

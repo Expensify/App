@@ -26,6 +26,17 @@ Onyx.connect({
     },
 });
 
+let isSingleNewDotEntry: boolean | undefined;
+Onyx.connect({
+    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        isSingleNewDotEntry = value;
+    },
+});
+
 function getLastUpdateIDAppliedToClient(): Promise<number> {
     return new Promise((resolve) => {
         Onyx.connect({
@@ -104,6 +115,13 @@ function navigateToReport({reportID, reportActionID}: ReportActionPushNotificati
         // The attachment modal remains open when navigating to the report so we need to close it
         Modal.close(() => {
             try {
+                // When transitioning to the new experience via the singleNewDotEntry flow, the navigation
+                // is handled elsewhere. So we cancel here to prevent double navigation.
+                if (isSingleNewDotEntry) {
+                    Log.info('[PushNotification] Not navigating because this is a singleNewDotEntry flow', false, {reportID, reportActionID});
+                    return;
+                }
+
                 // Get rid of the transition screen, if it is on the top of the stack
                 if (NativeModules.HybridAppModule && Navigation.getActiveRoute().includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
                     Navigation.goBack();

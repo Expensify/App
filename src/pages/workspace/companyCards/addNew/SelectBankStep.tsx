@@ -11,6 +11,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getBankCardDetailsImage, getCorrectStepForSelectedBank} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
@@ -26,6 +27,8 @@ function SelectBankStep() {
     const {translate} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
+
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
     const [hasError, setHasError] = useState(false);
@@ -69,7 +72,7 @@ function SelectBankStep() {
         isSelected: bankSelected === bank,
         leftElement: (
             <Icon
-                src={getBankCardDetailsImage(bank)}
+                src={getBankCardDetailsImage(bank, illustrations)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
@@ -80,7 +83,6 @@ function SelectBankStep() {
     return (
         <ScreenWrapper
             testID={SelectBankStep.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -103,7 +105,7 @@ function SelectBankStep() {
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
-                confirmButtonStyles={styles.mt5}
+                confirmButtonStyles={!hasError && styles.mt5}
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>
