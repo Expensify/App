@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {buildCardFeedsData, buildCardsData} from '@libs/FeedUtils';
+import {buildCardFeedsData, buildCardsData} from '@libs/CardFeedUtils';
 // eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type IllustrationsType from '@styles/theme/illustrations/types';

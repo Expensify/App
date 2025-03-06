@@ -5,12 +5,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {DomainFeedData} from './CardUtils';
-import {generateDomainFeedData, getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
+import {getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string};
+type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
 type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
 type CardFeedData = {cardName: string; bank: string; label?: string; type: 'domain' | 'workspace'};
@@ -119,6 +119,31 @@ function buildCardsData(
         }
     });
     return {selected: selectedCardItems, unselected: unselectedCardItems};
+}
+
+/**
+ * @param cardList - The list of cards to process. Can be undefined.
+ * @returns a record where keys are domain names and values contain domain feed data.
+ */
+function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
+    return Object.values(cardList ?? {}).reduce((domainFeedData, currentCard) => {
+        // Cards in cardList can also be domain cards, we use them to compute domain feed
+        if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
+            if (domainFeedData[currentCard.domainName]) {
+                domainFeedData[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
+            } else {
+                // if the cards belongs to the same domain, every card of it should have the same fundID
+                // eslint-disable-next-line no-param-reassign
+                domainFeedData[currentCard.domainName] = {
+                    fundID: currentCard.fundID,
+                    domainName: currentCard.domainName,
+                    bank: currentCard.bank,
+                    correspondingCardIDs: [currentCard.cardID.toString()],
+                };
+            }
+        }
+        return domainFeedData;
+    }, {} as Record<string, DomainFeedData>);
 }
 
 function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData | undefined {
@@ -341,4 +366,14 @@ const generateSelectedCards = (
 };
 
 export type {CardFilterItem, ItemsGroupedBySelection, CardFeedNamesWithType};
-export {buildCardsData, getCardFeedNamesWithType, buildCardFeedsData, generateSelectedCards, getSelectedCardsFromFeeds, createCardFeedKey, getCardFeedKey, getWorkspaceCardFeedKey};
+export {
+    buildCardsData,
+    getCardFeedNamesWithType,
+    buildCardFeedsData,
+    generateSelectedCards,
+    getSelectedCardsFromFeeds,
+    createCardFeedKey,
+    getCardFeedKey,
+    getWorkspaceCardFeedKey,
+    generateDomainFeedData,
+};

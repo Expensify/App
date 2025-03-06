@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
-import type {CardFeedNamesWithType} from '@libs/FeedUtils';
+import type {CardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';

@@ -87,34 +87,6 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
     return cardDescriptor ? `${humanReadableBankName} - ${cardDescriptor}` : `${humanReadableBankName}`;
 }
 
-type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
-
-/**
- * @param cardList - The list of cards to process. Can be undefined.
- * @returns a record where keys are domain names and values contain domain feed data.
- */
-
-function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
-    return Object.values(cardList ?? {}).reduce((domainFeedData, currentCard) => {
-        // Cards in cardList can also be domain cards, we use them to compute domain feed
-        if (!currentCard.domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard)) {
-            if (domainFeedData[currentCard.domainName]) {
-                domainFeedData[currentCard.domainName].correspondingCardIDs.push(currentCard.cardID.toString());
-            } else {
-                // if the cards belongs to the same domain, every card of it should have the same fundID
-                // eslint-disable-next-line no-param-reassign
-                domainFeedData[currentCard.domainName] = {
-                    fundID: currentCard.fundID,
-                    domainName: currentCard.domainName,
-                    bank: currentCard.bank,
-                    correspondingCardIDs: [currentCard.cardID.toString()],
-                };
-            }
-        }
-        return domainFeedData;
-    }, {} as Record<string, DomainFeedData>);
-}
-
 function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
 }
@@ -616,7 +588,4 @@ export {
     hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,
-    generateDomainFeedData,
 };
-
-export type {DomainFeedData};
