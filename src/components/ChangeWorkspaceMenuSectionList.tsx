@@ -37,7 +37,6 @@ function ChangeWorkspaceMenuSectionList() {
         <>
             {changeWorkspaceMenuSections.map((section) => (
                 <View
-                    // eslint-disable-next-line react/no-array-index-key
                     key={section.titleTranslationKey}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.mt3]}
                 >
