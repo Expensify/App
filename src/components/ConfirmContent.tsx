@@ -99,6 +99,9 @@ type ConfirmContentProps = {
 
     /** Whether the modal is visibile */
     isVisible: boolean;
+
+    /** Whether the confirm button is loading */
+    isConfirmLoading?: boolean;
 };
 
 function ConfirmContent({
@@ -129,6 +132,7 @@ function ConfirmContent({
     titleContainerStyles,
     shouldReverseStackedButtons = false,
     isVisible,
+    isConfirmLoading,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -210,6 +214,7 @@ function ConfirmContent({
                             text={confirmText || translate('common.yes')}
                             accessibilityLabel={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
+                            isLoading={isConfirmLoading}
                         />
                         {shouldShowCancelButton && !shouldReverseStackedButtons && (
                             <Button
@@ -238,6 +243,7 @@ function ConfirmContent({
                             isPressOnEnterActive={isVisible}
                             text={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
+                            isLoading={isConfirmLoading}
                         />
                     </View>
                 )}
