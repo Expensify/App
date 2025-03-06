@@ -1,15 +1,12 @@
-import React, {memo, useCallback, useContext, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {FABPopoverContext} from '@components/FABPopoverProvider';
-import FloatingActionButton from '@components/FloatingActionButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import type {SearchQueryString} from '@components/Search/types';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
@@ -21,16 +18,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {getPolicy} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getPreservedSplitNavigatorState} from '@navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {AuthScreensParamList, RootNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
+import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -44,36 +41,7 @@ type BottomTabBarProps = {
     isTooltipAllowed?: boolean;
 };
 
-/**
- * Returns SearchQueryString that has policyID correctly set.
- *
- * When we're coming back to Search Screen we might have pre-existing policyID inside SearchQuery.
- * There are 2 cases when we might want to remove this `policyID`:
- *  - if Policy was removed in another screen
- *  - if WorkspaceSwitcher was used to globally unset a policyID
- * Otherwise policyID will be inserted into query
- */
-function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: string): SearchQueryString {
-    const queryJSON = buildSearchQueryJSON(query);
-    if (!queryJSON) {
-        return query;
-    }
-
-    const policyID = activePolicyID ?? queryJSON.policyID;
-    const policy = getPolicy(policyID);
-
-    // In case policy is missing or there is no policy currently selected via WorkspaceSwitcher we remove it
-    if (!activePolicyID || !policy) {
-        delete queryJSON.policyID;
-    } else {
-        queryJSON.policyID = policyID;
-    }
-
-    return buildSearchQueryString(queryJSON);
-}
-
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
-    const {isCreateMenuActive, toggleCreateMenu, fabRef} = useContext(FABPopoverContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -110,22 +78,6 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-            const lastSearchRoute = rootState.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-
-            if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as AuthScreensParamList[typeof SCREENS.SEARCH.ROOT];
-                const cleanedQuery = handleQueryWithPolicyID(q, activeWorkspaceID);
-
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({
-                        query: cleanedQuery,
-                        ...rest,
-                    }),
-                );
-                return;
-            }
-
             const defaultCannedQuery = buildCannedSearchQuery();
             // when navigating to search we might have an activePolicyID set from workspace switcher
             const query = activeWorkspaceID ? `${defaultCannedQuery} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID}:${activeWorkspaceID}` : defaultCannedQuery;
@@ -191,7 +143,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
 
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
             if (state?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
-                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                 return;
             }
 
@@ -285,14 +237,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     onPress={showSettingsPage}
                 />
                 <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <FloatingActionButton
-                        accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
-                        role={CONST.ROLE.BUTTON}
-                        isActive={isCreateMenuActive}
-                        ref={fabRef}
-                        onPress={() => toggleCreateMenu(isCreateMenuActive)}
-                        isTooltipAllowed={isTooltipAllowed}
-                    />
+                    <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
                 </View>
             </View>
         </>

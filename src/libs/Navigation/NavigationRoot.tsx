@@ -3,7 +3,6 @@ import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@r
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import FABPopoverProvider from '@components/FABPopoverProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -111,9 +110,12 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             return;
         }
 
+        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
+
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
-        // We also make sure that the user is authenticated, isn't part of a group workspace, & wasn't invited to NewDot.
-        if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !shouldShowRequire2FAModal) {
+        // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
+        if (!NativeModules.HybridAppModule && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning && !shouldShowRequire2FAModal) {
             return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
         }
 
@@ -122,8 +124,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
         if (!lastVisitedPath || NativeModules.HybridAppModule) {
             return undefined;
         }
-
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
 
         // If the user opens the root of app "/" it will be parsed to empty string "".
         // If the path is defined and different that empty string we don't want to modify the default behavior.
@@ -224,9 +224,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
                 enabled: false,
             }}
         >
-            <FABPopoverProvider>
-                <AppNavigator authenticated={authenticated} />
-            </FABPopoverProvider>
+            <AppNavigator authenticated={authenticated} />
         </NavigationContainer>
     );
 }
