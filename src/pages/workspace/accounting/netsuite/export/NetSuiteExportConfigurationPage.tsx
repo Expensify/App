@@ -91,7 +91,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onPress: !policyID
                 ? undefined
                 : () => {
-                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
+                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT.getRoute(policyID, Navigation.getActiveRoute()));
                   },
             subscribedSettings: [CONST.NETSUITE_CONFIG.EXPORTER],
         },
@@ -105,14 +105,16 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 ? translate(`workspace.netsuite.exportDate.values.${config.exportDate}.label`)
                 : translate(`workspace.netsuite.exportDate.values.${CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE}.label`),
             description: translate('workspace.accounting.exportDate'),
-            onPress: () => (!policyID ? undefined : Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.getRoute(policyID))),
+            onPress: () => (!policyID ? undefined : Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.getRoute(policyID, Navigation.getActiveRoute()))),
             subscribedSettings: [CONST.NETSUITE_CONFIG.EXPORT_DATE],
         },
         {
             type: 'menuitem',
             title: config?.reimbursableExpensesExportDestination ? translate(`workspace.netsuite.exportDestination.values.${config.reimbursableExpensesExportDestination}.label`) : undefined,
             description: translate('workspace.accounting.exportOutOfPocket'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE, Navigation.getActiveRoute())),
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(true, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
@@ -127,7 +129,9 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 ? translate(`workspace.netsuite.exportDestination.values.${config.nonreimbursableExpensesExportDestination}.label`)
                 : undefined,
             description: translate('workspace.accounting.exportCompanyCard'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE, Navigation.getActiveRoute())),
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(false, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
@@ -144,14 +148,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: selectedReceivable ? selectedReceivable.name : undefined,
             description: translate('workspace.netsuite.exportInvoices'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             subscribedSettings: [CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT],
         },
         {
             type: 'menuitem',
             title: invoiceItemValue,
             description: translate('workspace.netsuite.invoiceItem.label'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             subscribedSettings: [CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE, ...(shouldShowInvoiceItemMenuItem(config) ? [CONST.NETSUITE_CONFIG.INVOICE_ITEM] : [])],
         },
         {
@@ -205,7 +209,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.netsuite.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.navigate(backTo) : undefined}
+            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.goBack(backTo) : undefined}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}

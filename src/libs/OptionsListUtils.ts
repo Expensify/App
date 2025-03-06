@@ -809,7 +809,9 @@ function createOption(
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
-        result.isUnread = isUnread(report);
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+        result.isUnread = isUnread(report, oneTransactionThreadReport);
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
@@ -1460,6 +1462,13 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
  */
 function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
     return !!nvpDismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
+}
+
+/**
+ * Helper method to check if participant email is Manager McTest
+ */
+function isSelectedManagerMcTest(email: string | null | undefined): boolean {
+    return email === CONST.EMAIL.MANAGER_MCTEST;
 }
 
 /**
@@ -2146,13 +2155,6 @@ function getEmptyOptions(): Options {
 function shouldUseBoldText(report: OptionData): boolean {
     const notificationPreference = report.notificationPreference ?? getReportNotificationPreference(report);
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
-}
-
-/**
- * Helper method to check if participant email is Manager McTest
- */
-function isSelectedManagerMcTest(email: string | null | undefined): boolean {
-    return email === CONST.EMAIL.MANAGER_MCTEST;
 }
 
 export {

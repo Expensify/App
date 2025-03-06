@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -82,22 +83,25 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                     }
                 }}
             />
-            {isDowngraded && !!policyID && (
-                <DowngradeConfirmation
-                    onConfirmDowngrade={() => {
-                        Navigation.dismissModal();
-                    }}
-                    policyID={policyID}
-                />
-            )}
-            {!isDowngraded && (
-                <DowngradeIntro
-                    policyID={policyID}
-                    onDowngrade={onDowngradeToTeam}
-                    buttonDisabled={isOffline}
-                    loading={policy?.isPendingDowngrade}
-                />
-            )}
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                {isDowngraded && !!policyID && (
+                    <DowngradeConfirmation
+                        onConfirmDowngrade={() => {
+                            Navigation.dismissModal();
+                        }}
+                        policyID={policyID}
+                    />
+                )}
+                {!isDowngraded && (
+                    <DowngradeIntro
+                        policyID={policyID}
+                        onDowngrade={onDowngradeToTeam}
+                        buttonDisabled={isOffline}
+                        loading={policy?.isPendingDowngrade}
+                        backTo={route.params.backTo}
+                    />
+                )}
+            </ScrollView>
             <ConfirmModal
                 title={translate('workspace.moreFeatures.companyCards.downgradeTitle')}
                 isVisible={isDowngradeWarningModalOpen}

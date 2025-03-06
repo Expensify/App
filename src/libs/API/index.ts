@@ -13,6 +13,7 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+import {READ_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -198,6 +199,11 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
 
     // Apply optimistic updates of read requests immediately
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
+    // Sign in with shortLivedAuthToken command shouldn't be blocked by write commands
+    if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN) {
+        processRequest(request, CONST.API_REQUEST_TYPE.READ);
+        return;
+    }
     waitForWrites(command).then(() => {
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
     });
