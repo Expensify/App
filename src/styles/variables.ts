@@ -269,7 +269,6 @@ export default {
     expenseReportsTypeTooltipShiftHorizontal: 10,
     accountSwitcherTooltipShiftVertical: 5,
 
-
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 

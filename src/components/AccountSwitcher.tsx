@@ -65,7 +65,7 @@ function AccountSwitcher() {
         return {
             text: personalDetails?.displayName ?? personalDetails?.login ?? '',
             description: Str.removeSMSDomain(personalDetails?.login ?? ''),
-            avatarID: personalDetails?.accountID ?? -1,
+            avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
             outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,

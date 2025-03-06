@@ -431,7 +431,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         hideQABSubtitle,
         isValidReport,
         selectOption,
-        hideCreateMenu,
     ]);
 
     const viewTourTaskReportID = introSelected?.viewTour;
