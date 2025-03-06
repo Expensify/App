@@ -34,7 +34,7 @@ To deactivate an employee's Expensify Card:
 5. Set the **Limit Amount** to $0. This disables the card until the limit is increased.  
 6. Click **Save**.  
 
-> **Important:** If you suspect fraudulent access to a Domain Admin account, immediately contact Concierge via the in-app chat or email at concierge@expensify.com. If necessary, we can manually suspend cards outside of the Expensify Domain temporarily.
+**Important:** If you suspect fraudulent access to a Domain Admin account, immediately contact Concierge via the in-app chat or email at concierge@expensify.com. If necessary, we can manually suspend cards outside of the Expensify Domain temporarily.
 
 ---
 
