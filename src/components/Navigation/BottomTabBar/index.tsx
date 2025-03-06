@@ -189,7 +189,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
 
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
             if (state?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
-                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                 return;
             }
 
