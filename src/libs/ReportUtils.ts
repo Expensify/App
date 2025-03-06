@@ -20,10 +20,10 @@ import type {IOUAction, IOUType, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -181,6 +181,7 @@ import {
     getTag,
     getTaxAmount,
     getTaxCode,
+    getTransaction,
     getAmount as getTransactionAmount,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
@@ -188,7 +189,7 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
-    isCardTransaction,
+    isCardTransaction as isCardTransactionTransactionUtils,
     isDistanceRequest,
     isDuplicate,
     isExpensifyCardTransaction,
@@ -2158,9 +2159,11 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>): boolean {
  */
 function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string): boolean {
     const report = getReportOrDraftReport(reportID);
-
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
+    const iouTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : '';
+    const transaction = getTransaction(iouTransactionID ?? CONST.DEFAULT_NUMBER_ID);
+    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
 
     if (isMoneyRequestAction(reportAction)) {
         // For now, users cannot delete split actions
@@ -2172,7 +2175,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
 
         if (isActionOwner) {
             if (!isEmptyObject(report) && (isMoneyRequestReport(report) || isInvoiceReport(report))) {
-                return canDeleteTransaction(report);
+                return canDeleteTransaction(report) && (!isCardTransaction || (isCardTransaction && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW));
             }
             return true;
         }
@@ -3600,7 +3603,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
 
     if (
         (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY || fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) &&
-        isCardTransaction(transaction)
+        isCardTransactionTransactionUtils(transaction)
     ) {
         return false;
     }
@@ -4711,7 +4714,7 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
 
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
-    if (lastFullScreenRoute?.name === SCREENS.SEARCH.ROOT) {
+    if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
         Navigation.dismissModal();
         return;
     }
@@ -6686,7 +6689,6 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-    shouldEscapeText = true,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -6701,7 +6703,7 @@ function buildOptimisticTaskReport(
     return {
         reportID: generateReportID(),
         reportName: title,
-        description: getParsedComment(description ?? '', {shouldEscapeText}),
+        description: getParsedComment(description ?? ''),
         ownerAccountID,
         participants,
         managerID: assigneeAccountID,
