@@ -151,7 +151,7 @@ const ROUTES = {
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_THEME: 'settings/preferences/theme',
-    SETTINGS_WORKSPACES: 'settings/workspaces',
+    SETTINGS_WORKSPACES: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
@@ -1168,11 +1168,15 @@ const ROUTES = {
     WORKSPACE_UPGRADE: {
         route: 'settings/workspaces/:policyID?/upgrade/:featureName?',
         getRoute: (policyID?: string, featureName?: string, backTo?: string) =>
-            policyID ? getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const, backTo) : (`settings/workspaces/upgrade` as const),
+            getUrlWithBackToParam(
+                policyID ? (`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`settings/workspaces/upgrade` as const),
+                backTo,
+            ),
     },
     WORKSPACE_DOWNGRADE: {
         route: 'settings/workspaces/:policyID?/downgrade/',
-        getRoute: (policyID?: string) => (policyID ? (`settings/workspaces/${policyID}/downgrade/` as const) : `settings/workspaces/downgrade`),
+        getRoute: (policyID?: string, backTo?: string) =>
+            getUrlWithBackToParam(policyID ? (`settings/workspaces/${policyID}/downgrade/` as const) : (`settings/workspaces/downgrade` as const), backTo),
     },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',

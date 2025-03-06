@@ -1,9 +1,7 @@
-import React, {memo, useCallback, useContext, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {FABPopoverContext} from '@components/FABPopoverProvider';
-import FloatingActionButton from '@components/FloatingActionButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import DebugTabView from '@components/Navigation/DebugTabView';
@@ -31,6 +29,7 @@ import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {AuthScreensParamList, RootNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
+import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -73,11 +72,6 @@ function handleQueryWithPolicyID(query: SearchQueryString, activePolicyID?: stri
 }
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
-    const {isCreateMenuActive, toggleCreateMenu, fabRef} = useContext(FABPopoverContext);
-    const [isFabActionActive, setIsFabActionActive] = useState(isCreateMenuActive);
-    useEffect(() => {
-        setIsFabActionActive(isCreateMenuActive);
-    }, [isCreateMenuActive]);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -195,7 +189,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
 
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
             if (state?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
-                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+                Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
                 return;
             }
 
@@ -289,14 +283,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     onPress={showSettingsPage}
                 />
                 <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <FloatingActionButton
-                        accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
-                        role={CONST.ROLE.BUTTON}
-                        isActive={isFabActionActive}
-                        ref={fabRef}
-                        onPress={() => toggleCreateMenu(isFabActionActive)}
-                        isTooltipAllowed={isTooltipAllowed}
-                    />
+                    <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
                 </View>
             </View>
         </>
