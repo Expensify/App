@@ -420,10 +420,9 @@ type BuildOnyxDataForMoneyRequestParams = {
     optimisticParams: MoneyRequestOptimisticParams;
 };
 
-type DistanceRequestTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
+type DistanceRequestTransactionParams = BaseTransactionParams & {
     validWaypoints: WaypointCollection;
     splitShares?: SplitShares;
-    comment: string;
 };
 
 type CreateDistanceRequestInformation = {
