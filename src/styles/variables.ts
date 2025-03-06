@@ -52,6 +52,7 @@ export default {
     fontSizeExtraSmall: 9,
     fontSizeLabel: getValueUsingPixelRatio(13, 19),
     fontSizeNormal: getValueUsingPixelRatio(15, 21),
+    fontSizeEmojiNormal: getValueUsingPixelRatio(15, 28),
     fontSizeMedium: getValueUsingPixelRatio(16, 22),
     fontSizeLarge: getValueUsingPixelRatio(17, 19),
     fontSizeHero: 36,
