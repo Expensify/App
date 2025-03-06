@@ -133,7 +133,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
                             if (!isActivePolicyGroup && !isUserMemberOfSingleGroupPolicy) {
                                 setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
-                                return;
                             }
                         }}
                         message={errorMessage}
