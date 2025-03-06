@@ -28,7 +28,7 @@ Onyx.connect({
     },
 });
 
-function getExpensifyCardFromReportAction({reportAction, policyID}: {reportAction: ReportAction; policyID?: string}): Card | undefined {
+function getExpensifyCardFromReportAction({reportAction, policyID}: {reportAction?: ReportAction; policyID?: string}): Card | undefined {
     const cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
