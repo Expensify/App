@@ -66,6 +66,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     paid: 'paid',
     exported: 'exported',
     posted: 'posted',
+    groupBy: 'group-by',
 };
 
 /**

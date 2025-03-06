@@ -670,6 +670,9 @@ function peg$parse(input, options) {
                         s1 = peg$parsecardID();
                         if (s1 === peg$FAILED) {
                           s1 = peg$parsefeed();
+                          if (s1 === peg$FAILED) {
+                            s1 = peg$parsegroupBy();
+                          }
                         }
                       }
                     }
