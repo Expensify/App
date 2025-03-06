@@ -20,10 +20,10 @@ import type {IOUAction, IOUType, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -4714,7 +4714,7 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
 
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
-    if (lastFullScreenRoute?.name === SCREENS.SEARCH.ROOT) {
+    if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
         Navigation.dismissModal();
         return;
     }
