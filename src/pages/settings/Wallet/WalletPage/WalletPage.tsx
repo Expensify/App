@@ -384,9 +384,25 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
+    const headerWithBackButton = (
+        <HeaderWithBackButton
+            title={translate('common.wallet')}
+            icon={Illustrations.MoneyIntoWallet}
+            shouldUseHeadlineHeader
+            shouldShowBackButton={shouldUseNarrowLayout}
+            shouldDisplaySearchRouter
+        />
+    );
 
     if (isLoadingApp) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <ScreenWrapper testID={WalletPage.displayName}>
+                {headerWithBackButton}
+                <View style={styles.flex1}>
+                    <FullScreenLoadingIndicator />
+                </View>
+            </ScreenWrapper>
+        );
     }
 
     return (
@@ -398,14 +414,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                     testID={WalletPage.displayName}
                     shouldShowOfflineIndicatorInWideScreen
                 >
-                    <HeaderWithBackButton
-                        title={translate('common.wallet')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        icon={Illustrations.MoneyIntoWallet}
-                        shouldUseHeadlineHeader
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        shouldDisplaySearchRouter
-                    />
+                    {headerWithBackButton}
                     <ScrollView style={styles.pt3}>
                         <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <OfflineWithFeedback
