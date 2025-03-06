@@ -171,6 +171,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
 
+    /** Whether the expense is in the process of being confirmed */
+    isConfirming?: boolean;
+
     /** The PDF load error callback */
     onPDFLoadError?: () => void;
 
@@ -213,6 +216,7 @@ function MoneyRequestConfirmationList({
     shouldDisplayReceipt = false,
     shouldPlaySound = true,
     isConfirmed,
+    isConfirming,
     onPDFLoadError,
     onPDFPassword,
 }: MoneyRequestConfirmationListProps) {
@@ -959,7 +963,8 @@ function MoneyRequestConfirmationList({
                 }}
                 enterKeyEventListenerPriority={1}
                 useKeyboardShortcuts
-                isLoading={isConfirmed}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                isLoading={isConfirmed || isConfirming}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -968,8 +973,9 @@ function MoneyRequestConfirmationList({
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
-                isLoading={isConfirmed}
                 useKeyboardShortcuts
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                isLoading={isConfirmed || isConfirming}
             />
         );
 
@@ -1013,6 +1019,7 @@ function MoneyRequestConfirmationList({
         styles.productTrainingTooltipWrapper,
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
+        isConfirming,
     ]);
 
     const listFooterContent = (
