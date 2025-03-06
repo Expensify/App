@@ -28,12 +28,13 @@ import {
     setWorkspaceReimbursement,
 } from '@libs/actions/Policy/Policy';
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
+import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getCorrectedAutoReportingFrequency, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
+import {getCorrectedAutoReportingFrequency, getWorkspaceAccountID, isControlPolicy, isPaidGroupPolicy as isPaidGroupPolicyUtil, isPolicyAdmin as isPolicyAdminUtil} from '@libs/PolicyUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -61,6 +62,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const workspaceAccountID = getWorkspaceAccountID(route.params.policyID);
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
+    const isSmartLimitEnabled = isSmartLimitEnabledUtil(workspaceCards);
     const policyApproverEmail = policy?.approver;
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -169,8 +174,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             },
             {
                 title: translate('workflowsPage.addApprovalsTitle'),
-                subtitle: translate('workflowsPage.addApprovalsDescription'),
-                switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
+                subtitle: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
+                switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
                     setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? updateApprovalMode : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
@@ -199,6 +204,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         />
                     </>
                 ),
+                disabled: isSmartLimitEnabled,
                 isActive:
                     ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
@@ -295,6 +301,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         onPressAutoReportingFrequency,
         approvalWorkflows,
         addApprovalAction,
+        isSmartLimitEnabled,
         isOffline,
         theme.spinner,
         isPolicyAdmin,
@@ -314,7 +321,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 title={item.title}
                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                 subtitle={item.subtitle}
-                subtitleStyle={[styles.textLabelSupportingEmptyValue]}
+                subtitleStyle={[styles.textLabelSupportingEmptyValue, styles.lh20]}
                 switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
@@ -322,6 +329,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 pendingAction={item.pendingAction}
                 errors={item.errors}
                 onCloseError={item.onCloseError}
+                disabled={item.disabled}
             />
         </Section>
     );
