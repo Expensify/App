@@ -1,7 +1,9 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {FABPopoverContext} from '@components/FABPopoverProvider';
+import FloatingActionButton from '@components/FloatingActionButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import DebugTabView from '@components/Navigation/DebugTabView';
@@ -27,7 +29,6 @@ import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
-import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -42,6 +43,8 @@ type BottomTabBarProps = {
 };
 
 function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
+    const {isCreateMenuActive, toggleCreateMenu, fabRef} = useContext(FABPopoverContext);
+    const [isFabActionActive, setIsFabActionActive] = useState(isCreateMenuActive);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -57,6 +60,11 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
         isTooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
     );
+
+    useEffect(() => {
+        setIsFabActionActive(isCreateMenuActive);
+    }, [isCreateMenuActive]);
+
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReportIDs));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
@@ -237,7 +245,14 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     onPress={showSettingsPage}
                 />
                 <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
+                    <FloatingActionButton
+                        accessibilityLabel={translate('sidebarScreen.fabNewChatExplained')}
+                        role={CONST.ROLE.BUTTON}
+                        isActive={isFabActionActive}
+                        ref={fabRef}
+                        onPress={() => toggleCreateMenu(isFabActionActive)}
+                        isTooltipAllowed={isTooltipAllowed}
+                    />
                 </View>
             </View>
         </>
