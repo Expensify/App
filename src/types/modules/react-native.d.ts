@@ -6,9 +6,9 @@ import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 import type StartupTimer from '@libs/StartupTimer/types';
 
 type HybridAppModule = {
-    closeReactNativeApp: (shouldSignOut: boolean, shouldSetNVP: boolean) => void;
-    completeOnboarding: (status: boolean) => void;
-    switchAccount: (newDotCurrentAccountEmail: string, authToken: string, policyID: string, accountID: string) => void;
+    closeReactNativeApp: ({shouldSignOut: boolean, shouldSetNVP: boolean}) => void;
+    completeOnboarding: ({status: boolean}) => void;
+    switchAccount: ({newDotCurrentAccountEmail: string, authToken: string, policyID: string, accountID: string}) => void;
 };
 
 type RNTextInputResetModule = {
