@@ -145,7 +145,7 @@ const setupCategoriesTask: OnboardingTask = {
     type: 'setupCategories',
     autoCompleted: false,
     mediaAttributes: {
-        [`${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png"`,
+        [`${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png" data-expensify-width="1920" data-expensify-height="1080"`,
     },
     title: 'Set up categories',
     description: ({workspaceCategoriesLink}) =>
@@ -5238,7 +5238,7 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Set up tags',
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-tags.png"`,
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-tags.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
                     description: ({workspaceMoreFeaturesLink}) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
@@ -5261,7 +5261,7 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png"`,
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
                     title: 'Add expense approvals',
                     description: ({workspaceMoreFeaturesLink}) =>
@@ -5286,7 +5286,7 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png"`,
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
                     title: 'Invite your team',
                     description: ({workspaceMembersLink}) =>
@@ -5311,13 +5311,13 @@ const CONST = {
                     mediaAttributes: {
                         [`${CLOUDFRONT_URL}/${
                             connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png"`,
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
                         [`${CLOUDFRONT_URL}/${
                             connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png"`,
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
                         [`${CLOUDFRONT_URL}/${
                             connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png"`,
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
                     title: ({integrationName}) => `Connect to ${integrationName}`,
                     description: ({integrationName, workspaceAccountingLink}) =>
