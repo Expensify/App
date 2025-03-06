@@ -18,8 +18,9 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
-import {getPolicy, getWorkspaceAccountID, isPolicyAdmin as PolicyUtilsIsPolicyAdmin} from '@libs/PolicyUtils';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
+import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
+import {getWorkspaceAccountID} from '@libs/PolicyUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getReportAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
@@ -312,17 +313,8 @@ function BaseReportActionContextMenu({
         );
     };
 
-    const cardIssuedActionOriginalMessage = isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? getOriginalMessage(reportAction)
-        : undefined;
-    const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
-    const isPolicyAdmin = PolicyUtilsIsPolicyAdmin(getPolicy(policyID));
-    const card = isPolicyAdmin ? cardsList?.[cardID] : cardList[cardID];
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const card = getExpensifyCardFromReportAction({reportAction: (reportAction ?? null) as ReportAction, policyID});
 
     return (
         (isVisible || shouldKeepOpen) && (
