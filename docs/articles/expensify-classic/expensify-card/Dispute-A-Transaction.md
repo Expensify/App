@@ -36,11 +36,10 @@ These types of disputes occur when:
 **To protect your account from further unauthorized charges:**
 
 1. **Cancel your card**:  
-   Go to _Settings > Account > Credit Card Import_  
-   > _Request A New Card_.
+  Go to **Settings** > **Account** > **Credit Card Import** > **Request A New Card**.
    
 2. **Enable Two-Factor Authentication (2FA)**:  
-   Activate 2FA for added security (a way to verify your identity using something you know and something you have) under _Settings > Account > Account Details > Two-Factor Authentication_.
+   Activate 2FA for added security under **Settings** > **Account** > **Account Details** > **Two-Factor Authentication**.
 
 ### Service Disputes
 
