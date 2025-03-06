@@ -6,13 +6,13 @@ const HybridAppModule: HybridAppModuleType = {
         return false;
     },
     closeReactNativeApp() {
-        Log.warn("HybridAppModule: `closeReactNativeApp` should never be called on web");
+        Log.warn('HybridAppModule: `closeReactNativeApp` should never be called on web');
     },
     completeOnboarding() {
-        Log.warn("HybridAppModule: `completeOnboarding` should never be called on web");
+        Log.warn('HybridAppModule: `completeOnboarding` should never be called on web');
     },
     switchAccount() {
-        Log.warn("HybridAppModule: `switchAccount` should never be called on web");
+        Log.warn('HybridAppModule: `switchAccount` should never be called on web');
     },
 };
 

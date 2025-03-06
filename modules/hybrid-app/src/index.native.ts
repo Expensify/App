@@ -1,7 +1,6 @@
 import ReactNativeHybridApp from './NativeReactNativeHybridApp';
 import type HybridAppModuleType from './types';
 
-
 const HybridAppModule: HybridAppModuleType = {
     isHybridApp() {
         return ReactNativeHybridApp.isHybridApp();
