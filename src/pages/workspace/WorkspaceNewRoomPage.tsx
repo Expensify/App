@@ -29,7 +29,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
-import {isExistingRoomName, isReservedRoomName, isValidRoomName} from '@libs/ValidationUtils';
+import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
 import {addPolicyReport, clearNewRoomFormError} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -158,7 +158,7 @@ function WorkspaceNewRoomPage() {
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
-            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !isValidRoomName(values.roomName)) {
+            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !isValidRoomNameWithoutLimits(values.roomName)) {
                 // We error if the room name has invalid characters
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (isReservedRoomName(values.roomName)) {
@@ -285,7 +285,6 @@ function WorkspaceNewRoomPage() {
                                 role={CONST.ROLE.PRESENTATION}
                                 autoGrowHeight
                                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                 autoCapitalize="none"
                                 shouldInterceptSwipe
                                 type="markdown"
