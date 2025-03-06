@@ -1,6 +1,4 @@
-import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import DateUtils from '@libs/DateUtils';
 import {buildNextStep} from '@libs/NextStepUtils';
 import {buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -208,7 +206,7 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('twice a month', () => {
-                    // Waiting for userSubmitter's expense(s) to automatically submit on the 1st and 16th of each month
+                    // Waiting for userSubmitter's expense(s) to automatically submit on the 1st and 16th of the month
                     optimisticNextStep.message = [
                         {
                             text: 'Waiting for ',
@@ -226,7 +224,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ' on the 1st and 16th of each month',
+                            text: ' on the 1st and 16th of the month',
                         },
                     ];
 
@@ -261,7 +259,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ' on the 2nd of each month',
+                            text: ' on the 2nd of the month',
                         },
                     ];
 
@@ -297,7 +295,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(lastDayOfMonth(new Date()), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of the ${format(new Date(), CONST.DATE.MONTH_FORMAT)}`,
+                            text: ` on the last day of the month`,
                         },
                     ];
 
@@ -314,8 +312,6 @@ describe('libs/NextStepUtils', () => {
                 });
 
                 test('monthly on the last business day', () => {
-                    const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(new Date());
-
                     // Waiting for userSubmitter's expense(s) to automatically submit on lastBusinessDayOfMonth of each month
                     optimisticNextStep.message = [
                         {
@@ -334,7 +330,7 @@ describe('libs/NextStepUtils', () => {
                             text: ' %expenses to automatically submit',
                         },
                         {
-                            text: ` on the ${format(setDate(new Date(), lastBusinessDayOfMonth), CONST.DATE.ORDINAL_DAY_OF_MONTH)} of the ${format(new Date(), CONST.DATE.MONTH_FORMAT)}`,
+                            text: ` on the last business day of the month`,
                         },
                     ];
 

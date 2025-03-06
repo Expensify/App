@@ -1,3 +1,4 @@
+import {format, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -221,19 +222,23 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 let harvestingSuffix = '';
 
                 if (autoReportingFrequency) {
+                    const currentDate = new Date();
+                    let autoSubmissionDate = '';
                     let monthlyText = '';
 
                     if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                         monthlyText = 'on the last day of the month';
                     } else if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
                         monthlyText = 'on the last business day of the month';
+                    } else if (autoReportingOffset !== undefined) {
+                        autoSubmissionDate = format(setDate(currentDate, autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
                     }
 
                     const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of the month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: monthlyText,
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of the month` : monthlyText,
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
