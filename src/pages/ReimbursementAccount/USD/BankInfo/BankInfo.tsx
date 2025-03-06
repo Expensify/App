@@ -44,14 +44,14 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
     const values = useMemo(() => getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
 
-    let setupType = reimbursementAccount?.achData?.subStep ?? '';
+    let setupType = reimbursementAccount?.achData?.subStep ?? reimbursementAccount?.achData?.setupType ?? '';
 
     const shouldReinitializePlaidLink = plaidLinkToken && receivedRedirectURI && setupType !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID);
     const submit = useCallback(
         (submitData: unknown) => {
             const data = submitData as ReimbursementAccountForm;
