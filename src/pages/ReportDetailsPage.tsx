@@ -92,6 +92,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {isCardTransaction as isCardTransactionTransactionUtils} from '@libs/TransactionUtils';
 import {
     canCancelPayment,
     cancelPayment as cancelPaymentAction,
@@ -295,7 +296,14 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
+    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
+
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID || CONST.DEFAULT_NUMBER_ID}`);
+    const isCardTransaction = isCardTransactionTransactionUtils(transaction);
+
+    const shouldShowDeleteButton =
+        shouldShowTaskDeleteButton || (canDeleteRequest && (!isCardTransaction || (isCardTransaction && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW)));
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -366,8 +374,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
     const shouldShowCancelPaymentButton = caseID === CASES.MONEY_REPORT && canCancelPayment(moneyRequestReport, session);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
 
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
