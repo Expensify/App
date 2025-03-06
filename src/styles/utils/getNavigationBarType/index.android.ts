@@ -1,9 +1,8 @@
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import NavBarManager from '@libs/NavBarManager';
-import type {NavigationBarType} from '@libs/NavBarManager/types';
 import CONST from '@src/CONST';
+import type GetNavigationBarType from './types';
 
-function getNavigationBarType(insets?: EdgeInsets): NavigationBarType {
+const getNavigationBarType: GetNavigationBarType = (insets) => {
     const bottomInset = insets?.bottom ?? 0;
 
     // If the bottom safe area inset is 0, we consider the device to have no navigation bar (or it being hidden by default).
@@ -13,6 +12,6 @@ function getNavigationBarType(insets?: EdgeInsets): NavigationBarType {
     }
 
     return NavBarManager.getType();
-}
+};
 
 export default getNavigationBarType;

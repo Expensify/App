@@ -2,10 +2,12 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
-import * as IOUUtils from '@libs/IOUUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
+import type {Tax, TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import {getEnabledTaxRateCount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +26,7 @@ type TaxPickerProps = {
     transactionID?: string;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: TaxOptionsListUtils.TaxRatesOption) => void;
+    onSubmit: (tax: TaxRatesOption) => void;
 
     /** The action to take */
     action?: IOUAction;
@@ -40,7 +42,7 @@ type TaxPickerProps = {
     addBottomSafeAreaPadding?: boolean;
 };
 
-function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss, addBottomSafeAreaPadding}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss = Navigation.goBack, addBottomSafeAreaPadding}: TaxPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -48,7 +50,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [transaction] = useOnyx(
         (() => {
-            if (IOUUtils.shouldUseTransactionDraft(action)) {
+            if (shouldUseTransactionDraft(action)) {
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
             }
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
@@ -60,12 +62,12 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
 
     const taxRates = policy?.taxRates;
-    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes ?? {});
+    const taxRatesCount = getEnabledTaxRateCount(taxRates?.taxes ?? {});
     const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const selectedOptions = useMemo<TaxOptionsListUtils.Tax[]>(() => {
+    const selectedOptions = useMemo<Tax[]>(() => {
         if (!selectedTaxRate) {
             return [];
         }
@@ -81,7 +83,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const sections = useMemo(
         () =>
-            TaxOptionsListUtils.getTaxRatesSection({
+            getTaxRatesSection({
                 policy,
                 searchValue,
                 selectedOptions,
@@ -90,12 +92,12 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         [searchValue, selectedOptions, policy, currentTransaction],
     );
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
+    const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
 
     const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 
     const handleSelectRow = useCallback(
-        (newSelectedOption: TaxOptionsListUtils.TaxRatesOption) => {
+        (newSelectedOption: TaxRatesOption) => {
             if (selectedOptionKey === newSelectedOption.keyForList) {
                 onDismiss();
                 return;

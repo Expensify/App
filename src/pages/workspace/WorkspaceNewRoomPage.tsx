@@ -223,7 +223,7 @@ function WorkspaceNewRoomPage() {
                 success
                 large
                 text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}
                 style={[styles.mh5, styles.mb5]}
             />
             {isSmallScreenWidth && (

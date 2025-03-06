@@ -36,7 +36,6 @@ import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle, SelectionListProps} from './types';
 
-const DEFAULT_CONFIRM_BUTTON_CONTENT_PADDING = 80;
 const getDefaultItemHeight = () => variables.optionRowHeight;
 
 function BaseSelectionList<TItem extends ListItem>(
@@ -130,7 +129,6 @@ function BaseSelectionList<TItem extends ListItem>(
         isScreenFocused = false,
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
-        shouldFooterContentStickToBottom = false,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -838,10 +836,9 @@ function BaseSelectionList<TItem extends ListItem>(
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: false, // Bottom safe area padding is already applied in the SectionList
         style: contentContainerStyleProp,
-        additionalPaddingBottom: showConfirmButton && shouldFooterContentStickToBottom ? DEFAULT_CONFIRM_BUTTON_CONTENT_PADDING : 0,
     });
 
-    const shouldHideContentBottomSafeAreaPadding = !shouldFooterContentStickToBottom && (showConfirmButton || !!footerContent);
+    const shouldHideContentBottomSafeAreaPadding = showConfirmButton || !!footerContent;
 
     // TODO: test _every_ component that uses SelectionList
     return (
@@ -912,7 +909,6 @@ function BaseSelectionList<TItem extends ListItem>(
             {showConfirmButton && (
                 <FixedFooter
                     style={styles.mtAuto}
-                    shouldStickToBottom={shouldFooterContentStickToBottom}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 >
                     <Button
@@ -924,14 +920,12 @@ function BaseSelectionList<TItem extends ListItem>(
                         pressOnEnter
                         enterKeyEventListenerPriority={1}
                         isDisabled={isConfirmButtonDisabled}
-                        shouldBlendOpacity={shouldFooterContentStickToBottom}
                     />
                 </FixedFooter>
             )}
             {!!footerContent && (
                 <FixedFooter
                     style={styles.mtAuto}
-                    shouldStickToBottom={shouldFooterContentStickToBottom}
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                 >
                     {footerContent}

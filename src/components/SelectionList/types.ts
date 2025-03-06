@@ -671,9 +671,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
-
-    /** Whether the footer content should stick to the bottom of the screen. */
-    shouldFooterContentStickToBottom?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
