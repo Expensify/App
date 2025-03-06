@@ -193,7 +193,7 @@ describe('useSearchHighlightAndScroll', () => {
         expect(Search.search).toHaveBeenCalled();
     });
 
-    it('should trigger Search when report actions change', () => {
+    it('should trigger Search when an IOU report action happens', () => {
         const initialProps: UseSearchHighlightAndScroll = {
             searchResults: {
                 data: {personalDetailsList: {}},
@@ -255,7 +255,7 @@ describe('useSearchHighlightAndScroll', () => {
                         created: '',
                     },
                     2: {
-                        actionName: 'ADDCOMMENT',
+                        actionName: 'IOU',
                         reportActionID: '2',
                         created: '',
                     },

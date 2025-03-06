@@ -39,7 +39,8 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
-        const reportActionsIDs = Object.values(reportActions ?? {})
+        const reportActionArray = Object.values(reportActions ?? {});
+        const reportActionsIDs = reportActionArray
             .map((actions) => Object.keys(actions ?? {}))
             .flat();
         const previousReportActionsIDs = Object.values(previousReportActions ?? {})
@@ -51,14 +52,16 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         }
         const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
         const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
+        const reportActionValues = reportActionArray.map((actions) => Object.values(actions ?? {})).flat();
+        const hasReportActionIOU = reportActionValues.at(-1)?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
         // Check if there is a change in the transactions or report actions list
-        // NOTE: This if statement should NOT assume report actions can only change
-        // in one type, i.e.: isChat && hasReportActionsIDsChange
-        // because they can also change in other types such as CONST.SEARCH.DATA_TYPES.EXPENSE.
-        // Assuming they can only change in one type leads to issues such as
+        // NOTE: This if statement should be careful about which types it checks for changes.
+        // Right now, for optimization purposes, we only want to trigger a search when
+        // transaction IDs change in a chat or an IOU is updated.
+        // This issue happened because weren't checking for the IOU:
         // https://github.com/Expensify/App/issues/57605
-        if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
+        if ((!isChat && hasTransactionsIDsChange) || (hasReportActionsIDsChange && (isChat || hasReportActionIOU))) {
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
