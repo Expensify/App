@@ -4817,6 +4817,11 @@ function sendInvoice(
     companyName?: string,
     companyWebsite?: string,
 ) {
+    const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
+    if (transaction?.comment) {
+        // eslint-disable-next-line no-param-reassign
+        transaction.comment.comment = parsedComment;
+    }
     const {
         senderWorkspaceID,
         receiver,
@@ -4840,7 +4845,7 @@ function sendInvoice(
         accountID: currentUserAccountID,
         amount: transaction?.amount ?? 0,
         currency: transaction?.currency ?? '',
-        comment: transaction?.comment?.comment?.trim() ?? '',
+        comment: parsedComment,
         merchant: transaction?.merchant ?? '',
         category: transaction?.category,
         date: transaction?.created ?? '',
@@ -4852,6 +4857,7 @@ function sendInvoice(
         transactionThreadReportID,
         companyName,
         companyWebsite,
+        description: parsedComment,
         ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
     };
 
