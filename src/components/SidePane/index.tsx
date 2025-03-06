@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Backdrop from '@components/Modal/BottomDockedModal/Backdrop';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePane from '@hooks/useSidePane';
@@ -14,8 +14,10 @@ import {triggerSidePane} from '@libs/actions/SidePane';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {substituteRouteParameters} from '@libs/SidePaneUtils';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import getHelpContent from './getHelpContent';
+import SidePaneOverlay from './SidePaneOverlay';
 
 type SidePaneProps = {
     state: PlatformStackNavigationState<ParamListBase>;
@@ -60,6 +62,8 @@ function SidePane({state}: SidePaneProps) {
         }
     }, [isExtraLargeScreenWidth, onClose]);
 
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose(), {shouldBubble: shouldHideSidePane, isActive: !isExtraLargeScreenWidth});
+
     if (shouldHideSidePane) {
         return null;
     }
@@ -67,10 +71,10 @@ function SidePane({state}: SidePaneProps) {
     return (
         <>
             <View>
-                {!shouldHideSidePaneBackdrop && !isInNarrowPaneModal && (
-                    <Backdrop
+                {!shouldHideSidePaneBackdrop && (
+                    <SidePaneOverlay
                         onBackdropPress={onClose}
-                        style={styles.sidePaneOverlay}
+                        isInNarrowPaneModal={isInNarrowPaneModal}
                     />
                 )}
             </View>
