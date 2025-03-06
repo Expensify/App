@@ -210,8 +210,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
 
-    // When offline and prevent self-approval is enabled, we need to show the optimistic next step
-    const optimisticNextStep = isOffline && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+    // When prevent self-approval is enabled, we need to show the optimistic next step
+    // We should always show this optimistic message for policies with preventSelfApproval
+    // to avoid any flicker during transitions between online/offline states
+    const optimisticNextStep = policy?.preventSelfApproval
+        ? buildOptimisticNextStepForPreventSelfApprovalsEnabled()
+        : nextStep;
 
     const shouldShowNextStep = !isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
