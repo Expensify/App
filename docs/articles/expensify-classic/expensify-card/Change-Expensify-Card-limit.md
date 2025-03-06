@@ -22,10 +22,10 @@ You can set a limit for each individual **Expensify Card** or for a group within
 3. Click the **Groups** tab on the left side.
 4. In the **Expensify Card Smart Limit** field, enter the desired limit for the group.
 
-### FAQ
+# FAQ
 
-**Q: What happens if I set the limit to $0?**  
-A: Setting the limit to $0 will disable the card, meaning it cannot be used until the limit is increased.
+**What happens if I set the limit to $0?**  
+Setting the limit to $0 will disable the card, meaning it cannot be used until the limit is increased.
 
-**Q: Can I set different limits for different employees?**  
-A: Yes, you can set individual card limits by enabling the **Custom Smart Limit** toggle. Without this, the employee's card will follow the group’s limit.
+**Can I set different limits for different employees?**  
+Yes, you can set individual card limits by enabling the **Custom Smart Limit** toggle. Without this, the employee's card will follow the group’s limit.
