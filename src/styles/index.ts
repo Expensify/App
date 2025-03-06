@@ -5475,19 +5475,19 @@ const styles = (theme: ThemeColors) =>
             borderLeftColor: theme.border,
         }),
 
-        expenseWidgetSeparator:{
+        expenseWidgetSeparator: {
             marginHorizontal: 8,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeXLarge,
             color: theme.textSupporting,
         },
-        expenseWidgetMargin:{
-            margin:5
+        expenseWidgetMargin: {
+            margin: 5,
         },
 
-        expenseWidgetRadius:{
+        expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
-        }
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

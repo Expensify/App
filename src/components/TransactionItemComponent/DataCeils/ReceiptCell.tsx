@@ -1,23 +1,21 @@
-import { Str } from 'expensify-common';
+import {Str} from 'expensify-common';
 import React from 'react';
-import { View } from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {View} from 'react-native';
+import {Receipt} from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { getFileName } from '@libs/fileDownload/FileUtils';
-import { getThumbnailAndImageURIs } from '@libs/ReceiptUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
 
-
-function ReceiptCell({transactionItem}: {transactionItem: Transaction}) {
+function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transaction; isSelected: boolean}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const isSelected = false;
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
 
     let source = transactionItem?.receipt?.source ?? '';
@@ -44,7 +42,7 @@ function ReceiptCell({transactionItem}: {transactionItem: Transaction}) {
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
-                fallbackIcon={Expensicons.Receipt}
+                fallbackIcon={Receipt}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}

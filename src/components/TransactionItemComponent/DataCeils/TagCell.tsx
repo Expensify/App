@@ -1,20 +1,19 @@
-import useThemeStyles from '@hooks/useThemeStyles';
-import TextWithTooltip from '@components/TextWithTooltip';
-import {getTagForDisplay} from '@libs/TransactionUtils';
-import TextWithIconCell from '@components/SelectionList/Search/TextWithIconCell';
-import * as Expensicons from '@components/Icon/Expensicons';
 import React from 'react';
+import * as Expensicons from '@components/Icon/Expensicons';
+import TextWithIconCell from '@components/SelectionList/Search/TextWithIconCell';
+import TextWithTooltip from '@components/TextWithTooltip';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {getTagForDisplay} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
-import type DataCellProps from './DateCellProps';
+import type TransactionDataCellProps from './TransactionDataCellProps';
 
-
-function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: DataCellProps) {
+function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: TransactionDataCellProps) {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={getTagForDisplay(transactionItem)}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter,{color:colors.green800}]}
+            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, {color: colors.green800}]}
         />
     ) : (
         <TextWithIconCell

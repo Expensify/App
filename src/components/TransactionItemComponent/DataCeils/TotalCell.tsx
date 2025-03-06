@@ -1,14 +1,13 @@
 import React from 'react';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useLocalize from '@hooks/useLocalize';
-import {getCurrency as getTransactionCurrency, hasReceipt, isReceiptBeingScanned} from '@libs/TransactionUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getCurrency as getTransactionCurrency, hasReceipt, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
-import type DataCellProps from './DateCellProps';
+import type TransactionDataCellProps from './TransactionDataCellProps';
 
-
-function TotalCell({showTooltip, transactionItem}: DataCellProps) {
+function TotalCell({showTooltip, transactionItem}: TransactionDataCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);
@@ -23,7 +22,7 @@ function TotalCell({showTooltip, transactionItem}: DataCellProps) {
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={amount}
-            style={[styles.optionDisplayName, styles.justifyContentCenter, {color:colors.green800}]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, {color: colors.green800}]}
         />
     );
 }

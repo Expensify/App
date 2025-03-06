@@ -6352,9 +6352,9 @@ const CONST = {
     },
 
     EXPENSE: {
-        TYPE:{
-            CASH_CARD_NAME:"Cash Expense"
-        }
+        TYPE: {
+            CASH_CARD_NAME: 'Cash Expense',
+        },
     },
 
     REFERRER: {
