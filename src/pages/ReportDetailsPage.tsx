@@ -1030,7 +1030,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     <FixedFooter style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.pt5]}>
                         <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textMicroSupporting]}>Report ID: </Text>
+                                <Text style={[styles.textMicroSupporting]}>{translate('common.reportID')}: </Text>
                                 <TextWithCopy
                                     copyText={getBase62ReportID(Number(report.reportID))}
                                     style={[styles.textMicroSupporting]}
@@ -1039,7 +1039,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                                 </TextWithCopy>
                             </View>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textMicroSupporting]}>Long ID: </Text>
+                                <Text style={[styles.textMicroSupporting]}>{translate('common.longID')}: </Text>
                                 <TextWithCopy
                                     copyText={report.reportID}
                                     style={[styles.textMicroSupporting]}

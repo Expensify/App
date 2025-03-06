@@ -1,10 +1,11 @@
 import React, {useRef} from 'react';
-import type {TextProps} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import Clipboard from '@libs/Clipboard';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import Text from './Text';
+import type {TextProps} from './Text';
 
 type TextWithCopyProps = TextProps & {
     copyText: string;
