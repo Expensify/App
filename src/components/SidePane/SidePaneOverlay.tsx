@@ -15,28 +15,27 @@ type SidePaneOverlayProps = {
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
-const CustomFadeIn = new Keyframe({
-    from: {opacity: 0},
-    to: {
-        opacity: 0.72,
-        // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
-        easing,
-    },
-}).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
-
-const CustomFadeOut = new Keyframe({
-    from: {opacity: 0.72},
-    to: {
-        opacity: 0,
-        // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
-        easing,
-    },
-}).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT);
-
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 function SidePaneOverlay({isInNarrowPaneModal, onBackdropPress}: SidePaneOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const CustomFadeIn = new Keyframe({
+        from: {opacity: 0},
+        to: {
+            opacity: 0.72,
+            // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
+            easing,
+        },
+    }).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
+
+    const CustomFadeOut = new Keyframe({
+        from: {opacity: 0.72},
+        to: {
+            opacity: 0,
+            // @ts-expect-error Types mismatch in reanimated, should to be fixed in 3.17
+            easing,
+        },
+    }).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT);
 
     return (
         <Animated.View
