@@ -9,8 +9,8 @@ import java.util.HashMap
 
 class ReactNativeHybridAppPackage : BaseReactPackage() {
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
-    return if (name == ReactNativeHybridAppModule.NAME) {
-      ReactNativeHybridAppModule(reactContext)
+    return if (name == NativeReactNativeHybridAppSpec.NAME) {
+      ReactNativeHybridApp(reactContext)
     } else {
       null
     }
@@ -19,9 +19,9 @@ class ReactNativeHybridAppPackage : BaseReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
     return ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[ReactNativeHybridAppModule.NAME] = ReactModuleInfo(
-        ReactNativeHybridAppModule.NAME,
-        ReactNativeHybridAppModule.NAME,
+      moduleInfos[NativeReactNativeHybridAppSpec.NAME] = ReactModuleInfo(
+        NativeReactNativeHybridAppSpec.NAME,
+        NativeReactNativeHybridAppSpec.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
