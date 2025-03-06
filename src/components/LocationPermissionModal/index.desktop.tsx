@@ -1,9 +1,9 @@
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ELECTRON_EVENTS from '@desktop/ELECTRON_EVENTS';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -72,19 +72,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     const handledBlockedPermission = (cb: () => void) => () => {
         setIsLoading(true);
         if (hasError) {
-            if (Linking.openSettings) {
-                Linking.openSettings();
-            } else {
-                // check one more time in case user enabled location before continue
-                getLocationPermission().then((status) => {
-                    if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                        onGrant();
-                    } else {
-                        onDeny?.();
-                    }
-                });
-            }
-            setShowModal(false);
+            window.electron.invoke(ELECTRON_EVENTS.OPEN_LOCATION_SETTING);
             return;
         }
         cb();

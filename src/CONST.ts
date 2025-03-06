@@ -156,7 +156,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to submit an expense:\n' +
                 '\n' +
-                '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
@@ -179,7 +179,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '\n' +
                 'Here’s how to submit an expense:\n' +
                 '\n' +
-                '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Add your reimburser to the request.\n' +
@@ -203,7 +203,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to track an expense:\n' +
                 '\n' +
-                '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Choose your *personal* space.\n' +
@@ -226,7 +226,7 @@ const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
                 '\n' +
                 'Here’s how to track an expense:\n' +
                 '\n' +
-                '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                '1. Click the green *+* button.\n' +
                 '2. Choose *Create expense*.\n' +
                 '3. Enter an amount or scan a receipt.\n' +
                 '4. Choose your *personal* space.\n' +
@@ -1464,6 +1464,7 @@ const CONST = {
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
         PUSHER_PING_PONG: 'pusher_ping_pong',
+        LOCATION_UPDATE_INTERVAL: 5000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3268,7 +3269,7 @@ const CONST = {
         EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\r\n|\r|\n/g,
+        LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -5336,7 +5337,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to start a chat:\n' +
                         '\n' +
-                        '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                        '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter emails or phone numbers.\n' +
                         '\n' +
@@ -5353,7 +5354,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                        '1. Click the green *+* button.\n' +
                         '2. Choose *Start chat*.\n' +
                         '3. Enter any email, SMS, or name of who you want to split with.\n' +
                         '4. From within the chat, click the *+* button on the message bar, and click *Split expense*.\n' +
@@ -5387,7 +5388,7 @@ const CONST = {
                         '\n' +
                         'Here’s how to submit an expense:\n' +
                         '\n' +
-                        '1. Press the <custom-emoji emoji="actionMenuIcon" pressablewithdefaultaction /> button.\n' +
+                        '1. Click the green *+* button.\n' +
                         '2. Choose *Create expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +
