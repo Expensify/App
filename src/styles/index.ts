@@ -631,6 +631,7 @@ const styles = (theme: ThemeColors) =>
             ...flex.justifyContentBetween,
             ...flex.alignItemsCenter,
             ...sizing.mnw120,
+            ...spacing.gap4,
             minHeight: 64,
         },
 
@@ -3743,7 +3744,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         narrowSearchHeaderStyle: {
-            paddingTop: 1,
+            paddingTop: 12,
             backgroundColor: theme.appBG,
             flex: 1,
         },
@@ -5415,7 +5416,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             backgroundColor: theme.transparent,
             overflow: 'hidden',
-            marginBottom: -1,
+            position: 'absolute',
+            bottom: -1,
         },
 
         progressBar: {
@@ -5443,6 +5445,22 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
+
+        sidePaneOverlay: {
+            ...positioning.pFixed,
+            right: -variables.sideBarWidth,
+            backgroundColor: theme.overlay,
+            opacity: variables.overlayOpacity,
+        },
+        sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            right: 0,
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            height: '100%',
+            backgroundColor: theme.modalBackground,
+            borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
+            borderLeftColor: theme.border,
+        }),
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

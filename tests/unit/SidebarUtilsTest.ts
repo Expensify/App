@@ -195,6 +195,43 @@ describe('SidebarUtils', () => {
 
             expect(result).toBeNull();
         });
+
+        it('returns isPinned true only when report.isPinned is true', () => {
+            const MOCK_REPORT_PINNED: OnyxEntry<Report> = {
+                reportID: '1',
+                isPinned: true,
+            };
+            const MOCK_REPORT_UNPINNED: OnyxEntry<Report> = {
+                reportID: '2',
+                isPinned: false,
+            };
+
+            const optionDataPinned = SidebarUtils.getOptionData({
+                report: MOCK_REPORT_PINNED,
+                reportNameValuePairs: {},
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale: CONST.LOCALES.DEFAULT,
+                policy: undefined,
+                parentReportAction: undefined,
+                hasViolations: false,
+                oneTransactionThreadReport: undefined,
+            });
+            const optionDataUnpinned = SidebarUtils.getOptionData({
+                report: MOCK_REPORT_UNPINNED,
+                reportNameValuePairs: {},
+                reportActions: {},
+                personalDetails: {},
+                preferredLocale: CONST.LOCALES.DEFAULT,
+                policy: undefined,
+                parentReportAction: undefined,
+                hasViolations: false,
+                oneTransactionThreadReport: undefined,
+            });
+
+            expect(optionDataPinned?.isPinned).toBe(true);
+            expect(optionDataUnpinned?.isPinned).toBe(false);
+        });
     });
 
     describe('shouldShowRedBrickRoad', () => {
