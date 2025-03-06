@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
-import {AnchorPosition} from '@styles/index';
+import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +64,7 @@ function ThreeDotsMenu({
         hidePopoverMenu();
     }, [isBehindModal, isPopupMenuVisible]);
 
-    const onThreeDotsPress = async () => {
+    const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
             hidePopoverMenu();
             return;
@@ -73,9 +73,14 @@ function ThreeDotsMenu({
         buttonRef.current?.blur();
 
         if (getAnchorPosition) {
-            setPosition(await getAnchorPosition());
+            getAnchorPosition().then((value) => {
+                setPosition(value);
+                showPopoverMenu();
+            });
+        } else {
+            showPopoverMenu();
         }
-        showPopoverMenu();
+
         onIconPress?.();
     };
 

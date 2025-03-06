@@ -20,19 +20,18 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(async () => {
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
-            return {horizontal: 0, vertical: 0};
+            return Promise.resolve({horizontal: 0, vertical: 0});
         }
-        const position = await new Promise<AnchorPosition>((resolve) => {
-            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width) => {
                 resolve({
                     horizontal: x + width,
                     vertical: y,
                 });
             });
         });
-        return position;
     }, [shouldUseNarrowLayout]);
 
     return (

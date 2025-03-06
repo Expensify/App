@@ -121,11 +121,11 @@ function WorkspacesListRow({
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(async () => {
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
-            return {horizontal: 0, vertical: 0};
+            return Promise.resolve({horizontal: 0, vertical: 0});
         }
-        const position = await new Promise<AnchorPosition>((resolve) => {
+        return new Promise<AnchorPosition>((resolve) => {
             threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
                 resolve({
                     horizontal: x + width,
@@ -133,7 +133,6 @@ function WorkspacesListRow({
                 });
             });
         });
-        return position;
     }, [shouldUseNarrowLayout]);
 
     if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
