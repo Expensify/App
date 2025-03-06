@@ -170,6 +170,9 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the expense is confirmed or not */
     isConfirmed?: boolean;
+
+    /** Whether the expense is in the process of being confirmed */
+    isConfirming?: boolean;
 };
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
@@ -207,6 +210,7 @@ function MoneyRequestConfirmationList({
     shouldDisplayReceipt = false,
     shouldPlaySound = true,
     isConfirmed,
+    isConfirming,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -715,7 +719,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: isCreateExpenseFlow,
+                isInteractive: !!isCreateExpenseFlow,
                 shouldShowRightIcon: isCreateExpenseFlow,
             }));
             options.push({
@@ -956,7 +960,8 @@ function MoneyRequestConfirmationList({
                 }}
                 enterKeyEventListenerPriority={1}
                 useKeyboardShortcuts
-                isLoading={isConfirmed}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                isLoading={isConfirmed || isConfirming}
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -965,8 +970,9 @@ function MoneyRequestConfirmationList({
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
-                isLoading={isConfirmed}
                 useKeyboardShortcuts
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                isLoading={isConfirmed || isConfirming}
             />
         );
 
@@ -1010,6 +1016,7 @@ function MoneyRequestConfirmationList({
         styles.productTrainingTooltipWrapper,
         shouldShowProductTrainingTooltip,
         renderProductTrainingTooltip,
+        isConfirming,
     ]);
 
     const listFooterContent = (

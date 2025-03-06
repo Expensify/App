@@ -376,7 +376,7 @@ const CONST = {
     ANIMATION_PAID_CHECKMARK_DELAY: 300,
     ANIMATION_THUMBSUP_DURATION: 250,
     ANIMATION_THUMBSUP_DELAY: 200,
-    ANIMATION_PAID_BUTTON_HIDE_DELAY: 1000,
+    ANIMATION_PAID_BUTTON_HIDE_DELAY: 300,
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     ARROW_HIDE_DELAY: 3000,
@@ -673,6 +673,14 @@ const CONST = {
             AGREEMENTS: 'AgreementsStep',
             FINISH: 'FinishStep',
         },
+        BANK_INFO_STEP_ACH_DATA_INPUT_IDS: {
+            ACCOUNT_HOLDER_NAME: 'addressName',
+            ACCOUNT_HOLDER_REGION: 'addressState',
+            ACCOUNT_HOLDER_CITY: 'addressCity',
+            ACCOUNT_HOLDER_ADDRESS: 'addressStreet',
+            ACCOUNT_HOLDER_POSTAL_CODE: 'addressZipCode',
+            ROUTING_CODE: 'routingNumber',
+        },
         BUSINESS_INFO_STEP: {
             PICKLIST: {
                 ANNUAL_VOLUME_RANGE: 'AnnualVolumeRange',
@@ -764,6 +772,12 @@ const CONST = {
         CA: 'CA',
         GB: 'GB',
         IT: 'IT',
+    },
+    SWIPE_DIRECTION: {
+        DOWN: 'down',
+        LEFT: 'left',
+        RIGHT: 'right',
+        UP: 'up',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
@@ -1050,6 +1064,7 @@ const CONST = {
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
         POLICY_CONNECTIONS_URL: (policyID: string) => `policy?param={"policyID":"${policyID}"}#connections`,
+        SIGN_OUT: 'signout',
     },
 
     EXPENSIFY_POLICY_DOMAIN,
@@ -1103,6 +1118,15 @@ const CONST = {
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORTID: '0',
         SPLIT_REPORTID: '-2',
+        PRIMARY_ACTIONS: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            REMOVE_HOLD: 'removeHold',
+            REVIEW_DUPLICATES: 'reviewDuplicates',
+            MARK_AS_CASH: 'markAsCash',
+        },
         ACTIONS: {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
@@ -1442,6 +1466,7 @@ const CONST = {
         USE_DEBOUNCED_STATE_DELAY: 300,
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
         PUSHER_PING_PONG: 'pusher_ping_pong',
+        LOCATION_UPDATE_INTERVAL: 5000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1481,6 +1506,10 @@ const CONST = {
             CURRENT: 'current',
             DRAFT: 'draft',
             BACKUP: 'backup',
+        },
+        LIABILITY_TYPE: {
+            RESTRICT: 'corporate',
+            ALLOW: 'personal',
         },
     },
 
@@ -6673,11 +6702,6 @@ const CONST = {
                 SUCCESS: 6,
             },
         },
-    },
-
-    HYBRID_APP: {
-        REORDERING_REACT_NATIVE_ACTIVITY_TO_FRONT: 'reorderingReactNativeActivityToFront',
-        SINGLE_NEW_DOT_ENTRY: 'singleNewDotEntry',
     },
 
     MIGRATED_USER_WELCOME_MODAL: 'migratedUserWelcomeModal',

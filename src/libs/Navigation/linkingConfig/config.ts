@@ -1546,7 +1546,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             screens: {
                 [SCREENS.SETTINGS.ROOT]: ROUTES.SETTINGS,
                 [SCREENS.SETTINGS.WORKSPACES]: {
-                    path: ROUTES.SETTINGS_WORKSPACES,
+                    path: ROUTES.SETTINGS_WORKSPACES.route,
                     exact: true,
                 },
                 [SCREENS.SETTINGS.PROFILE.ROOT]: {
