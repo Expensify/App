@@ -35,7 +35,6 @@ function useSidePane() {
 
     const [shouldHideSidePane, setShouldHideSidePane] = useState(true);
     const shouldHideSidePaneBackdrop = isPaneHidden || isExtraLargeScreenWidth || shouldUseNarrowLayout;
-    const shouldHideTopLevelBottomBar = !shouldHideSidePaneBackdrop || (!isPaneHidden && shouldUseNarrowLayout);
 
     const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
     const sidePaneTranslateX = useRef(new Animated.Value(isPaneHidden ? sidePaneWidth : 0));
@@ -65,7 +64,6 @@ function useSidePane() {
         sidePane,
         shouldHideSidePane,
         shouldHideSidePaneBackdrop,
-        shouldHideTopLevelBottomBar,
         sidePaneOffset,
         sidePaneTranslateX,
     };
