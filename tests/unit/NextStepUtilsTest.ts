@@ -78,6 +78,30 @@ describe('libs/NextStepUtils', () => {
         });
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {
+            test('Fix violations', () => {
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${currentUserEmail}`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'fix the issue(s)',
+                    },
+                ];
+
+                const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, true);
+
+                expect(result).toMatchObject(optimisticNextStep);
+            });
+
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 

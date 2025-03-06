@@ -67,6 +67,9 @@ type SearchAutocompleteListProps = {
 
     /** Callback to call when the list of autocomplete substitutions should be updated */
     updateAutocompleteSubstitutions: (item: SearchQueryItem) => void;
+
+    /** Whether to subscribe to KeyboardShortcut arrow keys events */
+    shouldSubscribeToArrowKeyEvents?: boolean;
 };
 
 const defaultListOptions = {
@@ -118,7 +121,15 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 }
 
 function SearchAutocompleteList(
-    {autocompleteQueryValue, searchQueryItem, getAdditionalSections, onListItemPress, setTextQuery, updateAutocompleteSubstitutions}: SearchAutocompleteListProps,
+    {
+        autocompleteQueryValue,
+        searchQueryItem,
+        getAdditionalSections,
+        onListItemPress,
+        setTextQuery,
+        updateAutocompleteSubstitutions,
+        shouldSubscribeToArrowKeyEvents,
+    }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const styles = useThemeStyles();
@@ -144,7 +155,7 @@ function SearchAutocompleteList(
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
-    const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.TRIP, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
+    const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -476,7 +487,7 @@ function SearchAutocompleteList(
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
             containerStyle={[styles.mh100]}
-            sectionListStyle={[styles.ph2, styles.pb2]}
+            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
             listItemWrapperStyle={[styles.pr0, styles.pl0]}
             getItemHeight={getItemHeight}
             onLayout={() => {
@@ -490,6 +501,7 @@ function SearchAutocompleteList(
             ref={ref}
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
+            shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
         />
     );
 }

@@ -9,8 +9,19 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getFilteredCardList, hasOnlyOneCardToAssign, isSelectedFeedExpired} from '@libs/CardUtils';
+import {
+    getCardFeedIcon,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getFilteredCardList,
+    hasCardListObject,
+    hasOnlyOneCardToAssign,
+    isCustomFeed,
+    isExpensifyCardFullySetUp,
+    isSelectedFeedExpired,
+} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPolicy, getWorkspaceAccountID} from '@libs/PolicyUtils';
@@ -20,7 +31,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {openAssignFeedCardPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,9 +53,11 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
@@ -54,6 +67,8 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
+
+    const shouldShowExpensifyCard = isExpensifyCardFullySetUp(policy, cardSettings);
 
     const handleSubmit = () => {
         if (!selectedFeed) {
@@ -99,6 +114,10 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
     const handleSelectFeed = (feed: CardFeedListItem) => {
         setSelectedFeed(feed.value);
+        const hasAllCardsData = hasCardListObject(workspaceAccountID, feed.value as CompanyCardFeed);
+        if (isCustomFeed(feed.value as CompanyCardFeed) && !hasAllCardsData) {
+            openAssignFeedCardPage(policyID, feed.value as CompanyCardFeed, workspaceAccountID);
+        }
         setShouldShowError(false);
     };
 
@@ -111,7 +130,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         isSelected: selectedFeed === key,
         leftElement: (
             <Icon
-                src={getCardFeedIcon(key)}
+                src={getCardFeedIcon(key, illustrations)}
                 height={variables.cardIconHeight}
                 width={variables.cardIconWidth}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -119,26 +138,25 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         ),
     }));
 
-    const feeds =
-        workspaceAccountID && policy?.areExpensifyCardsEnabled
-            ? [
-                  ...companyCardFeeds,
-                  {
-                      value: CONST.EXPENSIFY_CARD.NAME,
-                      text: translate('workspace.common.expensifyCard'),
-                      keyForList: CONST.EXPENSIFY_CARD.NAME,
-                      isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
-                      leftElement: (
-                          <Icon
-                              src={ExpensifyCardImage}
-                              width={variables.cardIconWidth}
-                              height={variables.cardIconHeight}
-                              additionalStyles={[styles.cardIcon, styles.mr3]}
-                          />
-                      ),
-                  },
-              ]
-            : companyCardFeeds;
+    const feeds = shouldShowExpensifyCard
+        ? [
+              ...companyCardFeeds,
+              {
+                  value: CONST.EXPENSIFY_CARD.NAME,
+                  text: translate('workspace.common.expensifyCard'),
+                  keyForList: CONST.EXPENSIFY_CARD.NAME,
+                  isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
+                  leftElement: (
+                      <Icon
+                          src={ExpensifyCardImage}
+                          width={variables.cardIconWidth}
+                          height={variables.cardIconHeight}
+                          additionalStyles={[styles.cardIcon, styles.mr3]}
+                      />
+                  ),
+              },
+          ]
+        : companyCardFeeds;
 
     const goBack = () => Navigation.goBack();
 
@@ -169,6 +187,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     onSubmit={handleSubmit}
                     message={translate('common.error.pleaseSelectOne')}
                     buttonText={translate('common.next')}
+                    isLoading={!!cardFeeds?.isLoading}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
