@@ -13,6 +13,7 @@ import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
@@ -20,7 +21,6 @@ import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
 import chatContentScrollViewPlatformStyles from './utils/chatContentScrollViewPlatformStyles';
-import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
@@ -201,7 +201,6 @@ const webViewStyles = (theme: ThemeColors) =>
 
             code: {
                 ...baseCodeTagStyles(theme),
-                ...(codeStyles.codeTextStyle as MixedStyleDeclaration),
                 paddingLeft: 5,
                 paddingRight: 5,
                 fontFamily: FontUtils.fontFamily.platform.MONOSPACE.fontFamily,
@@ -373,6 +372,9 @@ const styles = (theme: ThemeColors) =>
         },
         verticalAlignTop: {
             verticalAlign: 'top',
+        },
+        verticalAlignBottom: {
+            verticalAlign: 'bottom',
         },
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
@@ -1702,6 +1704,16 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
+        },
+
+        customEmoji: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            verticalAlign: 'bottom',
+            ...(getPlatform() === CONST.PLATFORM.IOS ? {marginBottom: -variables.fontSizeNormalHeight / 4} : {}),
+            // `fontSizeNormal` value for scale factor 1 is 15
+            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginBottom: -(variables.fontSizeEmojiNormal - 10)} : {}),
+            ...(getPlatform() === CONST.PLATFORM.ANDROID ? {marginRight: -(variables.fontSizeEmojiNormal - 15)} : {}),
         },
 
         sidebarFooterUsername: {
@@ -3142,6 +3154,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             opacity: 0,
             left: -9999,
+            top: -9999,
         },
 
         containerWithSpaceBetween: {
@@ -3354,10 +3367,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        codeWordWrapper: {
-            ...codeStyles.codeWordWrapper,
-        },
-
         codeWordStyle: {
             borderLeftWidth: 0,
             borderRightWidth: 0,
@@ -3368,7 +3377,6 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
             paddingRight: 0,
             justifyContent: 'center',
-            ...codeStyles.codeWordStyle,
         },
 
         codeFirstWordStyle: {
@@ -3383,10 +3391,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: 4,
             borderBottomRightRadius: 4,
             paddingRight: 5,
-        },
-
-        codePlainTextStyle: {
-            ...codeStyles.codePlainTextStyle,
         },
 
         fullScreenLoading: {
@@ -3753,8 +3757,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         narrowSearchHeaderStyle: {
-            paddingTop: 1,
+            paddingTop: 12,
             backgroundColor: theme.appBG,
+            flex: 1,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -5424,7 +5429,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             backgroundColor: theme.transparent,
             overflow: 'hidden',
-            marginBottom: -1,
+            position: 'absolute',
+            bottom: -1,
         },
 
         progressBar: {
@@ -5451,6 +5457,36 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.text,
             marginHorizontal: 8,
             alignSelf: 'center',
+        },
+
+        sidePaneOverlay: {
+            ...positioning.pFixed,
+            right: -variables.sideBarWidth,
+            backgroundColor: theme.overlay,
+            opacity: variables.overlayOpacity,
+        },
+        sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            right: 0,
+            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            height: '100%',
+            backgroundColor: theme.modalBackground,
+            borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
+            borderLeftColor: theme.border,
+        }),
+
+        expenseWidgetSeparator: {
+            marginHorizontal: 8,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeXLarge,
+            color: theme.textSupporting,
+        },
+        expenseWidgetMargin: {
+            margin: 5,
+        },
+
+        expenseWidgetRadius: {
+            borderRadius: variables.componentBorderRadiusNormal,
         },
     } satisfies Styles);
 
