@@ -3,8 +3,8 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
+import SidePane from '@components/SidePane';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePane from '@hooks/useSidePane';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -31,11 +31,10 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
-    const {shouldHideTopLevelBottomBar} = useSidePane();
 
     // That means it's visible and it's not covered by the overlay.
-    const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state) && !shouldHideTopLevelBottomBar;
-    const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state) && !shouldHideTopLevelBottomBar;
+    const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state);
+    const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state);
     const selectedTab = getSelectedTab(state);
 
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;
@@ -56,15 +55,18 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     }, [shouldDisplayBottomBar]);
 
     return (
-        <View style={styles.topLevelBottomTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
-            {/* We are not rendering BottomTabBar conditionally for two reasons
+        <>
+            <SidePane state={state} />
+            <View style={styles.topLevelBottomTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
+                {/* We are not rendering BottomTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
                 2. We need to hide tooltips as well if they were displayed. */}
-            <BottomTabBar
-                selectedTab={selectedTab}
-                isTooltipAllowed={isReadyToDisplayBottomBar}
-            />
-        </View>
+                <BottomTabBar
+                    selectedTab={selectedTab}
+                    isTooltipAllowed={isReadyToDisplayBottomBar}
+                />
+            </View>
+        </>
     );
 }
 

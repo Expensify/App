@@ -1,5 +1,6 @@
-import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import type {ParamListBase} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,22 +12,26 @@ import useSidePane from '@hooks/useSidePane';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {substituteRouteParameters} from '@libs/SidePaneUtils';
-import NAVIGATORS from '@src/NAVIGATORS';
 import getHelpContent from './getHelpContent';
 
-function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
+type SidePaneProps = {
+    state: PlatformStackNavigationState<ParamListBase>;
+};
+
+function SidePane({state}: SidePaneProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isExtraLargeScreenWidth, shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop} = useSidePane();
 
-    const {route, isInNarrowPaneModal} = useNavigationState((state) => {
+    const route = useMemo(() => {
         const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
         const activeRoute = Navigation.getActiveRouteWithoutParams();
-        return {route: substituteRouteParameters(activeRoute, params), isInNarrowPaneModal: state.routes.some((r) => r.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)};
-    });
+        return substituteRouteParameters(activeRoute, params);
+    }, [state]);
 
     const onClose = useCallback(
         (shouldUpdateNarrow = false) => {
@@ -56,7 +61,7 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     return (
         <>
             <View>
-                {shouldShowOverlay && !shouldHideSidePaneBackdrop && !isInNarrowPaneModal && (
+                {!shouldHideSidePaneBackdrop && !isInNarrowPaneModal && (
                     <Backdrop
                         onBackdropPress={onClose}
                         style={styles.sidePaneOverlay}
@@ -81,11 +86,6 @@ function SidePane({shouldShowOverlay = false}: {shouldShowOverlay?: boolean}) {
     );
 }
 
-function SidePaneWithOverlay() {
-    return <SidePane shouldShowOverlay />;
-}
-
 SidePane.displayName = 'SidePane';
 
 export default SidePane;
-export {SidePaneWithOverlay, useSidePane as useAnimatedPaddingRight};
