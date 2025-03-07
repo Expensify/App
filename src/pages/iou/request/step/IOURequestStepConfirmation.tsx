@@ -1,12 +1,12 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
-import DragAndDropProvider, {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -102,7 +102,7 @@ function IOURequestStepConfirmation({
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
-    const {isDraggingOver} = useContext(DragAndDropContext);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
@@ -876,7 +876,7 @@ function IOURequestStepConfirmation({
             testID={IOURequestStepConfirmation.displayName}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
-            <DragAndDropProvider isDisabled={!shouldShowThreeDotsButton}>
+            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver} isDisabled={!shouldShowThreeDotsButton}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
