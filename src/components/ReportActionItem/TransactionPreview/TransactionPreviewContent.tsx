@@ -18,6 +18,7 @@ import {
     canEditMoneyRequest,
     getTransactionDetails,
     getWorkspaceIcon,
+    isIOUReport,
     isPaidGroupPolicy,
     isPaidGroupPolicyExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
@@ -58,10 +59,31 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreviewContentUI from './TransactionPreviewContentUI';
 import type {TransactionPreviewProps} from './types';
+
+const emptyPersonalDetails: PersonalDetails = {
+    accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+    avatar: '',
+    displayName: undefined,
+    login: undefined,
+};
+
+const chooseIdBasedOnAmount = (amount: number, negativeId: number, positiveId: number) => (amount < 0 ? negativeId : positiveId);
+
+function getIOUData(managerID: number, ownerAccountID: number, reportID: string | undefined, personalDetails: PersonalDetailsList | undefined, amount: number) {
+    const fromID = chooseIdBasedOnAmount(amount, managerID, ownerAccountID);
+    const toID = chooseIdBasedOnAmount(amount, ownerAccountID, managerID);
+
+    return {
+        from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
+        to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
+        isIOU: reportID ? isIOUReport(reportID) : false,
+    };
+}
 
 function TransactionPreviewContent({
     isBillSplit,
@@ -343,11 +365,18 @@ function TransactionPreviewContent({
         clearIOUError(chatReportID);
     }, [chatReportID]);
 
+    const amount = (transaction && transaction.amount) ?? 0;
+
+    const {from, to, isIOU} = getIOUData(managerID, ownerAccountID, reportID, personalDetails, amount);
+
     return (
         <TransactionPreviewContentUI
             isDeleted={isDeleted}
             isScanning={isScanning}
             isWhisper={isWhisper}
+            from={from}
+            to={to}
+            isIOU={isIOU}
             isHovered={isHovered}
             isSettled={isSettled}
             isBillSplit={isBillSplit}

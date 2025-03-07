@@ -175,6 +175,15 @@ type TransactionPreviewUIProps = TransactionStatus &
 
         /** Localization or translation function, essential for supporting multiple languages in UI. */
         translate: LocaleContextProps['translate'];
+
+        /** Payer PersonalDetails */
+        from?: OnyxTypes.PersonalDetails | null;
+
+        /** Payee PersonalDetails */
+        to?: OnyxTypes.PersonalDetails | null;
+
+        /** Whether the report is IOU report */
+        isIOU: boolean;
     };
 
 export type {TransactionPreviewProps, TransactionPreviewUIProps};

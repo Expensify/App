@@ -8,6 +8,7 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
+import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,6 +57,9 @@ function TransactionPreviewContentUI({
     navigateToReviewFields,
     onPreviewPressed,
     RBRmessage,
+    from,
+    to,
+    isIOU,
 }: TransactionPreviewUIProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -101,6 +105,19 @@ function TransactionPreviewContentUI({
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
+                                    {isIOU && !!from && !!to && (
+                                        <View style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, flexDirection: 'row'}}>
+                                            <UserInfoCellsWithArrow
+                                                styles={styles}
+                                                theme={theme}
+                                                shouldDisplayArrowIcon
+                                                participantFrom={from}
+                                                participantFromDisplayName={from.displayName ?? from.login ?? ''}
+                                                participantTo={to}
+                                                participantToDisplayName={to.displayName ?? to.login ?? ''}
+                                            />
+                                        </View>
+                                    )}
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                         <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{previewHeaderText}</Text>
                                         {isBillSplit && (

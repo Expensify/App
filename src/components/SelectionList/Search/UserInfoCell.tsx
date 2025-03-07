@@ -6,10 +6,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 
 type UserInfoCellProps = {
-    participant: SearchPersonalDetails;
+    participant: SearchPersonalDetails | PersonalDetails;
     displayName: string;
 };
 
