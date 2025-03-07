@@ -202,7 +202,7 @@ const modalScreenListenersWithCancelSearch = {
 };
 
 // AuthScreens has been migrated to useOnyx. In the previous version, withOnyx waited until all the Onyx values are loaded and then rendered the component first time.
-// To avoid breaking functionalities that rely on this logic, we are keeping the same behavior by waiting for the Onyx values to be loaded before rendering the component.
+// To avoid breaking functionalities that rely on this logic, we keep the same behavior by waiting for the Onyx values to be loaded before rendering the component.
 function AuthScreens() {
     const [, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
     const [, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
