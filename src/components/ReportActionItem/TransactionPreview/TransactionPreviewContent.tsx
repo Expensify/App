@@ -106,7 +106,7 @@ function TransactionPreviewContent({
                             <View style={styles.gap3}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     {isIOU && !!from && !!to && (
-                                        <View style={{flex: 1, display: 'flex', alignItems: 'center', gap: 10, flexDirection: 'row'}}>
+                                        <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
                                             <UserInfoCellsWithArrow
                                                 styles={styles}
                                                 theme={theme}
@@ -115,6 +115,7 @@ function TransactionPreviewContent({
                                                 participantFromDisplayName={from.displayName ?? from.login ?? ''}
                                                 participantTo={to}
                                                 participantToDisplayName={to.displayName ?? to.login ?? ''}
+                                                avatarSize="subscript"
                                             />
                                         </View>
                                     )}
@@ -130,10 +131,26 @@ function TransactionPreviewContent({
                                                 />
                                             </View>
                                         )}
+                                        {!isBillSplit && !shouldShowDescription && !shouldShowMerchant && (
+                                            <Text
+                                                fontSize={variables.fontSizeNormal}
+                                                style={[isDeleted && styles.lineThrough]}
+                                                numberOfLines={1}
+                                            >
+                                                {displayAmount}
+                                            </Text>
+                                        )}
                                     </View>
                                     <View>
                                         <View style={[styles.flexRow]}>
-                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                            <View
+                                                style={[
+                                                    styles.flex1,
+                                                    styles.flexRow,
+                                                    styles.alignItemsCenter,
+                                                    !shouldShowMerchant && !shouldShowDescription && isBillSplit ? styles.justifyContentEnd : styles.justifyContentBetween,
+                                                ]}
+                                            >
                                                 {(shouldShowMerchant || shouldShowDescription) && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
@@ -143,13 +160,15 @@ function TransactionPreviewContent({
                                                         {merchantOrDescription}
                                                     </Text>
                                                 )}
-                                                <Text
-                                                    fontSize={variables.fontSizeNormal}
-                                                    style={[isDeleted && styles.lineThrough]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {displayAmount}
-                                                </Text>
+                                                {(shouldShowMerchant || shouldShowDescription || isBillSplit) && (
+                                                    <Text
+                                                        fontSize={variables.fontSizeNormal}
+                                                        style={[isDeleted && styles.lineThrough]}
+                                                        numberOfLines={1}
+                                                    >
+                                                        {displayAmount}
+                                                    </Text>
+                                                )}
                                             </View>
                                         </View>
                                         <View style={[styles.flexRow, styles.justifyContentEnd]}>

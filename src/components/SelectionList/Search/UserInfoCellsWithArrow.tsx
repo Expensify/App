@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {ThemeColors} from '@styles/theme/types';
+import type {AvatarSizeName} from '@styles/utils';
 import variables from '@styles/variables';
 import type {ThemeStyles} from '@src/styles';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -17,6 +18,7 @@ function UserInfoCellsWithArrow({
     participantFromDisplayName,
     participantTo,
     participantToDisplayName,
+    avatarSize,
 }: {
     styles: ThemeStyles;
     theme: ThemeColors;
@@ -25,6 +27,7 @@ function UserInfoCellsWithArrow({
     participantFromDisplayName: string;
     participantTo: SearchPersonalDetails | PersonalDetails;
     participantToDisplayName: string;
+    avatarSize?: AvatarSizeName;
 }) {
     return (
         <>
@@ -32,6 +35,7 @@ function UserInfoCellsWithArrow({
                 <UserInfoCell
                     participant={participantFrom}
                     displayName={participantFromDisplayName}
+                    avatarSize={avatarSize}
                 />
             </View>
             {shouldDisplayArrowIcon && (
@@ -46,6 +50,7 @@ function UserInfoCellsWithArrow({
                 <UserInfoCell
                     participant={participantTo}
                     displayName={participantToDisplayName}
+                    avatarSize={avatarSize}
                 />
             </View>
         </>
