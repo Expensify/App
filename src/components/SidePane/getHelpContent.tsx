@@ -76,13 +76,16 @@ const helpContentMap: Record<string, HelpContent> = {
 type DiagnosticDataProps = {
     styles: ThemeStyles;
     route: string;
+    isExactMatch?: boolean;
     children?: ReactNode;
 };
 
-function DiagnosticData({styles, route, children}: DiagnosticDataProps) {
+function DiagnosticData({styles, route, children, isExactMatch}: DiagnosticDataProps) {
+    const diagnosticTitle = isExactMatch ? 'Help content found for route:' : 'Missing help content for route:';
+
     return (
         <View style={styles.ph5}>
-            <Text style={[styles.textHeadlineH1, styles.mb4]}>Missing help content for route:</Text>
+            <Text style={[styles.textHeadlineH1, styles.mb4]}>{diagnosticTitle}</Text>
             <Text style={styles.textNormal}>{route}</Text>
             {!!children && (
                 <>
@@ -110,18 +113,19 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
     }
 
     if (currentNode?.content) {
-        if (!isExactMatch && !isProduction) {
-            return (
-                <DiagnosticData
-                    styles={styles}
-                    route={route}
-                >
-                    {currentNode.content(styles)}
-                </DiagnosticData>
-            );
+        if (isProduction) {
+            return <View style={styles.ph5}>{currentNode.content(styles)}</View>;
         }
 
-        return <View style={styles.ph5}>{currentNode.content(styles)}</View>;
+        return (
+            <DiagnosticData
+                styles={styles}
+                route={route}
+                isExactMatch={isExactMatch}
+            >
+                {currentNode.content(styles)}
+            </DiagnosticData>
+        );
     }
 
     return (
