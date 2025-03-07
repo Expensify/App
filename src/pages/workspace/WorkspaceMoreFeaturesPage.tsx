@@ -10,7 +10,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -78,7 +77,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
     const {translate} = useLocalize();
-    const {canUsePerDiem} = usePermissions();
     const hasAccountingConnection = !isEmptyObject(policy?.connections);
     const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled =
@@ -155,25 +153,23 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     });
 
-    if (canUsePerDiem) {
-        spendItems.push({
-            icon: Illustrations.PerDiem,
-            titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
-            isActive: policy?.arePerDiemRatesEnabled ?? false,
-            pendingAction: policy?.pendingFields?.arePerDiemRatesEnabled,
-            action: (isEnabled: boolean) => {
-                if (!policyID) {
-                    return;
-                }
-                if (isEnabled && !isControlPolicy(policy)) {
-                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
-                    return;
-                }
-                enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true);
-            },
-        });
-    }
+    spendItems.push({
+        icon: Illustrations.PerDiem,
+        titleTranslationKey: 'workspace.moreFeatures.perDiem.title',
+        subtitleTranslationKey: 'workspace.moreFeatures.perDiem.subtitle',
+        isActive: policy?.arePerDiemRatesEnabled ?? false,
+        pendingAction: policy?.pendingFields?.arePerDiemRatesEnabled,
+        action: (isEnabled: boolean) => {
+            if (!policyID) {
+                return;
+            }
+            if (isEnabled && !isControlPolicy(policy)) {
+                Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                return;
+            }
+            enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true);
+        },
+    });
 
     const manageItems: Item[] = [
         {
