@@ -11,6 +11,7 @@ import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +34,8 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
 
     const {q, name, groupBy} = route.params;
+
+    const {activeWorkspaceID} = useActiveWorkspace();
 
     const {queryJSON, policyID} = useMemo(() => {
         const parsedQuery = buildSearchQueryJSON(q);
@@ -81,7 +84,7 @@ function SearchPage({route}: SearchPageProps) {
                                 <View style={styles.flex1}>
                                     <HeaderGap />
                                     <TopBar
-                                        activeWorkspaceID={policyID}
+                                        activeWorkspaceID={activeWorkspaceID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                     />

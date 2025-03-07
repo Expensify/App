@@ -12,7 +12,7 @@ function resetPolicyIDInNavigationState() {
     const rootState = navigationRef.getRootState();
     const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === SCREENS.SEARCH.ROOT);
 
-    if (!lastPolicyRoute) {
+    if (!lastPolicyRoute || !lastPolicyRoute.params) {
         return;
     }
 
