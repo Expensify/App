@@ -71,9 +71,9 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
     }, [params]);
 
     const onPdfLoadError = useCallback(
-        (setIsModalOpen?: (isModalOpen: boolean) => void) => {
+        (closeModal?: (shouldCallDirectly?: boolean) => void) => {
             isPDFLoadError.current = true;
-            setIsModalOpen?.(false);
+            closeModal?.();
         },
         [isPDFLoadError],
     );

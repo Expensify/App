@@ -121,7 +121,7 @@ type AttachmentModalBaseContentProps = {
     /** Function to submit and close the modal */
     onSubmitAndClose?: () => void;
     /** Function to handle pdf load error */
-    onPdfLoadError?: (setIsModalOpen?: (isModalOpen: boolean) => void) => void;
+    onPdfLoadError?: (closeModal?: (shouldCallDirectly?: boolean) => void) => void;
     /** Function to hide the invalid reason modal */
     onInvalidReasonModalHide?: () => void;
     /** Function to handle upload file validation */
@@ -509,7 +509,7 @@ function AttachmentModalBaseContent({
                                         isAuthTokenRequired={isAuthTokenRequiredState}
                                         file={file}
                                         onToggleKeyboard={setIsConfirmButtonDisabled}
-                                        onPDFLoadError={() => onPdfLoadError?.(setIsModalOpen)}
+                                        onPDFLoadError={() => onPdfLoadError?.(closeModal)}
                                         isWorkspaceAvatar={isWorkspaceAvatar}
                                         maybeIcon={maybeIcon}
                                         fallbackSource={fallbackSource}

@@ -202,7 +202,7 @@ https://help.expensify.com/articles/expensify-classic/settings/account-settings/
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Manage-devices,https://help.expensify.com/articles/expensify-classic/settings/Manage-devices
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts,https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts
 https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Notifications,https://help.expensify.com/articles/expensify-classic/settings/Set-Notifications
-https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-time-zone,https://help.expensify.com/articles/expensify-classic/settings/Set-time-zone
+https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-time-zone,https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone
 https://help.expensify.com/articles/expensify-classic/travel/Coming-Soon,https://help.expensify.com/expensify-classic/hubs/travel/
 https://help.expensify.com/articles/new-expensify/expenses/Manually-submit-reports-for-approval,https://help.expensify.com/new-expensify/hubs/expenses/
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Reimbursements.html,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Receive-Payments
@@ -382,7 +382,7 @@ https://community.expensify.com/discussion/5539/deep-dive-what-is-a-copilot-what
 https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Vacation-Delegate,https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Delegate-when-out-of-office
 https://community.expensify.com/discussion/5678/deep-dive-secondary-login-merge-accounts-what-does-this-mean,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Merge-accounts
 https://community.expensify.com/discussion/5103/how-to-create-and-use-custom-units/,https://help.expensify.com/
-https://community.expensify.com/discussion/6530/how-to-set-your-time-zone-for-report-history-comments,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-time-zone
+https://community.expensify.com/discussion/6530/how-to-set-your-time-zone-for-report-history-comments,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Time-Zone
 https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify,https://help.expensify.com/articles/expensify-classic/settings/account-settings/Set-Notifications
 https://community.expensify.com/discussion/5793/how-to-connect-your-personal-card-to-import-expenses/,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Personal-Credit-Cards
 https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information,https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security
@@ -574,7 +574,7 @@ https://help.expensify.com/articles/new-expensify/getting-started/Upgrade-to-a-C
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports-Invoices-and-Bills,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Reports
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/pay-an-invoice.html,https://help.expensify.com/articles/new-expensify/expenses-&-payments/Pay-an-invoice
 https://community.expensify.com/discussion/4707/how-to-set-up-your-mobile-app,https://help.expensify.com/articles/expensify-classic/getting-started/Join-your-company's-workspace#download-the-mobile-app
-https://community.expensify.com/discussion/5179/faq-what-does-a-policy-for-which-you-are-an-admin-has-out-of-date-billing-information-mean,https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-date-Billing
+https://community.expensify.com/discussion/5179/faq-what-does-a-policy-for-which-you-are-an-admin-has-out-of-date-billing-information-mean,https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-Date-Billing
 https://community.expensify.com/discussion/6179/setting-up-a-receipt-or-travel-integration-with-expensify,https://help.expensify.com/articles/expensify-classic/connections/Additional-Travel-Integrations
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-Bank-Account
 https://community.expensify.com//discussion/6927/deep-dive-how-can-i-estimate-the-savings-applied-to-my-bill,https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Overview#savings-calculator
@@ -623,7 +623,6 @@ https://help.expensify.com/articles/expensify-classic/settings/Change-or-add-ema
 https://help.expensify.com/articles/expensify-classic/domains/SAML-SSO,https://help.expensify.com/articles/expensify-classic/domains/Managing-Single-Sign-On-(SSO)-in-Expensify
 https://help.expensify.com/articles/expensify-classic/connect-credit-cards/company-cards/Direct-Bank-Connections,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Connect-Company-Cards
 https://help.expensify.com/articles/new-expensify/settings/Add-profile-photo,https://help.expensify.com/articles/new-expensify/settings/Manage-Profile-and-Account-Preferences
-https://help.expensify.com/articles/new-expensify/settings/Set-timezone,https://help.expensify.com/articles/new-expensify/settings/Manage-Profile-and-Account-Preferences
 https://help.expensify.com/articles/new-expensify/settings/Switch-account-language-to-Spanish,https://help.expensify.com/articles/new-expensify/settings/Manage-Profile-and-Account-Preferences
 https://help.expensify.com/articles/new-expensify/settings/Update-Notification-Preferences,https://help.expensify.com/articles/new-expensify/settings/Manage-Profile-and-Account-Preferences
 https://help.expensify.com/articles/new-expensify/settings/Update-your-profile-status,https://help.expensify.com/articles/new-expensify/settings/Manage-Profile-and-Account-Preferences
@@ -639,6 +638,7 @@ https://help.expensify.com/articles/expensify-classic/travel/Approve-travel-expe
 https://help.expensify.com/articles/expensify-classic/travel/Book-with-Expensify-Travel.md,https://help.expensify.com/articles/new-expensify/travel/Book-with-Expensify-Travel
 https://help.expensify.com/articles/expensify-classic/travel/Configure-travel-policy-and-preferences.md,https://help.expensify.com/articles/new-expensify/travel/Configure-travel-policy-and-preferences
 https://help.expensify.com/articles/expensify-classic/travel/Track-Travel-Analytics.md,https://help.expensify.com/articles/new-expensify/travel/Track-Travel-Analytics
+https://help.expensify.com/articles/new-expensify/expenses-&-payments/create-per-diem-expense,https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-Per-Diem-expense
 https://help.expensify.com/articles/expensify-classic/connections/ADP,https://help.expensify.com/articles/expensify-classic/connections/Connect-to-ADP
 https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds,https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds
 https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Company-Card-Settings,https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings
@@ -659,3 +659,6 @@ https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments
 https://help.expensify.com/articles/expensify-classic/expenses/Add-Invoices-in-Bulk,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Send-and-Pay-Invoices
 https://help.expensify.com/articles/expensify-classic/expenses/Send-and-Receive-Payment-for-Invoices,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Send-and-Pay-Invoices
 https://help.expensify.com/articles/expensify-classic/expenses/Create-Expense-Rules,https://help.expensify.com/articles/expensify-classic/expenses/Expense-Rules
+https://help.expensify.com/articles/expensify-classic/expensify-card/Statements,https://help.expensify.com/articles/expensify-classic/expensify-card/Expensify-Card-Statements
+https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-date-Billing,https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-Date-Billing
+https://help.expensify.com/articles/expensify-classic/settings/Set-time-zone,https://help.expensify.com/articles/expensify-classic/settings/Set-Time-Zone

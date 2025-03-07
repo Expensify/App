@@ -157,6 +157,7 @@ function ReportActionCompose({
         const initialModalState = getModalState();
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
+    const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -479,6 +480,7 @@ function ReportActionCompose({
                                 reportID={reportID}
                                 report={report}
                                 reportParticipantIDs={reportParticipantIDs}
+                                isFullComposerAvailable={isFullComposerAvailable}
                                 isComposerFullSize={isComposerFullSize}
                                 isBlockedFromConcierge={isBlockedFromConcierge}
                                 disabled={disabled}
@@ -516,6 +518,7 @@ function ReportActionCompose({
                                 isMenuVisible={isMenuVisible}
                                 inputPlaceholder={inputPlaceholder}
                                 isComposerFullSize={isComposerFullSize}
+                                setIsFullComposerAvailable={setIsFullComposerAvailable}
                                 onFilePasted={showAttachmentModal}
                                 onCleared={submitForm}
                                 isBlockedFromConcierge={isBlockedFromConcierge}

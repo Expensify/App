@@ -1056,7 +1056,8 @@ function PureReportActionItem({
                 {shouldDisplayThreadReplies && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemThread
-                            childReportID={`${action.childReportID}`}
+                            reportAction={action}
+                            reportID={reportID}
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
                             isHovered={hovered || isContextMenuActive}
