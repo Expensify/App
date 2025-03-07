@@ -11,8 +11,8 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {getFieldRequiredErrors, isValidWebsite} from '@libs/ValidationUtils';
+import {addBusinessWebsiteForDraft} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -32,9 +32,9 @@ function WebsiteBusiness({onNext, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.website && !ValidationUtils.isValidWebsite(Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
+            if (values.website && !isValidWebsite(Str.sanitizeURL(values.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
                 errors.website = translate('bankAccount.error.website');
             }
 
@@ -46,7 +46,7 @@ function WebsiteBusiness({onNext, isEditing}: SubStepProps) {
         fieldIds: STEP_FIELDS,
         onNext: (values) => {
             const website = Str.sanitizeURL((values as {website: string})?.website, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-            BankAccounts.addBusinessWebsiteForDraft(website);
+            addBusinessWebsiteForDraft(website);
             onNext();
         },
         shouldSaveDraft: true,
