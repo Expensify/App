@@ -28,7 +28,6 @@ import {
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
-    isClosedExpenseReportWithNoExpenses,
     isInvoiceReport,
     isReportApproved,
     navigateBackOnDeleteTransaction,
@@ -215,7 +214,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // to avoid any flicker during transitions between online/offline states
     const optimisticNextStep = policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    const shouldShowNextStep = !isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
+    const shouldShowNextStep = transactions?.length !== 0 && isFromPaidPolicy && !!optimisticNextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
         isDuplicate ||
         shouldShowSettlementButton ||
