@@ -316,7 +316,6 @@ function BaseVideoPlayer({
                 return;
             }
             currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false, positionMillis: 0}).then(() => {
-                console.log('[wildebug] aosidjfasdf');
                 currentVideoPlayerRef.current = null;
             });
         },
@@ -332,7 +331,6 @@ function BaseVideoPlayer({
         if (currentVideoPlayerRef.current) {
             pauseVideo();
         }
-        console.log('[wildebug] asiodjfasdfasdf');
 
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
