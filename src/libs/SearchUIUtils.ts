@@ -431,19 +431,21 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
         .filter(isPolicyEntry)
         .map((key) => data[key]);
 
-        
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportActions = data[key];
             for (const reportAction of Object.values(reportActions)) {
-            
-    
                 const from = data.personalDetailsList?.[reportAction.accountID];
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const invoiceReceiverPolicy: SearchPolicy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
-                if (isDeletedAction(reportAction) || isResolvedActionableWhisper(reportAction) || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED || isCreatedAction(reportAction)) {
+                if (
+                    isDeletedAction(reportAction) ||
+                    isResolvedActionableWhisper(reportAction) ||
+                    reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
+                    isCreatedAction(reportAction)
+                ) {
                     // eslint-disable-next-line no-continue
                     continue;
                 }
