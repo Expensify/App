@@ -18,6 +18,7 @@ import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoP
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
+import useSearchState from '@hooks/useSearchState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {canUseTouchScreen as canUseTouchScreenLib} from '@libs/DeviceCapabilities';
@@ -102,6 +103,7 @@ function BaseVideoPlayer({
     const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, setCurrentPlaybackSpeed, setSource: setPopoverMenuSource} = useVideoPopoverMenuContext();
     const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
     const shouldUseNewRate = typeof source === 'number' || !source || source.uri !== sourceURL;
+    const {isOnSearch} = useSearchState();
 
     const togglePlayCurrentVideo = useCallback(() => {
         setIsEnded(false);
@@ -314,6 +316,7 @@ function BaseVideoPlayer({
                 return;
             }
             currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false, positionMillis: 0}).then(() => {
+                console.log('[wildebug] aosidjfasdf');
                 currentVideoPlayerRef.current = null;
             });
         },
@@ -329,6 +332,8 @@ function BaseVideoPlayer({
         if (currentVideoPlayerRef.current) {
             pauseVideo();
         }
+        console.log('[wildebug] asiodjfasdfasdf');
+
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
@@ -348,7 +353,8 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
+        // in search page, we don't have active report id, so comparing reportID is not necessary
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || (reportID !== currentlyPlayingURLReportID && !isOnSearch)) {
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
