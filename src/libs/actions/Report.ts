@@ -162,7 +162,6 @@ import type {NotificationPreference, Participants, Participant as ReportParticip
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey} from './CachedPDFPaths';
-import {setDownload} from './Download';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
 import {
