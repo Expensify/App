@@ -51,7 +51,6 @@ const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> |
 function AccountValidatePage() {
     const [hasMagicCodeBeenSent, setMagicCodeBeenSent] = useState(false);
     const [mergeWithValidateCode] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.mergeWithValidateCode});
-    const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge});
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE>>();
 
