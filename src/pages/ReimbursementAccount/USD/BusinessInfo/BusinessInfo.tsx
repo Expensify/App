@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidWebsite} from '@libs/ValidationUtils';
 import getInitialSubStepForBusinessInfo from '@pages/ReimbursementAccount/USD/utils/getInitialSubStepForBusinessInfo';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {updateCompanyInformationForBankAccount} from '@userActions/BankAccounts';
@@ -69,7 +69,7 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
                     ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
                     companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
                     companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
-                    website: ValidationUtils.isValidWebsite(companyWebsite) ? companyWebsite : undefined,
+                    website: isValidWebsite(companyWebsite) ? companyWebsite : undefined,
                 },
                 policyID,
                 isConfirmPage,

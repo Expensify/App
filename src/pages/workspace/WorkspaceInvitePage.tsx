@@ -14,6 +14,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
+import {clearErrors, openWorkspaceInvitePage as policyOpenWorkspaceInvitePage, setWorkspaceErrors} from '@libs/actions/Policy/Policy';
 import {searchInServer} from '@libs/actions/Report';
 import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -27,8 +29,6 @@ import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import * as Member from '@userActions/Policy/Member';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -61,14 +61,14 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-        Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
+        policyOpenWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
 
     useEffect(() => {
-        Policy.clearErrors(route.params.policyID);
+        clearErrors(route.params.policyID);
         openWorkspaceInvitePage();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policyID changes remount the component
     }, []);
@@ -214,7 +214,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
 
     const toggleOption = (option: MemberForList) => {
-        Policy.clearErrors(route.params.policyID);
+        clearErrors(route.params.policyID);
 
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
@@ -234,7 +234,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             errors.noUserSelected = 'true';
         }
 
-        Policy.setWorkspaceErrors(route.params.policyID, errors);
+        setWorkspaceErrors(route.params.policyID, errors);
         const isValid = isEmptyObject(errors);
 
         if (!isValid) {
@@ -251,7 +251,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
         });
-        Member.setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
+        setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
     }, [route.params.policyID, selectedOptions]);
 
@@ -307,7 +307,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     title={translate('workspace.invite.invitePeople')}
                     subtitle={policyName}
                     onBackButtonPress={() => {
-                        Policy.clearErrors(route.params.policyID);
+                        clearErrors(route.params.policyID);
                         Navigation.goBack();
                     }}
                 />
