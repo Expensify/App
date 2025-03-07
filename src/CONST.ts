@@ -22,6 +22,7 @@ const EMPTY_OBJECT = Object.freeze({});
 
 const DEFAULT_NUMBER_ID = 0;
 
+const test = 'test';
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
