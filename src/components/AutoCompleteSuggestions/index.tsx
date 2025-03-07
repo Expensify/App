@@ -159,7 +159,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset, isKeyboardAnimatingRef]);
 
     // Only prevent rendering if we have no suggestions
-    if (!suggestionsLength) {
+    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || !suggestionsLength) {
         return null;
     }
 
