@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAdmin, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesSettingsUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
@@ -118,13 +119,11 @@ function WorkspaceSwitcherPage() {
             }));
     }, [policies, isOffline, currentUserLogin, getIndicatorTypeForPolicy, hasUnreadData, activeWorkspaceID]);
 
-    const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
-        () =>
-            usersWorkspaces
-                .filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? ''))
-                .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID)),
-        [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID],
-    );
+    const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(() => {
+        return tokenizedSearch(usersWorkspaces, debouncedSearchTerm, (policy) => [policy.text ?? '']).sort((policy1, policy2) =>
+            sortWorkspacesBySelected({policyID: policy1.policyID, name: policy1.text}, {policyID: policy2.policyID, name: policy2.text}, activeWorkspaceID),
+        );
+    }, [debouncedSearchTerm, usersWorkspaces, activeWorkspaceID]);
 
     const sections = useMemo(() => {
         const options: Array<SectionListDataType<WorkspaceListItem>> = [
@@ -180,5 +179,7 @@ function WorkspaceSwitcherPage() {
 }
 
 WorkspaceSwitcherPage.displayName = 'WorkspaceSwitcherPage';
+
+export type {WorkspaceListItem};
 
 export default WorkspaceSwitcherPage;
