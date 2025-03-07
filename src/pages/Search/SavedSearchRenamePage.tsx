@@ -26,12 +26,14 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
     const applyFiltersAndNavigate = () => {
         clearAdvancedFilters();
         Navigation.dismissModal();
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: q,
-                name: newName?.trim(),
-            }),
-        );
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: q,
+                    name: newName?.trim(),
+                }),
+            );
+        });
     };
 
     const onSaveSearch = () => {

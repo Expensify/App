@@ -108,6 +108,7 @@ import type {
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     NeedCategoryForExportToIntegrationParams,
+    NewWorkspaceNameParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -359,7 +360,6 @@ const translations = {
             phoneNumber: `Introduce un teléfono válido, incluyendo el código del país (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio.',
             requestModified: 'Esta solicitud está siendo modificada por otro miembro.',
-            characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida.',
             invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy.',
@@ -513,6 +513,7 @@ const translations = {
         subrate: 'Subtasa',
         perDiem: 'Per diem',
         validate: 'Validar',
+        help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
     },
@@ -1589,10 +1590,10 @@ const translations = {
             lastDayOfMonth: 'Último día del mes',
             lastBusinessDayOfMonth: 'Último día hábil del mes',
             ordinals: {
-                one: '.º',
-                two: '.º',
-                few: '.º',
-                other: '.º',
+                one: 'º',
+                two: 'º',
+                few: 'º',
+                other: 'º',
                 /* eslint-disable @typescript-eslint/naming-convention */
                 '1': 'Primero',
                 '2': 'Segundo',
@@ -2663,9 +2664,9 @@ const translations = {
             title: 'Comienza con Expensify Travel',
             message: 'Tendrás que usar tu correo electrónico laboral (por ejemplo, nombre@empresa.com) con Expensify Travel, no tu correo personal (por ejemplo, nombre@gmail.com).',
         },
-        maintenance: {
-            title: '¡Expensify Travel está recibiendo una actualización! 🚀',
-            message: `No estará disponible del 23 al 24 de febrero, pero volverá mejor que nunca después de eso. Si necesitas ayuda con un viaje actual, por favor llama al +1 866-296-7768. ¡Gracias!`,
+        blockedFeatureModal: {
+            title: 'Expensify Travel ha sido deshabilitado',
+            message: 'Tu administrador ha desactivado Expensify Travel. Por favor, sigue la política de reservas de tu empresa para organizar tus viajes.',
         },
     },
     workspace: {
@@ -3894,6 +3895,8 @@ const translations = {
             workflows: {
                 title: 'Flujos de trabajo',
                 subtitle: 'Configura cómo se aprueba y paga los gastos.',
+                disableApprovalPrompt:
+                    'Las Tarjetas Expensify de este espacio de trabajo dependen actualmente de la aprobación para definir sus Límites Inteligentes. Por favor, modifica los tipos de límite de cualquier Tarjeta Expensify con Límites Inteligentes antes de deshabilitar las aprobaciones.',
             },
             invoices: {
                 title: 'Facturas',
@@ -4073,6 +4076,8 @@ const translations = {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
             confirmWorkspace: 'Confirmar espacio de trabajo',
+            myGroupWorkspace: 'Mi Espacio de Trabajo en Grupo',
+            workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Espacio de trabajo${workspaceNumber ? ` ${workspaceNumber}` : ''} de ${userName}`,
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
@@ -4923,6 +4928,12 @@ const translations = {
             `actualizó "Antigüedad máxima de gastos (días)" a "${newValue}" (previamente "${oldValue === 'false' ? CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue}")`,
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
             `actualizó "Volver a facturar gastos a clientes" a "${newValue}" (previamente "${oldValue}")`,
+        updateMonthlyOffset: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => {
+            if (!oldValue) {
+                return `establecer la fecha de envío del informe mensual a "${newValue}"`;
+            }
+            return `actualizar la fecha de envío del informe mensual a "${newValue}" (previamente "${oldValue}")`;
+        },
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
