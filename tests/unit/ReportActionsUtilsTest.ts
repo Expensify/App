@@ -636,4 +636,82 @@ describe('ReportActionsUtils', () => {
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
     });
+
+    describe('shouldShowAddMissingDetails', () => {
+        it('should return true if personal detail is not completed', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                address: {
+                    street: '123 Main St',
+                    city: 'New York',
+                    state: 'NY',
+                    postalCode: '10001',
+                },
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(true);
+        });
+        it('should return true if card state is STATE_NOT_ISSUED', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(true);
+        });
+        it('should return false if no condition is matched', async () => {
+            const card = {
+                cardID: 1,
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                bank: 'vcf',
+                domainName: 'expensify',
+                lastUpdated: '2022-11-09 22:27:01.825',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            };
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            expect(res).toEqual(false);
+        });
+    });
 });
