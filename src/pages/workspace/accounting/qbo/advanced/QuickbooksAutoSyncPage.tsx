@@ -6,15 +6,15 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateQuickbooksOnlineAutoSync} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearQuickbooksOnlineAutoSyncErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -23,7 +23,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const config = policy?.connections?.quickbooksOnline?.config;
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
@@ -50,10 +50,10 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     switchAccessibilityLabel={translate('workspace.qbo.advancedConfig.autoSyncDescription')}
                     shouldPlaceSubtitleBelowSwitch
-                    onCloseError={() => Policy.clearQuickbooksOnlineAutoSyncErrorField(policyID)}
-                    onToggle={(isEnabled) => Connections.updateQuickbooksOnlineAutoSync(policyID, isEnabled)}
+                    onCloseError={() => clearQuickbooksOnlineAutoSyncErrorField(policyID)}
+                    onToggle={(isEnabled) => updateQuickbooksOnlineAutoSync(policyID, isEnabled)}
                     pendingAction={pendingAction}
-                    errors={ErrorUtils.getLatestErrorField(config, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC)}
+                    errors={getLatestErrorField(config, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC)}
                 />
                 {!!config?.autoSync?.enabled && (
                     <OfflineWithFeedback pendingAction={pendingAction}>

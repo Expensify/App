@@ -166,7 +166,10 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     };
 }
 
-function updateQuickbooksOnlineAutoSync<TSettingValue extends Connections['quickbooksOnline']['config']['autoSync']['enabled']>(policyID: string, settingValue: TSettingValue) {
+function updateQuickbooksOnlineAutoSync<TSettingValue extends Connections['quickbooksOnline']['config']['autoSync']['enabled']>(policyID: string | undefined, settingValue: TSettingValue) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC, {enabled: settingValue}, {enabled: !settingValue});
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -189,10 +192,13 @@ function updateQuickbooksOnlineEnableNewCategories<TSettingValue extends Connect
 }
 
 function updateQuickbooksOnlineAutoCreateVendor<TConfigUpdate extends Partial<Connections['quickbooksOnline']['config']>>(
-    policyID: string,
+    policyID: string | undefined,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate, configCurrentData);
 
     const parameters: UpdateQuickbooksOnlineAutoCreateVendorParams = {
@@ -205,7 +211,10 @@ function updateQuickbooksOnlineAutoCreateVendor<TConfigUpdate extends Partial<Co
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_AUTO_CREATE_VENDOR, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineSyncPeople<TSettingValue extends Connections['quickbooksOnline']['config']['syncPeople']>(policyID: string, settingValue: TSettingValue) {
+function updateQuickbooksOnlineSyncPeople<TSettingValue extends Connections['quickbooksOnline']['config']['syncPeople']>(policyID: string | undefined, settingValue: TSettingValue) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE, settingValue, !settingValue);
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -340,11 +349,11 @@ function updateQuickbooksOnlineNonReimbursableExpensesAccount<TSettingValue exte
 }
 
 function updateQuickbooksOnlineCollectionAccountID<TSettingValue extends QBOConnectionConfig['collectionAccountID']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    if (settingValue === oldSettingValue) {
+    if (settingValue === oldSettingValue || !policyID) {
         return;
     }
 
