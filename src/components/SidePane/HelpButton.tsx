@@ -1,6 +1,5 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {FadeIn} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -28,20 +27,18 @@ function HelpButton({style}: HelpButtonProps) {
     }
 
     return (
-        <Animated.View entering={FadeIn}>
-            <Tooltip text={translate('common.help')}>
-                <PressableWithoutFeedback
-                    accessibilityLabel={translate('common.help')}
-                    style={[styles.flexRow, styles.touchableButtonImage, styles.mr2, style]}
-                    onPress={() => triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth})}
-                >
-                    <Icon
-                        src={Expensicons.QuestionMark}
-                        fill={theme.icon}
-                    />
-                </PressableWithoutFeedback>
-            </Tooltip>
-        </Animated.View>
+        <Tooltip text={translate('common.help')}>
+            <PressableWithoutFeedback
+                accessibilityLabel={translate('common.help')}
+                style={[styles.flexRow, styles.touchableButtonImage, styles.mr2, style]}
+                onPress={() => triggerSidePane(isExtraLargeScreenWidth ? !sidePane?.open : !sidePane?.openNarrowScreen, {shouldUpdateNarrowLayout: !isExtraLargeScreenWidth})}
+            >
+                <Icon
+                    src={Expensicons.QuestionMark}
+                    fill={theme.icon}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
     );
 }
 
