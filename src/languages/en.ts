@@ -1431,11 +1431,11 @@ const translations = {
         },
         mergeFailureSmartScannerAccount: {
             beforeEmail: 'You can’t merge ',
-            afterEmail: ' into other accounts. Please merge other accounts into it instead.'
+            afterEmail: ' into other accounts. Please merge other accounts into it instead.',
         },
         mergeFailureInvoicedAccount: {
             beforeEmail: 'You can’t merge ',
-            afterEmail: ' into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.'
+            afterEmail: ' into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.',
         },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },

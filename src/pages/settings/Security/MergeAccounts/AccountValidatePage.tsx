@@ -95,17 +95,11 @@ function AccountValidatePage() {
                 <Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>
                 <Text style={[styles.mt5]}>
                     {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
-                    <Text style={styles.textStrong}>
-                        {email}
-                    </Text>
-                    .
+                    <Text style={styles.textStrong}>{email}</Text>.
                 </Text>
                 <Text style={[styles.mt5]}>
                     {translate('mergeAccountsPage.accountValidate.enterMagicCode')}
-                    <Text style={styles.textStrong}>
-                        {email}
-                    </Text>
-                    .
+                    <Text style={styles.textStrong}>{email}</Text>.
                 </Text>
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}

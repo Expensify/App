@@ -59,8 +59,7 @@ function MergeResultPage() {
                     <>
                         {translate('mergeAccountsPage.mergeFailureUncreatedAccount.noExpensifyAccount.beforeEmail')}
                         <Text style={[styles.textStrong, styles.textSupporting]}>{login}</Text>
-                        {translate('mergeAccountsPage.mergeFailureUncreatedAccount.noExpensifyAccount.afterEmail')}
-                        {' '}
+                        {translate('mergeAccountsPage.mergeFailureUncreatedAccount.noExpensifyAccount.afterEmail')}{' '}
                         {translate('mergeAccountsPage.mergeFailureUncreatedAccount.addContactMethod.beforeLink')}
                         <TextLink
                             onPress={() => {
@@ -84,8 +83,7 @@ function MergeResultPage() {
                         <Text style={[styles.textStrong, styles.textSupporting]}>{login}</Text>
                         {translate('mergeAccountsPage.mergeFailure2FA.oldAccount2FAEnabled.beforeSecondEmail')}
                         <Text style={[styles.textStrong, styles.textSupporting]}>{login}</Text>
-                        {translate('mergeAccountsPage.mergeFailure2FA.oldAccount2FAEnabled.afterSecondEmail')}
-                        {' '}
+                        {translate('mergeAccountsPage.mergeFailure2FA.oldAccount2FAEnabled.afterSecondEmail')}{' '}
                         <Text style={[styles.dBlock, styles.textAlignCenter, styles.textSupporting, styles.mt2]}>
                             <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>
                         </Text>
