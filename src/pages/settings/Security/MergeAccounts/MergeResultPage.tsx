@@ -52,6 +52,7 @@ function MergeResultPage() {
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: LottieAnimations.Fireworks,
+                illustrationStyle: {width: 150, height: 150},
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_NO_EXIST]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -133,7 +134,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergePendingSAML.weAreWorkingOnIt'),
                 description: (
                     <>
-                        <Text style={styles.textSupporting}>{translate('mergeAccountsPage.mergePendingSAML.limitedSupport')}</Text>
+                        <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate('mergeAccountsPage.mergePendingSAML.limitedSupport')}</Text>
                         <Text style={[styles.dBlock, styles.textAlignCenter, styles.textSupporting, styles.mt2]}>
                             {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.beforeLink')}
                             <TextLink

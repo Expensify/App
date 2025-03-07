@@ -84,6 +84,10 @@ function ConfirmationPage({
                         autoPlay
                         loop
                         style={[styles.confirmationAnimation, illustrationStyle]}
+                        webStyle={{
+                            width: illustrationStyle?.width as number ?? styles.confirmationAnimation.width,
+                            height: illustrationStyle?.height as number ?? styles.confirmationAnimation.height,
+                        }}
                     />
                 ) : (
                     <View style={[styles.confirmationAnimation, illustrationStyle]}>
