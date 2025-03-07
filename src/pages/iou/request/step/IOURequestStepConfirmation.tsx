@@ -876,7 +876,10 @@ function IOURequestStepConfirmation({
             testID={IOURequestStepConfirmation.displayName}
             headerGapStyles={isDraggingOver ? [styles.isDraggingOver] : []}
         >
-            <DragAndDropProvider setIsDraggingOver={setIsDraggingOver} isDisabled={!shouldShowThreeDotsButton}>
+            <DragAndDropProvider
+                setIsDraggingOver={setIsDraggingOver}
+                isDisabled={!shouldShowThreeDotsButton}
+            >
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
