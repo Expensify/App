@@ -3,6 +3,7 @@ import type {TDefaultRendererProps} from 'react-native-render-html';
 import Text from '@components/Text';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
+import { View } from 'react-native';
 
 /**
  * Retrieves the text content from a Text or Phrasing node.
@@ -27,7 +28,9 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
         >
-            <Text style={[boxModelStyle, textStyle]}>{data}</Text>
+            <View style={[boxModelStyle]}>
+                <Text style={[textStyle]}>{data}</Text>
+            </View>
         </TDefaultRenderer>
     );
 }
