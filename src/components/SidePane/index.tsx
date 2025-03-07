@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import useEnvironment from '@hooks/useEnvironment';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,6 +27,7 @@ type SidePaneProps = {
 function SidePane({state}: SidePaneProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
 
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop} = useSidePane();
@@ -88,7 +90,7 @@ function SidePane({state}: SidePaneProps) {
                     shouldShowCloseButton={isExtraLargeScreenWidth}
                     shouldDisplayHelpButton={false}
                 />
-                {getHelpContent(styles, route)}
+                {getHelpContent(styles, route, isProduction)}
             </Animated.View>
         </>
     );

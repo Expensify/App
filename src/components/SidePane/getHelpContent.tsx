@@ -5,18 +5,18 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
 
-type HelpContentMap = Record<
-    string,
-    {
-        /** The content to display for this route */
-        content?: (styles: ThemeStyles) => ReactNode;
+type HelpContent = {
+    /** The content to display for this route */
+    content?: (styles: ThemeStyles) => ReactNode;
 
-        /** Any children routes that this route has */
-        children?: HelpContentMap;
-    }
->;
+    /** Any children routes that this route has */
+    children?: Record<string, HelpContent>;
 
-const helpContentMap: HelpContentMap = {
+    /** Whether this route is an exact match or displays parent content */
+    isExact?: boolean;
+};
+
+const helpContentMap: Record<string, HelpContent> = {
     r: {
         content: (styles: ThemeStyles) => (
             <>
@@ -24,6 +24,16 @@ const helpContentMap: HelpContentMap = {
                 <Text style={styles.textNormal}>... general chat reports help ...</Text>
             </>
         ),
+        children: {
+            ':reportID': {
+                content: (styles: ThemeStyles) => (
+                    <>
+                        <Text style={[styles.textHeadlineH1, styles.mb4]}>Chat Report</Text>
+                        <Text style={styles.textNormal}>... general chat report help ...</Text>
+                    </>
+                ),
+            },
+        },
     },
     search: {
         content: (styles: ThemeStyles) => (
@@ -63,28 +73,63 @@ const helpContentMap: HelpContentMap = {
     },
 };
 
-const getHelpContent = (styles: ThemeStyles, route: string): ReactNode => {
+type DiagnosticDataProps = {
+    styles: ThemeStyles;
+    route: string;
+    children?: ReactNode;
+};
+
+function DiagnosticData({styles, route, children}: DiagnosticDataProps) {
+    return (
+        <View style={styles.ph5}>
+            <Text style={[styles.textHeadlineH1, styles.mb4]}>Missing help content for route:</Text>
+            <Text style={styles.textNormal}>{route}</Text>
+            {!!children && (
+                <>
+                    <View style={[styles.sectionDividerLine, styles.mv5]} />
+                    {children}
+                </>
+            )}
+        </View>
+    );
+}
+
+function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolean): ReactNode {
     const [firstPart, ...routeParts] = route.substring(1).split('/');
-    let currentNode: HelpContentMap[string] = helpContentMap[firstPart];
+    let currentNode: HelpContent = helpContentMap[firstPart];
+    let isExactMatch = true;
 
     for (const part of routeParts) {
         if (currentNode?.children?.[part]) {
             currentNode = currentNode.children[part];
+            isExactMatch = true;
         } else {
+            isExactMatch = false;
             break;
         }
     }
 
     if (currentNode?.content) {
+        if (!isExactMatch && !isProduction) {
+            return (
+                <DiagnosticData
+                    styles={styles}
+                    route={route}
+                >
+                    {currentNode.content(styles)}
+                </DiagnosticData>
+            );
+        }
+
         return <View style={styles.ph5}>{currentNode.content(styles)}</View>;
     }
 
     return (
-        <View style={styles.ph5}>
-            <Text style={[styles.textHeadlineH1, styles.mb4]}>Missing page for route</Text>
-            <Text style={styles.textNormal}>{route}</Text>
-        </View>
+        <DiagnosticData
+            styles={styles}
+            route={route}
+        />
     );
-};
+}
 
 export default getHelpContent;
