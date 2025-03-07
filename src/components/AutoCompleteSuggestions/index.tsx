@@ -93,11 +93,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
         }
 
         measureParentContainerAndReportCursor(({x, y, width, scrollValue, cursorCoordinates}: MeasureParentContainerAndCursor) => {
-            // On iOS, if cursor coordinates are not available, use the parent container's position
-            const effectiveCursorX = cursorCoordinates.x || 0;
-            const effectiveCursorY = cursorCoordinates.y || 0;
-
-            const xCoordinatesOfCursor = x + effectiveCursorX;
+            const xCoordinatesOfCursor = x + cursorCoordinates.x;
             const bigScreenLeftOffset =
                 xCoordinatesOfCursor + CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH > windowWidth
                     ? windowWidth - CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH
@@ -106,19 +102,19 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
 
             // Use the parent container's y position if cursor coordinates are not available
-            let bottomValue = windowHeight - (effectiveCursorY - scrollValue + y) - keyboardHeight;
+            let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
             const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({
                 y,
-                cursorCoordinates: {x: effectiveCursorX, y: effectiveCursorY},
+                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
                 scrollValue,
                 contentHeight: contentMaxHeight,
                 topInset,
             });
             const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({
                 y,
-                cursorCoordinates: {x: effectiveCursorX, y: effectiveCursorY},
+                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
                 scrollValue,
                 contentHeight: contentMinHeight,
                 topInset,
@@ -145,7 +141,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-                bottomValue = windowHeight - y - effectiveCursorY + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
+                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
             }
 
             setSuggestionHeight(measuredHeight);
@@ -153,7 +149,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 left: leftValue.current,
                 bottom: bottomValue,
                 width: widthValue,
-                cursorCoordinates: {x: effectiveCursorX, y: effectiveCursorY},
+                cursorCoordinates: {x: cursorCoordinates.x, y: cursorCoordinates.y},
             });
         });
     }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset, isKeyboardAnimatingRef]);
