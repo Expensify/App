@@ -56,7 +56,6 @@ function ConnectedVerifiedBankAccount({reimbursementAccount, onBackButtonPress, 
         >
             <HeaderWithBackButton
                 title={translate('workspace.common.connectBankAccount')}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={onBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>

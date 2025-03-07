@@ -109,7 +109,6 @@ function BusinessInfo({onBackButtonPress}: BusinessInfoProps) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('businessInfoStep.businessInfo')}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={3}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}

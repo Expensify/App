@@ -3340,20 +3340,7 @@ const CONST = {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
     },
-    GUIDES_CALL_TASK_IDS: {
-        CONCIERGE_DM: 'NewExpensifyConciergeDM',
-        WORKSPACE_INITIAL: 'WorkspaceHome',
-        WORKSPACE_OVERVIEW: 'WorkspaceOverview',
-        WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
-        WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
-        WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
-        WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
-        WORKSPACE_COMPANY_CARDS: 'WorkspaceCompanyCards',
-        WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
-        WORKSPACE_SETTINGS: 'WorkspaceSettings',
-        WORKSPACE_FEATURES: 'WorkspaceFeatures',
-        WORKSPACE_RULES: 'WorkspaceRules',
-    },
+
     EXPENSIFY_EMAILS_OBJECT: Object.entries(EMAIL).reduce((prev, [, email]) => {
         // eslint-disable-next-line no-param-reassign
         prev[email] = true;

@@ -313,8 +313,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
                     subtitle={policyName}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     onBackButtonPress={() => {
                         Policy.clearErrors(route.params.policyID);
                         Navigation.goBack();
