@@ -14,7 +14,9 @@ import TypeCell from './DataCeils/TypeCell';
 function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelected}: {transactionItem: Transaction; isLargeScreenWidth: boolean; isSelected: boolean}) {
     const styles = useThemeStyles();
     const showTooltip = true;
-    const backgroundColor = isSelected ? '#E6E1DA' : '#F8F4F0';
+
+
+    const backgroundColor = isSelected ? styles.activeComponentBG : styles.buttonDefaultBG;
 
     return (
         <View style={styles.flex1}>

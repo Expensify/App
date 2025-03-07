@@ -10,12 +10,14 @@ import styles from '@src/styles';
 import SelectionList from '@components/SelectionList';
 import type {Option} from '@libs/OptionsListUtils';
 import {getAllTransactions} from '@userActions/Transaction';
-import NewChatSelectorPage from './NewChatSelectorPage';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import TransactionItemComponent from '@components/TransactionItemComponent';
+import NewChatSelectorPage from './NewChatSelectorPage';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 
 function AddUnreportedExpense() {
-
+    const styles = useThemeStyles();
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const containerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement].filter((element) => !!element) as HTMLElement[];
@@ -49,8 +51,12 @@ function AddUnreportedExpense() {
                     sections={[]}
                     ListItem={RadioListItem}
                     items={unreportedExpensesList}/>
-
             </View>
+            {unreportedExpensesList.map((item) => (
+                <View style={styles.m5}>
+                    <TransactionItemComponent transactionItem={item} isLargeScreenWidth={false} isSelected={false}/>
+                </View>
+            ))}
             <Button
                 text="Add to report"
                 onPress={()=>{
