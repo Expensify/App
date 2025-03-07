@@ -4,15 +4,11 @@ import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, i
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type AttachmentModalRouteProps from './types';
 
-function ReportAvatarModalContent({navigation, reportID: reportIDProp, policyID: policyIDProp}: AttachmentModalRouteProps) {
-    const reportID = reportIDProp ?? CONST.DEFAULT_NUMBER_ID;
-    const policyID = policyIDProp ?? CONST.DEFAULT_NUMBER_ID;
-
+function ReportAvatarModalContent({navigation, reportID, policyID}: AttachmentModalRouteProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 

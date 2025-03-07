@@ -3,12 +3,10 @@ import {useOnyx} from 'react-native-onyx';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AttachmentModalRouteProps from './types';
 
-function WorkspaceAvatarModalContent({navigation, policyID: policyIDProp}: AttachmentModalRouteProps) {
-    const policyID = policyIDProp ?? CONST.DEFAULT_NUMBER_ID;
+function WorkspaceAvatarModalContent({navigation, policyID}: AttachmentModalRouteProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
 

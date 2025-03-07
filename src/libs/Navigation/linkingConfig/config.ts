@@ -1536,6 +1536,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+                [SCREENS.ATTACHMENTS]: ROUTES.REPORT_WITH_ID_ADD_ATTACHMENT.route,
             },
         },
 

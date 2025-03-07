@@ -46,6 +46,10 @@ import type {FileObject} from './types';
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
+    /** Fallback source (URL, SVG function) for the image shown. */
+    fallbackSource?: AvatarSource;
+    /** Optional file object to be used for the attachment. If not passed in via props must be specified when modal is opened. */
+    file?: FileObject;
     /** Optional original filename when uploading */
     originalFileName?: string;
     /** Whether source url requires authentication */
@@ -72,8 +76,6 @@ type AttachmentModalBaseContentProps = {
     maybeIcon?: boolean;
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment?: boolean;
-    /** Fallback source (URL, SVG function) for the image shown. */
-    fallbackSource?: AvatarSource;
     /** Determines if the user can edit the receipt or not */
     canEditReceipt?: boolean;
     /** Determines if the user can delete the receipt or not */
@@ -82,14 +84,10 @@ type AttachmentModalBaseContentProps = {
     shouldDisableSendButton?: boolean;
     /** The link of the attachment */
     attachmentLink?: string;
-    /** Optional callback to fire when we want to preview an image and approve it for use. */
-    onConfirm?: ((file: FileObject) => void) | null;
     /** Fallback route when the modal is closed */
     fallbackRoute?: Route;
     /** Determines if the attachment is invalid or not */
     isAttachmentInvalid?: boolean;
-    /** Determines if the attachment is invalid or not */
-    shouldLoadAttachment?: boolean;
     /** Determines if the attachment is invalid or not */
     attachmentInvalidReason?: TranslationPaths | null;
     /** Determines the title of the invalid reason modal */
@@ -98,6 +96,8 @@ type AttachmentModalBaseContentProps = {
     submitRef?: RefObject<View | HTMLElement>;
     /** Determines if the delete receipt confirm modal is visible or not */
     isDeleteReceiptConfirmModalVisible?: boolean;
+    /** Optional callback to fire when we want to preview an image and approve it for use. */
+    onConfirm?: (file: FileObject) => void;
     /** Callback triggered when the modal is closed */
     onClose?: (shouldCallDirectly?: boolean) => void;
     /** Callback triggered when the confirm modal is closed */
@@ -112,15 +112,18 @@ type AttachmentModalBaseContentProps = {
     onInvalidReasonModalHide?: () => void;
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
+    /** Optional callback to fire when we want to validate the file. */
+    onValidateFile?: (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => void;
 };
 
 function AttachmentModalBaseContent({
     source = '',
+    fallbackSource,
+    file: fileProp,
     originalFileName = '',
     isAuthTokenRequired = false,
     maybeIcon = false,
     headerTitle: headerTitleProp,
-    fallbackSource,
     type,
     accountID,
     attachmentLink = '',
@@ -137,7 +140,6 @@ function AttachmentModalBaseContent({
     fallbackRoute,
     isDeleteReceiptConfirmModalVisible = false,
     isAttachmentInvalid = false,
-    shouldLoadAttachment = true,
     attachmentInvalidReason,
     attachmentInvalidReasonTitle,
     submitRef,
@@ -149,6 +151,7 @@ function AttachmentModalBaseContent({
     onPdfLoadError,
     onInvalidReasonModalHide,
     onCarouselAttachmentChange = () => {},
+    onValidateFile,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
 
@@ -167,13 +170,20 @@ function AttachmentModalBaseContent({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
-    const [file, setFile] = useState<FileObject | undefined>(
-        originalFileName
-            ? {
-                  name: originalFileName,
-              }
-            : undefined,
-    );
+    const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
+    const [file, setFile] = useState<FileObject | undefined>(() => fileProp ?? fallbackFile);
+    useEffect(() => {
+        if (!fileProp) {
+            return;
+        }
+
+        if (onValidateFile) {
+            onValidateFile?.(fileProp, setFile);
+        } else {
+            setFile(fileProp ?? fallbackFile);
+        }
+    }, [fileProp, fallbackFile, onValidateFile]);
+
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -393,7 +403,6 @@ function AttachmentModalBaseContent({
                             />
                         ) : (
                             !!sourceForAttachmentView &&
-                            shouldLoadAttachment &&
                             !isLoading && (
                                 <AttachmentCarouselPagerContext.Provider value={context}>
                                     <AttachmentView

@@ -1,8 +1,8 @@
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
-import type {AttachmentModalScreenModalCallbacks, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenCallbacks, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import type ModalType from '@src/types/utils/ModalType';
 
-type AttachmentModalContainerProps = AttachmentModalScreenModalCallbacks & {
+type AttachmentModalContainerProps = AttachmentModalScreenCallbacks & {
     navigation: AttachmentModalScreenProps['navigation'];
     contentProps: Partial<AttachmentModalBaseContentProps>;
     modalType?: ModalType;

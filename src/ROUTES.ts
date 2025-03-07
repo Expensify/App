@@ -4,7 +4,9 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
+import type {ReportsSplitNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import type SCREENS from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
@@ -17,6 +19,25 @@ import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string, shouldEncodeURIComponent = true): `${TUrl}` {
     const backToParam = backTo ? (`${url.includes('?') ? '&' : '?'}backTo=${shouldEncodeURIComponent ? encodeURIComponent(backTo) : backTo}` as const) : '';
     return `${url}${backToParam}` as `${TUrl}`;
+}
+
+type AttachmentRouteParams = ReportsSplitNavigatorParamList[typeof SCREENS.ATTACHMENTS];
+function getAttachmentRoute(url: string, params?: AttachmentRouteParams) {
+    if (!params?.source) {
+        return url;
+    }
+
+    const {source, type, reportID, accountID, isAuthTokenRequired, fileName, attachmentLink} = params;
+
+    const sourceParam = `?source=${encodeURIComponent(source)}`;
+    const typeParam = type ? `&type=${type as string}` : '';
+    const reportIDParam = reportID ? `&reportID=${reportID}` : '';
+    const accountIDParam = accountID ? `&accountID=${accountID}` : '';
+    const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
+    const fileNameParam = fileName ? `&fileName=${fileName}` : '';
+    const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+
+    return `${url}${sourceParam}${typeParam}${reportIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
 }
 
 const PUBLIC_SCREENS_ROUTES = {
@@ -326,6 +347,14 @@ const ROUTES = {
             return `${baseRoute}${referrerParam}` as const;
         },
     },
+    REPORT_WITH_ID_ADD_ATTACHMENT: {
+        route: 'r/:reportID/attachment/add',
+        getRoute: (reportID: string, params?: AttachmentRouteParams) => {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const {reportID: _reportIDParam, ...restParams} = params ?? {};
+            return getAttachmentRoute(`r/${reportID}/attachment/add`, restParams);
+        },
+    },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
         getRoute: (reportID: string, policyID?: string) => {
@@ -362,31 +391,7 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (params?: {
-            source?: string;
-            type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-            reportID?: string | number;
-            accountID?: number;
-            isAuthTokenRequired?: boolean;
-            fileName?: string;
-            attachmentLink?: string;
-        }) => {
-            if (!params?.source) {
-                return `attachment`;
-            }
-
-            const {source, type, reportID, accountID, isAuthTokenRequired, fileName, attachmentLink} = params;
-
-            const sourceParam = `?source=${encodeURIComponent(source)}`;
-            const typeParam = type ? `&type=${type as string}` : '';
-            const reportIDParam = reportID ? `&reportID=${reportID}` : '';
-            const accountIDParam = accountID ? `&accountID=${accountID}` : '';
-            const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
-            const fileNameParam = fileName ? `&fileName=${fileName}` : '';
-            const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
-
-            return `attachment${sourceParam}${typeParam}${reportIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
-        },
+        getRoute: (params?: AttachmentRouteParams) => getAttachmentRoute('attachment', params),
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',

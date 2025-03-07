@@ -1,18 +1,23 @@
-import React, {memo, useCallback, useContext} from 'react';
+import React, {memo, useCallback, useContext, useEffect} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer({contentProps, navigation}: AttachmentModalContainerProps) {
+function AttachmentModalContainer({contentProps, navigation, onShow, onClose}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
 
-    const closeModal = useCallback(() => {
+    const handleClose = useCallback(() => {
         attachmentsContext.setCurrentAttachment(undefined);
         Navigation.goBack(contentProps.fallbackRoute);
-    }, [attachmentsContext, contentProps.fallbackRoute]);
+        onClose?.();
+    }, [attachmentsContext, contentProps.fallbackRoute, onClose]);
+
+    useEffect(() => {
+        onShow?.();
+    }, [onShow]);
 
     return (
         <ScreenWrapper
@@ -22,7 +27,7 @@ function AttachmentModalContainer({contentProps, navigation}: AttachmentModalCon
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
-                onClose={closeModal}
+                onClose={handleClose}
             />
         </ScreenWrapper>
     );

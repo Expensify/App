@@ -7,16 +7,7 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import CONST from '@src/CONST';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer({
-    contentProps,
-    modalType,
-    closeConfirmModal,
-    setShouldLoadAttachment,
-    isOverlayModalVisible,
-    onModalShow,
-    onModalClose,
-    onModalHide,
-}: AttachmentModalContainerProps) {
+function AttachmentModalContainer({contentProps, modalType, closeConfirmModal, isOverlayModalVisible, onShow, onClose}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
 
     /**
@@ -28,30 +19,29 @@ function AttachmentModalContainer({
      */
     const closeModal = useCallback(
         (shouldCallDirectly?: boolean) => {
-            if (typeof onModalClose === 'function') {
+            if (typeof onClose === 'function') {
                 if (shouldCallDirectly) {
-                    onModalClose();
+                    onClose();
                     return;
                 }
-                attachmentModalHandler.handleModalClose(onModalClose);
+                attachmentModalHandler.handleModalClose(onClose);
             }
 
             attachmentsContext.setCurrentAttachment(undefined);
             Navigation.goBack(contentProps.fallbackRoute);
         },
-        [attachmentsContext, contentProps.fallbackRoute, onModalClose],
+        [attachmentsContext, contentProps.fallbackRoute, onClose],
     );
+
+    useEffect(() => {
+        onShow?.();
+    }, [onShow]);
 
     return (
         <Modal
             isVisible
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={isOverlayModalVisible ? () => closeConfirmModal?.() : () => closeModal?.()}
-            onModalHide={onModalHide}
-            onModalShow={() => {
-                onModalShow?.();
-                setShouldLoadAttachment?.(true);
-            }}
             propagateSwipe
             initialFocus={() => {
                 if (!contentProps.submitRef?.current) {

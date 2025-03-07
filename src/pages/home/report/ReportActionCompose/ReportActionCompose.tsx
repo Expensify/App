@@ -429,13 +429,13 @@ function ReportActionCompose({
                 file,
                 headerTitle: translate('reportActionCompose.sendAttachment'),
                 onConfirm: addAttachment,
-                onModalShow: () => setIsAttachmentPreviewActive(true),
-                onModalHide: onAttachmentPreviewClose,
+                onShow: () => setIsAttachmentPreviewActive(true),
+                onClose: onAttachmentPreviewClose,
                 shouldDisableSendButton: !!exceededMaxLength,
             });
-            Navigation.navigate(ROUTES.ATTACHMENTS.getRoute());
+            Navigation.navigate(ROUTES.REPORT_WITH_ID_ADD_ATTACHMENT.getRoute(reportID));
         },
-        [addAttachment, exceededMaxLength, onAttachmentPreviewClose, reportAttachmentsContext, translate],
+        [addAttachment, exceededMaxLength, onAttachmentPreviewClose, reportAttachmentsContext, reportID, translate],
     );
 
     return (

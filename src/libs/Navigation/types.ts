@@ -1592,6 +1592,15 @@ type ReportsSplitNavigatorParamList = {
         openOnAdminRoom?: boolean;
         referrer?: string;
     };
+    [SCREENS.ATTACHMENTS]: {
+        source?: string;
+        type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        reportID?: string | number;
+        accountID?: number;
+        isAuthTokenRequired?: boolean;
+        fileName?: string;
+        attachmentLink?: string;
+    };
 };
 
 type SettingsSplitNavigatorParamList = {

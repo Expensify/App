@@ -3,13 +3,13 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type AttachmentModalRouteProps from './routes/types';
 
-type Attachment = Omit<Partial<AttachmentModalRouteProps>, 'navigation'>;
+type AttachmentContextProps = Omit<Partial<AttachmentModalRouteProps>, 'navigation'>;
 
 type AttachmentModalContextValue = {
     isAttachmentHidden: (reportActionID: string) => boolean;
     updateHiddenAttachments: (reportActionID: string, isHidden: boolean) => void;
-    setCurrentAttachment: (attachmentProps: Attachment | undefined) => void;
-    getCurrentAttachment: () => Attachment | undefined;
+    setCurrentAttachment: (attachmentProps: AttachmentContextProps | undefined) => void;
+    getCurrentAttachment: () => AttachmentContextProps | undefined;
 };
 
 const AttachmentModalContext = React.createContext<AttachmentModalContextValue>({
@@ -29,8 +29,8 @@ function AttachmentModalProvider({children}: ChildrenProps) {
         hiddenAttachments.current = {};
     }, [currentReportID]);
 
-    const currentAttachment = useRef<Attachment | undefined>(undefined);
-    const setCurrentAttachment = useCallback((attachmentProps: Attachment | undefined) => {
+    const currentAttachment = useRef<AttachmentContextProps | undefined>(undefined);
+    const setCurrentAttachment = useCallback((attachmentProps: AttachmentContextProps | undefined) => {
         currentAttachment.current = attachmentProps;
     }, []);
     const getCurrentAttachment = useCallback(() => currentAttachment.current, []);
@@ -56,3 +56,4 @@ AttachmentModalProvider.displayName = 'AttachmentModalProvider';
 
 export default AttachmentModalContext;
 export {AttachmentModalProvider};
+export type {AttachmentContextProps};

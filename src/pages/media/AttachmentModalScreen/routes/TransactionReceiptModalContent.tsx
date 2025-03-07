@@ -15,15 +15,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AttachmentModalRouteProps from './types';
 
-function TransactionReceiptModalContent({
-    navigation,
-    reportID,
-    transactionID: transactionIDProp,
-    readonly: readonlyProp,
-    isFromReviewDuplicates: isFromReviewDuplicatesProp,
-}: AttachmentModalRouteProps) {
-    const transactionID = transactionIDProp ?? CONST.DEFAULT_NUMBER_ID;
-
+function TransactionReceiptModalContent({navigation, reportID, transactionID, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp}: AttachmentModalRouteProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
@@ -105,7 +97,7 @@ function TransactionReceiptModalContent({
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            onModalClose={onModalClose}
+            onClose={onModalClose}
         />
     );
 }

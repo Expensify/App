@@ -18,27 +18,26 @@ import type ModalType from '@src/types/utils/ModalType';
 import type AttachmentModalRouteProps from './types';
 
 function ReportAttachmentModalContent({
+    route,
     navigation,
     type,
-    file,
+    file: fileParam,
+    source: sourceParam,
     isAuthTokenRequired,
     attachmentLink,
     originalFileName,
-    source: sourceProp,
-    accountID: accountIDProp,
-    reportID: reportIDProp,
-    isReceiptAttachment: isReceiptAttachmentProp,
-    onModalHide: onModalHideParam,
-    onModalClose: onModalCloseParam,
+    accountID = CONST.DEFAULT_NUMBER_ID,
+    reportID,
+    isReceiptAttachment = false,
+    shouldDisableSendButton,
+    headerTitle,
+    onConfirm,
+    onShow: onShowParam,
+    onClose: onCloseParam,
 }: AttachmentModalRouteProps) {
-    const accountID = accountIDProp ?? CONST.DEFAULT_NUMBER_ID;
-    const reportID = reportIDProp ?? CONST.DEFAULT_NUMBER_ID;
-    const isReceiptAttachment = isReceiptAttachmentProp ?? false;
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
-    const [shouldLoadAttachment, setShouldLoadAttachment] = useState(true);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
@@ -73,17 +72,17 @@ function ReportAttachmentModalContent({
         setIsDeleteReceiptConfirmModalVisible(false);
     }, [setIsAttachmentInvalid]);
 
-    const onModalHide = useCallback(() => {
-        if (!isPDFLoadError.current) {
-            onModalHideParam?.();
-        }
-        setShouldLoadAttachment(false);
-        if (isPDFLoadError.current) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-            setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
-        }
-    }, [onModalHideParam]);
+    // const onModalHide = useCallback(() => {
+    //     if (!isPDFLoadError.current) {
+    //         onModalHideParam?.();
+    //     }
+    //     setShouldLoadAttachment(false);
+    //     if (isPDFLoadError.current) {
+    //         setIsAttachmentInvalid(true);
+    //         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+    //         setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+    //     }
+    // }, [onModalHideParam]);
 
     const onPdfLoadError = useCallback(
         (closeModal?: (shouldCallDirectly?: boolean) => void) => {
@@ -98,16 +97,16 @@ function ReportAttachmentModalContent({
             return;
         }
         isPDFLoadError.current = false;
-        onModalHide?.();
-    }, [isPDFLoadError, onModalHide]);
+        // onModalHide?.();
+    }, [isPDFLoadError]);
 
-    const onModalClose = useCallback(() => {
-        Navigation.dismissModal();
-        // This enables Composer refocus when the attachments modal is closed by the browser navigation
-        ComposerFocusManager.setReadyToFocus();
+    // const onModalClose = useCallback(() => {
+    //     Navigation.dismissModal();
+    //     // This enables Composer refocus when the attachments modal is closed by the browser navigation
+    //     ComposerFocusManager.setReadyToFocus();
 
-        onModalCloseParam?.();
-    }, [onModalCloseParam]);
+    //     onCloseParam?.();
+    // }, [onCloseParam]);
 
     /**
      * If our attachment is a PDF, return the unswipeablge Modal type.
@@ -121,102 +120,120 @@ function ReportAttachmentModalContent({
     );
 
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
-    const [source, setSource] = useState(() => Number(sourceProp) || sourceProp);
+    const [source, setSource] = useState(() => Number(sourceParam) || sourceParam);
 
     // Validates the attachment file and renders the appropriate modal type or errors
-    useEffect(() => {
-        if (!file) {
-            return;
-        }
+    const validateFile = useCallback(
+        (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => {
+            if (!file) {
+                return;
+            }
 
-        validateAttachmentFile(file).then((result) => {
-            if (!result.isValid) {
-                const {error} = result;
+            validateAttachmentFile(file).then((result) => {
+                if (!result.isValid) {
+                    const {error} = result;
 
-                setIsAttachmentInvalid?.(true);
-                switch (error) {
-                    case 'tooLarge':
-                        setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooLarge');
-                        setAttachmentInvalidReason?.('attachmentPicker.sizeExceeded');
-                        break;
-                    case 'tooSmall':
-                        setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooSmall');
-                        setAttachmentInvalidReason?.('attachmentPicker.sizeNotMet');
-                        break;
-                    case 'fileDoesNotExist':
-                        setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
-                        setAttachmentInvalidReason?.('attachmentPicker.folderNotAllowedMessage');
-                        break;
-                    case 'fileInvalid':
-                    default:
-                        setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
-                        setAttachmentInvalidReason?.('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    setIsAttachmentInvalid?.(true);
+                    switch (error) {
+                        case 'tooLarge':
+                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooLarge');
+                            setAttachmentInvalidReason?.('attachmentPicker.sizeExceeded');
+                            break;
+                        case 'tooSmall':
+                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooSmall');
+                            setAttachmentInvalidReason?.('attachmentPicker.sizeNotMet');
+                            break;
+                        case 'fileDoesNotExist':
+                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
+                            setAttachmentInvalidReason?.('attachmentPicker.folderNotAllowedMessage');
+                            break;
+                        case 'fileInvalid':
+                        default:
+                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
+                            setAttachmentInvalidReason?.('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    }
+
+                    return;
                 }
 
-                return;
-            }
-
-            const {fileType, source: fileSource} = result;
-
-            if (fileType === 'file') {
+                const {source: fileSource} = result;
                 const inputModalType = getModalType(fileSource, file);
                 setModalType(inputModalType);
                 setSource(fileSource);
-                return;
-            }
-
-            if (fileType === 'uri') {
-                const inputModalType = getModalType(fileSource, file);
-                setModalType(inputModalType);
-                setSource(fileSource);
-            }
-        });
-    }, [file, getModalType]);
-
-    const screenProps = useMemo(
-        () => ({
-            // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-            source,
-            type,
-            report,
-            accountID,
-            shouldShowNotFoundPage: !file && !isLoadingApp && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
-            allowDownload: true,
-            isAuthTokenRequired: !!isAuthTokenRequired,
-            attachmentLink: attachmentLink ?? '',
-            originalFileName: originalFileName ?? '',
-        }),
-        [accountID, attachmentLink, file, isAuthTokenRequired, isLoadingApp, originalFileName, report, source, type],
+                setFile(file);
+            });
+        },
+        [getModalType],
     );
 
-    const contentProps = useMemo(
+    const contentTypeProps = useMemo<Partial<AttachmentModalBaseContentProps>>(
         () =>
-            ({
-                ...screenProps,
-                shouldLoadAttachment,
-                isAttachmentInvalid,
-                attachmentInvalidReasonTitle,
-                attachmentInvalidReason,
-                isDeleteReceiptConfirmModalVisible,
-                submitRef,
-                onCarouselAttachmentChange,
-                onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
-                onDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(false),
-                onPdfLoadError,
-                onInvalidReasonModalHide,
-            } satisfies Partial<AttachmentModalBaseContentProps>),
+            fileParam
+                ? {
+                      file: fileParam,
+                      onValidateFile: validateFile,
+                  }
+                : {
+                      // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+                      type,
+                      report,
+                      shouldShowNotFoundPage: !isLoadingApp && type !== CONST.ATTACHMENT_TYPE.SEARCH && !report?.reportID,
+                      allowDownload: true,
+                      isAuthTokenRequired: !!isAuthTokenRequired,
+                      attachmentLink: attachmentLink ?? '',
+                      originalFileName: originalFileName ?? '',
+                  },
+        [attachmentLink, fileParam, isAuthTokenRequired, isLoadingApp, originalFileName, report, type, validateFile],
+    );
+
+    const contentProps = useMemo<Partial<AttachmentModalBaseContentProps>>(
+        () => ({
+            ...contentTypeProps,
+            source,
+            accountID,
+            onConfirm,
+            headerTitle,
+            isAttachmentInvalid,
+            attachmentInvalidReasonTitle,
+            attachmentInvalidReason,
+            isDeleteReceiptConfirmModalVisible,
+            shouldDisableSendButton,
+            submitRef,
+            onCarouselAttachmentChange,
+            onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
+            onDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(false),
+            onPdfLoadError,
+            onInvalidReasonModalHide,
+        }),
         [
+            accountID,
             attachmentInvalidReason,
             attachmentInvalidReasonTitle,
+            contentTypeProps,
+            headerTitle,
             isAttachmentInvalid,
             isDeleteReceiptConfirmModalVisible,
             onCarouselAttachmentChange,
+            onConfirm,
             onInvalidReasonModalHide,
             onPdfLoadError,
-            screenProps,
-            shouldLoadAttachment,
+            shouldDisableSendButton,
+            source,
         ],
     );
+
+    // If the user refreshes during the send attachment flow, we need to navigate back to the report or home
+    useEffect(() => {
+        if (!!sourceParam || !!fileParam) {
+            return;
+        }
+
+        if (reportID) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+        } else {
+            Navigation.goBack(ROUTES.HOME);
+        }
+    }, [sourceParam, reportID, route.name, fileParam]);
 
     return (
         <AttachmentModalContainer
@@ -224,11 +241,10 @@ function ReportAttachmentModalContent({
             contentProps={contentProps}
             modalType={modalType}
             setModalType={setModalType}
-            setShouldLoadAttachment={setShouldLoadAttachment}
             isOverlayModalVisible={isOverlayModalVisible}
             closeConfirmModal={closeConfirmModal}
-            onModalClose={onModalClose}
-            onModalHide={onModalHide}
+            onShow={onShowParam}
+            onClose={onCloseParam}
         />
     );
 }

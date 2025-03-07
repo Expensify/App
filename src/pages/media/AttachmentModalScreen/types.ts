@@ -24,14 +24,13 @@ type AttachmentModalChildrenProps = {
     show: () => void;
 };
 
-type AttachmentModalScreenModalCallbacks = {
-    onModalShow?: () => void;
-    onModalHide?: () => void;
-    onModalClose?: () => void;
+type AttachmentModalScreenCallbacks = {
+    onShow?: () => void;
+    onClose?: () => void;
 };
 
 type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
-    AttachmentModalScreenModalCallbacks & {
+    AttachmentModalScreenCallbacks & {
         attachmentId?: string;
         reportID?: string;
         policyID?: string;
@@ -42,4 +41,4 @@ type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
 
 type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.ATTACHMENTS>;
 
-export type {AttachmentModalScreenParams, AttachmentModalScreenModalCallbacks, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenParams, AttachmentModalScreenCallbacks, AttachmentModalScreenProps, AttachmentModalChildrenProps, FileObject, ImagePickerResponse};
