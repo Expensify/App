@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, {FadeIn} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -28,10 +28,7 @@ function HelpButton({style}: HelpButtonProps) {
     }
 
     return (
-        <Animated.View
-            entering={FadeIn}
-            exiting={FadeOut}
-        >
+        <Animated.View entering={FadeIn}>
             <Tooltip text={translate('common.help')}>
                 <PressableWithoutFeedback
                     accessibilityLabel={translate('common.help')}
