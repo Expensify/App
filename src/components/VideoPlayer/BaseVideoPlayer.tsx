@@ -110,25 +110,22 @@ function BaseVideoPlayer({
             updateCurrentlyPlayingURL(url);
             return;
         }
-    
+
         if (!videoPlayerRef.current) {
             return;
         }
-    
+
         videoPlayerRef.current.getStatusAsync().then((status: AVPlaybackStatus) => {
             if (!status || !('isPlaying' in status)) {
                 return;
-            } 
+            }
             if (status.isPlaying) {
                 pauseVideo();
             } else {
                 playVideo();
             }
         });
-    
     }, [isCurrentlyURLSet, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
-    
-    
 
     const hideControl = useCallback(() => {
         if (isEnded) {
