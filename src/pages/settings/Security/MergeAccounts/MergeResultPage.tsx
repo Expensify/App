@@ -236,6 +236,7 @@ function MergeResultPage() {
                 onBackButtonPress={() => {
                     Navigation.dismissModal();
                 }}
+                shouldDisplayHelpButton={false}
             />
             <ConfirmationPage
                 containerStyle={{...styles.flexGrow1, ...styles.mt3}}

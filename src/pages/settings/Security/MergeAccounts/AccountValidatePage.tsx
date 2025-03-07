@@ -90,6 +90,7 @@ function AccountValidatePage() {
                     clearMergeWithValidateCode();
                     Navigation.goBack();
                 }}
+                shouldDisplayHelpButton={false}
             />
             <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
                 <Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>

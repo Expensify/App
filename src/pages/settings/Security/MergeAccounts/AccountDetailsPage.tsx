@@ -107,6 +107,7 @@ function AccountDetailsPage() {
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => Navigation.goBack()}
+                shouldDisplayHelpButton={false}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
