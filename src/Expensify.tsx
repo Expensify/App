@@ -126,7 +126,10 @@ function Expensify() {
             return;
         }
 
-        ActiveClientManager.init();
+        // Set a timeout to initialize the client after a short delay.
+        // This is necessary because on iPhone web, Onyx events can be delayed,
+        // causing issues with client initialization if done immediately.
+        setTimeout(ActiveClientManager.init, 400);
     };
 
     const setNavigationReady = useCallback(() => {
