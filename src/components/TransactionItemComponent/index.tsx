@@ -24,15 +24,15 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
         <View style={styles.flex1}>
             {!isLargeScreenWidth ? (
                 <View style={[backgroundColor, styles.expenseWidgetRadius]}>
-                    <View style={[styles.flexRow, styles.flex1]}>
-                        <View style={[styles.flex1, styles.expenseWidgetMargin, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <View style={[styles.flexRow]}>
+                        <View style={[styles.expenseWidgetMargin]}>
                             <ReceiptCell
                                 transactionItem={transactionItem}
                                 isSelected={isSelected}
                             />
                         </View>
-                        <View style={[styles.flex3, styles.flexColumn]}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flex2, styles.flexColumn]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 <DateCell
                                     transactionItem={transactionItem}
                                     showTooltip={showTooltip}
@@ -53,7 +53,7 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                                 />
                             </View>
                         </View>
-                        <View style={[styles.flex1, styles.expenseWidgetMargin, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                        <View style={[styles.flex2, styles.expenseWidgetMargin, styles.alignItemsCenter, styles.justifyContentEnd]}>
                             <TotalCell
                                 transactionItem={transactionItem}
                                 showTooltip={showTooltip}
@@ -61,7 +61,7 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                             />
                         </View>
                     </View>
-                    <View style={[styles.flex1, styles.expenseWidgetMargin, styles.flexRow, styles.alignItemsCenter, styles.gap6]}>
+                    <View style={[styles.expenseWidgetMargin, styles.flexRow, styles.alignItemsCenter, styles.gap6,styles.minHeight3]}>
                         <CategoryCell
                             transactionItem={transactionItem}
                             showTooltip={showTooltip}
