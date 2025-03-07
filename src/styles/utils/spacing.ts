@@ -721,6 +721,10 @@ export default {
         columnGap: 12,
     },
 
+    minHeight3: {
+        minHeight: 12,
+    },
+
     minHeight5: {
         minHeight: 20,
     },
