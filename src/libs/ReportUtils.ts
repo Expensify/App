@@ -5081,6 +5081,7 @@ function buildOptimisticIOUReport(
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     const policyID = chatReportID ? getReport(chatReportID, allReports)?.policyID : undefined;
     const policy = getPolicy(policyID);
+    const isTestMoneyRequest = isSelectedManagerMcTest(payerEmail);
 
     const participants: Participants = {
         [payeeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
@@ -5095,8 +5096,8 @@ function buildOptimisticIOUReport(
         ownerAccountID: payeeAccountID,
         participants,
         reportID: generateReportID(),
-        stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
-        statusNum: isSendingMoney ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
+        stateNum: isSendingMoney || isTestMoneyRequest ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED,
+        statusNum: isSendingMoney || isTestMoneyRequest ? CONST.REPORT.STATUS_NUM.REIMBURSED : CONST.REPORT.STATE_NUM.SUBMITTED,
         total,
         unheldTotal: total,
         nonReimbursableTotal: 0,
@@ -5726,6 +5727,7 @@ function buildOptimisticReportPreview(
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    const isTestTransaction = isTestTransactionReport(iouReport);
     return {
         reportActionID: reportActionID ?? rand64(),
         reportID: chatReport?.reportID,
@@ -5752,6 +5754,7 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
+        ...(isTestTransaction && {childStateNum: 2, childStatusNum: 4}),
     };
 }
 
@@ -9213,6 +9216,22 @@ function getReportMetadata(reportID: string | undefined) {
     return reportID ? allReportMetadataKeyValue[reportID] : undefined;
 }
 
+/**
+ * Helper method to check if participant email is Manager McTest
+ */
+function isSelectedManagerMcTest(email: string | null | undefined): boolean {
+    return email === CONST.EMAIL.MANAGER_MCTEST;
+}
+
+/**
+ *  Helper method to check if the report is a test transaction report
+ */
+function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const persionalDetails = allPersonalDetails?.[managerID];
+    return isSelectedManagerMcTest(persionalDetails?.login);
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9553,6 +9572,8 @@ export {
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
     prepareOnboardingOnyxData,
+    isTestTransactionReport,
+    isSelectedManagerMcTest,
     getReportSubtitlePrefix,
 };
 
