@@ -1,11 +1,10 @@
 import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionDataCellProps) {
+function MerchantCell({transactionItem, showTooltip}: TransactionDataCellProps) {
     const styles = useThemeStyles();
 
     const merchantToDisplay = !transactionItem?.merchant || transactionItem?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : transactionItem.merchant;
@@ -13,7 +12,7 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={merchantToDisplay ?? ''}
-            style={[styles.pre, styles.justifyContentCenter, {color: colors.green800}, isLargeScreenWidth ? '' : styles.labelStrong]}
+            style={[styles.pre, styles.justifyContentCenter]}
         />
     );
 }

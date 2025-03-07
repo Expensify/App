@@ -3,11 +3,10 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getCreated as getTransactionCreated} from '@libs/TransactionUtils';
-import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionDataCellProps) {
+function DateCell({transactionItem, showTooltip}: TransactionDataCellProps) {
     const styles = useThemeStyles();
 
     const created = getTransactionCreated(transactionItem);
@@ -17,7 +16,7 @@ function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: Transactio
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={date}
-            style={[styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? {color: colors.green800} : styles.textLabelSupporting]}
+            style={[styles.pre, styles.justifyContentCenter, styles.textLabelSupporting]}
         />
     );
 }

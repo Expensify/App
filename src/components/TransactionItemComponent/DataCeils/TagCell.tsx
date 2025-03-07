@@ -13,7 +13,7 @@ function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: Transaction
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={getTagForDisplay(transactionItem)}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, {color: colors.green800}]}
+            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
         <TextWithIconCell

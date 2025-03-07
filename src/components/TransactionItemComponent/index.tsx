@@ -1,6 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type Transaction from '@src/types/onyx/Transaction';
 import CategoryCell from './DataCeils/CategoryCell';
@@ -14,14 +16,14 @@ import TypeCell from './DataCeils/TypeCell';
 function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelected}: {transactionItem: Transaction; isLargeScreenWidth: boolean; isSelected: boolean}) {
     const styles = useThemeStyles();
     const showTooltip = true;
-
-
-    const backgroundColor = isSelected ? styles.activeComponentBG : styles.buttonDefaultBG;
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const backgroundColor = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : styles.buttonDefaultBG;
 
     return (
         <View style={styles.flex1}>
             {!isLargeScreenWidth ? (
-                <View style={[{backgroundColor}, styles.expenseWidgetRadius]}>
+                <View style={[backgroundColor, styles.expenseWidgetRadius]}>
                     <View style={[styles.flexRow, styles.flex1]}>
                         <View style={[styles.flex1, styles.expenseWidgetMargin, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ReceiptCell
@@ -73,7 +75,7 @@ function TransactionItemComponent({transactionItem, isLargeScreenWidth, isSelect
                     </View>
                 </View>
             ) : (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1, {backgroundColor}, styles.p6, styles.expenseWidgetRadius]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1, backgroundColor, styles.p6, styles.expenseWidgetRadius]}>
                     <View style={[styles.justifyContentBetween, styles.flex1, styles.flexRow, styles.flex1, styles.alignItemsCenter]}>
                         <ReceiptCell
                             transactionItem={transactionItem}
