@@ -42,7 +42,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                     updateTargetBounds(bounds);
                     const {y, height} = bounds;
 
-                    const offset = 10; // Buffer space
+                    const offset = 10; // Tooltip hides when content moves 10px past header/footer.
                     const dimensions = Dimensions.get('screen');
                     const top = y - (insets.top || 0);
                     const bottom = y + height + insets.bottom || 0;
