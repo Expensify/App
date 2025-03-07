@@ -2,13 +2,14 @@ import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AttachmentModalBaseContentProps} from './BaseContent';
-import type {AttachmentModalContent} from './types';
+import type AttachmentModalRouteProps from './types';
 
-const ReportAvatarModalContent: AttachmentModalContent = ({params, children}) => {
+function ReportAvatarModalContent({params, navigation, attachmentId}: AttachmentModalRouteProps) {
     const reportID = params.reportID ?? CONST.DEFAULT_NUMBER_ID;
     const policyID = params.policyID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -46,10 +47,13 @@ const ReportAvatarModalContent: AttachmentModalContent = ({params, children}) =>
         [attachment, isLoadingApp, policy?.id, report?.reportID, reportID],
     );
 
-    const wrapperProps = useMemo(() => ({}), []);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    return children({contentProps, wrapperProps});
-};
+    return (
+        <AttachmentModalContainer
+            navigation={navigation}
+            attachmentId={attachmentId}
+            contentProps={contentProps}
+        />
+    );
+}
 
 export default ReportAvatarModalContent;

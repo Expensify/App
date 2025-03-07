@@ -6,16 +6,17 @@ import type {Attachment} from '@components/Attachments/types';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type ModalType from '@src/types/utils/ModalType';
-import type {AttachmentModalBaseContentProps} from './BaseContent';
-import type {AttachmentModalContent, AttachmentModalWrapperWrapperProps} from './types';
+import type AttachmentModalRouteProps from './types';
 
-const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}) => {
+function ReportAttachmentModalContent({params, navigation, attachmentId}: AttachmentModalRouteProps) {
     const accountID = params.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const reportID = params.reportID ?? CONST.DEFAULT_NUMBER_ID;
     const isReceiptAttachment = params.isReceiptAttachment ?? false;
@@ -172,22 +173,20 @@ const ReportAttachmentModalContent: AttachmentModalContent = ({params, children}
         ],
     );
 
-    const wrapperProps = useMemo(
-        () =>
-            ({
-                modalType,
-                setModalType,
-                setShouldLoadAttachment,
-                isOverlayModalVisible,
-                closeConfirmModal,
-                onModalClose,
-                onModalHide,
-            } satisfies AttachmentModalWrapperWrapperProps),
-        [closeConfirmModal, isOverlayModalVisible, modalType, onModalClose, onModalHide],
+    return (
+        <AttachmentModalContainer
+            navigation={navigation}
+            attachmentId={attachmentId}
+            contentProps={contentProps}
+            modalType={modalType}
+            setModalType={setModalType}
+            setShouldLoadAttachment={setShouldLoadAttachment}
+            isOverlayModalVisible={isOverlayModalVisible}
+            closeConfirmModal={closeConfirmModal}
+            onModalClose={onModalClose}
+            onModalHide={onModalHide}
+        />
     );
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    return children({contentProps, wrapperProps});
-};
+}
 
 export default ReportAttachmentModalContent;

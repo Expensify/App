@@ -31,7 +31,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -42,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
+import type {FileObject} from './types';
 
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */

@@ -2,16 +2,22 @@ import React, {useCallback, useContext, useState} from 'react';
 import Modal from '@components/Modal';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
-import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent/BaseContent';
+import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
-import type {AttachmentModalWrapperProps} from './types';
+import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalWrapper({
-    contentProps,
-    wrapperProps: {modalType, closeConfirmModal, setShouldLoadAttachment, isOverlayModalVisible, onModalShow, onModalClose, onModalHide},
+function AttachmentModalContainer({
     attachmentId,
-}: AttachmentModalWrapperProps) {
+    contentProps,
+    modalType,
+    closeConfirmModal,
+    setShouldLoadAttachment,
+    isOverlayModalVisible,
+    onModalShow,
+    onModalClose,
+    onModalHide,
+}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const [isModalOpen, setIsModalOpen] = useState(true);
 
@@ -77,6 +83,6 @@ function AttachmentModalWrapper({
     );
 }
 
-AttachmentModalWrapper.displayName = 'AttachmentModalWrapper';
+AttachmentModalContainer.displayName = 'AttachmentModalContainer';
 
-export default AttachmentModalWrapper;
+export default AttachmentModalContainer;

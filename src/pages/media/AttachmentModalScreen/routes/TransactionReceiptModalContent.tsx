@@ -8,13 +8,14 @@ import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isOneTransactionThread, isTrackExpenseReport} from '@libs/ReportUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AttachmentModalBaseContentProps} from './BaseContent';
-import type {AttachmentModalContent} from './types';
+import type AttachmentModalRouteProps from './types';
 
-const TransactionReceiptModalContent: AttachmentModalContent = ({params, children}) => {
+function TransactionReceiptModalContent({params, navigation, attachmentId}: AttachmentModalRouteProps) {
     const reportID = params.reportID ?? CONST.DEFAULT_NUMBER_ID;
     const transactionID = params.transactionID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -97,15 +98,14 @@ const TransactionReceiptModalContent: AttachmentModalContent = ({params, childre
         ],
     );
 
-    const wrapperProps = useMemo(
-        () => ({
-            onModalClose,
-        }),
-        [onModalClose],
+    return (
+        <AttachmentModalContainer
+            navigation={navigation}
+            attachmentId={attachmentId}
+            contentProps={contentProps}
+            onModalClose={onModalClose}
+        />
     );
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    return children({contentProps, wrapperProps});
-};
+}
 
 export default TransactionReceiptModalContent;

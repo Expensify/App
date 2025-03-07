@@ -1,12 +1,13 @@
 import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AttachmentModalBaseContentProps} from './BaseContent';
-import type {AttachmentModalContent} from './types';
+import type AttachmentModalRouteProps from './types';
 
-const WorkspaceAvatarModalContent: AttachmentModalContent = ({params, children}) => {
+function WorkspaceAvatarModalContent({params, navigation, attachmentId}: AttachmentModalRouteProps) {
     const policyID = params.policyID ?? CONST.DEFAULT_NUMBER_ID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
@@ -25,10 +26,13 @@ const WorkspaceAvatarModalContent: AttachmentModalContent = ({params, children})
         [isLoadingApp, policy],
     );
 
-    const wrapperProps = useMemo(() => ({}), []);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    return children({contentProps, wrapperProps});
-};
+    return (
+        <AttachmentModalContainer
+            navigation={navigation}
+            attachmentId={attachmentId}
+            contentProps={contentProps}
+        />
+    );
+}
 
 export default WorkspaceAvatarModalContent;

@@ -1,11 +1,11 @@
 import React, {memo, useCallback, useContext} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
-import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalContent/BaseContent';
+import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-import type {AttachmentModalWrapperProps} from './types';
+import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalWrapper({contentProps, navigation, attachmentId}: AttachmentModalWrapperProps) {
+function AttachmentModalContainer({contentProps, navigation, attachmentId}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
 
@@ -31,6 +31,6 @@ function AttachmentModalWrapper({contentProps, navigation, attachmentId}: Attach
     );
 }
 
-AttachmentModalWrapper.displayName = 'AttachmentModalWrapper';
+AttachmentModalContainer.displayName = 'AttachmentModalContainer';
 
-export default memo(AttachmentModalWrapper);
+export default memo(AttachmentModalContainer);

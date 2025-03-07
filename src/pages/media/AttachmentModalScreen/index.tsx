@@ -1,14 +1,17 @@
 import React, {useContext, useMemo} from 'react';
 import SCREENS from '@src/SCREENS';
-import ProfileAvatarModalContent from './AttachmentModalContent/ProfileAvatarModalContent';
-import ReportAttachmentModalContent from './AttachmentModalContent/ReportAttachmentModalContent';
-import ReportAvatarModalContent from './AttachmentModalContent/ReportAvatarModalContent';
-import TransactionReceiptModalContent from './AttachmentModalContent/TransactionReceiptModalContent';
-import WorkspaceAvatarModalContent from './AttachmentModalContent/WorkspaceAvatarModalContent';
 import AttachmentModalContext from './AttachmentModalContext';
-import AttachmentModalWrapper from './AttachmentModalWrapper';
+import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
+import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent';
+import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
+import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
+import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from './types';
 
+/**
+ * The attachment modal screen can take various different shapes. This is the main screen component that receives the route and
+ * navigation props from the parent screen and renders the correct modal content based on the route.
+ */
 function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) {
     const attachmentId = route.params.attachmentId;
     const attachmentsContext = useContext(AttachmentModalContext);
@@ -21,76 +24,51 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
 
     if (route.name === SCREENS.ATTACHMENTS) {
         return (
-            <ReportAttachmentModalContent params={params}>
-                {({contentProps, wrapperProps}) => (
-                    <AttachmentModalWrapper
-                        navigation={navigation}
-                        attachmentId={attachmentId}
-                        contentProps={contentProps}
-                        wrapperProps={wrapperProps}
-                    />
-                )}
-            </ReportAttachmentModalContent>
+            <ReportAttachmentModalContent
+                params={params}
+                navigation={navigation}
+                attachmentId={attachmentId}
+            />
         );
     }
 
     if (route.name === SCREENS.TRANSACTION_RECEIPT) {
         return (
-            <TransactionReceiptModalContent params={params}>
-                {({contentProps, wrapperProps}) => (
-                    <AttachmentModalWrapper
-                        navigation={navigation}
-                        attachmentId={attachmentId}
-                        contentProps={contentProps}
-                        wrapperProps={wrapperProps}
-                    />
-                )}
-            </TransactionReceiptModalContent>
+            <TransactionReceiptModalContent
+                params={params}
+                navigation={navigation}
+                attachmentId={attachmentId}
+            />
         );
     }
 
     if (route.name === SCREENS.PROFILE_AVATAR) {
         return (
-            <ProfileAvatarModalContent params={params}>
-                {({contentProps, wrapperProps}) => (
-                    <AttachmentModalWrapper
-                        navigation={navigation}
-                        attachmentId={attachmentId}
-                        contentProps={contentProps}
-                        wrapperProps={wrapperProps}
-                    />
-                )}
-            </ProfileAvatarModalContent>
+            <ProfileAvatarModalContent
+                params={params}
+                navigation={navigation}
+                attachmentId={attachmentId}
+            />
         );
     }
 
     if (route.name === SCREENS.WORKSPACE_AVATAR) {
         return (
-            <WorkspaceAvatarModalContent params={params}>
-                {({contentProps, wrapperProps}) => (
-                    <AttachmentModalWrapper
-                        navigation={navigation}
-                        attachmentId={attachmentId}
-                        contentProps={contentProps}
-                        wrapperProps={wrapperProps}
-                    />
-                )}
-            </WorkspaceAvatarModalContent>
+            <WorkspaceAvatarModalContent
+                params={params}
+                navigation={navigation}
+                attachmentId={attachmentId}
+            />
         );
     }
 
     if (route.name === SCREENS.REPORT_AVATAR) {
         return (
-            <ReportAvatarModalContent params={params}>
-                {({contentProps, wrapperProps}) => (
-                    <AttachmentModalWrapper
-                        navigation={navigation}
-                        attachmentId={attachmentId}
-                        contentProps={contentProps}
-                        wrapperProps={wrapperProps}
-                    />
-                )}
-            </ReportAvatarModalContent>
+            <ReportAvatarModalContent
+                params={params}
+                navigation={navigation}
+                attachmentId={attachmentId}
+            />
         );
     }
 

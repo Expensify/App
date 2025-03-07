@@ -5,12 +5,13 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AttachmentModalBaseContentProps} from './BaseContent';
-import type {AttachmentModalContent} from './types';
+import type AttachmentModalRouteProps from './types';
 
-const ProfileAvatarModalContent: AttachmentModalContent = ({params, children}) => {
+function ProfileAvatarModalContent({params, navigation, attachmentId}: AttachmentModalRouteProps) {
     const accountID = params.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -39,10 +40,13 @@ const ProfileAvatarModalContent: AttachmentModalContent = ({params, children}) =
         [accountID, avatarURL, displayName, isLoadingApp, personalDetail, personalDetailsMetadata],
     );
 
-    const wrapperProps = useMemo(() => ({}), []);
-
-    // eslint-disable-next-line react-compiler/react-compiler
-    return children({contentProps, wrapperProps});
-};
+    return (
+        <AttachmentModalContainer
+            navigation={navigation}
+            attachmentId={attachmentId}
+            contentProps={contentProps}
+        />
+    );
+}
 
 export default ProfileAvatarModalContent;
