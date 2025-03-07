@@ -1,3 +1,11 @@
+/**
+ * This function is used to substitute the route parameters in the route string with the actual parameter names
+ *
+ * Example:
+ * route: /workspaces/123/rules/456
+ * params: {workspaceID: '123', ruleID: '456'}
+ * result: /workspaces/:workspaceID/rules/:ruleID
+ */
 function substituteRouteParameters(route: string, params: Record<string, unknown>) {
     let updatedRoute = route;
 
