@@ -1,8 +1,8 @@
-import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+import type {AttachmentModalScreenParams, AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 
-type AttachmentModalRouteProps = {
-    params: AttachmentModalScreenParams;
+type AttachmentModalRouteProps = AttachmentModalScreenParams & {
     navigation: AttachmentModalScreenProps['navigation'];
+    file?: FileObject;
 };
 
 export default AttachmentModalRouteProps;

@@ -11,8 +11,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AttachmentModalRouteProps from './types';
 
-function ProfileAvatarModalContent({params, navigation, attachmentId}: AttachmentModalRouteProps) {
-    const accountID = params.accountID ?? CONST.DEFAULT_NUMBER_ID;
+function ProfileAvatarModalContent({navigation, accountID: accountIDProp}: AttachmentModalRouteProps) {
+    const accountID = accountIDProp ?? CONST.DEFAULT_NUMBER_ID;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const personalDetail = personalDetails?.[accountID];

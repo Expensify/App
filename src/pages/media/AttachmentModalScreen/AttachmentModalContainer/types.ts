@@ -3,13 +3,13 @@ import type {AttachmentModalScreenModalCallbacks, AttachmentModalScreenProps} fr
 import type ModalType from '@src/types/utils/ModalType';
 
 type AttachmentModalContainerProps = AttachmentModalScreenModalCallbacks & {
+    navigation: AttachmentModalScreenProps['navigation'];
+    contentProps: Partial<AttachmentModalBaseContentProps>;
     modalType?: ModalType;
     setModalType?: (modalType: ModalType) => void;
     setShouldLoadAttachment?: (shouldLoadAttachment: boolean) => void;
     closeConfirmModal?: () => void;
     isOverlayModalVisible?: boolean;
-    navigation: AttachmentModalScreenProps['navigation'];
-    contentProps: Partial<AttachmentModalBaseContentProps>;
 };
 
 export default AttachmentModalContainerProps;

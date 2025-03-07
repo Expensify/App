@@ -22,7 +22,7 @@ function AttachmentModalContainer({contentProps, navigation}: AttachmentModalCon
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
-                closeModal={closeModal}
+                onClose={closeModal}
             />
         </ScreenWrapper>
     );

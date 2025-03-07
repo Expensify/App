@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect} from 'react';
 import Modal from '@components/Modal';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,11 +18,6 @@ function AttachmentModalContainer({
     onModalHide,
 }: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
-    const [isModalOpen, setIsModalOpen] = useState(true);
-
-    const onSubmitAndClose = useCallback(() => {
-        setIsModalOpen(false);
-    }, [setIsModalOpen]);
 
     /**
      * Closes the modal.
@@ -33,7 +28,6 @@ function AttachmentModalContainer({
      */
     const closeModal = useCallback(
         (shouldCallDirectly?: boolean) => {
-            setIsModalOpen(false);
             if (typeof onModalClose === 'function') {
                 if (shouldCallDirectly) {
                     onModalClose();
@@ -50,9 +44,9 @@ function AttachmentModalContainer({
 
     return (
         <Modal
+            isVisible
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             onClose={isOverlayModalVisible ? () => closeConfirmModal?.() : () => closeModal?.()}
-            isVisible={isModalOpen}
             onModalHide={onModalHide}
             onModalShow={() => {
                 onModalShow?.();
@@ -69,11 +63,8 @@ function AttachmentModalContainer({
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...contentProps}
-                closeModal={closeModal}
-                closeConfirmModal={closeConfirmModal}
-                isOpen={isModalOpen}
-                setIsModalOpen={setIsModalOpen}
-                onSubmitAndClose={onSubmitAndClose}
+                onClose={closeModal}
+                onConfirmModalClose={closeConfirmModal}
             />
         </Modal>
     );

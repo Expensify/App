@@ -26,7 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
-import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -46,8 +46,6 @@ import type {FileObject} from './types';
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
-    /** Optional file object to be used for the attachment. If not passed in via props must be specified when modal is opened. */
-    file?: FileObject;
     /** Optional original filename when uploading */
     originalFileName?: string;
     /** Whether source url requires authentication */
@@ -88,44 +86,32 @@ type AttachmentModalBaseContentProps = {
     onConfirm?: ((file: FileObject) => void) | null;
     /** Fallback route when the modal is closed */
     fallbackRoute?: Route;
-    /** Optional callback to fire when we want to do something after attachment carousel changes. */
-    onCarouselAttachmentChange?: (attachment: Attachment) => void;
     /** Determines if the attachment is invalid or not */
     isAttachmentInvalid?: boolean;
     /** Determines if the attachment is invalid or not */
     shouldLoadAttachment?: boolean;
-    /** Function to set the attachment invalid or not */
-    setIsAttachmentInvalid?: (value: boolean) => void;
-    /** Whether the attachment modal is currently open */
-    isOpen?: boolean;
-    /** Function to set the modal open or close */
-    setIsModalOpen?: (value: boolean) => void;
     /** Determines if the attachment is invalid or not */
     attachmentInvalidReason?: TranslationPaths | null;
-    /** Function to set the attachment invalid reason */
-    setAttachmentInvalidReason?: (value: TranslationPaths | null) => void;
     /** Determines the title of the invalid reason modal */
     attachmentInvalidReasonTitle?: TranslationPaths | null;
-    /** Function to set the attachment invalid reason title */
-    setAttachmentInvalidReasonTitle?: (value: TranslationPaths | null) => void;
     /** Ref to the submit button */
     submitRef?: RefObject<View | HTMLElement>;
     /** Determines if the delete receipt confirm modal is visible or not */
     isDeleteReceiptConfirmModalVisible?: boolean;
-    /** Function to set the delete receipt confirm modal visibility */
-    setIsDeleteReceiptConfirmModalVisible?: (value: boolean) => void;
-    /** Function to close the confirm modal */
-    closeModal?: (shouldCallDirectly?: boolean) => void;
-    /** Function to close the confirm modal */
-    closeConfirmModal?: () => void;
-    /** Function to submit and close the modal */
-    onSubmitAndClose?: () => void;
-    /** Function to handle pdf load error */
+    /** Callback triggered when the modal is closed */
+    onClose?: (shouldCallDirectly?: boolean) => void;
+    /** Callback triggered when the confirm modal is closed */
+    onConfirmModalClose?: () => void;
+    /** Callback triggered when the delete receipt modal is shown */
+    onRequestDeleteReceipt?: () => void;
+    /** Callback triggered when the delete receipt is confirmed */
+    onDeleteReceipt?: () => void;
+    /** Callback triggered when the pdf load error occurs */
     onPdfLoadError?: (closeModal?: (shouldCallDirectly?: boolean) => void) => void;
-    /** Function to hide the invalid reason modal */
+    /** Callback triggered when the invalid reason modal is hidden */
     onInvalidReasonModalHide?: () => void;
-    /** Function to handle upload file validation */
-    onUploadFileValidated?: (type: 'file' | 'uri', sourceURL: string, fileObject: FileObject) => void;
+    /** Optional callback to fire when we want to do something after attachment carousel changes. */
+    onCarouselAttachmentChange?: (attachment: Attachment) => void;
 };
 
 function AttachmentModalBaseContent({
@@ -135,11 +121,9 @@ function AttachmentModalBaseContent({
     maybeIcon = false,
     headerTitle: headerTitleProp,
     fallbackSource,
-    file: fileProp,
     type,
     accountID,
     attachmentLink = '',
-    isOpen = true,
     allowDownload = false,
     isTrackExpenseAction = false,
     report,
@@ -151,25 +135,20 @@ function AttachmentModalBaseContent({
     shouldShowNotFoundPage = false,
     shouldDisableSendButton = false,
     fallbackRoute,
-    isDeleteReceiptConfirmModalVisible,
-    setIsDeleteReceiptConfirmModalVisible,
+    isDeleteReceiptConfirmModalVisible = false,
     isAttachmentInvalid = false,
     shouldLoadAttachment = true,
-    setIsAttachmentInvalid,
-    setIsModalOpen,
     attachmentInvalidReason,
-    setAttachmentInvalidReason,
     attachmentInvalidReasonTitle,
-    setAttachmentInvalidReasonTitle,
     submitRef,
+    onClose = () => Navigation.goBack(fallbackRoute),
     onConfirm,
-    onCarouselAttachmentChange = () => {},
-    closeConfirmModal,
-    closeModal = () => Navigation.goBack(fallbackRoute),
-    onSubmitAndClose = () => Navigation.goBack(fallbackRoute),
+    onConfirmModalClose,
+    onRequestDeleteReceipt,
+    onDeleteReceipt,
     onPdfLoadError,
     onInvalidReasonModalHide,
-    onUploadFileValidated,
+    onCarouselAttachmentChange = () => {},
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
 
@@ -253,7 +232,7 @@ function AttachmentModalBaseContent({
     const submitAndClose = useCallback(() => {
         // If the modal has already been closed or the confirm button is disabled
         // do not submit.
-        if (!isOpen || isConfirmButtonDisabled) {
+        if (isConfirmButtonDisabled) {
             return;
         }
 
@@ -261,101 +240,18 @@ function AttachmentModalBaseContent({
             onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
         }
 
-        onSubmitAndClose?.();
+        onClose?.();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isOpen, isConfirmButtonDisabled, onConfirm, file, sourceState]);
+    }, [isConfirmButtonDisabled, onConfirm, file, sourceState]);
 
     /**
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
         detachReceipt(transaction?.transactionID);
-        setIsDeleteReceiptConfirmModalVisible?.(false);
-        Navigation.goBack(fallbackRoute);
-    }, [transaction?.transactionID, setIsDeleteReceiptConfirmModalVisible, fallbackRoute]);
-
-    const isValidFile = useCallback(
-        (fileObject: FileObject) =>
-            validateImageForCorruption(fileObject)
-                .then(() => {
-                    if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                        setIsAttachmentInvalid?.(true);
-                        setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooLarge');
-                        setAttachmentInvalidReason?.('attachmentPicker.sizeExceeded');
-                        return false;
-                    }
-
-                    if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                        setIsAttachmentInvalid?.(true);
-                        setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooSmall');
-                        setAttachmentInvalidReason?.('attachmentPicker.sizeNotMet');
-                        return false;
-                    }
-
-                    return true;
-                })
-                .catch(() => {
-                    setIsAttachmentInvalid?.(true);
-                    setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
-                    setAttachmentInvalidReason?.('attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                    return false;
-                }),
-        [setAttachmentInvalidReason, setAttachmentInvalidReasonTitle, setIsAttachmentInvalid],
-    );
-
-    const isDirectoryCheck = useCallback(
-        (data: FileObject) => {
-            if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-                setIsAttachmentInvalid?.(true);
-                setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
-                setAttachmentInvalidReason?.('attachmentPicker.folderNotAllowedMessage');
-                return false;
-            }
-            return true;
-        },
-        [setAttachmentInvalidReason, setAttachmentInvalidReasonTitle, setIsAttachmentInvalid],
-    );
-
-    useEffect(() => {
-        if (!fileProp || !isDirectoryCheck(fileProp)) {
-            return;
-        }
-        let fileObject = fileProp;
-        if ('getAsFile' in fileProp && typeof fileProp.getAsFile === 'function') {
-            fileObject = fileProp.getAsFile() as FileObject;
-        }
-        if (!fileObject) {
-            return;
-        }
-
-        isValidFile(fileObject).then((isValid) => {
-            if (!isValid) {
-                return;
-            }
-            if (fileObject instanceof File) {
-                /**
-                 * Cleaning file name, done here so that it covers all cases:
-                 * upload, drag and drop, copy-paste
-                 */
-                let updatedFile = fileObject;
-                const cleanName = cleanFileName(updatedFile.name);
-                if (updatedFile.name !== cleanName) {
-                    updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
-                }
-                const inputSource = URL.createObjectURL(updatedFile);
-                updatedFile.uri = inputSource;
-                setIsModalOpen?.(true);
-                setSourceState(inputSource);
-                setFile(updatedFile);
-                onUploadFileValidated?.('file', inputSource, updatedFile);
-            } else if (fileObject.uri) {
-                setIsModalOpen?.(true);
-                setSourceState(fileObject.uri);
-                setFile(fileObject);
-                onUploadFileValidated?.('uri', fileObject.uri, fileObject);
-            }
-        });
-    }, [isDirectoryCheck, isValidFile, setIsModalOpen, onUploadFileValidated, fileProp]);
+        onDeleteReceipt?.();
+        onClose();
+    }, [onClose, onDeleteReceipt, transaction?.transactionID]);
 
     useEffect(() => {
         setSourceState(() => source);
@@ -378,7 +274,7 @@ function AttachmentModalBaseContent({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    closeModal?.(true);
+                    onClose?.(true);
                     Navigation.isNavigationReady().then(() => {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
@@ -400,9 +296,7 @@ function AttachmentModalBaseContent({
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('receipt.deleteReceipt'),
-                onSelected: () => {
-                    setIsDeleteReceiptConfirmModalVisible?.(true);
-                },
+                onSelected: onRequestDeleteReceipt,
                 shouldCallAfterModalHide: true,
             });
         }
@@ -420,7 +314,7 @@ function AttachmentModalBaseContent({
         if (!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) {
             headerTitleNew = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
             shouldShowDownloadButtonNew = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
-            shouldShowThreeDotsButtonNew = isReceiptAttachment && isOpen && threeDotsMenuItems.length !== 0;
+            shouldShowThreeDotsButtonNew = isReceiptAttachment && threeDotsMenuItems.length !== 0;
         }
 
         return {headerTitle: headerTitleNew, shouldShowDownloadButton: shouldShowDownloadButtonNew, shouldShowThreeDotsButton: shouldShowThreeDotsButtonNew};
@@ -430,7 +324,6 @@ function AttachmentModalBaseContent({
         isDownloadButtonReadyToBeShown,
         isLocalSource,
         isOffline,
-        isOpen,
         isReceiptAttachment,
         report,
         shouldShowNotFoundPage,
@@ -448,9 +341,9 @@ function AttachmentModalBaseContent({
             isScrollEnabled: nope,
             onTap: () => {},
             onScaleChanged: () => {},
-            onSwipeDown: closeModal,
+            onSwipeDown: onClose,
         }),
-        [closeModal, nope, sourceForAttachmentView],
+        [onClose, nope, sourceForAttachmentView],
     );
 
     return (
@@ -464,8 +357,8 @@ function AttachmentModalBaseContent({
                     onDownloadButtonPress={() => downloadAttachment()}
                     shouldShowCloseButton={!shouldUseNarrowLayout}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={closeModal}
-                    onCloseButtonPress={closeModal}
+                    onBackButtonPress={onClose}
+                    onCloseButtonPress={onClose}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -493,7 +386,7 @@ function AttachmentModalBaseContent({
                                 type={type}
                                 report={report}
                                 onNavigate={onNavigate}
-                                onClose={closeModal}
+                                onClose={onClose}
                                 source={source}
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                                 attachmentLink={currentAttachmentLink}
@@ -509,7 +402,7 @@ function AttachmentModalBaseContent({
                                         isAuthTokenRequired={isAuthTokenRequiredState}
                                         file={file}
                                         onToggleKeyboard={setIsConfirmButtonDisabled}
-                                        onPDFLoadError={() => onPdfLoadError?.(closeModal)}
+                                        onPDFLoadError={() => onPdfLoadError?.(onClose)}
                                         isWorkspaceAvatar={isWorkspaceAvatar}
                                         maybeIcon={maybeIcon}
                                         fallbackSource={fallbackSource}
@@ -547,9 +440,9 @@ function AttachmentModalBaseContent({
                 {isReceiptAttachment && (
                     <ConfirmModal
                         title={translate('receipt.deleteReceipt')}
-                        isVisible={isDeleteReceiptConfirmModalVisible ?? false}
+                        isVisible={isDeleteReceiptConfirmModalVisible}
                         onConfirm={deleteAndCloseModal}
-                        onCancel={closeConfirmModal}
+                        onCancel={onConfirmModalClose}
                         prompt={translate('receipt.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
@@ -560,8 +453,8 @@ function AttachmentModalBaseContent({
             {!isReceiptAttachment && (
                 <ConfirmModal
                     title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                    onConfirm={() => closeConfirmModal?.()}
-                    onCancel={closeConfirmModal}
+                    onConfirm={() => onConfirmModalClose?.()}
+                    onCancel={onConfirmModalClose}
                     isVisible={isAttachmentInvalid}
                     prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                     confirmText={translate('common.close')}

@@ -26,8 +26,9 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === SCREENS.ATTACHMENTS) {
         return (
             <ReportAttachmentModalContent
-                params={params}
                 navigation={navigation}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
             />
         );
     }
@@ -35,8 +36,9 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === SCREENS.TRANSACTION_RECEIPT) {
         return (
             <TransactionReceiptModalContent
-                params={params}
                 navigation={navigation}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
             />
         );
     }
@@ -44,9 +46,9 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === SCREENS.PROFILE_AVATAR) {
         return (
             <ProfileAvatarModalContent
-                params={params}
                 navigation={navigation}
-                attachmentId={attachmentId}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
             />
         );
     }
@@ -54,8 +56,9 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === SCREENS.WORKSPACE_AVATAR) {
         return (
             <WorkspaceAvatarModalContent
-                params={params}
                 navigation={navigation}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
             />
         );
     }
@@ -63,8 +66,9 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
     if (route.name === SCREENS.REPORT_AVATAR) {
         return (
             <ReportAvatarModalContent
-                params={params}
                 navigation={navigation}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...params}
             />
         );
     }

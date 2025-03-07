@@ -15,9 +15,14 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AttachmentModalRouteProps from './types';
 
-function TransactionReceiptModalContent({params, navigation, attachmentId}: AttachmentModalRouteProps) {
-    const reportID = params.reportID ?? CONST.DEFAULT_NUMBER_ID;
-    const transactionID = params.transactionID ?? CONST.DEFAULT_NUMBER_ID;
+function TransactionReceiptModalContent({
+    navigation,
+    reportID,
+    transactionID: transactionIDProp,
+    readonly: readonlyProp,
+    isFromReviewDuplicates: isFromReviewDuplicatesProp,
+}: AttachmentModalRouteProps) {
+    const transactionID = transactionIDProp ?? CONST.DEFAULT_NUMBER_ID;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -27,8 +32,8 @@ function TransactionReceiptModalContent({params, navigation, attachmentId}: Atta
     const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const isLocalFile = receiptURIs.isLocalFile;
-    const readonly = !!params.readonly;
-    const isFromReviewDuplicates = !!params.isFromReviewDuplicates;
+    const readonly = !!readonlyProp;
+    const isFromReviewDuplicates = !!isFromReviewDuplicatesProp;
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -40,7 +45,7 @@ function TransactionReceiptModalContent({params, navigation, attachmentId}: Atta
         if (report && transaction) {
             return;
         }
-        openReport(params.reportID);
+        openReport(reportID);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
@@ -56,9 +61,7 @@ function TransactionReceiptModalContent({params, navigation, attachmentId}: Atta
             const isOneTransactionThreadValue = isOneTransactionThread(report?.reportID, report?.parentReportID, parentReportAction);
             Navigation.dismissModal(isOneTransactionThreadValue ? report?.parentReportID : report?.reportID);
         }
-
-        Navigation.goBack(params.fallbackRoute);
-    }, [params.fallbackRoute, parentReportAction, report?.parentReportID, report?.reportID]);
+    }, [parentReportAction, report?.parentReportID, report?.reportID]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
