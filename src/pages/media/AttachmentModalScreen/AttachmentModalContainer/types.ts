@@ -9,7 +9,6 @@ type AttachmentModalContainerProps = AttachmentModalScreenModalCallbacks & {
     closeConfirmModal?: () => void;
     isOverlayModalVisible?: boolean;
     navigation: AttachmentModalScreenProps['navigation'];
-    attachmentId?: string;
     contentProps: Partial<AttachmentModalBaseContentProps>;
 };
 

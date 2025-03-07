@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import type AttachmentModalContainerProps from './types';
 
 function AttachmentModalContainer({
-    attachmentId,
     contentProps,
     modalType,
     closeConfirmModal,
@@ -43,13 +42,10 @@ function AttachmentModalContainer({
                 attachmentModalHandler.handleModalClose(onModalClose);
             }
 
-            if (attachmentId) {
-                attachmentsContext.removeAttachment(attachmentId);
-            }
-
+            attachmentsContext.setCurrentAttachment(undefined);
             Navigation.goBack(contentProps.fallbackRoute);
         },
-        [attachmentId, attachmentsContext, contentProps.fallbackRoute, onModalClose],
+        [attachmentsContext, contentProps.fallbackRoute, onModalClose],
     );
 
     return (

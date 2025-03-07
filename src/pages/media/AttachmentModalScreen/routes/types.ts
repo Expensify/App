@@ -3,7 +3,6 @@ import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from '@pag
 type AttachmentModalRouteProps = {
     params: AttachmentModalScreenParams;
     navigation: AttachmentModalScreenProps['navigation'];
-    attachmentId?: string;
 };
 
 export default AttachmentModalRouteProps;

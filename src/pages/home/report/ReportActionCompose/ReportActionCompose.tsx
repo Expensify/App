@@ -425,7 +425,7 @@ function ReportActionCompose({
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModal = useCallback(
         (file: FileObject) => {
-            const attachmentId = reportAttachmentsContext.addAttachment({
+            reportAttachmentsContext.setCurrentAttachment({
                 file,
                 headerTitle: translate('reportActionCompose.sendAttachment'),
                 onConfirm: addAttachment,
@@ -433,7 +433,7 @@ function ReportActionCompose({
                 onModalHide: onAttachmentPreviewClose,
                 shouldDisableSendButton: !!exceededMaxLength,
             });
-            Navigation.navigate(ROUTES.ATTACHMENTS.getRoute({attachmentId}));
+            Navigation.navigate(ROUTES.ATTACHMENTS.getRoute());
         },
         [addAttachment, exceededMaxLength, onAttachmentPreviewClose, reportAttachmentsContext, translate],
     );

@@ -29,7 +29,6 @@ function WorkspaceAvatarModalContent({params, navigation, attachmentId}: Attachm
     return (
         <AttachmentModalContainer
             navigation={navigation}
-            attachmentId={attachmentId}
             contentProps={contentProps}
         />
     );

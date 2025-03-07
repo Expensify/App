@@ -845,7 +845,7 @@ function clearAvatarErrors(reportID: string) {
  * @param participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(
-    reportID: string | undefined,
+    reportID?: string | undefined,
     reportActionID?: string,
     participantLoginList: string[] = [],
     newReportObject?: OptimisticChatReport,

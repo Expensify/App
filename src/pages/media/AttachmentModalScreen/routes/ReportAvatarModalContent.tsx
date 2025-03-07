@@ -50,7 +50,6 @@ function ReportAvatarModalContent({params, navigation, attachmentId}: Attachment
     return (
         <AttachmentModalContainer
             navigation={navigation}
-            attachmentId={attachmentId}
             contentProps={contentProps}
         />
     );

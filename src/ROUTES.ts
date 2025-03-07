@@ -362,34 +362,22 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: ({
-            fileName,
-            reportID,
-            type,
-            accountID,
-            isAuthTokenRequired,
-            attachmentLink,
-            ...restParams
-        }: {
+        getRoute: (params?: {
+            source?: string;
             type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
             reportID?: string | number;
             accountID?: number;
             isAuthTokenRequired?: boolean;
             fileName?: string;
             attachmentLink?: string;
-        } & (
-            | {
-                  attachmentId: string;
-              }
-            | {
-                  source: string;
-              }
-        )) => {
-            if ('attachmentId' in restParams) {
-                return `attachment?attachmentId=${encodeURIComponent(restParams.attachmentId)}` as const;
+        }) => {
+            if (!params?.source) {
+                return `attachment`;
             }
 
-            const sourceParam = `?source=${encodeURIComponent(restParams.source)}`;
+            const {source, type, reportID, accountID, isAuthTokenRequired, fileName, attachmentLink} = params;
+
+            const sourceParam = `?source=${encodeURIComponent(source)}`;
             const typeParam = type ? `&type=${type as string}` : '';
             const reportIDParam = reportID ? `&reportID=${reportID}` : '';
             const accountIDParam = accountID ? `&accountID=${accountID}` : '';

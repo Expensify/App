@@ -334,14 +334,14 @@ function AvatarWithImagePicker({
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(() => {
-        const attachmentId = reportAttachmentsContext.addAttachment({
+        reportAttachmentsContext.setCurrentAttachment({
             source: previewSource,
             fallbackSource: fallbackIcon,
             headerTitle,
             originalFileName,
             maybeIcon: isUsingDefaultAvatar,
         });
-        Navigation.navigate(ROUTES.ATTACHMENTS.getRoute({attachmentId}));
+        Navigation.navigate(ROUTES.ATTACHMENTS.getRoute());
     }, [fallbackIcon, headerTitle, isUsingDefaultAvatar, originalFileName, previewSource, reportAttachmentsContext]);
 
     return (

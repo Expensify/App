@@ -176,7 +176,6 @@ function ReportAttachmentModalContent({params, navigation, attachmentId}: Attach
     return (
         <AttachmentModalContainer
             navigation={navigation}
-            attachmentId={attachmentId}
             contentProps={contentProps}
             modalType={modalType}
             setModalType={setModalType}

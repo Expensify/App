@@ -13,21 +13,21 @@ import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from './ty
  * navigation props from the parent screen and renders the correct modal content based on the route.
  */
 function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) {
-    const attachmentId = route.params.attachmentId;
     const attachmentsContext = useContext(AttachmentModalContext);
     const params: AttachmentModalScreenParams = useMemo(() => {
-        if (attachmentId) {
-            return {...route.params, ...attachmentsContext.getAttachmentById(attachmentId)};
+        const currentAttachment = attachmentsContext.getCurrentAttachment();
+
+        if (currentAttachment) {
+            return {...route.params, ...currentAttachment};
         }
         return route.params;
-    }, [attachmentId, attachmentsContext, route.params]);
+    }, [attachmentsContext, route.params]);
 
     if (route.name === SCREENS.ATTACHMENTS) {
         return (
             <ReportAttachmentModalContent
                 params={params}
                 navigation={navigation}
-                attachmentId={attachmentId}
             />
         );
     }
@@ -37,7 +37,6 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
             <TransactionReceiptModalContent
                 params={params}
                 navigation={navigation}
-                attachmentId={attachmentId}
             />
         );
     }
@@ -57,7 +56,6 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
             <WorkspaceAvatarModalContent
                 params={params}
                 navigation={navigation}
-                attachmentId={attachmentId}
             />
         );
     }
@@ -67,7 +65,6 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
             <ReportAvatarModalContent
                 params={params}
                 navigation={navigation}
-                attachmentId={attachmentId}
             />
         );
     }

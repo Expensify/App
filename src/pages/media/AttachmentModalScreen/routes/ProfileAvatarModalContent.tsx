@@ -43,7 +43,6 @@ function ProfileAvatarModalContent({params, navigation, attachmentId}: Attachmen
     return (
         <AttachmentModalContainer
             navigation={navigation}
-            attachmentId={attachmentId}
             contentProps={contentProps}
         />
     );

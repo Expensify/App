@@ -1,22 +1,22 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {AttachmentModalScreenParams} from './types';
+import type AttachmentModalRouteProps from './routes/types';
+
+type Attachment = Omit<Partial<AttachmentModalRouteProps>, 'navigation'>;
 
 type AttachmentModalContextValue = {
     isAttachmentHidden: (reportActionID: string) => boolean;
     updateHiddenAttachments: (reportActionID: string, isHidden: boolean) => void;
-    addAttachment(attachmentProps: Partial<AttachmentModalScreenParams>): string;
-    removeAttachment(attachmentId: string): void;
-    getAttachmentById(attachmentId: string): Partial<AttachmentModalScreenParams> | undefined;
+    setCurrentAttachment: (attachmentProps: Attachment | undefined) => void;
+    getCurrentAttachment: () => Attachment | undefined;
 };
 
 const AttachmentModalContext = React.createContext<AttachmentModalContextValue>({
     isAttachmentHidden: () => false,
     updateHiddenAttachments: () => {},
-    addAttachment: () => '',
-    removeAttachment: () => undefined,
-    getAttachmentById: () => undefined,
+    setCurrentAttachment: () => {},
+    getCurrentAttachment: () => undefined,
 });
 
 function AttachmentModalProvider({children}: ChildrenProps) {
@@ -29,31 +29,11 @@ function AttachmentModalProvider({children}: ChildrenProps) {
         hiddenAttachments.current = {};
     }, [currentReportID]);
 
-    const attachments = useRef<Record<string, Partial<AttachmentModalScreenParams>>>({});
-    const addAttachment = useCallback<AttachmentModalContextValue['addAttachment']>(
-        (attachmentProps) => {
-            const attachmentCount = Object.keys(attachments.current).length;
-            const attachmentId = `attachment_${attachmentCount + 1}`;
-            attachments.current = {...attachments.current, [attachmentId]: attachmentProps};
-            return attachmentId;
-        },
-        [attachments],
-    );
-
-    const removeAttachment = useCallback<AttachmentModalContextValue['removeAttachment']>(
-        (attachmentId) => {
-            delete attachments.current[attachmentId];
-        },
-        [attachments],
-    );
-
-    const getAttachmentById = useCallback<AttachmentModalContextValue['getAttachmentById']>(
-        (attachmentId) => {
-            return attachments.current[attachmentId];
-        },
-        [attachments],
-    );
-
+    const currentAttachment = useRef<Attachment | undefined>(undefined);
+    const setCurrentAttachment = useCallback((attachmentProps: Attachment | undefined) => {
+        currentAttachment.current = attachmentProps;
+    }, []);
+    const getCurrentAttachment = useCallback(() => currentAttachment.current, []);
     const contextValue = useMemo(
         () => ({
             isAttachmentHidden: (reportActionID: string) => hiddenAttachments.current[reportActionID],
@@ -63,11 +43,10 @@ function AttachmentModalProvider({children}: ChildrenProps) {
                     [reportActionID]: value,
                 };
             },
-            addAttachment,
-            removeAttachment,
-            getAttachmentById,
+            setCurrentAttachment,
+            getCurrentAttachment,
         }),
-        [addAttachment, getAttachmentById, removeAttachment],
+        [setCurrentAttachment, getCurrentAttachment],
     );
 
     return <AttachmentModalContext.Provider value={contextValue}>{children}</AttachmentModalContext.Provider>;

@@ -101,7 +101,6 @@ function TransactionReceiptModalContent({params, navigation, attachmentId}: Atta
     return (
         <AttachmentModalContainer
             navigation={navigation}
-            attachmentId={attachmentId}
             contentProps={contentProps}
             onModalClose={onModalClose}
         />

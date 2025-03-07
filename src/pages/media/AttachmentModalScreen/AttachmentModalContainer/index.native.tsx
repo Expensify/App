@@ -5,17 +5,14 @@ import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/Attac
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type AttachmentModalContainerProps from './types';
 
-function AttachmentModalContainer({contentProps, navigation, attachmentId}: AttachmentModalContainerProps) {
+function AttachmentModalContainer({contentProps, navigation}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
 
     const closeModal = useCallback(() => {
-        if (attachmentId) {
-            attachmentsContext.removeAttachment(attachmentId);
-        }
-
+        attachmentsContext.setCurrentAttachment(undefined);
         Navigation.goBack(contentProps.fallbackRoute);
-    }, [attachmentId, attachmentsContext, contentProps.fallbackRoute]);
+    }, [attachmentsContext, contentProps.fallbackRoute]);
 
     return (
         <ScreenWrapper
