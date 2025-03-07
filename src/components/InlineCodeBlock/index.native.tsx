@@ -1,9 +1,9 @@
 import React from 'react';
+import {View} from 'react-native';
 import type {TDefaultRendererProps} from 'react-native-render-html';
 import Text from '@components/Text';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
-import { View } from 'react-native';
 
 /**
  * Retrieves the text content from a Text or Phrasing node.

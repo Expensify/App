@@ -1,12 +1,11 @@
-
 import React from 'react';
+import {View} from 'react-native';
 import {splitBoxModelStyle} from 'react-native-render-html';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
 import useStyleUtils from '@hooks/useStyleUtils';
 import FontUtils from '@styles/utils/FontUtils';
-import { View } from 'react-native';
 
 type CodeRendererProps = CustomRendererProps<TText | TPhrasing> & {
     /** Key of the element */
@@ -34,13 +33,13 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
 
     return (
         <View style={{marginBottom: 4}}>
-        <InlineCodeBlock
-            defaultRendererProps={{...defaultRendererProps, style: {marginBottom: 4}}}
-            TDefaultRenderer={TDefaultRenderer}
-            boxModelStyle={[boxModelStyle]}
-            textStyle={{...textStyle, ...textStyleOverride}}
-            key={key}
-        />
+            <InlineCodeBlock
+                defaultRendererProps={{...defaultRendererProps, style: {marginBottom: 4}}}
+                TDefaultRenderer={TDefaultRenderer}
+                boxModelStyle={[boxModelStyle]}
+                textStyle={{...textStyle, ...textStyleOverride}}
+                key={key}
+            />
         </View>
     );
 }
