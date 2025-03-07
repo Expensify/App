@@ -39,5 +39,8 @@ jobs:
         with:
           PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.number }}
 
+      - name: Connectivity test for the stats server
+        run: nc -zv stats.expensify.com 3003
+
       - name: Send graphite data
         run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc -q0 stats.expensify.com 3003
