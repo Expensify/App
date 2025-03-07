@@ -124,9 +124,9 @@ function TransferBalancePage() {
                             ? translate('transferAmountPage.transferDetailBankAccount')
                             : translate('transferAmountPage.transferDetailDebitCard')
                     }
-                    shouldShowPrimaryButton
-                    primaryButtonText={translate('common.done')}
-                    onPrimaryButtonPress={dismissSuccessfulTransferBalancePage}
+                    shouldShowButton
+                    buttonText={translate('common.done')}
+                    onButtonPress={dismissSuccessfulTransferBalancePage}
                 />
             </ScreenWrapper>
         );

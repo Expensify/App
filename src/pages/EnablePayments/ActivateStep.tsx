@@ -38,9 +38,9 @@ function ActivateStep({userWallet}: ActivateStepProps) {
                 illustration={animation}
                 heading={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}
                 description={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
-                shouldShowPrimaryButton={isActivatedWallet}
-                primaryButtonText={continueButtonText}
-                onPrimaryButtonPress={() => continueSetup()}
+                shouldShowButton={isActivatedWallet}
+                buttonText={continueButtonText}
+                onButtonPress={() => continueSetup()}
             />
         </>
     );

@@ -23,13 +23,13 @@ type ConfirmationPageProps = {
     description: React.ReactNode;
 
     /** The text for the primary button label */
-    primaryButtonText?: string;
+    buttonText?: string;
 
     /** A function that is called when the primary button is clicked on */
-    onPrimaryButtonPress?: () => void;
+    onButtonPress?: () => void;
 
     /** Whether we should show a primary confirmation button */
-    shouldShowPrimaryButton?: boolean;
+    shouldShowButton?: boolean;
 
     /** The text for the secondary button label */
     secondaryButtonText?: string;
@@ -60,9 +60,9 @@ function ConfirmationPage({
     illustration = LottieAnimations.Fireworks,
     heading,
     description,
-    primaryButtonText = '',
-    onPrimaryButtonPress = () => {},
-    shouldShowPrimaryButton = false,
+    buttonText = '',
+    onButtonPress = () => {},
+    shouldShowButton = false,
     secondaryButtonText = '',
     onSecondaryButtonPress = () => {},
     shouldShowSecondaryButton = false,
@@ -96,7 +96,7 @@ function ConfirmationPage({
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
                 <Text style={[styles.textAlignCenter, descriptionStyle]}>{description}</Text>
             </View>
-            {(shouldShowSecondaryButton || shouldShowPrimaryButton) && (
+            {(shouldShowSecondaryButton || shouldShowButton) && (
                 <FixedFooter style={footerStyle}>
                     {shouldShowSecondaryButton && (
                         <Button
@@ -107,15 +107,15 @@ function ConfirmationPage({
                             onPress={onSecondaryButtonPress}
                         />
                     )}
-                    {shouldShowPrimaryButton && (
+                    {shouldShowButton && (
                         <Button
                             success
                             large
-                            text={primaryButtonText}
+                            text={buttonText}
                             testID="confirmation-primary-button"
                             style={styles.mt3}
                             pressOnEnter
-                            onPress={onPrimaryButtonPress}
+                            onPress={onButtonPress}
                         />
                     )}
                 </FixedFooter>

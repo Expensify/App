@@ -44,9 +44,9 @@ function UpgradeConfirmation({policyName, onConfirmUpgrade, isCategorizing, isTr
         <ConfirmationPage
             heading={translate('workspace.upgrade.completed.headline')}
             description={description}
-            shouldShowPrimaryButton
-            onPrimaryButtonPress={onConfirmUpgrade}
-            primaryButtonText={translate('workspace.upgrade.completed.gotIt')}
+            shouldShowButton
+            onButtonPress={onConfirmUpgrade}
+            buttonText={translate('workspace.upgrade.completed.gotIt')}
             containerStyle={styles.h100}
         />
     );

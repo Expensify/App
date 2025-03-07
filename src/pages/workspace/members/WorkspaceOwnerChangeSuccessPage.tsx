@@ -44,9 +44,9 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
                     heading={translate('workspace.changeOwner.successTitle')}
                     description={translate('workspace.changeOwner.successDescription')}
                     descriptionStyle={styles.textSupporting}
-                    shouldShowPrimaryButton
-                    primaryButtonText={translate('common.buttonConfirm')}
-                    onPrimaryButtonPress={closePage}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={closePage}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -49,8 +49,8 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeSuccess.successfullyMergedAllData.afterSecondEmail')}
                     </>
                 ),
-                primaryButtonText: translate('common.buttonConfirm'),
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: LottieAnimations.Fireworks,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_NO_EXIST]: {
@@ -71,8 +71,8 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureUncreatedAccount.addContactMethod.afterLink')}
                     </>
                 ),
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                primaryButtonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                buttonText: translate('common.buttonConfirm'),
                 illustration: Illustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_2FA]: {
@@ -89,8 +89,8 @@ function MergeResultPage() {
                         </Text>
                     </>
                 ),
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
-                primaryButtonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                buttonText: translate('common.buttonConfirm'),
                 illustration: Illustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SMART_SCANNER]: {
@@ -102,9 +102,9 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureSmartScannerAccount.afterEmail')}
                     </>
                 ),
-                primaryButtonText: translate('common.buttonConfirm'),
+                buttonText: translate('common.buttonConfirm'),
                 illustration: Illustrations.LockClosedOrange,
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_DOMAIN_CONTROL]: {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -125,8 +125,8 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureSAMLDomainControl.afterLink')}
                     </>
                 ),
-                primaryButtonText: translate('common.buttonConfirm'),
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED]: {
@@ -150,8 +150,8 @@ function MergeResultPage() {
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
                 onSecondaryButtonPress: () => openOldDotLink(CONST.OLDDOT_URLS.INBOX, false),
                 shouldShowSecondaryButton: true,
-                primaryButtonText: translate('common.buttonConfirm'),
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.RunningTurtle,
                 illustrationStyle: {width: 132, height: 150},
             },
@@ -164,8 +164,8 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureSAMLAccount.afterEmail')}
                     </>
                 ),
-                primaryButtonText: translate('common.buttonConfirm'),
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_ACCOUNT_LOCKED]: {
@@ -185,8 +185,8 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureAccountLocked.afterLink')}
                     </>
                 ),
-                primaryButtonText: translate('common.buttonConfirm'),
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING]: {
@@ -198,8 +198,8 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailureInvoicedAccount.afterEmail')}
                     </>
                 ),
-                primaryButtonText: translate('common.buttonConfirm'),
-                onPrimaryButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
         };
@@ -208,12 +208,12 @@ function MergeResultPage() {
     const {
         heading,
         headingStyle,
-        onPrimaryButtonPress,
+        onButtonPress,
         descriptionStyle,
         illustration,
         illustrationStyle,
         description,
-        primaryButtonText,
+        buttonText,
         secondaryButtonText,
         onSecondaryButtonPress,
         shouldShowSecondaryButton,
@@ -241,9 +241,9 @@ function MergeResultPage() {
                 containerStyle={{...styles.flexGrow1, ...styles.mt3}}
                 heading={heading}
                 headingStyle={headingStyle}
-                onPrimaryButtonPress={onPrimaryButtonPress}
-                shouldShowPrimaryButton
-                primaryButtonText={primaryButtonText}
+                onButtonPress={onButtonPress}
+                shouldShowButton
+                buttonText={buttonText}
                 shouldShowSecondaryButton={shouldShowSecondaryButton}
                 secondaryButtonText={secondaryButtonText}
                 onSecondaryButtonPress={onSecondaryButtonPress}
