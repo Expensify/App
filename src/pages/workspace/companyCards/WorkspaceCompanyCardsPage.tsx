@@ -1,4 +1,3 @@
-import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -67,7 +66,9 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
     const isLoading = !isOffline && (!cardFeeds || (!!cardFeeds.isLoading && isEmptyObject(cardsList)));
 
-    useFocusEffect(fetchCompanyCards);
+    useEffect(() => {
+        fetchCompanyCards();
+    }, [fetchCompanyCards]);
 
     useEffect(() => {
         if (isLoading || !selectedFeed || isPending) {

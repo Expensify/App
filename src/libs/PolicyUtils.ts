@@ -33,7 +33,7 @@ import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {hasSynchronizationErrorMessage} from './actions/connections';
-import {getCurrentUserAccountID} from './actions/Report';
+import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
@@ -520,7 +520,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
 }
 
 /** Get a tax with given ID from policy */
@@ -613,11 +613,11 @@ function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseRe
     }
 
     const employee = policy?.employeeList?.[employeeLogin];
-    if (!employee) {
+    if (!employee && !defaultApprover) {
         return -1;
     }
 
-    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover]).at(0) ?? -1;
+    return getAccountIDsByLogins([employee?.submitsTo ?? defaultApprover]).at(0) ?? -1;
 }
 
 /**
@@ -676,7 +676,7 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     }
     return Object.keys(policy.employeeList)
         .map((email) => ({...policy.employeeList?.[email], email}))
-        .filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+        .filter((employee) => employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -1354,6 +1354,33 @@ function canEnablePreventSelfApprovals(policy: OnyxEntry<Policy>): boolean {
     return employeeEmails.length > 1;
 }
 
+function isPrefferedExporter(policy: Policy) {
+    const user = getCurrentUserEmail();
+    const exporters = [
+        policy.connections?.intacct?.config?.export?.exporter,
+        policy.connections?.netsuite?.options?.config?.exporter,
+        policy.connections?.netsuiteQuickStart?.config?.exporter,
+        policy.connections?.quickbooksDesktop?.config?.export?.exporter,
+        policy.connections?.quickbooksOnline?.config?.export?.exporter,
+        policy.connections?.xero?.config?.export?.exporter,
+    ];
+
+    return exporters.some((exporter) => exporter && exporter === user);
+}
+
+function isAutoSyncEnabled(policy: Policy) {
+    const values = [
+        policy.connections?.intacct?.config?.autoSync?.enabled,
+        policy.connections?.netsuite?.config?.autoSync?.enabled,
+        policy.connections?.netsuiteQuickStart?.config?.autoSync?.enabled,
+        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
+        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
+        policy.connections?.xero?.config?.autoSync?.enabled,
+    ];
+
+    return values.some((value) => !!value);
+}
+
 export {
     canEditTaxRate,
     canEnablePreventSelfApprovals,
@@ -1492,6 +1519,9 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
+    getManagerAccountID,
+    isPrefferedExporter,
+    isAutoSyncEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
