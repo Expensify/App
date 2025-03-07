@@ -15,6 +15,7 @@ import type {
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
     CompleteGuidedSetupParams,
+    DeleteAppReportParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
     FlagCommentParams,
@@ -4661,6 +4662,52 @@ function clearDeleteTransactionNavigateBackUrl() {
     Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
 }
 
+/** Deletes a report and unreports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
+function deleteAppReport(reportID: string | undefined) {
+    if (!reportID) {
+        Log.warn('[Report] deleteReport called with no reportID');
+        return;
+    }
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const onyxData: Record<string, null> = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
+    };
+
+    // Delete linked transactions
+    const reportActionsForReport = allReportActions?.[reportID];
+
+    const transactionIDs = Object.values(reportActionsForReport ?? {})
+        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
+        .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
+
+    [...new Set(transactionIDs)].forEach((transactionID) => {
+        onyxData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = null;
+    });
+
+    Onyx.multiSet(onyxData);
+    const selfDMReportID = findSelfDMReportID();
+
+    // Move the report to SelfDm
+    Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+        if (!reportAction.childReportID) {
+            return;
+        }
+        const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+    });
+
+    // Delete linked IOU report
+    if (report?.iouReportID) {
+        deleteReport(report.iouReportID);
+    }
+
+    const parameters: DeleteAppReportParams = {
+        reportID,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters);
+}
+
 export type {Video};
 
 export {
@@ -4754,4 +4801,5 @@ export {
     updateRoomVisibility,
     updateWriteCapability,
     prepareOnboardingOnyxData,
+    deleteAppReport,
 };

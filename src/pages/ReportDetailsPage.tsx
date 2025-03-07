@@ -106,6 +106,7 @@ import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
     clearReportFieldKeyErrors,
+    deleteAppReport,
     exportReportToCSV,
     getReportPrivateNote,
     hasErrorInPrivateNotes,
@@ -295,7 +296,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
+    const shouldShowDeleteButton = true;
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -1014,7 +1015,10 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={Expensicons.Trashcan}
                             title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={() => setIsDeleteModalVisible(true)}
+                            onPress={() => {
+                                console.log('report?.reportID::: ', report?.reportID);
+                                deleteAppReport(report?.reportID);
+                            }}
                         />
                     )}
                 </ScrollView>
