@@ -4685,7 +4685,7 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
 function downloadReportPDF(fileName: string, reportName: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
-    const pdfURL = `https://staging.expensify.com/secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
+    const pdfURL = `https://www.expensify.com/secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
     setDownload(downloadFileName, true);
     fileDownload(pdfURL, downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(downloadFileName, false));
 }
