@@ -1,7 +1,9 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import type {ApiRequestCommandParameters} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictActionData} from '@src/types/onyx/Request';
@@ -18,6 +20,22 @@ const commentsToBeDeleted = new Set<string>([
     WRITE_COMMANDS.ADD_EMOJI_REACTION,
     WRITE_COMMANDS.REMOVE_EMOJI_REACTION,
 ]);
+
+const enablePolicyFeatureCommand = [
+    WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
+    WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
+    WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
+    WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+    WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
+    WRITE_COMMANDS.ENABLE_POLICY_TAGS,
+    WRITE_COMMANDS.ENABLE_POLICY_TAXES,
+    WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS,
+    WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
+    WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
+    WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
+] as const;
+
+type EnablePolicyFeatureCommand = TupleToUnion<typeof enablePolicyFeatureCommand>;
 
 function createUpdateCommentMatcher(reportActionID: string) {
     return function (request: OnyxRequest) {
@@ -175,10 +193,38 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
     } as ConflictActionData;
 }
 
+function resolveEnableFeatureConflicts(
+    command: EnablePolicyFeatureCommand,
+    persistedRequests: OnyxRequest[],
+    parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand],
+): ConflictActionData {
+    const deleteRequestIndex = persistedRequests.findIndex(
+        (request) => request.command === command && request.data?.policyID === parameters.policyID && request.data?.enabled !== parameters.enabled,
+    );
+
+    if (deleteRequestIndex === -1) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: [deleteRequestIndex],
+            pushNewRequest: false,
+        },
+    };
+}
+
 export {
     resolveDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,
+    resolveEnableFeatureConflicts,
+    enablePolicyFeatureCommand,
 };
