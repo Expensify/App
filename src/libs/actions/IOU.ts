@@ -7852,7 +7852,11 @@ function getReportFromHoldRequestsOnyxData(
     };
 }
 
-function hasOutstandingChildRequest(chatReport: OnyxTypes.Report, excludedIOUReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
+function hasOutstandingChildRequest(chatReport: OnyxTypes.Report, excludedIOUReport: OnyxEntry<OnyxTypes.Report>, policyId?: string) {
+    const policy = getPolicy(policyId);
+    if (!policy?.achAccount?.bankAccountID) {
+        return false;
+    }
     const reportActions = getAllReportActions(chatReport.reportID);
     return !!Object.values(reportActions).find((action) => {
         const iouReportID = getIOUReportIDFromReportActionPreview(action);
@@ -7951,7 +7955,7 @@ function getPayMoneyRequestParams(
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport, activePolicy),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport, iouReport?.policyID),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
