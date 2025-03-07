@@ -126,7 +126,7 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
                             </View>
                         </UserDetailsTooltip>
                     )}
-                    <View style={[styles.alignSelfCenter]}>
+                    <View style={[styles.alignSelfCenter, styles.flex1]}>
                         <RenderHTML html={`<comment>${taskReport?.reportName ?? action?.childReportName ?? ''}</comment>`} />
                     </View>
                 </View>
