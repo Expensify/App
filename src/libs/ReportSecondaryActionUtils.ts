@@ -1,46 +1,52 @@
-import {fromZonedTime, toZonedTime} from 'date-fns-tz';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
-import {isApprover as isApprovedMember} from './actions/Policy/Member';
+import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasNoPolicyOtherThanPersonalType, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
+import {
+    arePaymentsEnabled as arePaymentsEnabledUtils,
+    getCorrectedAutoReportingFrequency,
+    hasAccountingConnections,
+    hasNoPolicyOtherThanPersonalType,
+    isAutoSyncEnabled,
+    isPrefferedExporter,
+} from './PolicyUtils';
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
-    isClosedReport,
+    isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
-    isExpenseReport,
-    isExported,
-    isInvoiceReport,
-    isIOUReport,
-    isOpenReport,
-    isPayer,
-    isProcessingReport,
-    isReportApproved,
-    isReportManager,
+    isExpenseReport as isExpenseReportUtils,
+    isExported as isExportedUtils,
+    isInvoiceReport as isInvoiceReportUtils,
+    isIOUReport as isIOUReportUtils,
+    isOpenReport as isOpenReportUtils,
+    isPayer as isPayerUtils,
+    isProcessingReport as isProcessingReportUtils,
+    isReportApproved as isReportApprovedUtils,
+    isReportManager as isReportManagerUtils,
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function isSubmitAction(report: Report, policy: Policy): boolean {
-    const isExpense = isExpenseReport(report);
+    const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpense) {
+    if (!isExpenseReport) {
         return false;
     }
 
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
-    const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
 
-    if (!isSubmitter && !isApprover) {
+    if (!isReportSubmitter && !isReportApprover) {
         return false;
     }
 
-    const isOpen = isOpenReport(report);
+    const isOpenReport = isOpenReportUtils(report);
 
-    if (!isOpen) {
+    if (!isOpenReport) {
         return false;
     }
 
@@ -52,12 +58,12 @@ function isSubmitAction(report: Report, policy: Policy): boolean {
 }
 
 function isApproveAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>): boolean {
-    const isExpense = isExpenseReport(report);
-    const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
-    const isProcessing = isProcessingReport(report);
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isProcessingReport = isProcessingReportUtils(report);
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
-    if (isExpense && isApprover && isProcessing && hasDuplicates) {
+    if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }
 
@@ -73,28 +79,28 @@ function isApproveAction(report: Report, policy: Policy, reportTransactions: Tra
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
 
-    const userControllsReport = isApprover || isAdmin;
-    return userControllsReport && shouldShowBrokenConnectionViolation;
+    const userControlsReport = isReportApprover || isAdmin;
+    return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
 function isUnapproveAction(report: Report, policy: Policy): boolean {
-    const isExpense = isExpenseReport(report);
-    const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
-    const isApproved = isReportApproved({report});
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
+    const isReportApproved = isReportApprovedUtils({report});
 
-    return isExpense && isApprover && isApproved;
+    return isExpenseReport && isReportApprover && isReportApproved;
 }
 
 function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]): boolean {
-    const isExpense = isExpenseReport(report);
+    const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpense) {
+    if (!isExpenseReport) {
         return false;
     }
 
-    const isPaidElsewhere = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isReportPaidElsewhere = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-    if (isPaidElsewhere) {
+    if (isReportPaidElsewhere) {
         return true;
     }
 
@@ -109,90 +115,86 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     }, [] as ReportAction[]);
 
     const hasDailyNachaCutoffPassed = payActions.some((action) => {
-        const actionCreated = fromZonedTime(action.created, 'UTC');
-        const actionCreatedTime = actionCreated.getTime();
-        const day = actionCreated.getDate();
-        const month = actionCreated.getMonth() + 1; // getMonth return 0-11
-        const year = actionCreated.getFullYear();
-        const cutoff = `${year}-${month < 10 ? `0${month}` : month}-${day < 10 ? `0${day}` : day} 23:45:00`;
-        const cutoffTime = toZonedTime(cutoff, 'UTC').getTime();
-
-        return actionCreatedTime > cutoffTime;
+        const now = new Date();
+        const paymentDatetime = new Date(action.created);
+        const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
+        const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
+        return nowUTC.getTime() < cutoffTimeUTC.getTime();
     });
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
 function isExportAction(report: Report, policy: Policy): boolean {
-    const isInvoice = isInvoiceReport(report);
-    const isSender = isCurrentUserSubmitter(report.reportID);
+    const isInvoiceReport = isInvoiceReportUtils(report);
+    const isReportSender = isCurrentUserSubmitter(report.reportID);
 
-    if (isInvoice && isSender) {
+    if (isInvoiceReport && isReportSender) {
         return true;
     }
 
-    const isExpense = isExpenseReport(report);
+    const isExpenseReport = isExpenseReportUtils(report);
 
     const hasAccountingConnection = hasAccountingConnections(policy);
 
-    if (!isExpense || !hasAccountingConnection) {
+    if (!isExpenseReport || !hasAccountingConnection) {
         return false;
     }
 
-    const isApproved = isReportApproved({report});
-    const isReportPayer = isPayer(getSession(), report, false, policy);
-    const isPaymentsEnabled = arePaymentsEnabled(policy);
-    const isClosed = isClosedReport(report);
+    const isReportApproved = isReportApprovedUtils({report});
+    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
+    const isReportClosed = isClosedReportUtils(report);
 
-    if (isReportPayer && isPaymentsEnabled && (isApproved || isClosed)) {
+    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed)) {
         return true;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isReportReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const syncEnabled = isAutoSyncEnabled(policy);
-    const isReportExported = isExported(getReportActions(report));
-    const isFinished = isApproved || isReimbursed || isClosed;
+    const isReportExported = isExportedUtils(getReportActions(report));
+    const isReportFinished = isReportApproved || isReportReimbursed || isReportClosed;
 
-    return isAdmin && isFinished && syncEnabled && !isReportExported;
+    return isAdmin && isReportFinished && syncEnabled && !isReportExported;
 }
 
 function isMarkAsExportedAction(report: Report, policy: Policy): boolean {
-    const isInvoice = isInvoiceReport(report);
-    const isSender = isCurrentUserSubmitter(report.reportID);
+    const isInvoiceReport = isInvoiceReportUtils(report);
+    const isReportSender = isCurrentUserSubmitter(report.reportID);
 
-    if (isInvoice && isSender) {
+    if (isInvoiceReport && isReportSender) {
         return true;
     }
 
-    const isExpense = isExpenseReport(report);
+    const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpense) {
+    if (!isExpenseReport) {
         return false;
     }
 
-    const isReportPayer = isPayer(getSession(), report, false, policy);
-    const isPaymentsEnabled = arePaymentsEnabled(policy);
-    const isApproved = isReportApproved({report});
-    const isClosed = isClosedReport(report);
-    const isClosedOrApproved = isClosed || isApproved;
+    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
+    const isReportApproved = isReportApprovedUtils({report});
+    const isReportClosed = isClosedReportUtils(report);
+    const isReportClosedOrApproved = isReportClosed || isReportApproved;
 
-    if (isReportPayer && isPaymentsEnabled && isClosedOrApproved) {
+    if (isReportPayer && arePaymentsEnabled && isReportClosedOrApproved) {
         return true;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isReimbursed = isSettled(report);
+    const isReportReimbursed = isSettled(report);
     const hasAccountingConnection = hasAccountingConnections(policy);
     const syncEnabled = isAutoSyncEnabled(policy);
-    const isFinished = isClosedOrApproved || isReimbursed;
+    const isReportFinished = isReportClosedOrApproved || isReportReimbursed;
 
-    if (isAdmin && isFinished && hasAccountingConnection && syncEnabled) {
+    if (isAdmin && isReportFinished && hasAccountingConnection && syncEnabled) {
         return true;
     }
 
     const isExporter = isPrefferedExporter(policy);
 
-    if (isExporter && isFinished && hasAccountingConnection && !syncEnabled) {
+    if (isExporter && isReportFinished && hasAccountingConnection && !syncEnabled) {
         return true;
     }
 
@@ -200,74 +202,76 @@ function isMarkAsExportedAction(report: Report, policy: Policy): boolean {
 }
 
 function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
-    const isExpense = isExpenseReport(report);
+    const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpense) {
+    if (!isExpenseReport) {
         return false;
     }
 
-    const isOnHold = reportTransactions.some(isOnHoldTransactionUtils);
+    const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
 
-    if (isOnHold) {
+    if (isReportOnHold) {
         return false;
     }
 
-    const isOpen = isOpenReport(report);
-    const isProcessing = isProcessingReport(report);
-    const isApproved = isReportApproved({report});
+    const isOpenReport = isOpenReportUtils(report);
+    const isProcessingReport = isProcessingReportUtils(report);
+    const isReportApproved = isReportApprovedUtils({report});
 
-    return isOpen || isProcessing || isApproved;
+    return isOpenReport || isProcessingReport || isReportApproved;
 }
 
 function isChangeWorkspaceAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>): boolean {
-    const isExpense = isExpenseReport(report);
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const areWorkflowsEnabled = policy.areWorkflowsEnabled;
-    const isClosed = isClosedReport(report);
+    const isClosedReport = isClosedReportUtils(report);
 
-    if (isExpense && isSubmitter && !areWorkflowsEnabled && isClosed) {
+    if (isExpenseReport && isReportSubmitter && !areWorkflowsEnabled && isClosedReport) {
         return true;
     }
 
-    const isOpen = isOpenReport(report);
-    const isProcessing = isProcessingReport(report);
+    const isOpenReport = isOpenReportUtils(report);
+    const isProcessingReport = isProcessingReportUtils(report);
 
-    if (isSubmitter && (isOpen || isProcessing)) {
+    if (isReportSubmitter && (isOpenReport || isProcessingReport)) {
         return true;
     }
 
-    const isApprover = isApprovedMember(policy, getCurrentUserAccountID());
+    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
 
-    if (isApprover && isProcessing) {
+    if (isReportApprover && isProcessingReport) {
         return true;
     }
 
-    const isReportPayer = isPayer(getSession(), report, false, policy);
-    const isApproved = isReportApproved({report});
+    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const isReportApproved = isReportApprovedUtils({report});
 
-    if (isReportPayer && (isApproved || isClosed)) {
+    if (isReportPayer && (isReportApproved || isClosedReport)) {
         return true;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isReimbursed = isSettled(report);
+    const isReportReimbursed = isSettled(report);
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
 
-    const userControlsReport = isSubmitter || isApprover || isAdmin;
+    const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
     const hasReceiptMatchViolation = hasAllPendingRTERViolations || (userControlsReport && shouldShowBrokenConnectionViolation);
-    const isReportExported = isExported(getReportActions(report));
+    const isReportExported = isExportedUtils(getReportActions(report));
+    const isReportFinished = isReportApproved || isReportReimbursed || isClosedReport;
 
-    if (isAdmin && ((!isReportExported && (isApproved || isReimbursed || isClosed)) || hasReceiptMatchViolation)) {
+    if (isAdmin && ((!isReportExported && isReportFinished) || hasReceiptMatchViolation)) {
         return true;
     }
 
-    const isIOU = isIOUReport(report);
+    const isIOUReport = isIOUReportUtils(report);
     const hasOnlyPersonalWorkspace = hasNoPolicyOtherThanPersonalType();
-    const isReceiver = isReportManager(report);
-    if (isIOU && !hasOnlyPersonalWorkspace && isReceiver && isReimbursed) {
+    const isReportReceiver = isReportManagerUtils(report);
+
+    if (isIOUReport && !hasOnlyPersonalWorkspace && isReportReceiver && isReportReimbursed) {
         return true;
     }
 
@@ -275,23 +279,23 @@ function isChangeWorkspaceAction(report: Report, policy: Policy, reportTransacti
 }
 
 function isDeleteAction(report: Report): boolean {
-    const isExpense = isExpenseReport(report);
+    const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpense) {
+    if (!isExpenseReport) {
         return false;
     }
 
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
-    if (!isSubmitter) {
+    if (!isReportSubmitter) {
         return false;
     }
 
-    const isOpen = isOpenReport(report);
-    const isProcessing = isProcessingReport(report);
-    const isApproved = isReportApproved({report});
+    const isReportOpen = isOpenReportUtils(report);
+    const isProcessingReport = isProcessingReportUtils(report);
+    const isReportApproved = isReportApprovedUtils({report});
 
-    return isOpen || isProcessing || isApproved;
+    return isReportOpen || isProcessingReport || isReportApproved;
 }
 
 function getSecondaryAction(
