@@ -55,7 +55,7 @@ function IOURequestStepDate({
     const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
         canEvict: false,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        selector: (reportActions) => reportActions?.[report?.parentReportActionID || reportActionID || ''],
+        selector: (reportActions) => reportActions?.[`${report?.parentReportActionID || reportActionID}`],
     });
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
