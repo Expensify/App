@@ -20,10 +20,10 @@ import type {IOUAction, IOUType, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -2605,8 +2605,9 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
         Object.keys(report?.participants ?? {})
             .map(Number)
             .filter((accountID) => !pendingMemberAccountIDs.has(accountID.toString()));
+    const shouldAddEllipsis = participantAccountIDs.length > CONST.DISPLAY_PARTICIPANTS_LIMIT && shouldApplyLimit;
     if (shouldApplyLimit) {
-        participantAccountIDs = participantAccountIDs.slice(0, 5);
+        participantAccountIDs = participantAccountIDs.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
     }
     const isMultipleParticipantReport = participantAccountIDs.length > 1;
 
@@ -2619,7 +2620,8 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
             .sort((first, second) => localeCompare(first ?? '', second ?? ''))
             .filter(Boolean)
             .join(', ')
-            .slice(0, CONST.REPORT_NAME_LIMIT);
+            .slice(0, CONST.REPORT_NAME_LIMIT)
+            .concat(shouldAddEllipsis ? '...' : '');
     }
 
     return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
@@ -4714,7 +4716,7 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined, isFromRHP
 
     const rootState = navigationRef.current?.getRootState();
     const lastFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
-    if (lastFullScreenRoute?.name === SCREENS.SEARCH.ROOT) {
+    if (lastFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
         Navigation.dismissModal();
         return;
     }
