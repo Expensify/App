@@ -1,7 +1,6 @@
 import React from 'react';
-import {View} from 'react-native';
-import {splitBoxModelStyle} from 'react-native-render-html';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+import { splitBoxModelStyle } from 'react-native-render-html';
+import type { CustomRendererProps, TPhrasing, TText } from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,11 +11,11 @@ type CodeRendererProps = CustomRendererProps<TText | TPhrasing> & {
     key?: string;
 };
 
-function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: CodeRendererProps) {
+function CodeRenderer({ TDefaultRenderer, key, style, ...defaultRendererProps }: CodeRendererProps) {
     const StyleUtils = useStyleUtils();
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style ?? {});
+    const { boxModelStyle, otherStyle: textStyle } = splitBoxModelStyle(style ?? {});
 
     /** Get the default fontFamily variant */
     const font = FontUtils.fontFamily.platform.MONOSPACE.fontFamily;
@@ -33,10 +32,10 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
 
     return (
         <InlineCodeBlock
-            defaultRendererProps={{...defaultRendererProps, style: {marginBottom: 4}}}
+            defaultRendererProps={{ ...defaultRendererProps, style: { marginBottom: 4 } }}
             TDefaultRenderer={TDefaultRenderer}
             boxModelStyle={[boxModelStyle]}
-            textStyle={{...textStyle, ...textStyleOverride}}
+            textStyle={{ ...textStyle, ...textStyleOverride }}
             key={key}
         />
     );
