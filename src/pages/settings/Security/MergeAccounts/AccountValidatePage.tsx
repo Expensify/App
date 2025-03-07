@@ -87,8 +87,7 @@ function AccountValidatePage() {
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => {
                     clearRequestValidationCodeForAccountMerge();
-                    clearMergeWithValidateCode();
-                    Navigation.goBack();
+                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS);
                 }}
                 shouldDisplayHelpButton={false}
             />

@@ -26,9 +26,12 @@ import type SCREENS from '@src/SCREENS';
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [mergeWithValidateCode] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.mergeWithValidateCode});
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login} = params;
+
+    const mergeStepHadError = Object.values(mergeWithValidateCode?.errors ?? {}).length > 0;
 
     const defaultResult = {
         heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -221,11 +224,18 @@ function MergeResultPage() {
     } = results[result] || defaultResult;
 
     useEffect(() => {
-        return () => {
-            clearRequestValidationCodeForAccountMerge();
-            clearMergeWithValidateCode();
-        };
-    }, []);
+        if (result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS) {
+            if (mergeStepHadError) {
+                clearMergeWithValidateCode();
+            } else {
+                clearRequestValidationCodeForAccountMerge();
+            }
+            return;
+        }
+
+        clearRequestValidationCodeForAccountMerge();
+        clearMergeWithValidateCode();
+    }, [result, mergeStepHadError]);
 
     return (
         <ScreenWrapper
@@ -234,8 +244,10 @@ function MergeResultPage() {
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
+                shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
                 onBackButtonPress={() => {
-                    Navigation.dismissModal();
+                    const route = mergeStepHadError ? ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(login) : ROUTES.SETTINGS_MERGE_ACCOUNTS;
+                    Navigation.goBack(route);
                 }}
                 shouldDisplayHelpButton={false}
             />
