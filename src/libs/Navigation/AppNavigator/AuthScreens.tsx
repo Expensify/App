@@ -69,6 +69,17 @@ import RightModalNavigator from './Navigators/RightModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
+type AuthScreensContentProps = {
+    /** Session of currently logged in user */
+    session: OnyxEntry<OnyxTypes.Session>;
+
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: OnyxEntry<string>;
+
+    /** The last Onyx update ID was applied to the client */
+    initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
+};
+
 const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
@@ -204,22 +215,26 @@ const modalScreenListenersWithCancelSearch = {
 // AuthScreens has been migrated to useOnyx. In the previous version, withOnyx waited until all the Onyx values are loaded and then rendered the component first time.
 // To avoid breaking functionalities that rely on this logic, we keep the same behavior by waiting for the Onyx values to be loaded before rendering the component.
 function AuthScreens() {
-    const [, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-    const [, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [lastOpenedPublicRoomID, lastOpenedPublicRoomIDStatus] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
+    const [initialLastUpdateIDAppliedToClient, initialLastUpdateIDAppliedToClientStatus] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const isLastOpenedPublicRoomIDLoading = isLoadingOnyxValue(lastOpenedPublicRoomIDStatus);
     const isInitialLastUpdateIDAppliedToClientLoading = isLoadingOnyxValue(initialLastUpdateIDAppliedToClientStatus);
 
-    if (isLastOpenedPublicRoomIDLoading && isInitialLastUpdateIDAppliedToClientLoading) {
+    if (isLastOpenedPublicRoomIDLoading || isInitialLastUpdateIDAppliedToClientLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
-    return <AuthScreensContent />;
+    return (
+        <AuthScreensContent
+            session={session}
+            lastOpenedPublicRoomID={lastOpenedPublicRoomID}
+            initialLastUpdateIDAppliedToClient={initialLastUpdateIDAppliedToClient}
+        />
+    );
 }
 
-function AuthScreensContent() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastOpenedPublicRoomID] = useOnyx(ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID);
-    const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
+function AuthScreensContent({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensContentProps) {
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
