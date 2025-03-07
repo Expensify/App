@@ -197,10 +197,10 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // Then narrow layout tooltip should not show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
 
             // When narrow layout changes to true
             mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
@@ -208,7 +208,7 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then narrow layout tooltip should show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
         });
         it('should handle wide layout specific tooltips based on screen width', async () => {
             // When narrow layout is true
@@ -244,7 +244,7 @@ describe('ProductTrainingContextProvider', () => {
 
             // Then only highest priority tooltip should show
             const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
 
             const {result} = renderHook(
                 () => ({
@@ -264,7 +264,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             const date = new Date();
             const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
 
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
@@ -296,7 +296,7 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             const highPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
-            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SEARCH_FILTER_BUTTON_TOOLTIP;
+            const lowPriorityTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.LHN_WORKSPACE_CHAT_TOOLTIP;
 
             const {result} = renderHook(
                 () => ({
