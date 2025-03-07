@@ -192,7 +192,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
-    const {canUseSpotnanaTravel, isBlockedFromSpotnanaTravel} = usePermissions();
+    const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedReport(reportNameValuePairs));
     const {environment} = useEnvironment();
@@ -469,7 +469,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                   },
               ]
             : []),
-        ...(canUseSpotnanaTravel && !isBlockedFromSpotnanaTravel
+        ...(canUseSpotnanaTravel
             ? [
                   {
                       icon: Expensicons.Suitcase,
