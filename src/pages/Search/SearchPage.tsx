@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -20,8 +20,9 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {shouldShowPolicy} from '@libs/PolicyUtils';
+import {shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import switchPolicyAfterInteractions from '@pages/WorkspaceSwitcherPage/switchPolicyAfterInteractions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -47,10 +48,17 @@ function SearchPage({route}: SearchPageProps) {
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${extractedPolicyID || CONST.DEFAULT_NUMBER_ID}`);
+    const shouldShowPolicy = shouldShowPolicyUtil(policy, !!isOffline, currentUserLogin);
+    useEffect(() => {
+        if (shouldShowPolicy) {
+            return;
+        }
+        switchPolicyAfterInteractions(undefined);
+    }, [shouldShowPolicy]);
 
     const policyID = useMemo(() => {
-        return shouldShowPolicy(policy, !!isOffline, currentUserLogin) ? extractedPolicyID : undefined;
-    }, [policy, isOffline, currentUserLogin, extractedPolicyID]);
+        return shouldShowPolicy ? extractedPolicyID : undefined;
+    }, [shouldShowPolicy, extractedPolicyID]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
