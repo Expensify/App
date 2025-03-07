@@ -208,6 +208,8 @@ type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
+type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
+
 type RoomNameReservedErrorParams = {reservedName: string};
 
 type RenamedRoomActionParams = {oldName: string; newName: string};
@@ -879,6 +881,7 @@ export type {
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    NewWorkspaceNameParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
     UpdatedPolicyTagParams,

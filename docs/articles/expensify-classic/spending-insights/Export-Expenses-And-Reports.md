@@ -3,10 +3,12 @@ title: Export Expenses and Reports
 description: How to export expenses and reports using custom reports, PDF files, CSVs, and more
 ---
 
-There are several methods you can use to export your expenses and reports, including:
+There are several methods you can use to export your expenses and reports on the Expensify Classic web app, including:
 - Export as a PDF
 - Export as a CSV or to an accounting integration
 - Export using a default or custom export template
+
+Please note that it is currently not possible to export these files using the Expensify Classic mobile app.
 
 # Export PDF
 
@@ -255,12 +257,18 @@ Functions can be applied to any formula using the `|` symbol and the function na
 | {expense:merchant\|substr:4:5} | would output "bucks" for a merchant named Starbucks.|
 | {report:policyname\|substr:20} | would output "Sally's Expenses" for a report on a workspace named "Control Workspace - Sally's Expenses"|
 | {report:policyname\|substr:20\|frontpart} | would output "Sally's"|
+| domain | Get the domain name from an email address; the part after the `@` sign.|
+| {report:submit:from:email\|domain} | email.com if alice@email.com was the submitter|
 
 {% include faq-begin.md %}
 
 **Can I export one line per report?**
 
 No, the custom template always exports one line per *expense*. At the moment, it is not possible to create a template that will export one line per report.
+
+**Can I export to CSV or PDF on my mobile app?**
+
+No, expenses can only be exported using the web app.
 
 **How do I print a report?**
 
