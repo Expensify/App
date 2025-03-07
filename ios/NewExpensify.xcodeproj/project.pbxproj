@@ -16,7 +16,7 @@
 		0CDA8E37287DD6A0004ECBEC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0CDA8E36287DD6A0004ECBEC /* Images.xcassets */; };
 		0DFC45942C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */; };
 		0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
-		0F749C2B3B8F4562B816DEAB /* (null) in Resources */ = {isa = PBXBuildFile; };
+		0F749C2B3B8F4562B816DEAB /* BuildFile in Resources */ = {isa = PBXBuildFile; };
 		1246A3EF20E54E7A9494C8B9 /* ExpensifyNeue-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		18D050E0262400AF000D658B /* BridgingFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D050DF262400AF000D658B /* BridgingFile.swift */; };
@@ -40,7 +40,7 @@
 		D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0D3F9E814828D91464DF9D35 /* PrivacyInfo.xcprivacy */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.mm in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.mm */; };
 		DDCB2E57F334C143AC462B43 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D20D83B0E39BA6D21761E72 /* ExpoModulesProvider.swift */; };
-		E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
@@ -73,7 +73,6 @@
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
-		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		083353E72B5AB22900C603C0 /* attention.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = attention.mp3; path = ../assets/sounds/attention.mp3; sourceTree = "<group>"; };
 		083353E82B5AB22900C603C0 /* done.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = done.mp3; path = ../assets/sounds/done.mp3; sourceTree = "<group>"; };
 		083353E92B5AB22900C603C0 /* receive.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = receive.mp3; path = ../assets/sounds/receive.mp3; sourceTree = "<group>"; };
@@ -150,8 +149,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				383643682B6D4AE2005BB9AE /* DeviceCheck.framework in Frameworks */,
-				E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */,
-				E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
+				E51DC681C7DEE40AEBDDFBFE /* BuildFile in Frameworks */,
 				AC131FBB2CF634F20010CE80 /* BackgroundTasks.framework in Frameworks */,
 				8744C5400E24E379441C04A4 /* libPods-NewExpensify.a in Frameworks */,
 			);
@@ -168,14 +167,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356F01AD99517003FC87E /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				00E356F11AD99517003FC87E /* Info.plist */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* NewExpensify */ = {
 			isa = PBXGroup;
 			children = (
@@ -439,7 +430,7 @@
 				1246A3EF20E54E7A9494C8B9 /* ExpensifyNeue-Regular.otf in Resources */,
 				D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */,
 				524F95D57E75496EBD14B0AA /* ExpensifyMono-BoldItalic.otf in Resources */,
-				0F749C2B3B8F4562B816DEAB /* (null) in Resources */,
+				0F749C2B3B8F4562B816DEAB /* BuildFile in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -634,8 +625,6 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/boost/boost_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/glog/glog_privacy.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/lottie-ios/LottiePrivacyInfo.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/lottie-react-native/Lottie_React_Native_Privacy.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -656,8 +645,6 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/boost_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/glog_privacy.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/LottiePrivacyInfo.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Lottie_React_Native_Privacy.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
