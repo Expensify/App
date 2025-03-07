@@ -692,7 +692,7 @@ function clearSageIntacctErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearNetSuiteAutoSyncErrorField(policyID: string) {
+function clearNetSuiteAutoSyncErrorField(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {config: {errorFields: {autoSync: null}}}}});
 }
 

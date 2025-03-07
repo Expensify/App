@@ -9,7 +9,7 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
+import {updateQuickbooksOnlineAutoCreateVendor, updateQuickbooksOnlineCollectionAccountID, updateQuickbooksOnlineSyncPeople} from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -19,7 +19,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 const reimbursementOrCollectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
@@ -96,7 +96,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: !!qboConfig?.syncPeople,
-            onToggle: () => QuickbooksOnline.updateQuickbooksOnlineSyncPeople(policyID, !qboConfig?.syncPeople),
+            onToggle: () => updateQuickbooksOnlineSyncPeople(policyID, !qboConfig?.syncPeople),
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE,
             errors: ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE], qboConfig?.pendingFields),
@@ -112,7 +112,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     : CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
                 const nonReimbursableVendorCurrentValue = nonReimbursableBillDefaultVendorObject?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
 
-                QuickbooksOnline.updateQuickbooksOnlineAutoCreateVendor(
+                updateQuickbooksOnlineAutoCreateVendor(
                     policyID,
                     {
                         [autoCreateVendorConst]: isOn,
@@ -134,7 +134,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
             onToggle: () =>
-                QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(
+                updateQuickbooksOnlineCollectionAccountID(
                     policyID,
                     isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions].at(0)?.id,
                     qboConfig?.collectionAccountID,

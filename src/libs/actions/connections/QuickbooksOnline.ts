@@ -1,7 +1,7 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ConnectPolicyToAccountingIntegrationParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
@@ -406,10 +406,13 @@ function updateQuickbooksOnlinePreferredExporter<TSettingValue extends Connectio
 }
 
 function updateQuickbooksOnlineAccountingMethod(
-    policyID: string,
+    policyID: string | undefined,
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
     oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
 
     const parameters: UpdateQuickbooksOnlineAccountingMethodParams = {

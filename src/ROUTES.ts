@@ -1133,7 +1133,7 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC: {
         route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync` as const,
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync/accounting-method',
@@ -2023,11 +2023,11 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
     },
     POLICY_ACCOUNTING_NSQS_SETUP: {
         route: 'settings/workspaces/:policyID/accounting/nsqs/setup',

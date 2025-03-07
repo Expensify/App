@@ -9,7 +9,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/QuickbooksOnline';
+import {updateQuickbooksOnlineAccountingMethod} from '@libs/actions/connections/QuickbooksOnline';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -24,7 +24,7 @@ type MenuListItem = ListItem & {
 
 function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const config = policy?.connections?.quickbooksOnline?.config;
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
@@ -51,7 +51,7 @@ function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
     const selectExpenseReportApprovalLevel = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.accountingMethod) {
-                Connections.updateQuickbooksOnlineAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
+                updateQuickbooksOnlineAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
             }
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID));
         },
