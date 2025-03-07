@@ -16,7 +16,6 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {getMostRecentReportActionLastModified} from '@libs/ReportActionsUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -31,7 +30,6 @@ import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
-import {triggerSidePane} from './SidePane';
 import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
@@ -197,7 +195,6 @@ function setLocale(locale: Locale) {
 
 function setLocaleAndNavigate(locale: Locale) {
     setLocale(locale);
-    triggerSidePane(false, {shouldUpdateNarrowLayout: true});
     Navigation.goBack();
 }
 
@@ -315,15 +312,6 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = policyParams;
 
-        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-        //
-        // - Look through the local report actions and reports to find the most recently modified report action or report.
-        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = getMostRecentReportActionLastModified();
-        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
-
         // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
         // Otherwise, a full set of app data will be returned.
         if (updateIDFrom) {
@@ -346,15 +334,6 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
     return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         const params: ReconnectAppParams = {...policyParams};
-
-        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-        //
-        // - Look through the local report actions and reports to find the most recently modified report action or report.
-        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = getMostRecentReportActionLastModified();
-        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
         // It is SUPER BAD FORM to return promises from action methods.
         // DO NOT FOLLOW THIS PATTERN!!!!!

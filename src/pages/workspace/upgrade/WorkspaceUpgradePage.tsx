@@ -201,6 +201,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         onUpgrade={onUpgradeToCorporate}
                         buttonDisabled={isOffline}
                         loading={policy?.isPendingUpgrade}
+                        backTo={route.params.backTo}
                     />
                 )}
             </ScrollView>

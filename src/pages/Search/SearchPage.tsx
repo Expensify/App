@@ -15,10 +15,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -26,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchTypeMenu from './SearchTypeMenu';
 
-type SearchPageProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.ROOT>;
+type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
@@ -52,19 +51,23 @@ function SearchPage({route}: SearchPageProps) {
 
     if (shouldUseNarrowLayout) {
         return (
-            <FreezeWrapper>
-                <SearchPageNarrow
-                    queryJSON={queryJSON}
-                    policyID={policyID}
-                    shouldGroupByReports={shouldGroupByReports}
-                    searchName={searchName}
-                />
-            </FreezeWrapper>
+            <SearchPageNarrow
+                queryJSON={queryJSON}
+                policyID={policyID}
+                shouldGroupByReports={shouldGroupByReports}
+                searchName={searchName}
+            />
         );
     }
 
     return (
-        <FreezeWrapper>
+        <ScreenWrapper
+            testID={Search.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight
+            headerGapStyles={styles.searchHeaderGap}
+        >
             <FullPageNotFoundView
                 shouldForceFullScreen
                 shouldShow={!queryJSON}
@@ -117,7 +120,7 @@ function SearchPage({route}: SearchPageProps) {
                     </View>
                 )}
             </FullPageNotFoundView>
-        </FreezeWrapper>
+        </ScreenWrapper>
     );
 }
 
