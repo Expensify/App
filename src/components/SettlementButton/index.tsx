@@ -8,6 +8,7 @@ import KYCWall from '@components/KYCWall';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
@@ -145,6 +146,7 @@ function SettlementButton({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
+            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency);
             const getPaymentSubitems = (payAsBusiness: boolean) =>
                 formattedPaymentMethods.map((formattedPaymentMethod) => ({
                     text: formattedPaymentMethod?.title ?? '',
@@ -160,7 +162,7 @@ function SettlementButton({
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     backButtonText: translate('iou.individual'),
                     subMenuItems: [
-                        ...getPaymentSubitems(false),
+                        ...(isCurrencySupported ? getPaymentSubitems(false) : []),
                         {
                             text: translate('workspace.invoices.paymentMethods.addBankAccount'),
                             icon: Expensicons.Bank,
@@ -187,7 +189,7 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
-                    ...getPaymentSubitems(true),
+                    ...(isCurrencySupported ? getPaymentSubitems(true) : []),
                     {
                         text: translate('workspace.invoices.paymentMethods.addBankAccount'),
                         icon: Expensicons.Bank,
