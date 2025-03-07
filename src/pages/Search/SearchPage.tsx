@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -18,11 +19,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
-import switchPolicyAfterInteractions from '@pages/WorkspaceSwitcherPage/switchPolicyAfterInteractions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -38,6 +38,7 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const {q, name, groupBy} = route.params;
 
     const {queryJSON, extractedPolicyID} = useMemo(() => {
@@ -48,13 +49,14 @@ function SearchPage({route}: SearchPageProps) {
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${extractedPolicyID || CONST.DEFAULT_NUMBER_ID}`);
-    const shouldShowPolicy = shouldShowPolicyUtil(policy, !!isOffline, currentUserLogin);
+    const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, !!isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
     useEffect(() => {
-        if (shouldShowPolicy) {
+        if (shouldShowPolicy || !extractedPolicyID) {
             return;
         }
-        switchPolicyAfterInteractions(undefined);
-    }, [shouldShowPolicy]);
+        const parsedQuery = buildSearchQueryJSON(q);
+        navigation.setParams({q: buildCannedSearchQuery({type: parsedQuery?.type, status: parsedQuery?.status})});
+    }, [extractedPolicyID, navigation, q, shouldShowPolicy]);
 
     const policyID = useMemo(() => {
         return shouldShowPolicy ? extractedPolicyID : undefined;
