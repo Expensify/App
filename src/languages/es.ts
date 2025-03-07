@@ -1377,8 +1377,8 @@ const translations = {
             accountsMerged: '¡Cuentas fusionadas!',
             successfullyMergedAllData: {
                 beforeFirstEmail: 'Has fusionado exitosamente todos los datos de ',
-                afterFirstEmail: ' en ',
-                beforeSecondEmail: '. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta.',
+                beforeSecondEmail: ' en ',
+                afterSecondEmail: '. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta.',
             },
         },
         mergePendingSAML: {
