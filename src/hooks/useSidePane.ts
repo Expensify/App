@@ -41,6 +41,7 @@ function useSidePane() {
 
     // The help button is hidden in production if the side pane nvp is not present or the language is unsupported.
     const shouldHideOnProduction = isProduction && (!sidePaneNVP || isLanguageUnsupported);
+
     // The help button is also hidden if the side pane is displayed currently.
     const shouldHideHelpButton = shouldHideOnProduction || !isPaneHidden;
 

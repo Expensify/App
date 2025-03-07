@@ -30,7 +30,7 @@ function SidePane() {
 
         return {
             route: substituteRouteParameters(activeRoute, params),
-            isInNarrowPaneModal: state?.routes?.some((r) => r.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR),
+            isInNarrowPaneModal: state?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
         };
     });
 
