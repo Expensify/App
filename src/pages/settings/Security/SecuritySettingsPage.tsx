@@ -126,7 +126,7 @@ function SecuritySettingsPage() {
                 translationKey: 'closeAccountPage.closeAccount',
                 icon: Expensicons.ClosedSign,
                 action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
-            }
+            },
         ];
 
         return baseMenuItems.map((item) => ({
