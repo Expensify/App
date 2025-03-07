@@ -56,7 +56,7 @@ function SearchPage({route}: SearchPageProps) {
         return (
             <SearchPageNarrow
                 queryJSON={queryJSON}
-                policyID={policyID}
+                policyID={activeWorkspaceID}
                 shouldGroupByReports={shouldGroupByReports}
                 searchName={searchName}
             />
