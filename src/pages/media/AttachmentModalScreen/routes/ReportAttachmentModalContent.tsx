@@ -6,7 +6,7 @@ import type {Attachment} from '@components/Attachments/types';
 import validateAttachmentFile from '@libs/AttachmentUtils';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
@@ -228,11 +228,13 @@ function ReportAttachmentModalContent({
             return;
         }
 
-        if (reportID) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-        } else {
-            Navigation.goBack(ROUTES.HOME);
-        }
+        Navigation.isNavigationReady().then(() => {
+            if (reportID) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            } else {
+                Navigation.goBack(ROUTES.HOME);
+            }
+        });
     }, [sourceParam, reportID, route.name, fileParam]);
 
     return (
