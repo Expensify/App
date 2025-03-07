@@ -1,6 +1,6 @@
 import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
-import {useCallback, useMemo} from 'react';
+import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {TransactionPreviewProps} from '@components/ReportActionItem/TransactionPreview/types';
@@ -8,8 +8,8 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
-import {getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat as isPolicyExpenseChatReportUtils, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {createTransactionPreviewConditionals, createTransactionPreviewText, getIOUData} from '@libs/TransactionPreviewUtils';
@@ -32,15 +32,15 @@ function useTransactionPreviewData(
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
 
-    const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
-    const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+    const isMoneyRequestAction = ReportActionsUtils.isMoneyRequestAction(action);
+    const transactionID = isMoneyRequestAction ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID : null;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
     const violations = useTransactionViolations(transaction?.transactionID);
 
-    const transactions = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const transactions = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
     const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactions;
-    const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
     const creationalData = useMemo(
         () => ({
@@ -79,11 +79,12 @@ function useTransactionPreviewData(
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const participantAccountIDs = isMoneyRequestActionReportActionsUtils(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
+    const participantAccountIDs =
+        ReportActionsUtils.isMoneyRequestAction(action) && isBillSplit ? ReportActionsUtils.getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && isBillSplit) {
-        sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));
+        sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(chatReport));
     }
 
     const sessionAccountID = session?.accountID;
@@ -107,8 +108,8 @@ function useTransactionPreviewData(
     const {from, to, isIOU} = getIOUData(managerID, ownerAccountID, reportID, personalDetails, (transaction && transaction.amount) ?? 0);
 
     return {
-        isApproved: isReportApproved({report: iouReport}),
-        isSettled: isSettledReportUtils(iouReport?.reportID),
+        isApproved: ReportUtils.isReportApproved({report: iouReport}),
+        isSettled: ReportUtils.isSettled(iouReport?.reportID),
         isSettlementOrApprovalPartial: !!iouReport?.pendingFields?.partial,
         isScanning: hasReceipt && isReceiptBeingScanned(transaction),
         displayAmount: isDeleted ? displayDeleteAmountText : displayAmountText,

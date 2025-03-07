@@ -26,7 +26,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
-    const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+    const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const violations = useTransactionViolations(transaction?.transactionID);
 
