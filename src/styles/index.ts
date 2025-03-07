@@ -5446,12 +5446,15 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        sidePaneOverlay: {
+        sidePaneOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
+            top: 0,
+            bottom: 0,
+            left: 0,
             right: -variables.sideBarWidth,
             backgroundColor: theme.overlay,
-            opacity: variables.overlayOpacity,
-        },
+            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+        }),
         sidePaneContainer: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             right: 0,
