@@ -37,31 +37,35 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID, Navigation.getActiveRoute())),
             title: qboConfig?.export?.exporter ?? policyOwner,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT],
         },
         {
             description: translate('workspace.qbo.date'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             title: qboConfig?.exportDate ? translate(`workspace.qbo.exportDate.values.${qboConfig?.exportDate}.label`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
             title: qboConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             title: qboConfig?.receivableAccount?.name,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
         },
         {
             description: translate('workspace.accounting.exportCompanyCard'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())),
             brickRoadIndicator: qboConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
             subscribedSettings: [
@@ -86,7 +90,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             title="workspace.qbo.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.navigate(backTo) : undefined}
+            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.goBack(backTo) : undefined}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
