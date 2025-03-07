@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,7 +55,12 @@ function SearchPage({route}: SearchPageProps) {
             return;
         }
         const parsedQuery = buildSearchQueryJSON(q);
-        navigation.setParams({q: buildCannedSearchQuery({type: parsedQuery?.type, status: parsedQuery?.status})});
+        if (!parsedQuery) {
+            return;
+        }
+        const {policyID, ...queryWithoutPolicyID} = parsedQuery;
+        const queryString = buildSearchQueryString(queryWithoutPolicyID);
+        navigation.setParams({q: queryString});
     }, [extractedPolicyID, navigation, q, shouldShowPolicy]);
 
     const policyID = useMemo(() => {
