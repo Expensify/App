@@ -1,7 +1,5 @@
-import {useNavigation} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,17 +12,14 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackNavigationProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import SearchPageNarrow from './SearchPageNarrow';
@@ -36,36 +31,13 @@ function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const {q, name, groupBy} = route.params;
 
-    const {queryJSON, extractedPolicyID} = useMemo(() => {
+    const {queryJSON, policyID} = useMemo(() => {
         const parsedQuery = buildSearchQueryJSON(q);
-        const policyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
-        return {queryJSON: parsedQuery, extractedPolicyID: policyID};
+        const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
+        return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${extractedPolicyID || CONST.DEFAULT_NUMBER_ID}`);
-    const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, !!isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
-    useEffect(() => {
-        if (shouldShowPolicy || !extractedPolicyID) {
-            return;
-        }
-        const parsedQuery = buildSearchQueryJSON(q);
-        if (!parsedQuery) {
-            return;
-        }
-        const {policyID, ...queryWithoutPolicyID} = parsedQuery;
-        const queryString = buildSearchQueryString(queryWithoutPolicyID);
-        navigation.setParams({q: queryString});
-    }, [extractedPolicyID, navigation, q, shouldShowPolicy]);
-
-    const policyID = useMemo(() => {
-        return shouldShowPolicy ? extractedPolicyID : undefined;
-    }, [shouldShowPolicy, extractedPolicyID]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {clearSelectedTransactions} = useSearchContext();
