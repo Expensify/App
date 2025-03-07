@@ -105,7 +105,6 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
-    MergeAccountGenericParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     NeedCategoryForExportToIntegrationParams,
@@ -1366,18 +1365,21 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Fusionar cuentas',
         accountDetails: {
-            accountToMergeInto: ({email}: MergeAccountGenericParams) => `Introduce la cuenta en la que deseas fusionar ${email}`,
+            accountToMergeInto: `Introduce la cuenta en la que deseas fusionar `,
             notReversibleConsent: 'Entiendo que esto no es reversible',
         },
         accountValidate: {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
-            lossOfUnsubmittedData: ({email}: MergeAccountGenericParams) => `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de ${email}`,
-            enterMagicCode: ({email}: MergeAccountGenericParams) => `Para continuar, por favor introduce el código mágico enviado a ${email}`,
+            lossOfUnsubmittedData: `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de `,
+            enterMagicCode: `Para continuar, por favor introduce el código mágico enviado a `,
         },
         mergeSuccess: {
             accountsMerged: '¡Cuentas fusionadas!',
-            successfullyMergedAllData: ({email, newEmail}: MergeAccountGenericParams & {newEmail: string}) =>
-                `Has fusionado exitosamente todos los datos de ${email} en ${newEmail}. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta`,
+            successfullyMergedAllData: {
+                beforeFirstEmail: 'Has fusionado exitosamente todos los datos de ',
+                afterFirstEmail: ' en ',
+                beforeSecondEmail: '. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta.',
+            },
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'Estamos trabajando en ello',
@@ -1390,33 +1392,49 @@ const translations = {
             goToExpensifyClassic: 'Dirígete a Expensify Classic',
         },
         mergeFailureSAMLDomainControl: {
-            beforeLink: ({email}: MergeAccountGenericParams) => `No puedes fusionar ${email} porque está controlado por ${email.split('@').at(0)}. Póngase `,
+            beforeFirstEmail: 'No puedes fusionar ',
+            beforeDomain: ' porque está controlado por ',
+            afterDomain: '. Póngase ',
             linkText: 'en contacto con Conserjería',
             afterLink: ' si necesita ayuda.',
         },
-        mergeFailureSAMLAccount: ({email}: MergeAccountGenericParams) =>
-            `No puedes fusionar ${email} en otras cuentas porque tu administrador de dominio la ha establecido como tu inicio de sesión principal. Por favor, fusiona otras cuentas en esta en su lugar.`,
+        mergeFailureSAMLAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas porque tu administrador de dominio la ha establecido como tu inicio de sesión principal. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
         mergeFailure2FA: {
-            oldAccount2FAEnabled: ({email}: MergeAccountGenericParams) =>
-                `No puedes fusionar cuentas porque ${email} tiene habilitada la autenticación de dos factores (2FA). Por favor, deshabilita 2FA para ${email} e inténtalo nuevamente.`,
+            oldAccount2FAEnabled: {
+                beforeFirstEmail: 'No puedes fusionar cuentas porque ',
+                beforeSecondEmail: ' tiene habilitada la autenticación de dos factores (2FA). Por favor, deshabilita 2FA para ',
+                afterSecondEmail: ' e inténtalo nuevamente.',
+            },
             learnMore: 'Aprende más sobre cómo fusionar cuentas.',
         },
         mergeFailureAccountLocked: {
-            beforeLink: ({email}: MergeAccountGenericParams) => `No puedes fusionar ${email} porque está bloqueado. Póngase `,
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' porque está bloqueado. Póngase ',
             linkText: 'en contacto con Conserjería',
             afterLink: ` si necesita ayuda.`,
         },
         mergeFailureUncreatedAccount: {
-            noExpensifyAccount: ({email}: MergeAccountGenericParams) => `No puedes fusionar cuentas porque ${email} no tiene una cuenta de Expensify.`,
+            noExpensifyAccount: {
+                beforeEmail: 'No puedes fusionar cuentas porque ',
+                afterEmail: ' no tiene una cuenta de Expensify.',
+            },
             addContactMethod: {
                 beforeLink: 'Por favor, ',
                 linkText: 'añádela como método de contacto',
                 afterLink: ' en su lugar.',
             },
         },
-        mergeFailureSmartScannerAccount: ({email}: MergeAccountGenericParams) => `No puedes fusionar ${email} en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.`,
-        mergeFailureInvoicedAccount: ({email}: MergeAccountGenericParams) =>
-            `No puedes fusionar ${email} en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.`,
+        mergeFailureSmartScannerAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
+        mergeFailureInvoicedAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
     },
     passwordPage: {

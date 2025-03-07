@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -49,6 +49,7 @@ const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> |
 };
 
 function AccountValidatePage() {
+    const [hasMagicCodeBeenSent, setMagicCodeBeenSent] = useState(false);
     const [mergeWithValidateCode] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.mergeWithValidateCode});
     const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge});
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
@@ -92,18 +93,31 @@ function AccountValidatePage() {
                 }}
             />
             <View style={[styles.ph5, styles.mt3, styles.mb5, styles.flex1]}>
-                <Text style={[styles.mt5, styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>
-                <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {email})}</Text>
-                <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountValidate.enterMagicCode', {email})}</Text>
+                <Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>
+                <Text style={[styles.mt5]}>
+                    {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
+                    <Text style={styles.textStrong}>
+                        {email}
+                    </Text>
+                    .
+                </Text>
+                <Text style={[styles.mt5]}>
+                    {translate('mergeAccountsPage.accountValidate.enterMagicCode')}
+                    <Text style={styles.textStrong}>
+                        {email}
+                    </Text>
+                    .
+                </Text>
                 <ValidateCodeForm
                     validateCodeAction={validateCodeAction}
                     handleSubmitForm={(code) => {
+                        setMagicCodeBeenSent(true);
                         mergeWithValidateCodeAction(email, code);
                     }}
                     sendValidateCode={() => requestValidationCodeForAccountMerge(email)}
                     clearError={() => clearMergeWithValidateCode()}
                     validateError={mergeWithValidateCode?.errors}
-                    hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
+                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                     hideSubmitButton
                 />
             </View>

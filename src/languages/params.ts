@@ -652,10 +652,6 @@ type SettlementDateParams = {
     settlementDate: string;
 };
 
-type MergeAccountGenericParams = {
-    email: string;
-};
-
 type PolicyExpenseChatNameParams = {
     displayName: string;
 };
@@ -893,7 +889,6 @@ export type {
     UpdatedPolicyReportFieldDefaultValueParams,
     SubmitsToParams,
     SettlementDateParams,
-    MergeAccountGenericParams,
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
 };

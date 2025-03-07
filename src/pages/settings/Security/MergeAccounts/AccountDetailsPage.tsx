@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -7,7 +7,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormRef, FormOnyxValues} from '@components/Form/types';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -44,6 +44,7 @@ const getErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> |
 };
 
 function AccountDetailsPage() {
+    const formRef = useRef<FormRef>(null);
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge});
     const [form] = useOnyx(ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM_DRAFT);
@@ -117,9 +118,13 @@ function AccountDetailsPage() {
                 validate={validate}
                 submitButtonText={translate('common.next')}
                 isSubmitButtonVisible={false}
+                ref={formRef}
             >
-                <View style={[styles.flexGrow1]}>
-                    <Text style={[styles.mt5]}>{translate('mergeAccountsPage.accountDetails.accountToMergeInto', {email: userEmailOrPhone ?? ''})}</Text>
+                <View style={[styles.flexGrow1, styles.mt3]}>
+                    <Text>
+                        {translate('mergeAccountsPage.accountDetails.accountToMergeInto')}
+                        <Text style={styles.textStrong}>{userEmailOrPhone}</Text>
+                    </Text>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PHONE_OR_EMAIL}
@@ -143,7 +148,7 @@ function AccountDetailsPage() {
                     <FormAlertWithSubmitButton
                         isAlertVisible={!!genericError}
                         onSubmit={() => {
-                            requestValidationCodeForAccountMerge(email);
+                            formRef.current?.submit();
                         }}
                         message={genericError}
                         buttonText={translate('common.next')}

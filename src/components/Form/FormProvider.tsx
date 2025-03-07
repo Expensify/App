@@ -273,6 +273,7 @@ function FormProvider(
         resetForm,
         resetErrors,
         resetFormFieldError,
+        submit,
     }));
 
     const registerInput = useCallback<RegisterInput>(

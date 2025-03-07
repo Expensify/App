@@ -51,6 +51,7 @@ type ConfirmationPageProps = {
 
     /** Additional style for the footer */
     footerStyle?: ViewStyle;
+
     /** Additional style for the container */
     containerStyle?: ViewStyle;
 };

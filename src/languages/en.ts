@@ -106,7 +106,6 @@ import type {
     ManagerApprovedParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
-    MergeAccountGenericParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     NeedCategoryForExportToIntegrationParams,
@@ -1368,18 +1367,21 @@ const translations = {
     mergeAccountsPage: {
         mergeAccount: 'Merge accounts',
         accountDetails: {
-            accountToMergeInto: ({email}: MergeAccountGenericParams) => `Enter the account you want to merge into ${email}`,
+            accountToMergeInto: 'Enter the account you want to merge into ',
             notReversibleConsent: 'I understand this is not reversible',
         },
         accountValidate: {
             confirmMerge: 'Are you sure you want to merge accounts?',
-            lossOfUnsubmittedData: ({email}: MergeAccountGenericParams) => `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for ${email}`,
-            enterMagicCode: ({email}: MergeAccountGenericParams) => `To continue, please enter the magic code sent to ${email}`,
+            lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
+            enterMagicCode: `To continue, please enter the magic code sent to `,
         },
         mergeSuccess: {
             accountsMerged: 'Accounts merged!',
-            successfullyMergedAllData: ({email, newEmail}: MergeAccountGenericParams & {newEmail: string}) =>
-                `You've successfully merged all data from ${email} into ${newEmail}. Moving forward, you can use either login for this account.`,
+            successfullyMergedAllData: {
+                beforeFirstEmail: `You've successfully merged all data from `,
+                beforeSecondEmail: ` into `,
+                afterSecondEmail: `. Moving forward, you can use either login for this account.`,
+            },
         },
         mergePendingSAML: {
             weAreWorkingOnIt: 'We’re working on it',
@@ -1392,33 +1394,49 @@ const translations = {
             goToExpensifyClassic: 'Go to Expensify Classic',
         },
         mergeFailureSAMLDomainControl: {
-            beforeLink: ({email}: MergeAccountGenericParams) => `You can't merge ${email} because it's controlled by ${email.split('@').at(0)}. Please `,
+            beforeFirstEmail: 'You can’t merge ',
+            beforeDomain: ' because it’s controlled by ',
+            afterDomain: '. Please ',
             linkText: 'reach out to Concierge',
             afterLink: ' for assistance.',
         },
-        mergeFailureSAMLAccount: ({email}: MergeAccountGenericParams) =>
-            `You can’t merge ${email} into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.`,
+        mergeFailureSAMLAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.',
+        },
         mergeFailure2FA: {
-            oldAccount2FAEnabled: ({email}: MergeAccountGenericParams) =>
-                `You can’t merge accounts because ${email} has two-factor authentication (2FA) enabled. Please disable 2FA for ${email} and try again.`,
+            oldAccount2FAEnabled: {
+                beforeFirstEmail: 'You can’t merge accounts because ',
+                beforeSecondEmail: ' has two-factor authentication (2FA) enabled. Please disable 2FA for ',
+                afterSecondEmail: ' and try again.',
+            },
             learnMore: 'Learn more about merging accounts.',
         },
         mergeFailureAccountLocked: {
-            beforeLink: ({email}: MergeAccountGenericParams) => `You can't merge ${email} because it's locked. Please `,
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' because it’s locked. Please ',
             linkText: 'reach out to Concierge ',
             afterLink: `for assistance.`,
         },
         mergeFailureUncreatedAccount: {
-            noExpensifyAccount: ({email}: MergeAccountGenericParams) => `You can’t merge accounts because ${email} doesn’t have an Expensify account.`,
+            noExpensifyAccount: {
+                beforeEmail: 'You can’t merge accounts because ',
+                afterEmail: ' doesn’t have an Expensify account.',
+            },
             addContactMethod: {
                 beforeLink: 'Please ',
                 linkText: 'add it as a contact method',
                 afterLink: ' instead.',
             },
         },
-        mergeFailureSmartScannerAccount: ({email}: MergeAccountGenericParams) => `You can’t merge ${email} into other accounts. Please merge other accounts into it instead.`,
-        mergeFailureInvoicedAccount: ({email}: MergeAccountGenericParams) =>
-            `You can’t merge ${email} into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.`,
+        mergeFailureSmartScannerAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts. Please merge other accounts into it instead.'
+        },
+        mergeFailureInvoicedAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.'
+        },
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
     passwordPage: {
