@@ -27,6 +27,7 @@ import {
     getListItem,
     getSections,
     getSortedSections,
+    hasValidType,
     isReportActionListItemType,
     isReportListItemType,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
@@ -379,7 +380,7 @@ function Search({queryJSON, onSearchListScroll, isSearchScreenFocused, contentCo
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    const shouldShowEmptyState = !isDataLoaded || data.length === 0 || !Object.hasOwn(SearchColumns, searchResults?.search.type);
+    const shouldShowEmptyState = !isDataLoaded || data.length === 0 || !hasValidType(searchResults);
 
     if (shouldShowEmptyState) {
         return (
