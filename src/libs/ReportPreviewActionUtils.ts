@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApprovedMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getCorrectedAutoReportingFrequency, hasAccountingConnections, isAutoSyncEnabled, isPrefferedExporter} from './PolicyUtils';
 import {
     hasReportViolations,
     isClosedReport,
@@ -20,14 +20,14 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 
-function canSubmit(report: Report) {
+function canSubmit(report: Report, policy: Policy) {
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
-    const isManualSubmit = null; // TODO find out how to check it
+    const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasViolations = hasReportViolations(report.reportID);
 
-    return isExpense && isSubmitter && isOpen && isManualSubmit && !hasViolations;
+    return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasViolations;
 }
 
 function canApprove(report: Report, policy: Policy) {
@@ -88,7 +88,7 @@ function canReview(report: Report, policy: Policy) {
 }
 
 function getReportPreviewAction(report: Report, policy: Policy, reportTransactions: Transaction[], violations: TransactionViolation[]): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
-    if (canSubmit(report)) {
+    if (canSubmit(report, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, policy)) {
