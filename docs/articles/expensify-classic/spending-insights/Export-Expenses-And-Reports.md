@@ -276,7 +276,7 @@ No, exports are only available on the **web app**.
 4. Click the Print icon.
 
 ## Why isn’t my report exporting?
-If your report has many expenses with high-resolution images, the PDF download may fail. Try splitting it into smaller reports.. A report must have at least one expense to be exported or saved as a PDF.
+If your report has many expenses with high-resolution images, the PDF download may fail. Try splitting it into smaller reports. A report must have at least one expense to be exported or saved as a PDF.
 
 ## Can I download multiple PDFs at once?
 No, you must download reports individually. Use **CSV export** if you need multiple reports in one file.
