@@ -31,11 +31,13 @@ function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+
     const {q, name, groupBy} = route.params;
 
     const {queryJSON, policyID} = useMemo(() => {
         const parsedQuery = buildSearchQueryJSON(q);
         const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
+
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
 
