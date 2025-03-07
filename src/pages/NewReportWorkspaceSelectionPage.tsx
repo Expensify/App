@@ -90,7 +90,8 @@ function NewReportWorkspaceSelectionPage() {
         return options;
     }, [filteredAndSortedUserWorkspaces]);
 
-    const headerMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length ? translate('common.noResultsFound') : '';
+    const areNoResultsFound = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length;
+    const headerMessage = areNoResultsFound ? translate('common.noResultsFound') : '';
 
     return (
         <ScreenWrapper
