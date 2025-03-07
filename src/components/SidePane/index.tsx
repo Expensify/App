@@ -1,6 +1,5 @@
-import type {ParamListBase} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,32 +7,23 @@ import useEnvironment from '@hooks/useEnvironment';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSidePane from '@hooks/useSidePane';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {triggerSidePane} from '@libs/actions/SidePane';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {substituteRouteParameters} from '@libs/SidePaneUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import getHelpContent from './getHelpContent';
 import SidePaneOverlay from './SidePaneOverlay';
 
-type SidePaneProps = {
-    state: PlatformStackNavigationState<ParamListBase>;
-};
-
-function SidePane({state}: SidePaneProps) {
+function SidePane() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-
-    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop} = useSidePane();
-    const {paddingTop} = useStyledSafeAreaInsets();
-
-    const {route, isInNarrowPaneModal} = useMemo(() => {
+    const {route, isInNarrowPaneModal} = useRootNavigationState((state) => {
         const params = (findFocusedRoute(state)?.params as Record<string, string>) ?? {};
         const activeRoute = Navigation.getActiveRouteWithoutParams();
 
@@ -41,7 +31,11 @@ function SidePane({state}: SidePaneProps) {
             route: substituteRouteParameters(activeRoute, params),
             isInNarrowPaneModal: state?.routes?.some((r) => r.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR),
         };
-    }, [state]);
+    });
+
+    const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {sidePaneTranslateX, shouldHideSidePane, shouldHideSidePaneBackdrop} = useSidePane();
+    const {paddingTop} = useStyledSafeAreaInsets();
 
     const onClose = useCallback(
         (shouldUpdateNarrow = false) => {

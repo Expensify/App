@@ -65,7 +65,7 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
                     isTooltipAllowed={isReadyToDisplayBottomBar}
                 />
             </View>
-            <SidePane state={state} />
+            <SidePane />
         </>
     );
 }
