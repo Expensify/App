@@ -3459,7 +3459,8 @@ const styles = (theme: ThemeColors) =>
 
         noSelect: {
             boxShadow: 'none',
-            outlineStyle: 'none',
+            // After https://github.com/facebook/react-native/pull/46284 RN accepts only 3 options and undefined
+            outlineStyle: undefined,
         },
 
         boxShadowNone: {
