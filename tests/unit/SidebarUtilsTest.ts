@@ -243,8 +243,7 @@ describe('SidebarUtils', () => {
                 private_isArchived: DateUtils.getDBTime(),
             };
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${MOCK_REPORT.reportID}`, MOCK_REPORT);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, reportNameValuePairs);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${MOCK_REPORT.reportID}`, reportNameValuePairs);
 
             await waitForBatchedUpdates();
 
@@ -427,6 +426,8 @@ describe('SidebarUtils', () => {
                     },
                 },
             };
+            // This report with reportID 5 is already archived from previous tests
+            // where we set reportNameValuePairs with private_isArchived
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
