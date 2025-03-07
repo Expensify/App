@@ -68,7 +68,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             return;
         }
 
-        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
+        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false);
         setOnboardingAdminsChatReportID(adminsChatReportID);
         setOnboardingPolicyID(policyID);
     }, [isVsb, paidGroupPolicy, allPolicies, allPoliciesResult]);
@@ -91,6 +91,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                     case CONST.POLICY.CONNECTIONS.NAME.QBO: {
                         text = translate('workspace.accounting.qbo');
                         accountingIcon = Expensicons.QBOCircle;
+                        break;
+                    }
+                    case CONST.POLICY.CONNECTIONS.NAME.QBD: {
+                        text = translate('workspace.accounting.qbd');
+                        accountingIcon = Expensicons.QBDSquare;
                         break;
                     }
                     case CONST.POLICY.CONNECTIONS.NAME.XERO: {
@@ -183,7 +188,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         setOnboardingAdminsChatReportID();
                         setOnboardingPolicyID();
                     });
-                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID);
+                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, onboardingAdminsChatReportID);
                 }}
                 pressOnEnter
             />

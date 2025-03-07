@@ -6,6 +6,14 @@
       "sha1": "d70e12540200613e9e6ac9068bed57e4bf477bfe"
     },
     {
+      "path": "assets/fonts/native/ExpensifyMono-BoldItalic.otf",
+      "sha1": "ef9f92ba902942e232301c64bb55e79165435bcc"
+    },
+    {
+      "path": "assets/fonts/native/ExpensifyMono-Italic.otf",
+      "sha1": "874301891972b3a2a6a8ece69b978e74ac9d10a2"
+    },
+    {
       "path": "assets/fonts/native/ExpensifyMono-Regular.otf",
       "sha1": "9bbd3795afea1b1136c5b6a8ecd7d470fd5ea1b2"
     },

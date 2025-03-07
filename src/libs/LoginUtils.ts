@@ -75,4 +75,11 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
     return Str.extractEmailDomain(email1).toLowerCase() === Str.extractEmailDomain(email2).toLowerCase();
 }
 
-export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain};
+function formatE164PhoneNumber(phoneNumber: string) {
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+
+    return parsedPhoneNumber.number?.e164;
+}
+
+export {getPhoneNumberWithoutSpecialChars, appendCountryCode, isEmailPublicDomain, validateNumber, getPhoneLogin, areEmailsFromSamePrivateDomain, formatE164PhoneNumber};

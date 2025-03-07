@@ -8,11 +8,11 @@ import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
-import * as ReportActionsUtils from './ReportActionsUtils';
-import * as ReportUtils from './ReportUtils';
+import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import {getLinkedTransactionID} from './ReportActionsUtils';
+import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
-import * as TransactionUtils from './TransactionUtils';
+import {getTransactionID as TransactionUtilsGetTransactionID} from './TransactionUtils';
 
 class NumberError extends SyntaxError {
     constructor() {
@@ -60,7 +60,7 @@ type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string |
 
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
-const REPORT_REQUIRED_PROPERTIES: Array<keyof Report> = ['reportID'] satisfies Array<keyof Report>;
+const REPORT_REQUIRED_PROPERTIES: Array<keyof Report | keyof ReportNameValuePairs> = ['reportID'] satisfies Array<keyof Report | keyof ReportNameValuePairs>;
 
 const REPORT_ACTION_REQUIRED_PROPERTIES: Array<keyof ReportAction> = ['reportActionID', 'created', 'actionName'] satisfies Array<keyof ReportAction>;
 
@@ -441,7 +441,7 @@ function unionValidation(firstValidation: () => void, secondValidation: () => vo
  * @param key - property key
  * @param value - value provided by the user
  */
-function validateReportDraftProperty(key: keyof Report, value: string) {
+function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePairs, value: string) {
     if (REPORT_REQUIRED_PROPERTIES.includes(key) && isEmptyValue(value)) {
         throw SyntaxError('debug.missingValue');
     }
@@ -567,7 +567,7 @@ function validateReportDraftProperty(key: keyof Report, value: string) {
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
-            return validateObject<ObjectElement<Report, 'pendingFields'>>(value, {
+            return validateObject<ObjectElement<Report | ReportNameValuePairs, 'pendingFields'>>(value, {
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1041,6 +1041,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     linkedTrackedExpenseReportAction: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     linkedTrackedExpenseReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     bank: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    liabilityType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     cardNumber: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     managedCard: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1077,6 +1078,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 customUnit: 'object',
                 source: 'string',
                 originalTransactionID: 'string',
+                liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
                 splits: 'array',
                 dismissedViolations: 'object',
             });
@@ -1241,6 +1243,8 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
                 duplicates: 'array',
                 rterType: CONST.RTER_VIOLATION_TYPES,
                 tooltip: 'string',
+                message: 'string',
+                field: 'string',
             });
         case 'showInReview':
             return validateBoolean(value);
@@ -1299,9 +1303,9 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false):
         return null;
     }
 
-    const doesReportHaveViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+    const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
-    const reason = ReportUtils.reasonForReportToBeInOptionList({
+    const reason = reasonForReportToBeInOptionList({
         report,
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
@@ -1339,7 +1343,7 @@ function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRR
         return null;
     }
 
-    const {reason, reportAction} = ReportUtils.getReasonAndReportActionThatRequiresAttention(report) ?? {};
+    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};
@@ -1367,12 +1371,12 @@ function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: O
 }
 
 function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
-    const transactionID = TransactionUtils.getTransactionID(report?.reportID);
+    const transactionID = TransactionUtilsGetTransactionID(report?.reportID);
 
     return Number(transactionID) > 0
         ? transactionID
         : Object.values(reportActions ?? {})
-              .map((reportAction) => ReportActionsUtils.getLinkedTransactionID(reportAction))
+              .map((reportAction) => getLinkedTransactionID(reportAction))
               .find(Boolean);
 }
 

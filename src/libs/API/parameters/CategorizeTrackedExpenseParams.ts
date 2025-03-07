@@ -11,7 +11,7 @@ type CategorizeTrackedExpenseParams = {
     moneyRequestPreviewReportActionID: string | undefined;
     moneyRequestReportID: string | undefined;
     moneyRequestCreatedReportActionID: string | undefined;
-    actionableWhisperReportActionID: string;
+    actionableWhisperReportActionID: string | undefined;
     modifiedExpenseReportActionID: string;
     reportPreviewReportActionID: string | undefined;
     category?: string;
@@ -20,6 +20,14 @@ type CategorizeTrackedExpenseParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
+    waypoints?: string;
+    customUnitRateID?: string;
+    policyExpenseChatReportID?: string;
+    policyExpenseCreatedReportActionID?: string;
+    adminsChatReportID?: string;
+    adminsCreatedReportActionID?: string;
+    guidedSetupData?: string;
+    engagementChoice?: string;
 };
 
 export default CategorizeTrackedExpenseParams;

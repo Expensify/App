@@ -4,11 +4,14 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {
+    buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildParticipantsFromAccountIDs,
     buildTransactionThread,
+    canDeleteReportAction,
+    canEditWriteCapability,
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
@@ -23,6 +26,7 @@ import {
     getReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    isAllowedToApproveExpenseReport,
     isChatUsedForOnboarding,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
@@ -30,6 +34,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -216,10 +221,11 @@ const policy: Policy = {
     isPolicyExpenseChatEnabled: false,
 };
 
-Onyx.init({keys: ONYXKEYS});
-
 describe('ReportUtils', () => {
     beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
@@ -326,48 +332,58 @@ describe('ReportUtils', () => {
         });
 
         describe('Default Policy Room', () => {
+            afterEach(async () => {
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+            });
+
             const baseAdminsRoom = {
                 reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 reportName: '#admins',
             };
 
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
             test('Active', () => {
                 expect(getReportName(baseAdminsRoom)).toBe('#admins');
             });
 
-            test('Archived', () => {
-                const archivedAdminsRoom = {
-                    ...baseAdminsRoom,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    private_isArchived: DateUtils.getDBTime(),
-                };
+            test('Archived', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseAdminsRoom.reportID}`, reportNameValuePairs);
 
-                expect(getReportName(archivedAdminsRoom)).toBe('#admins (archived)');
+                expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(archivedAdminsRoom)).toBe('#admins (archivado)'));
+                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
 
         describe('User-Created Policy Room', () => {
+            afterEach(async () => {
+                await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+            });
+
             const baseUserCreatedRoom = {
                 reportID: '',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 reportName: '#VikingsChat',
             };
 
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
             test('Active', () => {
                 expect(getReportName(baseUserCreatedRoom)).toBe('#VikingsChat');
             });
 
-            test('Archived', () => {
+            test('Archived', async () => {
                 const archivedPolicyRoom = {
                     ...baseUserCreatedRoom,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    private_isArchived: DateUtils.getDBTime(),
                 };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseUserCreatedRoom.reportID}`, reportNameValuePairs);
 
                 expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
@@ -386,7 +402,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: true,
                             ownerAccountID: 1,
                         }),
-                    ).toBe('Vikings Policy');
+                    ).toBe(`Ragnar Lothbrok's expenses`);
                 });
 
                 test('as admin', () => {
@@ -398,7 +414,7 @@ describe('ReportUtils', () => {
                             isOwnPolicyExpenseChat: false,
                             ownerAccountID: 1,
                         }),
-                    ).toBe('Ragnar Lothbrok');
+                    ).toBe(`Ragnar Lothbrok's expenses`);
                 });
             });
 
@@ -409,31 +425,38 @@ describe('ReportUtils', () => {
                     ownerAccountID: 1,
                     policyID: policy.id,
                     oldPolicyName: policy.name,
-                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                };
+
+                const reportNameValuePairs = {
                     private_isArchived: DateUtils.getDBTime(),
                 };
 
-                test('as member', () => {
+                test('as member', async () => {
                     const memberArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: true,
                     };
 
-                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archived)');
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe('Vikings Policy (archivado)'));
+                    expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
+
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
+                    );
                 });
 
-                test('as admin', () => {
+                test('as admin', async () => {
                     const adminArchivedPolicyExpenseChat = {
                         ...baseArchivedPolicyExpenseChat,
                         isOwnPolicyExpenseChat: false,
                     };
 
-                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archived)');
+                    expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe('Ragnar Lothbrok (archivado)'));
+                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
+                        expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
+                    );
                 });
             });
         });
@@ -660,6 +683,16 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.length).toBe(0);
             });
 
+            it('its trip room', () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+                };
+                const moneyRequestOptions = temporary_getMoneyRequestOptions(report, undefined, [currentUserAccountID]);
+                expect(moneyRequestOptions.length).toBe(0);
+            });
+
             it('its paid Expense report', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
@@ -807,6 +840,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
 
@@ -837,6 +871,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
 
@@ -908,6 +943,7 @@ describe('ReportUtils', () => {
                     expect(moneyRequestOptions.length).toBe(2);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                     expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                    expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
                 });
             });
         });
@@ -923,6 +959,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY)).toBe(true);
+                expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
 
             it("it is user's own policy expense chat", () => {
@@ -937,6 +974,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)).toBe(true);
+                expect(moneyRequestOptions.indexOf(CONST.IOU.TYPE.SUBMIT)).toBe(0);
             });
         });
     });
@@ -1123,6 +1161,7 @@ describe('ReportUtils', () => {
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
             const accountID = 2;
+            const report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
             await Onyx.multiSet({
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
@@ -1132,10 +1171,7 @@ describe('ReportUtils', () => {
                 },
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
             });
-
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]),
-            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
             expect(isChatUsedForOnboarding(report)).toBeTruthy();
         });
@@ -1167,11 +1203,10 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
 
             // Get the quick action detail
@@ -1287,9 +1322,9 @@ describe('ReportUtils', () => {
                 expect(getGroupChatName(fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
-            it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async () => {
+            it('Should show 5 participants name with ellipsis if count > 5 and shouldApplyLimit is true', async () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two');
+                expect(getGroupChatName(eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
@@ -1501,11 +1536,10 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
             const currentReportId = '3';
             const isInFocusMode = false;
@@ -1530,11 +1564,10 @@ describe('ReportUtils', () => {
             const archivedReport: Report = {
                 ...LHNTestUtils.getFakeReport(),
                 reportID: '1',
-                private_isArchived: DateUtils.getDBTime(),
             };
             const reportNameValuePairs = {
                 type: 'chat',
-                private_isArchived: true,
+                private_isArchived: DateUtils.getDBTime(),
             };
             const currentReportId = '3';
             const isInFocusMode = true;
@@ -1729,6 +1762,13 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('buildOptimisticChatReport', () => {
+        it('should always set isPinned to false', () => {
+            const result = buildOptimisticChatReport([1, 2, 3]);
+            expect(result.isPinned).toBe(false);
+        });
+    });
+
     describe('getInvoiceChatByParticipants', () => {
         it('only returns an invoice chat if the receiver type matches', () => {
             // Given an invoice chat that has been converted from an individual to policy receiver type
@@ -1754,6 +1794,125 @@ describe('ReportUtils', () => {
             expect(getWorkspaceNameUpdatedMessage(action as ReportAction)).toEqual(
                 'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
             );
+        });
+    });
+
+    describe('isAllowedToApproveExpenseReport', () => {
+        it('should return true if the rule feature is disabled even preventSelfApproval is true', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: false,
+                preventSelfApproval: true,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+        it('should return false if preventSelfApproval is true and the manager is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: true,
+                preventSelfApproval: true,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
+        });
+        it('should return true if preventSelfApproval is false', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                areRulesEnabled: true,
+                preventSelfApproval: false,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(6),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                managerID: currentUserAccountID,
+                ownerAccountID: currentUserAccountID,
+                policyID: fakePolicy.id,
+            };
+
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+    });
+
+    describe('canEditWriteCapability', () => {
+        it('should return false for workspace chat', () => {
+            const workspaceChat: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
+        });
+    });
+
+    describe('canDeleteReportAction', () => {
+        it('should return false for delete button visibility if transaction is not allowed to be deleted', () => {
+            const parentReport = LHNTestUtils.getFakeReport();
+            const report = LHNTestUtils.getFakeReport();
+            const parentReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        moderationDecision: {
+                            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                        },
+                    },
+                ],
+                childReportID: report.reportID,
+            };
+            report.parentReportID = parentReport.reportID;
+            report.parentReportActionID = parentReportAction.reportActionID;
+            const currentReportId = '';
+            const transactionID = 1;
+            const moneyRequestAction = {
+                ...parentReportAction,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: '1',
+                    amount: 100,
+                    participantAccountID: 1,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            const transaction: Transaction = {
+                ...createRandomTransaction(transactionID),
+                category: '',
+                tag: '',
+                created: testDate,
+                reportID: currentReportId,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+            };
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
+                expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
+            });
         });
     });
 

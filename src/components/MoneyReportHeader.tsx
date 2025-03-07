@@ -5,12 +5,13 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
     canBeExported,
@@ -25,22 +26,23 @@ import {
     hasUpdatedTotal,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
-    isArchivedReport as isArchivedReportUtils,
-    isClosedExpenseReportWithNoExpenses,
-    isCurrentUserSubmitter,
+    isArchivedReportWithID,
     isInvoiceReport,
+    isReportApproved,
     navigateBackOnDeleteTransaction,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
+    checkIfShouldShowMarkAsCashButton,
     isDuplicate as isDuplicateTransactionUtils,
     isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isReceiptBeingScanned,
-    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+    shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {
@@ -72,13 +74,14 @@ import DelegateNoAccessModal from './DelegateNoAccessModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import LoadingBar from './LoadingBar';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
-import SettlementButton from './SettlementButton';
+import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -123,6 +126,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
 
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
@@ -131,7 +135,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
+    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID) && (!isReportApproved({report: moneyRequestReport}) || isApprovedAnimationRunning);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -144,46 +148,58 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const policyType = policy?.type;
     const connectedIntegration = getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
-    const hasHeldExpenses = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
-    const transactionIDs = transactions?.map((t) => t.transactionID) ?? [];
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(transactionIDs, moneyRequestReport, policy);
+    const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
+    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const violations = useMemo(
+        () => Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
+        [allViolations, transactionIDs],
+    );
+    // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    // Check if user should see broken connection violation warning.
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, moneyRequestReport, policy, violations);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
-    const isArchivedReport = isArchivedReportUtils(moneyRequestReport);
+    const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere),
+        (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
+            canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
         [moneyRequestReport, chatReport, policy, transaction],
     );
-    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
 
+    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
+    const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(moneyRequestReport?.reportID)));
+        !!transactionThreadReportID && checkIfShouldShowMarkAsCashButton(hasAllPendingRTERViolations, shouldShowBrokenConnectionViolation, moneyRequestReport, policy);
 
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
 
-    const shouldShowApproveButton = useMemo(() => canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions, [moneyRequestReport, policy, hasOnlyPendingTransactions]);
+    const shouldShowApproveButton = useMemo(
+        () => (canApproveIOU(moneyRequestReport, policy) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
+        [moneyRequestReport, policy, hasOnlyPendingTransactions, isApprovedAnimationRunning],
+    );
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, transactionIDs);
+    const filteredTransactions = transactions?.filter((t) => t) ?? [];
+    const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, filteredTransactions, violations);
 
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
         !shouldShowSubmitButton &&
         (shouldShowPayButton || shouldShowApproveButton) &&
-        !hasAllPendingRTERViolations &&
+        !shouldShowRTERViolationMessage(transactions) &&
         !shouldShowExportIntegrationButton &&
         !shouldShowBrokenConnectionViolation;
 
@@ -191,7 +207,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar =
         hasAllPendingRTERViolations || shouldShowBrokenConnectionViolation || hasOnlyHeldExpenses || hasScanningReceipt || isPayAtEndExpense || hasOnlyPendingTransactions;
-    const shouldShowNextStep = !isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
+    const shouldShowNextStep = transactions?.length !== 0 && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
     const shouldShowAnyButton =
         isDuplicate ||
         shouldShowSettlementButton ||
@@ -208,6 +224,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -224,12 +241,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             } else if (isAnyTransactionOnHold) {
                 setIsHoldMenuVisible(true);
             } else if (isInvoiceReport(moneyRequestReport)) {
+                startAnimation();
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
             } else {
+                startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {
@@ -239,6 +258,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
+            startApprovedAnimation();
             approveMoneyRequest(moneyRequestReport, true);
         }
     };
@@ -290,7 +310,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (hasOnlyHeldExpenses) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expensesOnHold')};
         }
-        if (shouldShowBrokenConnectionViolation) {
+        if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (
@@ -347,7 +367,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     }, [canDeleteRequest]);
 
     return (
-        <View style={[styles.pt0]}>
+        <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
                 shouldShowReportAvatarWithDisplay
                 shouldEnableDetailPageNavigation
@@ -357,8 +377,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                 onBackButtonPress={onBackButtonPress}
-                // Shows border if no buttons or banners are showing below the header
-                shouldShowBorderBottom={!isMoreContentShown}
+                shouldShowBorderBottom={false}
             >
                 {isDuplicate && !shouldUseNarrowLayout && (
                     <View style={[shouldDuplicateButtonBeSuccess ? styles.ml2 : styles.mh2]}>
@@ -374,8 +393,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 )}
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
-                        <SettlementButton
-                            shouldUseSuccessStyle={!hasHeldExpenses}
+                        <AnimatedSettlementButton
+                            isPaidAnimationRunning={isPaidAnimationRunning}
+                            isApprovedAnimationRunning={isApprovedAnimationRunning}
+                            onAnimationFinish={stopAnimation}
+                            canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                             onlyShowPayElsewhere={onlyShowPayElsewhere}
                             currency={moneyRequestReport?.currency}
                             confirmApproval={confirmApproval}
@@ -427,7 +449,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 )}
             </HeaderWithBackButton>
             {!!isMoreContentShown && (
-                <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
+                <View style={[styles.dFlex, styles.flexColumn, shouldAddGapToContents && styles.gap3, styles.pb3, styles.ph5]}>
                     <View style={[styles.dFlex, styles.w100, styles.flexRow, styles.gap3]}>
                         {isDuplicate && shouldUseNarrowLayout && (
                             <Button
@@ -440,8 +462,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             />
                         )}
                         {shouldShowSettlementButton && shouldUseNarrowLayout && (
-                            <SettlementButton
-                                shouldUseSuccessStyle={!hasHeldExpenses}
+                            <AnimatedSettlementButton
+                                isPaidAnimationRunning={isPaidAnimationRunning}
+                                isApprovedAnimationRunning={isApprovedAnimationRunning}
+                                onAnimationFinish={stopAnimation}
+                                canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                 wrapperStyle={[styles.flex1]}
                                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                                 currency={moneyRequestReport?.currency}
@@ -494,6 +519,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     )}
                 </View>
             )}
+            <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
@@ -504,6 +530,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     paymentType={paymentType}
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
+                    startAnimation={() => {
+                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                            startApprovedAnimation();
+                        } else {
+                            startAnimation();
+                        }
+                    }}
                     transactionCount={transactionIDs?.length ?? 0}
                 />
             )}

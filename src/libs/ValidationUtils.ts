@@ -169,6 +169,10 @@ function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
 }
 
+function isValidPaymentZipCode(zipCode: string): boolean {
+    return CONST.REGEX.ALPHANUMERIC_WITH_SPACE_AND_HYPHEN.test(zipCode);
+}
+
 function isValidSSNLastFour(ssnLast4: string): boolean {
     return CONST.REGEX.SSN_LAST_FOUR.test(ssnLast4);
 }
@@ -303,6 +307,14 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
+function isValidPhoneNumber(phoneNumber: string): boolean {
+    if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
+        return false;
+    }
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
+    return parsedPhoneNumber.possible;
+}
+
 function isValidValidateCode(validateCode: string): boolean {
     return !!validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
 }
@@ -345,10 +357,6 @@ function isValidRoutingNumber(routingNumber: string): boolean {
  */
 function isValidCompanyName(name: string) {
     return !name.match(CONST.REGEX.ALL_EMOJIS);
-}
-
-function isValidReportName(name: string) {
-    return new Blob([name.trim()]).size <= CONST.REPORT_NAME_LIMIT;
 }
 
 /**
@@ -403,6 +411,15 @@ function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, p
  */
 function isValidRoomName(roomName: string): boolean {
     return CONST.REGEX.ROOM_NAME.test(roomName);
+}
+
+/**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ */
+function isValidRoomNameWithoutLimits(roomName: string): boolean {
+    return CONST.REGEX.ROOM_NAME_WITHOUT_LIMIT.test(roomName);
 }
 
 /**
@@ -652,9 +669,11 @@ export {
     isValidDebitCard,
     isValidIndustryCode,
     isValidZipCode,
+    isValidPaymentZipCode,
     isRequiredFulfilled,
     getFieldRequiredErrors,
     isValidUSPhone,
+    isValidPhoneNumber,
     isValidWebsite,
     validateIdentity,
     isValidTwoFactorCode,
@@ -665,6 +684,7 @@ export {
     isReservedRoomName,
     isExistingRoomName,
     isValidRoomName,
+    isValidRoomNameWithoutLimits,
     isValidTaxID,
     isValidValidateCode,
     isValidCompanyName,
@@ -679,7 +699,6 @@ export {
     prepareValues,
     isValidPersonName,
     isValidPercentage,
-    isValidReportName,
     isExistingTaxName,
     isValidSubscriptionSize,
     isExistingTaxCode,

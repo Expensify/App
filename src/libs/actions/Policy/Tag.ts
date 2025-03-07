@@ -22,10 +22,11 @@ import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
+import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
+import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
@@ -689,10 +690,12 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData, {
+        checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, persistedRequests, parameters),
+    });
 
     if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID);
     }
 }
 

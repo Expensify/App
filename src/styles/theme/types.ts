@@ -100,6 +100,7 @@ type ThemeColors = {
     transparentWhite: Color;
     emptyFolderBG: Color;
     travelBG: Color;
+    trialTimer: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

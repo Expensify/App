@@ -3,8 +3,9 @@ import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
 import Log from '@libs/Log';
 import {HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
+import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
-import {getPusherSocketID} from '@libs/Pusher/pusher';
+import Pusher from '@libs/Pusher';
 import {processWithMiddleware, use} from '@libs/Request';
 import {getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
@@ -12,6 +13,7 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
+import {READ_COMMANDS} from './types';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -34,6 +36,8 @@ use(Pagination);
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
 use(SaveResponseInOnyx);
+
+let requestIndex = 0;
 
 type OnyxData = {
     optimisticData?: OnyxUpdate[];
@@ -69,13 +73,15 @@ function prepareRequest<TCommand extends ApiCommand>(
 
         // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
         // is sent back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
-        pusherSocketID: isWriteRequest ? getPusherSocketID() : undefined,
+        pusherSocketID: isWriteRequest ? Pusher.getPusherSocketID() : undefined,
     };
 
     // Assemble all request metadata (used by middlewares, and for persisted requests stored in Onyx)
     const request: SetRequired<OnyxRequest, 'data'> = {
         command,
         data,
+        initiatedOffline: isOffline(),
+        requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
         ...conflictResolver,
     };
@@ -196,6 +202,11 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
 
     // Apply optimistic updates of read requests immediately
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
+    // Sign in with shortLivedAuthToken command shouldn't be blocked by write commands
+    if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN) {
+        processRequest(request, CONST.API_REQUEST_TYPE.READ);
+        return;
+    }
     waitForWrites(command).then(() => {
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
     });
