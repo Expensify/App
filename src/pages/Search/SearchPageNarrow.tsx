@@ -31,14 +31,14 @@ const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
 const ANIMATION_DURATION_IN_MS = 300;
 
-type SearchPageBottomTabProps = {
+type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     policyID?: string;
     searchName?: string;
     shouldGroupByReports?: boolean;
 };
 
-function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageBottomTabProps) {
+function SearchPageNarrow({queryJSON, policyID, searchName, shouldGroupByReports}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();

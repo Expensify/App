@@ -13,7 +13,6 @@ import {
     filterSelfDMChat,
     filterWorkspaceChats,
     formatMemberForList,
-    getLastActorDisplayName,
     getMemberInviteOptions,
     getSearchOptions,
     getShareDestinationOptions,
@@ -810,11 +809,6 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
         expect(results.personalDetails.at(2)?.text).toBe('Captain America');
         expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
-    });
-
-    it('getLastActorDisplayName()', () => {
-        expect(getLastActorDisplayName(PERSONAL_DETAILS['2'], true)).toBe('You');
-        expect(getLastActorDisplayName(PERSONAL_DETAILS['3'], true)).toBe('Spider-Man');
     });
 
     it('formatMemberForList()', () => {
