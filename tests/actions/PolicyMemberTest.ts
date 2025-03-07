@@ -503,6 +503,7 @@ describe('actions/PolicyMember', () => {
                 });
             });
             expect(isArchived).toBe(true);
+            await mockFetch?.resume?.();
         });
     });
 
