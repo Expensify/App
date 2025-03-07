@@ -10,6 +10,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import { getBrowser, isChromeIOS } from '@libs/Browser';
 import Button from './Button';
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import Modal from './Modal';
@@ -26,6 +27,17 @@ function TestToolsModal() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const shouldShowProfileTool = () => {
+        const browser = getBrowser();
+        const isSafariOrFirefox = browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX;
+
+        if(isSafariOrFirefox || isChromeIOS()){
+            return false;
+        }
+
+        return true;
+    };
+
     return (
         <Modal
             isVisible={!!isTestToolsModalOpen}
@@ -39,7 +51,7 @@ function TestToolsModal() {
                 >
                     {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                 </Text>
-                <ProfilingToolMenu />
+                {shouldShowProfileTool() && <ProfilingToolMenu />}
                 <ClientSideLoggingToolMenu />
                 {!!shouldStoreLogs && (
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
