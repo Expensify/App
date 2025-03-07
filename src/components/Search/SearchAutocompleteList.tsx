@@ -523,6 +523,7 @@ function SearchAutocompleteList(
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
             shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
         />
     );
 }
