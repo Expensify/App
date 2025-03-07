@@ -3,7 +3,6 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import BottomTabBar from '@components/Navigation/BottomTabBar';
-import SidePane from '@components/SidePane';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,18 +54,15 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     }, [shouldDisplayBottomBar]);
 
     return (
-        <>
-            <View style={styles.topLevelBottomTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
-                {/* We are not rendering BottomTabBar conditionally for two reasons
+        <View style={styles.topLevelBottomTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
+            {/* We are not rendering BottomTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
                 2. We need to hide tooltips as well if they were displayed. */}
-                <BottomTabBar
-                    selectedTab={selectedTab}
-                    isTooltipAllowed={isReadyToDisplayBottomBar}
-                />
-            </View>
-            <SidePane />
-        </>
+            <BottomTabBar
+                selectedTab={selectedTab}
+                isTooltipAllowed={isReadyToDisplayBottomBar}
+            />
+        </View>
     );
 }
 
